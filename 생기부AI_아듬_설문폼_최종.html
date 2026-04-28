@@ -522,7 +522,7 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
     </div>
     <div class="dash-btns">
       <button class="btn-sm btn-outline" onclick="exportCSV()">📥 CSV 다운로드</button>
-      <button class="btn-sm btn-blue" onclick="bulkLinkAdum()">🔗 생기부AI 일괄 연동</button>
+
     </div>
   </div>
 
@@ -567,7 +567,7 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
   <div class="bulk-bar hidden" id="bulk-bar">
     <div class="bi"><span id="sel-count">0명</span>선택됨 · 일괄 작업을 선택하세요</div>
     <button class="bb bb-ghost" onclick="exportSelectedCSV()">⬇️ CSV 다운로드</button>
-    <button class="bb bb-solid" onclick="bulkLinkAdum()">🔗 생기부AI 일괄 연동</button>
+
   </div>
 
 </div>
@@ -952,7 +952,7 @@ function renderTable() {
       const checked = dashState.checked.has(r.id);
       const catCls = catMap[r.cat] || 'c-missing';
       const actHtml = r.submitted
-        ? `<button class="ta ta-v" onclick="openModal('${r.id}')">보기</button><button class="ta ta-l" onclick="quickLinkAdum('${r.id}')">생기부AI 연동</button>`
+        ? `<button class="ta ta-v" onclick="openModal('${r.id}')">보기</button>`
         : '<button class="ta ta-dis" disabled>미제출</button>';
       const chk = checked ? 'checked' : '';
       const rowCls = checked ? 't-row checked' : 't-row';
@@ -1091,78 +1091,7 @@ function closeModal() {
 
 
 // ═══════════════════════════════════════════════════════
-//  생기부AI 연동
-// ═══════════════════════════════════════════════════════
-const ADUM_FILE = '생기부AI_아듬_v2_GPT4o_최종.html';
-
-// 현재 모달에 열린 학생 데이터를 연동
-function linkToAdum() {
-  const nameEl = document.getElementById('modal-name');
-  const metaEl = document.getElementById('modal-meta');
-  if (!nameEl) return;
-
-  const name = nameEl.textContent;
-  // modal-meta: "학번 10301 · 1학년 3반 01번"
-  const metaText = metaEl.textContent;
-  const idMatch = metaText.match(/학번\s*(\d+)/);
-  const id = idMatch ? idMatch[1] : '';
-
-  const r = dashState.data.find(d => d.id === id);
-  if (!r) return;
-
-  sendToAdum([r]);
-}
-
-// 테이블에서 바로 연동 (보기 없이)
-function quickLinkAdum(id) {
-  const r = dashState.data.find(d => d.id === id);
-  if (!r) return;
-  sendToAdum([r]);
-}
-
-// 선택된 학생 일괄 연동
-function bulkLinkAdum() {
-  if (dashState.checked.size === 0) {
-    showToast('⚠️ 먼저 학생을 선택해주세요!');
-    return;
-  }
-  const selected = dashState.data.filter(r => dashState.checked.has(r.id));
-  sendToAdum(selected);
-}
-
-// localStorage에 저장 후 v2 파일 열기
-function sendToAdum(students) {
-  // 전달할 데이터 구조
-  const payload = {
-    timestamp: new Date().toISOString(),
-    students: students.map(r => {
-      const detail = getSampleDetail(r);
-      return {
-        id: r.id,
-        name: r.name,
-        grade: r.grade,
-        ban: r.ban,
-        num: r.num,
-        cat: r.cat,
-        preview: r.preview,
-        detail,
-      };
-    }),
-  };
-
-  // localStorage에 저장
-  localStorage.setItem('adum_linked_data', JSON.stringify(payload));
-
-  // 확인 토스트
-  const cnt = students.length;
-  showToast(`🔗 ${cnt}명 → 생기부AI로 전달 중...`);
-
-  // 잠깐 후 v2 열기 (토스트 보이게)
-  setTimeout(() => {
-    // URL 파라미터로 신호 전달 (file:// 환경에서 localStorage 공유 보장)
-    window.open(ADUM_FILE + '?linked=1', '_blank');
-  }, 800);
-}
+//  생기부AI 연동 (제거됨 - 구글 시트 직접 연동 방식으로 변경)
 
 function closeModalOutside(e) {
   if (e.target === document.getElementById('student-modal')) closeModal();
@@ -1841,16 +1770,12 @@ function renderDashboard(students) {
       + '<td style="padding:9px 12px;font-size:12px;color:#374151;">'+s.grade+'학년 '+s.ban+'반 '+s.num+'번</td>'
       + '<td style="padding:9px 12px;"><span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;background:'+catBg+';color:'+catColor+';">'+s.cat+'</span></td>'
       + '<td style="padding:9px 12px;font-size:11px;color:#6b7280;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+s.preview+'</td>'
-      + '<td style="padding:9px 12px;"><button onclick="linkOneToAdum('+i+')" style="padding:5px 12px;border:none;border-radius:7px;background:#2563eb;color:white;font-size:11px;font-weight:700;cursor:pointer;">생기부AI 연동</button></td>'
+      + '<td style="padding:9px 12px;"></td>'
       + '</tr>';
   }).join('');
 }
 
-function linkOneToAdum(idx) {
-  const students = window._dashboardStudents || [];
-  if (!students[idx]) return;
-  sendToAdum([students[idx]]);
-}
+
 
 function fpill(el){
   document.querySelectorAll('.fpill').forEach(p=>p.classList.remove('active'));
@@ -1924,7 +1849,6 @@ window.addEventListener('load', () => {
     <div class="modal-body" id="modal-body"></div>
     <div class="modal-foot">
       <button class="btn-sm btn-outline" onclick="closeModal()">닫기</button>
-      <button class="btn-sm btn-blue" onclick="linkToAdum()">🔗 생기부AI 연동</button>
     </div>
   </div>
 </div>
