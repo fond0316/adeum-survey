@@ -1683,12 +1683,17 @@ function collectData(){
   const grade = document.getElementById('f-grade')?.value.trim() || '';
   const ban   = document.getElementById('f-ban')?.value.trim()   || '';
   const num   = document.getElementById('f-num')?.value.trim()   || '';
+  // 현재 활성 탭 확인 (blue=담임, purple=수학, green=동아리)
+  let cat = '담임';
+  if (document.getElementById('form-math')?.style.display === 'block') cat = '수학';
+  else if (document.getElementById('form-club')?.style.display === 'block') cat = '동아리';
   const data = {
     name:        document.getElementById('f-name')?.value.trim() || '',
     grade,
     ban,
     num,
-    composedBan: grade && ban ? grade + '-' + ban : '',  // 생기부AI 매칭용: "1-3"
+    cat,
+    composedBan: grade && ban ? grade + '-' + ban : '',
   };
   document.querySelectorAll('[id*="_form_"]').forEach(el => {
     if (el.type === 'checkbox') { data[el.id] = el.checked; }
@@ -1809,6 +1814,7 @@ function loadFromGoogleSheet() {
       dashState.catFilter = '전체';
       dashState.banFilter = '전체';
       window._dashboardStudents = students;
+      updateStats();
       buildBanFilters();
       renderTable();
       if(statusEl) statusEl.textContent = '✅ ' + students.length + '명 완료 · ' + new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
@@ -1821,9 +1827,10 @@ function loadFromGoogleSheet() {
 }
 
 function detectCat(row) {
-  const keys = Object.keys(row).join(' ');
-  if (keys.includes('math') || keys.includes('수학')) return '수학';
-  if (keys.includes('club') || keys.includes('동아리')) return '동아리';
+  // GAS에서 저장한 '구분' 컬럼 직접 사용 (가장 정확)
+  if (row['구분']) return row['구분'];
+  // 이전 데이터 호환: cat 컬럼
+  if (row['cat']) return row['cat'];
   return '담임';
 }
 
