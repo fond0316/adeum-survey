@@ -1591,6 +1591,10 @@ function createStudentQCard(q, num, color, inputId) {
 //  로드 시 저장된 설정 복원
 // ═══════════════════════════════════════════════════════
 function loadSavedSettings() {
+  // GAS URL 칸은 항상 하드코딩 URL로 채우기 (localStorage 무관)
+  const gasUrlEl = document.getElementById('set-gas-url');
+  if (gasUrlEl && !gasUrlEl.value) gasUrlEl.value = getGasUrl();
+
   const basic = localStorage.getItem('adum_basic_settings');
   if (basic) {
     try {
