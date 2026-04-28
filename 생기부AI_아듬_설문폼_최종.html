@@ -1607,7 +1607,10 @@ function loadSavedSettings() {
       if (s.school) document.getElementById('set-school').value = s.school;
       if (s.club) document.getElementById('set-club').value = s.club;
       if (s.math) document.getElementById('set-math').value = s.math;
-      if (s.gasUrl) { const el = document.getElementById('set-gas-url'); if(el) el.value = s.gasUrl; }
+      const gasUrlEl = document.getElementById('set-gas-url');
+      if (gasUrlEl) {
+        gasUrlEl.value = s.gasUrl || getGasUrl();
+      }
       applyBasicSettings(s);
     } catch(e){}
   }
