@@ -367,7 +367,7 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
   </div>
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="switchView('student',this)">학생 폼</button>
-    <button class="nav-tab" onclick="switchView('dashboard',this)">대시보드<span class="nav-badge">32</span></button>
+    <button class="nav-tab" onclick="switchView('dashboard',this)">대시보드<span class="nav-badge" id="nav-badge-count">0</span></button>
     <button class="nav-tab" onclick="switchView('settings',this)">설정·관리</button>
   </div>
 </nav>
@@ -825,39 +825,8 @@ function deepCopy(obj) {
 // ═══════════════════════════════════════════════════════
 //  대시보드 — 샘플 데이터 & 상태
 // ═══════════════════════════════════════════════════════
-const NAMES = ['김민준','이서연','박지호','최유진','정도현','한지수','오승민','윤채원','임준혁','신예은',
-               '강민서','조현우','백수아','노태양','류지민','문소희','권도윤','허나연','양준서','송미래',
-               '전상우','남유리','홍석진','원지아','이태성','박수연','김현빈','최예린','정민호','한서진'];
-const CATS  = ['담임','수학','동아리'];
-const PREVIEWS = {
-  담임:['또래멘토링에서 멘티 학생과 함께 수학 개념을 단계별로 정리하고 성취감을 나눔',
-        '진로콘서트에서 디지털 시대 회계사 역할 변화에 대해 깊이 탐구하고 진로 방향을 구체화',
-        '1인1역할 활동에서 급식도우미를 맡아 책임감 있게 생활하며 학급 분위기 개선에 기여',
-        '백일장에서 수학과 인문의 연결고리를 주제로 에세이를 작성하여 창의적 사고 발휘'],
-  수학:['지수함수에서 정의역과 치역을 찾음에 있어 무리가 없으며 심화 개념까지 자기주도로 탐구',
-       '삼각부등식에서 어려움을 겪었으나 조별학습을 통해 극복하고 개념 이해 깊이를 높임',
-       '수열 단원에서 수학적 귀납법을 활용해 일반항을 증명하는 과정에 흥미를 보이며 성장',
-       '미적분 파트에서 극값과 최솟값 판별에 탁월한 감각을 보이며 친구들에게 설명 역할 자처'],
-  동아리:['축제 준비에서 수학 게임 부스를 맡아 문제 출제부터 운영까지 전 과정을 주도적으로 이끔',
-          '미적분의 쓸모를 읽고 희망 진로인 경제학과 수학의 연관성을 구체적으로 서술함',
-          '동아리 발표에서 황금비와 건축의 관계를 주제로 PPT를 제작하여 탐구 역량 발휘',
-          '희망 진로와 수학의 관계를 정리한 보고서에서 논리적 전개 능력이 두드러짐'],
-};
 
-const SAMPLE_DATA = NAMES.map((name, i) => {
-  const num = String(i + 1).padStart(2,'0');
-  const id = '103' + num;
-  const cat = CATS[i % 3];
-  const missing = (i % 7 === 6);
-  const prevArr = PREVIEWS[cat];
-  return {
-    id, name,
-    grade: '1', ban: '3', num,
-    cat: missing ? '미제출' : cat,
-    preview: missing ? '' : prevArr[i % prevArr.length],
-    submitted: !missing,
-  };
-});
+const SAMPLE_DATA = [];
 
 let dashState = {
   data: SAMPLE_DATA,
@@ -870,6 +839,8 @@ let dashState = {
 
 function updateStats() {
   const d = dashState.data;
+  const badge = document.getElementById('nav-badge-count');
+  if (badge) badge.textContent = d.length;
   const total = d.filter(r=>r.submitted).length;
   const dam   = d.filter(r=>r.cat==='담임').length;
   const math  = d.filter(r=>r.cat==='수학').length;
@@ -883,8 +854,8 @@ function updateStats() {
   document.getElementById('stat-math-sub').textContent = '미제출 ' + (Math.round(d.length/3) - math) + '명';
   document.getElementById('stat-club').textContent = club;
   document.getElementById('stat-club-sub').textContent = '미제출 ' + (Math.round(d.length/3) - club) + '명';
-  const badge = document.querySelector('.nav-badge');
-  if(badge) badge.textContent = total;
+  const navBadge = document.querySelector('.nav-badge');
+  if(badge) navBadge.textContent = total;
 }
 
 function buildBanFilters() {
@@ -1594,6 +1565,11 @@ function loadSavedSettings() {
   // GAS URL 칸은 항상 하드코딩 URL로 채우기 (localStorage 무관)
   const gasUrlEl = document.getElementById('set-gas-url');
   if (gasUrlEl && !gasUrlEl.value) gasUrlEl.value = getGasUrl();
+  // GitHub Pages 환경 대비 딜레이 후 재확인
+  setTimeout(() => {
+    const el = document.getElementById('set-gas-url');
+    if (el && !el.value) el.value = getGasUrl();
+  }, 500);
 
   const basic = localStorage.getItem('adum_basic_settings');
   if (basic) {
