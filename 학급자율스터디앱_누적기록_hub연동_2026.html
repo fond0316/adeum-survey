@@ -368,6 +368,17 @@ input[type=file]{display:none;}
         </div>
       </div>
 
+      <div class="card" id="noticeWriteCard" style="display:none">
+        <div class="card-title">📢 스터디 공지/규칙 <span style="font-size:11px;color:var(--gray-400);font-weight:400">(멘토만 작성)</span></div>
+        <div class="info-box">한번 작성하면 계속 유지돼요. 수정하려면 새 내용 입력 후 제출하면 돼요.</div>
+        <textarea id="noticeInput" placeholder="예) 매주 수요일 아침 7:30 교실 집합, 예습 필수, 지각 3회 시 팀 탈퇴..." style="min-height:80px"></textarea>
+      </div>
+
+      <div class="card" id="noticeViewCard" style="display:none">
+        <div class="card-title">📢 스터디 공지/규칙</div>
+        <div id="noticeContent" style="font-size:13px;color:var(--gray-700);line-height:1.8;white-space:pre-wrap"></div>
+      </div>
+
       <div class="card">
         <div class="card-title">📝 활동 내용</div>
         <div class="form-group"><label>활동 제목</label><input type="text" id="actTitle" placeholder="예) 미적분 극한 개념 정리"/></div>
@@ -625,7 +636,8 @@ async function goStep(target) {
       await loadRound();
       showScreen('record');
     } else {
-      loadKingRound(); showScreen('king');
+      showToast('⏳ 이전 기록 불러오는 중...');
+      await loadKingRound(); showScreen('king');
     }
     updateStepBar(4);
   }
@@ -649,12 +661,31 @@ function selectMemberRole(role,el) {
   document.querySelectorAll('.role-toggle').forEach(t=>t.classList.remove('selected'));
   el.classList.add('selected');
   document.getElementById('attendCard').style.display = role==='멘토'?'block':'none';
+  document.getElementById('noticeWriteCard').style.display = role==='멘토'?'block':'none';
+  document.getElementById('noticeViewCard').style.display = role==='멘티'?'block':'none';
+  // 멘티면 공지 불러오기
+  if(role==='멘티') loadNotice();
 }
 function selectSubjectChip(subj,el) {
   state.subject=subj;
   document.querySelectorAll('.subject-chip').forEach(c=>c.classList.remove('selected'));
   el.classList.add('selected');
   if(state.role==='member') document.getElementById('teamNameCard').style.display='block';
+}
+
+// ════════════════════════════════════════
+// 스터디 공지
+// ════════════════════════════════════════
+async function loadNotice() {
+  const el = document.getElementById('noticeContent');
+  el.textContent = '불러오는 중...';
+  try {
+    const url = `${GAS_URL}?action=getNotice&quarter=${encodeURIComponent(state.quarter+'분기')}&studyName=${encodeURIComponent(state.studyName)}`;
+    const data = await fetchGAS(url);
+    el.textContent = data.notice || '등록된 공지가 없어요';
+  } catch(e) {
+    el.textContent = '공지를 불러올 수 없어요';
+  }
 }
 
 // ════════════════════════════════════════
@@ -694,9 +725,20 @@ async function loadRound() {
   document.getElementById('attendCard').style.display='none';
 }
 
-function loadKingRound() {
-  const saved=localStorage.getItem(getRoundKey());
-  state.roundNum=saved?parseInt(saved)+1:1;
+async function loadKingRound() {
+  state.gasHist = [];
+  state.roundNum = 1;
+  state.totalMinutes = 0;
+  try {
+    const url = `${GAS_URL}?action=getKingRecords&name=${encodeURIComponent(state.name)}&classNum=${state.classNum}&studentNum=${state.studentNum}&quarter=${encodeURIComponent(state.quarter+'분기')}&subject=${encodeURIComponent(state.subject)}`;
+    const data = await fetchGAS(url);
+    if(data.records && data.records.length > 0) {
+      const sorted = data.records.sort((a,b)=>a.round-b.round);
+      state.roundNum = sorted[sorted.length-1].round + 1;
+      state.totalMinutes = sorted[sorted.length-1].totalMinutes || 0;
+      state.gasHist = sorted;
+    }
+  } catch(e) { console.log('왕멘토 기록 조회 실패, 1회차로 시작'); }
   document.getElementById('kingRoundBadge').textContent=`📝 왕멘토 ${state.roundNum}회차 기록`;
   state.questions=[]; renderQuestions();
 }
@@ -835,10 +877,12 @@ async function submitRecord() {
   const timeBreakdown = histWithMins.filter(h => h.mins > 0)
     .map(h => `${h.round}회차(${formatMinutes(h.mins)})`).join(' + ');
 
+  const notice = state.memberRole==='멘토' ? document.getElementById('noticeInput').value.trim() : '';
+
   await sendToGAS({type:'member',quarter:state.quarter+'분기',studyName:state.studyName,round:state.roundNum,
     name:state.name,classNum:state.classNum,studentNum:state.studentNum,memberRole:state.memberRole,
     date,time,place,title,content,reflection,nextPlan,present,absent,totalMinutes:newTotal,
-    photoCount:state.photos.length,timestamp:new Date().toISOString()});
+    notice, photoCount:state.photos.length,timestamp:new Date().toISOString()});
 
   document.getElementById('doneMessage').innerHTML = '활동일지가 성공적으로 저장되었어요 🎉';
   document.getElementById('doneSummary').innerHTML = `
@@ -891,11 +935,24 @@ async function submitKingRecord() {
   const reflection=document.getElementById('kingReflection').value.trim();
   const nextPlan=document.getElementById('kingNextPlan').value.trim();
   if(!date||!selfStudy){showToast('⚠️ 날짜와 학습 내용은 필수예요');return;}
+
+  const added = parseTimeMinutes(time);
+  const newTotal = state.totalMinutes + added;
+
   await sendToGAS({type:'king',quarter:state.quarter+'분기',subject:state.subject,round:state.roundNum,
     name:state.name,classNum:state.classNum,studentNum:state.studentNum,
     date,time,selfStudy,reflection,nextPlan,questions:JSON.stringify(state.questions),
-    photoCount:state.kingPhotos.length,timestamp:new Date().toISOString()});
-  localStorage.setItem(getRoundKey(),state.roundNum);
+    totalMinutes:newTotal, photoCount:state.kingPhotos.length,timestamp:new Date().toISOString()});
+
+  // 완료 요약 - 회차 누적
+  function sliceDateK(d){ return String(d).slice(0,10).slice(5).replace('-','/'); }
+  const allHist = [...(state.gasHist||[]), {round:state.roundNum, date, totalMinutes:newTotal}];
+  const histWithMins = allHist.map((h,i)=>{
+    const prev = i===0?0:(Number(allHist[i-1].totalMinutes)||0);
+    return {round:h.round, date:sliceDateK(h.date), mins:(Number(h.totalMinutes)||0)-prev};
+  });
+  const timeBreakdown = histWithMins.filter(h=>h.mins>0).map(h=>`${h.round}회차(${formatMinutes(h.mins)})`).join(' + ');
+
   document.getElementById('doneMessage').innerHTML = '활동일지가 성공적으로 저장되었어요 🎉';
   document.getElementById('doneSummary').innerHTML = `
     <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;">
@@ -911,13 +968,22 @@ async function submitKingRecord() {
         <span style="color:var(--gray-400);font-weight:600">담당 과목</span>
         <span style="font-weight:700">${state.subject}</span>
       </div>
-      <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
-        <span style="color:var(--gray-400);font-weight:600">날짜 / 시간</span>
-        <span style="font-weight:700">${date} ${time}</span>
+      <div style="padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
+        <div style="color:var(--gray-400);font-weight:600;margin-bottom:8px">📋 회차 기록</div>
+        <div style="font-size:12px;color:var(--gray-700);font-weight:600;line-height:2">${
+          histWithMins.map(h=>`
+            <div style="display:flex;justify-content:space-between">
+              <span>${h.round}회차</span>
+              <span style="color:var(--gray-500)">${h.date}${h.mins>0?' · '+formatMinutes(h.mins):''}</span>
+            </div>`).join('')
+        }</div>
       </div>
-      <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
-        <span style="color:var(--gray-400);font-weight:600">회차</span>
-        <span style="font-weight:700;color:var(--primary)">${state.roundNum}회차</span>
+      <div style="padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="color:var(--gray-400);font-weight:600">⏱️ 누적 활동 시간</span>
+          <span style="font-weight:800;color:var(--accent);font-size:15px">${formatMinutes(newTotal)}</span>
+        </div>
+        ${timeBreakdown?`<div style="font-size:11px;color:var(--gray-400)">${timeBreakdown} = ${formatMinutes(newTotal)}</div>`:''}
       </div>
       <div style="display:flex;justify-content:space-between">
         <span style="color:var(--gray-400);font-weight:600">질문 처리</span>
