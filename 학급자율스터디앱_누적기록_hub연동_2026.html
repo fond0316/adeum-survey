@@ -395,12 +395,15 @@ input[type=file]{display:none;}
         <input type="text" id="nextPlan" placeholder="예) 다음 주 수요일 아침, 수열 단원 문제풀이"/>
       </div>
 
-      <div class="card">
-        <div class="card-title">📷 활동 사진</div>
-        <div class="info-box">📌 스터디 활동 사진, 노트 사진 등을 첨부할 수 있어요</div>
-        <label for="photoInput" class="photo-upload-btn">📷 사진 선택 (여러 장 가능)</label>
-        <input type="file" id="photoInput" accept="image/*" multiple onchange="handlePhotoSelect(this)"/>
-        <div class="photo-preview" id="photoPreview"></div>
+      <div class="card" id="photoCheckCard">
+        <div class="card-title">📷 활동 사진 확인</div>
+        <div style="background:#FFF7ED;border:1.5px solid #FED7AA;border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:#92400E;line-height:1.7;margin-bottom:14px;">
+          📌 <b>멘토에게 안내</b><br>매 스터디 활동 시 단체사진 또는 활동 확인 사진을 반드시 촬영해 두세요.<br>사진은 추후 선생님께 별도 제출합니다.
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;" id="photoCheckBtn" onclick="togglePhotoCheck()">
+          <div id="photoCheckBox" style="width:24px;height:24px;border:2px solid var(--gray-300);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;"></div>
+          <div style="font-size:13px;font-weight:600;color:var(--gray-700)">이번 회차 활동 사진을 촬영했어요 📸</div>
+        </div>
       </div>
 
       <div class="bottom-bar"><div class="bottom-bar-inner">
@@ -430,10 +433,14 @@ input[type=file]{display:none;}
         <button class="add-question-btn" onclick="addQuestion()">+ 질문 추가</button>
       </div>
       <div class="card">
-        <div class="card-title">📷 활동 사진</div>
-        <label for="kingPhotoInput" class="photo-upload-btn">📷 사진 선택 (여러 장 가능)</label>
-        <input type="file" id="kingPhotoInput" accept="image/*" multiple onchange="handlePhotoSelect(this,'king')"/>
-        <div class="photo-preview" id="kingPhotoPreview"></div>
+        <div class="card-title">📷 활동 사진 확인</div>
+        <div style="background:#FFF7ED;border:1.5px solid #FED7AA;border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:#92400E;line-height:1.7;margin-bottom:14px;">
+          📌 매 스터디 활동 시 단체사진 또는 활동 확인 사진을 반드시 촬영해 두세요.<br>사진은 추후 선생님께 별도 제출합니다.
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;" id="kingPhotoCheckBtn" onclick="toggleKingPhotoCheck()">
+          <div id="kingPhotoCheckBox" style="width:24px;height:24px;border:2px solid var(--gray-300);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;"></div>
+          <div style="font-size:13px;font-weight:600;color:var(--gray-700)">이번 회차 활동 사진을 촬영했어요 📸</div>
+        </div>
       </div>
       <div class="card">
         <div class="card-title">🔜 다음 활동 예고</div>
@@ -674,7 +681,32 @@ function selectSubjectChip(subj,el) {
 }
 
 // ════════════════════════════════════════
-// 스터디 공지
+// 사진 체크
+// ════════════════════════════════════════
+let photoChecked = false;
+let kingPhotoChecked = false;
+
+function togglePhotoCheck() {
+  photoChecked = !photoChecked;
+  const box = document.getElementById('photoCheckBox');
+  const btn = document.getElementById('photoCheckBtn');
+  box.style.background = photoChecked ? 'var(--accent)' : 'white';
+  box.style.borderColor = photoChecked ? 'var(--accent)' : 'var(--gray-300)';
+  box.innerHTML = photoChecked ? '<span style="color:white;font-size:14px;font-weight:700">✓</span>' : '';
+  btn.style.borderColor = photoChecked ? 'var(--accent)' : 'var(--gray-200)';
+  btn.style.background = photoChecked ? 'var(--accent-light)' : 'white';
+}
+
+function toggleKingPhotoCheck() {
+  kingPhotoChecked = !kingPhotoChecked;
+  const box = document.getElementById('kingPhotoCheckBox');
+  const btn = document.getElementById('kingPhotoCheckBtn');
+  box.style.background = kingPhotoChecked ? 'var(--accent)' : 'white';
+  box.style.borderColor = kingPhotoChecked ? 'var(--accent)' : 'var(--gray-300)';
+  box.innerHTML = kingPhotoChecked ? '<span style="color:white;font-size:14px;font-weight:700">✓</span>' : '';
+  btn.style.borderColor = kingPhotoChecked ? 'var(--accent)' : 'var(--gray-200)';
+  btn.style.background = kingPhotoChecked ? 'var(--accent-light)' : 'white';
+}
 // ════════════════════════════════════════
 async function loadNotice() {
   const el = document.getElementById('noticeContent');
@@ -882,7 +914,7 @@ async function submitRecord() {
   await sendToGAS({type:'member',quarter:state.quarter+'분기',studyName:state.studyName,round:state.roundNum,
     name:state.name,classNum:state.classNum,studentNum:state.studentNum,memberRole:state.memberRole,
     date,time,place,title,content,reflection,nextPlan,present,absent,totalMinutes:newTotal,
-    notice, photoCount:state.photos.length,timestamp:new Date().toISOString()});
+    notice, photoChecked:photoChecked?'촬영완료':'미촬영', timestamp:new Date().toISOString()});
 
   document.getElementById('doneMessage').innerHTML = '활동일지가 성공적으로 저장되었어요 🎉';
   document.getElementById('doneSummary').innerHTML = `
@@ -942,7 +974,7 @@ async function submitKingRecord() {
   await sendToGAS({type:'king',quarter:state.quarter+'분기',subject:state.subject,round:state.roundNum,
     name:state.name,classNum:state.classNum,studentNum:state.studentNum,
     date,time,selfStudy,reflection,nextPlan,questions:JSON.stringify(state.questions),
-    totalMinutes:newTotal, photoCount:state.kingPhotos.length,timestamp:new Date().toISOString()});
+    totalMinutes:newTotal, photoChecked:kingPhotoChecked?'촬영완료':'미촬영', timestamp:new Date().toISOString()});
 
   // 완료 요약 - 회차 누적
   function sliceDateK(d){ return String(d).slice(0,10).slice(5).replace('-','/'); }
@@ -1010,6 +1042,7 @@ async function sendToGAS(payload) {
 // ════════════════════════════════════════
 function addNewRound() {
   state.roundNum++; state.photos=[]; state.kingPhotos=[]; state.questions=[];
+  photoChecked = false; kingPhotoChecked = false;
   if(state.role==='king'){
     document.getElementById('kingSelfStudy').value='';
     document.getElementById('kingReflection').value='';
