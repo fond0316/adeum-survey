@@ -35,6 +35,10 @@ textarea{resize:vertical;min-height:80px;line-height:1.6;}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .form-row-3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;}
 input[type=file]{display:none;}
+/* ── 활동 유형 선택 ── */
+.act-type-btn{padding:16px;border:2px solid var(--gray-200);border-radius:var(--radius);cursor:pointer;transition:all .15s;background:white;text-align:center;}
+.act-type-btn:hover{border-color:var(--primary);background:var(--primary-light);}
+.act-type-btn.selected{border-color:var(--primary);background:var(--primary-light);}
 @media(max-width:600px){
   .container{padding:20px 16px 100px;}
   .menu-card{width:calc(50% - 10px);}
@@ -258,11 +262,11 @@ input[type=file]{display:none;}
     <div class="screen" id="screen-quarter">
       <div class="card">
         <div class="card-title">📅 분기를 선택해 주세요</div>
-        <div class="quarter-grid">
-          <div class="quarter-card" onclick="selectQuarter(1,this)"><div class="q-num">1</div><div class="q-label">분기<br>1학기 중간고사 전</div></div>
-          <div class="quarter-card" onclick="selectQuarter(2,this)"><div class="q-num">2</div><div class="q-label">분기<br>1학기 기말고사 전</div></div>
-          <div class="quarter-card" onclick="selectQuarter(3,this)"><div class="q-num">3</div><div class="q-label">분기<br>2학기 중간고사 전</div></div>
-          <div class="quarter-card" onclick="selectQuarter(4,this)"><div class="q-num">4</div><div class="q-label">분기<br>2학기 기말고사 전</div></div>
+        <div class="quarter-grid" id="quarterGrid">
+          <div class="quarter-card" onclick="selectQuarter(1,this)"><div class="q-num">1</div><div class="q-label" id="qlabel1">분기</div></div>
+          <div class="quarter-card" onclick="selectQuarter(2,this)"><div class="q-num">2</div><div class="q-label" id="qlabel2">분기</div></div>
+          <div class="quarter-card" onclick="selectQuarter(3,this)"><div class="q-num">3</div><div class="q-label" id="qlabel3">분기</div></div>
+          <div class="quarter-card" onclick="selectQuarter(4,this)"><div class="q-num">4</div><div class="q-label" id="qlabel4">분기</div></div>
         </div>
       </div>
       <div class="bottom-bar"><div class="bottom-bar-inner">
@@ -320,9 +324,53 @@ input[type=file]{display:none;}
         <div class="info-box">예) A팀, 1모둠, 드림팀 등 자유롭게 입력하세요</div>
         <input type="text" id="teamNameInput" placeholder="팀명 입력"/>
       </div>
+
+      <!-- 활동 유형 선택 -->
+      <div class="card" id="actTypeCard" style="display:none">
+        <div class="card-title">📋 무엇을 기록할까요?</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="act-type-btn selected" id="typeBtn-record" onclick="selectActType('record',this)">
+            <div style="font-size:20px;margin-bottom:4px">📝</div>
+            <div style="font-size:14px;font-weight:700">활동 기록</div>
+            <div style="font-size:11px;color:var(--gray-400);margin-top:2px">회차별 스터디 활동 내용 기록</div>
+          </div>
+          <div class="act-type-btn" id="typeBtn-final" onclick="selectActType('final',this)">
+            <div style="font-size:20px;margin-bottom:4px">🏁</div>
+            <div style="font-size:14px;font-weight:700">최종 느낀점</div>
+            <div style="font-size:11px;color:var(--gray-400);margin-top:2px">분기 마무리 소감 작성 (생기부 활용)</div>
+          </div>
+        </div>
+      </div>
       <div class="bottom-bar"><div class="bottom-bar-inner">
         <button class="btn btn-secondary" style="flex:1" onclick="goStep('info')">← 이전</button>
         <button class="btn btn-primary" style="flex:2" onclick="goStep('record')">다음 →</button>
+      </div></div>
+    </div>
+
+    <!-- STEP 4: 최종 느낀점 -->
+    <div class="screen" id="screen-final">
+      <div class="round-badge">🏁 분기 최종 느낀점</div>
+      <div class="card">
+        <div class="card-title">✍️ 최종 느낀점을 작성해 주세요</div>
+        <div style="background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:#166534;line-height:1.7;margin-bottom:14px;">
+          💡 이번 분기 스터디를 통해 배운 점, 성장한 점, 아쉬운 점 등을 자유롭게 적어주세요.<br>선생님이 생기부 작성 시 활용할 예정이에요.
+        </div>
+        <div class="form-group">
+          <label>배운 점 / 성장한 점</label>
+          <textarea id="finalGrowth" placeholder="이번 분기 스터디를 통해 배우고 성장한 점을 적어주세요..." style="min-height:100px"></textarea>
+        </div>
+        <div class="form-group">
+          <label>아쉬운 점 / 다음 분기 목표</label>
+          <textarea id="finalImprove" placeholder="아쉬웠던 점이나 다음 분기에 더 잘하고 싶은 점을 적어주세요..." style="min-height:80px"></textarea>
+        </div>
+        <div class="form-group">
+          <label>한 줄 소감</label>
+          <input type="text" id="finalOneLine" placeholder="이번 분기 스터디를 한 문장으로 표현한다면?"/>
+        </div>
+      </div>
+      <div class="bottom-bar"><div class="bottom-bar-inner">
+        <button class="btn btn-secondary" style="flex:1" onclick="goStep('study')">← 이전</button>
+        <button class="btn btn-accent" style="flex:2" onclick="submitFinal()">✅ 제출하기</button>
       </div></div>
     </div>
 
@@ -503,6 +551,28 @@ input[type=file]{display:none;}
       <div style="font-size:11px;color:var(--gray-400);margin-top:8px">현재: <b id="currentYearDisplay">2026</b>학년도</div>
     </div>
 
+    <!-- 분기 날짜 설정 -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">🗓️ 분기 기간 설정</div>
+      <div class="info-box">설정한 날짜가 학생 분기 선택 화면에 표시돼요</div>
+      <div id="quarterDateSettings">
+        ${[1,2,3,4].map(q=>`
+        <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--gray-100)">
+          <div style="font-size:12px;font-weight:700;color:var(--gray-700);margin-bottom:8px">${q}분기</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div>
+              <label>시작일</label>
+              <input type="date" id="q${q}start" onchange="saveQuarterDates()"/>
+            </div>
+            <div>
+              <label>종료일</label>
+              <input type="date" id="q${q}end" onchange="saveQuarterDates()"/>
+            </div>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>
+
     <!-- 필터 -->
     <div class="filter-bar" id="adminFilterBar">
       <button class="filter-chip active" onclick="filterAdmin('all',this)">전체</button>
@@ -558,9 +628,9 @@ window.onload = function() {
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('actDate').value = today;
   document.getElementById('kingActDate').value = today;
-  // 학년도 불러오기
   const savedYear = localStorage.getItem('app_year') || '2026';
   applyYear(savedYear);
+  updateQuarterLabels();
   showScreen('home');
   updateStepBar(0);
 };
@@ -639,11 +709,14 @@ async function goStep(target) {
       const teamName=document.getElementById('teamNameInput').value.trim();
       if(!teamName){showToast('⚠️ 팀명을 입력해 주세요');return;}
       state.studyName=state.subject+' '+teamName;
-      showToast('⏳ 이전 기록 불러오는 중...');
-      await loadRound();
-      showScreen('record');
+    }
+    if(actType==='final') {
+      showScreen('final'); updateStepBar(4); return;
+    }
+    showToast('⏳ 이전 기록 불러오는 중...');
+    if(state.role==='member') {
+      await loadRound(); showScreen('record');
     } else {
-      showToast('⏳ 이전 기록 불러오는 중...');
       await loadKingRound(); showScreen('king');
     }
     updateStepBar(4);
@@ -677,7 +750,14 @@ function selectSubjectChip(subj,el) {
   state.subject=subj;
   document.querySelectorAll('.subject-chip').forEach(c=>c.classList.remove('selected'));
   el.classList.add('selected');
-  if(state.role==='member') document.getElementById('teamNameCard').style.display='block';
+  if(state.role==='member') {
+    document.getElementById('teamNameCard').style.display='block';
+  }
+  document.getElementById('actTypeCard').style.display='block';
+  // actType 초기화
+  actType='record';
+  document.querySelectorAll('.act-type-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('typeBtn-record').classList.add('selected');
 }
 
 // ════════════════════════════════════════
@@ -707,6 +787,97 @@ function toggleKingPhotoCheck() {
   btn.style.borderColor = kingPhotoChecked ? 'var(--accent)' : 'var(--gray-200)';
   btn.style.background = kingPhotoChecked ? 'var(--accent-light)' : 'white';
 }
+// ════════════════════════════════════════
+// 분기 날짜 설정
+// ════════════════════════════════════════
+function saveQuarterDates() {
+  const dates = {};
+  [1,2,3,4].forEach(q => {
+    const s = document.getElementById(`q${q}start`);
+    const e = document.getElementById(`q${q}end`);
+    dates[q] = { start: s?.value||'', end: e?.value||'' };
+  });
+  localStorage.setItem('quarter_dates', JSON.stringify(dates));
+  updateQuarterLabels();
+  showToast('✅ 분기 기간이 저장되었어요!');
+}
+
+function loadQuarterDates() {
+  const saved = JSON.parse(localStorage.getItem('quarter_dates')||'{}');
+  [1,2,3,4].forEach(q => {
+    const s = document.getElementById(`q${q}start`);
+    const e = document.getElementById(`q${q}end`);
+    if(s && saved[q]) s.value = saved[q].start||'';
+    if(e && saved[q]) e.value = saved[q].end||'';
+  });
+  updateQuarterLabels();
+}
+
+function updateQuarterLabels() {
+  const saved = JSON.parse(localStorage.getItem('quarter_dates')||'{}');
+  [1,2,3,4].forEach(q => {
+    const el = document.getElementById(`qlabel${q}`);
+    if(!el) return;
+    const d = saved[q];
+    if(d && d.start && d.end) {
+      const s = d.start.slice(5).replace('-','/');
+      const e = d.end.slice(5).replace('-','/');
+      el.innerHTML = `분기<br><span style="font-size:10px">${s} ~ ${e}</span>`;
+    } else {
+      el.innerHTML = `분기`;
+    }
+  });
+}
+
+// ════════════════════════════════════════
+// 활동 유형 선택
+// ════════════════════════════════════════
+let actType = 'record';
+
+function selectActType(type, el) {
+  actType = type;
+  document.querySelectorAll('.act-type-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// ════════════════════════════════════════
+// 최종 느낀점 제출
+// ════════════════════════════════════════
+async function submitFinal() {
+  const growth = document.getElementById('finalGrowth').value.trim();
+  const improve = document.getElementById('finalImprove').value.trim();
+  const oneLine = document.getElementById('finalOneLine').value.trim();
+  if(!growth) { showToast('⚠️ 배운 점/성장한 점은 필수예요'); return; }
+  await sendToGAS({
+    type:'final', quarter:state.quarter+'분기', studyName:state.studyName,
+    name:state.name, classNum:state.classNum, studentNum:state.studentNum,
+    role: state.role==='king'?'왕멘토/부멘토':state.memberRole||'',
+    subject:state.subject, growth, improve, oneLine,
+    timestamp:new Date().toISOString()
+  });
+  document.getElementById('doneMessage').innerHTML = '최종 느낀점이 저장되었어요 🎉';
+  document.getElementById('doneSummary').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;">
+      <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
+        <span style="color:var(--gray-400);font-weight:600">이름</span>
+        <span style="font-weight:700">${state.name} (${state.classNum}반 ${state.studentNum}번)</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
+        <span style="color:var(--gray-400);font-weight:600">스터디</span>
+        <span style="font-weight:700">${state.studyName} · ${state.quarter}분기</span>
+      </div>
+      <div style="padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
+        <div style="color:var(--gray-400);font-weight:600;margin-bottom:6px">배운 점 / 성장한 점</div>
+        <div style="font-size:12px;color:var(--gray-700);line-height:1.7">${growth}</div>
+      </div>
+      ${oneLine?`<div style="display:flex;justify-content:space-between">
+        <span style="color:var(--gray-400);font-weight:600">한 줄 소감</span>
+        <span style="font-weight:700;color:var(--primary);text-align:right;max-width:60%">${oneLine}</span>
+      </div>`:''}
+    </div>`;
+  showScreen('done'); updateStepBar(5);
+}
+
 // ════════════════════════════════════════
 async function loadNotice() {
   const el = document.getElementById('noticeContent');
@@ -1076,6 +1247,7 @@ function checkPw(){
     const savedYear = localStorage.getItem('app_year') || '2026';
     document.getElementById('yearInput').value = savedYear;
     document.getElementById('currentYearDisplay').textContent = savedYear;
+    loadQuarterDates();
     loadAdminData();
   } else { showToast('⚠️ 비밀번호가 틀렸어요'); document.getElementById('pwInput').value=''; }
 }
