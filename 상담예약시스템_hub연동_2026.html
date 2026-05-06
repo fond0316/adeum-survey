@@ -206,28 +206,12 @@ textarea.form-input{resize:none;height:76px;line-height:1.6;}
 </head>
 <body>
 
-<!-- ===================== GAS URL 초기 설정 ===================== -->
-<div class="screen active" id="gasSetupScreen">
-  <div class="gas-setup-screen">
-    <div class="gas-setup-icon">🔗</div>
-    <div class="gas-setup-title">GAS 연동 설정</div>
-    <div class="gas-setup-desc">
-      Google Apps Script 웹앱 URL을 입력하면<br>
-      모든 데이터가 구글 시트에서 실시간으로 관리돼요.<br><br>
-      <span style="font-size:12px;color:var(--gray-400);">한 번만 입력하면 이 기기에 저장됩니다.</span>
-    </div>
-    <input class="gas-url-input" id="gasUrlInput" placeholder="https://script.google.com/macros/s/..." type="url">
-    <button class="btn btn-primary" onclick="connectGAS()" style="max-width:420px;margin-bottom:12px;">연결하기</button>
-    <div id="gasConnectMsg" style="font-size:13px;margin-top:8px;display:none;"></div>
-  </div>
-</div>
 
 <!-- ===================== 학부모 메인 ===================== -->
 <div class="screen" id="mainScreen">
   <!-- GAS 연결 상태 -->
   <div class="gas-banner loading" id="gasBanner" style="display:flex;align-items:center;justify-content:center;gap:10px;">
     <span id="gasBannerText">⏳ 데이터 불러오는 중...</span>
-    <button onclick="openUrlChangeModal()" style="font-size:11px;padding:2px 8px;border-radius:10px;border:1px solid rgba(0,0,0,0.15);background:rgba(255,255,255,0.4);cursor:pointer;font-family:'Pretendard',sans-serif;color:inherit;">🔧 URL 변경</button>
   </div>
 
   <!-- URL 변경 모달 -->
@@ -250,7 +234,7 @@ textarea.form-input{resize:none;height:76px;line-height:1.6;}
       <div>
         <div class="header-title">📅 학부모 상담 예약</div>
         <div class="header-meta">날짜와 시간을 선택해 예약하세요</div>
-        <div class="header-meta" style="margin-top:1px;">Made by Cheon_R</div>
+        <div class="header-meta" style="margin-top:1px;display:flex;align-items:center;gap:6px;">Made by Cheon_R <button onclick="showAdminLogin()" style="font-size:11px;color:var(--gray-400);background:none;border:1px solid var(--gray-300);border-radius:20px;padding:2px 8px;cursor:pointer;font-family:'Pretendard',sans-serif;white-space:nowrap;">⚙️ 관리자</button></div>
       </div>
       <div class="teacher-badge">
         <div class="teacher-name" id="teacherNameBadge">천아름 선생님</div>
@@ -368,9 +352,7 @@ textarea.form-input{resize:none;height:76px;line-height:1.6;}
   </div>
 
   <div class="footer">© 2026 · Made by Cheon_R</div>
-  <div style="position:fixed;bottom:20px;right:20px;z-index:100;">
-    <button onclick="showAdminLogin()" style="background:var(--white);border:1.5px solid var(--gray-200);border-radius:50px;padding:8px 16px;font-size:12px;color:var(--gray-500);cursor:pointer;font-family:'Pretendard',sans-serif;box-shadow:var(--shadow-md);">⚙️ 관리자</button>
-  </div>
+
 </div>
 
 <!-- ===================== 예약 완료 ===================== -->
@@ -407,6 +389,7 @@ textarea.form-input{resize:none;height:76px;line-height:1.6;}
     <button class="admin-nav-btn active" onclick="switchAdminTab('settings')" id="aTab-settings">⚙️ 기본 설정</button>
     <button class="admin-nav-btn" onclick="switchAdminTab('slots')" id="aTab-slots">📅 날짜/시간</button>
     <button class="admin-nav-btn" onclick="switchAdminTab('bookings')" id="aTab-bookings">📋 예약 현황</button>
+    <button class="admin-nav-btn" onclick="switchAdminTab('gasurl')" id="aTab-gasurl">🔗 GAS 연결</button>
   </div>
   <div class="admin-body">
 
@@ -493,6 +476,24 @@ textarea.form-input{resize:none;height:76px;line-height:1.6;}
         <div class="info-box"><p>날짜를 추가하고, 각 날짜마다 가능한 시간 슬롯을 추가해 주세요.</p></div>
         <button class="btn btn-primary" onclick="openAddDayModal()" style="margin-bottom:16px;">+ 날짜 추가</button>
         <div id="daySlotList"></div>
+      </div>
+    </div>
+
+    <!-- GAS URL 설정 -->
+    <div class="admin-section" id="adminSec-gasurl">
+      <div class="admin-card">
+        <div class="admin-card-title">🔗 GAS 웹앱 URL 설정</div>
+        <div class="info-box"><p>Google Apps Script 웹앱 URL을 여기서 변경할 수 있어요.<br>학부모는 이 화면을 볼 수 없으니 안전하게 관리하세요.</p></div>
+        <div class="form-group">
+          <label class="form-label">현재 연결된 URL</label>
+          <div id="currentGasUrlDisplay" style="font-size:12px;color:var(--gray-500);background:var(--gray-50);border-radius:8px;padding:10px 12px;word-break:break-all;margin-bottom:14px;border:1px solid var(--gray-200);"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">새 GAS 웹앱 URL</label>
+          <input class="form-input" id="adminGasUrlInput" placeholder="https://script.google.com/macros/s/..." type="url">
+        </div>
+        <div id="adminGasUrlMsg" style="font-size:13px;margin-bottom:10px;display:none;"></div>
+        <button class="btn btn-primary" onclick="adminSaveGasUrl()">🔗 연결 확인 후 저장</button>
       </div>
     </div>
 
@@ -594,12 +595,16 @@ textarea.form-input{resize:none;height:76px;line-height:1.6;}
 
 <script>
 // ══════════════════════════════════════════════════════
-// GAS URL 관리 (localStorage - 이 기기 URL만 저장)
+// GAS URL 설정 (관리자가 직접 입력 - 학부모는 보지 않음)
 // ══════════════════════════════════════════════════════
 const GAS_URL_KEY = 'consultGasUrl';
 const DAY_NAMES   = ['일','월','화','수','목','금','토'];
 
-let GAS_URL  = localStorage.getItem(GAS_URL_KEY) || '';
+// ▼▼▼ 여기에 GAS 웹앱 URL을 붙여넣으세요 ▼▼▼
+const DEFAULT_GAS_URL = '';
+// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+let GAS_URL = localStorage.getItem(GAS_URL_KEY) || DEFAULT_GAS_URL;
 
 // 앱 상태 (메모리)
 let appSettings = { teacherName:'천아름 선생님', teacherRole:'2026년도 1-4 담임교사', password:'0413', phoneEnabled:false, bookingEnabled:true, notice:'' };
@@ -610,37 +615,6 @@ let state = { currentStep:1, consultType:null, selectedDate:null, selectedTime:n
 let bookingFilter = 'all';
 let bookingSort   = 'date';
 
-// ── GAS 초기 연결 ─────────────────────────────────────
-async function connectGAS() {
-  const url = document.getElementById('gasUrlInput').value.trim();
-  const msg = document.getElementById('gasConnectMsg');
-  if (!url || !url.startsWith('https://script.google.com')) {
-    msg.style.display = '';
-    msg.style.color   = '#DC2626';
-    msg.textContent   = '올바른 GAS 웹앱 URL을 입력해 주세요.';
-    return;
-  }
-  msg.style.display = '';
-  msg.style.color   = '#D97706';
-  msg.textContent   = '⏳ 연결 확인 중...';
-
-  try {
-    const res = await fetch(url + '?action=getAll', { mode:'cors' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    if (data.result !== 'success') throw new Error(data.message || 'GAS 오류');
-
-    localStorage.setItem(GAS_URL_KEY, url);
-    GAS_URL = url;
-    msg.style.color   = '#059669';
-    msg.textContent   = '✅ 연결됐어요! 이동합니다...';
-    applyAllData(data);
-    setTimeout(() => showScreen('mainScreen'), 800);
-  } catch (err) {
-    msg.style.color   = '#DC2626';
-    msg.textContent   = '❌ 연결 실패: ' + err.message;
-  }
-}
 
 // ── GAS 호출 유틸 (JSONP 방식 - CORS 우회) ────────────
 function jsonp(url) {
@@ -676,9 +650,39 @@ async function loadAll() {
     if (data.result !== 'success') throw new Error(data.message);
     applyAllData(data);
     setBanner('ok', '✅ GAS 연결됨 · 실시간 동기화 중');
+    startPolling();
   } catch(err) {
     setBanner('err', '❌ GAS 연결 실패 · ' + err.message);
   }
+}
+
+// ── 슬롯 자동 폴링 (30초마다 booked 상태 갱신) ────────
+let _pollingTimer = null;
+async function pollSlots() {
+  if (!GAS_URL) return;
+  try {
+    const res = await gasGet({ action:'getSlots' });
+    if (res.result !== 'success') return;
+    // booked 상태만 조용히 갱신 (선택 중인 UI 건드리지 않음)
+    res.data.forEach(newDay => {
+      const di = appSlots.findIndex(d => d.dateKey === newDay.dateKey);
+      if (di < 0) return;
+      newDay.slots.forEach(newSlot => {
+        const si = appSlots[di].slots.findIndex(s => s.id === newSlot.id);
+        if (si >= 0) appSlots[di].slots[si].booked = newSlot.booked;
+      });
+    });
+    renderDateGrid();
+    // 시간 선택 화면이면 timeGrid도 갱신
+    if (state.currentStep === 3) renderTimeGrid();
+  } catch(e) {}  // 조용히 실패
+}
+function startPolling() {
+  if (_pollingTimer) clearInterval(_pollingTimer);
+  _pollingTimer = setInterval(pollSlots, 30000);  // 30초
+}
+function stopPolling() {
+  if (_pollingTimer) { clearInterval(_pollingTimer); _pollingTimer = null; }
 }
 
 function applyAllData(data) {
@@ -927,6 +931,7 @@ async function submitBooking() {
     document.getElementById('successDesc').innerHTML = state.consultType==='phone'
       ? '선생님이 예약 시간에 맞춰 전화 드릴 예정이에요.<br>연락처를 확인해 두세요.'
       : '상담 당일 잊지 말고 방문해 주세요.<br>변경이 필요하시면 담임 선생님께 연락해 주세요.';
+    stopPolling();
     showScreen('successScreen');
 
   } catch(err) {
@@ -990,6 +995,36 @@ function switchAdminTab(t) {
   document.querySelectorAll('.admin-section').forEach(s=>s.classList.remove('active'));
   document.getElementById('aTab-'+t).classList.add('active');
   document.getElementById('adminSec-'+t).classList.add('active');
+  if (t === 'gasurl') {
+    const disp = document.getElementById('currentGasUrlDisplay');
+    disp.textContent = GAS_URL || '(미설정)';
+    document.getElementById('adminGasUrlInput').value = GAS_URL || '';
+    document.getElementById('adminGasUrlMsg').style.display = 'none';
+  }
+  if (t === 'bookings') adminLoadBookings();
+}
+
+// ── GAS URL 관리자 저장 ───────────────────────────────
+async function adminSaveGasUrl() {
+  const url = document.getElementById('adminGasUrlInput').value.trim();
+  const msg = document.getElementById('adminGasUrlMsg');
+  if (!url || !url.startsWith('https://script.google.com')) {
+    msg.style.display=''; msg.style.color='#DC2626'; msg.textContent='올바른 GAS 웹앱 URL을 입력해 주세요.'; return;
+  }
+  msg.style.display=''; msg.style.color='#D97706'; msg.textContent='⏳ 연결 확인 중...';
+  try {
+    const res = await fetch(url + '?action=getAll', { mode:'cors' });
+    const data = await res.json();
+    if (data.result !== 'success') throw new Error(data.message || 'GAS 오류');
+    localStorage.setItem(GAS_URL_KEY, url);
+    GAS_URL = url;
+    document.getElementById('currentGasUrlDisplay').textContent = url;
+    msg.style.color='#059669'; msg.textContent='✅ 연결 성공! URL이 저장됐어요.';
+    applyAllData(data);
+    setBanner('ok', '✅ GAS 연결됨 · 실시간 동기화 중');
+  } catch(err) {
+    msg.style.display=''; msg.style.color='#DC2626'; msg.textContent='❌ 연결 실패: ' + err.message;
+  }
 }
 
 // ── 관리자 설정 저장 (모두 GAS POST) ─────────────────
@@ -1234,6 +1269,7 @@ function goHome() {
   ['inputStudent','inputParent','inputContact','inputMemo'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   state = { currentStep:1, consultType:null, selectedDate:null, selectedTime:null };
   goStep(1); showScreen('mainScreen'); loadAll();
+  startPolling();
 }
 function autoHyphen(el) {
   let v=el.value.replace(/[^0-9]/g,'');
@@ -1251,11 +1287,11 @@ function showToast(msg='✅ 저장됐어요!') {
 // 진입점
 // ══════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
+  showScreen('mainScreen');
   if (GAS_URL) {
-    showScreen('mainScreen');
-    loadAll();
+    loadAll();  // loadAll 성공 시 내부에서 startPolling() 호출됨
   } else {
-    showScreen('gasSetupScreen');
+    setBanner('err', '❌ GAS URL 미설정 · 관리자에게 문의하세요');
   }
 });
 </script>
