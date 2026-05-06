@@ -231,6 +231,14 @@ input[type=file]{display:none;}
 /* ── 관리자 GAS URL 탭 ── */
 .admin-gasurl-card{background:white;border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow);}
 .admin-gasurl-card .ag-title{font-size:14px;font-weight:700;color:var(--gray-700);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+
+/* ── 내 기록 보기: 읽기 모드 필드 ── */
+.view-field{display:flex;align-items:flex-start;gap:8px;padding:9px 0;border-bottom:1px solid var(--gray-100);}
+.view-field:last-child{border-bottom:none;}
+.view-field.vf-block{flex-direction:column;gap:6px;}
+.vf-label{font-size:11px;font-weight:700;color:var(--gray-400);min-width:90px;flex-shrink:0;padding-top:1px;}
+.vf-val{font-size:13px;color:var(--gray-800);font-weight:500;flex:1;}
+.vf-text{font-size:13px;color:var(--gray-800);line-height:1.7;white-space:pre-wrap;background:var(--gray-50);border-radius:var(--radius-sm);padding:10px 12px;width:100%;}
 </style>
 </head>
 <body>
@@ -260,21 +268,94 @@ input[type=file]{display:none;}
   </div>
 </div>
 
-<!-- ★ 회차 열람/수정 모달 -->
-<div class="round-modal-overlay" id="roundModal">
+<!-- ★ 내 기록 보기 — STEP 1: 학번/이름 입력 -->
+<div class="round-modal-overlay" id="myRecordsLoginModal">
+  <div class="round-modal" style="border-radius:20px 20px 0 0;">
+    <div class="round-modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <div class="round-modal-title">🗂️ 내 기록 보기</div>
+      <button onclick="closeMyRecordsLogin()" style="background:none;border:none;font-size:22px;color:var(--gray-400);cursor:pointer;padding:0 4px;">✕</button>
+    </div>
+    <div class="info-box" style="margin-bottom:16px;">학번과 이름을 입력하면 제출한 모든 회차 기록을 확인하고 수정할 수 있어요.</div>
+    <div class="form-row-3" style="margin-bottom:10px;">
+      <div class="form-group"><label>이름</label><input type="text" id="myRec_name" placeholder="홍길동"/></div>
+      <div class="form-group"><label>반</label><input type="number" id="myRec_class" placeholder="1" min="1" max="12"/></div>
+      <div class="form-group"><label>번호</label><input type="number" id="myRec_num" placeholder="1" min="1" max="40"/></div>
+    </div>
+    <div id="myRecLoginError" style="font-size:12px;color:var(--danger);margin-bottom:10px;display:none;"></div>
+    <button class="btn btn-primary" onclick="loadMyRecordsList()">📋 기록 불러오기</button>
+  </div>
+</div>
+
+<!-- ★ 내 기록 보기 — STEP 2: 회차 목록 표 -->
+<div class="round-modal-overlay" id="myRecordsListModal">
+  <div class="round-modal" style="border-radius:20px 20px 0 0;">
+    <div class="round-modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <button onclick="backToMyRecordsLogin()" style="background:none;border:none;font-size:13px;font-weight:700;color:var(--primary);cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;">← 뒤로</button>
+      <button onclick="closeAllMyRecordsModals()" style="background:none;border:none;font-size:22px;color:var(--gray-400);cursor:pointer;padding:0 4px;">✕</button>
+    </div>
+    <div class="round-modal-title" id="myRecordsListTitle" style="margin-bottom:14px;">📋 내 기록 목록</div>
+
+    <!-- 요약 바 -->
+    <div id="myRecordsSummaryBar" style="display:none;background:linear-gradient(135deg,var(--primary),#6366F1);color:white;border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:11px;opacity:.85;">누적 제출 회차</div>
+        <div style="font-size:22px;font-weight:800;" id="myRecordsTotalRounds">-</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:11px;opacity:.85;">누적 스터디 시간</div>
+        <div style="font-size:20px;font-weight:800;" id="myRecordsTotalTime">-</div>
+      </div>
+    </div>
+
+    <!-- 회차 표 -->
+    <div id="myRecordsTableWrap" style="min-height:80px;"></div>
+  </div>
+</div>
+
+<!-- ★ 내 기록 보기 — STEP 3: 회차 상세 팝업 (뷰어 + 수정) -->
+<div class="round-modal-overlay" id="myRecordsDetailModal">
+  <div class="round-modal" style="border-radius:20px 20px 0 0;">
+    <div class="round-modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <button onclick="backToMyRecordsList()" style="background:none;border:none;font-size:13px;font-weight:700;color:var(--primary);cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;">← 목록으로</button>
+      <button onclick="closeAllMyRecordsModals()" style="background:none;border:none;font-size:22px;color:var(--gray-400);cursor:pointer;padding:0 4px;">✕</button>
+    </div>
+    <div class="round-modal-title" id="myRecordsDetailTitle" style="margin-bottom:14px;">📄 회차 상세</div>
+
+    <!-- 읽기 모드 -->
+    <div id="myRecordsViewMode">
+      <div id="myRecordsViewContent"></div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="btn btn-secondary" style="flex:1" onclick="backToMyRecordsList()">닫기</button>
+        <button class="btn btn-primary" style="flex:2" onclick="switchToEditMode()">✏️ 수정하기</button>
+      </div>
+    </div>
+
+    <!-- 수정 모드 -->
+    <div id="myRecordsEditMode" style="display:none;">
+      <div class="edit-mode-banner">✏️ 내용을 수정하고 저장 버튼을 누르세요</div>
+      <div id="myRecordsEditContent"></div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="btn btn-secondary" style="flex:1" onclick="switchToViewMode()">취소</button>
+        <button class="btn btn-accent" style="flex:2" onclick="saveMyRecordEdit()">💾 수정 저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 기존 round modal (관리자용으로 유지, 숨김) -->
+<div class="round-modal-overlay" id="roundModal" style="display:none!important;">
   <div class="round-modal">
     <div class="round-modal-handle"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
       <div class="round-modal-title" id="roundModalTitle">📋 내 기록 열람</div>
       <button onclick="closeRoundModal()" style="background:none;border:none;font-size:22px;color:var(--gray-400);cursor:pointer;padding:0 4px;">✕</button>
     </div>
-
-    <!-- 회차 목록 -->
     <div class="round-list-view" id="roundListView">
       <div id="roundListContent" style="min-height:80px"></div>
     </div>
-
-    <!-- 회차 상세/수정 -->
     <div class="round-detail-view" id="roundDetailView">
       <button onclick="backToRoundList()" style="background:none;border:none;font-size:13px;font-weight:700;color:var(--primary);cursor:pointer;padding:0;margin-bottom:14px;display:flex;align-items:center;gap:4px;">← 목록으로</button>
       <div class="edit-mode-banner">✏️ 내용을 수정하고 저장 버튼을 누르세요</div>
@@ -971,163 +1052,310 @@ async function confirmClearAll() {
 }
 
 // ════════════════════════════════════════
-// ★ 내 기록 열람/수정 모달
+// ★ 내 기록 보기 — 완전 독립 흐름
 // ════════════════════════════════════════
+
+// 내 기록 보기 전용 상태
+let myRec = {
+  name: '', classNum: '', studentNum: '',
+  records: [],       // 전체 회차 목록
+  currentRecord: null, // 현재 열람 중인 회차 데이터
+  currentRound: null,
+};
+
+// 홈 메뉴 버튼 → STEP1: 로그인 모달
 function openMyRecords() {
-  // 학생 정보가 있으면 바로, 없으면 먼저 정보 입력하도록
-  const name = document.getElementById('inputName').value.trim();
-  const cls = document.getElementById('inputClass').value.trim();
-  const num = document.getElementById('inputNum').value.trim();
-  if (!name || !cls || !num || !state.quarter || !state.studyName) {
-    showToast('⚠️ 먼저 분기 → 본인 정보 → 과목/팀명을 선택해 주세요');
-    showScreen('quarter'); updateStepBar(1);
+  if (!GAS_URL) { showToast('⚠️ GAS URL이 설정되지 않았어요. 관리자에게 문의하세요.'); return; }
+  // 이전에 입력한 정보 있으면 자동 채우기
+  document.getElementById('myRec_name').value = myRec.name || '';
+  document.getElementById('myRec_class').value = myRec.classNum || '';
+  document.getElementById('myRec_num').value = myRec.studentNum || '';
+  document.getElementById('myRecLoginError').style.display = 'none';
+  document.getElementById('myRecordsLoginModal').classList.add('show');
+}
+
+function closeMyRecordsLogin() {
+  document.getElementById('myRecordsLoginModal').classList.remove('show');
+}
+
+function backToMyRecordsLogin() {
+  document.getElementById('myRecordsListModal').classList.remove('show');
+  document.getElementById('myRecordsLoginModal').classList.add('show');
+}
+
+function backToMyRecordsList() {
+  document.getElementById('myRecordsDetailModal').classList.remove('show');
+  document.getElementById('myRecordsListModal').classList.add('show');
+}
+
+function closeAllMyRecordsModals() {
+  document.getElementById('myRecordsLoginModal').classList.remove('show');
+  document.getElementById('myRecordsListModal').classList.remove('show');
+  document.getElementById('myRecordsDetailModal').classList.remove('show');
+}
+
+// STEP2: 학번/이름으로 전체 기록 불러오기
+async function loadMyRecordsList() {
+  const name = document.getElementById('myRec_name').value.trim();
+  const cls  = document.getElementById('myRec_class').value.trim();
+  const num  = document.getElementById('myRec_num').value.trim();
+  const errEl = document.getElementById('myRecLoginError');
+
+  if (!name || !cls || !num) {
+    errEl.textContent = '⚠️ 이름, 반, 번호를 모두 입력해 주세요.';
+    errEl.style.display = 'block';
     return;
   }
-  document.getElementById('roundModal').classList.add('show');
-  loadRoundList();
-}
+  errEl.style.display = 'none';
+  myRec.name = name; myRec.classNum = cls; myRec.studentNum = num;
 
-async function loadRoundList() {
-  const listEl = document.getElementById('roundListContent');
-  listEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--gray-400);font-size:13px">불러오는 중...</div>';
-  document.getElementById('roundModalTitle').textContent = state.role === 'king'
-    ? `📋 내 기록 — 왕멘토(${state.subject})`
-    : `📋 내 기록 — ${state.studyName}`;
+  // 리스트 모달 열기
+  document.getElementById('myRecordsLoginModal').classList.remove('show');
+  document.getElementById('myRecordsListModal').classList.add('show');
+  document.getElementById('myRecordsListTitle').textContent = `📋 ${name}의 기록 목록`;
+  document.getElementById('myRecordsSummaryBar').style.display = 'none';
+  document.getElementById('myRecordsTableWrap').innerHTML =
+    '<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px">불러오는 중...</div>';
 
   try {
-    let url;
-    if (state.role === 'king') {
-      url = `${GAS_URL}?action=getKingRecords&name=${encodeURIComponent(state.name)}&classNum=${state.classNum}&studentNum=${state.studentNum}&quarter=${encodeURIComponent(state.quarter+'분기')}&subject=${encodeURIComponent(state.subject)}`;
-    } else {
-      url = `${GAS_URL}?action=getMyRecords&name=${encodeURIComponent(state.name)}&classNum=${state.classNum}&studentNum=${state.studentNum}&quarter=${encodeURIComponent(state.quarter+'분기')}&studyName=${encodeURIComponent(state.studyName)}`;
+    // 일반 + 왕멘토 기록 모두 요청
+    // GAS에 getAllMyRecords 액션이 있으면 한 번에, 없으면 두 번 호출
+    let records = [];
+    try {
+      const url = `${GAS_URL}?action=getAllMyRecords&name=${encodeURIComponent(name)}&classNum=${encodeURIComponent(cls)}&studentNum=${encodeURIComponent(num)}`;
+      const data = await fetchGAS(url);
+      records = data.records || [];
+    } catch(e1) {
+      // fallback: 분기별로 일반 + 왕멘토 기록 각각 요청
+      const [memberData, kingData] = await Promise.allSettled([
+        fetchGAS(`${GAS_URL}?action=getMyRecords&name=${encodeURIComponent(name)}&classNum=${encodeURIComponent(cls)}&studentNum=${encodeURIComponent(num)}&quarter=all`),
+        fetchGAS(`${GAS_URL}?action=getKingRecords&name=${encodeURIComponent(name)}&classNum=${encodeURIComponent(cls)}&studentNum=${encodeURIComponent(num)}&quarter=all`)
+      ]);
+      if (memberData.status==='fulfilled') records.push(...(memberData.value.records||[]).map(r=>({...r,type:'member'})));
+      if (kingData.status==='fulfilled')   records.push(...(kingData.value.records||[]).map(r=>({...r,type:'king'})));
     }
-    const data = await fetchGAS(url);
-    const records = (data.records || []).sort((a,b) => a.round - b.round);
-
-    if (!records.length) {
-      listEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--gray-400);font-size:13px">아직 기록이 없어요</div>';
-      return;
-    }
-
-    listEl.innerHTML = records.map(r => `
-      <div class="round-list-item" onclick="openRoundDetail(${r.round})">
-        <div>
-          <div class="rli-num">${r.round}회차</div>
-          <div class="rli-info">${r.date || ''} ${r.time ? '· '+r.time : ''} ${r.totalMinutes ? '· ⏱️'+formatMinutes(r.totalMinutes) : ''}</div>
-        </div>
-        <div class="rli-arrow">›</div>
-      </div>`).join('');
+    records.sort((a,b) => {
+      if (a.quarter !== b.quarter) return (a.quarter||'').localeCompare(b.quarter||'');
+      return (a.round||0) - (b.round||0);
+    });
+    myRec.records = records;
+    renderMyRecordsTable(records);
   } catch(e) {
-    listEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--gray-400);font-size:13px">불러오기 실패 😢</div>';
+    document.getElementById('myRecordsTableWrap').innerHTML =
+      '<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px">불러오기 실패 😢<br><span style="font-size:11px">GAS 연결 상태를 확인해 주세요</span></div>';
   }
 }
 
-async function openRoundDetail(round) {
-  document.getElementById('roundDetailContent').innerHTML = '<div style="padding:20px;text-align:center;color:var(--gray-400);font-size:13px">불러오는 중...</div>';
-  document.getElementById('roundListView').classList.add('hide');
-  document.getElementById('roundDetailView').classList.add('show');
+function renderMyRecordsTable(records) {
+  const wrap = document.getElementById('myRecordsTableWrap');
+
+  if (!records.length) {
+    wrap.innerHTML = '<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px">아직 제출된 기록이 없어요 📭</div>';
+    document.getElementById('myRecordsSummaryBar').style.display = 'none';
+    return;
+  }
+
+  // 요약 바
+  const totalRounds = records.length;
+  const totalMin = records.reduce((s,r) => s + (parseInt(r.totalMinutes)||0), 0);
+  document.getElementById('myRecordsTotalRounds').textContent = totalRounds + '회차';
+  document.getElementById('myRecordsTotalTime').textContent = formatMinutes(totalMin) || '-';
+  document.getElementById('myRecordsSummaryBar').style.display = 'flex';
+
+  // 표
+  wrap.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead>
+        <tr style="background:var(--gray-50);border-bottom:2px solid var(--gray-200);">
+          <th style="padding:10px 8px;text-align:center;font-size:12px;color:var(--gray-500);font-weight:700;width:60px;">회차</th>
+          <th style="padding:10px 8px;text-align:left;font-size:12px;color:var(--gray-500);font-weight:700;">분기 / 구분</th>
+          <th style="padding:10px 8px;text-align:left;font-size:12px;color:var(--gray-500);font-weight:700;">날짜</th>
+          <th style="padding:10px 8px;text-align:center;font-size:12px;color:var(--gray-500);font-weight:700;width:70px;">시간</th>
+          <th style="padding:10px 8px;text-align:center;font-size:12px;color:var(--gray-500);font-weight:700;width:40px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${records.map((r, i) => `
+          <tr onclick="openMyRecordDetail(${i})" style="cursor:pointer;border-bottom:1px solid var(--gray-100);transition:background .12s;" onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background=''">
+            <td style="padding:12px 8px;text-align:center;">
+              <span style="display:inline-block;background:var(--primary-light);color:var(--primary);font-weight:800;font-size:14px;padding:4px 10px;border-radius:20px;">${r.round}</span>
+            </td>
+            <td style="padding:12px 8px;">
+              <div style="font-weight:700;color:var(--gray-800);font-size:13px;">${r.quarter||''}</div>
+              <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">${r.type==='king'?'👑 왕멘토':'📚 '+(r.studyName||r.subject||'')}</div>
+            </td>
+            <td style="padding:12px 8px;color:var(--gray-600);font-size:12px;">${r.date ? String(r.date).slice(0,10) : '-'}</td>
+            <td style="padding:12px 8px;text-align:center;font-size:12px;color:var(--gray-500);">${r.totalMinutes ? formatMinutes(parseInt(r.totalMinutes)) : '-'}</td>
+            <td style="padding:12px 8px;text-align:center;color:var(--gray-400);font-size:18px;">›</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+// STEP3: 회차 상세 팝업 (읽기 모드로 시작)
+async function openMyRecordDetail(idx) {
+  const r = myRec.records[idx];
+  if (!r) return;
+  myRec.currentRecord = r;
+  myRec.currentRound = r.round;
+
+  // 상세 모달 열기
+  document.getElementById('myRecordsListModal').classList.remove('show');
+  document.getElementById('myRecordsDetailModal').classList.add('show');
+  document.getElementById('myRecordsDetailTitle').textContent =
+    r.type === 'king' ? `👑 왕멘토 ${r.round}회차 — ${r.quarter}` : `📝 ${r.round}회차 — ${r.quarter} ${r.studyName||''}`;
+
+  // 상세 데이터 fetch
+  document.getElementById('myRecordsViewContent').innerHTML =
+    '<div style="padding:20px;text-align:center;color:var(--gray-400);font-size:13px">불러오는 중...</div>';
+  document.getElementById('myRecordsViewMode').style.display = 'block';
+  document.getElementById('myRecordsEditMode').style.display = 'none';
 
   try {
     let url, data;
-    if (state.role === 'king') {
-      url = `${GAS_URL}?action=getKingRecordDetail&name=${encodeURIComponent(state.name)}&classNum=${state.classNum}&studentNum=${state.studentNum}&quarter=${encodeURIComponent(state.quarter+'분기')}&subject=${encodeURIComponent(state.subject)}&round=${round}`;
-      data = await fetchGAS(url);
-      renderKingDetailEdit(data.record, round);
+    if (r.type === 'king') {
+      url = `${GAS_URL}?action=getKingRecordDetail&name=${encodeURIComponent(myRec.name)}&classNum=${encodeURIComponent(myRec.classNum)}&studentNum=${encodeURIComponent(myRec.studentNum)}&quarter=${encodeURIComponent(r.quarter)}&subject=${encodeURIComponent(r.subject||'')}&round=${r.round}`;
     } else {
-      url = `${GAS_URL}?action=getMyRecordDetail&name=${encodeURIComponent(state.name)}&classNum=${state.classNum}&studentNum=${state.studentNum}&quarter=${encodeURIComponent(state.quarter+'분기')}&studyName=${encodeURIComponent(state.studyName)}&round=${round}`;
-      data = await fetchGAS(url);
-      renderMemberDetailEdit(data.record, round);
+      url = `${GAS_URL}?action=getMyRecordDetail&name=${encodeURIComponent(myRec.name)}&classNum=${encodeURIComponent(myRec.classNum)}&studentNum=${encodeURIComponent(myRec.studentNum)}&quarter=${encodeURIComponent(r.quarter)}&studyName=${encodeURIComponent(r.studyName||'')}&round=${r.round}`;
     }
+    data = await fetchGAS(url);
+    const rec = data.record || r;
+    myRec.currentRecord = { ...r, ...rec };
+    renderMyRecordView(myRec.currentRecord);
   } catch(e) {
-    document.getElementById('roundDetailContent').innerHTML = '<div style="color:var(--danger);font-size:13px">불러오기 실패 😢</div>';
+    document.getElementById('myRecordsViewContent').innerHTML =
+      '<div style="color:var(--danger);font-size:13px;text-align:center;">상세 정보를 불러올 수 없어요 😢<br><span style="font-size:11px;color:var(--gray-400)">목록에서 확인한 기본 정보만 표시해요</span></div>';
+    renderMyRecordView(r);
   }
 }
 
-function renderMemberDetailEdit(rec, round) {
-  if (!rec) { document.getElementById('roundDetailContent').innerHTML = '<div style="color:var(--danger);font-size:13px">기록을 찾을 수 없어요</div>'; return; }
-  editingRecord = { ...rec, round, type: 'member' };
-  const dateVal = rec.date ? String(rec.date).slice(0,10) : '';
-  document.getElementById('roundDetailContent').innerHTML = `
-    <div style="font-size:14px;font-weight:800;color:var(--gray-800);margin-bottom:14px;">${round}회차 수정</div>
-    <div class="form-group"><label>역할</label>
-      <select id="edit_memberRole">
-        <option value="멘토" ${rec.memberRole==='멘토'?'selected':''}>멘토</option>
-        <option value="멘티" ${rec.memberRole==='멘티'?'selected':''}>멘티</option>
-      </select>
-    </div>
-    <div class="form-row">
-      <div class="form-group"><label>활동 날짜</label><input type="date" id="edit_date" value="${dateVal}"/></div>
-      <div class="form-group"><label>활동 시간</label><input type="text" id="edit_time" value="${rec.time||''}"/></div>
-    </div>
-    <div class="form-group"><label>활동 장소</label><input type="text" id="edit_place" value="${rec.place||''}"/></div>
-    <div class="form-group"><label>활동 제목</label><input type="text" id="edit_title" value="${rec.title||''}"/></div>
-    <div class="form-group"><label>활동 내용</label><textarea id="edit_content" style="min-height:100px">${rec.content||''}</textarea></div>
-    <div class="form-group"><label>느낀점</label><textarea id="edit_reflection" style="min-height:80px">${rec.reflection||''}</textarea></div>
-    <div class="form-group"><label>다음 회차 예고</label><input type="text" id="edit_nextPlan" value="${rec.nextPlan||''}"/></div>
-  `;
+// 읽기 모드 렌더링
+function renderMyRecordView(rec) {
+  const isKing = rec.type === 'king';
+  const esc = v => String(v||'').replace(/</g,'&lt;');
+  let html = '';
+
+  if (isKing) {
+    html = `
+      <div class="view-field"><span class="vf-label">활동 날짜</span><span class="vf-val">${esc(rec.date)||'-'}</span></div>
+      <div class="view-field"><span class="vf-label">활동 시간</span><span class="vf-val">${esc(rec.time)||'-'}</span></div>
+      <div class="view-field"><span class="vf-label">과목</span><span class="vf-val">${esc(rec.subject)||'-'}</span></div>
+      <div class="view-field vf-block"><span class="vf-label">학습 내용</span><div class="vf-text">${esc(rec.selfStudy||rec.content||'')}</div></div>
+      <div class="view-field vf-block"><span class="vf-label">느낀점</span><div class="vf-text">${esc(rec.reflection||'')}</div></div>
+      <div class="view-field"><span class="vf-label">다음 활동 예고</span><span class="vf-val">${esc(rec.nextPlan||'-')}</span></div>`;
+  } else {
+    html = `
+      <div class="view-field"><span class="vf-label">역할</span><span class="vf-val">${esc(rec.memberRole||'-')}</span></div>
+      <div class="view-field"><span class="vf-label">활동 날짜</span><span class="vf-val">${esc(rec.date)||'-'}</span></div>
+      <div class="view-field"><span class="vf-label">활동 시간</span><span class="vf-val">${esc(rec.time)||'-'}</span></div>
+      <div class="view-field"><span class="vf-label">활동 장소</span><span class="vf-val">${esc(rec.place||'-')}</span></div>
+      <div class="view-field"><span class="vf-label">팀명</span><span class="vf-val">${esc(rec.studyName||'-')}</span></div>
+      <div class="view-field"><span class="vf-label">활동 제목</span><span class="vf-val">${esc(rec.title||'-')}</span></div>
+      <div class="view-field vf-block"><span class="vf-label">활동 내용</span><div class="vf-text">${esc(rec.content||'')}</div></div>
+      <div class="view-field vf-block"><span class="vf-label">느낀점</span><div class="vf-text">${esc(rec.reflection||'')}</div></div>
+      <div class="view-field"><span class="vf-label">다음 회차 예고</span><span class="vf-val">${esc(rec.nextPlan||'-')}</span></div>`;
+  }
+  if (rec.totalMinutes) {
+    html += `<div class="view-field"><span class="vf-label">⏱️ 활동 시간</span><span class="vf-val" style="color:var(--primary);font-weight:700;">${formatMinutes(parseInt(rec.totalMinutes))}</span></div>`;
+  }
+  document.getElementById('myRecordsViewContent').innerHTML = html;
 }
 
-function renderKingDetailEdit(rec, round) {
-  if (!rec) { document.getElementById('roundDetailContent').innerHTML = '<div style="color:var(--danger);font-size:13px">기록을 찾을 수 없어요</div>'; return; }
-  editingRecord = { ...rec, round, type: 'king' };
-  const dateVal = rec.date ? String(rec.date).slice(0,10) : '';
-  document.getElementById('roundDetailContent').innerHTML = `
-    <div style="font-size:14px;font-weight:800;color:var(--gray-800);margin-bottom:14px;">👑 왕멘토 ${round}회차 수정</div>
-    <div class="form-row">
-      <div class="form-group"><label>활동 날짜</label><input type="date" id="edit_date" value="${dateVal}"/></div>
-      <div class="form-group"><label>활동 시간</label><input type="text" id="edit_time" value="${rec.time||''}"/></div>
-    </div>
-    <div class="form-group"><label>학습 내용</label><textarea id="edit_selfStudy" style="min-height:100px">${rec.selfStudy||''}</textarea></div>
-    <div class="form-group"><label>느낀점</label><textarea id="edit_reflection" style="min-height:80px">${rec.reflection||''}</textarea></div>
-    <div class="form-group"><label>다음 활동 예고</label><input type="text" id="edit_nextPlan" value="${rec.nextPlan||''}"/></div>
-  `;
-}
-
-async function saveRoundEdit() {
-  if (!editingRecord) return;
+// 수정 모드 전환
+function switchToEditMode() {
   if (appIsClosed) { showToast('⚠️ 현재 마감 중이에요. 수정할 수 없어요.'); return; }
+  const rec = myRec.currentRecord;
+  if (!rec) return;
+  const isKing = rec.type === 'king';
+  const dateVal = rec.date ? String(rec.date).slice(0,10) : '';
+  let html = '';
+
+  if (isKing) {
+    html = `
+      <div class="form-row">
+        <div class="form-group"><label>활동 날짜</label><input type="date" id="medit_date" value="${dateVal}"/></div>
+        <div class="form-group"><label>활동 시간</label><input type="text" id="medit_time" value="${rec.time||''}"/></div>
+      </div>
+      <div class="form-group"><label>학습 내용</label><textarea id="medit_selfStudy" style="min-height:100px">${rec.selfStudy||rec.content||''}</textarea></div>
+      <div class="form-group"><label>느낀점</label><textarea id="medit_reflection" style="min-height:80px">${rec.reflection||''}</textarea></div>
+      <div class="form-group"><label>다음 활동 예고</label><input type="text" id="medit_nextPlan" value="${rec.nextPlan||''}"/></div>`;
+  } else {
+    html = `
+      <div class="form-group"><label>역할</label>
+        <select id="medit_memberRole">
+          <option value="멘토" ${rec.memberRole==='멘토'?'selected':''}>멘토</option>
+          <option value="멘티" ${rec.memberRole==='멘티'?'selected':''}>멘티</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>활동 날짜</label><input type="date" id="medit_date" value="${dateVal}"/></div>
+        <div class="form-group"><label>활동 시간</label><input type="text" id="medit_time" value="${rec.time||''}"/></div>
+      </div>
+      <div class="form-group"><label>활동 장소</label><input type="text" id="medit_place" value="${rec.place||''}"/></div>
+      <div class="form-group"><label>활동 제목</label><input type="text" id="medit_title" value="${rec.title||''}"/></div>
+      <div class="form-group"><label>활동 내용</label><textarea id="medit_content" style="min-height:100px">${rec.content||''}</textarea></div>
+      <div class="form-group"><label>느낀점</label><textarea id="medit_reflection" style="min-height:80px">${rec.reflection||''}</textarea></div>
+      <div class="form-group"><label>다음 회차 예고</label><input type="text" id="medit_nextPlan" value="${rec.nextPlan||''}"/></div>`;
+  }
+
+  document.getElementById('myRecordsEditContent').innerHTML = html;
+  document.getElementById('myRecordsViewMode').style.display = 'none';
+  document.getElementById('myRecordsEditMode').style.display = 'block';
+}
+
+// 읽기 모드로 되돌리기
+function switchToViewMode() {
+  document.getElementById('myRecordsEditMode').style.display = 'none';
+  document.getElementById('myRecordsViewMode').style.display = 'block';
+}
+
+// 수정 저장
+async function saveMyRecordEdit() {
+  if (appIsClosed) { showToast('⚠️ 현재 마감 중이에요. 수정할 수 없어요.'); return; }
+  const rec = myRec.currentRecord;
+  if (!rec) return;
 
   let payload;
-  if (editingRecord.type === 'member') {
-    const title = document.getElementById('edit_title').value.trim();
-    const content = document.getElementById('edit_content').value.trim();
-    if (!title || !content) { showToast('⚠️ 제목과 내용은 필수예요'); return; }
-    payload = {
-      type: 'updateMember',
-      quarter: state.quarter + '분기',
-      studyName: state.studyName,
-      round: editingRecord.round,
-      name: state.name, classNum: state.classNum, studentNum: state.studentNum,
-      memberRole: document.getElementById('edit_memberRole').value,
-      date: document.getElementById('edit_date').value,
-      time: document.getElementById('edit_time').value,
-      place: document.getElementById('edit_place').value,
-      title, content,
-      reflection: document.getElementById('edit_reflection').value,
-      nextPlan: document.getElementById('edit_nextPlan').value,
-      present: editingRecord.present || '',
-      absent: editingRecord.absent || '',
-      totalMinutes: editingRecord.totalMinutes || 0,
-      photoChecked: editingRecord.photoChecked || '미촬영',
-      timestamp: new Date().toISOString()
-    };
-  } else {
-    const selfStudy = document.getElementById('edit_selfStudy').value.trim();
+  if (rec.type === 'king') {
+    const selfStudy = document.getElementById('medit_selfStudy').value.trim();
     if (!selfStudy) { showToast('⚠️ 학습 내용은 필수예요'); return; }
     payload = {
       type: 'updateKing',
-      quarter: state.quarter + '분기',
-      subject: state.subject,
-      round: editingRecord.round,
-      name: state.name, classNum: state.classNum, studentNum: state.studentNum,
-      date: document.getElementById('edit_date').value,
-      time: document.getElementById('edit_time').value,
+      quarter: rec.quarter,
+      subject: rec.subject || '',
+      round: rec.round,
+      name: myRec.name, classNum: myRec.classNum, studentNum: myRec.studentNum,
+      date: document.getElementById('medit_date').value,
+      time: document.getElementById('medit_time').value,
       selfStudy,
-      reflection: document.getElementById('edit_reflection').value,
-      nextPlan: document.getElementById('edit_nextPlan').value,
-      questions: editingRecord.questions || '[]',
-      totalMinutes: editingRecord.totalMinutes || 0,
-      photoChecked: editingRecord.photoChecked || '미촬영',
+      reflection: document.getElementById('medit_reflection').value,
+      nextPlan: document.getElementById('medit_nextPlan').value,
+      questions: rec.questions || '[]',
+      totalMinutes: rec.totalMinutes || 0,
+      photoChecked: rec.photoChecked || '미촬영',
+      timestamp: new Date().toISOString()
+    };
+  } else {
+    const title = document.getElementById('medit_title').value.trim();
+    const content = document.getElementById('medit_content').value.trim();
+    if (!title || !content) { showToast('⚠️ 제목과 내용은 필수예요'); return; }
+    payload = {
+      type: 'updateMember',
+      quarter: rec.quarter,
+      studyName: rec.studyName || '',
+      round: rec.round,
+      name: myRec.name, classNum: myRec.classNum, studentNum: myRec.studentNum,
+      memberRole: document.getElementById('medit_memberRole').value,
+      date: document.getElementById('medit_date').value,
+      time: document.getElementById('medit_time').value,
+      place: document.getElementById('medit_place').value,
+      title, content,
+      reflection: document.getElementById('medit_reflection').value,
+      nextPlan: document.getElementById('medit_nextPlan').value,
+      present: rec.present || '',
+      absent: rec.absent || '',
+      totalMinutes: rec.totalMinutes || 0,
+      photoChecked: rec.photoChecked || '미촬영',
       timestamp: new Date().toISOString()
     };
   }
@@ -1141,7 +1369,18 @@ async function saveRoundEdit() {
       mode: 'no-cors'
     });
     showToast('✅ 수정이 저장되었어요!');
-    closeRoundModal();
+    // 수정 내용 로컬 반영
+    const updated = { ...rec,
+      date: payload.date, time: payload.time,
+      reflection: payload.reflection, nextPlan: payload.nextPlan,
+      ...(rec.type==='king' ? {selfStudy: payload.selfStudy} : {title: payload.title, content: payload.content, memberRole: payload.memberRole, place: payload.place})
+    };
+    myRec.currentRecord = updated;
+    // 목록도 업데이트
+    const idx = myRec.records.findIndex(r => r.round===rec.round && r.quarter===rec.quarter && r.type===rec.type);
+    if (idx !== -1) myRec.records[idx] = { ...myRec.records[idx], ...updated };
+    renderMyRecordView(updated);
+    switchToViewMode();
   } catch(e) {
     showToast('⚠️ 저장 중 오류가 발생했어요');
   } finally {
@@ -1149,6 +1388,7 @@ async function saveRoundEdit() {
   }
 }
 
+// ── 기존 함수들 (하위 호환) ──
 function backToRoundList() {
   document.getElementById('roundDetailView').classList.remove('show');
   document.getElementById('roundListView').classList.remove('hide');
@@ -1159,6 +1399,8 @@ function closeRoundModal() {
   document.getElementById('roundModal').classList.remove('show');
   backToRoundList();
 }
+
+async function saveRoundEdit() { /* 기존 관리자용 — 미사용 */ }
 
 // ════════════════════════════════════════
 // 초기화
