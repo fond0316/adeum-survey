@@ -813,14 +813,14 @@ function renderTimeGrid() {
   const grid = document.getElementById('timeGrid');
   if (!d) { grid.innerHTML=''; return; }
   grid.innerHTML = d.slots.map(s =>
-    `<button class="time-btn${s.booked?' booked':''}" onclick="${!s.booked?`selectTime('${s.id}','${s.time}')`:''}">${s.time}</button>`
+    `<button class="time-btn${s.booked?' booked':''}" onclick="${!s.booked?`selectTime(this,'${s.id}','${s.time}')`:''}">${s.time}</button>`
   ).join('');
 }
 
-function selectTime(slotId, time) {
+function selectTime(el, slotId, time) {
   state.selectedTime = { slotId, time };
   document.querySelectorAll('.time-btn').forEach(b=>b.classList.remove('selected'));
-  event.target.classList.add('selected');
+  el.classList.add('selected');
   setTimeout(()=>{
     goStep(4);
     document.getElementById('phoneNotice').style.display = state.consultType==='phone' ? '' : 'none';
@@ -1032,6 +1032,7 @@ async function adminSaveGasUrl() {
     msg.style.color='#059669'; msg.textContent='✅ 연결 성공! URL이 저장됐어요.';
     applyAllData(data);
     setBanner('ok', '✅ GAS 연결됨 · 실시간 동기화 중');
+    startPolling(); // URL 변경 후 폴링 재시작
   } catch(err) {
     msg.style.display=''; msg.style.color='#DC2626'; msg.textContent='❌ 연결 실패: ' + err.message;
   }
@@ -1278,8 +1279,7 @@ function showScreen(id) {
 function goHome() {
   ['inputStudent','inputParent','inputContact','inputMemo'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   state = { currentStep:1, consultType:null, selectedDate:null, selectedTime:null };
-  goStep(1); showScreen('mainScreen'); loadAll();
-  startPolling();
+  goStep(1); showScreen('mainScreen'); loadAll(); // loadAll 내부에서 startPolling() 호출됨
 }
 function autoHyphen(el) {
   let v=el.value.replace(/[^0-9]/g,'');
