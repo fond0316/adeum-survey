@@ -656,25 +656,32 @@ async function loadAll() {
   }
 }
 
-// ── 슬롯 자동 폴링 (30초마다 booked 상태 갱신) ────────
+// ── 자동 폴링 (30초마다 슬롯+예약 전체 갱신) ─────────
+// getAll로 변경: 구글시트에서 직접 행 삭제해도 앱에 실시간 반영됨
 let _pollingTimer = null;
 async function pollSlots() {
   if (!GAS_URL) return;
   try {
-    const res = await gasGet({ action:'getSlots' });
+    const res = await gasGet({ action:'getAll' });
     if (res.result !== 'success') return;
-    // booked 상태만 조용히 갱신 (선택 중인 UI 건드리지 않음)
-    res.data.forEach(newDay => {
-      const di = appSlots.findIndex(d => d.dateKey === newDay.dateKey);
-      if (di < 0) return;
-      newDay.slots.forEach(newSlot => {
-        const si = appSlots[di].slots.findIndex(s => s.id === newSlot.id);
-        if (si >= 0) appSlots[di].slots[si].booked = newSlot.booked;
+
+    // 슬롯 booked 상태 조용히 갱신 (선택 중인 UI 건드리지 않음)
+    if (res.slots) {
+      res.slots.forEach(newDay => {
+        const di = appSlots.findIndex(d => d.dateKey === newDay.dateKey);
+        if (di < 0) return;
+        newDay.slots.forEach(newSlot => {
+          const si = appSlots[di].slots.findIndex(s => s.id === newSlot.id);
+          if (si >= 0) appSlots[di].slots[si].booked = newSlot.booked;
+        });
       });
-    });
-    renderDateGrid();
-    // 시간 선택 화면이면 timeGrid도 갱신
-    if (state.currentStep === 3) renderTimeGrid();
+      renderDateGrid();
+      if (state.currentStep === 3) renderTimeGrid();
+    }
+
+    // 예약 목록도 갱신 (구글시트 직접 삭제 → 앱 반영)
+    if (res.bookings) appBookings = res.bookings;
+
   } catch(e) {}  // 조용히 실패
 }
 function startPolling() {
@@ -687,7 +694,10 @@ function stopPolling() {
 
 function applyAllData(data) {
   if (data.settings) {
-    appSettings = { ...appSettings, ...data.settings };
+    // phoneEnabled: GAS에 false로 저장돼 있어도 항상 true 유지 (전화상담탭 항상 표시)
+    const incoming = { ...data.settings };
+    incoming.phoneEnabled = true;
+    appSettings = { ...appSettings, ...incoming };
     applySettingsUI();
   }
   if (data.slots)    { appSlots    = data.slots;    renderDateGrid(); }
