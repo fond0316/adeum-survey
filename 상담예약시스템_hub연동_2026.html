@@ -225,7 +225,25 @@ textarea.form-input{resize:none;height:76px;line-height:1.6;}
 <!-- ===================== 학부모 메인 ===================== -->
 <div class="screen" id="mainScreen">
   <!-- GAS 연결 상태 -->
-  <div class="gas-banner loading" id="gasBanner">⏳ 데이터 불러오는 중...</div>
+  <div class="gas-banner loading" id="gasBanner" style="display:flex;align-items:center;justify-content:center;gap:10px;">
+    <span id="gasBannerText">⏳ 데이터 불러오는 중...</span>
+    <button onclick="openUrlChangeModal()" style="font-size:11px;padding:2px 8px;border-radius:10px;border:1px solid rgba(0,0,0,0.15);background:rgba(255,255,255,0.4);cursor:pointer;font-family:'Pretendard',sans-serif;color:inherit;">🔧 URL 변경</button>
+  </div>
+
+  <!-- URL 변경 모달 -->
+  <div class="modal-overlay" id="urlChangeModal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title" style="margin-bottom:8px;">🔧 GAS URL 변경</div>
+      <p style="font-size:13px;color:var(--gray-500);margin-bottom:16px;">새 GAS 웹앱 URL을 입력하세요.</p>
+      <input class="form-input" id="urlChangeInput" placeholder="https://script.google.com/macros/s/..." type="url" style="margin-bottom:14px;">
+      <div id="urlChangeMsg" style="font-size:12px;margin-bottom:10px;display:none;"></div>
+      <div class="modal-btns">
+        <button class="btn btn-secondary" onclick="closeUrlChangeModal()">취소</button>
+        <button class="btn btn-primary" onclick="doUrlChange()">변경하기</button>
+      </div>
+    </div>
+  </div>
 
   <div class="app-header">
     <div class="header-inner">
@@ -664,7 +682,36 @@ function applyAllData(data) {
 function setBanner(type, msg) {
   const b = document.getElementById('gasBanner');
   b.className = 'gas-banner ' + type;
-  b.textContent = msg;
+  document.getElementById('gasBannerText').textContent = msg;
+}
+
+function openUrlChangeModal() {
+  document.getElementById('urlChangeInput').value = GAS_URL || '';
+  document.getElementById('urlChangeMsg').style.display = 'none';
+  document.getElementById('urlChangeModal').classList.add('open');
+}
+function closeUrlChangeModal() {
+  document.getElementById('urlChangeModal').classList.remove('open');
+}
+async function doUrlChange() {
+  const url = document.getElementById('urlChangeInput').value.trim();
+  const msg = document.getElementById('urlChangeMsg');
+  if (!url || !url.startsWith('https://script.google.com')) {
+    msg.style.display=''; msg.style.color='#DC2626'; msg.textContent='올바른 GAS URL을 입력해 주세요.'; return;
+  }
+  msg.style.display=''; msg.style.color='#D97706'; msg.textContent='⏳ 연결 확인 중...';
+  try {
+    const res = await fetch(url + '?action=getAll', { mode:'cors' });
+    const data = await res.json();
+    if (data.result !== 'success') throw new Error(data.message || 'GAS 오류');
+    localStorage.setItem(GAS_URL_KEY, url);
+    GAS_URL = url;
+    msg.style.color='#059669'; msg.textContent='✅ 연결됐어요!';
+    applyAllData(data);
+    setTimeout(() => closeUrlChangeModal(), 800);
+  } catch(err) {
+    msg.style.display=''; msg.style.color='#DC2626'; msg.textContent='❌ 연결 실패: ' + err.message;
+  }
 }
 
 // ── 설정 적용 ─────────────────────────────────────────
