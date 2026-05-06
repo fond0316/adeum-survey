@@ -185,6 +185,46 @@ input[type=file]{display:none;}
 .filter-bar{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;}
 .filter-chip{padding:6px 12px;border:1.5px solid var(--gray-200);border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;background:white;font-family:inherit;}
 .filter-chip.active{background:var(--primary);color:white;border-color:var(--primary);}
+
+/* ── 마감 배너 ── */
+.closed-banner{background:#FEF2F2;border:2px solid #FECACA;border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;display:none;align-items:center;gap:12px;}
+.closed-banner.show{display:flex;}
+.closed-banner .cb-icon{font-size:24px;flex-shrink:0;}
+.closed-banner .cb-text{font-size:13px;font-weight:700;color:#991B1B;line-height:1.5;}
+
+/* ── 관리자: 마감/초기화 카드 ── */
+.admin-action-card{background:white;border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow);}
+.admin-action-card .aa-title{font-size:14px;font-weight:700;color:var(--gray-700);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.close-status{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:12px;}
+.close-status.open{background:#DCFCE7;color:#166534;}
+.close-status.closed{background:#FEE2E2;color:#991B1B;}
+
+/* ── 회차 열람 모달 ── */
+.round-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;align-items:flex-end;justify-content:center;padding:0;}
+.round-modal-overlay.show{display:flex;}
+.round-modal{background:white;border-radius:20px 20px 0 0;width:100%;max-width:600px;max-height:88vh;overflow-y:auto;padding:24px;padding-bottom:32px;}
+.round-modal-handle{width:40px;height:4px;background:var(--gray-300);border-radius:2px;margin:0 auto 18px;}
+.round-modal-title{font-size:16px;font-weight:800;color:var(--gray-900);margin-bottom:16px;}
+.round-list-item{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;transition:all .15s;background:white;}
+.round-list-item:hover{border-color:var(--primary);background:var(--primary-light);}
+.round-list-item .rli-num{font-size:15px;font-weight:800;color:var(--primary);}
+.round-list-item .rli-info{font-size:12px;color:var(--gray-500);margin-top:2px;}
+.round-list-item .rli-arrow{color:var(--gray-400);font-size:18px;}
+.round-detail-view{display:none;}
+.round-detail-view.show{display:block;}
+.round-list-view{display:block;}
+.round-list-view.hide{display:none;}
+.edit-mode-banner{background:#FFF7ED;border:1.5px solid #FED7AA;border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;color:#92400E;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+
+/* ── GAS 연결 상태 배너 ── */
+.gas-banner{padding:8px 16px;font-size:12px;font-weight:600;text-align:center;}
+.gas-banner.ok{background:#ECFDF5;color:#059669;}
+.gas-banner.err{background:#FEF2F2;color:#DC2626;}
+.gas-banner.loading{background:#FFF7ED;color:#D97706;}
+
+/* ── 관리자 GAS URL 탭 ── */
+.admin-gasurl-card{background:white;border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow);}
+.admin-gasurl-card .ag-title{font-size:14px;font-weight:700;color:var(--gray-700);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
 </style>
 </head>
 <body>
@@ -194,6 +234,52 @@ input[type=file]{display:none;}
   <div style="font-size:13px;color:var(--gray-600);font-weight:600;">처리 중이에요...</div>
 </div>
 <div class="toast" id="toast"></div>
+
+<!-- GAS 연결 상태 배너 -->
+<div class="gas-banner loading" id="gasBanner">⏳ GAS 연결 확인 중...</div>
+
+<!-- GAS URL 변경 모달 (헤더용) -->
+<div class="modal-overlay" id="gasUrlModal" style="z-index:250;">
+  <div class="modal" style="max-width:420px;">
+    <h3>🔗 GAS URL 변경</h3>
+    <p style="font-size:13px;color:var(--gray-500);margin-bottom:14px;">새 GAS 웹앱 URL을 입력하세요.</p>
+    <div class="form-group">
+      <input type="url" id="gasUrlInput" placeholder="https://script.google.com/macros/s/..."/>
+    </div>
+    <div id="gasUrlMsg" style="font-size:12px;margin-bottom:10px;display:none;"></div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="btn btn-secondary" style="flex:1" onclick="closeGasUrlModal()">취소</button>
+      <button class="btn btn-primary" style="flex:2" onclick="doGasUrlSave()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ★ 회차 열람/수정 모달 -->
+<div class="round-modal-overlay" id="roundModal">
+  <div class="round-modal">
+    <div class="round-modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div class="round-modal-title" id="roundModalTitle">📋 내 기록 열람</div>
+      <button onclick="closeRoundModal()" style="background:none;border:none;font-size:22px;color:var(--gray-400);cursor:pointer;padding:0 4px;">✕</button>
+    </div>
+
+    <!-- 회차 목록 -->
+    <div class="round-list-view" id="roundListView">
+      <div id="roundListContent" style="min-height:80px"></div>
+    </div>
+
+    <!-- 회차 상세/수정 -->
+    <div class="round-detail-view" id="roundDetailView">
+      <button onclick="backToRoundList()" style="background:none;border:none;font-size:13px;font-weight:700;color:var(--primary);cursor:pointer;padding:0;margin-bottom:14px;display:flex;align-items:center;gap:4px;">← 목록으로</button>
+      <div class="edit-mode-banner">✏️ 내용을 수정하고 저장 버튼을 누르세요</div>
+      <div id="roundDetailContent"></div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="btn btn-secondary" style="flex:1" onclick="backToRoundList()">취소</button>
+        <button class="btn btn-accent" style="flex:2" onclick="saveRoundEdit()">💾 수정 저장</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- 비밀번호 모달 -->
 <div class="modal-overlay" id="pwModal">
@@ -242,12 +328,23 @@ input[type=file]{display:none;}
         <h2>🌟 아듬's 학급활동기록</h2>
         <p>활동을 선택하고 기록을 남겨주세요 &nbsp;·&nbsp; <span style="color:#9ca3af">Made by Cheon_R</span></p>
       </div>
+      <!-- ★ 마감 배너 -->
+      <div class="closed-banner" id="closedBanner">
+        <div class="cb-icon">🔒</div>
+        <div class="cb-text">현재 제출이 마감되었어요<br><span style="font-weight:400;font-size:12px;color:#B91C1C">선생님이 마감을 해제하면 다시 제출할 수 있어요</span></div>
+      </div>
       <div class="menu-grid">
         <div class="menu-card" onclick="startStudy()">
           <div class="icon">📚</div>
           <div class="name">자율스터디</div>
           <div class="desc">협력학습 활동일지<br>회차별 기록</div>
           <div class="badge badge-blue">참여 중</div>
+        </div>
+        <div class="menu-card" onclick="openMyRecords()">
+          <div class="icon">🗂️</div>
+          <div class="name">내 기록 보기</div>
+          <div class="desc">이전 회차 확인 및<br>수정 가능</div>
+          <div class="badge badge-blue">열람/수정</div>
         </div>
         <div class="menu-card soon">
           <div class="icon">📝</div>
@@ -350,24 +447,49 @@ input[type=file]{display:none;}
     <!-- STEP 4: 최종 느낀점 -->
     <div class="screen" id="screen-final">
       <div class="round-badge">🏁 분기 최종 느낀점</div>
-      <div class="card">
-        <div class="card-title">✍️ 최종 느낀점을 작성해 주세요</div>
-        <div style="background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:#166534;line-height:1.7;margin-bottom:14px;">
-          💡 이번 분기 스터디를 통해 배운 점, 성장한 점, 아쉬운 점 등을 자유롭게 적어주세요.<br>선생님이 생기부 작성 시 활용할 예정이에요.
-        </div>
-        <div class="form-group">
-          <label>배운 점 / 성장한 점</label>
-          <textarea id="finalGrowth" placeholder="이번 분기 스터디를 통해 배우고 성장한 점을 적어주세요..." style="min-height:100px"></textarea>
-        </div>
-        <div class="form-group">
-          <label>아쉬운 점 / 다음 분기 목표</label>
-          <textarea id="finalImprove" placeholder="아쉬웠던 점이나 다음 분기에 더 잘하고 싶은 점을 적어주세요..." style="min-height:80px"></textarea>
-        </div>
-        <div class="form-group">
-          <label>한 줄 소감</label>
-          <input type="text" id="finalOneLine" placeholder="이번 분기 스터디를 한 문장으로 표현한다면?"/>
-        </div>
+
+      <!-- 전체 안내 -->
+      <div style="background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:var(--radius);padding:14px 16px;font-size:12px;color:#166534;line-height:1.8;margin-bottom:16px;">
+        💡 <b>이번 분기 스터디를 돌아보며 아래 항목을 성실하게 작성해 주세요.</b><br>
+        선생님이 생기부 작성 시 직접 활용하는 소중한 자료예요. 구체적이고 솔직하게 적을수록 좋아요!
       </div>
+
+      <!-- 배운 점 / 성장한 점 -->
+      <div class="card">
+        <div class="card-title">📈 배운 점 / 성장한 점</div>
+        <div style="background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:var(--radius-sm);padding:10px 12px;font-size:11px;color:#1E40AF;line-height:1.7;margin-bottom:10px;">
+          📌 스터디를 통해 새롭게 이해한 개념, 향상된 점, 친구에게 설명할 수 있게 된 내용 등을 구체적으로 적어주세요.
+        </div>
+        <textarea id="finalGrowth" placeholder="예) 처음에는 미적분의 극한 개념이 너무 어려워서 포기하고 싶었는데, 멘토가 수직선으로 시각화해서 설명해줘서 이해할 수 있었다. 혼자서는 절대 못 풀었을 심화문제를 팀원들과 함께 풀어내면서 수학적 사고력이 늘었다고 느꼈다." style="min-height:120px"></textarea>
+      </div>
+
+      <!-- 아쉬운 점 / 다음 분기 목표 -->
+      <div class="card">
+        <div class="card-title">🎯 아쉬운 점 / 다음 분기 목표</div>
+        <div style="background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:var(--radius-sm);padding:10px 12px;font-size:11px;color:#1E40AF;line-height:1.7;margin-bottom:10px;">
+          📌 부족했던 부분이나 더 노력하고 싶은 점, 다음 분기에 이루고 싶은 목표를 적어주세요.
+        </div>
+        <textarea id="finalImprove" placeholder="예) 중간에 시험 기간이 겹쳐서 2회차를 빠진 게 아쉽다. 다음 분기에는 결석 없이 참여하고, 내가 모르는 부분을 그냥 넘기지 않고 꼭 질문하는 습관을 만들고 싶다." style="min-height:120px"></textarea>
+      </div>
+
+      <!-- 기억에 남는 교과 내용 -->
+      <div class="card">
+        <div class="card-title">💡 가장 기억에 남는 교과 내용 / 문제 유형</div>
+        <div style="background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:var(--radius-sm);padding:10px 12px;font-size:11px;color:#1E40AF;line-height:1.7;margin-bottom:10px;">
+          📌 이번 분기 스터디에서 다룬 내용 중 가장 인상 깊었던 개념이나 문제 유형을 적어주세요. 왜 기억에 남는지도 함께 적으면 좋아요.
+        </div>
+        <textarea id="finalMemory" placeholder="예) 수열의 극한에서 샌드위치 정리를 처음 배웠을 때, 두 함수 사이에 끼워서 극한을 구한다는 아이디어가 신선했다. 처음엔 왜 이게 성립하는지 몰랐는데 팀원이 그림으로 설명해줘서 이해하고 나니 비슷한 유형 문제를 혼자 풀 수 있게 됐다." style="min-height:120px"></textarea>
+      </div>
+
+      <!-- 최종 소감 -->
+      <div class="card">
+        <div class="card-title">✍️ 최종 소감</div>
+        <div style="background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:var(--radius-sm);padding:10px 12px;font-size:11px;color:#1E40AF;line-height:1.7;margin-bottom:10px;">
+          📌 이번 분기 스터디 전체를 돌아보며 자유롭게 적어주세요. 힘들었던 순간, 뿌듯했던 순간, 함께한 팀원에 대한 생각 등 솔직하게 써도 좋아요.
+        </div>
+        <textarea id="finalOneLine" placeholder="예) 솔직히 처음엔 스터디가 귀찮을 것 같았는데 막상 해보니 혼자 공부할 때보다 훨씬 집중이 잘 됐다. 특히 내가 아는 내용을 친구에게 설명할 때 오히려 내 이해가 더 깊어지는 걸 느꼈다. 팀원들이 열심히 하는 걸 보면서 나도 자극을 받았고, 다음 분기도 같은 팀으로 하고 싶다." style="min-height:140px"></textarea>
+      </div>
+
       <div class="bottom-bar"><div class="bottom-bar-inner">
         <button class="btn btn-secondary" style="flex:1" onclick="goStep('study')">← 이전</button>
         <button class="btn btn-accent" style="flex:2" onclick="submitFinal()">✅ 제출하기</button>
@@ -540,6 +662,22 @@ input[type=file]{display:none;}
       <button class="btn btn-sm btn-secondary" onclick="exitAdmin()">← 나가기</button>
     </div>
 
+    <!-- GAS URL 설정 -->
+    <div class="admin-gasurl-card" style="border:2px solid #BFDBFE;">
+      <div class="ag-title">🔗 GAS 웹앱 URL 설정</div>
+      <div class="info-box">Google Apps Script URL을 입력하면 이 기기에서 해당 구글 시트로 연동돼요.<br>선생님마다 각자 URL을 입력하면 각자의 시트로 분리됩니다.</div>
+      <div class="form-group">
+        <label>현재 연결된 URL</label>
+        <div id="currentGasUrlDisplay" style="font-size:12px;color:var(--gray-500);background:var(--gray-50);border-radius:8px;padding:10px 12px;word-break:break-all;border:1px solid var(--gray-200);margin-bottom:10px;"></div>
+      </div>
+      <div class="form-group">
+        <label>새 GAS 웹앱 URL</label>
+        <input type="url" id="adminGasUrlInput" placeholder="https://script.google.com/macros/s/..."/>
+      </div>
+      <div id="adminGasUrlMsg" style="font-size:13px;margin-bottom:10px;display:none;"></div>
+      <button class="btn btn-primary" onclick="adminSaveGasUrl()">🔗 연결 확인 후 저장</button>
+    </div>
+
     <!-- 학년도 설정 -->
     <div class="card" style="margin-bottom:16px">
       <div class="card-title">📅 학년도 설정</div>
@@ -551,25 +689,57 @@ input[type=file]{display:none;}
       <div style="font-size:11px;color:var(--gray-400);margin-top:8px">현재: <b id="currentYearDisplay">2026</b>학년도</div>
     </div>
 
+    <!-- ★ 마감 설정 -->
+    <div class="admin-action-card">
+      <div class="aa-title">🔒 제출 마감 설정</div>
+      <div class="info-box">마감하면 학생들이 제출/수정을 할 수 없어요. 마감 상태는 구글 시트에 저장됩니다.</div>
+      <div id="closeStatus" class="close-status open">🟢 현재 열려있음 (제출 가능)</div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-danger btn-sm" onclick="setClosedState(true)" id="btnClose">🔒 마감하기</button>
+        <button class="btn btn-accent btn-sm" onclick="setClosedState(false)" id="btnOpen" style="display:none">🔓 마감 해제</button>
+      </div>
+    </div>
+
+    <!-- ★ 데이터 초기화 -->
+    <div class="admin-action-card" style="border:2px solid #FEE2E2;">
+      <div class="aa-title" style="color:var(--danger);">🗑️ 전체 데이터 초기화</div>
+      <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:#991B1B;line-height:1.7;margin-bottom:12px;">
+        ⚠️ <b>주의!</b> 일반스터디, 왕멘토, 공지, 최종느낀점 시트의 <b>모든 데이터</b>가 삭제돼요.<br>새 학년도 시작 전 한 번만 실행하세요. 되돌릴 수 없어요!
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="confirmClearAll()">🗑️ 전체 초기화 실행</button>
+    </div>
+
     <!-- 분기 날짜 설정 -->
     <div class="card" style="margin-bottom:16px">
       <div class="card-title">🗓️ 분기 기간 설정</div>
       <div class="info-box">설정한 날짜가 학생 분기 선택 화면에 표시돼요</div>
-      <div id="quarterDateSettings">
-        ${[1,2,3,4].map(q=>`
-        <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--gray-100)">
-          <div style="font-size:12px;font-weight:700;color:var(--gray-700);margin-bottom:8px">${q}분기</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            <div>
-              <label>시작일</label>
-              <input type="date" id="q${q}start" onchange="saveQuarterDates()"/>
-            </div>
-            <div>
-              <label>종료일</label>
-              <input type="date" id="q${q}end" onchange="saveQuarterDates()"/>
-            </div>
-          </div>
-        </div>`).join('')}
+      <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--gray-100)">
+        <div style="font-size:12px;font-weight:700;color:var(--gray-700);margin-bottom:8px">1분기</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><label>시작일</label><input type="date" id="q1start" onchange="saveQuarterDates()"/></div>
+          <div><label>종료일</label><input type="date" id="q1end" onchange="saveQuarterDates()"/></div>
+        </div>
+      </div>
+      <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--gray-100)">
+        <div style="font-size:12px;font-weight:700;color:var(--gray-700);margin-bottom:8px">2분기</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><label>시작일</label><input type="date" id="q2start" onchange="saveQuarterDates()"/></div>
+          <div><label>종료일</label><input type="date" id="q2end" onchange="saveQuarterDates()"/></div>
+        </div>
+      </div>
+      <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--gray-100)">
+        <div style="font-size:12px;font-weight:700;color:var(--gray-700);margin-bottom:8px">3분기</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><label>시작일</label><input type="date" id="q3start" onchange="saveQuarterDates()"/></div>
+          <div><label>종료일</label><input type="date" id="q3end" onchange="saveQuarterDates()"/></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--gray-700);margin-bottom:8px">4분기</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><label>시작일</label><input type="date" id="q4start" onchange="saveQuarterDates()"/></div>
+          <div><label>종료일</label><input type="date" id="q4end" onchange="saveQuarterDates()"/></div>
+        </div>
       </div>
     </div>
 
@@ -607,8 +777,89 @@ input[type=file]{display:none;}
 // ════════════════════════════════════════
 // 상수/설정
 // ════════════════════════════════════════
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxDl-Nz6w293AEMomFATe_m2GOoOBwpDSsL154Nxc9QnNzRUccs6aKYh1_AFAw6pxr9/exec';
+const GAS_URL_KEY = 'studyGasUrl';
+const DEFAULT_GAS_URL = '';   // ← 하드코딩 제거: 관리자 화면에서 입력
 const ADMIN_PW = '0413';
+
+// GAS URL은 localStorage에서 읽어옴 (선생님별 분리)
+let GAS_URL = localStorage.getItem(GAS_URL_KEY) || DEFAULT_GAS_URL;
+
+// ════════════════════════════════════════
+// GAS 배너
+// ════════════════════════════════════════
+function setBanner(type, msg) {
+  const b = document.getElementById('gasBanner');
+  b.className = 'gas-banner ' + type;
+  b.textContent = msg;
+}
+
+async function checkGasConnection() {
+  if (!GAS_URL) {
+    setBanner('err', '❌ GAS URL 미설정 · 관리자 화면에서 URL을 입력해 주세요');
+    return;
+  }
+  setBanner('loading', '⏳ GAS 연결 확인 중...');
+  try {
+    const data = await fetchGAS(GAS_URL + '?action=getStatus');
+    setBanner('ok', '✅ GAS 연결됨 · 실시간 동기화 중');
+    appIsClosed = !!data.isClosed;
+    applyClosedUI(appIsClosed);
+  } catch(e) {
+    setBanner('err', '❌ GAS 연결 실패 · 관리자에게 문의하세요');
+  }
+}
+
+// ════════════════════════════════════════
+// GAS URL 변경 모달 (헤더용 - 미사용, 관리자 전용)
+// ════════════════════════════════════════
+function closeGasUrlModal() { document.getElementById('gasUrlModal').classList.remove('show'); }
+async function doGasUrlSave() {
+  const url = document.getElementById('gasUrlInput').value.trim();
+  const msg = document.getElementById('gasUrlMsg');
+  if (!url || !url.startsWith('https://script.google.com')) {
+    msg.style.display=''; msg.style.color='#DC2626'; msg.textContent='올바른 GAS URL을 입력해 주세요.'; return;
+  }
+  msg.style.display=''; msg.style.color='#D97706'; msg.textContent='⏳ 연결 확인 중...';
+  try {
+    const data = await fetchGAS(url + '?action=getStatus');
+    localStorage.setItem(GAS_URL_KEY, url);
+    GAS_URL = url;
+    document.getElementById('currentGasUrlDisplay').textContent = url;
+    document.getElementById('adminGasUrlInput').value = url;
+    msg.style.color='#059669'; msg.textContent='✅ 연결됐어요!';
+    setBanner('ok', '✅ GAS 연결됨 · 실시간 동기화 중');
+    appIsClosed = !!data.isClosed;
+    applyClosedUI(appIsClosed);
+    setTimeout(() => closeGasUrlModal(), 800);
+  } catch(err) {
+    msg.style.display=''; msg.style.color='#DC2626'; msg.textContent='❌ 연결 실패: ' + err.message;
+  }
+}
+
+// ════════════════════════════════════════
+// 관리자 GAS URL 저장
+// ════════════════════════════════════════
+async function adminSaveGasUrl() {
+  const url = document.getElementById('adminGasUrlInput').value.trim();
+  const msg = document.getElementById('adminGasUrlMsg');
+  if (!url || !url.startsWith('https://script.google.com')) {
+    msg.style.display=''; msg.style.color='#DC2626'; msg.textContent='올바른 GAS 웹앱 URL을 입력해 주세요.'; return;
+  }
+  msg.style.display=''; msg.style.color='#D97706'; msg.textContent='⏳ 연결 확인 중...';
+  try {
+    const data = await fetchGAS(url + '?action=getStatus');
+    localStorage.setItem(GAS_URL_KEY, url);
+    GAS_URL = url;
+    document.getElementById('currentGasUrlDisplay').textContent = url;
+    msg.style.color='#059669'; msg.textContent='✅ 연결 성공! URL이 저장됐어요.';
+    setBanner('ok', '✅ GAS 연결됨 · 실시간 동기화 중');
+    appIsClosed = !!data.isClosed;
+    applyClosedUI(appIsClosed);
+    updateAdminCloseUI(appIsClosed);
+  } catch(err) {
+    msg.style.display=''; msg.style.color='#DC2626'; msg.textContent='❌ 연결 실패: ' + err.message;
+  }
+}
 
 // ════════════════════════════════════════
 // 상태
@@ -620,11 +871,292 @@ let state = {
 };
 let adminData = [];
 let adminFilter = 'all';
+let appIsClosed = false;     // ★ 마감 상태 전역
+let editingRecord = null;    // ★ 수정 중인 회차 데이터
+
+// ════════════════════════════════════════
+// ★ 마감 상태 체크 & 적용
+// ════════════════════════════════════════
+async function checkClosedStatus() {
+  if (!GAS_URL) return;
+  try {
+    const data = await fetchGAS(GAS_URL + '?action=getStatus');
+    appIsClosed = !!data.isClosed;
+    applyClosedUI(appIsClosed);
+  } catch(e) { /* 실패해도 그냥 열려있는 걸로 처리 */ }
+}
+
+function applyClosedUI(isClosed) {
+  appIsClosed = isClosed;
+  const banner = document.getElementById('closedBanner');
+  if (isClosed) {
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+// ★ 관리자: 마감 ON/OFF
+async function setClosedState(isClosed) {
+  if (!GAS_URL) { showToast('⚠️ GAS URL을 먼저 설정해 주세요'); return; }
+  const msg = isClosed
+    ? '정말 마감할까요? 학생들이 제출할 수 없게 돼요.'
+    : '마감을 해제할까요? 학생들이 다시 제출할 수 있어요.';
+  if (!confirm(msg)) return;
+  document.getElementById('loadingOverlay').classList.add('show');
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ type: 'setClosed', isClosed }),
+      mode: 'no-cors'
+    });
+    // UI 즉시 업데이트 (no-cors라 응답 못 읽음)
+    updateAdminCloseUI(isClosed);
+    appIsClosed = isClosed;
+    showToast(isClosed ? '🔒 마감 완료!' : '🔓 마감 해제 완료!');
+  } catch(e) {
+    showToast('⚠️ 오류가 발생했어요');
+  } finally {
+    document.getElementById('loadingOverlay').classList.remove('show');
+  }
+}
+
+function updateAdminCloseUI(isClosed) {
+  const status = document.getElementById('closeStatus');
+  const btnClose = document.getElementById('btnClose');
+  const btnOpen = document.getElementById('btnOpen');
+  if (isClosed) {
+    status.textContent = '🔴 현재 마감됨 (제출 불가)';
+    status.className = 'close-status closed';
+    btnClose.style.display = 'none';
+    btnOpen.style.display = 'inline-block';
+  } else {
+    status.textContent = '🟢 현재 열려있음 (제출 가능)';
+    status.className = 'close-status open';
+    btnClose.style.display = 'inline-block';
+    btnOpen.style.display = 'none';
+  }
+}
+
+// ★ 관리자: 전체 초기화
+async function confirmClearAll() {
+  const first = confirm('⚠️ 전체 초기화를 실행할까요?\n\n모든 학생 기록이 삭제되며 되돌릴 수 없어요!');
+  if (!first) return;
+  const second = confirm('정말 확실한가요? 이 작업은 취소할 수 없어요.\n\n[확인]을 누르면 즉시 삭제됩니다.');
+  if (!second) return;
+  document.getElementById('loadingOverlay').classList.add('show');
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ type: 'clearAllData' }),
+      mode: 'no-cors'
+    });
+    showToast('🗑️ 초기화 요청을 보냈어요! 시트를 확인해 주세요.');
+    adminData = [];
+    renderAdminData();
+  } catch(e) {
+    showToast('⚠️ 오류가 발생했어요');
+  } finally {
+    document.getElementById('loadingOverlay').classList.remove('show');
+  }
+}
+
+// ════════════════════════════════════════
+// ★ 내 기록 열람/수정 모달
+// ════════════════════════════════════════
+function openMyRecords() {
+  // 학생 정보가 있으면 바로, 없으면 먼저 정보 입력하도록
+  const name = document.getElementById('inputName').value.trim();
+  const cls = document.getElementById('inputClass').value.trim();
+  const num = document.getElementById('inputNum').value.trim();
+  if (!name || !cls || !num || !state.quarter || !state.studyName) {
+    showToast('⚠️ 먼저 분기 → 본인 정보 → 과목/팀명을 선택해 주세요');
+    showScreen('quarter'); updateStepBar(1);
+    return;
+  }
+  document.getElementById('roundModal').classList.add('show');
+  loadRoundList();
+}
+
+async function loadRoundList() {
+  const listEl = document.getElementById('roundListContent');
+  listEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--gray-400);font-size:13px">불러오는 중...</div>';
+  document.getElementById('roundModalTitle').textContent = state.role === 'king'
+    ? `📋 내 기록 — 왕멘토(${state.subject})`
+    : `📋 내 기록 — ${state.studyName}`;
+
+  try {
+    let url;
+    if (state.role === 'king') {
+      url = `${GAS_URL}?action=getKingRecords&name=${encodeURIComponent(state.name)}&classNum=${state.classNum}&studentNum=${state.studentNum}&quarter=${encodeURIComponent(state.quarter+'분기')}&subject=${encodeURIComponent(state.subject)}`;
+    } else {
+      url = `${GAS_URL}?action=getMyRecords&name=${encodeURIComponent(state.name)}&classNum=${state.classNum}&studentNum=${state.studentNum}&quarter=${encodeURIComponent(state.quarter+'분기')}&studyName=${encodeURIComponent(state.studyName)}`;
+    }
+    const data = await fetchGAS(url);
+    const records = (data.records || []).sort((a,b) => a.round - b.round);
+
+    if (!records.length) {
+      listEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--gray-400);font-size:13px">아직 기록이 없어요</div>';
+      return;
+    }
+
+    listEl.innerHTML = records.map(r => `
+      <div class="round-list-item" onclick="openRoundDetail(${r.round})">
+        <div>
+          <div class="rli-num">${r.round}회차</div>
+          <div class="rli-info">${r.date || ''} ${r.time ? '· '+r.time : ''} ${r.totalMinutes ? '· ⏱️'+formatMinutes(r.totalMinutes) : ''}</div>
+        </div>
+        <div class="rli-arrow">›</div>
+      </div>`).join('');
+  } catch(e) {
+    listEl.innerHTML = '<div style="padding:20px;text-align:center;color:var(--gray-400);font-size:13px">불러오기 실패 😢</div>';
+  }
+}
+
+async function openRoundDetail(round) {
+  document.getElementById('roundDetailContent').innerHTML = '<div style="padding:20px;text-align:center;color:var(--gray-400);font-size:13px">불러오는 중...</div>';
+  document.getElementById('roundListView').classList.add('hide');
+  document.getElementById('roundDetailView').classList.add('show');
+
+  try {
+    let url, data;
+    if (state.role === 'king') {
+      url = `${GAS_URL}?action=getKingRecordDetail&name=${encodeURIComponent(state.name)}&classNum=${state.classNum}&studentNum=${state.studentNum}&quarter=${encodeURIComponent(state.quarter+'분기')}&subject=${encodeURIComponent(state.subject)}&round=${round}`;
+      data = await fetchGAS(url);
+      renderKingDetailEdit(data.record, round);
+    } else {
+      url = `${GAS_URL}?action=getMyRecordDetail&name=${encodeURIComponent(state.name)}&classNum=${state.classNum}&studentNum=${state.studentNum}&quarter=${encodeURIComponent(state.quarter+'분기')}&studyName=${encodeURIComponent(state.studyName)}&round=${round}`;
+      data = await fetchGAS(url);
+      renderMemberDetailEdit(data.record, round);
+    }
+  } catch(e) {
+    document.getElementById('roundDetailContent').innerHTML = '<div style="color:var(--danger);font-size:13px">불러오기 실패 😢</div>';
+  }
+}
+
+function renderMemberDetailEdit(rec, round) {
+  if (!rec) { document.getElementById('roundDetailContent').innerHTML = '<div style="color:var(--danger);font-size:13px">기록을 찾을 수 없어요</div>'; return; }
+  editingRecord = { ...rec, round, type: 'member' };
+  const dateVal = rec.date ? String(rec.date).slice(0,10) : '';
+  document.getElementById('roundDetailContent').innerHTML = `
+    <div style="font-size:14px;font-weight:800;color:var(--gray-800);margin-bottom:14px;">${round}회차 수정</div>
+    <div class="form-group"><label>역할</label>
+      <select id="edit_memberRole">
+        <option value="멘토" ${rec.memberRole==='멘토'?'selected':''}>멘토</option>
+        <option value="멘티" ${rec.memberRole==='멘티'?'selected':''}>멘티</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>활동 날짜</label><input type="date" id="edit_date" value="${dateVal}"/></div>
+      <div class="form-group"><label>활동 시간</label><input type="text" id="edit_time" value="${rec.time||''}"/></div>
+    </div>
+    <div class="form-group"><label>활동 장소</label><input type="text" id="edit_place" value="${rec.place||''}"/></div>
+    <div class="form-group"><label>활동 제목</label><input type="text" id="edit_title" value="${rec.title||''}"/></div>
+    <div class="form-group"><label>활동 내용</label><textarea id="edit_content" style="min-height:100px">${rec.content||''}</textarea></div>
+    <div class="form-group"><label>느낀점</label><textarea id="edit_reflection" style="min-height:80px">${rec.reflection||''}</textarea></div>
+    <div class="form-group"><label>다음 회차 예고</label><input type="text" id="edit_nextPlan" value="${rec.nextPlan||''}"/></div>
+  `;
+}
+
+function renderKingDetailEdit(rec, round) {
+  if (!rec) { document.getElementById('roundDetailContent').innerHTML = '<div style="color:var(--danger);font-size:13px">기록을 찾을 수 없어요</div>'; return; }
+  editingRecord = { ...rec, round, type: 'king' };
+  const dateVal = rec.date ? String(rec.date).slice(0,10) : '';
+  document.getElementById('roundDetailContent').innerHTML = `
+    <div style="font-size:14px;font-weight:800;color:var(--gray-800);margin-bottom:14px;">👑 왕멘토 ${round}회차 수정</div>
+    <div class="form-row">
+      <div class="form-group"><label>활동 날짜</label><input type="date" id="edit_date" value="${dateVal}"/></div>
+      <div class="form-group"><label>활동 시간</label><input type="text" id="edit_time" value="${rec.time||''}"/></div>
+    </div>
+    <div class="form-group"><label>학습 내용</label><textarea id="edit_selfStudy" style="min-height:100px">${rec.selfStudy||''}</textarea></div>
+    <div class="form-group"><label>느낀점</label><textarea id="edit_reflection" style="min-height:80px">${rec.reflection||''}</textarea></div>
+    <div class="form-group"><label>다음 활동 예고</label><input type="text" id="edit_nextPlan" value="${rec.nextPlan||''}"/></div>
+  `;
+}
+
+async function saveRoundEdit() {
+  if (!editingRecord) return;
+  if (appIsClosed) { showToast('⚠️ 현재 마감 중이에요. 수정할 수 없어요.'); return; }
+
+  let payload;
+  if (editingRecord.type === 'member') {
+    const title = document.getElementById('edit_title').value.trim();
+    const content = document.getElementById('edit_content').value.trim();
+    if (!title || !content) { showToast('⚠️ 제목과 내용은 필수예요'); return; }
+    payload = {
+      type: 'updateMember',
+      quarter: state.quarter + '분기',
+      studyName: state.studyName,
+      round: editingRecord.round,
+      name: state.name, classNum: state.classNum, studentNum: state.studentNum,
+      memberRole: document.getElementById('edit_memberRole').value,
+      date: document.getElementById('edit_date').value,
+      time: document.getElementById('edit_time').value,
+      place: document.getElementById('edit_place').value,
+      title, content,
+      reflection: document.getElementById('edit_reflection').value,
+      nextPlan: document.getElementById('edit_nextPlan').value,
+      present: editingRecord.present || '',
+      absent: editingRecord.absent || '',
+      totalMinutes: editingRecord.totalMinutes || 0,
+      photoChecked: editingRecord.photoChecked || '미촬영',
+      timestamp: new Date().toISOString()
+    };
+  } else {
+    const selfStudy = document.getElementById('edit_selfStudy').value.trim();
+    if (!selfStudy) { showToast('⚠️ 학습 내용은 필수예요'); return; }
+    payload = {
+      type: 'updateKing',
+      quarter: state.quarter + '분기',
+      subject: state.subject,
+      round: editingRecord.round,
+      name: state.name, classNum: state.classNum, studentNum: state.studentNum,
+      date: document.getElementById('edit_date').value,
+      time: document.getElementById('edit_time').value,
+      selfStudy,
+      reflection: document.getElementById('edit_reflection').value,
+      nextPlan: document.getElementById('edit_nextPlan').value,
+      questions: editingRecord.questions || '[]',
+      totalMinutes: editingRecord.totalMinutes || 0,
+      photoChecked: editingRecord.photoChecked || '미촬영',
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  document.getElementById('loadingOverlay').classList.add('show');
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload),
+      mode: 'no-cors'
+    });
+    showToast('✅ 수정이 저장되었어요!');
+    closeRoundModal();
+  } catch(e) {
+    showToast('⚠️ 저장 중 오류가 발생했어요');
+  } finally {
+    document.getElementById('loadingOverlay').classList.remove('show');
+  }
+}
+
+function backToRoundList() {
+  document.getElementById('roundDetailView').classList.remove('show');
+  document.getElementById('roundListView').classList.remove('hide');
+  editingRecord = null;
+}
+
+function closeRoundModal() {
+  document.getElementById('roundModal').classList.remove('show');
+  backToRoundList();
+}
 
 // ════════════════════════════════════════
 // 초기화
 // ════════════════════════════════════════
-window.onload = function() {
+window.onload = async function() {
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('actDate').value = today;
   document.getElementById('kingActDate').value = today;
@@ -633,6 +1165,14 @@ window.onload = function() {
   updateQuarterLabels();
   showScreen('home');
   updateStepBar(0);
+  // ★ GAS 연결 확인 (URL 포함)
+  await checkGasConnection();
+  if (GAS_URL) {
+    // ★ 30초마다 마감 상태 자동 갱신
+    setInterval(async () => {
+      await checkClosedStatus();
+    }, 30000);
+  }
 };
 
 function applyYear(year) {
@@ -709,6 +1249,9 @@ async function goStep(target) {
       const teamName=document.getElementById('teamNameInput').value.trim();
       if(!teamName){showToast('⚠️ 팀명을 입력해 주세요');return;}
       state.studyName=state.subject+' '+teamName;
+    } else {
+      // 왕멘토는 studyName을 과목명으로
+      state.studyName = '왕멘토_'+state.subject;
     }
     if(actType==='final') {
       showScreen('final'); updateStepBar(4); return;
@@ -753,8 +1296,8 @@ function selectSubjectChip(subj,el) {
   if(state.role==='member') {
     document.getElementById('teamNameCard').style.display='block';
   }
+  // 왕멘토도 바로 활동유형 카드 표시
   document.getElementById('actTypeCard').style.display='block';
-  // actType 초기화
   actType='record';
   document.querySelectorAll('.act-type-btn').forEach(b=>b.classList.remove('selected'));
   document.getElementById('typeBtn-record').classList.add('selected');
@@ -846,15 +1389,29 @@ function selectActType(type, el) {
 async function submitFinal() {
   const growth = document.getElementById('finalGrowth').value.trim();
   const improve = document.getElementById('finalImprove').value.trim();
+  const memory = document.getElementById('finalMemory').value.trim();
   const oneLine = document.getElementById('finalOneLine').value.trim();
   if(!growth) { showToast('⚠️ 배운 점/성장한 점은 필수예요'); return; }
+
+  // 종료일 지난 분기 경고
+  const dates = JSON.parse(localStorage.getItem('quarter_dates')||'{}');
+  const qDates = dates[state.quarter];
+  if(qDates && qDates.end) {
+    const today = new Date().toISOString().slice(0,10);
+    if(today > qDates.end) {
+      showToast(`⚠️ ${state.quarter}분기 종료일이 지났어요. 그래도 제출돼요!`);
+      await new Promise(r=>setTimeout(r,2000));
+    }
+  }
+
   await sendToGAS({
     type:'final', quarter:state.quarter+'분기', studyName:state.studyName,
     name:state.name, classNum:state.classNum, studentNum:state.studentNum,
     role: state.role==='king'?'왕멘토/부멘토':state.memberRole||'',
-    subject:state.subject, growth, improve, oneLine,
+    subject:state.subject, growth, improve, memory, oneLine,
     timestamp:new Date().toISOString()
   });
+
   document.getElementById('doneMessage').innerHTML = '최종 느낀점이 저장되었어요 🎉';
   document.getElementById('doneSummary').innerHTML = `
     <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;">
@@ -867,12 +1424,16 @@ async function submitFinal() {
         <span style="font-weight:700">${state.studyName} · ${state.quarter}분기</span>
       </div>
       <div style="padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
-        <div style="color:var(--gray-400);font-weight:600;margin-bottom:6px">배운 점 / 성장한 점</div>
+        <div style="color:var(--gray-400);font-weight:600;margin-bottom:6px">📈 배운 점 / 성장한 점</div>
         <div style="font-size:12px;color:var(--gray-700);line-height:1.7">${growth}</div>
       </div>
-      ${oneLine?`<div style="display:flex;justify-content:space-between">
-        <span style="color:var(--gray-400);font-weight:600">한 줄 소감</span>
-        <span style="font-weight:700;color:var(--primary);text-align:right;max-width:60%">${oneLine}</span>
+      ${memory?`<div style="padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
+        <div style="color:var(--gray-400);font-weight:600;margin-bottom:6px">💡 기억에 남는 교과 내용</div>
+        <div style="font-size:12px;color:var(--gray-700);line-height:1.7">${memory}</div>
+      </div>`:''}
+      ${oneLine?`<div>
+        <div style="color:var(--gray-400);font-weight:600;margin-bottom:6px">✍️ 최종 소감</div>
+        <div style="font-size:12px;color:var(--gray-700);line-height:1.7">${oneLine}</div>
       </div>`:''}
     </div>`;
   showScreen('done'); updateStepBar(5);
@@ -1041,6 +1602,7 @@ function formatMinutes(min) {
 // 제출 (일반)
 // ════════════════════════════════════════
 async function submitRecord() {
+  if (appIsClosed) { showToast('🔒 현재 제출이 마감되었어요. 선생님께 문의해 주세요.'); return; }
   const date=document.getElementById('actDate').value;
   const time=document.getElementById('actTime').value.trim();
   const place=document.getElementById('actPlace').value.trim();
@@ -1132,6 +1694,7 @@ async function submitRecord() {
 // 제출 (왕멘토)
 // ════════════════════════════════════════
 async function submitKingRecord() {
+  if (appIsClosed) { showToast('🔒 현재 제출이 마감되었어요. 선생님께 문의해 주세요.'); return; }
   const date=document.getElementById('kingActDate').value;
   const time=document.getElementById('kingActTime').value.trim();
   const selfStudy=document.getElementById('kingSelfStudy').value.trim();
@@ -1201,6 +1764,10 @@ async function submitKingRecord() {
 // GAS 전송
 // ════════════════════════════════════════
 async function sendToGAS(payload) {
+  if (!GAS_URL) {
+    showToast('⚠️ GAS URL이 설정되지 않았어요. 선생님께 문의해 주세요.');
+    return;
+  }
   document.getElementById('loadingOverlay').classList.add('show');
   try {
     await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),mode:'no-cors'});
@@ -1247,8 +1814,19 @@ function checkPw(){
     const savedYear = localStorage.getItem('app_year') || '2026';
     document.getElementById('yearInput').value = savedYear;
     document.getElementById('currentYearDisplay').textContent = savedYear;
+    // GAS URL 표시
+    const curUrl = GAS_URL || '(미설정)';
+    document.getElementById('currentGasUrlDisplay').textContent = curUrl;
+    document.getElementById('adminGasUrlInput').value = GAS_URL || '';
+    document.getElementById('adminGasUrlMsg').style.display = 'none';
     loadQuarterDates();
     loadAdminData();
+    // ★ 마감 상태도 관리자 화면에 반영
+    if (GAS_URL) {
+      fetchGAS(GAS_URL + '?action=getStatus').then(data => {
+        updateAdminCloseUI(!!data.isClosed);
+      }).catch(()=>{});
+    }
   } else { showToast('⚠️ 비밀번호가 틀렸어요'); document.getElementById('pwInput').value=''; }
 }
 function exitAdmin(){
@@ -1267,6 +1845,11 @@ async function fetchGAS(url) {
 }
 
 async function loadAdminData() {
+  if (!GAS_URL) {
+    document.getElementById('adminRecordList').innerHTML='<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px">⚠️ GAS URL을 먼저 위에서 입력하고 저장해 주세요</div>';
+    updateStatCards([]);
+    return;
+  }
   document.getElementById('adminRecordList').innerHTML='<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px">불러오는 중...</div>';
   try {
     const data = await fetchGAS(GAS_URL+'?action=getRecords');
