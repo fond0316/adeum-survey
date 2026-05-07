@@ -298,7 +298,7 @@ input[type=file]{display:none;}
     <div class="round-modal-title" id="myRecordsListTitle" style="margin-bottom:14px;">📋 내 기록 목록</div>
 
     <!-- 요약 바 -->
-    <div id="myRecordsSummaryBar" style="display:none;background:linear-gradient(135deg,var(--primary),#6366F1);color:white;border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;">
+    <div id="myRecordsSummaryBar" style="display:none;background:linear-gradient(135deg,var(--primary),#6366F1);color:white;border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:14px;align-items:center;justify-content:space-between;">
       <div>
         <div style="font-size:11px;opacity:.85;">누적 제출 회차</div>
         <div style="font-size:22px;font-weight:800;" id="myRecordsTotalRounds">-</div>
@@ -485,6 +485,7 @@ input[type=file]{display:none;}
           </div>
         </div>
       </div>
+      <div id="infoStepError" style="display:none;background:#FEF2F2;border:1.5px solid #FECACA;border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:#991B1B;font-weight:600;margin:0 16px 4px;"></div>
       <div class="bottom-bar"><div class="bottom-bar-inner">
         <button class="btn btn-secondary" style="flex:1" onclick="goStep('quarter')">← 이전</button>
         <button class="btn btn-primary" style="flex:2" onclick="goStep('study')">다음 →</button>
@@ -1244,7 +1245,8 @@ function renderMyRecordsTable(records) {
   const totalMin = records.reduce((s,r) => s + (parseInt(r.totalMinutes)||0), 0);
   document.getElementById('myRecordsTotalRounds').textContent = totalRounds + '회차';
   document.getElementById('myRecordsTotalTime').textContent = formatMinutes(totalMin) || '-';
-  document.getElementById('myRecordsSummaryBar').style.display = 'flex';
+  const sb = document.getElementById('myRecordsSummaryBar');
+  sb.style.display = 'flex';
 
   // 표
   wrap.innerHTML = `
@@ -1554,7 +1556,10 @@ function updateStepBar(step) {
   }
 }
 
-function startStudy() { showScreen('quarter'); updateStepBar(1); }
+function startStudy() {
+  if (appIsClosed) { showToast('🔒 현재 제출이 마감되었어요. 선생님께 문의하세요.'); return; }
+  showScreen('quarter'); updateStepBar(1);
+}
 
 async function goStep(target) {
   if(target==='home') { showScreen('home'); updateStepBar(0); return; }
@@ -1567,8 +1572,16 @@ async function goStep(target) {
     const name=document.getElementById('inputName').value.trim();
     const cls=document.getElementById('inputClass').value.trim();
     const num=document.getElementById('inputNum').value.trim();
-    if(!name||!cls||!num){showToast('⚠️ 이름, 반, 번호를 모두 입력해 주세요');return;}
-    if(!state.role){showToast('⚠️ 역할을 선택해 주세요');return;}
+    const errEl=document.getElementById('infoStepError');
+    if(!name||!cls||!num){
+      errEl.textContent='⚠️ 이름, 반, 번호를 모두 입력해 주세요';
+      errEl.style.display='block'; return;
+    }
+    if(!state.role){
+      errEl.textContent='⚠️ 역할을 선택해 주세요 (스터디 팀원 또는 왕멘토/부멘토)';
+      errEl.style.display='block'; return;
+    }
+    errEl.style.display='none';
     state.name=name; state.classNum=cls; state.studentNum=num;
     state.subject='';
     document.querySelectorAll('.subject-chip').forEach(c=>c.classList.remove('selected'));
@@ -1611,6 +1624,8 @@ function selectRole(role,el) {
   state.role=role;
   document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('selected'));
   el.classList.add('selected');
+  const errEl=document.getElementById('infoStepError');
+  if(errEl) errEl.style.display='none';
 }
 function selectMemberRole(role,el) {
   state.memberRole=role;
