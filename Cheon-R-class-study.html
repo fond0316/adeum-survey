@@ -1,0 +1,2249 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>🌟 아듬's 학급활동기록 2026</title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+:root {
+  --primary: #9B8EC4;
+  --primary-dark: #7B6BA8;
+  --primary-light: rgba(196,181,253,0.15);
+  --primary-mid: rgba(196,181,253,0.35);
+  --accent: #10B981; --accent-light: #ECFDF5;
+  --warning: #F59E0B; --warning-light: #FFFBEB;
+  --danger: #EF4444;
+  --purple: #8B5CF6; --purple-light: #F5F3FF;
+  --bg: #F4F2FA;
+  --white: #FFFFFF;
+  --gray-50:#F9FAFB; --gray-100:#F3F4F6; --gray-200:#E5E7EB;
+  --gray-300:#D1D5DB; --gray-400:#9CA3AF; --gray-500:#6B7280;
+  --gray-600:#4B5563; --gray-700:#374151; --gray-800:#1F2937; --gray-900:#111827;
+  --radius:14px; --radius-sm:9px;
+  --shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md:0 4px 12px rgba(155,142,196,0.12),0 2px 4px rgba(0,0,0,0.05);
+  --shadow-lg:0 10px 30px rgba(155,142,196,0.18),0 4px 6px rgba(0,0,0,0.05);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);min-height:100vh;color:var(--gray-800);}
+
+/* ── 공통 ── */
+.screen{display:none;} .screen.active{display:block;}
+.card{background:white;border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow);}
+.card-title{font-size:14px;font-weight:700;color:var(--gray-700);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+label{display:block;font-size:12px;font-weight:600;color:var(--gray-600);margin-bottom:6px;}
+input[type=text],input[type=number],input[type=date],select,textarea{width:100%;padding:11px 14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;color:var(--gray-800);background:white;transition:border-color .2s;outline:none;-webkit-appearance:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light);}
+textarea{resize:vertical;min-height:80px;line-height:1.6;}
+.form-group{margin-bottom:14px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.form-row-3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;}
+input[type=file]{display:none;}
+/* ── 활동 유형 선택 ── */
+.act-type-btn{padding:16px;border:2px solid var(--gray-200);border-radius:var(--radius);cursor:pointer;transition:all .15s;background:white;text-align:center;}
+.act-type-btn:hover{border-color:var(--primary);background:var(--primary-light);}
+.act-type-btn.selected{border-color:var(--primary);background:var(--primary-light);}
+@media(max-width:600px){
+  .container{padding:20px 16px 100px;}
+  .menu-card{width:calc(50% - 10px);}
+  .home-hero h2{font-size:20px;}
+}
+.info-box{background:var(--primary-light);border:1.5px solid #BFDBFE;border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:#1E40AF;line-height:1.6;margin-bottom:14px;}
+
+/* ── 버튼 ── */
+.btn{display:block;width:100%;padding:14px;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s;text-align:center;}
+.btn-primary{background:rgba(155,142,196,0.18);color:var(--primary-dark);border:2px solid rgba(155,142,196,0.5);} .btn-primary:active{background:rgba(155,142,196,0.3);transform:scale(.99);}
+.btn-primary:hover{background:rgba(155,142,196,0.28);border-color:var(--primary);}
+.btn-secondary{background:var(--gray-100);color:var(--gray-700);}
+.btn-accent{background:var(--accent);color:white;border:none;}
+.btn-danger{background:var(--danger);color:white;}
+.btn-sm{padding:8px 14px;font-size:13px;width:auto;display:inline-block;}
+.btn-outline{background:white;border:1.5px solid var(--primary);color:var(--primary);}
+
+/* ── 헤더 ── */
+.app-header{background:var(--white);border-bottom:1px solid var(--gray-200);padding:14px 20px;position:sticky;top:0;z-index:100;box-shadow:var(--shadow);height:auto;display:block;}
+.header-top{display:flex;align-items:center;width:100%;max-width:480px;margin:0 auto;}
+.header-top h1{font-size:15px;font-weight:700;color:#111;white-space:nowrap;flex:1;}
+.admin-btn{font-size:11px;padding:5px 10px;background:var(--primary-light);border:1.5px solid var(--primary-mid);border-radius:20px;color:var(--primary-dark);cursor:pointer;font-family:inherit;font-weight:600;white-space:nowrap;}
+.admin-btn:hover{background:var(--primary-mid);}
+
+/* ── 탭 ── */
+.tabs{display:flex;gap:0;}
+.tab{flex:1;padding:10px 0;text-align:center;font-size:13px;font-weight:700;color:var(--gray-400);border-bottom:3px solid transparent;cursor:pointer;transition:all .2s;}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary);}
+
+/* ── 스텝바 ── */
+.step-bar{display:flex;gap:4px;padding:10px 20px;background:white;border-bottom:1px solid var(--gray-100);}
+.step-dot{flex:1;height:4px;border-radius:2px;background:var(--gray-200);transition:background .3s;}
+.step-dot.active{background:var(--primary);} .step-dot.done{background:var(--primary-mid);}
+
+/* ── 컨테이너 ── */
+.container{max-width:1140px;margin:0 auto;padding:32px 40px 100px;}
+
+/* ── 메인 홈 ── */
+.home-hero{text-align:center;margin-bottom:28px;}
+.home-hero .year-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#2563eb;background:#dbeafe;border-radius:20px;padding:4px 12px;margin-bottom:14px;}
+.home-hero h2{font-size:24px;font-weight:700;color:#111;line-height:1.35;letter-spacing:-.5px;margin-bottom:8px;}
+.home-hero p{font-size:13px;color:#6b7280;line-height:1.7;}
+.menu-grid{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-bottom:20px;}
+.menu-card{width:190px;padding:36px 20px 28px;background:white;border-radius:20px;border:2px solid #e5e7eb;cursor:pointer;text-align:center;transition:all .18s;box-shadow:0 2px 12px rgba(0,0,0,.06);}
+.menu-card:hover{transform:translateY(-5px);box-shadow:0 12px 36px rgba(0,0,0,.13);border-color:#2563eb;}
+.menu-card.soon{opacity:.55;cursor:default;}
+.menu-card.soon:hover{border-color:#e5e7eb;transform:none;box-shadow:0 2px 12px rgba(0,0,0,.06);}
+.menu-card .icon{font-size:42px;margin-bottom:14px;}
+.menu-card .name{font-size:17px;font-weight:700;color:#111;margin-bottom:6px;}
+.menu-card .desc{font-size:12px;color:#9ca3af;line-height:1.7;}
+.menu-card .badge{display:inline-block;margin-top:12px;padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-blue{background:#dbeafe;color:#2563eb;}
+.badge-gray{background:var(--gray-100);color:var(--gray-400);}
+
+/* ── 분기/역할 선택 ── */
+.quarter-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.quarter-card{padding:16px;border:2px solid var(--gray-200);border-radius:var(--radius);text-align:center;cursor:pointer;transition:all .2s;background:white;}
+.quarter-card:hover,.quarter-card.selected{border-color:var(--primary);background:var(--primary-light);}
+.quarter-card .q-num{font-size:24px;font-weight:800;color:var(--primary);line-height:1;margin-bottom:4px;}
+.quarter-card .q-label{font-size:11px;color:var(--gray-500);line-height:1.4;}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.role-card{padding:18px 14px;border:2px solid var(--gray-200);border-radius:var(--radius);text-align:center;cursor:pointer;transition:all .2s;background:white;}
+.role-card.selected{border-color:var(--primary);background:var(--primary-light);}
+.role-card .role-icon{font-size:28px;margin-bottom:6px;}
+.role-card .role-name{font-size:13px;font-weight:700;color:var(--gray-800);}
+.role-card .role-desc{font-size:11px;color:var(--gray-400);margin-top:3px;line-height:1.4;}
+
+/* ── 과목 선택 ── */
+.subject-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.subject-chip{padding:14px 8px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);text-align:center;font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;color:var(--gray-700);background:white;}
+.subject-chip:hover{border-color:var(--primary);color:var(--primary);}
+.subject-chip.selected{border-color:var(--primary);background:var(--primary-light);color:var(--primary);}
+
+/* ── 역할 토글 (멘토/멘티) ── */
+.role-toggle{flex:1;padding:11px;border:2px solid var(--gray-200);border-radius:var(--radius-sm);text-align:center;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;color:var(--gray-600);background:white;}
+.role-toggle.selected{border-color:var(--primary);background:var(--primary-light);color:var(--primary);}
+
+/* ── 출석 ── */
+.attendance-list{display:flex;flex-wrap:wrap;gap:8px;}
+.attend-chip{padding:7px 12px;border:1.5px solid var(--gray-200);border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;color:var(--gray-600);background:white;user-select:none;}
+.attend-chip.present{border-color:var(--accent);background:var(--accent-light);color:var(--accent);}
+.attend-chip.absent{border-color:var(--danger);background:#FEF2F2;color:var(--danger);text-decoration:line-through;}
+
+/* ── 사진 ── */
+.photo-upload-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border:2px dashed var(--gray-300);border-radius:var(--radius-sm);cursor:pointer;color:var(--gray-500);font-size:13px;font-weight:600;transition:all .15s;background:var(--gray-50);}
+.photo-upload-btn:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light);}
+.photo-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.photo-thumb{width:80px;height:80px;border-radius:var(--radius-sm);object-fit:cover;border:1.5px solid var(--gray-200);}
+.photo-thumb-wrap{position:relative;width:80px;height:80px;}
+.photo-remove{position:absolute;top:-6px;right:-6px;width:20px;height:20px;background:var(--danger);color:white;border-radius:50%;border:none;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;}
+
+/* ── 회차 배지 ── */
+.round-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--primary-light);color:var(--primary);border-radius:20px;font-size:12px;font-weight:700;margin-bottom:16px;}
+
+/* ── 질문 (왕멘토) ── */
+.question-item{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-sm);padding:12px;margin-bottom:10px;}
+.question-item .q-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.q-from{font-size:12px;font-weight:600;color:var(--gray-600);}
+.solved-badge{font-size:11px;padding:3px 8px;border-radius:10px;font-weight:600;cursor:pointer;border:none;font-family:inherit;}
+.solved-badge.solved{background:var(--accent-light);color:var(--accent);}
+.solved-badge.unsolved{background:#FEF2F2;color:var(--danger);}
+.add-question-btn{display:flex;align-items:center;gap:6px;padding:10px;border:2px dashed var(--gray-300);border-radius:var(--radius-sm);cursor:pointer;color:var(--gray-400);font-size:13px;font-weight:600;background:none;width:100%;font-family:inherit;justify-content:center;transition:all .15s;}
+.add-question-btn:hover{border-color:var(--primary);color:var(--primary);}
+
+/* ── 누적 시간 바 ── */
+.total-time-bar{background:linear-gradient(135deg,var(--primary),#6366F1);color:white;border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.total-time-bar .label{font-size:12px;opacity:.85;}
+.total-time-bar .value{font-size:22px;font-weight:800;}
+
+/* ── 완료 ── */
+.success-screen{text-align:center;padding:40px 20px;}
+.success-icon{width:80px;height:80px;background:var(--accent-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 20px;}
+.success-title{font-size:22px;font-weight:800;color:var(--gray-900);margin-bottom:8px;}
+.success-sub{font-size:14px;color:var(--gray-500);line-height:1.6;}
+
+/* ── 하단 버튼 ── */
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;padding:12px 24px;background:white;border-top:1px solid var(--gray-200);box-shadow:0 -4px 12px rgba(0,0,0,0.08);z-index:99;}
+.bottom-bar-inner{max-width:720px;margin:0 auto;display:flex;gap:10px;}
+
+/* ── 로딩/토스트 ── */
+.loading-overlay{display:none;position:fixed;inset:0;background:rgba(255,255,255,.9);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:12px;}
+.loading-overlay.show{display:flex;}
+.spinner{width:40px;height:40px;border:4px solid var(--gray-200);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--gray-900);color:white;padding:10px 18px;border-radius:20px;font-size:13px;font-weight:600;opacity:0;transition:all .3s;z-index:1000;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── 관리자 모달 ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.show{display:flex;}
+.modal{background:white;border-radius:var(--radius);padding:24px;width:100%;max-width:360px;}
+.modal h3{font-size:16px;font-weight:800;margin-bottom:16px;}
+
+/* ── 관리자 화면 ── */
+.admin-screen{display:none;} .admin-screen.active{display:block;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.stat-card{background:white;border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);text-align:center;}
+.stat-card .s-val{font-size:28px;font-weight:800;color:var(--primary);}
+.stat-card .s-label{font-size:11px;color:var(--gray-400);margin-top:4px;}
+.record-row{padding:12px 16px;border-bottom:1px solid var(--gray-100);display:flex;align-items:center;justify-content:space-between;}
+.record-row:last-child{border-bottom:none;}
+.record-row .r-name{font-size:13px;font-weight:700;}
+.record-row .r-meta{font-size:11px;color:var(--gray-400);}
+.record-row .r-round{font-size:12px;font-weight:700;color:var(--primary);}
+.filter-bar{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;}
+.filter-chip{padding:6px 12px;border:1.5px solid var(--gray-200);border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;background:white;font-family:inherit;}
+.filter-chip.active{background:var(--primary);color:white;border-color:var(--primary);}
+
+/* ── 마감 배너 ── */
+.closed-banner{background:#FEF2F2;border:2px solid #FECACA;border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;display:none;align-items:center;gap:12px;}
+.closed-banner.show{display:flex;}
+.closed-banner .cb-icon{font-size:24px;flex-shrink:0;}
+.closed-banner .cb-text{font-size:13px;font-weight:700;color:#991B1B;line-height:1.5;}
+
+/* ── 관리자: 마감/초기화 카드 ── */
+.admin-action-card{background:white;border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow);}
+.admin-action-card .aa-title{font-size:14px;font-weight:700;color:var(--gray-700);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.close-status{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:12px;}
+.close-status.open{background:#DCFCE7;color:#166534;}
+.close-status.closed{background:#FEE2E2;color:#991B1B;}
+
+/* ── 회차 열람 모달 ── */
+.round-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;align-items:center;justify-content:center;padding:16px;}
+.round-modal-overlay.show{display:flex;}
+.round-modal{background:white;border-radius:20px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;padding:24px;padding-bottom:32px;}
+.round-modal-handle{width:40px;height:4px;background:var(--gray-300);border-radius:2px;margin:0 auto 18px;}
+.round-modal-title{font-size:16px;font-weight:800;color:var(--gray-900);margin-bottom:16px;}
+.round-list-item{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer;transition:all .15s;background:white;}
+.round-list-item:hover{border-color:var(--primary);background:var(--primary-light);}
+.round-list-item .rli-num{font-size:15px;font-weight:800;color:var(--primary);}
+.round-list-item .rli-info{font-size:12px;color:var(--gray-500);margin-top:2px;}
+.round-list-item .rli-arrow{color:var(--gray-400);font-size:18px;}
+.round-detail-view{display:none;}
+.round-detail-view.show{display:block;}
+.round-list-view{display:block;}
+.round-list-view.hide{display:none;}
+.edit-mode-banner{background:#FFF7ED;border:1.5px solid #FED7AA;border-radius:var(--radius-sm);padding:10px 14px;font-size:12px;color:#92400E;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+
+/* ── GAS 연결 상태 배너 ── */
+.gas-banner{padding:8px 16px;font-size:12px;font-weight:600;text-align:center;}
+.gas-banner.ok{background:#ECFDF5;color:#059669;}
+.gas-banner.err{background:#FEF2F2;color:#DC2626;}
+.gas-banner.loading{background:#FFF7ED;color:#D97706;}
+
+/* ── 관리자 GAS URL 탭 ── */
+.admin-gasurl-card{background:white;border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow);}
+.admin-gasurl-card .ag-title{font-size:14px;font-weight:700;color:var(--gray-700);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+
+/* ── 내 기록 보기: 읽기 모드 필드 ── */
+.view-field{display:flex;align-items:flex-start;gap:8px;padding:9px 0;border-bottom:1px solid var(--gray-100);}
+.view-field:last-child{border-bottom:none;}
+.view-field.vf-block{flex-direction:column;gap:6px;}
+.vf-label{font-size:11px;font-weight:700;color:var(--gray-400);min-width:90px;flex-shrink:0;padding-top:1px;}
+.vf-val{font-size:13px;color:var(--gray-800);font-weight:500;flex:1;}
+.vf-text{font-size:13px;color:var(--gray-800);line-height:1.7;white-space:pre-wrap;background:var(--gray-50);border-radius:var(--radius-sm);padding:10px 12px;width:100%;}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div style="font-size:13px;color:var(--gray-600);font-weight:600;">처리 중이에요...</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- GAS 연결 상태 배너 -->
+<div class="gas-banner loading" id="gasBanner">⏳ GAS 연결 확인 중...</div>
+
+<!-- GAS URL 변경 모달 (헤더용) -->
+<div class="modal-overlay" id="gasUrlModal" style="z-index:250;">
+  <div class="modal" style="max-width:420px;">
+    <h3>🔗 GAS URL 변경</h3>
+    <p style="font-size:13px;color:var(--gray-500);margin-bottom:14px;">새 GAS 웹앱 URL을 입력하세요.</p>
+    <div class="form-group">
+      <input type="url" id="gasUrlInput" placeholder="https://script.google.com/macros/s/..."/>
+    </div>
+    <div id="gasUrlMsg" style="font-size:12px;margin-bottom:10px;display:none;"></div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="btn btn-secondary" style="flex:1" onclick="closeGasUrlModal()">취소</button>
+      <button class="btn btn-primary" style="flex:2" onclick="doGasUrlSave()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ★ 내 기록 보기 — STEP 1: 학번/이름 입력 -->
+<div class="round-modal-overlay" id="myRecordsLoginModal">
+  <div class="round-modal" style="border-radius:20px 20px 0 0;">
+    <div class="round-modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <div class="round-modal-title">🗂️ 내 기록 보기</div>
+      <button onclick="closeMyRecordsLogin()" style="background:none;border:none;font-size:22px;color:var(--gray-400);cursor:pointer;padding:0 4px;">✕</button>
+    </div>
+    <div class="info-box" style="margin-bottom:16px;">학번과 이름을 입력하면 제출한 모든 회차 기록을 확인하고 수정할 수 있어요.</div>
+    <div class="form-row-3" style="margin-bottom:10px;">
+      <div class="form-group"><label>이름</label><input type="text" id="myRec_name" placeholder="홍길동"/></div>
+      <div class="form-group"><label>반</label><input type="number" id="myRec_class" placeholder="1" min="1" max="12"/></div>
+      <div class="form-group"><label>번호</label><input type="number" id="myRec_num" placeholder="1" min="1" max="40"/></div>
+    </div>
+    <div id="myRecLoginError" style="font-size:12px;color:var(--danger);margin-bottom:10px;display:none;"></div>
+    <button class="btn btn-primary" onclick="loadMyRecordsList()">📋 기록 불러오기</button>
+  </div>
+</div>
+
+<!-- ★ 내 기록 보기 — STEP 2: 회차 목록 표 -->
+<div class="round-modal-overlay" id="myRecordsListModal">
+  <div class="round-modal" style="border-radius:20px 20px 0 0;">
+    <div class="round-modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <button onclick="backToMyRecordsLogin()" style="background:none;border:none;font-size:13px;font-weight:700;color:var(--primary);cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;">← 뒤로</button>
+      <button onclick="closeAllMyRecordsModals()" style="background:none;border:none;font-size:22px;color:var(--gray-400);cursor:pointer;padding:0 4px;">✕</button>
+    </div>
+    <div class="round-modal-title" id="myRecordsListTitle" style="margin-bottom:14px;">📋 내 기록 목록</div>
+
+    <!-- 요약 바 -->
+    <div id="myRecordsSummaryBar" style="display:none;background:linear-gradient(135deg,var(--primary),#6366F1);color:white;border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:11px;opacity:.85;">누적 제출 회차</div>
+        <div style="font-size:22px;font-weight:800;" id="myRecordsTotalRounds">-</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:11px;opacity:.85;">누적 스터디 시간</div>
+        <div style="font-size:20px;font-weight:800;" id="myRecordsTotalTime">-</div>
+      </div>
+    </div>
+
+    <!-- 회차 표 -->
+    <div id="myRecordsTableWrap" style="min-height:80px;"></div>
+  </div>
+</div>
+
+<!-- ★ 내 기록 보기 — STEP 3: 회차 상세 팝업 (뷰어 + 수정) -->
+<div class="round-modal-overlay" id="myRecordsDetailModal">
+  <div class="round-modal" style="border-radius:20px 20px 0 0;">
+    <div class="round-modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <button onclick="backToMyRecordsList()" style="background:none;border:none;font-size:13px;font-weight:700;color:var(--primary);cursor:pointer;padding:0;display:flex;align-items:center;gap:4px;">← 목록으로</button>
+      <button onclick="closeAllMyRecordsModals()" style="background:none;border:none;font-size:22px;color:var(--gray-400);cursor:pointer;padding:0 4px;">✕</button>
+    </div>
+    <div class="round-modal-title" id="myRecordsDetailTitle" style="margin-bottom:14px;">📄 회차 상세</div>
+
+    <!-- 읽기 모드 -->
+    <div id="myRecordsViewMode">
+      <div id="myRecordsViewContent"></div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="btn btn-secondary" style="flex:1" onclick="backToMyRecordsList()">닫기</button>
+        <button class="btn btn-primary" style="flex:2" onclick="switchToEditMode()">✏️ 수정하기</button>
+      </div>
+    </div>
+
+    <!-- 수정 모드 -->
+    <div id="myRecordsEditMode" style="display:none;">
+      <div class="edit-mode-banner">✏️ 내용을 수정하고 저장 버튼을 누르세요</div>
+      <div id="myRecordsEditContent"></div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="btn btn-secondary" style="flex:1" onclick="switchToViewMode()">취소</button>
+        <button class="btn btn-accent" style="flex:2" onclick="saveMyRecordEdit()">💾 수정 저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 기존 round modal (관리자용으로 유지, 숨김) -->
+<div class="round-modal-overlay" id="roundModal" style="display:none!important;">
+  <div class="round-modal">
+    <div class="round-modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div class="round-modal-title" id="roundModalTitle">📋 내 기록 열람</div>
+      <button onclick="closeRoundModal()" style="background:none;border:none;font-size:22px;color:var(--gray-400);cursor:pointer;padding:0 4px;">✕</button>
+    </div>
+    <div class="round-list-view" id="roundListView">
+      <div id="roundListContent" style="min-height:80px"></div>
+    </div>
+    <div class="round-detail-view" id="roundDetailView">
+      <button onclick="backToRoundList()" style="background:none;border:none;font-size:13px;font-weight:700;color:var(--primary);cursor:pointer;padding:0;margin-bottom:14px;display:flex;align-items:center;gap:4px;">← 목록으로</button>
+      <div class="edit-mode-banner">✏️ 내용을 수정하고 저장 버튼을 누르세요</div>
+      <div id="roundDetailContent"></div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="btn btn-secondary" style="flex:1" onclick="backToRoundList()">취소</button>
+        <button class="btn btn-accent" style="flex:2" onclick="saveRoundEdit()">💾 수정 저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 비밀번호 모달 -->
+<div class="modal-overlay" id="pwModal" style="background:var(--bg);">
+  <div style="background:var(--white);border-radius:20px;padding:36px 28px;width:90%;max-width:360px;box-shadow:var(--shadow-lg);text-align:center;">
+    <div style="font-size:40px;margin-bottom:14px;">🔐</div>
+    <div style="font-size:20px;font-weight:700;margin-bottom:6px;">관리자 로그인</div>
+    <div style="font-size:13px;color:var(--gray-400);margin-bottom:24px;">관리자 비밀번호를 입력하세요</div>
+    <input type="password" id="pwInput" placeholder="비밀번호"
+      style="width:100%;padding:12px 14px;border-radius:var(--radius-sm);border:2px solid var(--gray-200);font-family:'Pretendard',sans-serif;font-size:15px;text-align:center;letter-spacing:4px;outline:none;margin-bottom:8px;"
+      onkeydown="if(event.key==='Enter')checkPw()"
+      onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--gray-200)'"/>
+    <div id="pwError" style="font-size:12px;color:var(--danger);margin-bottom:8px;display:none;">비밀번호가 올바르지 않아요.</div>
+    <button onclick="checkPw()" style="width:100%;padding:14px;border-radius:var(--radius-sm);border:none;font-family:'Pretendard',sans-serif;font-size:15px;font-weight:700;cursor:pointer;background:rgba(155,142,196,0.18);color:var(--primary-dark);border:2px solid rgba(155,142,196,0.5);margin-bottom:8px;">로그인</button>
+    <button onclick="closeModal()" style="width:100%;padding:14px;border-radius:var(--radius-sm);border:none;font-family:'Pretendard',sans-serif;font-size:15px;font-weight:700;cursor:pointer;background:var(--gray-100);color:var(--gray-600);">← 돌아가기</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     앱 헤더
+════════════════════════════════════════ -->
+<div class="app-header">
+  <div class="header-top">
+    <h1 id="mainTitle">🌟 아듬's 학급활동기록 <span id="yearDisplay">2026</span> <span style="font-size:11px;color:#9ca3af;font-weight:400;margin-left:4px;">· Made by Cheon_R</span></h1>
+    <button class="admin-btn" onclick="openAdminModal()" style="margin-left:10px;flex-shrink:0;">⚙️ 관리</button>
+  </div>
+</div>
+<div class="step-bar" id="stepBar" style="display:none">
+  <div class="step-dot" id="s1"></div>
+  <div class="step-dot" id="s2"></div>
+  <div class="step-dot" id="s3"></div>
+  <div class="step-dot" id="s4"></div>
+  <div class="step-dot" id="s5"></div>
+</div>
+
+<!-- ════════════════════════════════════════
+     메인 컨테이너 (학생용)
+════════════════════════════════════════ -->
+<div class="container" id="mainContainer">
+
+  <!-- ▶ 자율스터디 탭 -->
+  <div id="tab-content-study">
+
+    <!-- HOME: 메뉴 -->
+    <div class="screen active" id="screen-home">
+      <div class="home-hero">
+        <div class="year-badge" id="yearBadge">2026학년도</div>
+        <h2>🌟 아듬's 학급활동기록</h2>
+        <p>활동을 선택하고 기록을 남겨주세요 &nbsp;·&nbsp; <span style="color:#9ca3af">Made by Cheon_R</span></p>
+      </div>
+      <!-- ★ 마감 배너 -->
+      <div class="closed-banner" id="closedBanner">
+        <div class="cb-icon">🔒</div>
+        <div class="cb-text">현재 제출이 마감되었어요<br><span style="font-weight:400;font-size:12px;color:#B91C1C">선생님이 마감을 해제하면 다시 제출할 수 있어요</span></div>
+      </div>
+      <div class="menu-grid">
+        <div class="menu-card" onclick="startStudy()">
+          <div class="icon">📚</div>
+          <div class="name">자율스터디</div>
+          <div class="desc">협력학습 활동일지<br>회차별 기록</div>
+          <div class="badge badge-blue">참여 중</div>
+        </div>
+        <div class="menu-card" onclick="openMyRecords()">
+          <div class="icon">🗂️</div>
+          <div class="name">내 기록 보기</div>
+          <div class="desc">이전 회차 확인 및<br>수정 가능</div>
+          <div class="badge badge-blue">열람/수정</div>
+        </div>
+        <div class="menu-card soon">
+          <div class="icon">📝</div>
+          <div class="name">심화탐구</div>
+          <div class="desc">탐구보고서<br>활동 기록</div>
+          <div class="badge badge-gray">준비 중</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 1: 분기 선택 -->
+    <div class="screen" id="screen-quarter">
+      <div class="card">
+        <div class="card-title">📅 분기를 선택해 주세요</div>
+        <div class="quarter-grid" id="quarterGrid">
+          <div class="quarter-card" onclick="selectQuarter(1,this)"><div class="q-num">1</div><div class="q-label" id="qlabel1">분기</div></div>
+          <div class="quarter-card" onclick="selectQuarter(2,this)"><div class="q-num">2</div><div class="q-label" id="qlabel2">분기</div></div>
+          <div class="quarter-card" onclick="selectQuarter(3,this)"><div class="q-num">3</div><div class="q-label" id="qlabel3">분기</div></div>
+          <div class="quarter-card" onclick="selectQuarter(4,this)"><div class="q-num">4</div><div class="q-label" id="qlabel4">분기</div></div>
+        </div>
+      </div>
+      <div class="bottom-bar"><div class="bottom-bar-inner">
+        <button class="btn btn-secondary" style="flex:1" onclick="goStep('home')">← 홈</button>
+        <button class="btn btn-primary" style="flex:2" onclick="goStep('info')">다음 →</button>
+      </div></div>
+    </div>
+
+    <!-- STEP 2: 본인 정보 -->
+    <div class="screen" id="screen-info">
+      <div class="card">
+        <div class="card-title">👤 본인 정보를 입력해 주세요</div>
+        <div class="form-row-3">
+          <div class="form-group"><label>이름</label><input type="text" id="inputName" placeholder="홍길동"/></div>
+          <div class="form-group"><label>반</label><input type="number" id="inputClass" placeholder="1" min="1" max="12"/></div>
+          <div class="form-group"><label>번호</label><input type="number" id="inputNum" placeholder="1" min="1" max="40"/></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🎯 역할을 선택해 주세요</div>
+        <div class="role-grid">
+          <div class="role-card" id="roleCard-member" onclick="selectRole('member',this)">
+            <div class="role-icon">👥</div>
+            <div class="role-name">스터디 팀원</div>
+            <div class="role-desc">멘토 또는 멘티로<br>팀 활동 기록</div>
+          </div>
+          <div class="role-card" id="roleCard-king" onclick="selectRole('king',this)">
+            <div class="role-icon">👑</div>
+            <div class="role-name">왕멘토 / 부멘토</div>
+            <div class="role-desc">전체 질문 해결사<br>활동 기록</div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-bar"><div class="bottom-bar-inner">
+        <button class="btn btn-secondary" style="flex:1" onclick="goStep('quarter')">← 이전</button>
+        <button class="btn btn-primary" style="flex:2" onclick="goStep('study')">다음 →</button>
+      </div></div>
+    </div>
+
+    <!-- STEP 3: 과목 + 팀명 -->
+    <div class="screen" id="screen-study">
+      <div class="card">
+        <div class="card-title">📚 과목을 선택해 주세요</div>
+        <div class="subject-grid">
+          <div class="subject-chip" onclick="selectSubjectChip('국어',this)">국어</div>
+          <div class="subject-chip" onclick="selectSubjectChip('영어',this)">영어</div>
+          <div class="subject-chip" onclick="selectSubjectChip('수학',this)">수학</div>
+          <div class="subject-chip" onclick="selectSubjectChip('사회',this)">사회</div>
+          <div class="subject-chip" onclick="selectSubjectChip('과학',this)">과학</div>
+          <div class="subject-chip" onclick="selectSubjectChip('한국사',this)">한국사</div>
+        </div>
+      </div>
+      <div class="card" id="teamNameCard" style="display:none">
+        <div class="card-title">👥 팀명을 입력해 주세요</div>
+        <div class="info-box">예) A팀, 1모둠, 드림팀 등 자유롭게 입력하세요</div>
+        <input type="text" id="teamNameInput" placeholder="팀명 입력"/>
+      </div>
+
+      <!-- 활동 유형 선택 -->
+      <div class="card" id="actTypeCard" style="display:none">
+        <div class="card-title">📋 무엇을 기록할까요?</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="act-type-btn selected" id="typeBtn-record" onclick="selectActType('record',this)">
+            <div style="font-size:20px;margin-bottom:4px">📝</div>
+            <div style="font-size:14px;font-weight:700">활동 기록</div>
+            <div style="font-size:11px;color:var(--gray-400);margin-top:2px">회차별 스터디 활동 내용 기록</div>
+          </div>
+          <div class="act-type-btn" id="typeBtn-final" onclick="selectActType('final',this)">
+            <div style="font-size:20px;margin-bottom:4px">🏁</div>
+            <div style="font-size:14px;font-weight:700">최종 느낀점</div>
+            <div style="font-size:11px;color:var(--gray-400);margin-top:2px">분기 마무리 소감 작성 (생기부 활용)</div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-bar"><div class="bottom-bar-inner">
+        <button class="btn btn-secondary" style="flex:1" onclick="goStep('info')">← 이전</button>
+        <button class="btn btn-primary" style="flex:2" onclick="goStep('record')">다음 →</button>
+      </div></div>
+    </div>
+
+    <!-- STEP 4: 최종 느낀점 -->
+    <div class="screen" id="screen-final">
+      <div class="round-badge">🏁 분기 최종 느낀점</div>
+
+      <!-- 전체 안내 -->
+      <div style="background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:var(--radius);padding:14px 16px;font-size:12px;color:#166534;line-height:1.8;margin-bottom:16px;">
+        💡 <b>이번 분기 스터디를 돌아보며 아래 항목을 성실하게 작성해 주세요.</b><br>
+        선생님이 생기부 작성 시 직접 활용하는 소중한 자료예요. 구체적이고 솔직하게 적을수록 좋아요!
+      </div>
+
+      <!-- 배운 점 / 성장한 점 -->
+      <div class="card">
+        <div class="card-title">📈 배운 점 / 성장한 점</div>
+        <div style="background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:var(--radius-sm);padding:10px 12px;font-size:11px;color:#1E40AF;line-height:1.7;margin-bottom:10px;">
+          📌 스터디를 통해 새롭게 이해한 개념, 향상된 점, 친구에게 설명할 수 있게 된 내용 등을 구체적으로 적어주세요.
+        </div>
+        <textarea id="finalGrowth" placeholder="예) 처음에는 미적분의 극한 개념이 너무 어려워서 포기하고 싶었는데, 멘토가 수직선으로 시각화해서 설명해줘서 이해할 수 있었다. 혼자서는 절대 못 풀었을 심화문제를 팀원들과 함께 풀어내면서 수학적 사고력이 늘었다고 느꼈다." style="min-height:120px"></textarea>
+      </div>
+
+      <!-- 아쉬운 점 / 다음 분기 목표 -->
+      <div class="card">
+        <div class="card-title">🎯 아쉬운 점 / 다음 분기 목표</div>
+        <div style="background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:var(--radius-sm);padding:10px 12px;font-size:11px;color:#1E40AF;line-height:1.7;margin-bottom:10px;">
+          📌 부족했던 부분이나 더 노력하고 싶은 점, 다음 분기에 이루고 싶은 목표를 적어주세요.
+        </div>
+        <textarea id="finalImprove" placeholder="예) 중간에 시험 기간이 겹쳐서 2회차를 빠진 게 아쉽다. 다음 분기에는 결석 없이 참여하고, 내가 모르는 부분을 그냥 넘기지 않고 꼭 질문하는 습관을 만들고 싶다." style="min-height:120px"></textarea>
+      </div>
+
+      <!-- 기억에 남는 교과 내용 -->
+      <div class="card">
+        <div class="card-title">💡 가장 기억에 남는 교과 내용 / 문제 유형</div>
+        <div style="background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:var(--radius-sm);padding:10px 12px;font-size:11px;color:#1E40AF;line-height:1.7;margin-bottom:10px;">
+          📌 이번 분기 스터디에서 다룬 내용 중 가장 인상 깊었던 개념이나 문제 유형을 적어주세요. 왜 기억에 남는지도 함께 적으면 좋아요.
+        </div>
+        <textarea id="finalMemory" placeholder="예) 수열의 극한에서 샌드위치 정리를 처음 배웠을 때, 두 함수 사이에 끼워서 극한을 구한다는 아이디어가 신선했다. 처음엔 왜 이게 성립하는지 몰랐는데 팀원이 그림으로 설명해줘서 이해하고 나니 비슷한 유형 문제를 혼자 풀 수 있게 됐다." style="min-height:120px"></textarea>
+      </div>
+
+      <!-- 최종 소감 -->
+      <div class="card">
+        <div class="card-title">✍️ 최종 소감</div>
+        <div style="background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:var(--radius-sm);padding:10px 12px;font-size:11px;color:#1E40AF;line-height:1.7;margin-bottom:10px;">
+          📌 이번 분기 스터디 전체를 돌아보며 자유롭게 적어주세요. 힘들었던 순간, 뿌듯했던 순간, 함께한 팀원에 대한 생각 등 솔직하게 써도 좋아요.
+        </div>
+        <textarea id="finalOneLine" placeholder="예) 솔직히 처음엔 스터디가 귀찮을 것 같았는데 막상 해보니 혼자 공부할 때보다 훨씬 집중이 잘 됐다. 특히 내가 아는 내용을 친구에게 설명할 때 오히려 내 이해가 더 깊어지는 걸 느꼈다. 팀원들이 열심히 하는 걸 보면서 나도 자극을 받았고, 다음 분기도 같은 팀으로 하고 싶다." style="min-height:140px"></textarea>
+      </div>
+
+      <div class="bottom-bar"><div class="bottom-bar-inner">
+        <button class="btn btn-secondary" style="flex:1" onclick="goStep('study')">← 이전</button>
+        <button class="btn btn-accent" style="flex:2" onclick="submitFinal()">✅ 제출하기</button>
+      </div></div>
+    </div>
+
+    <!-- STEP 4: 활동 기록 (일반) -->
+    <div class="screen" id="screen-record">
+      <div id="totalTimeBar" class="total-time-bar" style="display:none">
+        <div><div class="label">이번 분기 누적 스터디 시간</div><div class="value" id="totalTimeValue">0시간 0분</div></div>
+        <div style="font-size:28px">⏱️</div>
+      </div>
+      <div class="round-badge" id="roundBadge">📝 회차 기록</div>
+
+      <div class="card">
+        <div class="card-title">📅 활동 기본 정보</div>
+        <div class="form-group">
+          <label>팀 내 역할</label>
+          <div style="display:flex;gap:10px">
+            <div class="role-toggle" id="toggle-mentor" onclick="selectMemberRole('멘토',this)">👨‍🏫 멘토</div>
+            <div class="role-toggle" id="toggle-mentee" onclick="selectMemberRole('멘티',this)">📖 멘티</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>활동 날짜</label><input type="date" id="actDate"/></div>
+          <div class="form-group"><label>활동 시간</label><input type="text" id="actTime" placeholder="예) 아침 7:30~8:00"/></div>
+        </div>
+        <div class="form-group"><label>활동 장소</label><input type="text" id="actPlace" placeholder="예) 3-1 교실, 도서관..."/></div>
+      </div>
+
+      <div class="card" id="attendCard" style="display:none">
+        <div class="card-title">✅ 출석 체크</div>
+        <div style="display:flex;gap:10px;margin-bottom:10px">
+          <span style="font-size:12px;color:var(--accent);font-weight:600;">● 초록 = 출석</span>
+          <span style="font-size:12px;color:var(--danger);font-weight:600;">● 빨강 = 결석</span>
+          <span style="font-size:12px;color:var(--gray-400);font-weight:600;">● 회색 = 미표시</span>
+        </div>
+        <div class="info-box">팀원 이름을 탭할 때마다 출석 → 결석 → 미표시 순으로 바뀌어요</div>
+        <div class="attendance-list" id="attendanceList"></div>
+        <div style="margin-top:12px">
+          <label>팀원 추가</label>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="addMemberInput" placeholder="이름 입력" style="flex:1"/>
+            <button class="btn btn-sm btn-outline" onclick="addMember()">추가</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="noticeWriteCard" style="display:none">
+        <div class="card-title">📢 스터디 공지/규칙 <span style="font-size:11px;color:var(--gray-400);font-weight:400">(멘토만 작성)</span></div>
+        <div class="info-box">한번 작성하면 계속 유지돼요. 수정하려면 새 내용 입력 후 제출하면 돼요.</div>
+        <textarea id="noticeInput" placeholder="예) 매주 수요일 아침 7:30 교실 집합, 예습 필수, 지각 3회 시 팀 탈퇴..." style="min-height:80px"></textarea>
+      </div>
+
+      <div class="card" id="noticeViewCard" style="display:none">
+        <div class="card-title">📢 스터디 공지/규칙</div>
+        <div id="noticeContent" style="font-size:13px;color:var(--gray-700);line-height:1.8;white-space:pre-wrap"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📝 활동 내용</div>
+        <div class="form-group"><label>활동 제목</label><input type="text" id="actTitle" placeholder="예) 미적분 극한 개념 정리"/></div>
+        <div class="form-group"><label>활동 내용</label><textarea id="actContent" placeholder="오늘 스터디에서 공부한 내용을 자유롭게 적어주세요..."></textarea></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">💬 느낀점 (본인만 작성)</div>
+        <textarea id="actReflection" placeholder="오늘 스터디를 통해 느낀 점을 적어주세요..." style="min-height:90px"></textarea>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔜 다음 회차 예고</div>
+        <input type="text" id="nextPlan" placeholder="예) 다음 주 수요일 아침, 수열 단원 문제풀이"/>
+      </div>
+
+      <div class="card" id="photoCheckCard">
+        <div class="card-title">📷 활동 사진 확인</div>
+        <div style="background:#FFF7ED;border:1.5px solid #FED7AA;border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:#92400E;line-height:1.7;margin-bottom:14px;">
+          📌 <b>멘토에게 안내</b><br>매 스터디 활동 시 단체사진 또는 활동 확인 사진을 반드시 촬영해 두세요.<br>사진은 추후 선생님께 별도 제출합니다.
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;" id="photoCheckBtn" onclick="togglePhotoCheck()">
+          <div id="photoCheckBox" style="width:24px;height:24px;border:2px solid var(--gray-300);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;"></div>
+          <div style="font-size:13px;font-weight:600;color:var(--gray-700)">이번 회차 활동 사진을 촬영했어요 📸</div>
+        </div>
+      </div>
+
+      <div class="bottom-bar"><div class="bottom-bar-inner">
+        <button class="btn btn-secondary" style="flex:1" onclick="goStep('study')">← 이전</button>
+        <button class="btn btn-accent" style="flex:2" onclick="submitRecord()">✅ 제출하기</button>
+      </div></div>
+    </div>
+
+    <!-- STEP 4: 왕멘토 기록 -->
+    <div class="screen" id="screen-king">
+      <div class="round-badge" id="kingRoundBadge">📝 왕멘토 활동 기록</div>
+      <div class="card">
+        <div class="card-title">📅 활동 기본 정보</div>
+        <div class="form-row">
+          <div class="form-group"><label>활동 날짜</label><input type="date" id="kingActDate"/></div>
+          <div class="form-group"><label>활동 시간</label><input type="text" id="kingActTime" placeholder="예) 점심 12:10~12:50"/></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📚 본인 학습 내용</div>
+        <div class="form-group"><label>학습 내용</label><textarea id="kingSelfStudy" placeholder="오늘 본인이 학습한 내용을 적어주세요..."></textarea></div>
+        <div class="form-group"><label>느낀점</label><textarea id="kingReflection" placeholder="오늘 학습하면서 느낀 점..." style="min-height:70px"></textarea></div>
+      </div>
+      <div class="card">
+        <div class="card-title">❓ 질문 받은 내역</div>
+        <div id="questionList"></div>
+        <button class="add-question-btn" onclick="addQuestion()">+ 질문 추가</button>
+      </div>
+      <div class="card">
+        <div class="card-title">📷 활동 사진 확인</div>
+        <div style="background:#FFF7ED;border:1.5px solid #FED7AA;border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:#92400E;line-height:1.7;margin-bottom:14px;">
+          📌 매 스터디 활동 시 단체사진 또는 활동 확인 사진을 반드시 촬영해 두세요.<br>사진은 추후 선생님께 별도 제출합니다.
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;" id="kingPhotoCheckBtn" onclick="toggleKingPhotoCheck()">
+          <div id="kingPhotoCheckBox" style="width:24px;height:24px;border:2px solid var(--gray-300);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;"></div>
+          <div style="font-size:13px;font-weight:600;color:var(--gray-700)">이번 회차 활동 사진을 촬영했어요 📸</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔜 다음 활동 예고</div>
+        <input type="text" id="kingNextPlan" placeholder="예) 다음 주 수요일 점심, 수학 심화 질의응답"/>
+      </div>
+      <div class="bottom-bar"><div class="bottom-bar-inner">
+        <button class="btn btn-secondary" style="flex:1" onclick="goStep('study')">← 이전</button>
+        <button class="btn btn-accent" style="flex:2" onclick="submitKingRecord()">✅ 제출하기</button>
+      </div></div>
+    </div>
+
+    <!-- 완료 -->
+    <div class="screen" id="screen-done">
+      <div class="success-screen">
+        <div class="success-icon">✅</div>
+        <div class="success-title">제출 완료!</div>
+        <div class="success-sub" id="doneMessage"></div>
+
+        <!-- 요약 카드 -->
+        <div id="doneSummary" style="margin-top:20px;background:white;border-radius:14px;border:1.5px solid var(--gray-200);padding:18px 20px;text-align:left;box-shadow:var(--shadow);max-width:480px;margin-left:auto;margin-right:auto;"></div>
+
+        <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;max-width:480px;margin-left:auto;margin-right:auto;">
+          <button class="btn btn-primary" onclick="addNewRound()">📝 다음 회차 바로 기록</button>
+          <button class="btn btn-secondary" onclick="goStep('home')">🏠 홈으로</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tab-content-study -->
+
+  <!-- ▶ 심화탐구 탭 (준비 중) -->
+  <div id="tab-content-research" style="display:none">
+    <div style="text-align:center;padding:60px 20px;">
+      <div style="font-size:48px;margin-bottom:16px">🚧</div>
+      <div style="font-size:18px;font-weight:800;color:var(--gray-700);margin-bottom:8px">준비 중이에요</div>
+      <div style="font-size:13px;color:var(--gray-400)">심화탐구보고서 기록 기능이<br>곧 추가될 예정이에요!</div>
+    </div>
+  </div>
+
+</div><!-- /mainContainer -->
+
+<!-- ════════════════════════════════════════
+     관리자 화면 (비밀번호 통과 후)
+════════════════════════════════════════ -->
+<div id="adminContainer" style="display:none">
+  <div class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-top:4px">
+      <div style="font-size:18px;font-weight:800;">⚙️ 관리자 화면</div>
+      <button class="btn btn-sm btn-secondary" onclick="exitAdmin()">← 나가기</button>
+    </div>
+
+    <!-- GAS URL 설정 -->
+    <div class="admin-gasurl-card" style="border:2px solid #BFDBFE;">
+      <div class="ag-title">🔗 GAS 웹앱 URL 설정</div>
+      <div class="info-box">Google Apps Script URL을 입력하면 이 기기에서 해당 구글 시트로 연동돼요.<br>선생님마다 각자 URL을 입력하면 각자의 시트로 분리됩니다.</div>
+      <div class="form-group">
+        <label>현재 연결된 URL</label>
+        <div id="currentGasUrlDisplay" style="font-size:12px;color:var(--gray-500);background:var(--gray-50);border-radius:8px;padding:10px 12px;word-break:break-all;border:1px solid var(--gray-200);margin-bottom:10px;"></div>
+      </div>
+      <div class="form-group">
+        <label>새 GAS 웹앱 URL</label>
+        <input type="url" id="adminGasUrlInput" placeholder="https://script.google.com/macros/s/..." style="width:100%;padding:10px 12px;border:1px solid var(--gray-200);border-radius:8px;font-size:12px;color:var(--gray-800);outline:none;box-sizing:border-box;"/>
+      </div>
+      <div id="adminGasUrlMsg" style="font-size:13px;margin-bottom:10px;display:none;"></div>
+      <button class="btn btn-primary" onclick="adminSaveGasUrl()">🔗 연결 확인 후 저장</button>
+    </div>
+
+    <div class="admin-gasurl-card" id="studentLinkCard" style="display:none;border:2px solid var(--primary-mid);">
+      <div class="ag-title">📤 학생 배포용 링크</div>
+      <div class="info-box" style="margin-bottom:14px;">아래 링크를 복사해서 학생들에게 공유하세요.<br>이 링크로 접속한 학생은 선생님 시트로 자동 연결됩니다.</div>
+      <div id="studentLinkDisplay" style="font-size:12px;color:var(--gray-700);background:var(--gray-50);border-radius:8px;padding:10px 12px;word-break:break-all;border:1px solid var(--gray-200);margin-bottom:12px;"></div>
+      <button class="btn btn-primary" onclick="copyStudentLink()">📋 링크 복사</button>
+      <div id="studentLinkCopyMsg" style="font-size:12px;color:var(--success);margin-top:8px;display:none;">✅ 복사됐어요!</div>
+    </div>
+
+    <!-- 설치 가이드 아코디언 -->
+    <div class="admin-gasurl-card" style="border:1px solid var(--gray-200);">
+      <div onclick="toggleGuide()" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
+        <div class="ag-title" style="margin-bottom:0;">📖 설치 가이드</div>
+        <span id="guideArrow" style="font-size:18px;color:var(--gray-400);transition:transform .3s;">▾</span>
+      </div>
+      <div id="guideContent" style="display:none;margin-top:16px;">
+        <div style="display:flex;flex-direction:column;gap:14px;">
+
+          <div style="background:var(--gray-50);border-radius:10px;padding:14px;border-left:4px solid var(--primary);">
+            <div style="font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:8px;">Step 1. GAS 파일 복사하기</div>
+            <ol style="font-size:13px;color:var(--gray-600);line-height:1.9;padding-left:18px;margin:0;">
+              <li><b>Google 드라이브</b> 접속 → 새로 만들기</li>
+              <li><b>Google Apps Script</b> 선택</li>
+              <li>기존 코드 전체 삭제 후 배포용 코드 붙여넣기</li>
+            </ol>
+          </div>
+
+          <div style="background:var(--gray-50);border-radius:10px;padding:14px;border-left:4px solid var(--primary);">
+            <div style="font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:8px;">Step 2. 웹앱으로 배포하기</div>
+            <ol style="font-size:13px;color:var(--gray-600);line-height:1.9;padding-left:18px;margin:0;">
+              <li>상단 메뉴 <b>배포 → 새 배포</b> 클릭</li>
+              <li>유형 선택 → <b>웹 앱</b></li>
+              <li>액세스 권한: <b>모든 사용자</b>로 설정</li>
+              <li><b>배포</b> 클릭 → 권한 허용</li>
+              <li>웹앱 URL 복사</li>
+            </ol>
+          </div>
+
+          <div style="background:var(--gray-50);border-radius:10px;padding:14px;border-left:4px solid var(--primary);">
+            <div style="font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:8px;">Step 3. URL 연결하기</div>
+            <ol style="font-size:13px;color:var(--gray-600);line-height:1.9;padding-left:18px;margin:0;">
+              <li>위 <b>새 GAS 웹앱 URL</b> 칸에 복사한 URL 붙여넣기</li>
+              <li><b>연결 확인 후 저장</b> 버튼 클릭</li>
+              <li>✅ 연결 성공 메시지 확인</li>
+              <li>생성된 <b>학생 배포용 링크</b> 복사해서 학생들에게 공유</li>
+            </ol>
+          </div>
+
+          <div style="background:#FEF9C3;border-radius:10px;padding:12px 14px;font-size:12px;color:#92400E;line-height:1.8;">
+            💡 <b>코드 수정이 필요한 경우</b> 재배포 시 <b>새 배포</b>가 아닌 <b>배포 관리 → 수정</b>으로 진행해야 URL이 유지됩니다.
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- 학년도 설정 -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">📅 학년도 설정</div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <input type="number" id="yearInput" placeholder="2026" min="2020" max="2099"
+          style="flex:1;font-size:16px;font-weight:700;text-align:center"/>
+        <button class="btn btn-primary btn-sm" onclick="saveYear()">저장</button>
+      </div>
+      <div style="font-size:11px;color:var(--gray-400);margin-top:8px">현재: <b id="currentYearDisplay">2026</b>학년도</div>
+    </div>
+
+    <!-- ★ 마감 설정 -->
+    <div class="admin-action-card">
+      <div class="aa-title">🔒 제출 마감 설정</div>
+      <div class="info-box">마감하면 학생들이 제출/수정을 할 수 없어요. 마감 상태는 구글 시트에 저장됩니다.</div>
+      <div id="closeStatus" class="close-status open">🟢 현재 열려있음 (제출 가능)</div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-danger btn-sm" onclick="setClosedState(true)" id="btnClose">🔒 마감하기</button>
+        <button class="btn btn-accent btn-sm" onclick="setClosedState(false)" id="btnOpen" style="display:none">🔓 마감 해제</button>
+      </div>
+    </div>
+
+    <!-- ★ 데이터 초기화 -->
+    <div class="admin-action-card" style="border:2px solid #FEE2E2;">
+      <div class="aa-title" style="color:var(--danger);">🗑️ 전체 데이터 초기화</div>
+      <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:#991B1B;line-height:1.7;margin-bottom:12px;">
+        ⚠️ <b>주의!</b> 일반스터디, 왕멘토, 공지, 최종느낀점 시트의 <b>모든 데이터</b>가 삭제돼요.<br>새 학년도 시작 전 한 번만 실행하세요. 되돌릴 수 없어요!
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="confirmClearAll()">🗑️ 전체 초기화 실행</button>
+    </div>
+
+    <!-- 분기 날짜 설정 -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">🗓️ 분기 기간 설정</div>
+      <div class="info-box">설정한 날짜가 학생 분기 선택 화면에 표시돼요</div>
+      <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--gray-100)">
+        <div style="font-size:12px;font-weight:700;color:var(--gray-700);margin-bottom:8px">1분기</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><label>시작일</label><input type="date" id="q1start" onchange="saveQuarterDates()"/></div>
+          <div><label>종료일</label><input type="date" id="q1end" onchange="saveQuarterDates()"/></div>
+        </div>
+      </div>
+      <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--gray-100)">
+        <div style="font-size:12px;font-weight:700;color:var(--gray-700);margin-bottom:8px">2분기</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><label>시작일</label><input type="date" id="q2start" onchange="saveQuarterDates()"/></div>
+          <div><label>종료일</label><input type="date" id="q2end" onchange="saveQuarterDates()"/></div>
+        </div>
+      </div>
+      <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--gray-100)">
+        <div style="font-size:12px;font-weight:700;color:var(--gray-700);margin-bottom:8px">3분기</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><label>시작일</label><input type="date" id="q3start" onchange="saveQuarterDates()"/></div>
+          <div><label>종료일</label><input type="date" id="q3end" onchange="saveQuarterDates()"/></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--gray-700);margin-bottom:8px">4분기</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><label>시작일</label><input type="date" id="q4start" onchange="saveQuarterDates()"/></div>
+          <div><label>종료일</label><input type="date" id="q4end" onchange="saveQuarterDates()"/></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 필터 -->
+    <div class="filter-bar" id="adminFilterBar">
+      <button class="filter-chip active" onclick="filterAdmin('all',this)">전체</button>
+      <button class="filter-chip" onclick="filterAdmin('1분기',this)">1분기</button>
+      <button class="filter-chip" onclick="filterAdmin('2분기',this)">2분기</button>
+      <button class="filter-chip" onclick="filterAdmin('3분기',this)">3분기</button>
+      <button class="filter-chip" onclick="filterAdmin('4분기',this)">4분기</button>
+      <button class="filter-chip" onclick="filterAdmin('king',this)">👑 왕멘토</button>
+    </div>
+
+    <!-- 통계 카드 -->
+    <div class="stat-grid">
+      <div class="stat-card"><div class="s-val" id="statTotal">-</div><div class="s-label">총 제출 건수</div></div>
+      <div class="stat-card"><div class="s-val" id="statStudents">-</div><div class="s-label">참여 학생 수</div></div>
+      <div class="stat-card"><div class="s-val" id="statTeams">-</div><div class="s-label">스터디 팀 수</div></div>
+      <div class="stat-card"><div class="s-val" id="statKing">-</div><div class="s-label">왕멘토 기록</div></div>
+    </div>
+
+    <!-- 기록 목록 -->
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--gray-100);font-size:13px;font-weight:700;color:var(--gray-700)">📋 제출 기록</div>
+      <div id="adminRecordList">
+        <div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px">데이터를 불러오는 중이에요...</div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="loadAdminData()" style="margin-top:4px">🔄 새로고침</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════
+// 상수/설정
+// ════════════════════════════════════════
+const GAS_URL_KEY = 'studyGasUrl';
+const DEFAULT_GAS_URL = '';   // ← 하드코딩 제거: 관리자 화면에서 입력
+const ADMIN_PW = '0413';
+
+// URL 파라미터로 GAS URL이 전달된 경우 자동 세팅 (배포용)
+const _paramGasUrl = new URLSearchParams(window.location.search).get('gas');
+if (_paramGasUrl && _paramGasUrl.startsWith('https://script.google.com')) {
+  localStorage.setItem(GAS_URL_KEY, _paramGasUrl);
+}
+let GAS_URL = localStorage.getItem(GAS_URL_KEY) || DEFAULT_GAS_URL;
+
+// ════════════════════════════════════════
+// GAS 배너
+// ════════════════════════════════════════
+function setBanner(type, msg) {
+  const b = document.getElementById('gasBanner');
+  b.className = 'gas-banner ' + type;
+  b.textContent = msg;
+}
+
+async function checkGasConnection() {
+  if (!GAS_URL) {
+    setBanner('err', '❌ GAS URL 미설정 · 관리자 화면에서 URL을 입력해 주세요');
+    return;
+  }
+  setBanner('loading', '⏳ GAS 연결 확인 중...');
+  try {
+    const data = await fetchGAS(GAS_URL + '?action=getStatus');
+    setBanner('ok', '✅ GAS 연결됨 · 실시간 동기화 중');
+    appIsClosed = !!data.isClosed;
+    applyClosedUI(appIsClosed);
+  } catch(e) {
+    setBanner('err', '❌ GAS 연결 실패 · 관리자에게 문의하세요');
+  }
+}
+
+// ════════════════════════════════════════
+// GAS URL 변경 모달 (헤더용 - 미사용, 관리자 전용)
+// ════════════════════════════════════════
+function closeGasUrlModal() { document.getElementById('gasUrlModal').classList.remove('show'); }
+async function doGasUrlSave() {
+  const url = document.getElementById('gasUrlInput').value.trim();
+  const msg = document.getElementById('gasUrlMsg');
+  if (!url || !url.startsWith('https://script.google.com')) {
+    msg.style.display=''; msg.style.color='#DC2626'; msg.textContent='올바른 GAS URL을 입력해 주세요.'; return;
+  }
+  msg.style.display=''; msg.style.color='#D97706'; msg.textContent='⏳ 연결 확인 중...';
+  try {
+    const data = await fetchGAS(url + '?action=getStatus');
+    localStorage.setItem(GAS_URL_KEY, url);
+    GAS_URL = url;
+    document.getElementById('currentGasUrlDisplay').textContent = url;
+    document.getElementById('adminGasUrlInput').value = url;
+    msg.style.color='#059669'; msg.textContent='✅ 연결됐어요!';
+    setBanner('ok', '✅ GAS 연결됨 · 실시간 동기화 중');
+    appIsClosed = !!data.isClosed;
+    applyClosedUI(appIsClosed);
+    setTimeout(() => closeGasUrlModal(), 800);
+  } catch(err) {
+    msg.style.display=''; msg.style.color='#DC2626'; msg.textContent='❌ 연결 실패: ' + err.message;
+  }
+}
+
+// ════════════════════════════════════════
+// 관리자 GAS URL 저장
+// ════════════════════════════════════════
+async function adminSaveGasUrl() {
+  const url = document.getElementById('adminGasUrlInput').value.trim();
+  const msg = document.getElementById('adminGasUrlMsg');
+  if (!url || !url.startsWith('https://script.google.com')) {
+    msg.style.display=''; msg.style.color='#DC2626'; msg.textContent='올바른 GAS 웹앱 URL을 입력해 주세요.'; return;
+  }
+  msg.style.display=''; msg.style.color='#D97706'; msg.textContent='⏳ 연결 확인 중...';
+  try {
+    const data = await fetchGAS(url + '?action=getStatus');
+    localStorage.setItem(GAS_URL_KEY, url);
+    GAS_URL = url;
+    document.getElementById('currentGasUrlDisplay').textContent = url;
+    msg.style.color='#059669'; msg.textContent='✅ 연결 성공! URL이 저장됐어요.';
+    setBanner('ok', '✅ GAS 연결됨 · 실시간 동기화 중');
+    appIsClosed = !!data.isClosed;
+    applyClosedUI(appIsClosed);
+    updateAdminCloseUI(appIsClosed);
+    showStudentLinkCard(url);
+  } catch(err) {
+    msg.style.display=''; msg.style.color='#DC2626'; msg.textContent='❌ 연결 실패: ' + err.message;
+  }
+}
+
+function toggleGuide() {
+  const content = document.getElementById('guideContent');
+  const arrow = document.getElementById('guideArrow');
+  const isOpen = content.style.display !== 'none';
+  content.style.display = isOpen ? 'none' : 'block';
+  arrow.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
+function showStudentLinkCard(gasUrl) {
+  const baseUrl = window.location.origin + window.location.pathname;
+  const studentLink = baseUrl + '?gas=' + encodeURIComponent(gasUrl);
+  document.getElementById('studentLinkDisplay').textContent = studentLink;
+  document.getElementById('studentLinkCard').style.display = 'block';
+}
+
+function copyStudentLink() {
+  const link = document.getElementById('studentLinkDisplay').textContent;
+  navigator.clipboard.writeText(link).then(() => {
+    const msg = document.getElementById('studentLinkCopyMsg');
+    msg.style.display = 'block';
+    setTimeout(() => { msg.style.display = 'none'; }, 2500);
+  });
+}
+
+// ════════════════════════════════════════
+// 상태
+// ════════════════════════════════════════
+let state = {
+  quarter:null, name:'', classNum:'', studentNum:'',
+  role:'', memberRole:'', subject:'', studyName:'',
+  roundNum:1, totalMinutes:0, members:[], photos:[], kingPhotos:[], questions:[],
+};
+let adminData = [];
+let adminFilter = 'all';
+let appIsClosed = false;     // ★ 마감 상태 전역
+let editingRecord = null;    // ★ 수정 중인 회차 데이터
+
+// ════════════════════════════════════════
+// ★ 마감 상태 체크 & 적용
+// ════════════════════════════════════════
+async function checkClosedStatus() {
+  if (!GAS_URL) return;
+  try {
+    const data = await fetchGAS(GAS_URL + '?action=getStatus');
+    appIsClosed = !!data.isClosed;
+    applyClosedUI(appIsClosed);
+  } catch(e) { /* 실패해도 그냥 열려있는 걸로 처리 */ }
+}
+
+function applyClosedUI(isClosed) {
+  appIsClosed = isClosed;
+  const banner = document.getElementById('closedBanner');
+  if (isClosed) {
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
+
+// ★ 관리자: 마감 ON/OFF
+async function setClosedState(isClosed) {
+  if (!GAS_URL) { showToast('⚠️ GAS URL을 먼저 설정해 주세요'); return; }
+  const msg = isClosed
+    ? '정말 마감할까요? 학생들이 제출할 수 없게 돼요.'
+    : '마감을 해제할까요? 학생들이 다시 제출할 수 있어요.';
+  if (!confirm(msg)) return;
+  document.getElementById('loadingOverlay').classList.add('show');
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ type: 'setClosed', isClosed }),
+      mode: 'no-cors'
+    });
+    // UI 즉시 업데이트 (no-cors라 응답 못 읽음)
+    updateAdminCloseUI(isClosed);
+    appIsClosed = isClosed;
+    showToast(isClosed ? '🔒 마감 완료!' : '🔓 마감 해제 완료!');
+  } catch(e) {
+    showToast('⚠️ 오류가 발생했어요');
+  } finally {
+    document.getElementById('loadingOverlay').classList.remove('show');
+  }
+}
+
+function updateAdminCloseUI(isClosed) {
+  const status = document.getElementById('closeStatus');
+  const btnClose = document.getElementById('btnClose');
+  const btnOpen = document.getElementById('btnOpen');
+  if (isClosed) {
+    status.textContent = '🔴 현재 마감됨 (제출 불가)';
+    status.className = 'close-status closed';
+    btnClose.style.display = 'none';
+    btnOpen.style.display = 'inline-block';
+  } else {
+    status.textContent = '🟢 현재 열려있음 (제출 가능)';
+    status.className = 'close-status open';
+    btnClose.style.display = 'inline-block';
+    btnOpen.style.display = 'none';
+  }
+}
+
+// ★ 관리자: 전체 초기화
+async function confirmClearAll() {
+  const first = confirm('⚠️ 전체 초기화를 실행할까요?\n\n모든 학생 기록이 삭제되며 되돌릴 수 없어요!');
+  if (!first) return;
+  const second = confirm('정말 확실한가요? 이 작업은 취소할 수 없어요.\n\n[확인]을 누르면 즉시 삭제됩니다.');
+  if (!second) return;
+  document.getElementById('loadingOverlay').classList.add('show');
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ type: 'clearAllData' }),
+      mode: 'no-cors'
+    });
+    showToast('🗑️ 초기화 요청을 보냈어요! 시트를 확인해 주세요.');
+    adminData = [];
+    renderAdminData();
+  } catch(e) {
+    showToast('⚠️ 오류가 발생했어요');
+  } finally {
+    document.getElementById('loadingOverlay').classList.remove('show');
+  }
+}
+
+// ════════════════════════════════════════
+// ★ 내 기록 보기 — 완전 독립 흐름
+// ════════════════════════════════════════
+
+// 내 기록 보기 전용 상태
+let myRec = {
+  name: '', classNum: '', studentNum: '',
+  records: [],       // 전체 회차 목록
+  currentRecord: null, // 현재 열람 중인 회차 데이터
+  currentRound: null,
+};
+
+// 홈 메뉴 버튼 → STEP1: 로그인 모달
+function openMyRecords() {
+  if (!GAS_URL) { showToast('⚠️ GAS URL이 설정되지 않았어요. 관리자에게 문의하세요.'); return; }
+  // 이전에 입력한 정보 있으면 자동 채우기
+  document.getElementById('myRec_name').value = myRec.name || '';
+  document.getElementById('myRec_class').value = myRec.classNum || '';
+  document.getElementById('myRec_num').value = myRec.studentNum || '';
+  document.getElementById('myRecLoginError').style.display = 'none';
+  document.getElementById('myRecordsLoginModal').classList.add('show');
+}
+
+function closeMyRecordsLogin() {
+  document.getElementById('myRecordsLoginModal').classList.remove('show');
+}
+
+function backToMyRecordsLogin() {
+  document.getElementById('myRecordsListModal').classList.remove('show');
+  document.getElementById('myRecordsLoginModal').classList.add('show');
+}
+
+function backToMyRecordsList() {
+  document.getElementById('myRecordsDetailModal').classList.remove('show');
+  document.getElementById('myRecordsListModal').classList.add('show');
+}
+
+function closeAllMyRecordsModals() {
+  document.getElementById('myRecordsLoginModal').classList.remove('show');
+  document.getElementById('myRecordsListModal').classList.remove('show');
+  document.getElementById('myRecordsDetailModal').classList.remove('show');
+}
+
+// STEP2: 학번/이름으로 전체 기록 불러오기
+async function loadMyRecordsList() {
+  const name = document.getElementById('myRec_name').value.trim();
+  const cls  = document.getElementById('myRec_class').value.trim();
+  const num  = document.getElementById('myRec_num').value.trim();
+  const errEl = document.getElementById('myRecLoginError');
+
+  if (!name || !cls || !num) {
+    errEl.textContent = '⚠️ 이름, 반, 번호를 모두 입력해 주세요.';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+  myRec.name = name; myRec.classNum = cls; myRec.studentNum = num;
+
+  // 리스트 모달 열기
+  document.getElementById('myRecordsLoginModal').classList.remove('show');
+  document.getElementById('myRecordsListModal').classList.add('show');
+  document.getElementById('myRecordsListTitle').textContent = `📋 ${name}의 기록 목록`;
+  document.getElementById('myRecordsSummaryBar').style.display = 'none';
+  document.getElementById('myRecordsTableWrap').innerHTML =
+    '<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px">불러오는 중...</div>';
+
+  try {
+    // 일반 + 왕멘토 기록 모두 요청
+    // GAS에 getAllMyRecords 액션이 있으면 한 번에, 없으면 두 번 호출
+    let records = [];
+    try {
+      const url = `${GAS_URL}?action=getAllMyRecords&name=${encodeURIComponent(name)}&classNum=${encodeURIComponent(cls)}&studentNum=${encodeURIComponent(num)}`;
+      const data = await fetchGAS(url);
+      records = data.records || [];
+    } catch(e1) {
+      // fallback: 분기별로 일반 + 왕멘토 기록 각각 요청
+      const [memberData, kingData] = await Promise.allSettled([
+        fetchGAS(`${GAS_URL}?action=getMyRecords&name=${encodeURIComponent(name)}&classNum=${encodeURIComponent(cls)}&studentNum=${encodeURIComponent(num)}&quarter=all`),
+        fetchGAS(`${GAS_URL}?action=getKingRecords&name=${encodeURIComponent(name)}&classNum=${encodeURIComponent(cls)}&studentNum=${encodeURIComponent(num)}&quarter=all`)
+      ]);
+      if (memberData.status==='fulfilled') records.push(...(memberData.value.records||[]).map(r=>({...r,type:'member'})));
+      if (kingData.status==='fulfilled')   records.push(...(kingData.value.records||[]).map(r=>({...r,type:'king'})));
+    }
+    records.sort((a,b) => {
+      if (a.quarter !== b.quarter) return (a.quarter||'').localeCompare(b.quarter||'');
+      return (a.round||0) - (b.round||0);
+    });
+    myRec.records = records;
+    renderMyRecordsTable(records);
+  } catch(e) {
+    document.getElementById('myRecordsTableWrap').innerHTML =
+      '<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px">불러오기 실패 😢<br><span style="font-size:11px">GAS 연결 상태를 확인해 주세요</span></div>';
+  }
+}
+
+function renderMyRecordsTable(records) {
+  const wrap = document.getElementById('myRecordsTableWrap');
+
+  if (!records.length) {
+    wrap.innerHTML = '<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px">아직 제출된 기록이 없어요 📭</div>';
+    document.getElementById('myRecordsSummaryBar').style.display = 'none';
+    return;
+  }
+
+  // 요약 바
+  const totalRounds = records.length;
+  const totalMin = records.reduce((s,r) => s + (parseInt(r.totalMinutes)||0), 0);
+  document.getElementById('myRecordsTotalRounds').textContent = totalRounds + '회차';
+  document.getElementById('myRecordsTotalTime').textContent = formatMinutes(totalMin) || '-';
+  document.getElementById('myRecordsSummaryBar').style.display = 'flex';
+
+  // 표
+  wrap.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead>
+        <tr style="background:var(--gray-50);border-bottom:2px solid var(--gray-200);">
+          <th style="padding:10px 8px;text-align:center;font-size:12px;color:var(--gray-500);font-weight:700;width:60px;">회차</th>
+          <th style="padding:10px 8px;text-align:left;font-size:12px;color:var(--gray-500);font-weight:700;">분기 / 구분</th>
+          <th style="padding:10px 8px;text-align:left;font-size:12px;color:var(--gray-500);font-weight:700;">날짜</th>
+          <th style="padding:10px 8px;text-align:center;font-size:12px;color:var(--gray-500);font-weight:700;width:70px;">시간</th>
+          <th style="padding:10px 8px;text-align:center;font-size:12px;color:var(--gray-500);font-weight:700;width:40px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${records.map((r, i) => `
+          <tr onclick="openMyRecordDetail(${i})" style="cursor:pointer;border-bottom:1px solid var(--gray-100);transition:background .12s;" onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background=''">
+            <td style="padding:12px 8px;text-align:center;">
+              <span style="display:inline-block;background:var(--primary-light);color:var(--primary);font-weight:800;font-size:14px;padding:4px 10px;border-radius:20px;">${r.round}</span>
+            </td>
+            <td style="padding:12px 8px;">
+              <div style="font-weight:700;color:var(--gray-800);font-size:13px;">${r.quarter||''}</div>
+              <div style="font-size:11px;color:var(--gray-400);margin-top:2px;">${r.type==='king'?'👑 왕멘토':'📚 '+(r.studyName||r.subject||'')}</div>
+            </td>
+            <td style="padding:12px 8px;color:var(--gray-600);font-size:12px;">${r.date ? String(r.date).slice(0,10) : '-'}</td>
+            <td style="padding:12px 8px;text-align:center;font-size:12px;color:var(--gray-500);">${r.totalMinutes ? formatMinutes(parseInt(r.totalMinutes)) : '-'}</td>
+            <td style="padding:12px 8px;text-align:center;color:var(--gray-400);font-size:18px;">›</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+// STEP3: 회차 상세 팝업 (읽기 모드로 시작)
+async function openMyRecordDetail(idx) {
+  const r = myRec.records[idx];
+  if (!r) return;
+  myRec.currentRecord = r;
+  myRec.currentRound = r.round;
+
+  // 상세 모달 열기
+  document.getElementById('myRecordsListModal').classList.remove('show');
+  document.getElementById('myRecordsDetailModal').classList.add('show');
+  document.getElementById('myRecordsDetailTitle').textContent =
+    r.type === 'king' ? `👑 왕멘토 ${r.round}회차 — ${r.quarter}` : `📝 ${r.round}회차 — ${r.quarter} ${r.studyName||''}`;
+
+  // 상세 데이터 fetch
+  document.getElementById('myRecordsViewContent').innerHTML =
+    '<div style="padding:20px;text-align:center;color:var(--gray-400);font-size:13px">불러오는 중...</div>';
+  document.getElementById('myRecordsViewMode').style.display = 'block';
+  document.getElementById('myRecordsEditMode').style.display = 'none';
+
+  try {
+    let url, data;
+    if (r.type === 'king') {
+      url = `${GAS_URL}?action=getKingRecordDetail&name=${encodeURIComponent(myRec.name)}&classNum=${encodeURIComponent(myRec.classNum)}&studentNum=${encodeURIComponent(myRec.studentNum)}&quarter=${encodeURIComponent(r.quarter)}&subject=${encodeURIComponent(r.subject||'')}&round=${r.round}`;
+    } else {
+      url = `${GAS_URL}?action=getMyRecordDetail&name=${encodeURIComponent(myRec.name)}&classNum=${encodeURIComponent(myRec.classNum)}&studentNum=${encodeURIComponent(myRec.studentNum)}&quarter=${encodeURIComponent(r.quarter)}&studyName=${encodeURIComponent(r.studyName||'')}&round=${r.round}`;
+    }
+    data = await fetchGAS(url);
+    const rec = data.record || r;
+    myRec.currentRecord = { ...r, ...rec };
+    renderMyRecordView(myRec.currentRecord);
+  } catch(e) {
+    document.getElementById('myRecordsViewContent').innerHTML =
+      '<div style="color:var(--danger);font-size:13px;text-align:center;">상세 정보를 불러올 수 없어요 😢<br><span style="font-size:11px;color:var(--gray-400)">목록에서 확인한 기본 정보만 표시해요</span></div>';
+    renderMyRecordView(r);
+  }
+}
+
+// 읽기 모드 렌더링
+function renderMyRecordView(rec) {
+  const isKing = rec.type === 'king';
+  const esc = v => String(v||'').replace(/</g,'&lt;');
+  let html = '';
+
+  if (isKing) {
+    html = `
+      <div class="view-field"><span class="vf-label">활동 날짜</span><span class="vf-val">${formatDate(rec.date)||'-'}</span></div>
+      <div class="view-field"><span class="vf-label">활동 시간</span><span class="vf-val">${esc(rec.time)||'-'}</span></div>
+      <div class="view-field"><span class="vf-label">과목</span><span class="vf-val">${esc(rec.subject)||'-'}</span></div>
+      <div class="view-field vf-block"><span class="vf-label">학습 내용</span><div class="vf-text">${esc(rec.selfStudy||rec.content||'')}</div></div>
+      <div class="view-field vf-block"><span class="vf-label">느낀점</span><div class="vf-text">${esc(rec.reflection||'')}</div></div>
+      <div class="view-field"><span class="vf-label">다음 활동 예고</span><span class="vf-val">${esc(rec.nextPlan||'-')}</span></div>`;
+  } else {
+    html = `
+      <div class="view-field"><span class="vf-label">역할</span><span class="vf-val">${esc(rec.memberRole||'-')}</span></div>
+      <div class="view-field"><span class="vf-label">활동 날짜</span><span class="vf-val">${formatDate(rec.date)||'-'}</span></div>
+      <div class="view-field"><span class="vf-label">활동 시간</span><span class="vf-val">${esc(rec.time)||'-'}</span></div>
+      <div class="view-field"><span class="vf-label">활동 장소</span><span class="vf-val">${esc(rec.place||'-')}</span></div>
+      <div class="view-field"><span class="vf-label">팀명</span><span class="vf-val">${esc(rec.studyName||'-')}</span></div>
+      <div class="view-field"><span class="vf-label">활동 제목</span><span class="vf-val">${esc(rec.title||'-')}</span></div>
+      <div class="view-field vf-block"><span class="vf-label">활동 내용</span><div class="vf-text">${esc(rec.content||'')}</div></div>
+      <div class="view-field vf-block"><span class="vf-label">느낀점</span><div class="vf-text">${esc(rec.reflection||'')}</div></div>
+      <div class="view-field"><span class="vf-label">다음 회차 예고</span><span class="vf-val">${esc(rec.nextPlan||'-')}</span></div>`;
+  }
+  if (rec.totalMinutes) {
+    html += `<div class="view-field"><span class="vf-label">⏱️ 활동 시간</span><span class="vf-val" style="color:var(--primary);font-weight:700;">${formatMinutes(parseInt(rec.totalMinutes))}</span></div>`;
+  }
+  document.getElementById('myRecordsViewContent').innerHTML = html;
+}
+
+// 수정 모드 전환
+function switchToEditMode() {
+  if (appIsClosed) { showToast('⚠️ 현재 마감 중이에요. 수정할 수 없어요.'); return; }
+  const rec = myRec.currentRecord;
+  if (!rec) return;
+  const isKing = rec.type === 'king';
+  const dateVal = rec.date ? String(rec.date).slice(0,10) : '';
+  let html = '';
+
+  if (isKing) {
+    html = `
+      <div class="form-row">
+        <div class="form-group"><label>활동 날짜</label><input type="date" id="medit_date" value="${dateVal}"/></div>
+        <div class="form-group"><label>활동 시간</label><input type="text" id="medit_time" value="${rec.time||''}"/></div>
+      </div>
+      <div class="form-group"><label>학습 내용</label><textarea id="medit_selfStudy" style="min-height:100px">${rec.selfStudy||rec.content||''}</textarea></div>
+      <div class="form-group"><label>느낀점</label><textarea id="medit_reflection" style="min-height:80px">${rec.reflection||''}</textarea></div>
+      <div class="form-group"><label>다음 활동 예고</label><input type="text" id="medit_nextPlan" value="${rec.nextPlan||''}"/></div>`;
+  } else {
+    html = `
+      <div class="form-group"><label>역할</label>
+        <select id="medit_memberRole">
+          <option value="멘토" ${rec.memberRole==='멘토'?'selected':''}>멘토</option>
+          <option value="멘티" ${rec.memberRole==='멘티'?'selected':''}>멘티</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>활동 날짜</label><input type="date" id="medit_date" value="${dateVal}"/></div>
+        <div class="form-group"><label>활동 시간</label><input type="text" id="medit_time" value="${rec.time||''}"/></div>
+      </div>
+      <div class="form-group"><label>활동 장소</label><input type="text" id="medit_place" value="${rec.place||''}"/></div>
+      <div class="form-group"><label>활동 제목</label><input type="text" id="medit_title" value="${rec.title||''}"/></div>
+      <div class="form-group"><label>활동 내용</label><textarea id="medit_content" style="min-height:100px">${rec.content||''}</textarea></div>
+      <div class="form-group"><label>느낀점</label><textarea id="medit_reflection" style="min-height:80px">${rec.reflection||''}</textarea></div>
+      <div class="form-group"><label>다음 회차 예고</label><input type="text" id="medit_nextPlan" value="${rec.nextPlan||''}"/></div>`;
+  }
+
+  document.getElementById('myRecordsEditContent').innerHTML = html;
+  document.getElementById('myRecordsViewMode').style.display = 'none';
+  document.getElementById('myRecordsEditMode').style.display = 'block';
+}
+
+// 읽기 모드로 되돌리기
+function switchToViewMode() {
+  document.getElementById('myRecordsEditMode').style.display = 'none';
+  document.getElementById('myRecordsViewMode').style.display = 'block';
+}
+
+// 수정 저장
+async function saveMyRecordEdit() {
+  if (appIsClosed) { showToast('⚠️ 현재 마감 중이에요. 수정할 수 없어요.'); return; }
+  const rec = myRec.currentRecord;
+  if (!rec) return;
+
+  let payload;
+  if (rec.type === 'king') {
+    const selfStudy = document.getElementById('medit_selfStudy').value.trim();
+    if (!selfStudy) { showToast('⚠️ 학습 내용은 필수예요'); return; }
+    payload = {
+      type: 'updateKing',
+      quarter: rec.quarter,
+      subject: rec.subject || '',
+      round: rec.round,
+      name: myRec.name, classNum: myRec.classNum, studentNum: myRec.studentNum,
+      date: document.getElementById('medit_date').value,
+      time: document.getElementById('medit_time').value,
+      selfStudy,
+      reflection: document.getElementById('medit_reflection').value,
+      nextPlan: document.getElementById('medit_nextPlan').value,
+      questions: rec.questions || '[]',
+      totalMinutes: rec.totalMinutes || 0,
+      photoChecked: rec.photoChecked || '미촬영',
+      timestamp: new Date().toISOString()
+    };
+  } else {
+    const title = document.getElementById('medit_title').value.trim();
+    const content = document.getElementById('medit_content').value.trim();
+    if (!title || !content) { showToast('⚠️ 제목과 내용은 필수예요'); return; }
+    payload = {
+      type: 'updateMember',
+      quarter: rec.quarter,
+      studyName: rec.studyName || '',
+      round: rec.round,
+      name: myRec.name, classNum: myRec.classNum, studentNum: myRec.studentNum,
+      memberRole: document.getElementById('medit_memberRole').value,
+      date: document.getElementById('medit_date').value,
+      time: document.getElementById('medit_time').value,
+      place: document.getElementById('medit_place').value,
+      title, content,
+      reflection: document.getElementById('medit_reflection').value,
+      nextPlan: document.getElementById('medit_nextPlan').value,
+      present: rec.present || '',
+      absent: rec.absent || '',
+      totalMinutes: rec.totalMinutes || 0,
+      photoChecked: rec.photoChecked || '미촬영',
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  document.getElementById('loadingOverlay').classList.add('show');
+  try {
+    await fetch(GAS_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload),
+      mode: 'no-cors'
+    });
+    showToast('✅ 수정이 저장되었어요!');
+    // 수정 내용 로컬 반영
+    const updated = { ...rec,
+      date: payload.date, time: payload.time,
+      reflection: payload.reflection, nextPlan: payload.nextPlan,
+      ...(rec.type==='king' ? {selfStudy: payload.selfStudy} : {title: payload.title, content: payload.content, memberRole: payload.memberRole, place: payload.place})
+    };
+    myRec.currentRecord = updated;
+    // 목록도 업데이트
+    const idx = myRec.records.findIndex(r => r.round===rec.round && r.quarter===rec.quarter && r.type===rec.type);
+    if (idx !== -1) myRec.records[idx] = { ...myRec.records[idx], ...updated };
+    renderMyRecordView(updated);
+    switchToViewMode();
+  } catch(e) {
+    showToast('⚠️ 저장 중 오류가 발생했어요');
+  } finally {
+    document.getElementById('loadingOverlay').classList.remove('show');
+  }
+}
+
+// ── 기존 함수들 (하위 호환) ──
+function backToRoundList() {
+  document.getElementById('roundDetailView').classList.remove('show');
+  document.getElementById('roundListView').classList.remove('hide');
+  editingRecord = null;
+}
+
+function closeRoundModal() {
+  document.getElementById('roundModal').classList.remove('show');
+  backToRoundList();
+}
+
+async function saveRoundEdit() { /* 기존 관리자용 — 미사용 */ }
+
+// ════════════════════════════════════════
+// 초기화
+// ════════════════════════════════════════
+window.onload = async function() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('actDate').value = today;
+  document.getElementById('kingActDate').value = today;
+  const savedYear = localStorage.getItem('app_year') || '2026';
+  applyYear(savedYear);
+  updateQuarterLabels();
+  showScreen('home');
+  updateStepBar(0);
+  // ★ GAS 연결 확인 (URL 포함)
+  await checkGasConnection();
+  if (GAS_URL) {
+    // ★ 30초마다 마감 상태 자동 갱신
+    setInterval(async () => {
+      await checkClosedStatus();
+    }, 30000);
+  }
+};
+
+function applyYear(year) {
+  document.getElementById('yearDisplay').textContent = year;
+  document.getElementById('yearBadge').textContent = year + '학년도';
+  document.title = `🌟 아듬's 학급활동기록 ${year}`;
+}
+
+function saveYear() {
+  const y = document.getElementById('yearInput').value.trim();
+  if(!y || y.length !== 4) { showToast('⚠️ 올바른 연도를 입력해 주세요'); return; }
+  localStorage.setItem('app_year', y);
+  applyYear(y);
+  document.getElementById('currentYearDisplay').textContent = y;
+  showToast('✅ 학년도가 저장되었어요!');
+}
+
+// ════════════════════════════════════════
+// 탭 전환
+// ════════════════════════════════════════
+function switchTab(tab) {
+  document.getElementById('tab-content-study').style.display = tab==='study'?'block':'none';
+  document.getElementById('tab-content-research').style.display = tab==='research'?'block':'none';
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+}
+
+// ════════════════════════════════════════
+// 화면 전환
+// ════════════════════════════════════════
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el = document.getElementById('screen-'+name);
+  if(el) el.classList.add('active');
+  const stepBar = document.getElementById('stepBar');
+  stepBar.style.display = name==='home' ? 'none' : 'flex';
+}
+
+function updateStepBar(step) {
+  for(let i=1;i<=5;i++){
+    const d=document.getElementById('s'+i);
+    if(!d)return;
+    if(i<step) d.className='step-dot done';
+    else if(i===step) d.className='step-dot active';
+    else d.className='step-dot';
+  }
+}
+
+function startStudy() { showScreen('quarter'); updateStepBar(1); }
+
+async function goStep(target) {
+  if(target==='home') { showScreen('home'); updateStepBar(0); return; }
+  if(target==='quarter') { showScreen('quarter'); updateStepBar(1); return; }
+  if(target==='info') {
+    if(!state.quarter){showToast('⚠️ 분기를 선택해 주세요');return;}
+    showScreen('info'); updateStepBar(2); return;
+  }
+  if(target==='study') {
+    const name=document.getElementById('inputName').value.trim();
+    const cls=document.getElementById('inputClass').value.trim();
+    const num=document.getElementById('inputNum').value.trim();
+    if(!name||!cls||!num){showToast('⚠️ 이름, 반, 번호를 모두 입력해 주세요');return;}
+    if(!state.role){showToast('⚠️ 역할을 선택해 주세요');return;}
+    state.name=name; state.classNum=cls; state.studentNum=num;
+    state.subject='';
+    document.querySelectorAll('.subject-chip').forEach(c=>c.classList.remove('selected'));
+    document.getElementById('teamNameCard').style.display='none';
+    document.getElementById('teamNameInput').value='';
+    showScreen('study'); updateStepBar(3); return;
+  }
+  if(target==='record') {
+    if(!state.subject){showToast('⚠️ 과목을 선택해 주세요');return;}
+    if(state.role==='member') {
+      const teamName=document.getElementById('teamNameInput').value.trim();
+      if(!teamName){showToast('⚠️ 팀명을 입력해 주세요');return;}
+      state.studyName=state.subject+' '+teamName;
+    } else {
+      // 왕멘토는 studyName을 과목명으로
+      state.studyName = '왕멘토_'+state.subject;
+    }
+    if(actType==='final') {
+      showScreen('final'); updateStepBar(4); return;
+    }
+    showToast('⏳ 이전 기록 불러오는 중...');
+    if(state.role==='member') {
+      await loadRound(); showScreen('record');
+    } else {
+      await loadKingRound(); showScreen('king');
+    }
+    updateStepBar(4);
+  }
+}
+
+// ════════════════════════════════════════
+// 선택 함수들
+// ════════════════════════════════════════
+function selectQuarter(q,el) {
+  state.quarter=q;
+  document.querySelectorAll('.quarter-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function selectRole(role,el) {
+  state.role=role;
+  document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function selectMemberRole(role,el) {
+  state.memberRole=role;
+  document.querySelectorAll('.role-toggle').forEach(t=>t.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('attendCard').style.display = role==='멘토'?'block':'none';
+  document.getElementById('noticeWriteCard').style.display = role==='멘토'?'block':'none';
+  document.getElementById('noticeViewCard').style.display = role==='멘티'?'block':'none';
+  // 멘티면 공지 불러오기
+  if(role==='멘티') loadNotice();
+}
+function selectSubjectChip(subj,el) {
+  state.subject=subj;
+  document.querySelectorAll('.subject-chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  if(state.role==='member') {
+    document.getElementById('teamNameCard').style.display='block';
+  }
+  // 왕멘토도 바로 활동유형 카드 표시
+  document.getElementById('actTypeCard').style.display='block';
+  actType='record';
+  document.querySelectorAll('.act-type-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('typeBtn-record').classList.add('selected');
+}
+
+// ════════════════════════════════════════
+// 사진 체크
+// ════════════════════════════════════════
+let photoChecked = false;
+let kingPhotoChecked = false;
+
+function togglePhotoCheck() {
+  photoChecked = !photoChecked;
+  const box = document.getElementById('photoCheckBox');
+  const btn = document.getElementById('photoCheckBtn');
+  box.style.background = photoChecked ? 'var(--accent)' : 'white';
+  box.style.borderColor = photoChecked ? 'var(--accent)' : 'var(--gray-300)';
+  box.innerHTML = photoChecked ? '<span style="color:white;font-size:14px;font-weight:700">✓</span>' : '';
+  btn.style.borderColor = photoChecked ? 'var(--accent)' : 'var(--gray-200)';
+  btn.style.background = photoChecked ? 'var(--accent-light)' : 'white';
+}
+
+function toggleKingPhotoCheck() {
+  kingPhotoChecked = !kingPhotoChecked;
+  const box = document.getElementById('kingPhotoCheckBox');
+  const btn = document.getElementById('kingPhotoCheckBtn');
+  box.style.background = kingPhotoChecked ? 'var(--accent)' : 'white';
+  box.style.borderColor = kingPhotoChecked ? 'var(--accent)' : 'var(--gray-300)';
+  box.innerHTML = kingPhotoChecked ? '<span style="color:white;font-size:14px;font-weight:700">✓</span>' : '';
+  btn.style.borderColor = kingPhotoChecked ? 'var(--accent)' : 'var(--gray-200)';
+  btn.style.background = kingPhotoChecked ? 'var(--accent-light)' : 'white';
+}
+// ════════════════════════════════════════
+// 분기 날짜 설정
+// ════════════════════════════════════════
+function saveQuarterDates() {
+  const dates = {};
+  [1,2,3,4].forEach(q => {
+    const s = document.getElementById(`q${q}start`);
+    const e = document.getElementById(`q${q}end`);
+    dates[q] = { start: s?.value||'', end: e?.value||'' };
+  });
+  localStorage.setItem('quarter_dates', JSON.stringify(dates));
+  updateQuarterLabels();
+  showToast('✅ 분기 기간이 저장되었어요!');
+}
+
+function loadQuarterDates() {
+  const saved = JSON.parse(localStorage.getItem('quarter_dates')||'{}');
+  [1,2,3,4].forEach(q => {
+    const s = document.getElementById(`q${q}start`);
+    const e = document.getElementById(`q${q}end`);
+    if(s && saved[q]) s.value = saved[q].start||'';
+    if(e && saved[q]) e.value = saved[q].end||'';
+  });
+  updateQuarterLabels();
+}
+
+function updateQuarterLabels() {
+  const saved = JSON.parse(localStorage.getItem('quarter_dates')||'{}');
+  [1,2,3,4].forEach(q => {
+    const el = document.getElementById(`qlabel${q}`);
+    if(!el) return;
+    const d = saved[q];
+    if(d && d.start && d.end) {
+      const s = d.start.slice(5).replace('-','/');
+      const e = d.end.slice(5).replace('-','/');
+      el.innerHTML = `분기<br><span style="font-size:10px">${s} ~ ${e}</span>`;
+    } else {
+      el.innerHTML = `분기`;
+    }
+  });
+}
+
+// ════════════════════════════════════════
+// 활동 유형 선택
+// ════════════════════════════════════════
+let actType = 'record';
+
+function selectActType(type, el) {
+  actType = type;
+  document.querySelectorAll('.act-type-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// ════════════════════════════════════════
+// 최종 느낀점 제출
+// ════════════════════════════════════════
+async function submitFinal() {
+  const growth = document.getElementById('finalGrowth').value.trim();
+  const improve = document.getElementById('finalImprove').value.trim();
+  const memory = document.getElementById('finalMemory').value.trim();
+  const oneLine = document.getElementById('finalOneLine').value.trim();
+  if(!growth) { showToast('⚠️ 배운 점/성장한 점은 필수예요'); return; }
+
+  // 종료일 지난 분기 경고
+  const dates = JSON.parse(localStorage.getItem('quarter_dates')||'{}');
+  const qDates = dates[state.quarter];
+  if(qDates && qDates.end) {
+    const today = new Date().toISOString().slice(0,10);
+    if(today > qDates.end) {
+      showToast(`⚠️ ${state.quarter}분기 종료일이 지났어요. 그래도 제출돼요!`);
+      await new Promise(r=>setTimeout(r,2000));
+    }
+  }
+
+  await sendToGAS({
+    type:'final', quarter:state.quarter+'분기', studyName:state.studyName,
+    name:state.name, classNum:state.classNum, studentNum:state.studentNum,
+    role: state.role==='king'?'왕멘토/부멘토':state.memberRole||'',
+    subject:state.subject, growth, improve, memory, oneLine,
+    timestamp:new Date().toISOString()
+  });
+
+  document.getElementById('doneMessage').innerHTML = '최종 느낀점이 저장되었어요 🎉';
+  document.getElementById('doneSummary').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;">
+      <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
+        <span style="color:var(--gray-400);font-weight:600">이름</span>
+        <span style="font-weight:700">${state.name} (${state.classNum}반 ${state.studentNum}번)</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
+        <span style="color:var(--gray-400);font-weight:600">스터디</span>
+        <span style="font-weight:700">${state.studyName} · ${state.quarter}분기</span>
+      </div>
+      <div style="padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
+        <div style="color:var(--gray-400);font-weight:600;margin-bottom:6px">📈 배운 점 / 성장한 점</div>
+        <div style="font-size:12px;color:var(--gray-700);line-height:1.7">${growth}</div>
+      </div>
+      ${memory?`<div style="padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
+        <div style="color:var(--gray-400);font-weight:600;margin-bottom:6px">💡 기억에 남는 교과 내용</div>
+        <div style="font-size:12px;color:var(--gray-700);line-height:1.7">${memory}</div>
+      </div>`:''}
+      ${oneLine?`<div>
+        <div style="color:var(--gray-400);font-weight:600;margin-bottom:6px">✍️ 최종 소감</div>
+        <div style="font-size:12px;color:var(--gray-700);line-height:1.7">${oneLine}</div>
+      </div>`:''}
+    </div>`;
+  showScreen('done'); updateStepBar(5);
+}
+
+// ════════════════════════════════════════
+async function loadNotice() {
+  const el = document.getElementById('noticeContent');
+  el.textContent = '불러오는 중...';
+  try {
+    const url = `${GAS_URL}?action=getNotice&quarter=${encodeURIComponent(state.quarter+'분기')}&studyName=${encodeURIComponent(state.studyName)}`;
+    const data = await fetchGAS(url);
+    el.textContent = data.notice || '등록된 공지가 없어요';
+  } catch(e) {
+    el.textContent = '공지를 불러올 수 없어요';
+  }
+}
+
+// ════════════════════════════════════════
+// 회차 로드
+// ════════════════════════════════════════
+function getRoundKey() { return `round_${state.quarter}_${state.role==='king'?'king_'+state.subject:state.studyName}_${state.name}`; }
+
+async function loadRound() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('actDate').value = today;
+  state.gasHist = [];
+  state.roundNum = 1;
+  state.totalMinutes = 0;
+
+  try {
+    const url = `${GAS_URL}?action=getMyRecords&name=${encodeURIComponent(state.name)}&classNum=${state.classNum}&studentNum=${state.studentNum}&quarter=${encodeURIComponent(state.quarter+'분기')}&studyName=${encodeURIComponent(state.studyName)}`;
+    const data = await fetchGAS(url);
+    if (data.records && data.records.length > 0) {
+      const sorted = data.records.sort((a,b) => a.round - b.round);
+      state.roundNum = sorted[sorted.length-1].round + 1;
+      state.totalMinutes = sorted[sorted.length-1].totalMinutes || 0;
+      state.gasHist = sorted;
+    }
+  } catch(e) {
+    // GAS 실패시 그냥 1회차로 시작 (localStorage 폴백 제거)
+    console.log('GAS 조회 실패, 1회차로 시작');
+  }
+
+  document.getElementById('roundBadge').textContent = `📝 ${state.roundNum}회차 기록`;
+  if(state.totalMinutes > 0) {
+    document.getElementById('totalTimeBar').style.display='flex';
+    document.getElementById('totalTimeValue').textContent=formatMinutes(state.totalMinutes);
+  } else { document.getElementById('totalTimeBar').style.display='none'; }
+  state.members = loadMembers(); renderAttendance();
+  state.memberRole='';
+  document.querySelectorAll('.role-toggle').forEach(t=>t.classList.remove('selected'));
+  document.getElementById('attendCard').style.display='none';
+}
+
+async function loadKingRound() {
+  state.gasHist = [];
+  state.roundNum = 1;
+  state.totalMinutes = 0;
+  try {
+    const url = `${GAS_URL}?action=getKingRecords&name=${encodeURIComponent(state.name)}&classNum=${state.classNum}&studentNum=${state.studentNum}&quarter=${encodeURIComponent(state.quarter+'분기')}&subject=${encodeURIComponent(state.subject)}`;
+    const data = await fetchGAS(url);
+    if(data.records && data.records.length > 0) {
+      const sorted = data.records.sort((a,b)=>a.round-b.round);
+      state.roundNum = sorted[sorted.length-1].round + 1;
+      state.totalMinutes = sorted[sorted.length-1].totalMinutes || 0;
+      state.gasHist = sorted;
+    }
+  } catch(e) { console.log('왕멘토 기록 조회 실패, 1회차로 시작'); }
+  document.getElementById('kingRoundBadge').textContent=`📝 왕멘토 ${state.roundNum}회차 기록`;
+  state.questions=[]; renderQuestions();
+}
+
+function loadMembers() {
+  const key=`members_${state.quarter}_${state.studyName}`;
+  const saved=localStorage.getItem(key);
+  return saved?JSON.parse(saved):[];
+}
+function saveMembers() { localStorage.setItem(`members_${state.quarter}_${state.studyName}`,JSON.stringify(state.members)); }
+
+// ════════════════════════════════════════
+// 출석
+// ════════════════════════════════════════
+function renderAttendance() {
+  const c=document.getElementById('attendanceList');
+  if(!state.members.length){c.innerHTML='<div style="font-size:12px;color:var(--gray-400)">팀원을 추가해 주세요</div>';return;}
+  c.innerHTML=state.members.map((m,i)=>`<div class="attend-chip ${m.status}" onclick="toggleAttend(${i})">${m.name}</div>`).join('');
+}
+function toggleAttend(i) {
+  const m=state.members[i];
+  m.status=m.status==='present'?'absent':m.status==='absent'?'':' present';
+  if(m.status===' present') m.status='present';
+  renderAttendance();
+}
+function addMember() {
+  const input=document.getElementById('addMemberInput');
+  const name=input.value.trim();
+  if(!name)return;
+  if(state.members.find(m=>m.name===name)){showToast('이미 있는 팀원이에요');return;}
+  state.members.push({name,status:'present'});
+  saveMembers(); renderAttendance(); input.value='';
+}
+
+// ════════════════════════════════════════
+// 질문 (왕멘토)
+// ════════════════════════════════════════
+function renderQuestions() {
+  const c=document.getElementById('questionList');
+  if(!state.questions.length){c.innerHTML='';return;}
+  c.innerHTML=state.questions.map((q,i)=>`
+    <div class="question-item">
+      <div class="q-header">
+        <div class="q-from">질문자: ${q.from||'(미입력)'}</div>
+        <button class="solved-badge ${q.solved?'solved':'unsolved'}" onclick="toggleSolved(${i})">${q.solved?'✅ 해결':'❌ 미해결'}</button>
+      </div>
+      <textarea style="width:100%;border:1px solid var(--gray-200);border-radius:6px;padding:8px;font-size:12px;font-family:inherit;min-height:60px;resize:vertical"
+        placeholder="질문 내용..." onchange="updateQuestion(${i},'content',this.value)">${q.content}</textarea>
+      <div style="display:flex;gap:6px;margin-top:8px;align-items:center">
+        <input type="text" style="flex:1;font-size:12px;padding:6px 8px" placeholder="질문자 이름/반-번호"
+          value="${q.from}" oninput="updateQuestion(${i},'from',this.value)"/>
+        <button onclick="removeQuestion(${i})" style="background:var(--danger);color:white;border:none;border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer">삭제</button>
+      </div>
+    </div>`).join('');
+}
+function addQuestion(){state.questions.push({from:'',content:'',solved:false});renderQuestions();}
+function updateQuestion(i,f,v){state.questions[i][f]=v;}
+function toggleSolved(i){state.questions[i].solved=!state.questions[i].solved;renderQuestions();}
+function removeQuestion(i){state.questions.splice(i,1);renderQuestions();}
+
+// ════════════════════════════════════════
+// 사진
+// ════════════════════════════════════════
+function handlePhotoSelect(input,type) {
+  const files=Array.from(input.files);
+  const previewId=type==='king'?'kingPhotoPreview':'photoPreview';
+  const arr=type==='king'?'kingPhotos':'photos';
+  files.forEach(file=>{
+    const r=new FileReader();
+    r.onload=e=>{state[arr].push({name:file.name,data:e.target.result,type:file.type});renderPhotoPreview(previewId,arr);};
+    r.readAsDataURL(file);
+  });
+}
+function renderPhotoPreview(previewId,arr) {
+  document.getElementById(previewId).innerHTML=state[arr].map((p,i)=>`
+    <div class="photo-thumb-wrap">
+      <img src="${p.data}" class="photo-thumb"/>
+      <button class="photo-remove" onclick="removePhoto('${arr}',${i},'${previewId}')">×</button>
+    </div>`).join('');
+}
+function removePhoto(arr,i,previewId){state[arr].splice(i,1);renderPhotoPreview(previewId,arr);}
+
+// ════════════════════════════════════════
+// 시간
+// ════════════════════════════════════════
+function parseTimeMinutes(s) {
+  const m=s.match(/(\d{1,2}):(\d{2})[~\-](\d{1,2}):(\d{2})/);
+  if(!m)return 0;
+  return Math.max(0,(parseInt(m[3])*60+parseInt(m[4]))-(parseInt(m[1])*60+parseInt(m[2])));
+}
+function formatMinutes(min) {
+  const h=Math.floor(min/60),m=min%60;
+  return h===0?`${m}분`:`${h}시간${m>0?' '+m+'분':''}`;
+}
+
+// ISO 날짜 → 보기 좋은 형식 (2026-05-05T15:00:00.000Z → 2026-05-05)
+function formatDate(d) {
+  if (!d) return '-';
+  return String(d).slice(0, 10);
+}
+
+// ════════════════════════════════════════
+// 제출 (일반)
+// ════════════════════════════════════════
+async function submitRecord() {
+  if (appIsClosed) { showToast('🔒 현재 제출이 마감되었어요. 선생님께 문의해 주세요.'); return; }
+  const date=document.getElementById('actDate').value;
+  const time=document.getElementById('actTime').value.trim();
+  const place=document.getElementById('actPlace').value.trim();
+  const title=document.getElementById('actTitle').value.trim();
+  const content=document.getElementById('actContent').value.trim();
+  const reflection=document.getElementById('actReflection').value.trim();
+  const nextPlan=document.getElementById('nextPlan').value.trim();
+  if(!date||!title||!content){showToast('⚠️ 날짜, 활동 제목, 내용은 필수예요');return;}
+  if(!state.memberRole){showToast('⚠️ 멘토/멘티 역할을 선택해 주세요');return;}
+  const present=state.members.filter(m=>m.status==='present').map(m=>m.name).join(', ');
+  const absent=state.members.filter(m=>m.status==='absent').map(m=>m.name).join(', ');
+  const added=parseTimeMinutes(time);
+  const newTotal=state.totalMinutes+added;
+
+  // 날짜 슬라이싱 헬퍼 (ISO 타임스탬프 또는 YYYY-MM-DD 모두 처리)
+  function sliceDate(d) {
+    return String(d).slice(0,10).slice(5).replace('-','/');
+  }
+
+  // 이전 회차들 + 이번 회차 합쳐서 전체 히스토리 구성
+  const allHist = [...(state.gasHist||[]), {round:state.roundNum, date, totalMinutes:newTotal}];
+
+  // 회차별 개별 시간 계산 (누적 역산)
+  const histWithMins = allHist.map((h, i) => {
+    const prevTotal = i === 0 ? 0 : (Number(allHist[i-1].totalMinutes) || 0);
+    const mins = (Number(h.totalMinutes) || 0) - prevTotal;
+    const d = sliceDate(h.date);
+    return { round: h.round, date: d, mins };
+  });
+
+  // 회차 목록: 1회차(4/10·30분) → 2회차(4/17·20분)
+  const roundList = histWithMins.map(h =>
+    `${h.round}회차(${h.date}${h.mins > 0 ? '·' + formatMinutes(h.mins) : ''})`
+  ).join(' → ');
+
+  // 누적 시간 상세: 1회차(30분) + 2회차(20분) = 50분
+  const timeBreakdown = histWithMins.filter(h => h.mins > 0)
+    .map(h => `${h.round}회차(${formatMinutes(h.mins)})`).join(' + ');
+
+  const notice = state.memberRole==='멘토' ? document.getElementById('noticeInput').value.trim() : '';
+
+  await sendToGAS({type:'member',quarter:state.quarter+'분기',studyName:state.studyName,round:state.roundNum,
+    name:state.name,classNum:state.classNum,studentNum:state.studentNum,memberRole:state.memberRole,
+    date,time,place,title,content,reflection,nextPlan,present,absent,totalMinutes:newTotal,
+    notice, photoChecked:photoChecked?'촬영완료':'미촬영', timestamp:new Date().toISOString()});
+
+  document.getElementById('doneMessage').innerHTML = '활동일지가 성공적으로 저장되었어요 🎉';
+  document.getElementById('doneSummary').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;">
+      <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
+        <span style="color:var(--gray-400);font-weight:600">이름</span>
+        <span style="font-weight:700">${state.name} (${state.classNum}반 ${state.studentNum}번)</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
+        <span style="color:var(--gray-400);font-weight:600">스터디</span>
+        <span style="font-weight:700">${state.studyName}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
+        <span style="color:var(--gray-400);font-weight:600">역할</span>
+        <span style="font-weight:700">${state.memberRole}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
+        <span style="color:var(--gray-400);font-weight:600">활동 제목</span>
+        <span style="font-weight:700;text-align:right;max-width:60%">${title}</span>
+      </div>
+      <div style="padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
+        <div style="color:var(--gray-400);font-weight:600;margin-bottom:8px">📋 회차 기록</div>
+        <div style="font-size:12px;color:var(--gray-700);font-weight:600;line-height:2">${
+          histWithMins.map(h=>`
+            <div style="display:flex;justify-content:space-between">
+              <span>${h.round}회차</span>
+              <span style="color:var(--gray-500)">${h.date}${h.mins>0 ? ' · '+formatMinutes(h.mins) : ''}</span>
+            </div>`).join('')
+        }</div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="color:var(--gray-400);font-weight:600">⏱️ 누적 스터디 시간</span>
+          <span style="font-weight:800;color:var(--accent);font-size:15px">${formatMinutes(newTotal)}</span>
+        </div>
+        ${timeBreakdown ? `<div style="font-size:11px;color:var(--gray-400)">${timeBreakdown} = ${formatMinutes(newTotal)}</div>` : ''}
+      </div>
+    </div>
+  `;
+  showScreen('done'); updateStepBar(5);
+}
+
+// ════════════════════════════════════════
+// 제출 (왕멘토)
+// ════════════════════════════════════════
+async function submitKingRecord() {
+  if (appIsClosed) { showToast('🔒 현재 제출이 마감되었어요. 선생님께 문의해 주세요.'); return; }
+  const date=document.getElementById('kingActDate').value;
+  const time=document.getElementById('kingActTime').value.trim();
+  const selfStudy=document.getElementById('kingSelfStudy').value.trim();
+  const reflection=document.getElementById('kingReflection').value.trim();
+  const nextPlan=document.getElementById('kingNextPlan').value.trim();
+  if(!date||!selfStudy){showToast('⚠️ 날짜와 학습 내용은 필수예요');return;}
+
+  const added = parseTimeMinutes(time);
+  const newTotal = state.totalMinutes + added;
+
+  await sendToGAS({type:'king',quarter:state.quarter+'분기',subject:state.subject,round:state.roundNum,
+    name:state.name,classNum:state.classNum,studentNum:state.studentNum,
+    date,time,selfStudy,reflection,nextPlan,questions:JSON.stringify(state.questions),
+    totalMinutes:newTotal, photoChecked:kingPhotoChecked?'촬영완료':'미촬영', timestamp:new Date().toISOString()});
+
+  // 완료 요약 - 회차 누적
+  function sliceDateK(d){ return String(d).slice(0,10).slice(5).replace('-','/'); }
+  const allHist = [...(state.gasHist||[]), {round:state.roundNum, date, totalMinutes:newTotal}];
+  const histWithMins = allHist.map((h,i)=>{
+    const prev = i===0?0:(Number(allHist[i-1].totalMinutes)||0);
+    return {round:h.round, date:sliceDateK(h.date), mins:(Number(h.totalMinutes)||0)-prev};
+  });
+  const timeBreakdown = histWithMins.filter(h=>h.mins>0).map(h=>`${h.round}회차(${formatMinutes(h.mins)})`).join(' + ');
+
+  document.getElementById('doneMessage').innerHTML = '활동일지가 성공적으로 저장되었어요 🎉';
+  document.getElementById('doneSummary').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;">
+      <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
+        <span style="color:var(--gray-400);font-weight:600">이름</span>
+        <span style="font-weight:700">${state.name} (${state.classNum}반 ${state.studentNum}번)</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
+        <span style="color:var(--gray-400);font-weight:600">역할</span>
+        <span style="font-weight:700">👑 왕멘토 / 부멘토</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
+        <span style="color:var(--gray-400);font-weight:600">담당 과목</span>
+        <span style="font-weight:700">${state.subject}</span>
+      </div>
+      <div style="padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
+        <div style="color:var(--gray-400);font-weight:600;margin-bottom:8px">📋 회차 기록</div>
+        <div style="font-size:12px;color:var(--gray-700);font-weight:600;line-height:2">${
+          histWithMins.map(h=>`
+            <div style="display:flex;justify-content:space-between">
+              <span>${h.round}회차</span>
+              <span style="color:var(--gray-500)">${h.date}${h.mins>0?' · '+formatMinutes(h.mins):''}</span>
+            </div>`).join('')
+        }</div>
+      </div>
+      <div style="padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="color:var(--gray-400);font-weight:600">⏱️ 누적 활동 시간</span>
+          <span style="font-weight:800;color:var(--accent);font-size:15px">${formatMinutes(newTotal)}</span>
+        </div>
+        ${timeBreakdown?`<div style="font-size:11px;color:var(--gray-400)">${timeBreakdown} = ${formatMinutes(newTotal)}</div>`:''}
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <span style="color:var(--gray-400);font-weight:600">질문 처리</span>
+        <span style="font-weight:800;color:var(--accent)">${state.questions.length}건</span>
+      </div>
+    </div>
+  `;
+  showScreen('done'); updateStepBar(5);
+}
+
+// ════════════════════════════════════════
+// GAS 전송
+// ════════════════════════════════════════
+async function sendToGAS(payload) {
+  if (!GAS_URL) {
+    showToast('⚠️ GAS URL이 설정되지 않았어요. 선생님께 문의해 주세요.');
+    return;
+  }
+  document.getElementById('loadingOverlay').classList.add('show');
+  try {
+    await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),mode:'no-cors'});
+  } catch(e){console.error(e);}
+  finally{document.getElementById('loadingOverlay').classList.remove('show');}
+}
+
+// ════════════════════════════════════════
+// 다음 회차
+// ════════════════════════════════════════
+function addNewRound() {
+  state.roundNum++; state.photos=[]; state.kingPhotos=[]; state.questions=[];
+  photoChecked = false; kingPhotoChecked = false;
+  if(state.role==='king'){
+    document.getElementById('kingSelfStudy').value='';
+    document.getElementById('kingReflection').value='';
+    document.getElementById('kingNextPlan').value='';
+    document.getElementById('kingPhotoPreview').innerHTML='';
+    loadKingRound(); showScreen('king');
+  } else {
+    document.getElementById('actTitle').value='';
+    document.getElementById('actContent').value='';
+    document.getElementById('actReflection').value='';
+    document.getElementById('nextPlan').value='';
+    document.getElementById('photoPreview').innerHTML='';
+    document.getElementById('actDate').value=new Date().toISOString().split('T')[0];
+    document.getElementById('roundBadge').textContent=`📝 ${state.roundNum}회차 기록`;
+    showScreen('record');
+  }
+  updateStepBar(4);
+}
+
+// ════════════════════════════════════════
+// 관리자
+// ════════════════════════════════════════
+function openAdminModal(){document.getElementById('pwModal').classList.add('show');setTimeout(()=>document.getElementById('pwInput').focus(),100);}
+function closeModal(){document.getElementById('pwModal').classList.remove('show');document.getElementById('pwInput').value='';}
+function checkPw(){
+  if(document.getElementById('pwInput').value===ADMIN_PW){
+    document.getElementById('pwError').style.display='none';
+    closeModal();
+    document.getElementById('mainContainer').style.display='none';
+    document.getElementById('adminContainer').style.display='block';
+    // 현재 학년도 채우기
+    const savedYear = localStorage.getItem('app_year') || '2026';
+    document.getElementById('yearInput').value = savedYear;
+    document.getElementById('currentYearDisplay').textContent = savedYear;
+    // GAS URL 표시
+    const curUrl = GAS_URL || '(미설정)';
+    document.getElementById('currentGasUrlDisplay').textContent = curUrl;
+    document.getElementById('adminGasUrlInput').value = GAS_URL || '';
+    document.getElementById('adminGasUrlMsg').style.display = 'none';
+    if (GAS_URL) showStudentLinkCard(GAS_URL);
+    loadQuarterDates();
+    loadAdminData();
+    // ★ 마감 상태도 관리자 화면에 반영
+    if (GAS_URL) {
+      fetchGAS(GAS_URL + '?action=getStatus').then(data => {
+        updateAdminCloseUI(!!data.isClosed);
+      }).catch(()=>{});
+    }
+  } else { document.getElementById('pwError').style.display='block'; document.getElementById('pwInput').value=''; }
+}
+function exitAdmin(){
+  document.getElementById('adminContainer').style.display='none';
+  document.getElementById('mainContainer').style.display='block';
+}
+
+// GAS GET 요청
+async function fetchGAS(url) {
+  const res = await fetch(url, { redirect: 'follow' });
+  const text = await res.text();
+  // JSONP 응답이면 파싱
+  const jsonMatch = text.match(/^[^(]+\((.+)\)$/s);
+  if (jsonMatch) return JSON.parse(jsonMatch[1]);
+  return JSON.parse(text);
+}
+
+async function loadAdminData() {
+  if (!GAS_URL) {
+    document.getElementById('adminRecordList').innerHTML='<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px">⚠️ GAS URL을 먼저 위에서 입력하고 저장해 주세요</div>';
+    updateStatCards([]);
+    return;
+  }
+  document.getElementById('adminRecordList').innerHTML='<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px">불러오는 중...</div>';
+  try {
+    const data = await fetchGAS(GAS_URL+'?action=getRecords');
+    adminData = data.records || [];
+    renderAdminData();
+  } catch(e) {
+    document.getElementById('adminRecordList').innerHTML=
+      '<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px">구글 시트에서 직접 확인해 주세요 📊<br><br><a href="https://docs.google.com/spreadsheets" target="_blank" style="color:var(--primary);font-weight:700">구글 시트 열기 →</a></div>';
+    updateStatCards([]);
+  }
+}
+
+function renderAdminData() {
+  const filtered=adminFilter==='all'?adminData:
+    adminFilter==='king'?adminData.filter(r=>r.type==='king'):
+    adminData.filter(r=>r.quarter===adminFilter);
+  updateStatCards(filtered);
+  if(!filtered.length){
+    document.getElementById('adminRecordList').innerHTML='<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px">해당 기록이 없어요</div>';
+    return;
+  }
+  document.getElementById('adminRecordList').innerHTML=filtered.slice().reverse().map(r=>`
+    <div class="record-row">
+      <div>
+        <div class="r-name">${r.name} (${r.classNum}반 ${r.studentNum}번)</div>
+        <div class="r-meta">${r.quarter} · ${r.studyName||r.subject||''} · ${r.date||''}</div>
+      </div>
+      <div class="r-round">${r.round}회차</div>
+    </div>`).join('');
+}
+
+function updateStatCards(data) {
+  document.getElementById('statTotal').textContent=data.length||'-';
+  document.getElementById('statStudents').textContent=data.length?new Set(data.map(r=>r.name)).size:'-';
+  document.getElementById('statTeams').textContent=data.length?new Set(data.filter(r=>r.type!=='king').map(r=>r.studyName)).size:'-';
+  document.getElementById('statKing').textContent=data.length?data.filter(r=>r.type==='king').length:'-';
+}
+
+function filterAdmin(val,el) {
+  adminFilter=val;
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderAdminData();
+}
+
+// ════════════════════════════════════════
+// 토스트
+// ════════════════════════════════════════
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+</script>
+</body>
+</html>
