@@ -752,6 +752,7 @@ async function pollSlots() {
       });
       renderDateGrid();
       if (state.currentStep === 3) renderTimeGrid();
+      renderDaySlotList();  // 관리자 날짜/시간 탭 UI도 갱신 (구글시트 직접 삭제 반영)
     }
 
     // 예약 목록도 갱신 (구글시트 직접 삭제 → 앱 반영)
@@ -1392,6 +1393,7 @@ async function adminCancelBooking(slotId, dateKey) {
     const di = appSlots.findIndex(x=>x.dateKey===dateKey);
     if (di>=0) { const si=appSlots[di].slots.findIndex(s=>s.id===slotId); if(si>=0) appSlots[di].slots[si].booked=false; }
     renderDateGrid();
+    renderDaySlotList();  // 날짜/시간 탭 ✓예약 뱃지 즉시 제거
     // 현재 Step3(시간 선택) 상태라면 시간 그리드도 즉시 갱신
     if (state.currentStep === 3 && state.selectedDate?.dateKey === dateKey) renderTimeGrid();
     showToast('🗑️ 예약이 취소됐어요!');
