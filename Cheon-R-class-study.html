@@ -663,6 +663,7 @@ input[type=file]{display:none;}
           <div id="photoCheckBox" style="width:24px;height:24px;border:2px solid var(--gray-300);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;"></div>
           <div style="font-size:13px;font-weight:600;color:var(--gray-700)">이번 회차 활동 사진을 촬영했어요 📸</div>
         </div>
+        <div class="photo-preview" id="photoPreview"></div>
       </div>
 
       <div class="bottom-bar"><div class="bottom-bar-inner">
@@ -700,6 +701,7 @@ input[type=file]{display:none;}
           <div id="kingPhotoCheckBox" style="width:24px;height:24px;border:2px solid var(--gray-300);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;"></div>
           <div style="font-size:13px;font-weight:600;color:var(--gray-700)">이번 회차 활동 사진을 촬영했어요 📸</div>
         </div>
+        <div class="photo-preview" id="kingPhotoPreview"></div>
       </div>
       <div class="card">
         <div class="card-title">🔜 다음 활동 예고</div>
@@ -2132,7 +2134,7 @@ async function sendToGAS(payload) {
 // ════════════════════════════════════════
 // 다음 회차
 // ════════════════════════════════════════
-function addNewRound() {
+async function addNewRound() {
   state.roundNum++; state.photos=[]; state.kingPhotos=[]; state.questions=[];
   photoChecked = false; kingPhotoChecked = false;
   if(state.role==='king'){
@@ -2140,7 +2142,7 @@ function addNewRound() {
     document.getElementById('kingReflection').value='';
     document.getElementById('kingNextPlan').value='';
     document.getElementById('kingPhotoPreview').innerHTML='';
-    loadKingRound(); showScreen('king');
+    await loadKingRound(); showScreen('king');
   } else {
     document.getElementById('actTitle').value='';
     document.getElementById('actContent').value='';
@@ -2149,7 +2151,7 @@ function addNewRound() {
     document.getElementById('photoPreview').innerHTML='';
     document.getElementById('actDate').value=new Date().toISOString().split('T')[0];
     document.getElementById('roundBadge').textContent=`📝 ${state.roundNum}회차 기록`;
-    showScreen('record');
+    await loadRound(); showScreen('record');
   }
   updateStepBar(4);
 }
