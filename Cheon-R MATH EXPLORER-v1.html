@@ -2096,10 +2096,22 @@ function drawG(id,opts){
       const visLo=Math.max(lo,xMin),visHi=Math.min(hi,xMax);
       if(visHi<=visLo)return;
       const midX=(px(visLo)+px(visHi))/2;
-      const loStr=lo<=-6.9?'−∞':parseFloat(lo.toFixed(2));
-      const hiStr=hi>=6.9?'+∞':parseFloat(hi.toFixed(2));
+      const loStr=parseFloat(lo.toFixed(2));
+      const hiStr=parseFloat(hi.toFixed(2));
       const strict=opts.isStrict;
-      const rangeLabel=`${lo<=-6.9?'':strict?'x > ':'x ≥ '}${lo<=-6.9?`x < ${hiStr}`:`${loStr}${hi>=6.9?(strict?' < x':' ≤ x'):(strict?` < x < ${hiStr}`:` ≤ x ≤ ${hiStr}`)}`}`;
+      let rangeLabel;
+      if(lo<=-6.9&&hi>=6.9){
+        rangeLabel='모든 실수';
+      }else if(lo<=-6.9){
+        // (−∞, hi) 또는 (−∞, hi]
+        rangeLabel=strict?`x < ${hiStr}`:`x ≤ ${hiStr}`;
+      }else if(hi>=6.9){
+        // (lo, +∞) 또는 [lo, +∞)
+        rangeLabel=strict?`x > ${loStr}`:`x ≥ ${loStr}`;
+      }else{
+        // (lo, hi) 또는 [lo, hi]
+        rangeLabel=strict?`${loStr} < x < ${hiStr}`:`${loStr} ≤ x ≤ ${hiStr}`;
+      }
       ctx.font='bold 15px Noto Sans KR,sans-serif';
       const rtw=ctx.measureText(rangeLabel).width;
       const rpad=8,rlw=rtw+rpad*2,rlh=26;
@@ -2364,7 +2376,10 @@ function renderT2(){
     else rootDesc=`두 그래프의 교점 ${linearInts2.length}개`;
   }else{
     if(!roots.length) rootDesc='x축과의 교점 없음 (실근 없음)';
-    else if(roots.length===1) rootDesc='x축과의 교점 1개 (중근)';
+    else if(s.deg===2&&roots.length===1){
+      const[a2,b2,c2]=s.c,D=b2*b2-4*a2*c2;
+      rootDesc=Math.abs(D)<0.001?'x축과의 교점 1개 (중근)':'x축과의 교점 2개';
+    }
     else rootDesc=`x축과의 교점 ${roots.length}개`;
   }
 
@@ -2451,10 +2466,12 @@ function renderT3(){
     solText='모든 실수'; solType='all';
   } else {
     solText=intvs.map(([lo,hi])=>{
-      const L=lo<=-28.9?'(−∞':(isStrict?'(':'\[')+lo.toFixed(2);
-      const R=hi>=28.9?'+∞)':(hi.toFixed(2)+(isStrict?')':'\]'));
-      return L+', '+R;
-    }).join(' ∪ ');
+      const loV=parseFloat(lo.toFixed(2)),hiV=parseFloat(hi.toFixed(2));
+      if(lo<=-28.9&&hi>=28.9) return '모든 실수';
+      if(lo<=-28.9) return isStrict?`x < ${hiV}`:`x ≤ ${hiV}`;
+      if(hi>=28.9) return isStrict?`x > ${loV}`:`x ≥ ${loV}`;
+      return isStrict?`${loV} < x < ${hiV}`:`${loV} ≤ x ≤ ${hiV}`;
+    }).join(' 또는 ');
   }
 
   const[yMin,yMax]=getYRange(s.c,s.deg);
@@ -3577,10 +3594,12 @@ function updateIneqFeatContent(){
   if(!intvs.length) solText='해 없음 (∅)';
   else if(intvs.some(([a,b])=>a<=-28.9&&b>=28.9)&&intvs.length===1) solText='모든 실수';
   else solText=intvs.map(([lo,hi])=>{
-    const L=lo<=-28.9?'(−∞':(isStrict?'(':'\[')+lo.toFixed(2);
-    const R=hi>=28.9?'+∞)':(hi.toFixed(2)+(isStrict?')':'\]'));
-    return L+', '+R;
-  }).join(' ∪ ');
+    const loV=parseFloat(lo.toFixed(2)),hiV=parseFloat(hi.toFixed(2));
+    if(lo<=-28.9&&hi>=28.9) return '모든 실수';
+    if(lo<=-28.9) return isStrict?`x < ${hiV}`:`x ≤ ${hiV}`;
+    if(hi>=28.9) return isStrict?`x > ${loV}`:`x ≥ ${loV}`;
+    return isStrict?`${loV} < x < ${hiV}`:`${loV} ≤ x ≤ ${hiV}`;
+  }).join(' 또는 ');
 
   const rootStr=roots.length?roots.map(r=>`x = ${r}`).join(', '):'없음';
   const cards=[
