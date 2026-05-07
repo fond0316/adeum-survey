@@ -546,6 +546,40 @@ canvas{width:100%;height:440px;display:block}
         <div id="t3-fbox"></div>
       </div>
 
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:13px;font-weight:700;color:var(--tx2)">📏 일차함수 y = mx + n</span>
+          <button id="t3-linear-toggle" onclick="toggleLinear3()"
+            style="padding:4px 14px;border-radius:20px;border:1px solid var(--bor2);background:var(--sur);font-size:12px;font-weight:700;color:var(--tx2);cursor:pointer;font-family:inherit;transition:all .15s">
+            OFF
+          </button>
+        </div>
+        <div id="t3-linear-panel" style="display:none">
+          <div class="cw">
+            <div class="cw-top">
+              <span class="cw-name">m (기울기)</span>
+              <input class="cw-num" type="number" id="t3-mn" value="1.000" step="0.001"
+                onchange="fromLinearNum3('m',this.value)"
+                onkeydown="if(event.key==='Enter')fromLinearNum3('m',this.value)">
+            </div>
+            <input type="range" id="t3-mr" min="-10" max="10" step="any" value="1"
+              oninput="fromLinearSlider3('m',this.value)">
+          </div>
+          <div class="cw">
+            <div class="cw-top">
+              <span class="cw-name">n (y절편)</span>
+              <input class="cw-num" type="number" id="t3-nn" value="0.000" step="0.001"
+                onchange="fromLinearNum3('n',this.value)"
+                onkeydown="if(event.key==='Enter')fromLinearNum3('n',this.value)">
+            </div>
+            <input type="range" id="t3-nr" min="-15" max="15" step="any" value="0"
+              oninput="fromLinearSlider3('n',this.value)">
+          </div>
+          <div class="eq" id="t3-linear-eq" style="color:var(--rd);background:var(--rd-bg);border-color:var(--rd-lt);font-size:14px">y = x</div>
+          <div id="t3-linear-info" style="margin-top:6px;font-size:13px;color:var(--tx2);line-height:1.8"></div>
+        </div>
+      </div>
+
     </div>
     <div>
       <div class="gcard">
@@ -553,17 +587,17 @@ canvas{width:100%;height:440px;display:block}
         <!-- 1줄: 부등식 유형 -->
         <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:7px;padding-top:7px;border-top:1px solid var(--bor);">
           <span style="font-size:12px;font-weight:700;color:var(--tx2);white-space:nowrap">부등식 유형</span>
-          <button class="ibtn on" id="iq-gt0" onclick="setIneq('gt0')">f(x) &gt; 0</button>
-          <button class="ibtn" id="iq-ge0" onclick="setIneq('ge0')">f(x) ≥ 0</button>
-          <button class="ibtn" id="iq-lt0" onclick="setIneq('lt0')">f(x) &lt; 0</button>
-          <button class="ibtn" id="iq-le0" onclick="setIneq('le0')">f(x) ≤ 0</button>
+          <button class="ibtn on" id="iq-gt0" onclick="setIneq('gt0')">f(x) &gt; g(x)</button>
+          <button class="ibtn" id="iq-ge0" onclick="setIneq('ge0')">f(x) ≥ g(x)</button>
+          <button class="ibtn" id="iq-lt0" onclick="setIneq('lt0')">f(x) &lt; g(x)</button>
+          <button class="ibtn" id="iq-le0" onclick="setIneq('le0')">f(x) ≤ g(x)</button>
           <div class="eq" id="t3-ieq" style="color:var(--gn);font-size:13px;margin:0;padding:5px 10px;flex:1;min-width:80px"></div>
         </div>
         <!-- 2줄: 해집합 + 왜그럴까 + 그래프특징 + 휠줌 -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px;flex-wrap:wrap;gap:4px;">
           <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
             <span id="t3-sol-badge" style="font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--gn);background:var(--gn-bg);border:1px solid var(--gn-lt);border-radius:20px;padding:3px 10px;white-space:nowrap"></span>
-            <button onclick="openIneqModal()" style="background:var(--gn-bg);border:1px solid var(--gn-lt);border-radius:20px;padding:4px 14px;font-size:12px;color:var(--gn);font-weight:600;cursor:pointer;font-family:inherit;">
+            <button onclick="S.t3.linear.show?openIneqLinearModal():openIneqModal()" style="background:var(--gn-bg);border:1px solid var(--gn-lt);border-radius:20px;padding:4px 14px;font-size:12px;color:var(--gn);font-weight:600;cursor:pointer;font-family:inherit;">
               💡 왜 그럴까?
             </button>
             <button onclick="openIneqFeatModal()" style="background:var(--gn-bg);border:1px solid var(--gn-lt);border-radius:20px;padding:4px 14px;font-size:12px;color:var(--gn);font-weight:600;cursor:pointer;font-family:inherit;">
@@ -1384,6 +1418,55 @@ canvas{width:100%;height:440px;display:block}
   </div>
 </div>
 
+<!-- ── 이차 vs 일차 부등식 모달 (일차함수 ON 전용) ── -->
+<div id="ineqLinearModal" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:500;width:460px;max-width:95vw;">
+  <div style="background:#fff;border-radius:16px;padding:0;box-shadow:0 8px 40px rgba(0,0,0,0.22);border:1px solid var(--bor);overflow:hidden;user-select:none;">
+    <div id="ineqLinearHandle" style="padding:14px 18px 10px;cursor:grab;border-bottom:1px solid var(--bor);display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+      <div>
+        <div style="font-size:16px;font-weight:800;margin-bottom:2px">같은 것, 다른 눈 👁️ <span style="font-size:11px;font-weight:400;color:var(--tx3);margin-left:4px">⠿ 드래그로 이동</span></div>
+        <div style="font-size:12px;color:var(--tx2);line-height:1.6">이차 vs 일차 부등식 — <strong>그래프의 위아래 관계가 해집합이야.</strong></div>
+      </div>
+      <button onclick="closeIneqLinearModal()" style="flex-shrink:0;background:none;border:none;font-size:18px;cursor:pointer;color:var(--tx3);padding:0;line-height:1">✕</button>
+    </div>
+    <div style="overflow:hidden;">
+      <div id="ilcards" style="display:flex;transition:transform .35s cubic-bezier(.4,0,.2,1)">
+        <div class="pcard" style="background:var(--bl-bg);border-bottom:3px solid var(--bl-lt);">
+          <div class="pcard-icon">📈</div>
+          <div class="pcard-title">두 함수의 눈으로 보면</div>
+          <div class="pcard-eq" id="ilv-func"></div>
+          <div class="pcard-desc">이차함수와 일차함수를 같은 좌표계에 그린 거야.<br>어느 쪽이 위에 있는지가 부등식의 핵심이야.</div>
+          <div class="pcard-key" style="border-color:var(--bl-lt);color:var(--bl)">📍 f(x) &gt; g(x) ↔ 이차가 일차보다 위</div>
+        </div>
+        <div class="pcard" style="background:var(--gn-bg);border-bottom:3px solid var(--gn-lt);">
+          <div class="pcard-icon">🎯</div>
+          <div class="pcard-title">부등식의 눈으로 보면</div>
+          <div class="pcard-eq" id="ilv-ineq"></div>
+          <div class="pcard-desc">이차=일차의 근이 경계점이 돼.<br>경계점 사이 구간에서 부등호 방향을 확인하면 해집합이야.</div>
+          <div class="pcard-key" style="border-color:var(--gn-lt);color:var(--gn)">📍 초록 구간 = 부등식 만족하는 x 범위</div>
+        </div>
+        <div class="pcard" style="background:var(--pu-bg);border-bottom:3px solid var(--pu-lt);">
+          <div class="pcard-icon">🔗</div>
+          <div class="pcard-title">연립부등식의 눈으로 보면</div>
+          <div class="pcard-eq" id="ilv-sys"></div>
+          <div class="pcard-desc">두 함수의 그래프 위아래 관계를 묻는 거야.<br>f(x) &gt; g(x)는 이차가 일차보다 위에 있는 구간이야.</div>
+          <div class="pcard-key" style="border-color:var(--pu-lt);color:var(--pu)">📍 교점 x좌표가 해집합의 경계점</div>
+          <div style="margin-top:10px;padding:8px 10px;background:rgba(255,255,255,0.6);border-radius:8px;font-size:12px;color:var(--pu);font-weight:600">
+            👉 m, n 슬라이더를 바꿔보면 해집합이 바뀌어!<br>교점 위치와 비교해봐 😊
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--bor);">
+      <button id="ilprev" onclick="moveILCard(-1)" style="width:32px;height:32px;border-radius:50%;border:1px solid var(--bor2);background:var(--sur);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">‹</button>
+      <div id="ildots" style="display:flex;gap:6px"></div>
+      <button id="ilnext" onclick="moveILCard(1)" style="width:32px;height:32px;border-radius:50%;border:1px solid var(--bor2);background:var(--sur);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">›</button>
+    </div>
+    <div style="padding:10px 16px 14px;background:var(--rd-bg);border-top:1px solid var(--rd-lt);font-size:12px;color:var(--rd);line-height:1.7">
+      💬 <strong>핵심:</strong> f(x) &gt; g(x) 의 해 = 이차 그래프가 일차 그래프 <strong>위</strong>에 있는 x 범위야!
+    </div>
+  </div>
+</div>
+
 <!-- ── 이차=일차 관점 모달 (일차함수 ON 전용) ── -->
 <div id="perspLinearModal" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:500;width:460px;max-width:95vw;">
   <div style="background:#fff;border-radius:16px;padding:0;box-shadow:0 8px 40px rgba(0,0,0,0.22);border:1px solid var(--bor);overflow:hidden;user-select:none;">
@@ -1621,10 +1704,13 @@ canvas{width:100%;height:440px;display:block}
 // ═══════════════════════════════
 // 상태
 // ═══════════════════════════════
+// 공유 일차함수 상태 (t1/t2/t3 모두 이 객체를 참조)
+const LINEAR = {m:1, n:0, show:false};
+
 const S = {
-  t1:{deg:2,c:[1,0,0,0,0],showV:false, linear:{m:1,n:0,show:false}},
-  t2:{deg:2,c:[1,0,0,0,0],showF:false,linear:{m:1,n:0,show:false}},
-  t3:{deg:2,c:[1,-1,-2,0,0],showF:false,ineq:'gt0'}
+  t1:{deg:2,c:[1,0,0,0,0],showV:false, linear:LINEAR},
+  t2:{deg:2,c:[1,0,0,0,0],showF:false, linear:LINEAR},
+  t3:{deg:2,c:[1,-1,-2,0,0],showF:false,ineq:'gt0',linear:LINEAR}
 };
 
 // ═══════════════════════════════
@@ -1644,18 +1730,8 @@ function showTab(id,btn){
   btn.classList.add('on');
   if(id==='t2'||id==='t3'){
     S[id].deg=S.t1.deg; S[id].c=[...S.t1.c]; S[id].showF=false;
-    // t1 일차함수 상태 동기화 (m, n 값 + UI 슬라이더까지)
-    if(id==='t2'&&S.t1.linear){
-      S.t2.linear.m=S.t1.linear.m;
-      S.t2.linear.n=S.t1.linear.n;
-      // 슬라이더·숫자입력 UI 동기화
-      const mr=document.getElementById('t2-mr'),mn=document.getElementById('t2-mn');
-      const nr=document.getElementById('t2-nr'),nn=document.getElementById('t2-nn');
-      if(mr)mr.value=S.t2.linear.m;
-      if(mn)mn.value=S.t2.linear.m.toFixed(3);
-      if(nr)nr.value=S.t2.linear.n;
-      if(nn)nn.value=S.t2.linear.n.toFixed(3);
-    }
+    // LINEAR 공유 객체 사용 - 탭 전환 시 UI만 동기화
+    syncLinearUI();
     syncDB(id); buildC(id);
     const lbl='y = '+polyStr(S.t1.c,S.t1.deg);
     document.getElementById(id+'-from').textContent=lbl;
@@ -1777,6 +1853,14 @@ function findRoots(c,deg){
       for(let j=0;j<60;j++){const m=(lo+hi)/2;evalP(c,deg,m)*y1<=0?hi=m:lo=m;}
       const r=(lo+hi)/2;
       if(!roots.some(rr=>Math.abs(rr-r)<0.001))roots.push(parseFloat(r.toFixed(3)));
+    }
+  }
+  // 2차 중근 보정: D=0이면 부호변화 없어서 위 루프에 안 잡힘
+  if(deg===2){
+    const[a,b,cc]=c, D=b*b-4*a*cc;
+    if(Math.abs(D)<0.0001&&!roots.length){
+      const r=parseFloat((-b/(2*a)).toFixed(3));
+      roots.push(r);
     }
   }
   return roots.sort((a,b)=>a-b);
@@ -2233,7 +2317,7 @@ function renderT2(){
   if(s.showF){
     const fs=factorStr(s.c,s.deg,roots);
     fbox.innerHTML=`<div style="font-size:11px;color:var(--bl);margin-bottom:3px">인수분해형</div>
-      <div class="eq" style="background:var(--bl-bg);border-color:var(--bl-lt);color:var(--bl)">${fs?fs+' = 0':'인수분해 불가 (허근 존재)'}</div>`;
+      <div class="eq" style="background:var(--bl-bg);border-color:var(--bl-lt);color:var(--bl)">${fs?fs+' = 0':'실수 범위에서 인수분해 불가 (허근 존재)'}</div>`;
   }else fbox.innerHTML='';
 
   // 판별식
@@ -2291,9 +2375,9 @@ function renderT2(){
     const D2=B*B-4*A*C;
     const disc=document.getElementById('t2-disc');
     let bg,bc,ic,ti,de;
-    if(D2>0.001){bg='var(--gn-bg)';bc='var(--gn-lt)';ic='✅';ti='D′ > 0: 서로 다른 두 실근';de=`D' = (b−m)²−4a(c−n) = ${D2.toFixed(2)}`;}
-    else if(D2>=-0.001){bg='var(--am-bg)';bc='var(--am-lt)';ic='🟡';ti='D′ = 0: 중근 (두 그래프 접함)';de="D' = 0";}
-    else{bg='var(--rd-bg)';bc='var(--rd-lt)';ic='❌';ti='D′ < 0: 교점 없음 (허근)';de=`D' = ${D2.toFixed(2)}`;}
+    if(D2>0.001){bg='var(--gn-bg)';bc='var(--gn-lt)';ic='✅';ti='D′ > 0: 서로 다른 두 실근';de=`D′ = (b−m)²−4a(c−n) = ${D2.toFixed(2)}`;}
+    else if(D2>=-0.001){bg='var(--am-bg)';bc='var(--am-lt)';ic='🟡';ti='D′ = 0: 중근 (두 그래프 접함)';de="D′ = 0";}
+    else{bg='var(--rd-bg)';bc='var(--rd-lt)';ic='❌';ti='D′ < 0: 교점 없음 (허근)';de=`D′ = ${D2.toFixed(2)}`;}
     disc.innerHTML=`<div style="font-size:11px;color:var(--tx3);margin-bottom:4px">이차함수 − 일차함수 판별식</div><div class="disc" style="background:${bg};border-color:${bc}"><div class="disc-ic">${ic}</div><div><div class="disc-t">${ti}</div><div class="disc-d">${de}</div></div></div>`;
   }
 
@@ -2311,7 +2395,7 @@ function renderT3(){
   const s=S.t3;
   const lbl=polyStr(s.c,s.deg);
   document.getElementById('t3-eq').textContent='f(x) = '+lbl;
-  const im={gt0:'> 0',ge0:'≥ 0',lt0:'< 0',le0:'≤ 0'};
+  const lin3=s.linear;
 
   const roots=findRoots(s.c,s.deg);
   const fb=document.getElementById('t3-fbtn'),fbox=document.getElementById('t3-fbox');
@@ -2319,21 +2403,48 @@ function renderT3(){
   if(s.showF){
     const fs=factorStr(s.c,s.deg,roots);
     fbox.innerHTML=`<div style="font-size:11px;color:var(--gn);margin-bottom:3px">인수분해형</div>
-      <div class="eq" style="background:var(--gn-bg);border-color:var(--gn-lt);color:var(--gn)">${fs?'f(x) = '+fs:'인수분해 불가'}</div>`;
+      <div class="eq" style="background:var(--gn-bg);border-color:var(--gn-lt);color:var(--gn)">${fs?'f(x) = '+fs:'실수 범위에서 인수분해 불가 (허근 존재)'}</div>`;
   }else fbox.innerHTML='';
+
+  // 일차함수 처리
+  let linearInts3=[];
+  if(lin3.show&&s.deg===2){
+    linearInts3=findLinearIntersections(s.c,lin3.m,lin3.n);
+    const leqEl=document.getElementById('t3-linear-eq');
+    if(leqEl)leqEl.textContent='y = '+linearStr(lin3.m,lin3.n);
+    const infoEl=document.getElementById('t3-linear-info');
+    if(infoEl){
+      if(!linearInts3.length) infoEl.innerHTML='<span style="color:var(--rd)">🔴 교점 없음</span>';
+      else if(linearInts3.length===1){
+        const xi=linearInts3[0];
+        infoEl.innerHTML=`<span style="color:var(--rd)">🔴 접점 (중근): x = <strong>${xi}</strong></span>`;
+      } else {
+        infoEl.innerHTML=`<span style="color:var(--rd)">🔴 교점: <strong>x = ${linearInts3.join(', x = ')}</strong></span>`;
+      }
+    }
+  }
 
   const isGt=s.ineq==='gt0'||s.ineq==='ge0';
   const isStrict=s.ineq==='gt0'||s.ineq==='lt0';
-  const pts=[-7,...roots,7];
-  const intvs=[];
-  for(let i=0;i<pts.length-1;i++){
-    const mid=(pts[i]+pts[i+1])/2;
-    if(isGt?evalP(s.c,s.deg,mid)>0:evalP(s.c,s.deg,mid)<0)intvs.push([pts[i],pts[i+1]]);
+
+  // 해집합 계산: 일차함수 ON이면 f(x) vs g(x), OFF면 f(x) vs 0
+  let solPts, intvs=[], solText='', solType='ok';
+  if(lin3.show&&s.deg===2){
+    // f(x) - g(x) = 0 의 근이 경계점
+    solPts=[-7,...linearInts3,7];
+    for(let i=0;i<solPts.length-1;i++){
+      const mid=(solPts[i]+solPts[i+1])/2;
+      const diff=evalP(s.c,s.deg,mid)-(lin3.m*mid+lin3.n);
+      if(isGt?diff>0:diff<0) intvs.push([solPts[i],solPts[i+1]]);
+    }
+  } else {
+    solPts=[-7,...roots,7];
+    for(let i=0;i<solPts.length-1;i++){
+      const mid=(solPts[i]+solPts[i+1])/2;
+      if(isGt?evalP(s.c,s.deg,mid)>0:evalP(s.c,s.deg,mid)<0) intvs.push([solPts[i],solPts[i+1]]);
+    }
   }
 
-  // 해집합 텍스트 계산
-  let solText='';
-  let solType='ok'; // ok / no / all
   if(!intvs.length){
     solText='해 없음 (∅)'; solType='no';
   } else if(intvs.some(([a,b])=>a<=-6.9&&b>=6.9)&&intvs.length===1){
@@ -2348,58 +2459,75 @@ function renderT3(){
 
   const[yMin,yMax]=getYRange(s.c,s.deg);
   if(!V.g3.custom){V.g3={xMin:-6,xMax:6,yMin,yMax,custom:false};}
-  drawG('g3',{c:s.c,deg:s.deg,roots,mode:'ineq',ineq:s.ineq,isStrict,intvs,solText,solType});
+  drawG('g3',{c:s.c,deg:s.deg,roots,mode:'ineq',ineq:s.ineq,isStrict,intvs,solText,solType,
+    linear:lin3,linearInts:linearInts3});
 
-  // 해집합 뱃지 업데이트
+  // 해집합 뱃지 + 부등식 식 업데이트
   const badge=document.getElementById('t3-sol-badge');
-  if(badge) badge.textContent = solType==='no' ? '🟩 해집합: 해 없음 (∅)' : solType==='all' ? '🟩 해집합: 모든 실수' : '🟩 해집합: '+solText;
-  // 부등식 유형 식 업데이트
+  if(badge) badge.textContent = solType==='no'?'🟩 해집합: 해 없음 (∅)':solType==='all'?'🟩 해집합: 모든 실수':'🟩 해집합: '+solText;
   const ieq=document.getElementById('t3-ieq');
-  if(ieq){ const im={gt0:'> 0',ge0:'≥ 0',lt0:'< 0',le0:'≤ 0'}; ieq.textContent=lbl+' '+im[s.ineq]; }
+  const imMap={gt0:'>',ge0:'≥',lt0:'<',le0:'≤'};
+  if(ieq){
+    if(lin3.show&&s.deg===2) ieq.textContent=`${lbl} ${imMap[s.ineq]} ${linearStr(lin3.m,lin3.n)}`;
+    else ieq.textContent=lbl+' '+{gt0:'> 0',ge0:'≥ 0',lt0:'< 0',le0:'≤ 0'}[s.ineq];
+  }
+  // 부등식 유형 버튼 레이블도 ON/OFF에 따라 변경
+  const btnMap={gt0:['f(x) > g(x)','f(x) > 0'],ge0:['f(x) ≥ g(x)','f(x) ≥ 0'],lt0:['f(x) < g(x)','f(x) < 0'],le0:['f(x) ≤ g(x)','f(x) ≤ 0']};
+  ['gt0','ge0','lt0','le0'].forEach(k=>{
+    const b=document.getElementById('iq-'+k);
+    if(b) b.textContent=lin3.show?btnMap[k][0]:btnMap[k][1];
+  });
 
   // 모달 열려있으면 실시간 반영
   if(document.getElementById('ineqModal').style.display!=='none')updateIneqContent();
+  if(document.getElementById('ineqLinearModal')&&document.getElementById('ineqLinearModal').style.display!=='none')updateIneqLinearContent();
   if(document.getElementById('ineqFeatModal').style.display!=='none')updateIneqFeatContent();
 }
 
 function toggleV(){S.t1.showV=!S.t1.showV;renderT1();}
 function toggleF(tab){S[tab].showF=!S[tab].showF;render(tab);}
-// ── 일차함수 토글 / 슬라이더 ────────────────────────
+// ── 일차함수 토글 / 슬라이더 (공유 LINEAR 기반) ────────────────────────
+
+// 모든 탭의 슬라이더·숫자입력 UI를 현재 LINEAR 값으로 동기화
+function syncLinearUI(){
+  ['t1','t2','t3'].forEach(tab=>{
+    const mr=document.getElementById(tab+'-mr'), mn_=document.getElementById(tab+'-mn');
+    const nr=document.getElementById(tab+'-nr'), nn_=document.getElementById(tab+'-nn');
+    if(mr)mr.value=LINEAR.m; if(mn_)mn_.value=LINEAR.m.toFixed(3);
+    if(nr)nr.value=LINEAR.n; if(nn_)nn_.value=LINEAR.n.toFixed(3);
+    // 토글 버튼 + 패널 상태
+    const btn=document.getElementById(tab+'-linear-toggle');
+    const panel=document.getElementById(tab+'-linear-panel');
+    if(btn){
+      if(LINEAR.show){btn.textContent='ON';btn.style.background='var(--rd)';btn.style.borderColor='var(--rd)';btn.style.color='#fff';}
+      else{btn.textContent='OFF';btn.style.background='var(--sur)';btn.style.borderColor='var(--bor2)';btn.style.color='var(--tx2)';}
+    }
+    if(panel) panel.style.display=LINEAR.show?'block':'none';
+  });
+}
+
+// 모든 탭 그래프 동시 렌더
+function renderAllTabs(){
+  renderT1(); renderT2(); renderT3();
+}
+
 function toggleLinear(){
-  const lin=S.t1.linear;
-  lin.show=!lin.show;
-  const btn=document.getElementById('t1-linear-toggle');
-  const panel=document.getElementById('t1-linear-panel');
-  if(lin.show){
-    btn.textContent='ON';
-    btn.style.background='var(--rd)';
-    btn.style.borderColor='var(--rd)';
-    btn.style.color='#fff';
-    panel.style.display='block';
-  }else{
-    btn.textContent='OFF';
-    btn.style.background='var(--sur)';
-    btn.style.borderColor='var(--bor2)';
-    btn.style.color='var(--tx2)';
-    panel.style.display='none';
-  }
-  renderT1();
+  LINEAR.show=!LINEAR.show;
+  syncLinearUI();
+  renderAllTabs();
 }
 
 function fromLinearSlider(key,val){
-  S.t1.linear[key]=parseFloat(val);
-  const num=document.getElementById('t1-'+(key==='m'?'mn':'nn'));
-  if(num)num.value=parseFloat(val).toFixed(3);
-  renderT1();
+  LINEAR[key]=parseFloat(val);
+  syncLinearUI();
+  renderAllTabs();
 }
 
 function fromLinearNum(key,val){
-  const v=parseFloat(val);
-  if(isNaN(v))return;
-  S.t1.linear[key]=v;
-  const range=document.getElementById('t1-'+(key==='m'?'mr':'nr'));
-  if(range){const mn=parseFloat(range.min),mx=parseFloat(range.max);range.value=Math.max(mn,Math.min(mx,v));}
-  renderT1();
+  const v=parseFloat(val); if(isNaN(v))return;
+  LINEAR[key]=v;
+  syncLinearUI();
+  renderAllTabs();
 }
 
 // 이차 vs 일차 교점 계산 (ax²+bx+c = mx+n → ax²+(b-m)x+(c-n)=0)
@@ -2414,41 +2542,16 @@ function findLinearIntersections(poly,m,n){
 }
 
 
-// ── t2 일차함수 토글 / 슬라이더 ────────────────────────
-function toggleLinear2(){
-  const lin=S.t2.linear;
-  lin.show=!lin.show;
-  const btn=document.getElementById('t2-linear-toggle');
-  const panel=document.getElementById('t2-linear-panel');
-  if(lin.show){
-    btn.textContent='ON';
-    btn.style.background='var(--rd)';
-    btn.style.borderColor='var(--rd)';
-    btn.style.color='#fff';
-    panel.style.display='block';
-  }else{
-    btn.textContent='OFF';
-    btn.style.background='var(--sur)';
-    btn.style.borderColor='var(--bor2)';
-    btn.style.color='var(--tx2)';
-    panel.style.display='none';
-  }
-  renderT2();
-}
-function fromLinearSlider2(key,val){
-  S.t2.linear[key]=parseFloat(val);
-  const num=document.getElementById('t2-'+(key==='m'?'mn':'nn'));
-  if(num)num.value=parseFloat(val).toFixed(3);
-  renderT2();
-}
-function fromLinearNum2(key,val){
-  const v=parseFloat(val);
-  if(isNaN(v))return;
-  S.t2.linear[key]=v;
-  const range=document.getElementById('t2-'+(key==='m'?'mr':'nr'));
-  if(range){const mn=parseFloat(range.min),mx=parseFloat(range.max);range.value=Math.max(mn,Math.min(mx,v));}
-  renderT2();
-}
+// ── t2 일차함수 토글 / 슬라이더 → 공유 LINEAR 사용 ──
+function toggleLinear2(){ toggleLinear(); }
+function fromLinearSlider2(key,val){ fromLinearSlider(key,val); }
+function fromLinearNum2(key,val){ fromLinearNum(key,val); }
+
+
+// ── t3 일차함수 토글 / 슬라이더 → 공유 LINEAR 사용 ──
+function toggleLinear3(){ toggleLinear(); }
+function fromLinearSlider3(key,val){ fromLinearSlider(key,val); }
+function fromLinearNum3(key,val){ fromLinearNum(key,val); }
 
 function linearStr(m,n){
   let ms;
@@ -3317,7 +3420,7 @@ function updateEqFeatContent(){
       const A=a,B=b-m,C=c-n;
       const D2=B*B-4*A*C;
       const linLbl=linearStr(m,n);
-      const d2Str=D2>0.001?`D' = ${D2.toFixed(2)} > 0`:D2>=-0.001?`D' = 0`:`D' = ${D2.toFixed(2)} < 0`;
+      const d2Str=D2>0.001?`D′ = ${D2.toFixed(2)} > 0`:D2>=-0.001?`D′ = 0`:`D′ = ${D2.toFixed(2)} < 0`;
       const d2Desc=D2>0.001?'서로 다른 두 교점':D2>=-0.001?'접함 (중근)':'교점 없음 (허근)';
       const ints=findLinearIntersections(s.c,m,n);
       const intStr=ints.length?ints.map(r=>`x = ${r}`).join(', '):'없음';
@@ -3333,7 +3436,7 @@ function updateEqFeatContent(){
           `ax²+(b−m)x+(c−n)=0 의 두 근 α, β에 대해<br>α+β = (m−b)/a &nbsp;·&nbsp; αβ = (c−n)/a<br>근과 계수의 관계는 변형 후에도 그대로 적용돼.`,
           'var(--am)',`📌 y좌표: 교점 x를 y=mx+n에 대입`),
         makeFeatCard('var(--pu-bg)','var(--pu-lt)','🏆','수능 포인트',
-          `D' > 0 → 교점 2개<br>D' = 0 → 접함 (한 점에서 만남)<br>D' < 0 → 교점 없음`,
+          `D′ > 0 → 교점 2개<br>D′ = 0 → 접함 (한 점에서 만남)<br>D′ < 0 → 교점 없음`,
           `이차함수와 일차함수의 위치 관계는<br>D'의 부호로 결정돼.<br>현재 y = ${linLbl} 와 이차함수를 비교 중이야.`,
           'var(--pu)',`📌 이차 ≥ 일차 또는 이차 ≤ 일차 → 부등식 문제로 연결`),
       ];
@@ -3341,23 +3444,44 @@ function updateEqFeatContent(){
     }else{
       const[a,b,c]=s.c, D=b*b-4*a*c;
       const dStr=D>0.001?`D = ${D.toFixed(2)} > 0`:D>=-0.001?'D = 0':`D = ${D.toFixed(2)} < 0`;
-      const dDesc=D>0.001?'서로 다른 두 실근 (x축 두 점 교차)':D>=-0.001?'중근 (x축에 접함)':'허근 (x축과 만나지 않음)';
       const rootSum=(-b/a).toFixed(3), rootProd=(c/a).toFixed(3);
-      cards=[
-        makeFeatCard('var(--bl-bg)','var(--bl-lt)','🎯','판별식 & 실근',
-          `${dStr}<br>→ <strong>${dDesc}</strong>`,
-          `판별식 D = b² − 4ac 로 x축과의 관계를 판단해.<br>그래프가 x축을 기준으로 어떻게 놓이는지가 핵심이야.`,
-          'var(--bl)',`📌 최고차계수 a = ${a} · y절편 = ${yInt}`),
-        makeFeatCard('var(--am-bg)','var(--am-lt)','⚡','근과 계수의 관계',
-          `α + β = <strong>${rootSum}</strong> &nbsp;(= −b/a)<br>α × β = <strong>${rootProd}</strong> &nbsp;(= c/a)`,
-          `두 근을 직접 구하지 않아도<br>합과 곱을 바로 계산할 수 있어.<br>수식 변형 문제에서 핵심 도구야.`,
-          'var(--am)',`📌 (α−β)² = (α+β)² − 4αβ 도 자주 활용`),
-        makeFeatCard('var(--pu-bg)','var(--pu-lt)','🏆','수능 포인트',
-          `D > 0 → 실근 2개 (서로 다름)<br>D = 0 → 중근 (x축 접선)<br>D < 0 → 허근 (켤레복소수 쌍)`,
-          `허근이 존재하면 계수가 실수일 때 켤레복소수 쌍으로 나와.<br>a+bi가 근이면 a-bi도 반드시 근이야.`,
-          'var(--pu)',`📌 계수 실수 조건 항상 확인!`),
-      ];
-      footer=`🎯 <strong>수능 핵심:</strong> 판별식 D, 근과 계수 관계(α+β=−b/a, αβ=c/a), 켤레근 정리가 단골 출제야.`;
+
+      if(D>=-0.001&&D<=0.001){
+        // ── 중근 전용 카드 ──
+        const doubleRoot=parseFloat((-b/(2*a)).toFixed(3));
+        const factored=`${Math.abs(a)===1?(a>0?'':'−'):(Number.isInteger(a)?a:a.toFixed(2))}(x ${doubleRoot>=0?'− ':'+ '}${Number.isInteger(Math.abs(doubleRoot))?Math.abs(doubleRoot):Math.abs(doubleRoot).toFixed(2)})²`;
+        cards=[
+          makeFeatCard('var(--am-bg)','var(--am-lt)','🟡','중근 (D = 0)',
+            `D = 0 → <strong>중근 x = ${doubleRoot}</strong><br>x축과 꼭 한 점에서 접해.`,
+            `중근은 실근이야! 허근이 아니야.<br>같은 값이 두 번 반복되는 실근으로,<br>그래프가 x축에 접하는 (스치는) 상황이야.`,
+            'var(--am)',`⚠️ 중근 = 실근! 허근과 절대 혼동 금지`),
+          makeFeatCard('var(--bl-bg)','var(--bl-lt)','📐','완전제곱식 인수분해',
+            `완전제곱식: <strong>${factored} = 0</strong><br>→ 해: x = ${doubleRoot} (중근)`,
+            `D = 0이면 반드시 완전제곱식으로 인수분해 가능해.<br>a(x−p)² = 0 꼴로 변형하면<br>해가 x = p 하나뿐이야.`,
+            'var(--bl)',`📌 완전제곱식: D=0 ↔ 인수분해 가능 (완전제곱)`),
+          makeFeatCard('var(--pu-bg)','var(--pu-lt)','🏆','수능 포인트',
+            `D > 0 → 서로 다른 두 실근<br>D = 0 → 중근 (완전제곱식, 실근!)<br>D < 0 → 허근 (실수 범위 인수분해 불가)`,
+            `중근은 실수 범위에서 인수분해 가능해.<br>D < 0 (허근)일 때만 실수 범위 인수분해 불가야.<br>이 차이를 반드시 구별해야 해!`,
+            'var(--pu)',`📌 D=0: 완전제곱 · D<0: 허근 → 혼동 금지!`),
+        ];
+        footer=`🎯 <strong>수능 핵심:</strong> 중근은 실근이고 완전제곱식으로 인수분해 가능해. D=0과 D<0은 완전히 다른 상황이야!`;
+      } else {
+        cards=[
+          makeFeatCard('var(--bl-bg)','var(--bl-lt)','🎯','판별식 & 실근',
+            `${dStr}<br>→ <strong>${D>0.001?'서로 다른 두 실근 (x축 두 점 교차)':'허근 (x축과 만나지 않음)'}</strong>`,
+            `판별식 D = b² − 4ac 로 x축과의 관계를 판단해.<br>그래프가 x축을 기준으로 어떻게 놓이는지가 핵심이야.`,
+            'var(--bl)',`📌 최고차계수 a = ${a} · y절편 = ${yInt}`),
+          makeFeatCard('var(--am-bg)','var(--am-lt)','⚡','근과 계수의 관계',
+            `α + β = <strong>${rootSum}</strong> &nbsp;(= −b/a)<br>α × β = <strong>${rootProd}</strong> &nbsp;(= c/a)`,
+            `두 근을 직접 구하지 않아도<br>합과 곱을 바로 계산할 수 있어.<br>수식 변형 문제에서 핵심 도구야.`,
+            'var(--am)',`📌 (α−β)² = (α+β)² − 4αβ 도 자주 활용`),
+          makeFeatCard('var(--pu-bg)','var(--pu-lt)','🏆','수능 포인트',
+            `D > 0 → 실근 2개 (서로 다름)<br>D = 0 → 중근 (완전제곱식, 실근!)<br>D < 0 → 허근 (켤레복소수 쌍)`,
+            `허근이 존재하면 계수가 실수일 때 켤레복소수 쌍으로 나와.<br>a+bi가 근이면 a-bi도 반드시 근이야.`,
+            'var(--pu)',`📌 D<0일 때만 실수 범위 인수분해 불가`),
+        ];
+        footer=`🎯 <strong>수능 핵심:</strong> 판별식 D, 근과 계수 관계(α+β=−b/a, αβ=c/a), 켤레근 정리가 단골 출제야.`;
+      }
     }
 
   }else if(s.deg===3){
@@ -3589,6 +3713,50 @@ function closeIneqModal(){
   m.style.display='none';
   m.style.top='80px'; m.style.left='50%'; m.style.transform='translateX(-50%)';
 }
+// ── 이차 vs 일차 부등식 모달 ──
+let ilCardIdx=0;
+function moveILCard(dir){ilCardIdx=Math.max(0,Math.min(2,ilCardIdx+dir));updateILNav();}
+function updateILNav(){
+  document.getElementById('ilcards').style.transform=`translateX(-${ilCardIdx*100}%)`;
+  document.getElementById('ildots').innerHTML=[0,1,2].map((_,i)=>`<div style="width:8px;height:8px;border-radius:50%;background:${i===ilCardIdx?'var(--gn)':'var(--bor2)'};transition:background .2s;cursor:pointer" onclick="ilCardIdx=${i};updateILNav()"></div>`).join('');
+  document.getElementById('ilprev').style.opacity=ilCardIdx===0?'0.3':'1';
+  document.getElementById('ilnext').style.opacity=ilCardIdx===2?'0.3':'1';
+}
+function updateIneqLinearContent(){
+  const s=S.t3;
+  const lbl=polyStr(s.c,s.deg);
+  const lin=s.linear;
+  const linLbl=linearStr(lin.m,lin.n);
+  const ints=findLinearIntersections(s.c,lin.m,lin.n);
+  const intStr=ints.length?ints.map(r=>`x = ${r}`).join(', '):'교점 없음';
+  const imMap={gt0:'>',ge0:'≥',lt0:'<',le0:'≤'};
+  const op=imMap[s.ineq];
+  document.getElementById('ilv-func').innerHTML=`y = ${lbl} <span style="font-size:11px;color:var(--tx3)">(이차)</span><br>y = ${linLbl} <span style="font-size:11px;color:var(--rd)">(일차)</span>`;
+  document.getElementById('ilv-ineq').innerHTML=`${lbl} ${op} ${linLbl}<br><span style="font-size:12px;opacity:.7">→ 경계점: ${intStr}</span>`;
+  document.getElementById('ilv-sys').innerHTML=`{ y = ${lbl}<br>&nbsp;&nbsp;y = ${linLbl}<br><span style="font-size:12px;opacity:.7">→ 이차 ${op} 일차인 x 범위</span>`;
+}
+function openIneqLinearModal(){
+  updateIneqLinearContent();
+  ilCardIdx=0; updateILNav();
+  const m=document.getElementById('ineqLinearModal');
+  m.style.display='block'; m.style.top='80px';
+  m.style.left='50%'; m.style.transform='translateX(-50%)';
+}
+function closeIneqLinearModal(){
+  document.getElementById('ineqLinearModal').style.display='none';
+}
+document.addEventListener('DOMContentLoaded',function(){
+  const handle=document.getElementById('ineqLinearHandle');
+  const modal=document.getElementById('ineqLinearModal');
+  if(!handle||!modal)return;
+  let drag=false,ox=0,oy=0;
+  handle.addEventListener('mousedown',e=>{drag=true;const r=modal.getBoundingClientRect();modal.style.left=r.left+'px';modal.style.top=r.top+'px';modal.style.transform='none';ox=e.clientX-r.left;oy=e.clientY-r.top;handle.style.cursor='grabbing';e.preventDefault();});
+  document.addEventListener('mousemove',e=>{if(!drag)return;modal.style.left=Math.max(0,Math.min(window.innerWidth-modal.offsetWidth,e.clientX-ox))+'px';modal.style.top=Math.max(0,Math.min(window.innerHeight-modal.offsetHeight,e.clientY-oy))+'px';});
+  document.addEventListener('mouseup',()=>{drag=false;handle.style.cursor='grab';});
+  handle.addEventListener('touchstart',e=>{const r=modal.getBoundingClientRect();modal.style.left=r.left+'px';modal.style.top=r.top+'px';modal.style.transform='none';const t=e.touches[0];ox=t.clientX-r.left;oy=t.clientY-r.top;},{passive:true});
+  handle.addEventListener('touchmove',e=>{const t=e.touches[0];modal.style.left=Math.max(0,Math.min(window.innerWidth-modal.offsetWidth,t.clientX-ox))+'px';modal.style.top=Math.max(0,Math.min(window.innerHeight-modal.offsetHeight,t.clientY-oy))+'px';e.preventDefault();},{passive:false});
+});
+
 function moveICard(dir){iCardIdx=Math.max(0,Math.min(2,iCardIdx+dir));updateICCards();}
 function updateICCards(){
   document.getElementById('icards').style.transform=`translateX(-${iCardIdx*100}%)`;
