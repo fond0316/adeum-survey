@@ -397,6 +397,40 @@ canvas{width:100%;height:440px;display:block}
         <div id="t1-vbox"></div>
 
         <div class="sdiv"></div>
+        <!-- 정의역 제한 -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:13px;font-weight:700;color:var(--tx2)">📐 정의역 제한</span>
+          <button id="t1-domain-toggle" onclick="toggleDomain()"
+            style="padding:4px 14px;border-radius:20px;border:1px solid var(--bor2);background:var(--sur);font-size:12px;font-weight:700;color:var(--tx2);cursor:pointer;font-family:inherit;transition:all .15s">
+            OFF
+          </button>
+        </div>
+        <div id="t1-domain-panel" style="display:none">
+          <div style="font-size:11px;color:var(--tx3);margin-bottom:6px">α ≤ x ≤ β 범위에서만 그래프 표시</div>
+          <div class="cw">
+            <div class="cw-top">
+              <span class="cw-name">α (왼쪽 끝)</span>
+              <input class="cw-num" type="number" id="t1-dlo-n" value="-3" step="0.5"
+                onchange="fromDomainNum('lo',this.value)"
+                onkeydown="if(event.key==='Enter')fromDomainNum('lo',this.value)">
+            </div>
+            <input type="range" id="t1-dlo-r" min="-10" max="10" step="0.5" value="-3"
+              oninput="fromDomainSlider('lo',this.value)">
+          </div>
+          <div class="cw">
+            <div class="cw-top">
+              <span class="cw-name">β (오른쪽 끝)</span>
+              <input class="cw-num" type="number" id="t1-dhi-n" value="3" step="0.5"
+                onchange="fromDomainNum('hi',this.value)"
+                onkeydown="if(event.key==='Enter')fromDomainNum('hi',this.value)">
+            </div>
+            <input type="range" id="t1-dhi-r" min="-10" max="10" step="0.5" value="3"
+              oninput="fromDomainSlider('hi',this.value)">
+          </div>
+          <div id="t1-domain-info" style="font-size:12px;color:var(--am);background:var(--am-bg);border:1px solid var(--am-lt);border-radius:6px;padding:6px 10px;margin-top:4px;line-height:1.7"></div>
+        </div>
+
+        <div class="sdiv"></div>
         <!-- 일차함수 토글 -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
           <span style="font-size:13px;font-weight:700;color:var(--tx2)">📏 일차함수 y = mx + n</span>
@@ -1708,7 +1742,8 @@ canvas{width:100%;height:440px;display:block}
 const LINEAR = {m:1, n:0, show:false};
 
 const S = {
-  t1:{deg:2,c:[1,0,0,0,0],showV:false, linear:LINEAR},
+  t1:{deg:2,c:[1,0,0,0,0],showV:false, linear:LINEAR,
+      domain:{on:false,lo:-3,hi:3}},
   t2:{deg:2,c:[1,0,0,0,0],showF:false, linear:LINEAR},
   t3:{deg:2,c:[1,-1,-2,0,0],showF:false,ineq:'gt0',linear:LINEAR}
 };
@@ -1984,7 +2019,7 @@ function drawG(id,opts){
   ctx.scale(DPR,DPR);
 
   const v=V[id];
-  const{c,deg,roots=[],mode='line',isStrict=false,showVtx=false,linear=null,linearInts=[]}=opts;
+  const{c,deg,roots=[],mode='line',isStrict=false,showVtx=false,linear=null,linearInts=[],domain=null}=opts;
   const{xMin,xMax,yMin,yMax}=v;
   const xRange=xMax-xMin, yRange=yMax-yMin;
   const px=x=>(x-xMin)/xRange*W;
@@ -2041,17 +2076,61 @@ function drawG(id,opts){
   ctx.textAlign='left';ctx.fillText('x',W-8,py(0)-6);
   ctx.textAlign='center';ctx.fillText('y',px(0)+10,12);
 
+
   // 곡선
   const lc='#1A5FB4';
   const solColor='#2D7D46';
-  ctx.strokeStyle=lc;ctx.lineWidth=2.5;ctx.lineJoin='round';
-  ctx.beginPath();let first=true;
-  for(let i=0;i<=600;i++){
-    const x=xMin+xRange*i/600,y=evalP(c,deg,x);
-    if(!isFinite(y)||y<yMin-yRange||y>yMax+yRange){first=true;continue;}
-    if(first){ctx.moveTo(px(x),py(y));first=false;}else ctx.lineTo(px(x),py(y));
+
+  if(domain&&domain.on){
+    // ── 정의역 제한 모드: 범위 밖 점선, 범위 안 실선 ──
+    // 점선 (범위 밖)
+    ctx.strokeStyle='#AAC4E8';ctx.lineWidth=1.8;ctx.lineJoin='round';
+    ctx.setLineDash([5,5]);
+    ctx.beginPath();let fd=true;
+    for(let i=0;i<=600;i++){
+      const x=xMin+xRange*i/600;
+      if(x>=domain.lo&&x<=domain.hi){fd=true;continue;}
+      const y=evalP(c,deg,x);
+      if(!isFinite(y)||y<yMin-yRange||y>yMax+yRange){fd=true;continue;}
+      if(fd){ctx.moveTo(px(x),py(y));fd=false;}else ctx.lineTo(px(x),py(y));
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // 실선 (범위 안)
+    ctx.strokeStyle=lc;ctx.lineWidth=2.8;
+    ctx.beginPath();let fs=true;
+    for(let i=0;i<=600;i++){
+      const x=xMin+xRange*i/600;
+      if(x<domain.lo||x>domain.hi){fs=true;continue;}
+      const y=evalP(c,deg,x);
+      if(!isFinite(y)||y<yMin-yRange||y>yMax+yRange){fs=true;continue;}
+      if(fs){ctx.moveTo(px(x),py(y));fs=false;}else ctx.lineTo(px(x),py(y));
+    }
+    ctx.stroke();
+    // 정의역 경계 수직 점선
+    [domain.lo,domain.hi].forEach(bx=>{
+      if(bx<xMin||bx>xMax)return;
+      const by=evalP(c,deg,bx);
+      if(!isFinite(by))return;
+      ctx.strokeStyle='rgba(26,95,180,0.35)';ctx.lineWidth=1.2;ctx.setLineDash([4,4]);
+      ctx.beginPath();ctx.moveTo(px(bx),py(0));ctx.lineTo(px(bx),py(by));ctx.stroke();
+      ctx.setLineDash([]);
+      // 끝점 채움 원 (닫힌 구간이므로)
+      ctx.beginPath();ctx.arc(px(bx),py(by),5,0,Math.PI*2);
+      ctx.fillStyle=lc;ctx.fill();
+      ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+    });
+  }else{
+    // ── 일반 모드 ──
+    ctx.strokeStyle=lc;ctx.lineWidth=2.5;ctx.lineJoin='round';
+    ctx.beginPath();let first=true;
+    for(let i=0;i<=600;i++){
+      const x=xMin+xRange*i/600,y=evalP(c,deg,x);
+      if(!isFinite(y)||y<yMin-yRange||y>yMax+yRange){first=true;continue;}
+      if(first){ctx.moveTo(px(x),py(y));first=false;}else ctx.lineTo(px(x),py(y));
+    }
+    ctx.stroke();
   }
-  ctx.stroke();
 
   // ── 해집합 구간선 (x축에 겹쳐서 수직선처럼) ──────────────────
   if(mode==='ineq'){
@@ -2096,22 +2175,10 @@ function drawG(id,opts){
       const visLo=Math.max(lo,xMin),visHi=Math.min(hi,xMax);
       if(visHi<=visLo)return;
       const midX=(px(visLo)+px(visHi))/2;
-      const loStr=parseFloat(lo.toFixed(2));
-      const hiStr=parseFloat(hi.toFixed(2));
+      const loStr=lo<=-6.9?'−∞':parseFloat(lo.toFixed(2));
+      const hiStr=hi>=6.9?'+∞':parseFloat(hi.toFixed(2));
       const strict=opts.isStrict;
-      let rangeLabel;
-      if(lo<=-6.9&&hi>=6.9){
-        rangeLabel='모든 실수';
-      }else if(lo<=-6.9){
-        // (−∞, hi) 또는 (−∞, hi]
-        rangeLabel=strict?`x < ${hiStr}`:`x ≤ ${hiStr}`;
-      }else if(hi>=6.9){
-        // (lo, +∞) 또는 [lo, +∞)
-        rangeLabel=strict?`x > ${loStr}`:`x ≥ ${loStr}`;
-      }else{
-        // (lo, hi) 또는 [lo, hi]
-        rangeLabel=strict?`${loStr} < x < ${hiStr}`:`${loStr} ≤ x ≤ ${hiStr}`;
-      }
+      const rangeLabel=`${lo<=-6.9?'':strict?'x > ':'x ≥ '}${lo<=-6.9?`x < ${hiStr}`:`${loStr}${hi>=6.9?(strict?' < x':' ≤ x'):(strict?` < x < ${hiStr}`:` ≤ x ≤ ${hiStr}`)}`}`;
       ctx.font='bold 15px Noto Sans KR,sans-serif';
       const rtw=ctx.measureText(rangeLabel).width;
       const rpad=8,rlw=rtw+rpad*2,rlh=26;
@@ -2154,6 +2221,34 @@ function drawG(id,opts){
       ctx.fillStyle='#0F6E56';ctx.fill();
       ctx.strokeStyle='#fff';ctx.lineWidth=2.5;ctx.stroke();
     }
+  }
+
+  // ── 최대·최솟값 점 + 레이블 (정의역 제한 ON + 2차) ──
+  if(domain&&domain.on&&deg===2&&showVtx){
+    const mm=calcDomainMaxMin(c,domain.lo,domain.hi);
+    // 최솟값, 최댓값 각각 그리기
+    const pts2draw=[
+      {x:mm.minX,y:mm.minV,label:`최솟값 ${parseFloat(mm.minV.toFixed(2))}`,color:'#1A5FB4',above:false},
+      {x:mm.maxX,y:mm.maxV,label:`최댓값 ${parseFloat(mm.maxV.toFixed(2))}`,color:'#C0392B',above:true}
+    ];
+    pts2draw.forEach(({x,y,label,color,above})=>{
+      // 뷰 범위 밖이면 스킵
+      if(x<xMin||x>xMax||y<yMin||y>yMax)return;
+      // 점
+      ctx.beginPath();ctx.arc(px(x),py(y),7,0,Math.PI*2);
+      ctx.fillStyle=color;ctx.fill();
+      ctx.strokeStyle='#fff';ctx.lineWidth=2.5;ctx.stroke();
+      // 레이블 박스 (교점 레이블 스타일과 동일)
+      ctx.font='bold 12px JetBrains Mono,monospace';
+      const tw=ctx.measureText(label).width;
+      const lpad=6,lw=tw+lpad*2,lh=20;
+      const lx=Math.max(2,Math.min(W-lw-2,px(x)-lw/2));
+      const ly=above?py(y)-28:py(y)+10;
+      ctx.fillStyle=color==='#1A5FB4'?'rgba(26,95,180,0.90)':'rgba(192,57,43,0.90)';
+      ctx.beginPath();ctx.roundRect(lx,ly,lw,lh,4);ctx.fill();
+      ctx.fillStyle='#fff';ctx.textAlign='center';
+      ctx.fillText(label,lx+lw/2,ly+lh-5);
+    });
   }
 
   // ── 일차함수 드로잉 ──
@@ -2311,7 +2406,31 @@ function renderT1(){
       }
     }
   }
-  drawG('g1',{c:s.c,deg:s.deg,roots,showVtx:true,linear:lin,linearInts});
+  drawG('g1',{c:s.c,deg:s.deg,roots,showVtx:true,linear:lin,linearInts,
+    domain:s.deg===2?s.domain:null});
+
+  // 정의역 제한 info 패널 업데이트 (2차 + ON 상태일 때만)
+  const infoD=document.getElementById('t1-domain-info');
+  if(infoD){
+    if(s.deg===2&&s.domain.on){
+      const mm=calcDomainMaxMin(s.c,s.domain.lo,s.domain.hi);
+      const vf=vertexStr(s.c);
+      const[a2]=s.c;
+      const vxIn=parseFloat(vf.p)>=s.domain.lo&&parseFloat(vf.p)<=s.domain.hi;
+      infoD.innerHTML=
+        `<strong>${s.domain.lo} ≤ x ≤ ${s.domain.hi}</strong> 구간<br>`+
+        `🔵 최솟값: <strong>${mm.minV}</strong> &nbsp;(x = ${mm.minX}에서)<br>`+
+        `🔴 최댓값: <strong>${mm.maxV}</strong> &nbsp;(x = ${mm.maxX}에서)<br>`+
+        `<span style="font-size:11px;color:var(--tx3)">`+
+        (vxIn?`꼭짓점 x=${vf.p}이 구간 안 → ${a2>0?'최솟값':'최댓값'}이 꼭짓점에서`
+             :`꼭짓점 x=${vf.p}이 구간 밖 → 양 끝점 비교`)+
+        `</span>`;
+    }else if(s.deg!==2&&s.domain.on){
+      infoD.innerHTML='<span style="color:var(--tx3)">정의역 제한은 2차함수에서만 최대·최소를 표시해요</span>';
+    }else{
+      infoD.innerHTML='';
+    }
+  }
 
   // 모달 열려있으면 실시간 반영
   if(document.getElementById('featModal').style.display!=='none')updateFeatContent();
@@ -2376,10 +2495,7 @@ function renderT2(){
     else rootDesc=`두 그래프의 교점 ${linearInts2.length}개`;
   }else{
     if(!roots.length) rootDesc='x축과의 교점 없음 (실근 없음)';
-    else if(s.deg===2&&roots.length===1){
-      const[a2,b2,c2]=s.c,D=b2*b2-4*a2*c2;
-      rootDesc=Math.abs(D)<0.001?'x축과의 교점 1개 (중근)':'x축과의 교점 2개';
-    }
+    else if(roots.length===1) rootDesc='x축과의 교점 1개 (중근)';
     else rootDesc=`x축과의 교점 ${roots.length}개`;
   }
 
@@ -2466,12 +2582,10 @@ function renderT3(){
     solText='모든 실수'; solType='all';
   } else {
     solText=intvs.map(([lo,hi])=>{
-      const loV=parseFloat(lo.toFixed(2)),hiV=parseFloat(hi.toFixed(2));
-      if(lo<=-28.9&&hi>=28.9) return '모든 실수';
-      if(lo<=-28.9) return isStrict?`x < ${hiV}`:`x ≤ ${hiV}`;
-      if(hi>=28.9) return isStrict?`x > ${loV}`:`x ≥ ${loV}`;
-      return isStrict?`${loV} < x < ${hiV}`:`${loV} ≤ x ≤ ${hiV}`;
-    }).join(' 또는 ');
+      const L=lo<=-28.9?'(−∞':(isStrict?'(':'\[')+lo.toFixed(2);
+      const R=hi>=28.9?'+∞)':(hi.toFixed(2)+(isStrict?')':'\]'));
+      return L+', '+R;
+    }).join(' ∪ ');
   }
 
   const[yMin,yMax]=getYRange(s.c,s.deg);
@@ -2526,6 +2640,79 @@ function syncLinearUI(){
 // 모든 탭 그래프 동시 렌더
 function renderAllTabs(){
   renderT1(); renderT2(); renderT3();
+}
+
+// ═══════════════════════════════
+// 정의역 제한 (t1 전용)
+// ═══════════════════════════════
+function toggleDomain(){
+  const d=S.t1.domain;
+  d.on=!d.on;
+  const btn=document.getElementById('t1-domain-toggle');
+  const panel=document.getElementById('t1-domain-panel');
+  if(d.on){
+    btn.textContent='ON';
+    btn.style.background='var(--am)';btn.style.borderColor='var(--am)';btn.style.color='#fff';
+    panel.style.display='block';
+  }else{
+    btn.textContent='OFF';
+    btn.style.background='';btn.style.borderColor='';btn.style.color='';
+    panel.style.display='none';
+  }
+  renderT1();
+}
+
+function fromDomainSlider(key,val){
+  const v=parseFloat(val);
+  const d=S.t1.domain;
+  if(key==='lo'){
+    d.lo=Math.min(v,d.hi-0.5);
+    document.getElementById('t1-dlo-r').value=d.lo;
+    document.getElementById('t1-dlo-n').value=d.lo;
+  }else{
+    d.hi=Math.max(v,d.lo+0.5);
+    document.getElementById('t1-dhi-r').value=d.hi;
+    document.getElementById('t1-dhi-n').value=d.hi;
+  }
+  renderT1();
+}
+
+function fromDomainNum(key,val){
+  const v=parseFloat(val);
+  if(isNaN(v))return;
+  fromDomainSlider(key,v);
+}
+
+// 정의역 제한 시 최대·최솟값 계산 (2차 전용)
+// 반환: {maxV, maxX, minV, minX, hasMax, hasMin}
+function calcDomainMaxMin(c, lo, hi){
+  const[a,b]=c;
+  const vx=-b/(2*a);   // 꼭짓점 x
+  const vy=evalP(c,2,vx);
+  const fLo=evalP(c,2,lo);
+  const fHi=evalP(c,2,hi);
+
+  let minV,minX,maxV,maxX;
+
+  if(a>0){
+    // 아래로 볼록 → 최솟값: 꼭짓점(범위 안이면) or 끝점 중 작은 것
+    if(vx>=lo&&vx<=hi){ minV=vy; minX=vx; }
+    else if(vx<lo){  minV=fLo; minX=lo; }
+    else{            minV=fHi; minX=hi; }
+    // 최댓값: 양 끝점 중 큰 것
+    if(fLo>=fHi){ maxV=fLo; maxX=lo; }
+    else{         maxV=fHi; maxX=hi; }
+  }else{
+    // 위로 볼록 → 최댓값: 꼭짓점(범위 안이면) or 끝점 중 큰 것
+    if(vx>=lo&&vx<=hi){ maxV=vy; maxX=vx; }
+    else if(vx<lo){  maxV=fLo; maxX=lo; }
+    else{            maxV=fHi; maxX=hi; }
+    // 최솟값: 양 끝점 중 작은 것
+    if(fLo<=fHi){ minV=fLo; minX=lo; }
+    else{         minV=fHi; minX=hi; }
+  }
+  return{minV:parseFloat(minV.toFixed(3)),minX:parseFloat(minX.toFixed(3)),
+         maxV:parseFloat(maxV.toFixed(3)),maxX:parseFloat(maxX.toFixed(3))};
 }
 
 function toggleLinear(){
@@ -3315,16 +3502,42 @@ function updateFeatContent(){
     const dStr=D>0.001?`D = ${D.toFixed(2)} > 0`:D>=-0.001?'D = 0':`D = ${D.toFixed(2)} < 0`;
     const dDesc=D>0.001?'서로 다른 두 실근':D>=-0.001?'중근 (x축에 접함)':'허근 (x축과 안 만남)';
 
+    // ── 최대·최솟값 카드: 정의역 ON/OFF 분기 ──
+    const domOn=s.domain.on;
+    let maxMinCard;
+    if(domOn){
+      // 제한 정의역
+      const mm=calcDomainMaxMin(s.c,s.domain.lo,s.domain.hi);
+      const[a2v]=s.c;
+      const vxNum=parseFloat(vf.p);
+      const vxIn=vxNum>=s.domain.lo&&vxNum<=s.domain.hi;
+      const caseDesc=vxIn
+        ?(a2v>0?`꼭짓점(x=${vf.p})이 구간 안 → 최솟값은 꼭짓점에서`
+               :`꼭짓점(x=${vf.p})이 구간 안 → 최댓값은 꼭짓점에서`)
+        :(vxNum<s.domain.lo?`꼭짓점(x=${vf.p})이 구간 왼쪽 밖 → 단조구간`
+                            :`꼭짓점(x=${vf.p})이 구간 오른쪽 밖 → 단조구간`);
+      maxMinCard=makeFeatCard('var(--am-bg)','var(--am-lt)','📐',
+        `정의역 제한: ${s.domain.lo} ≤ x ≤ ${s.domain.hi}`,
+        `🔵 최솟값 <strong>${mm.minV}</strong> (x = ${mm.minX}에서)<br>`+
+        `🔴 최댓값 <strong>${mm.maxV}</strong> (x = ${mm.maxX}에서)`,
+        'var(--am)',`📌 ${caseDesc}`);
+    }else{
+      // 전체 정의역
+      maxMinCard=makeFeatCard('var(--am-bg)','var(--am-lt)','🔵','볼록 방향 & 최대·최솟값',
+        a2>0?'a > 0 → 아래로 볼록 ∪':'a < 0 → 위로 볼록 ∩',
+        a2>0?`🔵 최솟값 <strong>${vf.q}</strong> (x = ${vf.p}에서)<br>`+
+             `🔴 최댓값: <strong>존재하지 않음</strong> (x → ±∞ 이면 y → +∞)`
+            :`🔴 최댓값 <strong>${vf.q}</strong> (x = ${vf.p}에서)<br>`+
+             `🔵 최솟값: <strong>존재하지 않음</strong> (x → ±∞ 이면 y → −∞)`,
+        'var(--am)',`📌 a의 부호가 볼록 방향 & 최대·최소 결정`);
+    }
+
     cards=[
       makeFeatCard('var(--bl-bg)','var(--bl-lt)','📍','꼭짓점 & 축의 방정식',
         `꼭짓점 <strong>(${vf.p}, ${vf.q})</strong><br>축 <strong>x = ${vf.p}</strong>`,
         `표준형 y = a(x − ${vf.p})² + ${vf.q}<br>꼭짓점은 그래프에서 가장 높거나 낮은 점이야.`,
         'var(--bl)',`📌 최고차계수 a = ${a2} · y절편 = ${yInt}`),
-      makeFeatCard('var(--am-bg)','var(--am-lt)','🔵','볼록 방향 & 최대·최솟값',
-        a2>0?'a > 0 → 아래로 볼록 ∪':'a < 0 → 위로 볼록 ∩',
-        a2>0?`최솟값 <strong>${vf.q}</strong> (x = ${vf.p}에서)<br>x → ±∞ 이면 y → +∞`
-            :`최댓값 <strong>${vf.q}</strong> (x = ${vf.p}에서)<br>x → ±∞ 이면 y → −∞`,
-        'var(--am)',`📌 a의 부호가 볼록 방향을 결정해`),
+      maxMinCard,
       makeFeatCard('var(--pu-bg)','var(--pu-lt)','🎯','판별식 & 실근',
         `${dStr}<br>→ ${dDesc}`,
         `D = b² − 4ac 로 x축과의 관계를 판단해.<br>그래프가 x축을 기준으로 어떻게 놓이는지가 핵심이야.`,
@@ -3594,12 +3807,10 @@ function updateIneqFeatContent(){
   if(!intvs.length) solText='해 없음 (∅)';
   else if(intvs.some(([a,b])=>a<=-28.9&&b>=28.9)&&intvs.length===1) solText='모든 실수';
   else solText=intvs.map(([lo,hi])=>{
-    const loV=parseFloat(lo.toFixed(2)),hiV=parseFloat(hi.toFixed(2));
-    if(lo<=-28.9&&hi>=28.9) return '모든 실수';
-    if(lo<=-28.9) return isStrict?`x < ${hiV}`:`x ≤ ${hiV}`;
-    if(hi>=28.9) return isStrict?`x > ${loV}`:`x ≥ ${loV}`;
-    return isStrict?`${loV} < x < ${hiV}`:`${loV} ≤ x ≤ ${hiV}`;
-  }).join(' 또는 ');
+    const L=lo<=-28.9?'(−∞':(isStrict?'(':'\[')+lo.toFixed(2);
+    const R=hi>=28.9?'+∞)':(hi.toFixed(2)+(isStrict?')':'\]'));
+    return L+', '+R;
+  }).join(' ∪ ');
 
   const rootStr=roots.length?roots.map(r=>`x = ${r}`).join(', '):'없음';
   const cards=[
