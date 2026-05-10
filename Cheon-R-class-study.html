@@ -239,6 +239,12 @@ input[type=file]{display:none;}
 .vf-label{font-size:11px;font-weight:700;color:var(--gray-400);min-width:90px;flex-shrink:0;padding-top:1px;}
 .vf-val{font-size:13px;color:var(--gray-800);font-weight:500;flex:1;}
 .vf-text{font-size:13px;color:var(--gray-800);line-height:1.7;white-space:pre-wrap;background:var(--gray-50);border-radius:var(--radius-sm);padding:10px 12px;width:100%;}
+
+/* ── 계획표 ── */
+.plan-time-label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--gray-700);background:white;border:1.5px solid var(--gray-200);border-radius:20px;padding:6px 14px;cursor:pointer;transition:all .15s;}
+.plan-time-label:has(input:checked){border-color:var(--primary);background:var(--primary-light);color:var(--primary);font-weight:700;}
+.plan-time-label input{display:none;}
+.plan-member-row{display:flex;align-items:center;justify-content:space-between;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-sm);padding:8px 12px;font-size:13px;}
 </style>
 </head>
 <body>
@@ -260,15 +266,84 @@ input[type=file]{display:none;}
       <div style="font-size:16px;font-weight:700;color:#1F2937;">📖 사용 가이드</div>
       <button onclick="closeGuideModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#9CA3AF;line-height:1;">&times;</button>
     </div>
-    <div style="display:flex;flex-direction:column;gap:14px;">
-      <div style="display:flex;gap:12px;align-items:flex-start;"><div style="min-width:26px;height:26px;background:#9B8EC4;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">1</div><div><div style="font-size:14px;font-weight:700;color:#1F2937;margin-bottom:3px;">활동 선택</div><div style="font-size:12px;color:#6B7280;line-height:1.6;">홈에서 <b>자율스터디</b>를 눌러 기록을 시작해요.<br>이전 기록을 보려면 <b>내 기록 보기</b>를 눌러요.</div></div></div>
-      <div style="display:flex;gap:12px;align-items:flex-start;"><div style="min-width:26px;height:26px;background:#9B8EC4;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">2</div><div><div style="font-size:14px;font-weight:700;color:#1F2937;margin-bottom:3px;">분기 선택</div><div style="font-size:12px;color:#6B7280;line-height:1.6;">현재 활동 중인 분기를 선택해요.</div></div></div>
-      <div style="display:flex;gap:12px;align-items:flex-start;"><div style="min-width:26px;height:26px;background:#9B8EC4;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">3</div><div><div style="font-size:14px;font-weight:700;color:#1F2937;margin-bottom:3px;">기본 정보 입력</div><div style="font-size:12px;color:#6B7280;line-height:1.6;">이름, 반, 번호, 역할을 입력해요.<br>한 번 입력하면 다음엔 자동으로 채워져요 😊</div></div></div>
-      <div style="display:flex;gap:12px;align-items:flex-start;"><div style="min-width:26px;height:26px;background:#9B8EC4;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">4</div><div><div style="font-size:14px;font-weight:700;color:#1F2937;margin-bottom:3px;">과목 &amp; 팀명 선택</div><div style="font-size:12px;color:#6B7280;line-height:1.6;">스터디 과목과 팀명을 입력해요.</div></div></div>
-      <div style="display:flex;gap:12px;align-items:flex-start;"><div style="min-width:26px;height:26px;background:#9B8EC4;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">5</div><div><div style="font-size:14px;font-weight:700;color:#1F2937;margin-bottom:3px;">활동 기록 작성 후 제출</div><div style="font-size:12px;color:#6B7280;line-height:1.6;">출석 체크, 활동 시간, 활동 내용을 입력하고 제출해요.<br>📸 활동 사진은 꼭 찍어두세요! (선생님이 별도로 수거할 예정이에요)</div></div></div>
+        <div style="display:flex;flex-direction:column;gap:16px;">
+
+      <!-- 계획표 섹션 -->
+      <div style="background:#FFF7ED;border:1.5px solid #FED7AA;border-radius:9px;padding:14px 16px;">
+        <div style="font-size:13px;font-weight:700;color:#C2410C;margin-bottom:10px;">📋 스터디 계획표</div>
+        <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;">
+          <div style="min-width:22px;height:22px;background:#F97316;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">1</div>
+          <div><div style="font-size:13px;font-weight:700;color:#1F2937;margin-bottom:2px;">스터디 계획표 선택</div><div style="font-size:11px;color:#6B7280;line-height:1.6;">홈에서 <b>스터디 계획표</b> 카드를 눌러요.<br>분기 시작 전 팀 멘토가 대표로 한 번만 작성해요.</div></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;">
+          <div style="min-width:22px;height:22px;background:#F97316;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">2</div>
+          <div><div style="font-size:13px;font-weight:700;color:#1F2937;margin-bottom:2px;">팀 정보 입력</div><div style="font-size:11px;color:#6B7280;line-height:1.6;">분기, 멘토 정보, 팀명, 과목, 팀원 명단을 입력해요.</div></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start;">
+          <div style="min-width:22px;height:22px;background:#F97316;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">3</div>
+          <div><div style="font-size:13px;font-weight:700;color:#1F2937;margin-bottom:2px;">계획 내용 입력 후 제출</div><div style="font-size:11px;color:#6B7280;line-height:1.6;">스터디 시간대, 목표 시간, 계획 내용을 입력하고 제출해요.</div></div>
+        </div>
+      </div>
+
+      <!-- 팀스터디 섹션 -->
+      <div style="background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:9px;padding:14px 16px;">
+        <div style="font-size:13px;font-weight:700;color:#1D4ED8;margin-bottom:10px;">📚 팀스터디 (멘토·멘티 공통)</div>
+        <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;">
+          <div style="min-width:22px;height:22px;background:#3B82F6;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">1</div>
+          <div><div style="font-size:13px;font-weight:700;color:#1F2937;margin-bottom:2px;">팀스터디 선택</div><div style="font-size:11px;color:#6B7280;line-height:1.6;">홈에서 <b>팀스터디</b> 카드를 눌러요.</div></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;">
+          <div style="min-width:22px;height:22px;background:#3B82F6;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">2</div>
+          <div><div style="font-size:13px;font-weight:700;color:#1F2937;margin-bottom:2px;">분기 선택</div><div style="font-size:11px;color:#6B7280;line-height:1.6;">현재 활동 중인 분기를 선택해요.</div></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;">
+          <div style="min-width:22px;height:22px;background:#3B82F6;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">3</div>
+          <div><div style="font-size:13px;font-weight:700;color:#1F2937;margin-bottom:2px;">이름·반·번호 입력</div><div style="font-size:11px;color:#6B7280;line-height:1.6;">이름, 반, 번호를 입력해요.<br>한 번 입력하면 다음엔 자동으로 채워져요 😊</div></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;">
+          <div style="min-width:22px;height:22px;background:#3B82F6;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">4</div>
+          <div><div style="font-size:13px;font-weight:700;color:#1F2937;margin-bottom:2px;">과목·팀명 선택</div><div style="font-size:11px;color:#6B7280;line-height:1.6;">스터디 과목과 팀명을 입력해요.</div></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start;">
+          <div style="min-width:22px;height:22px;background:#3B82F6;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">5</div>
+          <div><div style="font-size:13px;font-weight:700;color:#1F2937;margin-bottom:2px;">활동 기록 작성 후 제출</div><div style="font-size:11px;color:#6B7280;line-height:1.6;">출석 체크, 활동 시간, 내용을 입력하고 제출해요.<br>📸 활동 사진은 꼭 찍어두세요! (선생님이 별도 수거 예정)</div></div>
+        </div>
+      </div>
+
+      <!-- 왕멘토 섹션 -->
+      <div style="background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:9px;padding:14px 16px;">
+        <div style="font-size:13px;font-weight:700;color:#15803D;margin-bottom:10px;">👑 왕멘토 (1인 1역)</div>
+        <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;">
+          <div style="min-width:22px;height:22px;background:#22C55E;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">1</div>
+          <div><div style="font-size:13px;font-weight:700;color:#1F2937;margin-bottom:2px;">왕멘토 선택</div><div style="font-size:11px;color:#6B7280;line-height:1.6;">홈에서 <b>왕멘토</b> 카드를 눌러요.</div></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;">
+          <div style="min-width:22px;height:22px;background:#22C55E;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">2</div>
+          <div><div style="font-size:13px;font-weight:700;color:#1F2937;margin-bottom:2px;">분기 선택</div><div style="font-size:11px;color:#6B7280;line-height:1.6;">현재 활동 중인 분기를 선택해요.</div></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;">
+          <div style="min-width:22px;height:22px;background:#22C55E;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">3</div>
+          <div><div style="font-size:13px;font-weight:700;color:#1F2937;margin-bottom:2px;">이름·반·번호 입력</div><div style="font-size:11px;color:#6B7280;line-height:1.6;">이름, 반, 번호를 입력해요.</div></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;">
+          <div style="min-width:22px;height:22px;background:#22C55E;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">4</div>
+          <div><div style="font-size:13px;font-weight:700;color:#1F2937;margin-bottom:2px;">과목 선택</div><div style="font-size:11px;color:#6B7280;line-height:1.6;">담당 과목을 선택해요.</div></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start;">
+          <div style="min-width:22px;height:22px;background:#22C55E;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">5</div>
+          <div><div style="font-size:13px;font-weight:700;color:#1F2937;margin-bottom:2px;">활동 기록 작성 후 제출</div><div style="font-size:11px;color:#6B7280;line-height:1.6;">활동 내용을 입력하고 제출해요.<br>📸 활동 사진은 꼭 찍어두세요! (선생님이 별도 수거 예정)</div></div>
+        </div>
+      </div>
+
+      <!-- 새로고침 안내 -->
       <div style="background:#E0F2FE;border:1.5px solid #BAE6FD;border-radius:9px;padding:10px 14px;font-size:12px;color:#0369A1;text-align:center;">어플 업데이트가 수시로 이루어지니 시작하기 전에 🔄 (F5) 한 번 눌러줘요!</div>
+
+      <!-- 내 기록 보기 -->
       <div style="background:#F5F3FF;border:1.5px solid #DDD6FE;border-radius:9px;padding:12px 14px;"><div style="font-size:13px;font-weight:700;color:#7B6BA8;margin-bottom:6px;">🗂️ 내 기록 보기</div><div style="font-size:12px;color:#6B7280;line-height:1.6;">이름·반·번호를 입력하면 이전 회차 기록과 누적 활동 시간을 확인할 수 있어요. 기록 수정도 여기서 할 수 있어요.</div></div>
+
+      <!-- 응원 멘트 -->
       <div style="background:#FFF9EC;border:1.5px solid #FDE68A;border-radius:9px;padding:14px 16px;font-size:12px;color:#92400E;line-height:1.8;">내 제자들~ 👋<br>자율스터디 하느라 고생들이 많어~<br>매번 스터디하고 작성해서 제출하는 이 작업이 조금은 귀찮을 수도 있지만, 이렇게 꾸준한 노력의 기록이 쌓일수록 너희는 그만큼 성장하고 있는것이니 이런 기록들이 너네가 아주아주 쑥쑥 잘 크고 있다는 증거라 생각혀 😊 늘 얘기하지만 뭐든 꼭 잘하지 않아도돼! 최선만 다하면 돼! 알지? 파이팅! 💪</div>
+
     </div>
     <button onclick="closeGuideModal()" style="display:block;width:100%;margin-top:20px;padding:14px;border:none;border-radius:9px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;background:rgba(155,142,196,0.18);color:#7B6BA8;border:2px solid rgba(155,142,196,0.5);">확인</button>
   </div>
@@ -443,26 +518,131 @@ input[type=file]{display:none;}
         <div class="cb-icon">🔒</div>
         <div class="cb-text">현재 제출이 마감되었어요<br><span style="font-weight:400;font-size:12px;color:#B91C1C">선생님이 마감을 해제하면 다시 제출할 수 있어요</span></div>
       </div>
-      <div class="menu-grid">
-        <div class="menu-card" onclick="startStudy()">
-          <div class="icon">📚</div>
-          <div class="name">자율스터디</div>
-          <div class="desc">협력학습 활동일지<br>회차별 기록</div>
-          <div class="badge badge-blue">참여 중</div>
+      <div class="menu-grid" style="flex-direction:column;gap:12px;">
+        <div class="menu-card" style="width:100%;display:flex;align-items:center;gap:16px;text-align:left;padding:20px 24px;" onclick="openPlan()">
+          <div class="icon" style="font-size:32px;margin-bottom:0;">📋</div>
+          <div style="flex:1;">
+            <div class="name" style="margin-bottom:3px;">스터디 계획표</div>
+            <div class="desc">팀스터디 멘토가 분기 시작 전 대표로 작성해요</div>
+          </div>
+          <div class="badge badge-blue" style="margin-top:0;white-space:nowrap;">작성하기</div>
         </div>
-        <div class="menu-card" onclick="openMyRecords()">
-          <div class="icon">🗂️</div>
-          <div class="name">내 기록 보기</div>
-          <div class="desc">이전 회차 확인 및<br>수정 가능</div>
-          <div class="badge badge-blue">열람/수정</div>
+        <div class="menu-card" style="width:100%;display:flex;align-items:center;gap:16px;text-align:left;padding:20px 24px;" onclick="startStudy()">
+          <div class="icon" style="font-size:32px;margin-bottom:0;">📚</div>
+          <div style="flex:1;">
+            <div class="name" style="margin-bottom:3px;">팀스터디</div>
+            <div class="desc">멘토·멘티가 매 회차 활동 일지를 기록해요</div>
+          </div>
+          <div class="badge badge-blue" style="margin-top:0;white-space:nowrap;">기록하기</div>
         </div>
-        <div class="menu-card soon">
-          <div class="icon">📝</div>
-          <div class="name">심화탐구</div>
-          <div class="desc">탐구보고서<br>활동 기록</div>
-          <div class="badge badge-gray">준비 중</div>
+        <div class="menu-card" style="width:100%;display:flex;align-items:center;gap:16px;text-align:left;padding:20px 24px;" onclick="startKing()">
+          <div class="icon" style="font-size:32px;margin-bottom:0;">👑</div>
+          <div style="flex:1;">
+            <div class="name" style="margin-bottom:3px;">왕멘토</div>
+            <div class="desc">1인 1역, 개인 활동 일지를 기록해요</div>
+          </div>
+          <div class="badge badge-blue" style="margin-top:0;white-space:nowrap;">기록하기</div>
+        </div>
+        <div class="menu-card" style="width:100%;display:flex;align-items:center;gap:16px;text-align:left;padding:20px 24px;" onclick="openMyRecords()">
+          <div class="icon" style="font-size:32px;margin-bottom:0;">🗂️</div>
+          <div style="flex:1;">
+            <div class="name" style="margin-bottom:3px;">내 기록 보기</div>
+            <div class="desc">이전 회차 확인 및 수정 가능</div>
+          </div>
+          <div class="badge badge-blue" style="margin-top:0;white-space:nowrap;">열람/수정</div>
         </div>
       </div>
+    </div>
+
+    <!-- 계획표 화면 -->
+    <div class="screen" id="screen-plan">
+      <div class="card">
+        <div class="card-title">📋 스터디 계획표</div>
+        <div style="font-size:12px;color:var(--gray-400);margin-bottom:16px;">팀스터디 멘토가 분기 시작 전 한 번 작성해요</div>
+
+        <!-- 분기 선택 -->
+        <div class="form-group" style="margin-bottom:14px;">
+          <label>분기 선택</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;" id="planQuarterBtns">
+            <button class="role-toggle" onclick="selectPlanQuarter('1분기',this)">1분기</button>
+            <button class="role-toggle" onclick="selectPlanQuarter('2분기',this)">2분기</button>
+            <button class="role-toggle" onclick="selectPlanQuarter('3분기',this)">3분기</button>
+            <button class="role-toggle" onclick="selectPlanQuarter('4분기',this)">4분기</button>
+          </div>
+        </div>
+
+        <!-- 멘토 정보 -->
+        <div class="card-title" style="font-size:14px;margin-top:8px;">👤 멘토 정보</div>
+        <div class="form-row-3">
+          <div class="form-group"><label>이름</label><input type="text" id="planName" placeholder="홍길동"/></div>
+          <div class="form-group"><label>반</label><input type="number" id="planClass" placeholder="1" min="1" max="12"/></div>
+          <div class="form-group"><label>번호</label><input type="number" id="planNum" placeholder="1" min="1" max="40"/></div>
+        </div>
+
+        <!-- 팀 정보 -->
+        <div class="card-title" style="font-size:14px;margin-top:8px;">📚 팀 정보</div>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label>과목</label>
+          <div class="chip-wrap" id="planSubjectChips">
+            <div class="subject-chip plan-chip" onclick="selectPlanSubject('국어',this)">국어</div>
+            <div class="subject-chip plan-chip" onclick="selectPlanSubject('수학',this)">수학</div>
+            <div class="subject-chip plan-chip" onclick="selectPlanSubject('영어',this)">영어</div>
+            <div class="subject-chip plan-chip" onclick="selectPlanSubject('사회',this)">사회</div>
+            <div class="subject-chip plan-chip" onclick="selectPlanSubject('과학',this)">과학</div>
+            <div class="subject-chip plan-chip" onclick="selectPlanSubject('기타',this)">기타</div>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label>팀명</label>
+          <input type="text" id="planTeamName" placeholder="예) 수학천재팀"/>
+        </div>
+
+        <!-- 팀원 -->
+        <div class="card-title" style="font-size:14px;margin-top:8px;">👥 팀원 명단</div>
+        <div style="font-size:11px;color:var(--gray-400);margin-bottom:8px;">이름과 번호를 입력하고 추가해요 (멘토 본인 포함)</div>
+        <div id="planMemberList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="planMemberName" placeholder="이름" style="flex:2;"/>
+          <input type="number" id="planMemberNum" placeholder="번호" min="1" max="40" style="flex:1;"/>
+          <button class="btn btn-secondary" style="flex:1;padding:10px 8px;font-size:13px;" onclick="addPlanMember()">+ 추가</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <!-- 스터디 시간대 -->
+        <div class="card-title" style="font-size:14px;">⏰ 스터디 진행 시간대</div>
+        <div style="font-size:11px;color:var(--gray-400);margin-bottom:10px;">다중 선택 가능해요</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;" id="planTimeSlots">
+          <label class="plan-time-label"><input type="checkbox" value="아침조회 전"> 아침조회 전</label>
+          <label class="plan-time-label"><input type="checkbox" value="점심시간"> 점심시간</label>
+          <label class="plan-time-label"><input type="checkbox" value="쉬는시간"> 쉬는시간</label>
+          <label class="plan-time-label"><input type="checkbox" value="공강"> 공강</label>
+          <label class="plan-time-label"><input type="checkbox" value="방과후"> 방과후</label>
+          <label class="plan-time-label"><input type="checkbox" value="기타"> 기타</label>
+        </div>
+        <div id="planTimeEtcWrap" style="display:none;margin-bottom:10px;">
+          <input type="text" id="planTimeEtc" placeholder="기타 시간대 직접 입력"/>
+        </div>
+
+        <!-- 목표 시간 -->
+        <div class="form-group" style="margin-bottom:10px;">
+          <label>매일 목표 시간</label>
+          <input type="text" id="planGoalTime" placeholder="예) 매일 30분 이상"/>
+        </div>
+
+        <!-- 계획 내용 -->
+        <div class="form-group">
+          <label>스터디 계획 내용</label>
+          <textarea id="planContent" placeholder="예) 매주 월·수·금 점심시간에 모여 수학 문제풀이를 진행하고, 모르는 문제는 멘토가 설명해줄 예정이에요." style="min-height:100px;"></textarea>
+        </div>
+      </div>
+
+      <div id="planError" style="display:none;background:#FEF2F2;border:1.5px solid #FECACA;border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:#991B1B;font-weight:600;margin:0 16px 4px;"></div>
+
+      <div class="bottom-bar"><div class="bottom-bar-inner">
+        <button class="btn btn-secondary" style="flex:1" onclick="goStep('home')">← 홈으로</button>
+        <button class="btn btn-primary" style="flex:2" onclick="submitPlan()">제출하기 ✓</button>
+      </div></div>
     </div>
 
     <!-- STEP 1: 분기 선택 -->
@@ -497,12 +677,12 @@ input[type=file]{display:none;}
         <div class="role-grid">
           <div class="role-card" id="roleCard-member" onclick="selectRole('member',this)">
             <div class="role-icon">👥</div>
-            <div class="role-name">스터디 팀원</div>
+            <div class="role-name">팀스터디</div>
             <div class="role-desc">멘토 또는 멘티로<br>팀 활동 기록</div>
           </div>
           <div class="role-card" id="roleCard-king" onclick="selectRole('king',this)">
             <div class="role-icon">👑</div>
-            <div class="role-name">왕멘토 / 부멘토</div>
+            <div class="role-name">왕멘토 (1인 1역)</div>
             <div class="role-desc">전체 질문 해결사<br>활동 기록</div>
           </div>
         </div>
@@ -872,7 +1052,7 @@ input[type=file]{display:none;}
     <div class="admin-action-card" style="border:2px solid #FEE2E2;">
       <div class="aa-title" style="color:var(--danger);">🗑️ 전체 데이터 초기화</div>
       <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:#991B1B;line-height:1.7;margin-bottom:12px;">
-        ⚠️ <b>주의!</b> 일반스터디, 왕멘토, 공지, 최종느낀점 시트의 <b>모든 데이터</b>가 삭제돼요.<br>새 학년도 시작 전 한 번만 실행하세요. 되돌릴 수 없어요!
+        ⚠️ <b>주의!</b> 팀스터디, 왕멘토, 공지, 최종느낀점 시트의 <b>모든 데이터</b>가 삭제돼요.<br>새 학년도 시작 전 한 번만 실행하세요. 되돌릴 수 없어요!
       </div>
       <button class="btn btn-danger btn-sm" onclick="confirmClearAll()">🗑️ 전체 초기화 실행</button>
     </div>
@@ -919,6 +1099,7 @@ input[type=file]{display:none;}
       <button class="filter-chip" onclick="filterAdmin('3분기',this)">3분기</button>
       <button class="filter-chip" onclick="filterAdmin('4분기',this)">4분기</button>
       <button class="filter-chip" onclick="filterAdmin('king',this)">👑 왕멘토</button>
+      <button class="filter-chip" onclick="showPlanRecords(this)">📋 계획표</button>
     </div>
 
     <!-- 통계 카드 -->
@@ -927,6 +1108,7 @@ input[type=file]{display:none;}
       <div class="stat-card"><div class="s-val" id="statStudents">-</div><div class="s-label">참여 학생 수</div></div>
       <div class="stat-card"><div class="s-val" id="statTeams">-</div><div class="s-label">스터디 팀 수</div></div>
       <div class="stat-card"><div class="s-val" id="statKing">-</div><div class="s-label">왕멘토 기록</div></div>
+      <div class="stat-card"><div class="s-val" id="statPlan">-</div><div class="s-label">계획표 제출</div></div>
     </div>
 
     <!-- 기록 목록 -->
@@ -1582,7 +1764,19 @@ function updateStepBar(step) {
 
 function startStudy() {
   if (appIsClosed) { showToast('🔒 현재 제출이 마감되었어요. 선생님께 문의하세요.'); return; }
+  state.role = 'member';
   showScreen('quarter'); updateStepBar(1);
+}
+
+function startKing() {
+  if (appIsClosed) { showToast('🔒 현재 제출이 마감되었어요. 선생님께 문의하세요.'); return; }
+  state.role = 'king';
+  showScreen('quarter'); updateStepBar(1);
+}
+
+function openPlan() {
+  if (appIsClosed) { showToast('🔒 현재 제출이 마감되었어요. 선생님께 문의하세요.'); return; }
+  showScreen('plan'); updateStepBar(0);
 }
 
 async function goStep(target) {
@@ -1602,7 +1796,7 @@ async function goStep(target) {
       errEl.style.display='block'; return;
     }
     if(!state.role){
-      errEl.textContent='⚠️ 역할을 선택해 주세요 (스터디 팀원 또는 왕멘토/부멘토)';
+      errEl.textContent='⚠️ 역할을 선택해 주세요 (스터디 팀원 또는 왕멘토)';
       errEl.style.display='block'; return;
     }
     errEl.style.display='none';
@@ -1780,7 +1974,7 @@ async function submitFinal() {
   await sendToGAS({
     type:'final', quarter:state.quarter+'분기', studyName:state.studyName,
     name:state.name, classNum:state.classNum, studentNum:state.studentNum,
-    role: state.role==='king'?'왕멘토/부멘토':state.memberRole||'',
+    role: state.role==='king'?'왕멘토':state.memberRole||'',
     subject:state.subject, growth, improve, memory, oneLine,
     timestamp:new Date().toISOString()
   });
@@ -2106,7 +2300,7 @@ async function submitKingRecord() {
       </div>
       <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
         <span style="color:var(--gray-400);font-weight:600">역할</span>
-        <span style="font-weight:700">👑 왕멘토 / 부멘토</span>
+        <span style="font-weight:700">👑 왕멘토 (1인 1역)</span>
       </div>
       <div style="display:flex;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--gray-100)">
         <span style="color:var(--gray-400);font-weight:600">담당 과목</span>
@@ -2266,6 +2460,39 @@ function updateStatCards(data) {
   document.getElementById('statStudents').textContent=data.length?new Set(data.map(r=>r.name)).size:'-';
   document.getElementById('statTeams').textContent=data.length?new Set(data.filter(r=>r.type!=='king').map(r=>r.studyName)).size:'-';
   document.getElementById('statKing').textContent=data.length?data.filter(r=>r.type==='king').length:'-';
+  const planEl = document.getElementById('statPlan'); if(planEl) planEl.textContent = '-';
+}
+
+
+let planData = [];
+async function showPlanRecords(el) {
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  if (!GAS_URL) { showToast('⚠️ GAS URL을 먼저 설정해 주세요'); return; }
+  document.getElementById('adminRecordList').innerHTML='<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px">계획표 불러오는 중...</div>';
+  try {
+    const data = await fetchGAS(GAS_URL+'?action=getPlanRecords');
+    planData = data.records || [];
+    if (!planData.length) {
+      document.getElementById('adminRecordList').innerHTML='<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px">제출된 계획표가 없어요</div>';
+      return;
+    }
+    document.getElementById('adminRecordList').innerHTML = planData.slice().reverse().map(r=>`
+      <div class="record-row" style="flex-direction:column;align-items:flex-start;gap:6px;">
+        <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+          <div class="r-name">📋 ${r.teamName} (${r.subject})</div>
+          <div class="r-round">${r.quarter}</div>
+        </div>
+        <div class="r-meta">멘토: ${r.mentorName} (${r.classNum}반 ${r.studentNum}번)</div>
+        <div class="r-meta">팀원: ${r.members}</div>
+        <div class="r-meta">시간대: ${r.timeSlots}${r.goalTime?' · 목표: '+r.goalTime:''}</div>
+        <div style="font-size:12px;color:var(--gray-600);margin-top:2px;line-height:1.5;">${r.content}</div>
+      </div>`).join('');
+    const planEl = document.getElementById('statPlan');
+    if (planEl) planEl.textContent = planData.length;
+  } catch(e) {
+    document.getElementById('adminRecordList').innerHTML='<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px">계획표 조회 실패. 구글 시트에서 확인해 주세요.</div>';
+  }
 }
 
 function filterAdmin(val,el) {
@@ -2273,6 +2500,108 @@ function filterAdmin(val,el) {
   document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
   el.classList.add('active');
   renderAdminData();
+}
+
+
+// ════════════════════════════════════════
+// 계획표
+// ════════════════════════════════════════
+const planState = { quarter:'', subject:'', members:[] };
+
+function selectPlanQuarter(q, el) {
+  planState.quarter = q;
+  document.querySelectorAll('#planQuarterBtns .role-toggle').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function selectPlanSubject(subj, el) {
+  planState.subject = subj;
+  document.querySelectorAll('.plan-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function addPlanMember() {
+  const name = document.getElementById('planMemberName').value.trim();
+  const num = document.getElementById('planMemberNum').value.trim();
+  if (!name) { showToast('⚠️ 이름을 입력해 주세요'); return; }
+  if (planState.members.find(m => m.name === name)) { showToast('이미 추가된 팀원이에요'); return; }
+  planState.members.push({ name, num });
+  document.getElementById('planMemberName').value = '';
+  document.getElementById('planMemberNum').value = '';
+  renderPlanMembers();
+}
+
+function renderPlanMembers() {
+  const c = document.getElementById('planMemberList');
+  if (!planState.members.length) { c.innerHTML = ''; return; }
+  c.innerHTML = planState.members.map((m, i) =>
+    `<div class="plan-member-row">
+      <span>${m.name}${m.num ? ' (' + m.num + '번)' : ''}</span>
+      <button onclick="removePlanMember(${i})" style="background:none;border:none;color:var(--gray-400);font-size:16px;cursor:pointer;">✕</button>
+    </div>`
+  ).join('');
+}
+
+function removePlanMember(idx) {
+  planState.members.splice(idx, 1);
+  renderPlanMembers();
+}
+
+// 기타 시간대 입력창 토글
+document.addEventListener('change', function(e) {
+  if (e.target.closest('#planTimeSlots')) {
+    const etcChecked = [...document.querySelectorAll('#planTimeSlots input')].find(i => i.value === '기타' && i.checked);
+    document.getElementById('planTimeEtcWrap').style.display = etcChecked ? 'block' : 'none';
+  }
+});
+
+async function submitPlan() {
+  const name = document.getElementById('planName').value.trim();
+  const cls = document.getElementById('planClass').value.trim();
+  const num = document.getElementById('planNum').value.trim();
+  const teamName = document.getElementById('planTeamName').value.trim();
+  const goalTime = document.getElementById('planGoalTime').value.trim();
+  const content = document.getElementById('planContent').value.trim();
+  const errEl = document.getElementById('planError');
+
+  const checkedTimes = [...document.querySelectorAll('#planTimeSlots input:checked')].map(i => i.value);
+  const etcTime = document.getElementById('planTimeEtc').value.trim();
+  const timeSlots = checkedTimes.map(t => t === '기타' && etcTime ? etcTime : t).join(', ');
+
+  if (!planState.quarter) { errEl.textContent='⚠️ 분기를 선택해 주세요'; errEl.style.display='block'; return; }
+  if (!name||!cls||!num) { errEl.textContent='⚠️ 멘토 이름, 반, 번호를 모두 입력해 주세요'; errEl.style.display='block'; return; }
+  if (!planState.subject) { errEl.textContent='⚠️ 과목을 선택해 주세요'; errEl.style.display='block'; return; }
+  if (!teamName) { errEl.textContent='⚠️ 팀명을 입력해 주세요'; errEl.style.display='block'; return; }
+  if (!planState.members.length) { errEl.textContent='⚠️ 팀원을 한 명 이상 추가해 주세요'; errEl.style.display='block'; return; }
+  if (!timeSlots) { errEl.textContent='⚠️ 스터디 시간대를 선택해 주세요'; errEl.style.display='block'; return; }
+  if (!content) { errEl.textContent='⚠️ 계획 내용을 입력해 주세요'; errEl.style.display='block'; return; }
+  errEl.style.display='none';
+
+  const payload = {
+    type: 'plan',
+    timestamp: new Date().toISOString(),
+    quarter: planState.quarter,
+    mentorName: name, classNum: cls, studentNum: num,
+    subject: planState.subject, teamName,
+    members: planState.members.map(m => m.name + (m.num ? '(' + m.num + '번)' : '')).join(', '),
+    timeSlots, goalTime, content
+  };
+
+  const btn = document.querySelector('#screen-plan .btn-primary');
+  btn.disabled = true; btn.textContent = '제출 중...';
+  try {
+    const res = await sendToGAS(payload);
+    if (res && res.result === 'success') {
+      showToast('✅ 계획표가 제출됐어요!');
+      saveStudentInfo(name, cls, num);
+      setTimeout(() => { showScreen('home'); }, 1200);
+    } else {
+      showToast('❌ 제출에 실패했어요. 다시 시도해 주세요.');
+    }
+  } catch(e) {
+    showToast('❌ 오류가 발생했어요: ' + e.message);
+  }
+  btn.disabled = false; btn.textContent = '제출하기 ✓';
 }
 
 // ════════════════════════════════════════
@@ -2308,6 +2637,12 @@ function loadStudentInfoToForm() {
     if (clsEl && !clsEl.value) clsEl.value = saved.cls || "";
     if (numEl && !numEl.value) numEl.value = saved.num || "";
   } catch(e) {}
+  // 홈에서 선택한 역할 자동 반영
+  if (state.role) {
+    document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+    const el = document.getElementById('roleCard-' + state.role);
+    if (el) el.classList.add('selected');
+  }
 }
 </script>
 </body>
