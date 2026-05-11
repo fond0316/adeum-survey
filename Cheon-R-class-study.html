@@ -86,12 +86,13 @@ input[type=file]{display:none;}
 .home-hero .year-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#2563eb;background:#dbeafe;border-radius:20px;padding:4px 12px;margin-bottom:14px;}
 .home-hero h2{font-size:24px;font-weight:700;color:#111;line-height:1.35;letter-spacing:-.5px;margin-bottom:8px;}
 .home-hero p{font-size:13px;color:#6b7280;line-height:1.7;}
-.menu-grid{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin-bottom:20px;}
-.menu-card{width:190px;padding:36px 20px 28px;background:white;border-radius:20px;border:2px solid #e5e7eb;cursor:pointer;text-align:center;transition:all .18s;box-shadow:0 2px 12px rgba(0,0,0,.06);}
-.menu-card:hover{transform:translateY(-5px);box-shadow:0 12px 36px rgba(0,0,0,.13);border-color:#2563eb;}
+.menu-grid{display:flex;flex-direction:column;gap:12px;margin-bottom:20px;}
+.menu-card{width:100%;padding:18px 20px;background:white;border-radius:16px;border:2px solid #e5e7eb;cursor:pointer;display:flex;align-items:center;gap:16px;text-align:left;transition:all .18s;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+.menu-card:hover{box-shadow:0 6px 20px rgba(0,0,0,.1);border-color:var(--primary);}
 .menu-card.soon{opacity:.55;cursor:default;}
-.menu-card.soon:hover{border-color:#e5e7eb;transform:none;box-shadow:0 2px 12px rgba(0,0,0,.06);}
-.menu-card .icon{font-size:42px;margin-bottom:14px;}
+.menu-card.soon:hover{border-color:#e5e7eb;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+.menu-card .icon{font-size:32px;margin-bottom:0;flex-shrink:0;}
+.menu-card .card-text{flex:1;}
 .menu-card .name{font-size:17px;font-weight:700;color:#111;margin-bottom:6px;}
 .menu-card .desc{font-size:12px;color:#9ca3af;line-height:1.7;}
 .menu-card .badge{display:inline-block;margin-top:12px;padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;}
@@ -396,6 +397,7 @@ input[type=file]{display:none;}
       <button onclick="closeAllMyRecordsModals()" style="background:none;border:none;font-size:22px;color:var(--gray-400);cursor:pointer;padding:0 4px;">✕</button>
     </div>
     <div class="round-modal-title" id="myRecordsListTitle" style="margin-bottom:14px;">📋 내 기록 목록</div>
+    <div id="myRecordsPlanBanner" style="display:none;background:#FFF7ED;border:1.5px solid #FED7AA;border-radius:9px;padding:10px 14px;font-size:12px;color:#C2410C;margin-bottom:12px;">📋 계획표를 제출했다면 선생님 구글 시트에서 확인할 수 있어요. 내 기록 보기에는 활동 일지만 표시돼요.</div>
 
     <!-- 요약 바 -->
     <div id="myRecordsSummaryBar" style="display:none;background:linear-gradient(135deg,var(--primary),#6366F1);color:white;border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:14px;align-items:center;justify-content:space-between;">
@@ -522,38 +524,38 @@ input[type=file]{display:none;}
         <div class="cb-icon">🔒</div>
         <div class="cb-text">현재 제출이 마감되었어요<br><span style="font-weight:400;font-size:12px;color:#B91C1C">선생님이 마감을 해제하면 다시 제출할 수 있어요</span></div>
       </div>
-      <div class="menu-grid" style="flex-direction:column;gap:12px;">
-        <div class="menu-card" style="width:100%;display:flex;align-items:center;gap:16px;text-align:left;padding:20px 24px;" onclick="openPlan()">
-          <div class="icon" style="font-size:32px;margin-bottom:0;">📋</div>
-          <div style="flex:1;">
+      <div class="menu-grid">
+        <div class="menu-card" onclick="openPlan()">
+          <div class="icon">📋</div>
+          <div class="card-text">
             <div class="name" style="margin-bottom:3px;">스터디 계획표</div>
             <div class="desc">팀스터디 멘토가 분기 시작 전 대표로 작성해요</div>
           </div>
-          <div class="badge badge-blue" style="margin-top:0;white-space:nowrap;">작성하기</div>
+          <div class="badge badge-blue" style="white-space:nowrap;flex-shrink:0;">작성하기</div>
         </div>
-        <div class="menu-card" style="width:100%;display:flex;align-items:center;gap:16px;text-align:left;padding:20px 24px;" onclick="startStudy()">
-          <div class="icon" style="font-size:32px;margin-bottom:0;">📚</div>
-          <div style="flex:1;">
+        <div class="menu-card" onclick="startStudy()">
+          <div class="icon">📚</div>
+          <div class="card-text">
             <div class="name" style="margin-bottom:3px;">팀스터디</div>
             <div class="desc">멘토·멘티가 매 회차 활동 일지를 기록해요</div>
           </div>
-          <div class="badge badge-blue" style="margin-top:0;white-space:nowrap;">기록하기</div>
+          <div class="badge badge-blue" style="white-space:nowrap;flex-shrink:0;">기록하기</div>
         </div>
-        <div class="menu-card" style="width:100%;display:flex;align-items:center;gap:16px;text-align:left;padding:20px 24px;" onclick="startKing()">
-          <div class="icon" style="font-size:32px;margin-bottom:0;">👑</div>
-          <div style="flex:1;">
+        <div class="menu-card" onclick="startKing()">
+          <div class="icon">👑</div>
+          <div class="card-text">
             <div class="name" style="margin-bottom:3px;">왕멘토</div>
             <div class="desc">1인 1역, 개인 활동 일지를 기록해요</div>
           </div>
-          <div class="badge badge-blue" style="margin-top:0;white-space:nowrap;">기록하기</div>
+          <div class="badge badge-blue" style="white-space:nowrap;flex-shrink:0;">기록하기</div>
         </div>
-        <div class="menu-card" style="width:100%;display:flex;align-items:center;gap:16px;text-align:left;padding:20px 24px;" onclick="openMyRecords()">
-          <div class="icon" style="font-size:32px;margin-bottom:0;">🗂️</div>
-          <div style="flex:1;">
+        <div class="menu-card" onclick="openMyRecords()">
+          <div class="icon">🗂️</div>
+          <div class="card-text">
             <div class="name" style="margin-bottom:3px;">내 기록 보기</div>
             <div class="desc">이전 회차 확인 및 수정 가능</div>
           </div>
-          <div class="badge badge-blue" style="margin-top:0;white-space:nowrap;">열람/수정</div>
+          <div class="badge badge-blue" style="white-space:nowrap;flex-shrink:0;">열람/수정</div>
         </div>
       </div>
     </div>
@@ -1455,8 +1457,9 @@ function renderMyRecordsTable(records) {
   const wrap = document.getElementById('myRecordsTableWrap');
 
   if (!records.length) {
-    wrap.innerHTML = '<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px">아직 제출된 기록이 없어요 📭</div>';
+    wrap.innerHTML = '<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px">아직 제출된 활동 일지가 없어요 📭</div>';
     document.getElementById('myRecordsSummaryBar').style.display = 'none';
+    document.getElementById('myRecordsPlanBanner').style.display = 'block';
     return;
   }
 
@@ -2660,16 +2663,12 @@ async function submitPlan() {
   const btn = document.querySelector('#screen-plan .btn-primary');
   btn.disabled = true; btn.textContent = '제출 중...';
   try {
-    const res = await sendToGAS(payload);
-    if (res && res.result === 'success') {
-      showToast('✅ 계획표가 제출됐어요!');
-      saveStudentInfo(name, cls, num);
-      setTimeout(() => { showScreen('home'); }, 1200);
-    } else {
-      showToast('❌ 제출에 실패했어요. 다시 시도해 주세요.');
-    }
+    await sendToGAS(payload);
+    saveStudentInfo(name, cls, num);
+    showToast('✅ 계획표가 제출됐어요!');
+    setTimeout(() => { showScreen('home'); }, 1200);
   } catch(e) {
-    showToast('❌ 오류가 발생했어요: ' + e.message);
+    showToast('❌ 오류가 발생했어요. 다시 시도해 주세요.');
   }
   btn.disabled = false; btn.textContent = '제출하기 ✓';
 }
