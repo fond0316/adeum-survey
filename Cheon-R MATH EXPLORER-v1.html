@@ -228,7 +228,7 @@ canvas{width:100%;height:440px;display:block}
 #hub-screen.hidden{display:none;}
 .lc-eyebrow{font-size:12px;font-weight:700;color:#9ca3af;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
 .lc-title{font-size:32px;font-weight:800;color:#111;margin-bottom:8px;letter-spacing:-.5px;text-align:center;}
-.lc-sub{font-size:14px;color:#6b7280;margin-bottom:48px;text-align:center;}
+.lc-sub{font-size:14px;color:#6b7280;margin-bottom:10px;text-align:center;}
 .lc-grid{display:grid;grid-template-columns:repeat(3,180px);gap:16px;}
 @media(max-width:700px){.lc-grid{grid-template-columns:repeat(2,160px);}}
 .lc-card{padding:32px 18px 24px;background:white;border-radius:20px;border:2px solid #e5e7eb;cursor:pointer;text-align:center;transition:all .18s;box-shadow:0 2px 12px rgba(0,0,0,.06);}
@@ -266,6 +266,10 @@ canvas{width:100%;height:440px;display:block}
   <div class="lc-eyebrow">Math Explorer</div>
   <div class="lc-title">🌟 아듬's 수학탐구실</div>
   <div class="lc-sub">탐구할 단원을 선택하세요 &nbsp;·&nbsp; Made by Cheon_R</div>
+  <div style="display:inline-flex;align-items:center;gap:8px;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:9px 18px;margin:2px 0 4px;font-size:13px;color:#1e40af;font-weight:600;line-height:1.5">
+    <span>⚡</span>
+    <span>이 앱은 업데이트가 수시로 이루어지니 시작하기 전에 <kbd style="background:#dbeafe;border:1px solid #93c5fd;border-radius:4px;padding:1px 6px;font-size:12px;font-family:inherit">F5</kbd> 한 번 눌러줘요!</span>
+  </div>
   <div class="lc-grid">
 
     <!-- V1 -->
@@ -1073,6 +1077,7 @@ canvas{width:100%;height:440px;display:block}
         <div class="card">
           <div class="ctit">차수 선택</div>
           <div class="deg-row" id="abs-deg-row">
+            <button class="db" onclick="setAbsDeg(1)">1차</button>
             <button class="db on" onclick="setAbsDeg(2)">2차</button>
             <button class="db" onclick="setAbsDeg(3)">3차</button>
             <button class="db" onclick="setAbsDeg(4)">4차</button>
@@ -1600,6 +1605,7 @@ canvas{width:100%;height:440px;display:block}
       <button class="law-btn" onclick="setAbsModeModal('abs_fx')">y = |f(x)|</button>
       <button class="law-btn" onclick="setAbsModeModal('f_absx')">y = f(|x|)</button>
       <button class="law-btn" onclick="setAbsModeModal('absy_fx')">|y| = f(x)</button>
+      <button class="law-btn" onclick="setAbsModeModal('absy_fabsx')">|y| = f(|x|)</button>
       <button class="law-btn" onclick="setAbsModeModal('k_line')">|f(x)| = k</button>
     </div>
     <div id="absModalStats" style="padding:12px 16px;border-bottom:1px solid var(--bor);background:var(--bg);font-size:13px;line-height:1.9;font-family:'JetBrains Mono',monospace;min-height:48px">
@@ -5314,12 +5320,14 @@ const ABS_MODE_META={
   abs_fx:{icon:'①',color:'#C0392B',bg:'var(--rd-bg)',label:'y = |f(x)|'},
   f_absx:{icon:'②',color:'#1A5FB4',bg:'var(--bl-bg)',label:'y = f(|x|)'},
   absy_fx:{icon:'③',color:'#2D7D46',bg:'var(--gn-bg)',label:'|y| = f(x)'},
-  k_line:{icon:'④',color:'#5B3FA6',bg:'var(--pu-bg)',label:'|f(x)| = k'},
+  absy_fabsx:{icon:'④',color:'#E67E22',bg:'var(--am-bg)',label:'|y| = f(|x|)'},
+  k_line:{icon:'⑤',color:'#5B3FA6',bg:'var(--pu-bg)',label:'|f(x)| = k'},
 };
 
 // 절댓값 함수식 문자열 생성
 function absStr(){
   const[a,b,c,d,e]=SA.c;
+  if(SA.deg===1)return polyStr([a,b,0,0,0],1);
   if(SA.deg===2)return polyStr([a,b,c,0,0],2);
   if(SA.deg===3)return polyStr([a,b,c,d,0],3);
   return polyStr([a,b,c,d,e],4);
@@ -5441,6 +5449,27 @@ const ABS_MODAL_CONTENT={
       "이 방정식의 실근이 몇 개?" 물으면 먼저 f(x)=0을 봐!`
     );
   },
+  absy_fabsx:()=>{
+    const f=absStr();
+    const fax=absStrAbsX();
+    document.getElementById('absModalStats').innerHTML=
+      `<span style="color:var(--tx3);font-size:11px">변환</span><br>`+
+      `<span style="color:var(--tx2)">y = ${f}</span><br>`+
+      `<span style="font-size:16px">↓</span><br>`+
+      `<strong style="color:#E67E22">|y| = ${fax}</strong><br>`+
+      `<span style="font-size:11px;color:var(--tx3)">y축 대칭 + x축 대칭 동시 적용</span>`;
+    document.getElementById('absModalDesc').innerHTML=lawDesc(
+      `|y| = f(|x|)<br>x→|x| 치환 후, f(|x|) ≥ 0 구간에서 y = ±f(|x|)`,
+      `두 변환을 동시에 적용한 형태야.<br>
+      <strong>① x → |x|:</strong> y축 오른쪽을 왼쪽에 대칭 복사 (y축 대칭)<br>
+      <strong>② |y| = …:</strong> x축 위 부분을 아래에도 대칭 복사 (x축 대칭)<br>
+      결과적으로 <strong>1사분면 그래프</strong>가 4분면 전체에 대칭 복사돼.<br>
+      f(|x|) < 0인 구간은 그래프가 없어.`,
+      `원본 f(x)에서 1사분면(x>0, y>0)에 있는 부분이<br>
+      나머지 2·3·4사분면에도 대칭으로 나타나.<br>
+      y축 대칭 + x축 대칭 → 원점 대칭도 자동으로 성립해!`
+    );
+  },
   k_line:()=>{
     const f=absStr();
     const crossPts=[];
@@ -5486,6 +5515,7 @@ let gAbs=null;
 let rafAbs=null;
 
 const ABS_SLIDERS={
+  1:[{l:'a',mn:-5,mx:5,idx:0},{l:'b',mn:-12,mx:12,idx:1}],
   2:[{l:'a',mn:-3,mx:3,idx:0},{l:'b',mn:-9,mx:9,idx:1},{l:'c',mn:-12,mx:12,idx:2}],
   3:[{l:'a',mn:-3,mx:3,idx:0},{l:'b',mn:-9,mx:9,idx:1},{l:'c',mn:-9,mx:9,idx:2},{l:'d',mn:-12,mx:12,idx:3}],
   4:[{l:'a',mn:-2,mx:2,idx:0},{l:'b',mn:-8,mx:8,idx:1},{l:'c',mn:-8,mx:8,idx:2},{l:'d',mn:-8,mx:8,idx:3},{l:'e',mn:-12,mx:12,idx:4}]
@@ -5493,6 +5523,7 @@ const ABS_SLIDERS={
 
 function absF(x){
   const[a,b,c,d,e]=SA.c;
+  if(SA.deg===1)return a*x+b;
   if(SA.deg===2)return a*x*x+b*x+c;
   if(SA.deg===3)return a*x*x*x+b*x*x+c*x+d;
   return a*x*x*x*x+b*x*x*x+c*x*x+d*x+e;
@@ -5500,8 +5531,8 @@ function absF(x){
 
 function setAbsDeg(deg){
   SA.deg=deg;
-  SA.c={2:[1,0,-2,0,0],3:[1,0,-3,0,0],4:[1,0,-4,2,0]}[deg];
-  document.querySelectorAll('#abs-deg-row .db').forEach((b,i)=>b.classList.toggle('on',[2,3,4][i]===deg));
+  SA.c={1:[1,0,0,0,0],2:[1,0,-2,0,0],3:[1,0,-3,0,0],4:[1,0,-4,2,0]}[deg];
+  document.querySelectorAll('#abs-deg-row .db').forEach((b,i)=>b.classList.toggle('on',[1,2,3,4][i]===deg));
   buildAbsSliders();
   scheduleRenderAbs();
 }
@@ -5599,6 +5630,29 @@ function renderAbs(){
       if(f2){ctx.moveTo(px,sy);f2=false;}else ctx.lineTo(px,sy);
     }
     ctx.stroke();
+  } else if(SA.mode==='absy_fabsx'){
+    // |y|=f(|x|): x→|x| 치환 후, f(|x|)≥0 구간에서 y=f(|x|), y=-f(|x|) 둘 다
+    // → x축 대칭 + y축 대칭 동시 적용
+    const fax=x=>absF(Math.abs(x));
+    ctx.strokeStyle='#E67E22';ctx.lineWidth=2.5*devicePixelRatio;
+    // 위쪽: y = f(|x|) (f(|x|)≥0인 구간)
+    ctx.beginPath();let fa=true;
+    for(let px=0;px<cv.width;px+=1.5){
+      const x=toWX(gAbs,px),y=fax(x);
+      if(y<0){fa=true;continue;}
+      const sy=toSY(gAbs,y);
+      if(fa){ctx.moveTo(px,sy);fa=false;}else ctx.lineTo(px,sy);
+    }
+    ctx.stroke();
+    // 아래쪽: y = -f(|x|) (f(|x|)≥0인 구간)
+    ctx.beginPath();fa=true;
+    for(let px=0;px<cv.width;px+=1.5){
+      const x=toWX(gAbs,px),y=fax(x);
+      if(y<0){fa=true;continue;}
+      const sy=toSY(gAbs,-y);
+      if(fa){ctx.moveTo(px,sy);fa=false;}else ctx.lineTo(px,sy);
+    }
+    ctx.stroke();
   } else if(fn){
     drawCurve(gAbs,fn,'#C0392B',2.5);
   }
@@ -5636,6 +5690,7 @@ function renderAbs(){
     abs_fx:`y = |${fStr}|`,
     f_absx:`y = ${absStrAbsX()}`,
     absy_fx:`|y| = ${fStr}`,
+    absy_fabsx:`|y| = ${absStrAbsX()}`,
     k_line:`|${fStr}| = k`,
     none:`y = ${fStr}`
   };
@@ -5652,7 +5707,8 @@ function renderAbs(){
   // 캔버스 좌상단 수식 레이블
   const eqLine=modeFormula[SA.mode]||`y = ${fStr}`;
   const lines=[{text:eqLine,bold:true,color:'#1A5FB4'}];
-  if(SA.mode!=='none'&&SA.mode!=='k_line') lines.push({text:`원본: y = ${fStr}`,bold:false,color:'rgba(26,95,180,0.6)'});
+  if(SA.mode!=='none'&&SA.mode!=='k_line'&&SA.mode!=='absy_fabsx') lines.push({text:`원본: y = ${fStr}`,bold:false,color:'rgba(26,95,180,0.6)'});
+  if(SA.mode==='absy_fabsx') lines.push({text:`원본: y = ${fStr}`,bold:false,color:'rgba(230,126,34,0.6)'});
   drawEqLabel(gAbs,lines);
 
   requestAnimationFrame(renderAbs);
