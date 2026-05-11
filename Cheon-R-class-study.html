@@ -563,11 +563,11 @@ input[type=file]{display:none;}
         <!-- 분기 선택 -->
         <div class="form-group" style="margin-bottom:14px;">
           <label>분기 선택</label>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;" id="planQuarterBtns">
-            <button class="role-toggle" onclick="selectPlanQuarter('1분기',this)">1분기</button>
-            <button class="role-toggle" onclick="selectPlanQuarter('2분기',this)">2분기</button>
-            <button class="role-toggle" onclick="selectPlanQuarter('3분기',this)">3분기</button>
-            <button class="role-toggle" onclick="selectPlanQuarter('4분기',this)">4분기</button>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="planQuarterBtns">
+            <div class="quarter-card" onclick="selectPlanQuarter('1분기',this)"><div class="q-num">1</div><div class="q-label" id="pqlabel1">분기</div></div>
+            <div class="quarter-card" onclick="selectPlanQuarter('2분기',this)"><div class="q-num">2</div><div class="q-label" id="pqlabel2">분기</div></div>
+            <div class="quarter-card" onclick="selectPlanQuarter('3분기',this)"><div class="q-num">3</div><div class="q-label" id="pqlabel3">분기</div></div>
+            <div class="quarter-card" onclick="selectPlanQuarter('4분기',this)"><div class="q-num">4</div><div class="q-label" id="pqlabel4">분기</div></div>
           </div>
         </div>
 
@@ -1777,6 +1777,8 @@ function startKing() {
 function openPlan() {
   if (appIsClosed) { showToast('🔒 현재 제출이 마감되었어요. 선생님께 문의하세요.'); return; }
   showScreen('plan'); updateStepBar(0);
+  updateQuarterLabels();
+  loadPlanStudentInfo();
 }
 
 async function goStep(target) {
@@ -1927,8 +1929,13 @@ function updateQuarterLabels() {
   const saved = JSON.parse(localStorage.getItem('quarter_dates')||'{}');
   [1,2,3,4].forEach(q => {
     const el = document.getElementById(`qlabel${q}`);
-    if(!el) return;
+    const pel = document.getElementById(`pqlabel${q}`);
     const d = saved[q];
+    const labelHtml = (d && d.start && d.end)
+      ? `분기<br><span style="font-size:10px">${d.start.slice(5).replace('-','/')} ~ ${d.end.slice(5).replace('-','/')}</span>`
+      : '분기';
+    if(el) el.innerHTML = labelHtml;
+    if(pel) pel.innerHTML = labelHtml;
     if(d && d.start && d.end) {
       const s = d.start.slice(5).replace('-','/');
       const e = d.end.slice(5).replace('-','/');
@@ -2507,6 +2514,19 @@ function filterAdmin(val,el) {
 // 계획표
 // ════════════════════════════════════════
 const planState = { quarter:'', subject:'', members:[] };
+
+function loadPlanStudentInfo() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STUDENT_INFO_KEY));
+    if (!saved) return;
+    const n = document.getElementById('planName');
+    const c = document.getElementById('planClass');
+    const u = document.getElementById('planNum');
+    if (n && !n.value) n.value = saved.name || '';
+    if (c && !c.value) c.value = saved.cls || '';
+    if (u && !u.value) u.value = saved.num || '';
+  } catch(e) {}
+}
 
 function selectPlanQuarter(q, el) {
   planState.quarter = q;
