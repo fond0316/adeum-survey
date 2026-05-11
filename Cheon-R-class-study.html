@@ -100,10 +100,14 @@ input[type=file]{display:none;}
 
 /* ── 분기/역할 선택 ── */
 .quarter-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
-.quarter-card{padding:16px;border:2px solid var(--gray-200);border-radius:var(--radius);text-align:center;cursor:pointer;transition:all .2s;background:white;}
+.quarter-card{padding:16px;border:2px solid var(--gray-200);border-radius:var(--radius);text-align:center;cursor:pointer;transition:all .2s;background:white;position:relative;}
 .quarter-card:hover,.quarter-card.selected{border-color:var(--primary);background:var(--primary-light);}
 .quarter-card .q-num{font-size:24px;font-weight:800;color:var(--primary);line-height:1;margin-bottom:4px;}
 .quarter-card .q-label{font-size:11px;color:var(--gray-500);line-height:1.4;}
+.quarter-card.active-quarter{border:2.5px solid #9B8EC4;background:#F5F3FF;}
+.quarter-card.active-quarter .q-num{color:#7B6BA8;}
+.quarter-card.active-quarter .q-label{color:#9B8EC4;}
+.q-active-badge{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:#9B8EC4;color:white;font-size:10px;font-weight:700;padding:2px 10px;border-radius:20px;white-space:nowrap;}
 .role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
 .role-card{padding:18px 14px;border:2px solid var(--gray-200);border-radius:var(--radius);text-align:center;cursor:pointer;transition:all .2s;background:white;}
 .role-card.selected{border-color:var(--primary);background:var(--primary-light);}
@@ -1061,6 +1065,16 @@ input[type=file]{display:none;}
     <div class="card" style="margin-bottom:16px">
       <div class="card-title">🗓️ 분기 기간 설정</div>
       <div class="info-box">설정한 날짜가 학생 분기 선택 화면에 표시돼요</div>
+      <div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--gray-100);">
+        <div style="font-size:12px;font-weight:700;color:var(--gray-700);margin-bottom:8px;">현재 진행 분기</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button class="active-q-btn" id="aqBtn0" onclick="setActiveQuarter(0,this)" style="padding:10px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);background:white;font-size:13px;font-weight:600;color:var(--gray-500);cursor:pointer;font-family:inherit;">없음</button>
+          <button class="active-q-btn" id="aqBtn1" onclick="setActiveQuarter(1,this)" style="padding:10px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);background:white;font-size:13px;font-weight:600;color:var(--gray-500);cursor:pointer;font-family:inherit;">1분기</button>
+          <button class="active-q-btn" id="aqBtn2" onclick="setActiveQuarter(2,this)" style="padding:10px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);background:white;font-size:13px;font-weight:600;color:var(--gray-500);cursor:pointer;font-family:inherit;">2분기</button>
+          <button class="active-q-btn" id="aqBtn3" onclick="setActiveQuarter(3,this)" style="padding:10px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);background:white;font-size:13px;font-weight:600;color:var(--gray-500);cursor:pointer;font-family:inherit;">3분기</button>
+          <button class="active-q-btn" id="aqBtn4" onclick="setActiveQuarter(4,this)" style="padding:10px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);background:white;font-size:13px;font-weight:600;color:var(--gray-500);cursor:pointer;font-family:inherit;">4분기</button>
+        </div>
+      </div>
       <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--gray-100)">
         <div style="font-size:12px;font-weight:700;color:var(--gray-700);margin-bottom:8px">1분기</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
@@ -1765,13 +1779,13 @@ function updateStepBar(step) {
 function startStudy() {
   if (appIsClosed) { showToast('🔒 현재 제출이 마감되었어요. 선생님께 문의하세요.'); return; }
   state.role = 'member';
-  showScreen('quarter'); updateStepBar(1);
+  showScreen('quarter'); updateStepBar(1); updateQuarterLabels();
 }
 
 function startKing() {
   if (appIsClosed) { showToast('🔒 현재 제출이 마감되었어요. 선생님께 문의하세요.'); return; }
   state.role = 'king';
-  showScreen('quarter'); updateStepBar(1);
+  showScreen('quarter'); updateStepBar(1); updateQuarterLabels();
 }
 
 function openPlan() {
@@ -1923,10 +1937,12 @@ function loadQuarterDates() {
     if(e && saved[q]) e.value = saved[q].end||'';
   });
   updateQuarterLabels();
+  loadActiveQuarterBtn();
 }
 
 function updateQuarterLabels() {
   const saved = JSON.parse(localStorage.getItem('quarter_dates')||'{}');
+  const activeQ = parseInt(localStorage.getItem('active_quarter')||'0');
   [1,2,3,4].forEach(q => {
     const el = document.getElementById(`qlabel${q}`);
     const pel = document.getElementById(`pqlabel${q}`);
@@ -1934,16 +1950,50 @@ function updateQuarterLabels() {
     const labelHtml = (d && d.start && d.end)
       ? `분기<br><span style="font-size:10px">${d.start.slice(5).replace('-','/')} ~ ${d.end.slice(5).replace('-','/')}</span>`
       : '분기';
-    if(el) el.innerHTML = labelHtml;
-    if(pel) pel.innerHTML = labelHtml;
-    if(d && d.start && d.end) {
-      const s = d.start.slice(5).replace('-','/');
-      const e = d.end.slice(5).replace('-','/');
-      el.innerHTML = `분기<br><span style="font-size:10px">${s} ~ ${e}</span>`;
-    } else {
-      el.innerHTML = `분기`;
-    }
+    [el, pel].forEach(target => {
+      if (!target) return;
+      const card = target.closest('.quarter-card');
+      if (!card) return;
+      target.innerHTML = labelHtml;
+      // 기존 배지 제거
+      const oldBadge = card.querySelector('.q-active-badge');
+      if (oldBadge) oldBadge.remove();
+      // 진행중 분기 강조
+      if (activeQ === q) {
+        card.classList.add('active-quarter');
+        const badge = document.createElement('div');
+        badge.className = 'q-active-badge';
+        badge.textContent = '진행중';
+        card.appendChild(badge);
+      } else {
+        card.classList.remove('active-quarter');
+      }
+    });
   });
+}
+
+function setActiveQuarter(q, el) {
+  localStorage.setItem('active_quarter', q);
+  document.querySelectorAll('.active-q-btn').forEach(b => {
+    b.style.background = 'white';
+    b.style.borderColor = 'var(--gray-200)';
+    b.style.color = 'var(--gray-500)';
+  });
+  el.style.background = '#F5F3FF';
+  el.style.borderColor = '#9B8EC4';
+  el.style.color = '#7B6BA8';
+  updateQuarterLabels();
+  showToast(`✅ ${q === 0 ? '진행 분기 없음' : q + '분기'} 설정 완료!`);
+}
+
+function loadActiveQuarterBtn() {
+  const activeQ = parseInt(localStorage.getItem('active_quarter')||'0');
+  const btn = document.getElementById(`aqBtn${activeQ}`);
+  if (btn) {
+    btn.style.background = '#F5F3FF';
+    btn.style.borderColor = '#9B8EC4';
+    btn.style.color = '#7B6BA8';
+  }
 }
 
 // ════════════════════════════════════════
