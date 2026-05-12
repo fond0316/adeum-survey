@@ -2486,9 +2486,15 @@ async function loadAdminData() {
   }
   document.getElementById('adminRecordList').innerHTML='<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px">불러오는 중...</div>';
   try {
-    const data = await fetchGAS(GAS_URL+'?action=getRecords');
-    adminData = data.records || [];
+    const [recRes, planRes] = await Promise.all([
+      fetchGAS(GAS_URL+'?action=getRecords'),
+      fetchGAS(GAS_URL+'?action=getPlanRecords')
+    ]);
+    adminData = recRes.records || [];
+    planData = planRes.records || [];
     renderAdminData();
+    const planEl = document.getElementById('statPlan');
+    if (planEl) planEl.textContent = planData.length || '-';
   } catch(e) {
     document.getElementById('adminRecordList').innerHTML=
       '<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px">구글 시트에서 직접 확인해 주세요 📊<br><br><a href="https://docs.google.com/spreadsheets" target="_blank" style="color:var(--primary);font-weight:700">구글 시트 열기 →</a></div>';
