@@ -1302,7 +1302,7 @@ async function setClosedState(isClosed) {
   try {
     await fetch(GAS_URL, {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: {'Content-Type':'text/plain'},
       body: JSON.stringify({ type: 'setClosed', isClosed }),
       mode: 'no-cors'
     });
@@ -1344,7 +1344,7 @@ async function confirmClearAll() {
   try {
     await fetch(GAS_URL, {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: {'Content-Type':'text/plain'},
       body: JSON.stringify({ type: 'clearAllData' }),
       mode: 'no-cors'
     });
@@ -1673,7 +1673,7 @@ async function saveMyRecordEdit() {
   try {
     await fetch(GAS_URL, {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: {'Content-Type':'text/plain'},
       body: JSON.stringify(payload),
       mode: 'no-cors'
     });
@@ -2427,7 +2427,7 @@ async function sendToGAS(payload) {
   }
   document.getElementById('loadingOverlay').classList.add('show');
   try {
-    await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),mode:'no-cors'});
+    await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload),mode:'no-cors'});
   } catch(e){console.error(e);}
   finally{document.getElementById('loadingOverlay').classList.remove('show');}
 }
