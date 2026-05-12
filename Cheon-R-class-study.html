@@ -2217,12 +2217,17 @@ const PHOTO_FORM_ENTRIES = {
 
 function openPhotoForm(type) {
   const isKing = type === 'king';
+  // 팀명: studyName에서 subject 부분 제거 (예: "수학 a" → "a", "왕멘토_수학" → "왕멘토_수학")
+  const teamNameOnly = (state.studyName && state.subject && state.studyName.startsWith(state.subject + ' '))
+    ? state.studyName.slice(state.subject.length + 1)
+    : (state.studyName || state.subject || '');
+
   const params = new URLSearchParams({
     [PHOTO_FORM_ENTRIES.classNum]:   state.classNum   || '',
     [PHOTO_FORM_ENTRIES.studentNum]: state.studentNum || '',
     [PHOTO_FORM_ENTRIES.name]:       state.name       || '',
-    [PHOTO_FORM_ENTRIES.subject]:    state.subject    || state.studyName || '',
-    [PHOTO_FORM_ENTRIES.studyName]:  state.studyName  || state.subject  || '',
+    [PHOTO_FORM_ENTRIES.subject]:    state.subject    || '',
+    [PHOTO_FORM_ENTRIES.studyName]:  teamNameOnly,
     [PHOTO_FORM_ENTRIES.round]:      state.roundNum   || ''
   });
   window.open(`${PHOTO_FORM_URL}?${params.toString()}`, '_blank');
