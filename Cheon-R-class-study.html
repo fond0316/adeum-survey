@@ -864,8 +864,8 @@ input[type=file]{display:none;}
 
       <div class="card" id="photoCheckCard">
         <div class="card-title">📷 활동 사진 업로드</div>
-        <div style="background:#FFF7ED;border:1.5px solid #FED7AA;border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:#92400E;line-height:1.7;margin-bottom:14px;">
-          📌 <b>멘토에게 안내</b><br>활동 사진 1장을 업로드해주세요. 업로드하지 않아도 제출은 가능해요.
+        <div id="photoGuideBox" style="background:#FFF7ED;border:1.5px solid #FED7AA;border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:#92400E;line-height:1.7;margin-bottom:14px;">
+          📌 <b>멘토 필수</b> — 활동 사진 1장을 반드시 업로드해야 제출할 수 있어요.
         </div>
         <input type="file" id="photoFileInput" accept="image/*" capture="environment" onchange="handlePhotoSelect(this,'member')"/>
         <label for="photoFileInput" class="photo-upload-btn" id="photoUploadLabel">
@@ -1872,6 +1872,17 @@ function selectMemberRole(role,el) {
   document.getElementById('attendCard').style.display = role==='멘토'?'block':'none';
   document.getElementById('noticeWriteCard').style.display = role==='멘토'?'block':'none';
   document.getElementById('noticeViewCard').style.display = role==='멘티'?'block':'none';
+  // 사진 안내 문구 변경
+  const guide = document.getElementById('photoGuideBox');
+  if (guide) {
+    if (role === '멘토') {
+      guide.style.background='#FFF7ED'; guide.style.borderColor='#FED7AA'; guide.style.color='#92400E';
+      guide.innerHTML='📌 <b>멘토 필수</b> — 활동 사진 1장을 반드시 업로드해야 제출할 수 있어요.';
+    } else {
+      guide.style.background='#F0FDF4'; guide.style.borderColor='#BBF7D0'; guide.style.color='#15803D';
+      guide.innerHTML='📌 <b>멘티 선택</b> — 사진 업로드 없이도 제출 가능해요.';
+    }
+  }
   // 멘티면 공지 불러오기
   if(role==='멘티') loadNotice();
 }
@@ -2207,33 +2218,13 @@ function removePhoto(arr, i, previewId, labelId) {
   if (el) el.value = '';
 }
 
-// 사진 → GAS 업로드 후 URL 반환
-async function uploadPhotoIfExists(type, meta) {
+// 사진 base64 추출 헬퍼 (payload에 포함해서 GAS로 전송)
+function getPhotoPayload(type) {
   const arr = type === 'king' ? 'kingPhotos' : 'photos';
-  if (!state[arr] || state[arr].length === 0) return null;
+  if (!state[arr] || state[arr].length === 0) return {};
   const photo = state[arr][0];
-  // base64에서 data:image/jpeg;base64, 부분 제거
   const base64 = photo.data.split(',')[1];
-  const mimeType = photo.type || 'image/jpeg';
-  try {
-    const res = await fetch(GAS_URL, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        type: 'uploadPhoto',
-        base64, mimeType,
-        name: meta.name, classNum: meta.classNum, studentNum: meta.studentNum,
-        studyName: meta.studyName || meta.subject || '',
-        subject: meta.subject || '',
-        round: meta.round
-      })
-    });
-    const json = await res.json();
-    return json.url || null;
-  } catch(e) {
-    console.error('사진 업로드 오류', e);
-    return null;
-  }
+  return { base64, mimeType: photo.type || 'image/jpeg' };
 }
 
 // ════════════════════════════════════════
@@ -2269,6 +2260,9 @@ async function submitRecord() {
   const nextPlan=document.getElementById('nextPlan').value.trim();
   if(!date||!title||!content){showToast('⚠️ 날짜, 활동 제목, 내용은 필수예요');return;}
   if(!state.memberRole){showToast('⚠️ 멘토/멘티 역할을 선택해 주세요');return;}
+  if(state.memberRole==='멘토' && (!state.photos || state.photos.length===0)){
+    showToast('📸 멘토는 활동 사진을 업로드해야 제출할 수 있어요');return;
+  }
   const present=state.members.filter(m=>m.status==='present').map(m=>m.name).join(', ');
   const absent=state.members.filter(m=>m.status==='absent').map(m=>m.name).join(', ');
   const added=parseTimeMinutes(time);
@@ -2301,18 +2295,13 @@ async function submitRecord() {
 
   const notice = state.memberRole==='멘토' ? document.getElementById('noticeInput').value.trim() : '';
 
-  // 사진 업로드 (있으면)
-  document.getElementById('loadingOverlay').classList.add('show');
-  const photoUrl = await uploadPhotoIfExists('member', {
-    name: state.name, classNum: state.classNum, studentNum: state.studentNum,
-    studyName: state.studyName, round: state.roundNum
-  });
-  document.getElementById('loadingOverlay').classList.remove('show');
+  // 사진 base64 포함 (GAS에서 드라이브 업로드 처리)
+  const photoPayload = getPhotoPayload('member');
 
   await sendToGAS({type:'member',quarter:state.quarter+'분기',studyName:state.studyName,round:state.roundNum,
     name:state.name,classNum:state.classNum,studentNum:state.studentNum,memberRole:state.memberRole,
     date,time,place,title,content,reflection,nextPlan,present,absent,totalMinutes:newTotal,
-    notice, photoUrl: photoUrl || '없음', timestamp:new Date().toISOString()});
+    notice, ...photoPayload, timestamp:new Date().toISOString()});
 
   document.getElementById('doneMessage').innerHTML = '활동일지가 성공적으로 저장되었어요 🎉';
   document.getElementById('doneSummary').innerHTML = `
@@ -2370,18 +2359,13 @@ async function submitKingRecord() {
   const added = parseTimeMinutes(time);
   const newTotal = state.totalMinutes + added;
 
-  // 사진 업로드 (있으면)
-  document.getElementById('loadingOverlay').classList.add('show');
-  const photoUrl = await uploadPhotoIfExists('king', {
-    name: state.name, classNum: state.classNum, studentNum: state.studentNum,
-    subject: state.subject, round: state.roundNum
-  });
-  document.getElementById('loadingOverlay').classList.remove('show');
+  // 사진 base64 포함 (GAS에서 드라이브 업로드 처리)
+  const photoPayload = getPhotoPayload('king');
 
   await sendToGAS({type:'king',quarter:state.quarter+'분기',subject:state.subject,round:state.roundNum,
     name:state.name,classNum:state.classNum,studentNum:state.studentNum,
     date,time,selfStudy,reflection,nextPlan,questions:JSON.stringify(state.questions),
-    totalMinutes:newTotal, photoUrl: photoUrl || '없음', timestamp:new Date().toISOString()});
+    totalMinutes:newTotal, ...photoPayload, timestamp:new Date().toISOString()});
 
   // 완료 요약 - 회차 누적
   function sliceDateK(d){ return String(d).slice(0,10).slice(5).replace('-','/'); }
