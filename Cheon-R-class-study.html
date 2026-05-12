@@ -2427,7 +2427,14 @@ async function sendToGAS(payload) {
   }
   document.getElementById('loadingOverlay').classList.add('show');
   try {
-    await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload),mode:'no-cors'});
+    const hasPhoto = !!payload.base64;
+    const fetchOpts = {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify(payload)
+    };
+    if (!hasPhoto) fetchOpts.mode = 'no-cors';
+    await fetch(GAS_URL, fetchOpts);
   } catch(e){console.error(e);}
   finally{document.getElementById('loadingOverlay').classList.remove('show');}
 }
