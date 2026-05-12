@@ -311,7 +311,7 @@ input[type=file]{display:none;}
         </div>
         <div style="display:flex;gap:10px;align-items:flex-start;">
           <div style="min-width:22px;height:22px;background:#3B82F6;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">5</div>
-          <div><div style="font-size:13px;font-weight:700;color:#1F2937;margin-bottom:2px;">활동 기록 작성 후 제출</div><div style="font-size:11px;color:#6B7280;line-height:1.6;">출석 체크, 활동 시간, 내용을 입력하고 제출해요.<br>📸 활동 사진은 꼭 찍어두세요! (선생님이 별도 수거 예정)</div></div>
+          <div><div style="font-size:13px;font-weight:700;color:#1F2937;margin-bottom:2px;">활동 기록 작성 후 제출</div><div style="font-size:11px;color:#6B7280;line-height:1.6;">출석 체크, 활동 시간, 내용을 입력하고 제출해요.<br>📸 활동 사진을 바로 업로드할 수 있어요!</div></div>
         </div>
       </div>
 
@@ -336,7 +336,7 @@ input[type=file]{display:none;}
         </div>
         <div style="display:flex;gap:10px;align-items:flex-start;">
           <div style="min-width:22px;height:22px;background:#22C55E;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">5</div>
-          <div><div style="font-size:13px;font-weight:700;color:#1F2937;margin-bottom:2px;">활동 기록 작성 후 제출</div><div style="font-size:11px;color:#6B7280;line-height:1.6;">활동 내용을 입력하고 제출해요.<br>📸 활동 사진은 꼭 찍어두세요! (선생님이 별도 수거 예정)</div></div>
+          <div><div style="font-size:13px;font-weight:700;color:#1F2937;margin-bottom:2px;">활동 기록 작성 후 제출</div><div style="font-size:11px;color:#6B7280;line-height:1.6;">활동 내용을 입력하고 제출해요.<br>📸 활동 사진을 바로 업로드할 수 있어요!</div></div>
         </div>
       </div>
 
@@ -863,14 +863,14 @@ input[type=file]{display:none;}
       </div>
 
       <div class="card" id="photoCheckCard">
-        <div class="card-title">📷 활동 사진 확인</div>
+        <div class="card-title">📷 활동 사진 업로드</div>
         <div style="background:#FFF7ED;border:1.5px solid #FED7AA;border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:#92400E;line-height:1.7;margin-bottom:14px;">
-          📌 <b>멘토에게 안내</b><br>매 스터디 활동 시 단체사진 또는 활동 확인 사진을 반드시 촬영해 두세요.<br>사진은 추후 선생님께 별도 제출합니다.
+          📌 <b>멘토에게 안내</b><br>활동 사진 1장을 업로드해주세요. 업로드하지 않아도 제출은 가능해요.
         </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;" id="photoCheckBtn" onclick="togglePhotoCheck()">
-          <div id="photoCheckBox" style="width:24px;height:24px;border:2px solid var(--gray-300);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;"></div>
-          <div style="font-size:13px;font-weight:600;color:var(--gray-700)">이번 회차 활동 사진을 촬영했어요 📸</div>
-        </div>
+        <input type="file" id="photoFileInput" accept="image/*" capture="environment" onchange="handlePhotoSelect(this,'member')"/>
+        <label for="photoFileInput" class="photo-upload-btn" id="photoUploadLabel">
+          <span>📸</span><span>사진 선택 (1장)</span>
+        </label>
         <div class="photo-preview" id="photoPreview"></div>
       </div>
 
@@ -901,14 +901,14 @@ input[type=file]{display:none;}
         <button class="add-question-btn" onclick="addQuestion()">+ 질문 추가</button>
       </div>
       <div class="card">
-        <div class="card-title">📷 활동 사진 확인</div>
+        <div class="card-title">📷 활동 사진 업로드</div>
         <div style="background:#FFF7ED;border:1.5px solid #FED7AA;border-radius:var(--radius-sm);padding:12px 14px;font-size:12px;color:#92400E;line-height:1.7;margin-bottom:14px;">
-          📌 매 스터디 활동 시 단체사진 또는 활동 확인 사진을 반드시 촬영해 두세요.<br>사진은 추후 선생님께 별도 제출합니다.
+          📌 활동 사진 1장을 업로드해주세요. 업로드하지 않아도 제출은 가능해요.
         </div>
-        <div style="display:flex;align-items:center;gap:12px;padding:14px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s;" id="kingPhotoCheckBtn" onclick="toggleKingPhotoCheck()">
-          <div id="kingPhotoCheckBox" style="width:24px;height:24px;border:2px solid var(--gray-300);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;"></div>
-          <div style="font-size:13px;font-weight:600;color:var(--gray-700)">이번 회차 활동 사진을 촬영했어요 📸</div>
-        </div>
+        <input type="file" id="kingPhotoFileInput" accept="image/*" capture="environment" onchange="handlePhotoSelect(this,'king')"/>
+        <label for="kingPhotoFileInput" class="photo-upload-btn" id="kingPhotoUploadLabel">
+          <span>📸</span><span>사진 선택 (1장)</span>
+        </label>
         <div class="photo-preview" id="kingPhotoPreview"></div>
       </div>
       <div class="card">
@@ -1641,7 +1641,7 @@ async function saveMyRecordEdit() {
       nextPlan: document.getElementById('medit_nextPlan').value,
       questions: rec.questions || '[]',
       totalMinutes: rec.totalMinutes || 0,
-      photoChecked: rec.photoChecked || '미촬영',
+      photoUrl: rec.photoUrl || '없음',
       timestamp: new Date().toISOString()
     };
   } else {
@@ -1664,7 +1664,7 @@ async function saveMyRecordEdit() {
       present: rec.present || '',
       absent: rec.absent || '',
       totalMinutes: rec.totalMinutes || 0,
-      photoChecked: rec.photoChecked || '미촬영',
+      photoUrl: rec.photoUrl || '없음',
       timestamp: new Date().toISOString()
     };
   }
@@ -1890,32 +1890,11 @@ function selectSubjectChip(subj,el) {
 }
 
 // ════════════════════════════════════════
-// 사진 체크
+// 사진 체크 변수 (하위호환 유지)
 // ════════════════════════════════════════
 let photoChecked = false;
 let kingPhotoChecked = false;
 
-function togglePhotoCheck() {
-  photoChecked = !photoChecked;
-  const box = document.getElementById('photoCheckBox');
-  const btn = document.getElementById('photoCheckBtn');
-  box.style.background = photoChecked ? 'var(--accent)' : 'white';
-  box.style.borderColor = photoChecked ? 'var(--accent)' : 'var(--gray-300)';
-  box.innerHTML = photoChecked ? '<span style="color:white;font-size:14px;font-weight:700">✓</span>' : '';
-  btn.style.borderColor = photoChecked ? 'var(--accent)' : 'var(--gray-200)';
-  btn.style.background = photoChecked ? 'var(--accent-light)' : 'white';
-}
-
-function toggleKingPhotoCheck() {
-  kingPhotoChecked = !kingPhotoChecked;
-  const box = document.getElementById('kingPhotoCheckBox');
-  const btn = document.getElementById('kingPhotoCheckBtn');
-  box.style.background = kingPhotoChecked ? 'var(--accent)' : 'white';
-  box.style.borderColor = kingPhotoChecked ? 'var(--accent)' : 'var(--gray-300)';
-  box.innerHTML = kingPhotoChecked ? '<span style="color:white;font-size:14px;font-weight:700">✓</span>' : '';
-  btn.style.borderColor = kingPhotoChecked ? 'var(--accent)' : 'var(--gray-200)';
-  btn.style.background = kingPhotoChecked ? 'var(--accent-light)' : 'white';
-}
 // ════════════════════════════════════════
 // 분기 날짜 설정
 // ════════════════════════════════════════
@@ -2192,24 +2171,70 @@ function removeQuestion(i){state.questions.splice(i,1);renderQuestions();}
 // ════════════════════════════════════════
 // 사진
 // ════════════════════════════════════════
-function handlePhotoSelect(input,type) {
-  const files=Array.from(input.files);
-  const previewId=type==='king'?'kingPhotoPreview':'photoPreview';
-  const arr=type==='king'?'kingPhotos':'photos';
-  files.forEach(file=>{
-    const r=new FileReader();
-    r.onload=e=>{state[arr].push({name:file.name,data:e.target.result,type:file.type});renderPhotoPreview(previewId,arr);};
-    r.readAsDataURL(file);
-  });
+function handlePhotoSelect(input, type) {
+  const file = input.files[0];
+  if (!file) return;
+  const previewId = type === 'king' ? 'kingPhotoPreview' : 'photoPreview';
+  const labelId   = type === 'king' ? 'kingPhotoUploadLabel' : 'photoUploadLabel';
+  const arr       = type === 'king' ? 'kingPhotos' : 'photos';
+  const r = new FileReader();
+  r.onload = e => {
+    state[arr] = [{name: file.name, data: e.target.result, type: file.type, file}];
+    renderPhotoPreview(previewId, arr, labelId);
+  };
+  r.readAsDataURL(file);
 }
-function renderPhotoPreview(previewId,arr) {
-  document.getElementById(previewId).innerHTML=state[arr].map((p,i)=>`
+function renderPhotoPreview(previewId, arr, labelId) {
+  const photos = state[arr];
+  document.getElementById(previewId).innerHTML = photos.map((p, i) => `
     <div class="photo-thumb-wrap">
       <img src="${p.data}" class="photo-thumb"/>
-      <button class="photo-remove" onclick="removePhoto('${arr}',${i},'${previewId}')">×</button>
+      <button class="photo-remove" onclick="removePhoto('${arr}',${i},'${previewId}','${labelId}')">×</button>
     </div>`).join('');
+  if (labelId) {
+    const lbl = document.getElementById(labelId);
+    if (lbl) lbl.innerHTML = photos.length > 0
+      ? '<span>✅</span><span>사진 선택됨 (변경하려면 다시 선택)</span>'
+      : '<span>📸</span><span>사진 선택 (1장)</span>';
+  }
 }
-function removePhoto(arr,i,previewId){state[arr].splice(i,1);renderPhotoPreview(previewId,arr);}
+function removePhoto(arr, i, previewId, labelId) {
+  state[arr].splice(i, 1);
+  renderPhotoPreview(previewId, arr, labelId);
+  // file input 초기화
+  const inputId = arr === 'kingPhotos' ? 'kingPhotoFileInput' : 'photoFileInput';
+  const el = document.getElementById(inputId);
+  if (el) el.value = '';
+}
+
+// 사진 → GAS 업로드 후 URL 반환
+async function uploadPhotoIfExists(type, meta) {
+  const arr = type === 'king' ? 'kingPhotos' : 'photos';
+  if (!state[arr] || state[arr].length === 0) return null;
+  const photo = state[arr][0];
+  // base64에서 data:image/jpeg;base64, 부분 제거
+  const base64 = photo.data.split(',')[1];
+  const mimeType = photo.type || 'image/jpeg';
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        type: 'uploadPhoto',
+        base64, mimeType,
+        name: meta.name, classNum: meta.classNum, studentNum: meta.studentNum,
+        studyName: meta.studyName || meta.subject || '',
+        subject: meta.subject || '',
+        round: meta.round
+      })
+    });
+    const json = await res.json();
+    return json.url || null;
+  } catch(e) {
+    console.error('사진 업로드 오류', e);
+    return null;
+  }
+}
 
 // ════════════════════════════════════════
 // 시간
@@ -2276,10 +2301,18 @@ async function submitRecord() {
 
   const notice = state.memberRole==='멘토' ? document.getElementById('noticeInput').value.trim() : '';
 
+  // 사진 업로드 (있으면)
+  document.getElementById('loadingOverlay').classList.add('show');
+  const photoUrl = await uploadPhotoIfExists('member', {
+    name: state.name, classNum: state.classNum, studentNum: state.studentNum,
+    studyName: state.studyName, round: state.roundNum
+  });
+  document.getElementById('loadingOverlay').classList.remove('show');
+
   await sendToGAS({type:'member',quarter:state.quarter+'분기',studyName:state.studyName,round:state.roundNum,
     name:state.name,classNum:state.classNum,studentNum:state.studentNum,memberRole:state.memberRole,
     date,time,place,title,content,reflection,nextPlan,present,absent,totalMinutes:newTotal,
-    notice, photoChecked:photoChecked?'촬영완료':'미촬영', timestamp:new Date().toISOString()});
+    notice, photoUrl: photoUrl || '없음', timestamp:new Date().toISOString()});
 
   document.getElementById('doneMessage').innerHTML = '활동일지가 성공적으로 저장되었어요 🎉';
   document.getElementById('doneSummary').innerHTML = `
@@ -2337,10 +2370,18 @@ async function submitKingRecord() {
   const added = parseTimeMinutes(time);
   const newTotal = state.totalMinutes + added;
 
+  // 사진 업로드 (있으면)
+  document.getElementById('loadingOverlay').classList.add('show');
+  const photoUrl = await uploadPhotoIfExists('king', {
+    name: state.name, classNum: state.classNum, studentNum: state.studentNum,
+    subject: state.subject, round: state.roundNum
+  });
+  document.getElementById('loadingOverlay').classList.remove('show');
+
   await sendToGAS({type:'king',quarter:state.quarter+'분기',subject:state.subject,round:state.roundNum,
     name:state.name,classNum:state.classNum,studentNum:state.studentNum,
     date,time,selfStudy,reflection,nextPlan,questions:JSON.stringify(state.questions),
-    totalMinutes:newTotal, photoChecked:kingPhotoChecked?'촬영완료':'미촬영', timestamp:new Date().toISOString()});
+    totalMinutes:newTotal, photoUrl: photoUrl || '없음', timestamp:new Date().toISOString()});
 
   // 완료 요약 - 회차 누적
   function sliceDateK(d){ return String(d).slice(0,10).slice(5).replace('-','/'); }
@@ -2413,6 +2454,15 @@ async function sendToGAS(payload) {
 async function addNewRound() {
   state.roundNum++; state.photos=[]; state.kingPhotos=[]; state.questions=[];
   photoChecked = false; kingPhotoChecked = false;
+  // 사진 파일 input 초기화
+  const pf = document.getElementById('photoFileInput');
+  const kf = document.getElementById('kingPhotoFileInput');
+  if (pf) pf.value = '';
+  if (kf) kf.value = '';
+  const pl = document.getElementById('photoUploadLabel');
+  const kl = document.getElementById('kingPhotoUploadLabel');
+  if (pl) pl.innerHTML = '<span>📸</span><span>사진 선택 (1장)</span>';
+  if (kl) kl.innerHTML = '<span>📸</span><span>사진 선택 (1장)</span>';
   if(state.role==='king'){
     document.getElementById('kingSelfStudy').value='';
     document.getElementById('kingReflection').value='';
