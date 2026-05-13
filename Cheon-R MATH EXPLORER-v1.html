@@ -1096,6 +1096,7 @@ canvas{width:100%;height:440px;display:block}
           <div class="eq" id="abs-orig" style="font-size:13px;color:var(--tx2)">y = x² − 2</div>
           <div style="font-size:11px;color:var(--tx3);margin:4px 0 3px">변환 후</div>
           <div class="eq" id="abs-eq" style="color:var(--tl)">y = f(x)</div>
+          <div id="abs-expanded" style="display:none;margin-top:6px;background:var(--bg);border:1px solid var(--bor);border-radius:6px;padding:8px 10px;font-size:12px;font-family:'JetBrains Mono',monospace;line-height:2;color:var(--tx2)"></div>
           <div class="sdiv"></div>
           <div class="irow" id="abs-info"></div>
         </div>
@@ -1864,6 +1865,7 @@ function polyStr(c,deg){
     if(p===1)return sgn+(av===1?'':vs)+'x';
     return sgn+(av===1?'':vs)+'x'+sup[p];
   }
+  if(deg===1)return(t(a,1,true)||'0')+t(b,0);
   if(deg===2)return(t(a,2,true)||'0')+t(b,1)+t(cc,0);
   if(deg===3)return(t(a,3,true)||'0')+t(b,2)+t(cc,1)+t(d,0);
   return(t(a,4,true)||'0')+t(b,3)+t(cc,2)+t(d,1)+t(e,0);
@@ -4413,7 +4415,7 @@ function updateC3LawModal(n){
 }
 
 // 법칙별 모달 내용 (stats + desc)
-function lawDesc(formula, why, tip){
+function lawDesc(formula, why, tip, adeum=''){
   return `
     <div style="margin-bottom:10px">
       <div style="font-size:11px;font-weight:700;color:var(--tx3);letter-spacing:.05em;margin-bottom:4px">📌 핵심 공식</div>
@@ -4422,7 +4424,13 @@ function lawDesc(formula, why, tip){
     <div style="margin-bottom:10px">
       <div style="font-size:11px;font-weight:700;color:var(--tx3);letter-spacing:.05em;margin-bottom:4px">💡 왜 성립할까?</div>
       <div style="font-size:13px;color:var(--tx2);line-height:1.8">${why}</div>
-    </div>
+    </div>`+
+    (adeum?`
+    <div style="margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;color:var(--pu);letter-spacing:.05em;margin-bottom:4px">✏️ 아듬샘's Tip!</div>
+      <div style="background:var(--pu-bg);border:1px solid var(--pu-lt);border-radius:6px;padding:10px 12px;font-size:12px;color:var(--tx2);line-height:1.9">${adeum}</div>
+    </div>`:'')
+    +`
     <div>
       <div style="font-size:11px;font-weight:700;color:var(--tx3);letter-spacing:.05em;margin-bottom:4px">🎯 수능 활용 포인트</div>
       <div style="background:var(--am-bg);border:1px solid var(--am-lt);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--am);line-height:1.7">${tip}</div>
@@ -5313,9 +5321,175 @@ function renderC4WithLaw(){
   requestAnimationFrame(renderC4WithLaw);
 }
 
-// ════════════════════════════════════════
-// 🔢 절댓값 함수 모달
-// ════════════════════════════════════════
+// ── 절댓값 풀어낸 식 ──
+// 근 구하기 — 수치 이분법 + 중근 보정 (범위 -12~12)
+function absGetRoots(fn){
+  const roots=[];
+  const XL=-12,XR=12,N=12000;
+  const dx=(XR-XL)/N;
+  let prev=fn(XL);
+  for(let i=1;i<=N;i++){
+    const x=XL+dx*i,cur=fn(x);
+    if(prev*cur<0){
+      // 부호 변화 → 이분법
+      let lo=x-dx,hi=x,p0=prev;
+      for(let j=0;j<60;j++){const m=(lo+hi)/2;fn(m)*p0<=0?hi=m:lo=m;}
+      const r=(lo+hi)/2;
+      if(!roots.some(rr=>Math.abs(rr-r)<0.005))roots.push(parseFloat(r.toFixed(4)));
+    } else if(Math.abs(cur)<1e-6){
+      // 정확히 0에 가까운 점 — 중근 후보
+      if(!roots.some(rr=>Math.abs(rr-x)<0.005))roots.push(parseFloat(x.toFixed(4)));
+    }
+    prev=cur;
+  }
+  return roots.sort((a,b)=>a-b);
+}
+// 숫자 → 깔끔한 문자열
+function niceNum(v){
+  if(Math.abs(v)<0.001)return'0';
+  if(Number.isInteger(v))return String(v);
+  for(let d=2;d<=12;d++){const n=Math.round(v*d);if(Math.abs(n/d-v)<0.0001)return(n<0?'−'+(-n):String(n))+'/'+d;}
+  return v.toFixed(2);
+}
+// f(-x) 식 문자열 생성 (x → -x 치환, 계수 직접 계산)
+function absStrNegX(){
+  const[a,b,c,d,e]=SA.c;
+  // f(-x) = a(-x)^n - b(-x)^(n-1) + ... (홀수차 계수만 부호 반전)
+  if(SA.deg===1)return polyStr([-a,b,0,0,0],1);   // a(-x)+b = -ax+b
+  if(SA.deg===2)return polyStr([a,-b,c,0,0],2);    // a(-x)²+b(-x)+c = ax²-bx+c
+  if(SA.deg===3)return polyStr([-a,b,-c,d,0],3);
+  return polyStr([a,-b,c,-d,e],4);
+}
+
+// 구간 데이터 계산 (패널 + 캔버스 공통 사용)
+function getAbsExpandedData(fStr){
+  const mode=SA.mode;
+  if(mode==='none'||mode==='k_line')return null;
+  // 4색 체계
+  const KEEP='#1A5FB4'; // 파랑 — 유지
+  const XSYM='#E67E22'; // 주황 — x축 대칭
+  const YSYM='#2D7D46'; // 초록 — y축 대칭
+  const OSYM='#5B3FA6'; // 보라 — 원점 대칭
+
+  if(mode==='abs_fx'){
+    const roots=absGetRoots(absF);
+    if(roots.length===0){
+      const pos=absF(0)>=0;
+      return{rows:[{expr:pos?`y = ${fStr}`:`y = −(${fStr})`,cond:'(모든 x)',color:pos?KEEP:XSYM}]};
+    }
+    const pts=roots;
+    const checks=[pts[0]-1,...pts.slice(0,-1).map((p,i)=>(p+pts[i+1])/2),pts[pts.length-1]+1];
+    const rows=checks.map((cp,i)=>{
+      const pos=absF(cp)>=0;
+      let cond;
+      if(i===0)cond=`x < ${niceNum(pts[0])}`;
+      else if(i===pts.length)cond=`x > ${niceNum(pts[pts.length-1])}`;
+      else cond=`${niceNum(pts[i-1])} < x < ${niceNum(pts[i])}`;
+      return{expr:pos?`y = ${fStr}`:`y = −(${fStr})`,cond,color:pos?KEEP:XSYM};
+    });
+    return{rows};
+  }
+  if(mode==='f_absx'){
+    const negX=absStrNegX();
+    return{rows:[
+      {expr:`y = ${fStr}`, cond:'x ≥ 0', color:KEEP},
+      {expr:`y = ${negX}`, cond:'x < 0', color:YSYM},
+    ]};
+  }
+  if(mode==='absy_fx'){
+    return{rows:[
+      {expr:`y = ${fStr}`,     cond:'y ≥ 0', color:KEEP},
+      {expr:`y = −(${fStr})`,  cond:'y ≤ 0', color:XSYM},
+    ]};
+  }
+  if(mode==='absy_fabsx'){
+    const negX=absStrNegX();
+    return{rows:[
+      {expr:`y = ${fStr}`,    cond:'x ≥ 0, y ≥ 0', color:KEEP},
+      {expr:`y = −(${fStr})`, cond:'x ≥ 0, y ≤ 0', color:XSYM},
+      {expr:`y = ${negX}`,    cond:'x < 0, y ≥ 0', color:YSYM},
+      {expr:`y = −(${negX})`, cond:'x < 0, y ≤ 0', color:OSYM},
+    ]};
+  }
+  return null;
+}
+
+// 왼쪽 패널 박스 업데이트
+function updateAbsExpanded(fStr){
+  const el=document.getElementById('abs-expanded');
+  if(!el)return;
+  const data=getAbsExpandedData(fStr);
+  if(!data||!data.rows){el.style.display='none';return;}
+
+  const mode=SA.mode;
+  const modeTitle={
+    abs_fx:`y = |${fStr}|`,
+    f_absx:`y = ${absStrAbsX()}`,
+    absy_fx:`|y| = ${fStr}`,
+    absy_fabsx:`|y| = ${absStrAbsX()}`,
+  };
+
+  const isPiecewise=(mode==='abs_fx'||mode==='f_absx');
+
+  // 타이틀: 검정, 원함수: 회색
+  let html=`<div style="font-weight:700;color:#1C1B18;margin-bottom:2px;font-family:'JetBrains Mono',monospace">${modeTitle[mode]||''}</div>`;
+  html+=`<div style="font-size:11px;color:var(--tx3);margin-bottom:6px;font-family:'JetBrains Mono',monospace">원함수: y = ${fStr}</div>`;
+
+  if(isPiecewise){
+    html+=`<div style="display:flex;align-items:stretch;gap:6px">`;
+    html+=`<div style="font-size:22px;color:var(--tx3);line-height:1;display:flex;align-items:center">{</div>`;
+    html+=`<div style="flex:1">`;
+    html+=data.rows.map(r=>
+      `<div style="display:flex;align-items:baseline;gap:8px;line-height:2.1;font-family:'JetBrains Mono',monospace">`+
+      `<span style="color:${r.color};font-weight:600;min-width:0">${r.expr}</span>`+
+      `<span style="color:var(--tx3);font-size:11px">(${r.cond})</span>`+
+      `</div>`
+    ).join('');
+    html+=`</div></div>`;
+  } else {
+    html+=data.rows.map(r=>
+      `<div style="display:flex;align-items:baseline;gap:8px;line-height:2.1;font-family:'JetBrains Mono',monospace">`+
+      `<span style="color:${r.color};font-weight:600">${r.expr}</span>`+
+      `<span style="color:var(--tx3);font-size:11px">(${r.cond})</span>`+
+      `</div>`
+    ).join('');
+  }
+
+  el.innerHTML=html;
+  el.style.display='';
+}
+
+// 캔버스 좌상단 레이블용 lines 배열 생성
+function getAbsCanvasLines(fStr){
+  const mode=SA.mode;
+  const modeFormula={
+    abs_fx:`y = |${fStr}|`,
+    f_absx:`y = ${absStrAbsX()}`,
+    absy_fx:`|y| = ${fStr}`,
+    absy_fabsx:`|y| = ${absStrAbsX()}`,
+    k_line:`|${fStr}| = k`,
+    none:`y = ${fStr}`
+  };
+  const eqLine=modeFormula[mode]||`y = ${fStr}`;
+  // 타이틀: 절댓값 있는 식은 검정, none은 파랑
+  const lines=[{text:eqLine,bold:true,color:mode==='none'?'#1A5FB4':'#1C1B18'}];
+
+  // 원함수 줄
+  if(mode!=='none'&&mode!=='k_line'){
+    lines.push({text:`원함수: y = ${fStr}`,bold:false,color:'rgba(100,100,100,0.55)'});
+  }
+
+  // 구간별 풀어낸 식 — 그래프 색 매칭
+  const data=getAbsExpandedData(fStr);
+  if(data&&data.rows){
+    data.rows.forEach(r=>{
+      lines.push({text:`${r.expr}   (${r.cond})`,bold:false,color:r.color});
+    });
+  }
+  return lines;
+}
+
+
 const ABS_MODE_META={
   abs_fx:{icon:'①',color:'#C0392B',bg:'var(--rd-bg)',label:'y = |f(x)|'},
   f_absx:{icon:'②',color:'#1A5FB4',bg:'var(--bl-bg)',label:'y = f(|x|)'},
@@ -5387,87 +5561,126 @@ function updateAbsModal(mode){
   };
   document.getElementById('abs-eq').textContent=modeFormula[mode]||meta.label;
   ABS_MODAL_CONTENT[mode]();
+
+  // Stats 박스 하단에 구간별 풀어낸 식 append
+  if(mode!=='k_line'){
+    const data=getAbsExpandedData(fStr);
+    if(data&&data.rows){
+      const statsEl=document.getElementById('absModalStats');
+      const isPiecewise=(mode==='abs_fx'||mode==='f_absx');
+      let extra=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--bor);font-size:12px;font-family:'JetBrains Mono',monospace">`;
+      extra+=`<div style="color:var(--tx3);font-size:11px;margin-bottom:4px">절댓값 벗긴 식</div>`;
+      if(isPiecewise){
+        extra+=`<div style="display:flex;align-items:stretch;gap:5px">`;
+        extra+=`<div style="font-size:20px;color:var(--tx3);display:flex;align-items:center">{</div>`;
+        extra+=`<div>`;
+        extra+=data.rows.map(r=>
+          `<div style="display:flex;gap:8px;align-items:baseline;line-height:2">`+
+          `<span style="color:${r.color};font-weight:600">${r.expr}</span>`+
+          `<span style="color:var(--tx3);font-size:11px">(${r.cond})</span>`+
+          `</div>`
+        ).join('');
+        extra+=`</div></div>`;
+      } else {
+        extra+=data.rows.map(r=>
+          `<div style="display:flex;gap:8px;align-items:baseline;line-height:2">`+
+          `<span style="color:${r.color};font-weight:600">${r.expr}</span>`+
+          `<span style="color:var(--tx3);font-size:11px">(${r.cond})</span>`+
+          `</div>`
+        ).join('');
+      }
+      extra+=`</div>`;
+      statsEl.innerHTML+=extra;
+    }
+  }
 }
 
 const ABS_MODAL_CONTENT={
   abs_fx:()=>{
     const f=absStr();
     document.getElementById('absModalStats').innerHTML=
-      `<span style="color:var(--tx3);font-size:11px">변환</span><br>`+
+      `<span style="color:var(--tx3);font-size:11px">원함수</span><br>`+
       `<span style="color:var(--tx2)">y = ${f}</span><br>`+
       `<span style="font-size:16px">↓</span><br>`+
-      `<strong style="color:var(--rd)">y = |${f}|</strong><br>`+
+      `<strong style="color:#1C1B18">y = |${f}|</strong><br>`+
       `<span style="font-size:11px;color:var(--tx3)">f(x) < 0 구간 → x축 위로 반전, x절편에서 꺾임 발생</span>`;
     document.getElementById('absModalDesc').innerHTML=lawDesc(
-      `y = |f(x)|<br>f(x) ≥ 0이면 그대로, f(x) < 0이면 −f(x)`,
-      `f(x)의 그래프에서 <strong>x축 아래 부분을 위로 접어 올리는</strong> 변환이야.<br>
-      x절편(실근)마다 <strong>꺾임점(뾰족점)</strong>이 생겨.<br>
-      실근이 n개이면 꺾이는 횟수도 n번이야.<br>
-      x축 위 부분은 원래 곡선 그대로 유지돼.`,
-      `|f(x)| = k의 실근 개수 문제에서 핵심 도구야.<br>
-      y = |f(x)| 그래프와 y = k 수평선의 교점 수 = 실근 수.<br>
-      k를 올리면서 교점 수 변화를 관찰해봐!`
+      `y = |f(x)|`,
+      `y = f(x)의 그래프에서 <strong>y ≥ 0인 부분은 남긴 다음,</strong><br>
+      y &lt; 0인 부분을 <strong>x축에 대하여 대칭이동</strong>한다.`,
+      `x절편(실근)마다 꺾임점(뾰족점)이 생겨.<br>
+      y = |f(x)|와 y = k 수평선의 교점 수 = |f(x)| = k의 실근 수.<br>
+      k를 올리면서 교점 수 변화를 관찰해봐!`,
+      `f(x)가 음수면 절댓값을 씌우면 양수가 되잖아.<br>
+      그게 그래프에서는 <strong>x축 아래 부분을 위로 접어 올리는 것</strong>과 같아!<br>
+      예를 들어 f(2) = −3이면 |f(2)| = 3,<br>
+      그래프에서 (2, −3)이 (2, 3)으로 올라오는 거지.<br>
+      잘 이해가 안되면 특정 점으로 예시를 생각해봐! 💡`
     );
   },
   f_absx:()=>{
     const f=absStr();
     const fax=absStrAbsX();
     document.getElementById('absModalStats').innerHTML=
-      `<span style="color:var(--tx3);font-size:11px">변환</span><br>`+
+      `<span style="color:var(--tx3);font-size:11px">원함수</span><br>`+
       `<span style="color:var(--tx2)">y = ${f}</span><br>`+
       `<span style="font-size:16px">↓</span><br>`+
-      `<strong style="color:var(--bl)">y = ${fax}</strong><br>`+
+      `<strong style="color:#1C1B18">y = ${fax}</strong><br>`+
       `<span style="font-size:11px;color:var(--tx3)">x < 0 구간 제거 → y축 오른쪽을 왼쪽에 대칭 복사</span>`;
     document.getElementById('absModalDesc').innerHTML=lawDesc(
-      `y = f(|x|)<br>x ≥ 0이면 f(x), x < 0이면 f(−x)`,
-      `x 자리에 |x|를 넣으면, x가 음수일 때 −x로 바뀌어.<br>
-      결국 <strong>x ≥ 0 오른쪽 그래프를 y축 왼쪽에 대칭 복사</strong>하는 거야.<br>
-      항상 짝함수(y축 대칭)가 되고 f(|x|) = f(−|x|)야.<br>
-      원본의 x < 0 부분은 완전히 지워지고 대칭 복사본으로 대체돼.`,
-      `원본이 x축과 만나는 양수 실근이 있으면<br>
-      f(|x|)는 그 실근의 <strong>음수 대칭점에서도 만나</strong>.<br>
-      즉 양수 실근 1개 → f(|x|)의 실근은 2개!`
+      `y = f(|x|)`,
+      `y = f(x)의 그래프에서 <strong>x ≥ 0인 부분만 남긴 다음,</strong><br>
+      x ≥ 0인 부분을 <strong>y축에 대하여 대칭이동</strong>한다.`,
+      `항상 짝함수(y축 대칭)가 되고 f(|x|) = f(−|x|)야.<br>
+      양수 실근 1개 → f(|x|)의 실근은 2개(음수 대칭점에서도 만남)!`,
+      `x 자리에 |x|를 넣으면 x = 2일 때랑 x = −2일 때<br>
+      |x|가 똑같이 2잖아. 그러니까 <strong>f(2) = f(−2)</strong>가 되는 거야!<br>
+      결국 x ≥ 0 오른쪽 그래프를 y축 왼쪽에 그대로 복사하는 거지.<br>
+      잘 이해가 안되면 특정 점으로 예시를 생각해봐! 💡`
     );
   },
   absy_fx:()=>{
     const f=absStr();
     document.getElementById('absModalStats').innerHTML=
-      `<span style="color:var(--tx3);font-size:11px">변환</span><br>`+
+      `<span style="color:var(--tx3);font-size:11px">원함수</span><br>`+
       `<span style="color:var(--tx2)">y = ${f}</span><br>`+
       `<span style="font-size:16px">↓</span><br>`+
-      `<strong style="color:var(--gn)">|y| = ${f}</strong><br>`+
+      `<strong style="color:#1C1B18">|y| = ${f}</strong><br>`+
       `<span style="font-size:11px;color:var(--tx3)">f(x) ≥ 0 구간만 존재 → y = ±f(x) 두 곡선</span>`;
     document.getElementById('absModalDesc').innerHTML=lawDesc(
-      `|y| = f(x)<br>y² = [f(x)]² → y = ±f(x) (f(x) ≥ 0일 때만)`,
-      `|y| = f(x)를 만족하려면 f(x) = |y| ≥ 0이어야 해.<br>
-      그래서 <strong>f(x) < 0인 구간은 그래프가 없어.</strong><br>
-      f(x) ≥ 0인 구간에서 y = f(x) (위쪽)와<br>
-      y = −f(x) (아래쪽) <strong>두 곡선 모두</strong> 그려져.<br>
+      `|y| = f(x)`,
+      `y = f(x)의 그래프에서 <strong>y ≥ 0인 부분만 남긴 다음,</strong><br>
+      y ≥ 0인 부분을 <strong>x축에 대하여 대칭이동</strong>한다.`,
+      `f(x) &lt; 0인 구간은 그래프가 없어.<br>
+      f(x) ≥ 0인 구간에서 y = f(x)와 y = −f(x) 두 곡선이 그려져.<br>
       x축에 대해 대칭인 형태가 만들어져.`,
-      `|y| = f(x)에서 실근 개수는 y = 0을 대입하면<br>
-      f(x) = 0의 실근, 즉 원본 f(x)의 x절편 수와 같아.<br>
-      "이 방정식의 실근이 몇 개?" 물으면 먼저 f(x)=0을 봐!`
+      `|y| = f(x)를 만족하려면 f(x)가 반드시 0 이상이어야 해.<br>
+      그리고 |y| = k (k ≥ 0)를 만족하는 y는 <strong>k랑 −k 두 개</strong>잖아.<br>
+      그래서 f(x) ≥ 0인 구간에서 위아래로 두 곡선이 생기는 거지.<br>
+      잘 이해가 안되면 특정 점으로 예시를 생각해봐! 💡`
     );
   },
   absy_fabsx:()=>{
     const f=absStr();
     const fax=absStrAbsX();
     document.getElementById('absModalStats').innerHTML=
-      `<span style="color:var(--tx3);font-size:11px">변환</span><br>`+
+      `<span style="color:var(--tx3);font-size:11px">원함수</span><br>`+
       `<span style="color:var(--tx2)">y = ${f}</span><br>`+
       `<span style="font-size:16px">↓</span><br>`+
-      `<strong style="color:#E67E22">|y| = ${fax}</strong><br>`+
+      `<strong style="color:#1C1B18">|y| = ${fax}</strong><br>`+
       `<span style="font-size:11px;color:var(--tx3)">y축 대칭 + x축 대칭 동시 적용</span>`;
     document.getElementById('absModalDesc').innerHTML=lawDesc(
-      `|y| = f(|x|)<br>x→|x| 치환 후, f(|x|) ≥ 0 구간에서 y = ±f(|x|)`,
-      `두 변환을 동시에 적용한 형태야.<br>
-      <strong>① x → |x|:</strong> y축 오른쪽을 왼쪽에 대칭 복사 (y축 대칭)<br>
-      <strong>② |y| = …:</strong> x축 위 부분을 아래에도 대칭 복사 (x축 대칭)<br>
-      결과적으로 <strong>1사분면 그래프</strong>가 4분면 전체에 대칭 복사돼.<br>
-      f(|x|) < 0인 구간은 그래프가 없어.`,
+      `|y| = f(|x|)`,
+      `y = f(x)의 그래프에서 <strong>x ≥ 0, y ≥ 0인 부분만 남긴 다음,</strong><br>
+      x ≥ 0, y ≥ 0인 부분을 <strong>x축, y축 및 원점에 대하여<br>각각 대칭이동</strong>한다.`,
       `원본 f(x)에서 1사분면(x>0, y>0)에 있는 부분이<br>
       나머지 2·3·4사분면에도 대칭으로 나타나.<br>
-      y축 대칭 + x축 대칭 → 원점 대칭도 자동으로 성립해!`
+      y축 대칭 + x축 대칭 → 원점 대칭도 자동으로 성립해!`,
+      `②랑 ③을 동시에 적용한 거야.<br>
+      x에 |x|를 넣어서 <strong>y축 대칭</strong>을 만들고,<br>
+      |y|로 바꿔서 <strong>x축 대칭</strong>까지 추가한 거지.<br>
+      결국 <strong>1사분면 그래프 하나가 4개 분면으로 퍼지는 거지.</strong><br>
+      잘 이해가 안되면 특정 점으로 예시를 생각해봐! 💡`
     );
   },
   k_line:()=>{
@@ -5594,8 +5807,19 @@ function renderAbs(){
   ctx.clearRect(0,0,cv.width,cv.height);
   drawAxes(gAbs);
 
-  // 원본 곡선 (점선)
-  ctx.strokeStyle='#ccc';ctx.lineWidth=1.5*devicePixelRatio;ctx.setLineDash([5*devicePixelRatio,4*devicePixelRatio]);
+  // 색상 정의: 유지(원본 그대로) / 대칭(새로 생긴 부분)
+  // ── 4색 체계 ──
+  const C={
+    KEEP:'#1A5FB4',  // 파랑  — 원본 유지
+    XSYM:'#E67E22',  // 주황  — x축 대칭
+    YSYM:'#2D7D46',  // 초록  — y축 대칭
+    OSYM:'#5B3FA6',  // 보라  — 원점 대칭
+    KLINE:'#C0392B', // 빨강  — k선
+  };
+
+  // 원본 곡선 (점선) — 항상 표시
+  ctx.strokeStyle='rgba(150,150,150,0.7)';ctx.lineWidth=1.5*devicePixelRatio;
+  ctx.setLineDash([5*devicePixelRatio,4*devicePixelRatio]);
   ctx.beginPath();let first=true;
   for(let px=0;px<cv.width;px+=1.5){
     const x=toWX(gAbs,px),y=absF(x);
@@ -5605,56 +5829,74 @@ function renderAbs(){
   }
   ctx.stroke();ctx.setLineDash([]);
 
-  // 변환 곡선
-  let fn;
-  if(SA.mode==='abs_fx') fn=x=>Math.abs(absF(x));
-  else if(SA.mode==='f_absx') fn=x=>absF(Math.abs(x));
-  else if(SA.mode==='k_line') fn=x=>Math.abs(absF(x));
+  // 헬퍼: x→색 함수로 구간별 색 분리 렌더
+  function drawSegmented(fnY,colorFn,lw=2.5){
+    let prevColor=null,seg=[];
+    const flush=(addPt)=>{
+      if(addPt)seg.push(addPt);
+      if(seg.length<2){seg=[];return;}
+      ctx.strokeStyle=prevColor;ctx.lineWidth=lw*devicePixelRatio;
+      ctx.beginPath();ctx.moveTo(seg[0][0],seg[0][1]);
+      for(let i=1;i<seg.length;i++)ctx.lineTo(seg[i][0],seg[i][1]);
+      ctx.stroke();seg=[];
+    };
+    for(let px=0;px<cv.width;px+=1.5){
+      const x=toWX(gAbs,px),y=fnY(x);
+      if(!isFinite(y)||isNaN(y)){flush();prevColor=null;continue;}
+      const sy=toSY(gAbs,y);
+      const c=colorFn(x);
+      if(c!==prevColor){flush([px,sy]);prevColor=c;seg=[[px,sy]];}
+      else seg.push([px,sy]);
+    }
+    flush();
+  }
+  // 헬퍼: 단색, NaN 구간 자동 끊김
+  function drawSolid(fnY,color,lw=2.5){
+    ctx.strokeStyle=color;ctx.lineWidth=lw*devicePixelRatio;
+    ctx.beginPath();let s=true;
+    for(let px=0;px<cv.width;px+=1.5){
+      const y=fnY(toWX(gAbs,px));
+      if(!isFinite(y)||isNaN(y)){s=true;continue;}
+      const sy=toSY(gAbs,y);
+      if(s){ctx.moveTo(px,sy);s=false;}else ctx.lineTo(px,sy);
+    }
+    ctx.stroke();
+  }
 
-  if(SA.mode==='absy_fx'){
-    // |y|=f(x): f(x)≥0 구간에서 y=f(x), y=-f(x) 둘 다
-    ctx.strokeStyle='#C0392B';ctx.lineWidth=2.5*devicePixelRatio;
-    ctx.beginPath();let f2=true;
-    for(let px=0;px<cv.width;px+=1.5){
-      const x=toWX(gAbs,px),y=absF(x);
-      if(y<0){f2=true;continue;}
-      const sy=toSY(gAbs,y);
-      if(f2){ctx.moveTo(px,sy);f2=false;}else ctx.lineTo(px,sy);
-    }
-    ctx.stroke();
-    ctx.beginPath();f2=true;
-    for(let px=0;px<cv.width;px+=1.5){
-      const x=toWX(gAbs,px),y=absF(x);
-      if(y<0){f2=true;continue;}
-      const sy=toSY(gAbs,-y);
-      if(f2){ctx.moveTo(px,sy);f2=false;}else ctx.lineTo(px,sy);
-    }
-    ctx.stroke();
+  let fn;
+  if(SA.mode==='abs_fx'){
+    // ① 유지(파랑): f(x)≥0 / x축대칭(주황): f(x)<0 반전
+    drawSegmented(
+      x=>Math.abs(absF(x)),
+      x=>absF(x)>=0?C.KEEP:C.XSYM
+    );
+
+  } else if(SA.mode==='f_absx'){
+    // ② 유지(파랑): x≥0 / y축대칭(초록): x<0
+    drawSegmented(
+      x=>absF(Math.abs(x)),
+      x=>x>=0?C.KEEP:C.YSYM
+    );
+
+  } else if(SA.mode==='absy_fx'){
+    // ③ 유지(파랑): 위쪽 y=f(x), f(x)≥0
+    //    x축대칭(주황): 아래쪽 y=−f(x), f(x)≥0
+    drawSolid(x=>{const y=absF(x);return y>=0?y:NaN;},  C.KEEP);
+    drawSolid(x=>{const y=absF(x);return y>=0?-y:NaN;}, C.XSYM);
+
   } else if(SA.mode==='absy_fabsx'){
-    // |y|=f(|x|): x→|x| 치환 후, f(|x|)≥0 구간에서 y=f(|x|), y=-f(|x|) 둘 다
-    // → x축 대칭 + y축 대칭 동시 적용
+    // ④ 1사분면(파랑), 4사분면(주황), 2사분면(초록), 3사분면(보라)
     const fax=x=>absF(Math.abs(x));
-    ctx.strokeStyle='#E67E22';ctx.lineWidth=2.5*devicePixelRatio;
-    // 위쪽: y = f(|x|) (f(|x|)≥0인 구간)
-    ctx.beginPath();let fa=true;
-    for(let px=0;px<cv.width;px+=1.5){
-      const x=toWX(gAbs,px),y=fax(x);
-      if(y<0){fa=true;continue;}
-      const sy=toSY(gAbs,y);
-      if(fa){ctx.moveTo(px,sy);fa=false;}else ctx.lineTo(px,sy);
-    }
-    ctx.stroke();
-    // 아래쪽: y = -f(|x|) (f(|x|)≥0인 구간)
-    ctx.beginPath();fa=true;
-    for(let px=0;px<cv.width;px+=1.5){
-      const x=toWX(gAbs,px),y=fax(x);
-      if(y<0){fa=true;continue;}
-      const sy=toSY(gAbs,-y);
-      if(fa){ctx.moveTo(px,sy);fa=false;}else ctx.lineTo(px,sy);
-    }
-    ctx.stroke();
-  } else if(fn){
-    drawCurve(gAbs,fn,'#C0392B',2.5);
+    drawSolid(x=>{const y=fax(x);return(x>=0&&y>=0)?y:NaN;},  C.KEEP); // 1사분면
+    drawSolid(x=>{const y=fax(x);return(x>=0&&y>=0)?-y:NaN;}, C.XSYM); // 4사분면
+    drawSolid(x=>{const y=fax(x);return(x<0 &&y>=0)?y:NaN;},  C.YSYM); // 2사분면
+    drawSolid(x=>{const y=fax(x);return(x<0 &&y>=0)?-y:NaN;}, C.OSYM); // 3사분면
+
+  } else if(SA.mode==='k_line'){
+    fn=x=>Math.abs(absF(x));
+    drawSolid(fn, C.KLINE, 2.5);
+  } else if(SA.mode==='none'){
+    drawSolid(absF, C.KEEP, 2);
   }
 
   // k 수평선
@@ -5699,16 +5941,16 @@ function renderAbs(){
   const origEl=document.getElementById('abs-orig');
   if(origEl) origEl.textContent=`원본: y = ${fStr}`;
 
+  // 풀어낸 식 표시
+  updateAbsExpanded(fStr);
+
   // 모달 실시간 업데이트 — 모달 열림 여부 무관하게 모드 활성화 시 항상 갱신
   if(SA.mode!=='none' && ABS_MODAL_CONTENT[SA.mode]){
     ABS_MODAL_CONTENT[SA.mode]();
   }
 
-  // 캔버스 좌상단 수식 레이블
-  const eqLine=modeFormula[SA.mode]||`y = ${fStr}`;
-  const lines=[{text:eqLine,bold:true,color:'#1A5FB4'}];
-  if(SA.mode!=='none'&&SA.mode!=='k_line'&&SA.mode!=='absy_fabsx') lines.push({text:`원본: y = ${fStr}`,bold:false,color:'rgba(26,95,180,0.6)'});
-  if(SA.mode==='absy_fabsx') lines.push({text:`원본: y = ${fStr}`,bold:false,color:'rgba(230,126,34,0.6)'});
+  // 캔버스 좌상단 수식 레이블 (구간별 풀어낸 식 포함)
+  const lines=getAbsCanvasLines(fStr);
   drawEqLabel(gAbs,lines);
 
   requestAnimationFrame(renderAbs);
