@@ -336,7 +336,7 @@ textarea.form-input{resize:none;height:76px;line-height:1.6;}
           <input class="form-input" id="inputContact" placeholder="예: 010-1234-5678" type="tel" oninput="autoHyphen(this)">
         </div>
         <div class="form-group">
-          <label class="form-label">상담 희망 내용 (선택)</label>
+          <label class="form-label">상담 희망 내용 *</label>
           <textarea class="form-input" id="inputMemo" placeholder="미리 알려주시면 더 준비된 상담이 가능해요 😊"></textarea>
         </div>
       </div>
@@ -919,7 +919,8 @@ async function goStep5Check() {
   const student = document.getElementById('inputStudent').value.trim();
   const parent  = document.getElementById('inputParent').value.trim();
   const contact = document.getElementById('inputContact').value.trim();
-  if (!student||!parent||!contact) { alert('필수 항목을 모두 입력해 주세요.'); return; }
+  const memo = document.getElementById('inputMemo').value.trim();
+  if (!student||!parent||!contact||!memo) { alert('필수 항목을 모두 입력해 주세요.'); return; }
 
   // GAS 중복 체크
   try {
