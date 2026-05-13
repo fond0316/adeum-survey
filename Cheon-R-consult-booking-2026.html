@@ -210,8 +210,9 @@ textarea.form-input{resize:none;height:76px;line-height:1.6;}
 <!-- ===================== 학부모 메인 ===================== -->
 <div class="screen" id="mainScreen">
   <!-- GAS 연결 상태 -->
-  <div class="gas-banner loading" id="gasBanner" style="display:flex;align-items:center;justify-content:center;gap:10px;">
+  <div class="gas-banner loading" id="gasBanner" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 16px;">
     <span id="gasBannerText">⏳ 데이터 불러오는 중...</span>
+    <span id="gasBannerSub" style="font-size:11px;font-weight:400;display:none;"></span>
   </div>
 
   <!-- URL 변경 모달 -->
@@ -849,6 +850,18 @@ function setBanner(type, msg) {
   const b = document.getElementById('gasBanner');
   b.className = 'gas-banner ' + type;
   document.getElementById('gasBannerText').textContent = msg;
+  const sub = document.getElementById('gasBannerSub');
+  if (type === 'ok') {
+    sub.textContent = '✔ 위 상태일 때만 예약 입력이 저장돼요';
+    sub.style.display = 'block';
+    sub.style.opacity = '0.75';
+  } else if (type === 'err') {
+    sub.textContent = '⚠ 기록이 저장되지 않아요 · 새로고침 후 잠시 기다려 주세요';
+    sub.style.display = 'block';
+    sub.style.opacity = '1';
+  } else {
+    sub.style.display = 'none';
+  }
 }
 
 function openUrlChangeModal() {
