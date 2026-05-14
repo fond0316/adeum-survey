@@ -1611,11 +1611,44 @@ function collectData(){
     cat,
     composedBan: grade && ban ? grade + '-' + ban : '',
   };
+  // ── checkbox: 체크된 항목명 텍스트로 저장 ──
+  const handledCheckIds = new Set();
   document.querySelectorAll('[id*="_form_"]').forEach(el => {
-    // id (예: math_form_0) → 질문 제목으로 변환
+    if (el.type !== 'checkbox') return;
     const label = questionLabelMap[el.id] || el.id;
-    if (el.type === 'checkbox') { data[label] = el.checked; }
-    else if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') { data[label] = el.value; }
+    // 같은 질문 그룹(label)에서 체크된 항목명 모아서 저장
+    const baseLabel = label.replace(/_\d+$/, '');
+    handledCheckIds.add(baseLabel);
+  });
+  handledCheckIds.forEach(baseLabel => {
+    const checked = [];
+    document.querySelectorAll('[id*="_form_"]').forEach(el => {
+      if (el.type !== 'checkbox') return;
+      const lbl = questionLabelMap[el.id] || el.id;
+      if (lbl.replace(/_\d+$/, '') !== baseLabel) return;
+      if (el.checked) {
+        const labelEl = document.querySelector(`label[for="${el.id}"]`);
+        checked.push(labelEl ? labelEl.textContent.trim() : el.value || lbl);
+      }
+    });
+    data[baseLabel] = checked.join(', ');
+  });
+
+  // ── short / long / radio ──
+  document.querySelectorAll('[id*="_form_"]').forEach(el => {
+    if (el.type === 'checkbox') return; // 위에서 처리
+    const label = questionLabelMap[el.id] || el.id;
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') { data[label] = el.value; }
+  });
+
+  // ── radio: name="_form_" 패턴으로 checked 값 읽기 ──
+  const handledRadioNames = new Set();
+  document.querySelectorAll('input[type="radio"][name*="_form_"]').forEach(el => {
+    if (handledRadioNames.has(el.name)) return;
+    handledRadioNames.add(el.name);
+    const label = questionLabelMap[el.name] || el.name;
+    const checked = document.querySelector(`input[type="radio"][name="${el.name}"]:checked`);
+    data[label] = checked ? checked.value : '';
   });
   return data;
 }
@@ -1630,10 +1663,29 @@ function loadDraft(){
     if(d.ban)   document.getElementById('f-ban').value   = d.ban;
     if(d.num)   document.getElementById('f-num').value   = d.num;
     Object.entries(d).forEach(([k,v]) => {
+      // radio 복원: name으로 찾아서 checked 세팅
+      const radioEls = document.querySelectorAll(`input[type="radio"][name="${k}"]`);
+      if (radioEls.length > 0) {
+        radioEls.forEach(r => { r.checked = (r.value === v); });
+        return;
+      }
+      // checkbox 복원: draft 텍스트와 라벨 비교해서 체크 세팅
+      let cbRestored = false;
+      document.querySelectorAll('[id*="_form_"]').forEach(el => {
+        if (el.type !== 'checkbox') return;
+        const lbl = questionLabelMap[el.id] || el.id;
+        if (lbl.replace(/_\d+$/, '') !== k) return;
+        cbRestored = true;
+        const labelEl = document.querySelector(`label[for="${el.id}"]`);
+        const itemText = labelEl ? labelEl.textContent.trim() : '';
+        const checkedList = String(v).split(',').map(s => s.trim());
+        el.checked = checkedList.includes(itemText);
+      });
+      if (cbRestored) return;
+      // 일반 input / textarea
       const el = document.getElementById(k);
       if(!el) return;
-      if(el.type==='checkbox') el.checked = v;
-      else if(el.tagName==='INPUT'||el.tagName==='TEXTAREA') el.value = v;
+      if(el.tagName==='INPUT'||el.tagName==='TEXTAREA') el.value = v;
     });
     // draft에 cat이 있으면 해당 폼 화면으로 복원
     if(d.cat) {
