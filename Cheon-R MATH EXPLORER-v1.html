@@ -5802,7 +5802,7 @@ function fromAbsKNum(val){
 function scheduleRenderAbs(){if(rafAbs)cancelAnimationFrame(rafAbs);rafAbs=requestAnimationFrame(renderAbs);}
 
 function renderAbs(){
-  if(!gAbs){gAbs=makeAdvGraph('gc_abs');}
+  if(!gAbs){gAbs=makeAdvGraph('gc_abs',scheduleRenderAbs);}
   const{ctx,cv}=gAbs;
   ctx.clearRect(0,0,cv.width,cv.height);
   drawAxes(gAbs);
