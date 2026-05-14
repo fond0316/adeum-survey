@@ -1696,6 +1696,24 @@ function loadDraft(){
   } catch(e){}
 }
 
+// ── JSONP 유틸 (학부모 예약 시스템과 동일 방식) ──────────────────
+function _gasPost(gasUrl, body) {
+  const cb  = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+  const url = gasUrl + '?jsonBody=' + encodeURIComponent(JSON.stringify(body)) + '&callback=' + cb;
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    const timer  = setTimeout(() => { cleanup(); reject(new Error('timeout')); }, 15000);
+    function cleanup() {
+      clearTimeout(timer); delete window[cb];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cb]     = (data) => { cleanup(); resolve(data); };
+    script.onerror = ()     => { cleanup(); reject(new Error('네트워크 오류')); };
+    script.src     = url;
+    document.head.appendChild(script);
+  });
+}
+
 function submitForm(){
   const name  = document.getElementById('f-name')?.value.trim();
   const grade = document.getElementById('f-grade')?.value.trim();
@@ -1714,16 +1732,19 @@ function submitForm(){
   const btn = document.querySelector('.submit-btn');
   if(btn){ btn.disabled = true; btn.textContent = '⏳ 제출 중...'; }
 
-  fetch(gasUrl, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) })
-  .then(() => {
-    localStorage.removeItem('adum_form_draft');
-    alert('✅ 최종 제출 완료!\n선생님께 전달되었습니다 😊\n\n입력하느라 수고했어요 🙌');
+  _gasPost(gasUrl, data)
+  .then(res => {
     if(btn){ btn.disabled=false; btn.textContent='✅ 최종 제출하기'; }
+    if(res && res.ok){
+      localStorage.removeItem('adum_form_draft');
+      alert('✅ 최종 제출 완료!\n선생님께 전달되었습니다 😊\n\n입력하느라 수고했어요 🙌');
+    } else {
+      alert('❌ 제출에 실패했어요.\n잠시 후 다시 시도해주세요.\n\n오류: ' + (res?.error || '알 수 없는 오류'));
+    }
   })
-  .catch(() => {
-    localStorage.removeItem('adum_form_draft');
-    alert('✅ 최종 제출 완료!\n선생님께 전달되었습니다 😊\n\n입력하느라 수고했어요 🙌');
+  .catch(err => {
     if(btn){ btn.disabled=false; btn.textContent='✅ 최종 제출하기'; }
+    alert('❌ 제출에 실패했어요.\n인터넷 연결을 확인하고 다시 시도해주세요.\n\n오류: ' + err.message);
   });
 }
 
