@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>학생 상담 예약</title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+:root {
+  --primary: #9B8EC4;
+  --primary-dark: #7B6BA8;
+  --primary-light: rgba(196,181,253,0.15);
+  --primary-mid: rgba(196,181,253,0.35);
+  --bg: #F4F2FA;
+  --white: #FFFFFF;
+  --gray-50: #F9FAFB;
+  --gray-100: #F3F4F6;
+  --gray-200: #E5E7EB;
+  --gray-300: #D1D5DB;
+  --gray-400: #9CA3AF;
+  --gray-500: #6B7280;
+  --gray-600: #4B5563;
+  --gray-700: #374151;
+  --gray-800: #1F2937;
+  --gray-900: #111827;
+  --danger: #EF4444;
+  --danger-light: #FEF2F2;
+  --success: #10B981;
+  --radius: 14px;
+  --radius-sm: 9px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 12px rgba(155,142,196,0.12),0 2px 4px rgba(0,0,0,0.05);
+  --shadow-lg: 0 10px 30px rgba(155,142,196,0.18),0 4px 6px rgba(0,0,0,0.05);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--gray-800);min-height:100vh;}
+.screen{display:none;min-height:100vh;}
+.screen.active{display:block;}
+.flex-screen{display:none;min-height:100vh;align-items:center;justify-content:center;}
+.flex-screen.active{display:flex;}
+
+/* ── 헤더 ── */
+.app-header{background:var(--white);border-bottom:1px solid var(--gray-200);padding:14px 20px;position:sticky;top:0;z-index:50;box-shadow:var(--shadow);}
+.header-inner{max-width:480px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;}
+.header-title{font-size:18px;font-weight:700;color:var(--gray-900);line-height:1.3;}
+.header-meta{font-size:11px;color:var(--gray-400);margin-top:2px;}
+.teacher-badge{background:var(--primary-light);border:1.5px solid var(--primary-mid);border-radius:10px;padding:8px 14px;text-align:center;white-space:nowrap;flex-shrink:0;}
+.teacher-name{font-size:13px;font-weight:700;color:var(--primary-dark);}
+.teacher-role{font-size:11px;color:var(--primary);margin-top:1px;}
+
+/* ── 컨텐츠 ── */
+.content{max-width:480px;margin:0 auto;padding:20px 16px 60px;}
+
+/* ── 스테퍼 ── */
+.stepper{display:flex;align-items:center;justify-content:center;margin-bottom:22px;}
+.step{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.step-circle{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:var(--gray-200);color:var(--gray-400);transition:all .3s;}
+.step.active .step-circle{background:var(--primary);color:#fff;}
+.step.done .step-circle{background:var(--primary-mid);color:var(--primary-dark);}
+.step-label{font-size:10px;color:var(--gray-400);}
+.step.active .step-label{color:var(--primary);font-weight:600;}
+.step-line{width:26px;height:2px;background:var(--gray-200);margin-bottom:14px;}
+.step-line.done{background:var(--primary-mid);}
+
+/* ── 카드 / 폼 ── */
+.card{background:var(--white);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:14px;}
+.card-label{font-size:13px;font-weight:600;color:var(--gray-600);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.form-group{margin-bottom:14px;}
+.form-label{font-size:13px;font-weight:600;color:var(--gray-600);margin-bottom:7px;display:block;}
+.form-input{width:100%;padding:12px 14px;border-radius:var(--radius-sm);border:2px solid var(--gray-200);background:var(--white);font-family:'Pretendard',sans-serif;font-size:15px;color:var(--gray-800);transition:border-color .2s;outline:none;}
+.form-input:focus{border-color:var(--primary);}
+.form-input::placeholder{color:var(--gray-400);}
+textarea.form-input{resize:none;height:76px;line-height:1.6;}
+select.form-input{cursor:pointer;}
+
+/* ── 날짜/시간 그리드 ── */
+.date-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.date-card{background:var(--gray-50);border-radius:12px;padding:12px 4px;text-align:center;cursor:pointer;border:2px solid transparent;transition:all .2s;}
+.date-card:hover:not(.disabled){border-color:var(--primary-mid);}
+.date-card.selected{background:var(--primary);border-color:var(--primary);}
+.date-card.disabled{opacity:.4;cursor:not-allowed;}
+.date-card .day-name{font-size:11px;color:var(--gray-400);margin-bottom:3px;}
+.date-card .day-num{font-size:22px;font-weight:700;color:var(--gray-800);}
+.date-card .month{font-size:10px;color:var(--gray-400);margin-top:2px;}
+.date-card.selected .day-name,.date-card.selected .day-num,.date-card.selected .month{color:#fff;}
+.time-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.time-btn{padding:14px 8px;border-radius:10px;text-align:center;border:2px solid var(--gray-200);background:var(--white);cursor:pointer;font-family:'Pretendard',sans-serif;transition:all .2s;}
+.time-btn:hover:not(.booked){border-color:var(--primary);}
+.time-btn.selected{background:var(--primary);border-color:var(--primary);color:#fff;}
+.time-btn.booked{color:var(--gray-300);cursor:not-allowed;background:var(--gray-50);border-color:var(--gray-100);}
+.time-btn-label{font-size:12px;font-weight:700;color:var(--gray-700);margin-bottom:3px;}
+.time-btn-time{font-size:13px;font-weight:600;color:var(--gray-600);}
+.time-btn.selected .time-btn-label,.time-btn.selected .time-btn-time{color:#fff;}
+.time-btn.booked .time-btn-label,.time-btn.booked .time-btn-time{color:var(--gray-300);text-decoration:line-through;}
+
+/* ── 버튼 ── */
+.btn{width:100%;padding:14px;border-radius:var(--radius-sm);border:none;font-family:'Pretendard',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;display:block;text-align:center;}
+.btn-primary{background:rgba(155,142,196,0.18);color:var(--primary-dark);border:2px solid rgba(155,142,196,0.5);}
+.btn-primary:hover{background:rgba(155,142,196,0.28);border-color:var(--primary);}
+.btn-primary:disabled{background:var(--gray-100);color:var(--gray-400);border-color:var(--gray-200);cursor:not-allowed;}
+.btn-secondary{background:var(--gray-100);color:var(--gray-600);}
+.btn-secondary:hover{background:var(--gray-200);}
+.btn-danger{background:#FEF2F2;color:#EF4444;border:1.5px solid #FCA5A5;}
+
+/* ── 공지 / 정보박스 ── */
+.notice-box{background:var(--primary-light);border-left:3px solid var(--primary);border-radius:var(--radius-sm);padding:13px 15px;margin-bottom:18px;}
+.notice-box p{font-size:13px;color:#8B5CF6;line-height:1.7;}
+.info-box{background:var(--primary-light);border-left:3px solid var(--primary);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:14px;}
+.info-box p{font-size:13px;color:var(--primary-dark);line-height:1.7;}
+
+/* ── 모달 ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(17,24,39,.5);z-index:200;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-sheet{background:var(--white);border-radius:22px 22px 0 0;width:100%;max-width:480px;padding:26px 22px 40px;animation:slideUp .3s ease;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;background:var(--gray-200);border-radius:2px;margin:0 auto 20px;}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:4px;}
+.modal-date{font-size:14px;color:var(--primary);font-weight:700;margin-bottom:16px;}
+.modal-divider{border:none;border-top:1px solid var(--gray-100);margin:14px 0;}
+.modal-row{display:flex;justify-content:space-between;padding:7px 0;font-size:14px;}
+.modal-row-label{color:var(--gray-400);}
+.modal-row-value{font-weight:700;color:var(--gray-800);}
+.modal-warning{font-size:12px;color:var(--gray-400);text-align:center;margin:14px 0 18px;line-height:1.7;}
+.modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* ── 성공 화면 ── */
+.success-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;text-align:center;padding:24px;}
+.success-icon{font-size:60px;margin-bottom:18px;}
+.success-title{font-size:22px;font-weight:700;margin-bottom:10px;}
+.success-desc{font-size:14px;color:var(--gray-500);line-height:1.8;margin-bottom:28px;}
+.success-card{background:var(--primary-light);border-radius:14px;padding:18px 20px;width:100%;max-width:320px;margin-bottom:28px;text-align:left;}
+.success-card .row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;border-bottom:1px solid var(--primary-mid);}
+.success-card .row:last-child{border-bottom:none;}
+.success-card .row-label{color:var(--primary);}
+.success-card .row-value{font-weight:700;color:var(--primary-dark);}
+
+/* ── 관리자 ── */
+.login-box{background:var(--white);border-radius:20px;padding:36px 28px;width:90%;max-width:360px;box-shadow:var(--shadow-lg);text-align:center;}
+.login-icon{font-size:40px;margin-bottom:14px;}
+.login-title{font-size:20px;font-weight:700;margin-bottom:6px;}
+.login-sub{font-size:13px;color:var(--gray-400);margin-bottom:24px;}
+.login-error{font-size:12px;color:var(--danger);margin-top:8px;display:none;}
+.admin-header{background:var(--primary-dark);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;}
+.admin-header-title{font-size:16px;font-weight:700;}
+.admin-logout{font-size:12px;background:rgba(255,255,255,.2);border:none;color:#fff;padding:5px 12px;border-radius:20px;cursor:pointer;font-family:'Pretendard',sans-serif;}
+.admin-nav{background:var(--white);border-bottom:1px solid var(--gray-200);display:flex;overflow-x:auto;padding:0 12px;}
+.admin-nav-btn{padding:13px 14px;border:none;background:none;font-family:'Pretendard',sans-serif;font-size:13px;color:var(--gray-400);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s;}
+.admin-nav-btn.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:700;}
+.admin-body{max-width:640px;margin:0 auto;padding:20px 16px 60px;}
+.admin-section{display:none;}
+.admin-section.active{display:block;}
+.admin-card{background:var(--white);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:14px;}
+.admin-card-title{font-size:14px;font-weight:700;color:var(--gray-700);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+
+/* ── 프리셋 관리 ── */
+.preset-item{background:var(--gray-50);border-radius:12px;padding:14px;margin-bottom:10px;border:1.5px solid var(--gray-200);}
+.preset-item.disabled-preset{opacity:.55;}
+.preset-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.preset-name{font-size:14px;font-weight:700;color:var(--gray-800);}
+.preset-toggle-wrap{display:flex;align-items:center;gap:8px;}
+.day-chips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;}
+.day-chip{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;cursor:pointer;border:2px solid var(--gray-200);background:var(--white);color:var(--gray-400);transition:all .2s;font-family:'Pretendard',sans-serif;}
+.day-chip.active{background:var(--primary);border-color:var(--primary);color:#fff;}
+.preset-time-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.preset-time-input{flex:1;padding:9px 10px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:13px;outline:none;font-family:'Pretendard',sans-serif;color:var(--gray-700);background:#fff;}
+.preset-time-input:focus{border-color:var(--primary);}
+.slot-toggle-row{display:flex;gap:8px;margin-top:6px;}
+.slot-toggle-btn{flex:1;padding:8px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--gray-200);background:var(--white);color:var(--gray-500);font-family:'Pretendard',sans-serif;transition:all .2s;}
+.slot-toggle-btn.on{background:var(--primary-light);border-color:var(--primary);color:var(--primary-dark);}
+
+/* ── 슬롯 관리 ── */
+.day-section{margin-bottom:20px;}
+.day-header{font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:10px;padding:8px 12px;background:var(--primary-light);border-radius:var(--radius-sm);display:flex;justify-content:space-between;align-items:center;}
+.slot-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px;}
+.slot-item{background:var(--gray-50);border-radius:var(--radius-sm);padding:10px 12px;display:flex;justify-content:space-between;align-items:center;}
+.slot-time{font-size:12px;font-weight:700;color:var(--gray-700);}
+.slot-del{background:none;border:none;color:var(--gray-400);cursor:pointer;font-size:16px;padding:0 4px;}
+.slot-del:hover{color:var(--danger);}
+
+/* ── 예약 목록 ── */
+.filter-btn{padding:6px 14px;border-radius:50px;border:2px solid var(--gray-200);background:var(--white);font-family:'Pretendard',sans-serif;font-size:13px;font-weight:500;color:var(--gray-500);cursor:pointer;transition:all .2s;}
+.filter-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:700;}
+.sort-btn{padding:6px 14px;border-radius:50px;border:2px solid var(--gray-200);background:var(--white);font-family:'Pretendard',sans-serif;font-size:12px;font-weight:500;color:var(--gray-500);cursor:pointer;transition:all .2s;}
+.sort-btn.active{background:var(--gray-700);border-color:var(--gray-700);color:#fff;font-weight:700;}
+
+/* ── 토글 ── */
+.toggle-wrap{display:flex;align-items:center;gap:10px;}
+.toggle{position:relative;width:44px;height:24px;cursor:pointer;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:var(--gray-300);border-radius:24px;transition:.3s;}
+.toggle-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s;}
+.toggle input:checked+.toggle-slider{background:var(--primary);}
+.toggle input:checked+.toggle-slider:before{transform:translateX(20px);}
+.toggle-label{font-size:14px;color:var(--gray-700);font-weight:500;}
+
+/* ── 공통 ── */
+.empty-state{text-align:center;padding:40px 20px;color:var(--gray-400);}
+.empty-state .empty-icon{font-size:40px;margin-bottom:10px;}
+.empty-state p{font-size:14px;line-height:1.7;}
+.footer{text-align:center;padding:24px;font-size:11px;color:var(--gray-400);}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--gray-800);color:#fff;padding:10px 20px;border-radius:50px;font-size:13px;font-weight:600;opacity:0;transition:all .3s;z-index:999;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── GAS 배너 ── */
+.gas-banner{padding:10px 16px;font-size:12px;font-weight:600;text-align:center;}
+.gas-banner.ok{background:#ECFDF5;color:#059669;}
+.gas-banner.err{background:#FEF2F2;color:#DC2626;}
+.gas-banner.loading{background:#FFF7ED;color:#D97706;}
+
+/* ── 날짜 범위 생성 ── */
+.range-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+</style>
+</head>
+<body>
+
+<!-- ===================== 학생 메인 ===================== -->
+<div class="screen" id="mainScreen">
+  <div class="gas-banner loading" id="gasBanner" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 16px;">
+    <span id="gasBannerText">⏳ 데이터 불러오는 중...</span>
+    <span id="gasBannerSub" style="font-size:11px;font-weight:400;display:none;"></span>
+  </div>
+
+  <div class="app-header">
+    <div class="header-inner">
+      <div>
+        <div class="header-title">📚 학생 상담 예약</div>
+        <div class="header-meta">날짜와 시간을 선택해 예약하세요</div>
+        <div class="header-meta" style="margin-top:1px;display:flex;align-items:center;gap:6px;">Made by Cheon_R
+          <button onclick="showAdminLogin()" style="font-size:11px;color:var(--gray-400);background:none;border:1px solid var(--gray-300);border-radius:20px;padding:2px 8px;cursor:pointer;font-family:'Pretendard',sans-serif;white-space:nowrap;">⚙️ 관리자</button>
+        </div>
+      </div>
+      <div class="teacher-badge">
+        <div class="teacher-name" id="teacherNameBadge">천아름 선생님</div>
+        <div class="teacher-role" id="teacherRoleBadge">2026년도 1-4 담임교사</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 공지 -->
+  <div id="noticeWrap" style="display:none;max-width:480px;margin:12px auto 0;padding:0 16px;">
+    <div style="background:rgba(155,142,196,0.15);border-left:3px solid var(--primary);border-radius:10px;padding:13px 16px;">
+      <div id="noticeText"></div>
+    </div>
+  </div>
+
+  <!-- 내 예약 확인 -->
+  <div style="max-width:480px;margin:12px auto 0;padding:0 16px;">
+    <button onclick="openCheckModal()" style="width:100%;padding:12px;border-radius:10px;border:2px solid rgba(155,142,196,0.4);background:rgba(155,142,196,0.1);font-family:'Pretendard',sans-serif;font-size:14px;font-weight:600;color:var(--primary-dark);cursor:pointer;">🔍 내 예약 확인하기</button>
+  </div>
+
+  <div class="content">
+    <div class="stepper">
+      <div class="step active" id="step1"><div class="step-circle">1</div><div class="step-label">날짜</div></div>
+      <div class="step-line" id="line1"></div>
+      <div class="step" id="step2"><div class="step-circle">2</div><div class="step-label">시간</div></div>
+      <div class="step-line" id="line2"></div>
+      <div class="step" id="step3"><div class="step-circle">3</div><div class="step-label">정보</div></div>
+      <div class="step-line" id="line3"></div>
+      <div class="step" id="step4"><div class="step-circle">4</div><div class="step-label">확인</div></div>
+    </div>
+
+    <div id="bookingClosedMsg" class="empty-state" style="display:none;">
+      <div class="empty-icon">🔒</div>
+      <p>현재 상담 예약이 마감됐어요.<br>선생님께 문의해 주세요.</p>
+    </div>
+
+    <!-- STEP 1: 날짜 -->
+    <div id="sStep1">
+      <div class="card">
+        <div class="card-label">📆 상담 날짜를 선택해 주세요</div>
+        <div class="date-grid" id="dateGrid"></div>
+      </div>
+      <div id="noDateMsg" class="empty-state" style="display:none;">
+        <div class="empty-icon">📭</div>
+        <p>현재 예약 가능한 날짜가 없어요.<br>선생님께 문의해 주세요.</p>
+      </div>
+    </div>
+
+    <!-- STEP 2: 시간 -->
+    <div id="sStep2" style="display:none;">
+      <div class="card">
+        <div class="card-label">🕐 상담 시간을 선택해 주세요</div>
+        <div class="time-grid" id="timeGrid"></div>
+      </div>
+      <button class="btn btn-secondary" onclick="goStep(1)" style="margin-top:4px;">← 날짜 다시 선택</button>
+    </div>
+
+    <!-- STEP 3: 정보 입력 -->
+    <div id="sStep3" style="display:none;">
+      <div class="card">
+        <div class="card-label">✍️ 정보를 입력해 주세요</div>
+        <div class="form-group">
+          <label class="form-label">이름 *</label>
+          <input class="form-input" id="inputStudent" placeholder="예: 홍길동" type="text">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="form-group">
+            <label class="form-label">학급 *</label>
+            <input class="form-input" id="inputClass" placeholder="예: 1-4" type="text">
+          </div>
+          <div class="form-group">
+            <label class="form-label">번호 *</label>
+            <input class="form-input" id="inputNumber" placeholder="예: 15" type="number">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">상담 주제 *</label>
+          <select class="form-input" id="inputTopic">
+            <option value="">선택해 주세요</option>
+            <option value="학업">📖 학업</option>
+            <option value="진로">🎯 진로</option>
+            <option value="생활">🌱 생활</option>
+            <option value="기타">💬 기타</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">하고 싶은 말 (선택)</label>
+          <textarea class="form-input" id="inputMemo" placeholder="미리 알려주면 더 준비된 상담이 가능해요 😊"></textarea>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="goStep4Check()">다음 → 예약 확인</button>
+      <button class="btn btn-secondary" onclick="goStep(2)" style="margin-top:8px;">← 시간 다시 선택</button>
+    </div>
+
+    <!-- STEP 4: 확인 -->
+    <div id="sStep4" style="display:none;">
+      <button class="btn btn-primary" onclick="openConfirmModal()">📋 예약 내용 확인하기</button>
+      <button class="btn btn-secondary" onclick="goStep(3)" style="margin-top:8px;">← 정보 다시 입력</button>
+    </div>
+  </div>
+
+  <div class="footer">© 2026 · Made by Cheon_R</div>
+</div>
+
+<!-- ===================== 예약 완료 ===================== -->
+<div class="screen" id="successScreen">
+  <div class="success-wrap">
+    <div class="success-icon">✅</div>
+    <div class="success-title">예약이 완료됐어요!</div>
+    <div class="success-desc" id="successDesc">상담 당일 잊지 말고 시간 맞춰 와요 😊</div>
+    <div class="success-card" id="successCard"></div>
+    <button class="btn btn-primary" onclick="goHome()" style="max-width:280px;">홈으로 돌아가기</button>
+  </div>
+</div>
+
+<!-- ===================== 관리자 로그인 ===================== -->
+<div class="flex-screen" id="adminLoginScreen">
+  <div class="login-box">
+    <div class="login-icon">🔐</div>
+    <div class="login-title">관리자 로그인</div>
+    <div class="login-sub">관리자 비밀번호를 입력하세요</div>
+    <input class="form-input" id="loginPwInput" type="password" placeholder="비밀번호" style="text-align:center;letter-spacing:4px;" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="login-error" id="loginError">비밀번호가 올바르지 않아요.</div>
+    <button class="btn btn-primary" onclick="doLogin()" style="margin-top:14px;">로그인</button>
+    <button class="btn btn-secondary" onclick="backToMain()" style="margin-top:8px;">← 돌아가기</button>
+  </div>
+</div>
+
+<!-- ===================== 관리자 화면 ===================== -->
+<div class="screen" id="adminScreen">
+  <div class="admin-header">
+    <div class="admin-header-title">⚙️ 관리자 · <span style="font-size:11px;opacity:.7;">Made by Cheon_R</span></div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="admin-logout" onclick="openGuideModal()">📖 가이드</button>
+      <button class="admin-logout" onclick="adminLogout()">로그아웃</button>
+    </div>
+  </div>
+  <div class="admin-nav">
+    <button class="admin-nav-btn active" onclick="switchAdminTab('gasurl')" id="aTab-gasurl">🔗 GAS 연결</button>
+    <button class="admin-nav-btn" onclick="switchAdminTab('settings')" id="aTab-settings">⚙️ 기본 설정</button>
+    <button class="admin-nav-btn" onclick="switchAdminTab('presets')" id="aTab-presets">🕐 시간대 설정</button>
+    <button class="admin-nav-btn" onclick="switchAdminTab('slots')" id="aTab-slots">📅 날짜 생성</button>
+    <button class="admin-nav-btn" onclick="switchAdminTab('bookings')" id="aTab-bookings">📋 상담 현황</button>
+  </div>
+  <div class="admin-body">
+
+    <!-- GAS URL -->
+    <div class="admin-section active" id="adminSec-gasurl">
+      <div class="admin-card">
+        <div class="admin-card-title">🔗 GAS 웹앱 URL 설정</div>
+        <div class="info-box"><p>Google Apps Script 웹앱 URL을 여기서 설정해요.</p></div>
+        <div class="form-group">
+          <label class="form-label">현재 연결된 URL</label>
+          <div id="currentGasUrlDisplay" style="font-size:12px;color:var(--gray-500);background:var(--gray-50);border-radius:8px;padding:10px 12px;word-break:break-all;margin-bottom:14px;border:1px solid var(--gray-200);"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">새 GAS 웹앱 URL</label>
+          <input class="form-input" id="adminGasUrlInput" placeholder="https://script.google.com/macros/s/..." type="url">
+        </div>
+        <div id="adminGasUrlMsg" style="font-size:13px;margin-bottom:10px;display:none;"></div>
+        <button class="btn btn-primary" onclick="adminSaveGasUrl()" style="margin-bottom:10px;">🔗 연결 확인 후 저장</button>
+        <button class="btn btn-danger" onclick="adminDisconnectGasUrl()" style="font-size:13px;">🔌 연결 끊기</button>
+      </div>
+
+      <div class="admin-card" id="studentLinkCard" style="display:none;border:2px solid var(--primary-mid);">
+        <div class="admin-card-title">📤 학생 배포용 링크</div>
+        <div class="info-box" style="margin-bottom:14px;"><p>아래 링크를 복사해서 학생들에게 공유하세요.</p></div>
+        <div id="studentLinkDisplay" style="font-size:12px;color:var(--gray-700);background:var(--gray-50);border-radius:8px;padding:10px 12px;word-break:break-all;border:1px solid var(--gray-200);margin-bottom:12px;"></div>
+        <button class="btn btn-primary" onclick="copyStudentLink()">📋 링크 복사</button>
+        <div id="studentLinkCopyMsg" style="font-size:12px;color:var(--success);margin-top:8px;display:none;">✅ 복사됐어요!</div>
+      </div>
+
+      <!-- 설치 가이드 아코디언 -->
+      <div class="admin-card" style="border:1px solid var(--gray-200);">
+        <div onclick="toggleGuide()" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
+          <div class="admin-card-title" style="margin-bottom:0;">📖 설치 가이드</div>
+          <span id="guideArrow" style="font-size:18px;color:var(--gray-400);transition:transform .3s;">▾</span>
+        </div>
+        <div id="guideContent" style="display:none;margin-top:16px;">
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div style="background:var(--gray-50);border-radius:10px;padding:14px;border-left:4px solid var(--primary);">
+              <div style="font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:8px;">Step 1. GAS 파일 복사하기</div>
+              <ol style="font-size:13px;color:var(--gray-600);line-height:1.9;padding-left:18px;margin:0;">
+                <li>구글 스프레드시트 → 확장 프로그램 → Apps Script</li>
+                <li>기존 코드 삭제 후 배포용 GAS 코드 붙여넣기</li>
+              </ol>
+            </div>
+            <div style="background:var(--gray-50);border-radius:10px;padding:14px;border-left:4px solid var(--primary);">
+              <div style="font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:8px;">Step 2. 웹앱으로 배포하기</div>
+              <ol style="font-size:13px;color:var(--gray-600);line-height:1.9;padding-left:18px;margin:0;">
+                <li>배포 → 새 배포 → 웹 앱</li>
+                <li>액세스: 모든 사용자 → 배포 → 권한 허용</li>
+                <li>웹앱 URL 복사</li>
+              </ol>
+            </div>
+            <div style="background:var(--gray-50);border-radius:10px;padding:14px;border-left:4px solid var(--primary);">
+              <div style="font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:8px;">Step 3. URL 연결 후 시간대 설정</div>
+              <ol style="font-size:13px;color:var(--gray-600);line-height:1.9;padding-left:18px;margin:0;">
+                <li>GAS 연결 탭에 URL 붙여넣고 저장</li>
+                <li>🕐 시간대 설정 탭에서 프리셋 확인/수정</li>
+                <li>📅 날짜 생성 탭에서 날짜 범위 입력 → 슬롯 자동 생성</li>
+              </ol>
+            </div>
+            <div style="background:#FEF9C3;border-radius:10px;padding:12px 14px;font-size:12px;color:#92400E;line-height:1.8;">
+              💡 코드 수정 후 재배포 시 <b>새 배포</b>가 아닌 <b>배포 관리 → 수정</b>으로 해야 URL이 유지돼요.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 기본 설정 -->
+    <div class="admin-section" id="adminSec-settings">
+      <div class="admin-card">
+        <div class="admin-card-title">👤 선생님 정보</div>
+        <div class="form-group">
+          <label class="form-label">선생님 이름</label>
+          <input class="form-input" id="setTeacherName" placeholder="예: 천아름 선생님">
+        </div>
+        <div class="form-group">
+          <label class="form-label">직함 / 설명</label>
+          <input class="form-input" id="setTeacherRole" placeholder="예: 2026년도 1-4 담임교사">
+        </div>
+        <button class="btn btn-primary" onclick="adminSaveTeacherInfo()">저장</button>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-title">🔒 비밀번호 변경</div>
+        <div class="form-group">
+          <label class="form-label">현재 비밀번호</label>
+          <input class="form-input" id="setPwCurrent" type="password" placeholder="현재 비밀번호">
+        </div>
+        <div class="form-group">
+          <label class="form-label">새 비밀번호</label>
+          <input class="form-input" id="setPwNew" type="password" placeholder="새 비밀번호">
+        </div>
+        <div class="form-group">
+          <label class="form-label">새 비밀번호 확인</label>
+          <input class="form-input" id="setPwConfirm" type="password" placeholder="새 비밀번호 확인">
+        </div>
+        <div id="pwChangeMsg" style="font-size:12px;margin-bottom:10px;display:none;"></div>
+        <button class="btn btn-primary" onclick="adminSavePassword()">비밀번호 변경</button>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-title">📢 공지 문구</div>
+        <div class="form-group">
+          <textarea class="form-input" id="setNotice" placeholder="예: 상담기간: 5월~6월&#10;1인 1회 예약 가능합니다" style="height:100px;"></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="adminSaveNotice()">저장</button>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-title">🔒 예약 마감 설정</div>
+        <div class="toggle-wrap">
+          <label class="toggle">
+            <input type="checkbox" id="bookingToggle" onchange="adminSaveBookingToggle()">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label" id="bookingToggleLabel">예약 진행 중</span>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-title">🗑️ 데이터 초기화</div>
+        <div class="info-box"><p>상담기간이 끝나고 새로 시작할 때 사용하세요.</p></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button class="btn btn-secondary" onclick="adminClearBookings()" style="font-size:13px;padding:11px;">예약만 초기화</button>
+          <button class="btn btn-danger" onclick="adminClearAll()" style="font-size:13px;padding:11px;">전체 초기화</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 시간대 프리셋 설정 -->
+    <div class="admin-section" id="adminSec-presets">
+      <div class="admin-card">
+        <div class="admin-card-title">🕐 시간대 프리셋 설정</div>
+        <div class="info-box"><p>각 시간대의 시작시간 · 요일 · 활성화 여부를 설정하세요.<br>2슬롯 항목은 시작시간 기준 0~20분 / 30~50분으로 자동 분할돼요.</p></div>
+        <div id="presetList"></div>
+        <button class="btn btn-primary" onclick="adminSavePresets()" style="margin-top:4px;">💾 프리셋 저장</button>
+      </div>
+    </div>
+
+    <!-- 날짜 생성 -->
+    <div class="admin-section" id="adminSec-slots">
+      <div class="admin-card">
+        <div class="admin-card-title">📅 날짜 범위로 슬롯 자동 생성</div>
+        <div class="info-box"><p>날짜 범위를 입력하면 시간대 프리셋 설정에 따라 슬롯이 자동으로 만들어져요.</p></div>
+        <div class="range-row">
+          <div>
+            <label class="form-label" style="font-size:12px;">시작일</label>
+            <input type="date" id="rangeStart" class="form-input" style="font-size:13px;padding:10px;">
+          </div>
+          <div>
+            <label class="form-label" style="font-size:12px;">종료일</label>
+            <input type="date" id="rangeEnd" class="form-input" style="font-size:13px;padding:10px;">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="generateSlots()" style="margin-bottom:10px;">✨ 슬롯 자동 생성</button>
+        <button class="btn btn-secondary" onclick="adminRefreshSlots()">🔄 새로고침</button>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-title">📋 현재 슬롯 목록</div>
+        <div id="daySlotList"></div>
+      </div>
+    </div>
+
+    <!-- 상담 현황 -->
+    <div class="admin-section" id="adminSec-bookings">
+      <div class="admin-card">
+        <div class="admin-card-title">📋 전체 상담 현황</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+          <button class="filter-btn active" id="filter-all" onclick="setFilter('all')">전체</button>
+          <button class="filter-btn" id="filter-학업" onclick="setFilter('학업')">📖 학업</button>
+          <button class="filter-btn" id="filter-진로" onclick="setFilter('진로')">🎯 진로</button>
+          <button class="filter-btn" id="filter-생활" onclick="setFilter('생활')">🌱 생활</button>
+          <button class="filter-btn" id="filter-기타" onclick="setFilter('기타')">💬 기타</button>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:14px;">
+          <button class="sort-btn active" id="sort-date" onclick="setSort('date')">날짜순</button>
+          <button class="sort-btn" id="sort-time" onclick="setSort('time')">시간순</button>
+          <button class="sort-btn" id="sort-class" onclick="setSort('class')">학급순</button>
+        </div>
+        <button class="btn btn-secondary" onclick="adminLoadBookings()" style="margin-bottom:14px;">🔄 새로고침</button>
+        <div id="bookingTableWrap"><div class="empty-state"><div class="empty-icon">📋</div><p>새로고침을 눌러 불러오세요</p></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===================== 확인 모달 ===================== -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">예약 내용 확인</div>
+    <div class="modal-date" id="modalDateLabel"></div>
+    <hr class="modal-divider">
+    <div class="modal-row"><span class="modal-row-label">날짜</span><span class="modal-row-value" id="modalDate"></span></div>
+    <div class="modal-row"><span class="modal-row-label">시간</span><span class="modal-row-value" id="modalTime"></span></div>
+    <div class="modal-row"><span class="modal-row-label">이름</span><span class="modal-row-value" id="modalStudent"></span></div>
+    <div class="modal-row"><span class="modal-row-label">학급/번호</span><span class="modal-row-value" id="modalClass"></span></div>
+    <div class="modal-row"><span class="modal-row-label">상담 주제</span><span class="modal-row-value" id="modalTopic"></span></div>
+    <div class="modal-row" id="modalMemoRow" style="display:none;"><span class="modal-row-label">메모</span><span class="modal-row-value" id="modalMemo" style="font-size:13px;text-align:right;max-width:200px;line-height:1.5;word-break:keep-all;"></span></div>
+    <div class="modal-warning">위 내용으로 예약을 확정할까요?<br>확정 후에는 변경이 어렵습니다.</div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" onclick="closeConfirmModal()">수정하기</button>
+      <button class="btn btn-primary" id="confirmBtn" onclick="submitBooking()">예약 확정</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== 슬롯 충돌 모달 ===================== -->
+<div class="modal-overlay" id="slotConflictModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;padding:10px 0 20px;">
+      <div style="font-size:48px;margin-bottom:14px;">⏰</div>
+      <div style="font-size:18px;font-weight:700;color:var(--gray-900);margin-bottom:10px;">다른 친구가 먼저 예약했어요</div>
+      <div style="font-size:14px;color:var(--gray-500);line-height:1.8;margin-bottom:20px;">방금 선택한 시간이 이미 예약됐어요.<br>다른 시간을 선택해 주세요.</div>
+    </div>
+    <button class="btn btn-primary" onclick="closeSlotConflictModal()">다른 시간 선택하기</button>
+  </div>
+</div>
+
+<!-- ===================== 중복 모달 ===================== -->
+<div class="modal-overlay" id="dupModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;padding:10px 0 20px;">
+      <div style="font-size:48px;margin-bottom:14px;">⚠️</div>
+      <div style="font-size:18px;font-weight:700;color:var(--gray-900);margin-bottom:8px;">이미 예약이 완료됐어요</div>
+      <div id="dupModalDesc" style="font-size:14px;color:var(--gray-500);line-height:1.8;margin-bottom:20px;"></div>
+      <div style="background:var(--primary-light);border-radius:12px;padding:16px;margin-bottom:20px;text-align:left;" id="dupModalInfo"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <button class="btn btn-secondary" onclick="closeDupModal()">돌아가기</button>
+      <button class="btn btn-primary" onclick="closeDupModal();openCheckModal()">내 예약 확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== 예약 확인 모달 ===================== -->
+<div class="modal-overlay" id="checkModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="margin-bottom:16px;">🔍 내 예약 확인</div>
+    <div class="form-group">
+      <label class="form-label">이름을 입력해 주세요</label>
+      <input class="form-input" id="checkNameInput" placeholder="예: 홍길동" type="text" onkeydown="if(event.key==='Enter')doCheckBooking()">
+    </div>
+    <div id="checkResult" style="display:none;margin-top:14px;"></div>
+    <div class="modal-btns" style="margin-top:14px;">
+      <button class="btn btn-secondary" onclick="closeCheckModal()">닫기</button>
+      <button class="btn btn-primary" onclick="doCheckBooking()">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== 사용 가이드 모달 ===================== -->
+<div class="modal-overlay" id="guideModal">
+  <div class="modal-sheet" style="max-height:90vh;overflow-y:auto;">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="margin-bottom:20px;">📖 사용 가이드</div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div style="background:var(--primary-light);border-radius:12px;padding:14px;border-left:4px solid var(--primary);">
+        <div style="font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:8px;">Step 1. GAS 연결</div>
+        <ol style="font-size:13px;color:var(--gray-600);line-height:2;padding-left:18px;margin:0;">
+          <li>구글 스프레드시트 → Apps Script → GAS 코드 붙여넣기 → 저장</li>
+          <li>배포 → 새 배포 → 웹 앱 → 모든 사용자 → 배포</li>
+          <li>GAS 연결 탭에 URL 붙여넣고 저장</li>
+        </ol>
+      </div>
+      <div style="background:var(--primary-light);border-radius:12px;padding:14px;border-left:4px solid var(--primary);">
+        <div style="font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:8px;">Step 2. 시간대 설정</div>
+        <ol style="font-size:13px;color:var(--gray-600);line-height:2;padding-left:18px;margin:0;">
+          <li>🕐 시간대 설정 탭으로 이동</li>
+          <li>각 프리셋의 시작시간 · 요일 체크박스 확인/수정</li>
+          <li>💾 프리셋 저장 클릭</li>
+        </ol>
+      </div>
+      <div style="background:var(--primary-light);border-radius:12px;padding:14px;border-left:4px solid var(--primary);">
+        <div style="font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:8px;">Step 3. 날짜 생성 & 배포</div>
+        <ol style="font-size:13px;color:var(--gray-600);line-height:2;padding-left:18px;margin:0;">
+          <li>📅 날짜 생성 탭에서 시작일~종료일 입력</li>
+          <li>✨ 슬롯 자동 생성 클릭</li>
+          <li>GAS 연결 탭에서 학생 배포용 링크 복사 → 학생 공유</li>
+        </ol>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="closeGuideModal()" style="margin-top:20px;">확인</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// 설정
+// ══════════════════════════════════════════════════════
+const GAS_URL_KEY = 'studentConsultGasUrl';
+const DAY_NAMES   = ['일','월','화','수','목','금','토'];
+const DAY_FULL    = ['일요일','월요일','화요일','수요일','목요일','금요일','토요일'];
+
+const _paramGasUrl = new URLSearchParams(window.location.search).get('gas');
+if (_paramGasUrl && _paramGasUrl.startsWith('https://script.google.com')) {
+  localStorage.setItem(GAS_URL_KEY, _paramGasUrl);
+}
+let GAS_URL = localStorage.getItem(GAS_URL_KEY) || '';
+
+let appSettings = { teacherName:'천아름 선생님', teacherRole:'2026년도 1-4 담임교사', password:'0413', bookingEnabled:true, notice:'' };
+let appSlots    = [];
+let appBookings = [];
+let appPresets  = getDefaultPresets();
+
+let state = { currentStep:1, selectedDate:null, selectedTime:null };
+let bookingFilter = 'all';
+let bookingSort   = 'date';
+let bookingCache  = [];
+
+// ── 기본 프리셋 ────────────────────────────────────────
+function getDefaultPresets() {
+  return [
+    { id:'p1', name:'아침조회전', startTime:'07:35', days:[1,2,3,5], slots:1, enabled:true },
+    { id:'p2', name:'공강1',      startTime:'13:10', days:[2],       slots:2, enabled:true, slotToggle:[true,true] },
+    { id:'p3', name:'공강2',      startTime:'08:20', days:[4],       slots:2, enabled:true, slotToggle:[true,true] },
+    { id:'p4', name:'자율6교시',  startTime:'14:10', days:[3],       slots:2, enabled:true, slotToggle:[true,true] },
+    { id:'p5', name:'자율7교시',  startTime:'15:10', days:[3],       slots:2, enabled:true, slotToggle:[true,true] },
+    { id:'p6', name:'방과후',     startTime:'16:10', days:[1,2,3,4], slots:2, enabled:true, slotToggle:[true,true] },
+    { id:'p7', name:'방과후(금)', startTime:'15:10', days:[5],       slots:2, enabled:true, slotToggle:[true,true] },
+  ];
+}
+
+// ── JSONP 유틸 ─────────────────────────────────────────
+function jsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cb = 'cb_' + Date.now() + '_' + Math.floor(Math.random()*10000);
+    const script = document.createElement('script');
+    const timer = setTimeout(() => { cleanup(); reject(new Error('timeout')); }, 15000);
+    function cleanup() { clearTimeout(timer); delete window[cb]; if(script.parentNode) script.parentNode.removeChild(script); }
+    window[cb] = (data) => { cleanup(); resolve(data); };
+    script.onerror = () => { cleanup(); reject(new Error('Failed to fetch')); };
+    script.src = url + (url.includes('?')?'&':'?') + 'callback=' + cb;
+    document.head.appendChild(script);
+  });
+}
+async function gasGet(params) {
+  const qs = new URLSearchParams(params).toString();
+  return jsonp(GAS_URL + '?' + qs);
+}
+async function gasPost(body) {
+  const encoded = encodeURIComponent(JSON.stringify(body));
+  return jsonp(GAS_URL + '?jsonBody=' + encoded);
+}
+
+// ── 초기 로딩 ─────────────────────────────────────────
+async function loadAll() {
+  setBanner('loading', '⏳ 데이터 불러오는 중...');
+  try {
+    const data = await gasGet({ action:'getAll' });
+    if (data.result !== 'success') throw new Error(data.message);
+    applyAllData(data);
+    setBanner('ok', '✅ GAS 연결됨 · 실시간 동기화 중');
+    startPolling();
+  } catch(err) {
+    setBanner('err', '❌ GAS 연결 실패 · ' + err.message);
+  }
+}
+
+// ── 폴링 ──────────────────────────────────────────────
+let _pollingTimer = null;
+async function pollSlots() {
+  if (!GAS_URL) return;
+  try {
+    const res = await gasGet({ action:'getAll' });
+    if (res.result !== 'success') return;
+    if (res.slots) {
+      res.slots.forEach(newDay => {
+        const di = appSlots.findIndex(d => d.dateKey === newDay.dateKey);
+        if (di < 0) return;
+        newDay.slots.forEach(newSlot => {
+          const si = appSlots[di].slots.findIndex(s => s.id === newSlot.id);
+          if (si >= 0) appSlots[di].slots[si].booked = newSlot.booked;
+        });
+      });
+      renderDateGrid();
+      if (state.currentStep === 2) renderTimeGrid();
+      renderDaySlotList();
+    }
+    if (res.bookings) appBookings = res.bookings;
+  } catch(e) {}
+}
+function startPolling() {
+  if (_pollingTimer) clearInterval(_pollingTimer);
+  _pollingTimer = setInterval(pollSlots, 30000);
+}
+function stopPolling() {
+  if (_pollingTimer) { clearInterval(_pollingTimer); _pollingTimer = null; }
+}
+
+function applyAllData(data) {
+  if (data.settings) { appSettings = { ...appSettings, ...data.settings }; applySettingsUI(); }
+  if (data.slots)    { appSlots    = data.slots;    renderDateGrid(); }
+  if (data.bookings) { appBookings = data.bookings; }
+  if (data.presets)  { appPresets  = data.presets;  renderPresetList(); }
+}
+
+function setBanner(type, msg) {
+  const b = document.getElementById('gasBanner');
+  b.className = 'gas-banner ' + type;
+  document.getElementById('gasBannerText').textContent = msg;
+  const sub = document.getElementById('gasBannerSub');
+  if (type === 'ok') {
+    sub.textContent = '✔ 위 상태일 때만 예약 입력이 저장돼요';
+    sub.style.display = 'block'; sub.style.opacity = '0.75';
+  } else if (type === 'err') {
+    sub.textContent = '⚠ 기록이 저장되지 않아요 · 새로고침 후 잠시 기다려 주세요';
+    sub.style.display = 'block'; sub.style.opacity = '1';
+  } else {
+    sub.style.display = 'none';
+  }
+}
+
+// ── 설정 적용 ─────────────────────────────────────────
+function applySettingsUI() {
+  const s = appSettings;
+  document.getElementById('teacherNameBadge').textContent = s.teacherName;
+  document.getElementById('teacherRoleBadge').textContent = s.teacherRole;
+  const wrap = document.getElementById('noticeWrap');
+  if (s.notice) {
+    const lines = s.notice.split('\n');
+    const html = lines.map(line => {
+      const trimmed = line.trim();
+      if (!trimmed) return '';
+      if (trimmed.startsWith('(') || trimmed.startsWith('（'))
+        return `<div style="font-size:11.5px;color:var(--gray-400);line-height:1.6;padding-left:4px;margin-top:1px;">${trimmed}</div>`;
+      const hasLeadingEmoji = /^[\p{Emoji}]/u.test(trimmed);
+      if (hasLeadingEmoji)
+        return `<div style="font-size:13px;font-weight:700;color:var(--primary-dark);line-height:1.7;margin-top:4px;">${trimmed}</div>`;
+      return `<div style="font-size:12.5px;color:var(--gray-600);line-height:1.7;padding-left:4px;">${trimmed}</div>`;
+    }).join('');
+    document.getElementById('noticeText').innerHTML = html;
+    wrap.style.display = '';
+  } else { wrap.style.display = 'none'; }
+  const step1 = document.getElementById('sStep1');
+  const closedMsg = document.getElementById('bookingClosedMsg');
+  if (!s.bookingEnabled) { step1.style.display = 'none'; closedMsg.style.display = ''; }
+  else                   { step1.style.display = '';     closedMsg.style.display = 'none'; }
+  if (document.getElementById('setTeacherName')) {
+    document.getElementById('setTeacherName').value = s.teacherName;
+    document.getElementById('setTeacherRole').value = s.teacherRole;
+    document.getElementById('setNotice').value = (s.notice || '').replace(/\\n/g, '\n');
+    document.getElementById('bookingToggle').checked = !s.bookingEnabled;
+    document.getElementById('bookingToggleLabel').textContent = s.bookingEnabled ? '예약 진행 중' : '예약 마감됨';
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// 학생 흐름
+// ══════════════════════════════════════════════════════
+function renderDateGrid() {
+  const grid  = document.getElementById('dateGrid');
+  if (!grid) return;
+  const noMsg = document.getElementById('noDateMsg');
+  if (!appSlots.length) { grid.innerHTML=''; if(noMsg) noMsg.style.display=''; return; }
+  if (noMsg) noMsg.style.display='none';
+  grid.innerHTML = appSlots.map(d => {
+    const dt = new Date(d.dateKey+'T00:00:00');
+    const [,m,dd] = d.dateKey.split('-');
+    const hasAvail = d.slots.some(s=>!s.booked);
+    return `<div class="date-card${!hasAvail?' disabled':''}" onclick="${hasAvail?`selectDate('${d.dateKey}')`:''}" id="dc-${d.dateKey}">
+      <div class="day-name">${DAY_NAMES[dt.getDay()]}</div>
+      <div class="day-num">${parseInt(dd)}</div>
+      <div class="month">${parseInt(m)}월</div>
+    </div>`;
+  }).join('');
+}
+
+function selectDate(dateKey) {
+  const d = appSlots.find(x=>x.dateKey===dateKey);
+  if (!d) return;
+  state.selectedDate = { dateKey, label:d.label };
+  document.querySelectorAll('.date-card').forEach(c=>c.classList.remove('selected'));
+  const dc = document.getElementById('dc-'+dateKey);
+  if (dc) dc.classList.add('selected');
+  goStep(2); renderTimeGrid();
+}
+
+function renderTimeGrid() {
+  const d    = appSlots.find(x=>x.dateKey===state.selectedDate?.dateKey);
+  const grid = document.getElementById('timeGrid');
+  if (!d) { grid.innerHTML=''; return; }
+  grid.innerHTML = d.slots.map(s =>
+    `<button class="time-btn${s.booked?' booked':''}" onclick="${!s.booked?`selectTime(this,'${s.id}','${s.time}','${s.label||''}')`:''}" >
+      <div class="time-btn-label">${s.label||''}</div>
+      <div class="time-btn-time">${s.time}</div>
+    </button>`
+  ).join('');
+}
+
+function selectTime(el, slotId, time, label) {
+  state.selectedTime = { slotId, time, label };
+  document.querySelectorAll('.time-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  setTimeout(()=>goStep(3), 200);
+}
+
+function goStep(n) {
+  state.currentStep = n;
+  for(let i=1;i<=4;i++){
+    const s=document.getElementById('step'+i);
+    s.classList.remove('active','done');
+    if(i<n) s.classList.add('done'); else if(i===n) s.classList.add('active');
+  }
+  for(let i=1;i<=3;i++)
+    document.getElementById('line'+i).classList.toggle('done', i<n);
+  [1,2,3,4].forEach(i=> document.getElementById('sStep'+i).style.display = i===n?'':'none');
+}
+
+async function goStep4Check() {
+  const student = document.getElementById('inputStudent').value.trim();
+  const cls     = document.getElementById('inputClass').value.trim();
+  const num     = document.getElementById('inputNumber').value.trim();
+  const topic   = document.getElementById('inputTopic').value;
+  if (!student||!cls||!num||!topic) { alert('필수 항목을 모두 입력해 주세요.'); return; }
+  try {
+    const res = await gasGet({ action:'checkDuplicate', student });
+    if (res.exists) {
+      const b = appBookings.find(x => (x['학생이름']||x.student) === student);
+      document.getElementById('dupModalDesc').textContent = `'${student}' 학생은 이미 예약이 완료되어 있어요.`;
+      if (b) {
+        document.getElementById('dupModalInfo').innerHTML = `
+          <div style="font-size:13px;color:var(--gray-700);line-height:2.1;">
+            <div>날짜 &nbsp;<strong>${b['날짜']||b.dateLabel||''}</strong></div>
+            <div>시간 &nbsp;<strong>${b['시간']||b.time||''}</strong></div>
+            <div>주제 &nbsp;<strong>${b['상담주제']||b.topic||''}</strong></div>
+          </div>`;
+      } else { document.getElementById('dupModalInfo').innerHTML = ''; }
+      document.getElementById('dupModal').classList.add('open');
+      return;
+    }
+  } catch(e) {}
+  goStep(4);
+}
+
+function openConfirmModal() {
+  const d=state.selectedDate, t=state.selectedTime;
+  document.getElementById('modalDateLabel').textContent = d.label + ' ' + t.time;
+  document.getElementById('modalDate').textContent    = d.label;
+  document.getElementById('modalTime').textContent    = (t.label ? t.label + ' · ' : '') + t.time;
+  document.getElementById('modalStudent').textContent = document.getElementById('inputStudent').value;
+  document.getElementById('modalClass').textContent   = document.getElementById('inputClass').value + '반 ' + document.getElementById('inputNumber').value + '번';
+  document.getElementById('modalTopic').textContent   = document.getElementById('inputTopic').value;
+  const memo    = document.getElementById('inputMemo').value.trim();
+  const memoRow = document.getElementById('modalMemoRow');
+  if (memo) { document.getElementById('modalMemo').textContent=memo; memoRow.style.display=''; }
+  else       { memoRow.style.display='none'; }
+  document.getElementById('confirmModal').classList.add('open');
+}
+function closeConfirmModal() { document.getElementById('confirmModal').classList.remove('open'); }
+
+async function submitBooking() {
+  const btn = document.getElementById('confirmBtn');
+  btn.disabled=true; btn.textContent='처리 중...';
+  const student = document.getElementById('inputStudent').value.trim();
+  const cls     = document.getElementById('inputClass').value.trim();
+  const num     = document.getElementById('inputNumber').value.trim();
+  const topic   = document.getElementById('inputTopic').value;
+  const memo    = document.getElementById('inputMemo').value.trim();
+  const d       = state.selectedDate, t = state.selectedTime;
+  try {
+    const res = await gasPost({
+      action: 'saveBooking',
+      student, classNum:cls, number:num, topic, memo,
+      dateKey:   d.dateKey,
+      dateLabel: d.label,
+      time:      (t.label ? t.label + ' · ' : '') + t.time,
+      slotId:    t.slotId,
+      createdAt: new Date().toLocaleString('ko-KR'),
+    });
+    if (res.result === 'duplicate') { alert('이미 예약된 학생이에요.'); btn.disabled=false; btn.textContent='예약 확정'; closeConfirmModal(); return; }
+    if (res.result === 'slotBooked') { btn.disabled=false; btn.textContent='예약 확정'; closeConfirmModal(); openSlotConflictModal(); return; }
+    if (res.result !== 'success') throw new Error(res.message||'저장 실패');
+    const di = appSlots.findIndex(x=>x.dateKey===d.dateKey);
+    if (di>=0) { const si=appSlots[di].slots.findIndex(s=>s.id===t.slotId); if(si>=0) appSlots[di].slots[si].booked=true; }
+    renderDateGrid();
+    closeConfirmModal();
+    document.getElementById('successCard').innerHTML=`
+      <div class="row"><span class="row-label">날짜</span><span class="row-value">${d.label}</span></div>
+      <div class="row"><span class="row-label">시간</span><span class="row-value">${(t.label?t.label+' · ':'')+t.time}</span></div>
+      <div class="row"><span class="row-label">이름</span><span class="row-value">${student}</span></div>
+      <div class="row"><span class="row-label">학급/번호</span><span class="row-value">${cls}반 ${num}번</span></div>
+      <div class="row"><span class="row-label">주제</span><span class="row-value">${topic}</span></div>`;
+    stopPolling();
+    showScreen('successScreen');
+  } catch(err) {
+    const msg = err.message==='timeout' ? '서버 응답이 지연돼요. 잠시 후 다시 시도해 주세요.' : '예약 실패: '+err.message;
+    alert(msg); btn.disabled=false; btn.textContent='예약 확정';
+  }
+}
+
+// ── 내 예약 확인 ──────────────────────────────────────
+function openCheckModal()  { document.getElementById('checkNameInput').value=''; document.getElementById('checkResult').style.display='none'; document.getElementById('checkModal').classList.add('open'); }
+function closeCheckModal() { document.getElementById('checkModal').classList.remove('open'); }
+async function doCheckBooking() {
+  const name = document.getElementById('checkNameInput').value.trim();
+  if (!name) { alert('이름을 입력해 주세요.'); return; }
+  const result = document.getElementById('checkResult');
+  let b = appBookings.find(x => (x['학생이름']||x.student) === name);
+  if (!b) {
+    try {
+      const res = await gasGet({ action:'getBookings' });
+      if (res.result==='success') { appBookings=res.data; b=res.data.find(x=>(x['학생이름']||x.student)===name); }
+    } catch(e){}
+  }
+  if (b) {
+    result.innerHTML = `
+      <div style="background:var(--primary-light);border-radius:10px;padding:16px;">
+        <div style="font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:10px;">✅ 예약이 확인됐어요!</div>
+        <div style="font-size:13px;color:var(--gray-700);line-height:2;">
+          <div>날짜 &nbsp;<strong>${b['날짜']||b.dateLabel||''}</strong></div>
+          <div>시간 &nbsp;<strong>${b['시간']||b.time||''}</strong></div>
+          <div>주제 &nbsp;<strong>${b['상담주제']||b.topic||''}</strong></div>
+        </div>
+      </div>`;
+  } else {
+    result.innerHTML = `<div style="text-align:center;padding:16px;color:var(--gray-400);font-size:14px;">📭 예약 내역이 없어요</div>`;
+  }
+  result.style.display='';
+}
+function closeDupModal() { document.getElementById('dupModal').classList.remove('open'); }
+function openSlotConflictModal() { document.getElementById('slotConflictModal').classList.add('open'); }
+async function closeSlotConflictModal() {
+  document.getElementById('slotConflictModal').classList.remove('open');
+  try { const res = await gasGet({ action:'getSlots' }); if(res.result==='success'&&res.data){appSlots=res.data;renderDateGrid();} } catch(e){}
+  state.selectedTime = null; goStep(2); renderTimeGrid();
+}
+
+// ══════════════════════════════════════════════════════
+// 관리자
+// ══════════════════════════════════════════════════════
+function showAdminLogin() { document.getElementById('loginPwInput').value=''; document.getElementById('loginError').style.display='none'; showScreen('adminLoginScreen'); }
+function doLogin() {
+  if (document.getElementById('loginPwInput').value===appSettings.password) {
+    showScreen('adminScreen'); applySettingsUI(); renderPresetList(); renderDaySlotList();
+    switchAdminTab('gasurl');
+  } else { document.getElementById('loginError').style.display='block'; }
+}
+function adminLogout() { showScreen('mainScreen'); }
+function backToMain()  { showScreen('mainScreen'); }
+function openGuideModal()  { document.getElementById('guideModal').classList.add('open'); }
+function closeGuideModal() { document.getElementById('guideModal').classList.remove('open'); }
+
+function switchAdminTab(t) {
+  document.querySelectorAll('.admin-nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.admin-section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('aTab-'+t).classList.add('active');
+  document.getElementById('adminSec-'+t).classList.add('active');
+  if (t==='gasurl') {
+    document.getElementById('currentGasUrlDisplay').textContent = GAS_URL || '(미설정)';
+    document.getElementById('adminGasUrlInput').value = GAS_URL || '';
+    document.getElementById('adminGasUrlMsg').style.display = 'none';
+    if (GAS_URL) showStudentLinkCard(GAS_URL);
+  }
+  if (t==='bookings') adminLoadBookings();
+  if (t==='presets')  renderPresetList();
+}
+
+async function adminSaveGasUrl() {
+  const url = document.getElementById('adminGasUrlInput').value.trim();
+  const msg = document.getElementById('adminGasUrlMsg');
+  if (!url || !url.startsWith('https://script.google.com')) {
+    msg.style.display=''; msg.style.color='#DC2626'; msg.textContent='올바른 GAS URL을 입력해 주세요.'; return;
+  }
+  msg.style.display=''; msg.style.color='#D97706'; msg.textContent='⏳ 연결 확인 중...';
+  try {
+    const res = await fetch(url + '?action=getAll', { mode:'cors' });
+    const data = await res.json();
+    if (data.result !== 'success') throw new Error(data.message || 'GAS 오류');
+    localStorage.setItem(GAS_URL_KEY, url);
+    GAS_URL = url;
+    document.getElementById('currentGasUrlDisplay').textContent = url;
+    msg.style.color='#059669'; msg.textContent='✅ 연결 성공!';
+    applyAllData(data);
+    setBanner('ok', '✅ GAS 연결됨 · 실시간 동기화 중');
+    startPolling();
+    showStudentLinkCard(url);
+  } catch(err) {
+    msg.style.display=''; msg.style.color='#DC2626'; msg.textContent='❌ 연결 실패: '+err.message;
+  }
+}
+
+function adminDisconnectGasUrl() {
+  if (!confirm('GAS 연결을 끊을까요?')) return;
+  localStorage.removeItem(GAS_URL_KEY); GAS_URL = ''; stopPolling();
+  document.getElementById('currentGasUrlDisplay').textContent = '(미설정)';
+  document.getElementById('adminGasUrlInput').value = '';
+  document.getElementById('adminGasUrlMsg').style.display = 'none';
+  document.getElementById('studentLinkCard').style.display = 'none';
+  setBanner('err', '❌ GAS 연결 없음');
+  showToast('🔌 연결이 끊어졌어요');
+}
+
+function toggleGuide() {
+  const content = document.getElementById('guideContent');
+  const arrow   = document.getElementById('guideArrow');
+  const isOpen  = content.style.display !== 'none';
+  content.style.display = isOpen ? 'none' : 'block';
+  arrow.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
+function showStudentLinkCard(gasUrl) {
+  const baseUrl = window.location.origin + window.location.pathname;
+  const studentLink = baseUrl + '?gas=' + encodeURIComponent(gasUrl);
+  document.getElementById('studentLinkDisplay').textContent = studentLink;
+  document.getElementById('studentLinkCard').style.display = 'block';
+}
+
+function copyStudentLink() {
+  const link = document.getElementById('studentLinkDisplay').textContent;
+  navigator.clipboard.writeText(link).then(() => {
+    const msg = document.getElementById('studentLinkCopyMsg');
+    msg.style.display='block';
+    setTimeout(()=>{ msg.style.display='none'; }, 2500);
+  });
+}
+
+// ── 설정 저장 ─────────────────────────────────────────
+async function adminSaveSettings(partial, toastMsg) {
+  if (!GAS_URL) { showToast('⚠️ GAS URL 연결 후 사용 가능해요!'); return; }
+  try {
+    appSettings = { ...appSettings, ...partial };
+    const res = await gasPost({ action:'saveSettings', ...partial });
+    if (res.result !== 'success') throw new Error(res.message);
+    applySettingsUI();
+    showToast(toastMsg || '✅ 저장됐어요!');
+  } catch(err) { showToast('❌ 저장 실패: '+err.message); }
+}
+function adminSaveTeacherInfo() {
+  const n=document.getElementById('setTeacherName').value.trim();
+  const r=document.getElementById('setTeacherRole').value.trim();
+  if (!n) { alert('이름을 입력해 주세요.'); return; }
+  adminSaveSettings({ teacherName:n, teacherRole:r });
+}
+function adminSaveNotice() { adminSaveSettings({ notice: document.getElementById('setNotice').value.trim() }, '📢 공지가 저장됐어요!'); }
+function adminSaveBookingToggle() {
+  const enabled = !document.getElementById('bookingToggle').checked;
+  adminSaveSettings({ bookingEnabled: enabled }, enabled ? '✅ 예약이 열렸어요!' : '🔒 예약이 마감됐어요!');
+}
+async function adminSavePassword() {
+  const cur=document.getElementById('setPwCurrent').value;
+  const nw=document.getElementById('setPwNew').value;
+  const cf=document.getElementById('setPwConfirm').value;
+  const msg=document.getElementById('pwChangeMsg');
+  msg.style.display='block';
+  if (!GAS_URL) { msg.style.color='#D97706'; msg.textContent='⚠️ GAS URL 연결 후 사용 가능해요!'; return; }
+  if (cur!==appSettings.password) { msg.style.color='#EF4444'; msg.textContent='현재 비밀번호가 올바르지 않아요.'; return; }
+  if (!nw) { msg.style.color='#EF4444'; msg.textContent='새 비밀번호를 입력해 주세요.'; return; }
+  if (nw!==cf) { msg.style.color='#EF4444'; msg.textContent='새 비밀번호가 일치하지 않아요.'; return; }
+  try {
+    appSettings.password=nw;
+    await gasPost({ action:'saveSettings', password:nw });
+    msg.style.color='#10B981'; msg.textContent='비밀번호가 변경됐어요!';
+    ['setPwCurrent','setPwNew','setPwConfirm'].forEach(id=>document.getElementById(id).value='');
+  } catch(e) { msg.style.color='#EF4444'; msg.textContent='저장 실패: '+e.message; }
+}
+
+// ── 초기화 ────────────────────────────────────────────
+async function adminClearBookings() {
+  if (!GAS_URL) { showToast('⚠️ GAS URL 연결 후 사용 가능해요!'); return; }
+  if (!confirm('예약 데이터만 초기화할까요?')) return;
+  appSlots.forEach(d=>d.slots.forEach(s=>s.booked=false));
+  try { await gasPost({ action:'saveSlots', slots:appSlots }); appBookings=[]; renderDateGrid(); renderDaySlotList(); showToast('🗑️ 예약 초기화 완료!'); } catch(e) { showToast('❌ 실패: '+e.message); }
+}
+async function adminClearAll() {
+  if (!GAS_URL) { showToast('⚠️ GAS URL 연결 후 사용 가능해요!'); return; }
+  if (!confirm('모든 슬롯과 예약을 초기화할까요?\n이 작업은 되돌릴 수 없어요.')) return;
+  appSlots=[]; appBookings=[];
+  try { await gasPost({ action:'saveSlots', slots:[] }); renderDateGrid(); renderDaySlotList(); showToast('🗑️ 전체 초기화!'); } catch(e) { showToast('❌ 실패: '+e.message); }
+}
+
+// ══════════════════════════════════════════════════════
+// 프리셋 UI
+// ══════════════════════════════════════════════════════
+function renderPresetList() {
+  const wrap = document.getElementById('presetList');
+  if (!wrap) return;
+  wrap.innerHTML = appPresets.map((p, pi) => {
+    const dayChips = [1,2,3,4,5].map(d =>
+      `<div class="day-chip${p.days.includes(d)?' active':''}" onclick="togglePresetDay(${pi},${d})">${DAY_NAMES[d]}</div>`
+    ).join('');
+
+    const slotToggles = p.slots === 2 ? `
+      <div style="font-size:11px;color:var(--gray-500);margin-bottom:4px;margin-top:6px;">슬롯 활성화</div>
+      <div class="slot-toggle-row">
+        <button class="slot-toggle-btn${p.slotToggle?.[0]!==false?' on':''}" onclick="toggleSlot(${pi},0)">
+          앞 슬롯 (0~20분)
+        </button>
+        <button class="slot-toggle-btn${p.slotToggle?.[1]!==false?' on':''}" onclick="toggleSlot(${pi},1)">
+          뒷 슬롯 (30~50분)
+        </button>
+      </div>` : '';
+
+    return `<div class="preset-item${!p.enabled?' disabled-preset':''}">
+      <div class="preset-header">
+        <span class="preset-name">${p.name}</span>
+        <div class="preset-toggle-wrap">
+          <span style="font-size:11px;color:var(--gray-400);">${p.enabled?'활성':'비활성'}</span>
+          <label class="toggle" style="transform:scale(.85);">
+            <input type="checkbox" ${p.enabled?'checked':''} onchange="togglePreset(${pi})">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="preset-time-row">
+        <span style="font-size:12px;color:var(--gray-500);white-space:nowrap;">시작시간</span>
+        <input type="time" class="preset-time-input" value="${p.startTime}" onchange="updatePresetTime(${pi},this.value)">
+        <span style="font-size:11px;color:var(--gray-400);">${p.slots===2?'→ 2슬롯 자동분할':'→ 1슬롯'}</span>
+      </div>
+      <div class="day-chips">${dayChips}</div>
+      ${slotToggles}
+    </div>`;
+  }).join('');
+}
+
+function togglePreset(pi) {
+  appPresets[pi].enabled = !appPresets[pi].enabled;
+  renderPresetList();
+}
+function togglePresetDay(pi, day) {
+  const days = appPresets[pi].days;
+  const idx  = days.indexOf(day);
+  if (idx >= 0) days.splice(idx, 1);
+  else           days.push(day);
+  renderPresetList();
+}
+function updatePresetTime(pi, val) {
+  appPresets[pi].startTime = val;
+}
+function toggleSlot(pi, si) {
+  if (!appPresets[pi].slotToggle) appPresets[pi].slotToggle = [true, true];
+  appPresets[pi].slotToggle[si] = !appPresets[pi].slotToggle[si];
+  renderPresetList();
+}
+
+async function adminSavePresets() {
+  if (!GAS_URL) { showToast('⚠️ GAS URL 연결 후 사용 가능해요!'); return; }
+  try {
+    const res = await gasPost({ action:'savePresets', presets:appPresets });
+    if (res.result !== 'success') throw new Error(res.message);
+    showToast('✅ 프리셋이 저장됐어요!');
+  } catch(e) { showToast('❌ 저장 실패: '+e.message); }
+}
+
+// ══════════════════════════════════════════════════════
+// 슬롯 자동 생성
+// ══════════════════════════════════════════════════════
+function timeToMinutes(t) {
+  const [h,m] = t.split(':').map(Number);
+  return h*60+m;
+}
+function minutesToTime(m) {
+  const h = Math.floor(m/60);
+  const min = m%60;
+  return `${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
+}
+
+async function generateSlots() {
+  if (!GAS_URL) { showToast('⚠️ GAS URL 연결 후 사용 가능해요!'); return; }
+  const start = document.getElementById('rangeStart').value;
+  const end   = document.getElementById('rangeEnd').value;
+  if (!start || !end) { alert('시작일과 종료일을 모두 입력해 주세요.'); return; }
+  if (start > end)    { alert('종료일이 시작일보다 앞서요.'); return; }
+
+  // 날짜 범위 순회
+  const newSlots = [];
+  let cur = new Date(start + 'T00:00:00');
+  const endDate = new Date(end + 'T00:00:00');
+
+  while (cur <= endDate) {
+    const dayOfWeek = cur.getDay(); // 0=일, 1=월 ...
+    const dateKey   = cur.toISOString().slice(0,10);
+    const [,m,d]    = dateKey.split('-');
+    const label     = `${parseInt(m)}월 ${parseInt(d)}일 (${DAY_NAMES[dayOfWeek]})`;
+
+    // 이 날짜에 해당하는 프리셋 찾기
+    const slots = [];
+    appPresets.forEach(p => {
+      if (!p.enabled) return;
+      if (!p.days.includes(dayOfWeek)) return;
+
+      const startMin = timeToMinutes(p.startTime);
+
+      if (p.slots === 1) {
+        // 1슬롯: 시작~시작+20분
+        slots.push({
+          id:     Date.now().toString() + '_' + Math.random().toString(36).slice(2,6),
+          time:   `${p.startTime} ~ ${minutesToTime(startMin+20)}`,
+          label:  p.name,
+          booked: false,
+        });
+      } else {
+        // 2슬롯: 앞(0~20) / 뒤(30~50)
+        const st = p.slotToggle || [true, true];
+        if (st[0] !== false) {
+          slots.push({
+            id:     Date.now().toString() + '_' + Math.random().toString(36).slice(2,6),
+            time:   `${p.startTime} ~ ${minutesToTime(startMin+20)}`,
+            label:  p.name + ' ①',
+            booked: false,
+          });
+        }
+        if (st[1] !== false) {
+          slots.push({
+            id:     Date.now().toString() + '_' + Math.random().toString(36).slice(2,6),
+            time:   `${minutesToTime(startMin+30)} ~ ${minutesToTime(startMin+50)}`,
+            label:  p.name + ' ②',
+            booked: false,
+          });
+        }
+      }
+    });
+
+    if (slots.length > 0) {
+      // 기존 날짜 있으면 병합, 없으면 추가
+      const existing = appSlots.find(s => s.dateKey === dateKey);
+      if (existing) {
+        // 기존 예약 슬롯은 유지, 새 슬롯 추가
+        const existingTimes = new Set(existing.slots.map(s => s.time + s.label));
+        slots.forEach(s => {
+          if (!existingTimes.has(s.time + s.label)) existing.slots.push(s);
+        });
+      } else {
+        newSlots.push({ dateKey, label, slots });
+      }
+    }
+
+    cur.setDate(cur.getDate() + 1);
+  }
+
+  // 새 날짜 추가 후 정렬
+  appSlots = [...appSlots, ...newSlots].sort((a,b) => a.dateKey.localeCompare(b.dateKey));
+
+  try {
+    const res = await gasPost({ action:'saveSlots', slots:appSlots });
+    if (res.result !== 'success') throw new Error(res.message);
+    renderDaySlotList(); renderDateGrid();
+    showToast(`✨ ${newSlots.length}일치 슬롯이 생성됐어요!`);
+  } catch(e) { showToast('❌ 저장 실패: '+e.message); }
+}
+
+// ── 슬롯 목록 렌더 ────────────────────────────────────
+function renderDaySlotList() {
+  const wrap = document.getElementById('daySlotList');
+  if (!wrap) return;
+  if (!appSlots.length) { wrap.innerHTML='<div class="empty-state"><div class="empty-icon">📅</div><p>생성된 날짜가 없어요</p></div>'; return; }
+  wrap.innerHTML = appSlots.map((d,di) => {
+    const slotsHtml = d.slots.length
+      ? `<div class="slot-grid">${d.slots.map((s,si)=>`
+          <div class="slot-item">
+            <span class="slot-time">${s.label?`<span style="font-size:10px;color:var(--primary);display:block;">${s.label}</span>`:''}${s.time}${s.booked?` <span style="font-size:10px;color:#10B981;margin-left:3px;">✓예약</span>`:''}</span>
+            ${!s.booked?`<button class="slot-del" onclick="deleteSlot(${di},${si})">×</button>`:''}
+          </div>`).join('')}</div>`
+      : '<p style="font-size:13px;color:#9CA3AF;margin-bottom:12px;">슬롯이 없어요</p>';
+    return `<div class="day-section">
+      <div class="day-header">
+        <span>📅 ${d.label}</span>
+        <button onclick="deleteDay(${di})" style="background:none;border:none;color:rgba(155,142,196,.8);cursor:pointer;font-size:12px;font-family:'Pretendard',sans-serif;">날짜 삭제</button>
+      </div>
+      ${slotsHtml}
+    </div>`;
+  }).join('');
+}
+
+async function adminRefreshSlots() {
+  try {
+    const res = await gasGet({ action:'getAll' });
+    if (res.result !== 'success') throw new Error(res.message);
+    applyAllData(res); showToast('🔄 새로고침 완료!');
+  } catch(e) { showToast('❌ 실패: '+e.message); }
+}
+
+async function deleteDay(di) {
+  if (!confirm('이 날짜를 삭제할까요?')) return;
+  appSlots.splice(di,1);
+  await syncSlots('🗑️ 날짜가 삭제됐어요!');
+}
+async function deleteSlot(di,si) {
+  appSlots[di].slots.splice(si,1);
+  await syncSlots('🗑️ 슬롯이 삭제됐어요!');
+}
+async function syncSlots(msg) {
+  if (!GAS_URL) { showToast('⚠️ GAS URL 연결 후 사용 가능해요!'); return; }
+  try {
+    const res = await gasPost({ action:'saveSlots', slots:appSlots });
+    if (res.result!=='success') throw new Error(res.message);
+    renderDaySlotList(); renderDateGrid(); showToast(msg);
+  } catch(e) { showToast('❌ GAS 저장 실패: '+e.message); }
+}
+
+// ── 예약 현황 ─────────────────────────────────────────
+function setFilter(f) { bookingFilter=f; document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active')); document.getElementById('filter-'+f).classList.add('active'); renderBookings(); }
+function setSort(s)   { bookingSort=s;   document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));   document.getElementById('sort-'+s).classList.add('active');   renderBookings(); }
+
+async function adminLoadBookings() {
+  const wrap = document.getElementById('bookingTableWrap');
+  wrap.innerHTML='<div class="empty-state"><div class="empty-icon">⏳</div><p>불러오는 중...</p></div>';
+  try {
+    const res = await gasGet({ action:'getBookings' });
+    if (res.result!=='success') throw new Error(res.message);
+    appBookings=res.data; bookingCache=res.data; renderBookings();
+  } catch(e) { wrap.innerHTML=`<div class="empty-state"><div class="empty-icon">❌</div><p>불러오기 실패: ${e.message}</p></div>`; }
+}
+
+function renderBookings() {
+  const wrap = document.getElementById('bookingTableWrap');
+  let all = [...bookingCache].map(b => ({
+    student:   b['학생이름']||b.student||'',
+    classNum:  b['학급']||b.classNum||'',
+    number:    b['번호']||b.number||'',
+    topic:     b['상담주제']||b.topic||'',
+    dateLabel: b['날짜']||b.dateLabel||'',
+    time:      b['시간']||b.time||'',
+    slotId:    b['슬롯ID']||b.slotId||'',
+    dateKey:   b['날짜키']||b.dateKey||'',
+    memo:      b['메모']||b.memo||'',
+    createdAt: b['신청일시']||b.createdAt||'',
+  }));
+  if (!all.length) { wrap.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><p>아직 예약이 없어요</p></div>'; return; }
+  if (bookingFilter!=='all') all=all.filter(b=>b.topic===bookingFilter);
+  if (!all.length) { wrap.innerHTML='<div class="empty-state"><div class="empty-icon">🔍</div><p>해당 조건의 예약이 없어요</p></div>'; return; }
+  if (bookingSort==='date')  all.sort((a,b)=>a.dateLabel.localeCompare(b.dateLabel)||a.time.localeCompare(b.time));
+  if (bookingSort==='time')  all.sort((a,b)=>a.time.localeCompare(b.time)||a.dateLabel.localeCompare(b.dateLabel));
+  if (bookingSort==='class') all.sort((a,b)=>a.classNum.localeCompare(b.classNum)||Number(a.number)-Number(b.number));
+
+  const topicColors = { '학업':'#EDE9FE', '진로':'#FEF3C7', '생활':'#D1FAE5', '기타':'#F3F4F6' };
+  const topicText   = { '학업':'#7C3AED', '진로':'#D97706', '생활':'#059669', '기타':'#6B7280' };
+
+  const html = all.map(b => {
+    const bg = topicColors[b.topic]||'#F3F4F6';
+    const tc = topicText[b.topic]||'#6B7280';
+    return `<div style="background:var(--gray-50);border-radius:10px;padding:14px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:11px;background:${bg};color:${tc};border-radius:6px;padding:2px 8px;font-weight:700;">${b.topic}</span>
+          <strong style="font-size:14px;">${b.student}</strong>
+          <span style="font-size:12px;color:var(--gray-400);">${b.classNum}반 ${b.number}번</span>
+        </div>
+        <span style="font-size:11px;color:var(--gray-400);">${b.createdAt}</span>
+      </div>
+      <div style="font-size:13px;color:var(--primary-dark);font-weight:600;margin-bottom:4px;">📅 ${b.dateLabel} &nbsp;🕐 ${b.time}</div>
+      ${b.memo?`<div style="font-size:12px;color:var(--gray-500);margin-top:6px;padding-top:6px;border-top:1px solid var(--gray-200);">💬 ${b.memo}</div>`:''}
+      <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--gray-200);">
+        <button onclick="adminCancelBooking('${b.slotId}','${b.dateKey}')" style="background:none;border:1px solid #EF4444;color:#EF4444;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:'Pretendard',sans-serif;font-weight:600;">예약 취소</button>
+      </div>
+    </div>`;
+  }).join('');
+  wrap.innerHTML = `<div style="margin-top:4px;font-size:12px;color:var(--gray-400);margin-bottom:10px;">총 ${all.length}건</div>` + html;
+}
+
+async function adminCancelBooking(slotId, dateKey) {
+  if (!confirm('이 예약을 취소할까요?')) return;
+  try {
+    const res = await gasPost({ action:'cancelBooking', slotId, dateKey });
+    if (res.result!=='success'&&res.result!=='notfound') throw new Error(res.message||'실패');
+    const di = appSlots.findIndex(x=>x.dateKey===dateKey);
+    if (di>=0) { const si=appSlots[di].slots.findIndex(s=>s.id===slotId); if(si>=0) appSlots[di].slots[si].booked=false; }
+    renderDateGrid(); renderDaySlotList();
+    if (state.currentStep===2 && state.selectedDate?.dateKey===dateKey) renderTimeGrid();
+    showToast('🗑️ 예약이 취소됐어요!');
+    await adminLoadBookings();
+  } catch(e) { showToast('❌ 취소 실패: '+e.message); }
+}
+
+// ══════════════════════════════════════════════════════
+// 공통 유틸
+// ══════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen,.flex-screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function goHome() {
+  ['inputStudent','inputClass','inputNumber','inputMemo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const t=document.getElementById('inputTopic'); if(t) t.value='';
+  state = { currentStep:1, selectedDate:null, selectedTime:null };
+  goStep(1); showScreen('mainScreen'); loadAll();
+}
+function showToast(msg='✅ 저장됐어요!') {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// ══════════════════════════════════════════════════════
+// 진입점
+// ══════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  showScreen('mainScreen');
+  if (GAS_URL) { loadAll(); }
+  else { setBanner('err', '❌ GAS URL 미설정 · 관리자에게 문의하세요'); }
+});
+</script>
+</body>
+</html>
