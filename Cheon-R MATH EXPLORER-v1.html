@@ -1604,10 +1604,13 @@ canvas{width:100%;height:440px;display:block}
     </div>
     <div style="padding:10px 14px;border-bottom:1px solid var(--bor);display:grid;grid-template-columns:1fr 1fr;gap:5px" id="abs-mode-btns">
       <button class="law-btn" onclick="setAbsModeModal('abs_fx')">y = |f(x)|</button>
+      <button class="law-btn" onclick="setAbsModeModal('abs_fx_k')">|f(x)| = k</button>
       <button class="law-btn" onclick="setAbsModeModal('f_absx')">y = f(|x|)</button>
+      <button class="law-btn" onclick="setAbsModeModal('f_absx_k')">f(|x|) = k</button>
       <button class="law-btn" onclick="setAbsModeModal('absy_fx')">|y| = f(x)</button>
+      <button class="law-btn" onclick="setAbsModeModal('absy_fx_k')">|y|=f(x), y=k</button>
       <button class="law-btn" onclick="setAbsModeModal('absy_fabsx')">|y| = f(|x|)</button>
-      <button class="law-btn" onclick="setAbsModeModal('k_line')">|f(x)| = k</button>
+      <button class="law-btn" onclick="setAbsModeModal('absy_fabsx_k')">|y|=f(|x|), y=k</button>
     </div>
     <div id="absModalStats" style="padding:12px 16px;border-bottom:1px solid var(--bor);background:var(--bg);font-size:13px;line-height:1.9;font-family:'JetBrains Mono',monospace;min-height:48px">
       <span style="color:var(--tx3);font-size:12px;font-family:inherit">← 변환 방식을 선택하면 그래프가 바뀌어요</span>
@@ -5418,6 +5421,9 @@ function getAbsExpandedData(fStr){
 function updateAbsExpanded(fStr){
   const el=document.getElementById('abs-expanded');
   if(!el)return;
+  // k모드에서는 절댓값 벗긴 식 패널 숨김
+  const kModes=['abs_fx_k','f_absx_k','absy_fx_k','absy_fabsx_k','k_line'];
+  if(kModes.includes(SA.mode)){el.style.display='none';return;}
   const data=getAbsExpandedData(fStr);
   if(!data||!data.rows){el.style.display='none';return;}
 
@@ -5464,9 +5470,13 @@ function getAbsCanvasLines(fStr){
   const mode=SA.mode;
   const modeFormula={
     abs_fx:`y = |${fStr}|`,
+    abs_fx_k:`|${fStr}| = k`,
     f_absx:`y = ${absStrAbsX()}`,
+    f_absx_k:`${absStrAbsX()} = k`,
     absy_fx:`|y| = ${fStr}`,
+    absy_fx_k:`|y| = ${fStr}`,
     absy_fabsx:`|y| = ${absStrAbsX()}`,
+    absy_fabsx_k:`|y| = ${absStrAbsX()}`,
     k_line:`|${fStr}| = k`,
     none:`y = ${fStr}`
   };
@@ -5474,8 +5484,9 @@ function getAbsCanvasLines(fStr){
   // 타이틀: 절댓값 있는 식은 검정, none은 파랑
   const lines=[{text:eqLine,bold:true,color:mode==='none'?'#1A5FB4':'#1C1B18'}];
 
-  // 원함수 줄
-  if(mode!=='none'&&mode!=='k_line'){
+  // 원본 함수 줄
+  const kModes3=['abs_fx_k','f_absx_k','absy_fx_k','absy_fabsx_k','k_line'];
+  if(mode!=='none'&&!kModes3.includes(mode)){
     lines.push({text:`원함수: y = ${fStr}`,bold:false,color:'rgba(100,100,100,0.55)'});
   }
 
@@ -5491,10 +5502,14 @@ function getAbsCanvasLines(fStr){
 
 
 const ABS_MODE_META={
-  abs_fx:{icon:'①',color:'#C0392B',bg:'var(--rd-bg)',label:'y = |f(x)|'},
-  f_absx:{icon:'②',color:'#1A5FB4',bg:'var(--bl-bg)',label:'y = f(|x|)'},
-  absy_fx:{icon:'③',color:'#2D7D46',bg:'var(--gn-bg)',label:'|y| = f(x)'},
-  absy_fabsx:{icon:'④',color:'#E67E22',bg:'var(--am-bg)',label:'|y| = f(|x|)'},
+  abs_fx:    {icon:'①',color:'#C0392B',bg:'var(--rd-bg)', label:'y = |f(x)|'},
+  abs_fx_k:  {icon:'①',color:'#C0392B',bg:'var(--rd-bg)', label:'|f(x)| = k'},
+  f_absx:    {icon:'②',color:'#1A5FB4',bg:'var(--bl-bg)', label:'y = f(|x|)'},
+  f_absx_k:  {icon:'②',color:'#1A5FB4',bg:'var(--bl-bg)', label:'f(|x|) = k'},
+  absy_fx:   {icon:'③',color:'#2D7D46',bg:'var(--gn-bg)', label:'|y| = f(x)'},
+  absy_fx_k: {icon:'③',color:'#2D7D46',bg:'var(--gn-bg)', label:'|y|=f(x), y=k'},
+  absy_fabsx:  {icon:'④',color:'#E67E22',bg:'var(--am-bg)',label:'|y| = f(|x|)'},
+  absy_fabsx_k:{icon:'④',color:'#E67E22',bg:'var(--am-bg)',label:'|y|=f(|x|), y=k'},
   k_line:{icon:'⑤',color:'#5B3FA6',bg:'var(--pu-bg)',label:'|f(x)| = k'},
 };
 
@@ -5513,7 +5528,8 @@ function absStrAbsX(){
 
 function setAbsModeModal(mode){
   SA.mode=mode;
-  document.getElementById('abs-k-row').style.display=mode==='k_line'?'':'none';
+  const kModes=['abs_fx_k','f_absx_k','absy_fx_k','absy_fabsx_k','k_line'];
+  document.getElementById('abs-k-row').style.display=kModes.includes(mode)?'':'none';
   document.querySelectorAll('#abs-mode-btns .law-btn').forEach(b=>{
     b.classList.toggle('on',b.getAttribute('onclick').includes(`'${mode}'`));
   });
@@ -5543,6 +5559,7 @@ function closeAbsModal(){
   document.querySelectorAll('#abs-mode-btns .law-btn').forEach(b=>b.classList.remove('on'));
   document.getElementById('abs-mode-hint').textContent='클릭해보세요';
   document.getElementById('abs-eq').textContent='y = f(x)';
+  document.getElementById('abs-k-row').style.display='none';
 }
 
 function updateAbsModal(mode){
@@ -5551,19 +5568,24 @@ function updateAbsModal(mode){
   const iconEl=document.getElementById('absModalIcon');
   iconEl.textContent=meta.icon; iconEl.style.background=meta.bg; iconEl.style.color=meta.color;
   document.getElementById('abs-mode-hint').textContent=meta.label+' 적용 중';
-  // 왼쪽 패널 수식 업데이트
   const fStr=absStr();
   const modeFormula={
-    abs_fx:`y = |${fStr}|`,
-    f_absx:`y = ${absStrAbsX()}`,
-    absy_fx:`|y| = ${fStr}`,
-    k_line:`|${fStr}| = k`
+    abs_fx:        `y = |${fStr}|`,
+    abs_fx_k:      `|${fStr}| = k`,
+    f_absx:        `y = ${absStrAbsX()}`,
+    f_absx_k:      `${absStrAbsX()} = k`,
+    absy_fx:       `|y| = ${fStr}`,
+    absy_fx_k:     `|y| = ${fStr}`,
+    absy_fabsx:    `|y| = ${absStrAbsX()}`,
+    absy_fabsx_k:  `|y| = ${absStrAbsX()}`,
+    k_line:        `|${fStr}| = k`
   };
   document.getElementById('abs-eq').textContent=modeFormula[mode]||meta.label;
   ABS_MODAL_CONTENT[mode]();
 
-  // Stats 박스 하단에 구간별 풀어낸 식 append
-  if(mode!=='k_line'){
+  // 절댓값 벗긴 식 — 4개 그래프 변환 모드에서만
+  const graphModes=['abs_fx','f_absx','absy_fx','absy_fabsx'];
+  if(graphModes.includes(mode)){
     const data=getAbsExpandedData(fStr);
     if(data&&data.rows){
       const statsEl=document.getElementById('absModalStats');
@@ -5610,12 +5632,13 @@ const ABS_MODAL_CONTENT={
       y &lt; 0인 부분을 <strong>x축에 대하여 대칭이동</strong>한다.`,
       `x절편(실근)마다 꺾임점(뾰족점)이 생겨.<br>
       y = |f(x)|와 y = k 수평선의 교점 수 = |f(x)| = k의 실근 수.<br>
-      k를 올리면서 교점 수 변화를 관찰해봐!`,
+      k 슬라이더를 올리면서 교점 수 변화를 관찰해봐!`,
       `f(x)가 음수면 절댓값을 씌우면 양수가 되잖아.<br>
       그게 그래프에서는 <strong>x축 아래 부분을 위로 접어 올리는 것</strong>과 같아!<br>
       예를 들어 f(2) = −3이면 |f(2)| = 3,<br>
       그래프에서 (2, −3)이 (2, 3)으로 올라오는 거지.<br>
-      잘 이해가 안되면 특정 점으로 예시를 생각해봐! 💡`
+      <strong>y = |f(x)|의 x절편</strong>은 |f(x)| = 0, 즉 f(x) = 0의 해야.<br>
+      → 방정식 f(x) = 0의 실근 수 = y = |f(x)| 그래프의 x절편 개수! 💡`
     );
   },
   f_absx:()=>{
@@ -5632,11 +5655,13 @@ const ABS_MODAL_CONTENT={
       `y = f(x)의 그래프에서 <strong>x ≥ 0인 부분만 남긴 다음,</strong><br>
       x ≥ 0인 부분을 <strong>y축에 대하여 대칭이동</strong>한다.`,
       `항상 짝함수(y축 대칭)가 되고 f(|x|) = f(−|x|)야.<br>
-      양수 실근 1개 → f(|x|)의 실근은 2개(음수 대칭점에서도 만남)!`,
+      양수 실근 1개 → f(|x|)의 y=k 교점은 2개(음수 대칭점에서도 만남)!<br>
+      <strong>k 슬라이더</strong>로 y=k 수평선을 움직여 교점 수를 확인해봐!`,
       `x 자리에 |x|를 넣으면 x = 2일 때랑 x = −2일 때<br>
       |x|가 똑같이 2잖아. 그러니까 <strong>f(2) = f(−2)</strong>가 되는 거야!<br>
       결국 x ≥ 0 오른쪽 그래프를 y축 왼쪽에 그대로 복사하는 거지.<br>
-      잘 이해가 안되면 특정 점으로 예시를 생각해봐! 💡`
+      <strong>y = f(|x|)의 x절편</strong>은 f(|x|) = 0, 즉 f(x) = 0의 양수 해에 대응해.<br>
+      → 양수 실근 1개가 있으면 x절편이 2개(±)가 되는 이유가 바로 이것! 💡`
     );
   },
   absy_fx:()=>{
@@ -5653,11 +5678,12 @@ const ABS_MODAL_CONTENT={
       y ≥ 0인 부분을 <strong>x축에 대하여 대칭이동</strong>한다.`,
       `f(x) &lt; 0인 구간은 그래프가 없어.<br>
       f(x) ≥ 0인 구간에서 y = f(x)와 y = −f(x) 두 곡선이 그려져.<br>
-      x축에 대해 대칭인 형태가 만들어져.`,
+      <strong>k 슬라이더</strong>: y=k 수평선이 위쪽 곡선(y=f(x))과 아래쪽 곡선(y=−f(x)) 모두와의 교점을 표시해!`,
       `|y| = f(x)를 만족하려면 f(x)가 반드시 0 이상이어야 해.<br>
       그리고 |y| = k (k ≥ 0)를 만족하는 y는 <strong>k랑 −k 두 개</strong>잖아.<br>
       그래서 f(x) ≥ 0인 구간에서 위아래로 두 곡선이 생기는 거지.<br>
-      잘 이해가 안되면 특정 점으로 예시를 생각해봐! 💡`
+      <strong>두 곡선의 x절편</strong>은 f(x) = 0의 해 (f(x)≥0 구간의 경계).<br>
+      → 방정식 f(x) = 0의 실근 수 = 위아래 곡선이 x축에 닿는 점의 수! 💡`
     );
   },
   absy_fabsx:()=>{
@@ -5675,26 +5701,27 @@ const ABS_MODAL_CONTENT={
       x ≥ 0, y ≥ 0인 부분을 <strong>x축, y축 및 원점에 대하여<br>각각 대칭이동</strong>한다.`,
       `원본 f(x)에서 1사분면(x>0, y>0)에 있는 부분이<br>
       나머지 2·3·4사분면에도 대칭으로 나타나.<br>
-      y축 대칭 + x축 대칭 → 원점 대칭도 자동으로 성립해!`,
+      y축 대칭 + x축 대칭 → 원점 대칭도 자동으로 성립해!<br>
+      <strong>k 슬라이더</strong>로 y=k 수평선이 4개 사분면 곡선과 만나는 교점을 확인해봐!`,
       `②랑 ③을 동시에 적용한 거야.<br>
       x에 |x|를 넣어서 <strong>y축 대칭</strong>을 만들고,<br>
       |y|로 바꿔서 <strong>x축 대칭</strong>까지 추가한 거지.<br>
       결국 <strong>1사분면 그래프 하나가 4개 분면으로 퍼지는 거지.</strong><br>
-      잘 이해가 안되면 특정 점으로 예시를 생각해봐! 💡`
+      <strong>x절편</strong>은 f(x) = 0의 양수 해에 대응 → 대칭으로 음수 쪽에도 같은 위치에 생겨.<br>
+      → 방정식 f(x) = 0의 양수 실근 1개 → x절편은 최대 2개(±)! 💡`
     );
   },
   k_line:()=>{
     const f=absStr();
-    const crossPts=[];
     const fn=x=>Math.abs(absF(x));
-    let prev2=fn(-8)-SA.k;
-    for(let xi=-8;xi<=8;xi+=0.05){const cur2=fn(xi)-SA.k;if(prev2*cur2<0)crossPts.push(xi);prev2=cur2;}
+    let cnt=0,prev2=fn(-8)-SA.k;
+    for(let xi=-8;xi<=8;xi+=0.05){const c=fn(xi)-SA.k;if(prev2*c<0)cnt++;prev2=c;}
     document.getElementById('absModalStats').innerHTML=
       `<span style="color:var(--tx3);font-size:11px">변환</span><br>`+
       `<span style="color:var(--tx2)">y = ${f}</span><br>`+
       `<span style="font-size:16px">↓</span><br>`+
       `<strong style="color:var(--pu)">|${f}| = k</strong><br>`+
-      `k = <strong>${SA.k.toFixed(2)}</strong> &nbsp; 실근 개수: <strong style="color:var(--pu)">${crossPts.length}개</strong>`;
+      `k = <strong>${SA.k.toFixed(2)}</strong> &nbsp; 실근 개수: <strong style="color:var(--pu)">${cnt}개</strong>`;
     document.getElementById('absModalDesc').innerHTML=lawDesc(
       `|f(x)| = k 의 실근 수<br>= y=|f(x)|와 y=k의 교점 수`,
       `|f(x)| = k 를 f(x) = k 또는 f(x) = −k로 분리할 수 있어.<br>
@@ -5703,7 +5730,117 @@ const ABS_MODAL_CONTENT={
       k < 0이면 교점 없음 (|f(x)| ≥ 0이니까).`,
       `k = 0이면 |f(x)| = 0 → f(x) = 0의 실근과 동일.<br>
       k가 극값과 같을 때 교점 수가 변하는 순간(접선)에 주목!<br>
-      왼쪽 k 슬라이더를 올리면서 교점 수 변화를 확인해봐.`
+      왼쪽 k 슬라이더를 올리면서 교점 수 변화를 확인해봐.`,
+      `<strong>연립방정식 관점으로 보면:</strong><br>
+      <div style="background:white;border-radius:4px;padding:6px 10px;margin:4px 0;font-family:'JetBrains Mono',monospace">{  y = |f(x)|<br>{  y = k</div>
+      이 두 그래프의 <strong>교점의 x좌표 = |f(x)| = k 의 해</strong>야.<br>
+      → 연립방정식의 해의 개수 = 두 그래프의 교점의 개수! 💡`
+    );
+  },
+  abs_fx_k:()=>{
+    const f=absStr();
+    const fn=x=>Math.abs(absF(x));
+    let cnt=0,p=fn(-8)-SA.k;
+    for(let xi=-8;xi<=8;xi+=0.05){const c=fn(xi)-SA.k;if(p*c<0)cnt++;p=c;}
+    document.getElementById('absModalStats').innerHTML=
+      `<span style="color:var(--tx3);font-size:11px">변환 후</span><br>`+
+      `<strong style="color:#C0392B">y = |${f}|</strong><br>`+
+      `<span style="font-size:16px">↓</span><br>`+
+      `<strong style="color:var(--gn)">|${f}| = k</strong><br>`+
+      `k = <strong>${SA.k.toFixed(2)}</strong> &nbsp; 실근 개수: <strong style="color:var(--gn)">${cnt}개</strong>`;
+    document.getElementById('absModalDesc').innerHTML=lawDesc(
+      `|f(x)| = k 의 실근 수`,
+      `y = |f(x)| 그래프 위에서<br>
+      <strong>수평선 y = k 를 올리면서 교점 수를 세면 돼.</strong><br>
+      이게 바로 |f(x)| = k 의 실근 수야.`,
+      `k < 0이면 실근 없음 (|f(x)| ≥ 0이니까).<br>
+      k = 0이면 x절편 개수와 동일.<br>
+      극값 높이에서 교점 수가 확 바뀌는 것을 확인해봐!`,
+      `<strong>연립방정식 관점으로 보면:</strong><br>
+      <div style="background:white;border-radius:4px;padding:6px 10px;margin:4px 0;font-family:'JetBrains Mono',monospace">{  y = |f(x)|<br>{  y = k</div>
+      이 두 그래프를 동시에 그리면 교점이 생기잖아.<br>
+      <strong>그 교점의 x좌표가 바로 |f(x)| = k 의 실근</strong>이야.<br>
+      → 교점의 개수 = 방정식의 해의 개수! k 슬라이더로 확인해봐 💡`
+    );
+  },
+  f_absx_k:()=>{
+    const f=absStr();
+    const fax=absStrAbsX();
+    const fn=x=>absF(Math.abs(x));
+    let cnt=0,p=fn(-8)-SA.k;
+    for(let xi=-8;xi<=8;xi+=0.05){const c=fn(xi)-SA.k;if(p*c<0)cnt++;p=c;}
+    document.getElementById('absModalStats').innerHTML=
+      `<span style="color:var(--tx3);font-size:11px">변환 후</span><br>`+
+      `<strong style="color:#1A5FB4">y = ${fax}</strong><br>`+
+      `<span style="font-size:16px">↓</span><br>`+
+      `<strong style="color:var(--gn)">${fax} = k</strong><br>`+
+      `k = <strong>${SA.k.toFixed(2)}</strong> &nbsp; 실근 개수: <strong style="color:var(--gn)">${cnt}개</strong>`;
+    document.getElementById('absModalDesc').innerHTML=lawDesc(
+      `f(|x|) = k 의 실근 수`,
+      `y = f(|x|) 그래프 위에서<br>
+      <strong>수평선 y = k 와의 교점 수</strong>가 f(|x|) = k 의 실근 수야.`,
+      `y = f(|x|)는 y축 대칭이라서<br>
+      x > 0에서 교점 1개 → 대칭인 x < 0에서도 1개, 총 2개!<br>
+      y축(x=0)에서 만나면 그건 1개로 셰야 해.`,
+      `<strong>연립방정식 관점으로 보면:</strong><br>
+      <div style="background:white;border-radius:4px;padding:6px 10px;margin:4px 0;font-family:'JetBrains Mono',monospace">{  y = f(|x|)<br>{  y = k</div>
+      이 두 그래프의 <strong>교점의 x좌표 = f(|x|) = k 의 실근</strong>이야.<br>
+      y축 대칭 구조라서 오른쪽 교점 1개 → 왼쪽에도 1개(대칭).<br>
+      → 교점의 개수 = 방정식의 해의 개수! k 슬라이더로 확인해봐 💡`
+    );
+  },
+  absy_fx_k:()=>{
+    const f=absStr();
+    const baseFn=x=>absF(x);
+    let cnt=0;
+    const countCross=(tgt)=>{let p=baseFn(-8)-tgt;for(let xi=-8;xi<=8;xi+=0.05){const c=baseFn(xi)-tgt;if(p*c<0&&baseFn(xi)>=0)cnt++;p=c;}};
+    countCross(SA.k);
+    if(Math.abs(SA.k)>0.01) countCross(-SA.k);
+    document.getElementById('absModalStats').innerHTML=
+      `<span style="color:var(--tx3);font-size:11px">변환 후</span><br>`+
+      `<strong style="color:#2D7D46">|y| = ${f}</strong><br>`+
+      `<span style="font-size:16px">↓</span><br>`+
+      `<strong style="color:var(--gn)">|y|=f(x), y=k 교점</strong><br>`+
+      `k = <strong>${SA.k.toFixed(2)}</strong> &nbsp; 교점 수: <strong style="color:var(--gn)">${cnt}개</strong>`;
+    document.getElementById('absModalDesc').innerHTML=lawDesc(
+      `|y| = f(x) 에서 y = k 교점`,
+      `|y| = f(x) 는 위 곡선 y = f(x) 와 아래 곡선 y = −f(x) 두 개야.<br>
+      <strong>y = k 수평선</strong>은 이 두 곡선 모두와 만날 수 있어.`,
+      `위 곡선 y=f(x)와의 교점: f(x)=k (단, f(x)≥0 구간)<br>
+      아래 곡선 y=−f(x)와의 교점: f(x)=−k (단, f(x)≥0 구간)<br>
+      k > 0이면 위쪽 곡선과만 만나고, k < 0이면 아래쪽 곡선과만 만나!`,
+      `<strong>연립방정식 관점으로 보면:</strong><br>
+      <div style="background:white;border-radius:4px;padding:6px 10px;margin:4px 0;font-family:'JetBrains Mono',monospace">{  |y| = f(x)<br>{  y = k</div>
+      |y| = f(x) 는 위 곡선(y=f(x))과 아래 곡선(y=−f(x)) 두 개야.<br>
+      <strong>y=k 직선과의 교점 x좌표 = 방정식의 해</strong>야.<br>
+      → 위아래 두 곡선과의 교점 총 개수 = 해의 개수! k 슬라이더로 확인해봐 💡`
+    );
+  },
+  absy_fabsx_k:()=>{
+    const fax=absStrAbsX();
+    const baseFn=x=>absF(Math.abs(x));
+    let cnt=0;
+    const countCross=(tgt)=>{let p=baseFn(-8)-tgt;for(let xi=-8;xi<=8;xi+=0.05){const c=baseFn(xi)-tgt;if(p*c<0&&baseFn(xi)>=0)cnt++;p=c;}};
+    countCross(SA.k);
+    if(Math.abs(SA.k)>0.01) countCross(-SA.k);
+    document.getElementById('absModalStats').innerHTML=
+      `<span style="color:var(--tx3);font-size:11px">변환 후</span><br>`+
+      `<strong style="color:#E67E22">|y| = ${fax}</strong><br>`+
+      `<span style="font-size:16px">↓</span><br>`+
+      `<strong style="color:var(--gn)">|y|=f(|x|), y=k 교점</strong><br>`+
+      `k = <strong>${SA.k.toFixed(2)}</strong> &nbsp; 교점 수: <strong style="color:var(--gn)">${cnt}개</strong>`;
+    document.getElementById('absModalDesc').innerHTML=lawDesc(
+      `|y| = f(|x|) 에서 y = k 교점`,
+      `|y| = f(|x|) 는 4개 분면에 곡선이 있어.<br>
+      <strong>y = k 수평선</strong>은 위쪽 두 곡선(1·2사분면)과 만날 수 있어.`,
+      `위 곡선들(y = f(|x|), f(|x|)≥0)과의 교점: f(|x|) = k<br>
+      아래 곡선들(y = −f(|x|))과의 교점: f(|x|) = −k<br>
+      y축 대칭이라 오른쪽 교점 수 × 2!`,
+      `<strong>연립방정식 관점으로 보면:</strong><br>
+      <div style="background:white;border-radius:4px;padding:6px 10px;margin:4px 0;font-family:'JetBrains Mono',monospace">{  |y| = f(|x|)<br>{  y = k</div>
+      4개 분면에 퍼진 곡선들과 y=k 직선의 <strong>교점 x좌표 = 방정식의 해</strong>야.<br>
+      y축·x축 대칭 구조라 1사분면 교점 1개 → 최대 4개까지 퍼져.<br>
+      → 교점의 개수 = 방정식의 해의 개수! k 슬라이더로 확인해봐 💡`
     );
   },
 };
@@ -5755,7 +5892,8 @@ function setAbsMode(mode){
   document.querySelectorAll('#abs-mode-row .db').forEach(b=>{
     b.classList.toggle('on',b.getAttribute('onclick').includes(mode));
   });
-  document.getElementById('abs-k-row').style.display=mode==='k_line'?'':'none';
+  const kModes2=['abs_fx_k','f_absx_k','absy_fx_k','absy_fabsx_k','k_line'];
+  document.getElementById('abs-k-row').style.display=kModes2.includes(mode)?'':'none';
   scheduleRenderAbs();
 }
 
@@ -5864,33 +6002,23 @@ function renderAbs(){
   }
 
   let fn;
-  if(SA.mode==='abs_fx'){
-    // ① 유지(파랑): f(x)≥0 / x축대칭(주황): f(x)<0 반전
-    drawSegmented(
-      x=>Math.abs(absF(x)),
-      x=>absF(x)>=0?C.KEEP:C.XSYM
-    );
+  // ── 그래프 그리기 ──
+  if(SA.mode==='abs_fx'||SA.mode==='abs_fx_k'){
+    drawSegmented(x=>Math.abs(absF(x)), x=>absF(x)>=0?C.KEEP:C.XSYM);
 
-  } else if(SA.mode==='f_absx'){
-    // ② 유지(파랑): x≥0 / y축대칭(초록): x<0
-    drawSegmented(
-      x=>absF(Math.abs(x)),
-      x=>x>=0?C.KEEP:C.YSYM
-    );
+  } else if(SA.mode==='f_absx'||SA.mode==='f_absx_k'){
+    drawSegmented(x=>absF(Math.abs(x)), x=>x>=0?C.KEEP:C.YSYM);
 
-  } else if(SA.mode==='absy_fx'){
-    // ③ 유지(파랑): 위쪽 y=f(x), f(x)≥0
-    //    x축대칭(주황): 아래쪽 y=−f(x), f(x)≥0
+  } else if(SA.mode==='absy_fx'||SA.mode==='absy_fx_k'){
     drawSolid(x=>{const y=absF(x);return y>=0?y:NaN;},  C.KEEP);
     drawSolid(x=>{const y=absF(x);return y>=0?-y:NaN;}, C.XSYM);
 
-  } else if(SA.mode==='absy_fabsx'){
-    // ④ 1사분면(파랑), 4사분면(주황), 2사분면(초록), 3사분면(보라)
+  } else if(SA.mode==='absy_fabsx'||SA.mode==='absy_fabsx_k'){
     const fax=x=>absF(Math.abs(x));
-    drawSolid(x=>{const y=fax(x);return(x>=0&&y>=0)?y:NaN;},  C.KEEP); // 1사분면
-    drawSolid(x=>{const y=fax(x);return(x>=0&&y>=0)?-y:NaN;}, C.XSYM); // 4사분면
-    drawSolid(x=>{const y=fax(x);return(x<0 &&y>=0)?y:NaN;},  C.YSYM); // 2사분면
-    drawSolid(x=>{const y=fax(x);return(x<0 &&y>=0)?-y:NaN;}, C.OSYM); // 3사분면
+    drawSolid(x=>{const y=fax(x);return(x>=0&&y>=0)?y:NaN;},  C.KEEP);
+    drawSolid(x=>{const y=fax(x);return(x>=0&&y>=0)?-y:NaN;}, C.XSYM);
+    drawSolid(x=>{const y=fax(x);return(x<0 &&y>=0)?y:NaN;},  C.YSYM);
+    drawSolid(x=>{const y=fax(x);return(x<0 &&y>=0)?-y:NaN;}, C.OSYM);
 
   } else if(SA.mode==='k_line'){
     fn=x=>Math.abs(absF(x));
@@ -5899,28 +6027,64 @@ function renderAbs(){
     drawSolid(absF, C.KEEP, 2);
   }
 
-  // k 수평선
-  if(SA.mode==='k_line'){
+  // ── k 수평선 + 교점 (k모드에서만) ──
+  const K_MODES=['abs_fx_k','f_absx_k','absy_fx_k','absy_fabsx_k','k_line'];
+  if(K_MODES.includes(SA.mode)){
     drawHLine(gAbs,SA.k,'#2D7D46',[5,4]);
-    // 교점 수 세기
-    const kfn=x=>fn(x)-SA.k;
-    const roots=findCriticals(kfn,'d1').filter(x=>{
-      // 실제 교점인지: fn(x)≈k
-      return Math.abs(fn(x)-SA.k)<0.05;
-    });
-    // 부호변화로 교점
     let crossCount=0;
-    let prev2=kfn(-8);
-    for(let xi=-8;xi<=8;xi+=0.05){
-      const cur2=kfn(xi);
-      if(prev2*cur2<0){
-        crossCount++;
-        drawPoint(gAbs,xi,SA.k,'#2D7D46',4);
+
+    const countCrossings=(cmpFn, drawY)=>{
+      let p=cmpFn(-8)-SA.k;
+      for(let xi=-8;xi<=8;xi+=0.05){
+        const c=cmpFn(xi)-SA.k;
+        if(p*c<0){crossCount++;drawPoint(gAbs,xi,drawY,'#2D7D46',4);}
+        p=c;
       }
-      prev2=cur2;
+    };
+
+    if(SA.mode==='abs_fx_k'||SA.mode==='k_line'){
+      countCrossings(x=>Math.abs(absF(x)), SA.k);
+
+    } else if(SA.mode==='f_absx_k'){
+      countCrossings(x=>absF(Math.abs(x)), SA.k);
+
+    } else if(SA.mode==='absy_fx_k'){
+      // |y|=f(x) 위 곡선(y=f(x))과 y=k 교점 → f(x)=k, f(x)>=0 구간
+      // 아래 곡선(y=−f(x))과 y=k 교점 → f(x)=−k, f(x)>=0 구간
+      const countAbsY=(targetK, drawY)=>{
+        let p=absF(-8)-targetK;
+        for(let xi=-8;xi<=8;xi+=0.05){
+          const c=absF(xi)-targetK;
+          if(p*c<0&&absF(xi)>=0){crossCount++;drawPoint(gAbs,xi,drawY,'#2D7D46',4);}
+          p=c;
+        }
+      };
+      countAbsY(SA.k, SA.k);
+      if(Math.abs(SA.k)>0.01) countAbsY(-SA.k, SA.k);
+
+    } else if(SA.mode==='absy_fabsx_k'){
+      const fax=x=>absF(Math.abs(x));
+      const countAbsYX=(targetK, drawY)=>{
+        let p=fax(-8)-targetK;
+        for(let xi=-8;xi<=8;xi+=0.05){
+          const c=fax(xi)-targetK;
+          if(p*c<0&&fax(xi)>=0){crossCount++;drawPoint(gAbs,xi,drawY,'#2D7D46',4);}
+          p=c;
+        }
+      };
+      countAbsYX(SA.k, SA.k);
+      if(Math.abs(SA.k)>0.01) countAbsYX(-SA.k, SA.k);
     }
+
+    const modeKLabel={
+      k_line:      `|f(x)| = k 실근`,
+      abs_fx_k:    `|f(x)| = k 실근`,
+      f_absx_k:    `f(|x|) = k 실근`,
+      absy_fx_k:   `|y|=f(x), y=k 교점`,
+      absy_fabsx_k:`|y|=f(|x|), y=k 교점`,
+    };
     document.getElementById('abs-info').innerHTML=`
-      <div class="ib"><div class="ibl">y=k 교점 수</div><div class="ibv" style="color:var(--gn)">${crossCount}</div></div>
+      <div class="ib"><div class="ibl">${modeKLabel[SA.mode]||'교점 수'}</div><div class="ibv" style="color:var(--gn)">${crossCount}개</div></div>
       <div class="ib"><div class="ibl">k 값</div><div class="ibv" style="color:var(--gn)">${SA.k.toFixed(2)}</div></div>`;
   } else {
     document.getElementById('abs-info').innerHTML='';
@@ -5929,12 +6093,16 @@ function renderAbs(){
   // 수식 레이블 — 왼쪽 패널
   const fStr=absStr();
   const modeFormula={
-    abs_fx:`y = |${fStr}|`,
-    f_absx:`y = ${absStrAbsX()}`,
-    absy_fx:`|y| = ${fStr}`,
-    absy_fabsx:`|y| = ${absStrAbsX()}`,
-    k_line:`|${fStr}| = k`,
-    none:`y = ${fStr}`
+    abs_fx:        `y = |${fStr}|`,
+    abs_fx_k:      `|${fStr}| = k`,
+    f_absx:        `y = ${absStrAbsX()}`,
+    f_absx_k:      `${absStrAbsX()} = k`,
+    absy_fx:       `|y| = ${fStr}`,
+    absy_fx_k:     `|y| = ${fStr}`,
+    absy_fabsx:    `|y| = ${absStrAbsX()}`,
+    absy_fabsx_k:  `|y| = ${absStrAbsX()}`,
+    k_line:        `|${fStr}| = k`,
+    none:          `y = ${fStr}`
   };
   document.getElementById('abs-eq').textContent=modeFormula[SA.mode]||`y = ${fStr}`;
   // 원본 식 표시
