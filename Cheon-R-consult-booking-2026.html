@@ -806,6 +806,21 @@ async function pollSlots() {
     const res = await gasGet({ action:'getAll' });
     if (res.result !== 'success') return;
 
+    // ★ 설정(bookingEnabled 등)도 폴링에서 동기화
+    // phoneEnabled는 강제 true 유지, 나머지 설정은 서버 값 반영
+    if (res.settings) {
+      const prevBookingEnabled = appSettings.bookingEnabled;
+      appSettings = {
+        ...appSettings,
+        ...res.settings,
+        phoneEnabled: true,  // 전화상담탭은 항상 표시
+      };
+      // bookingEnabled 상태가 바뀐 경우에만 UI 갱신 (불필요한 깜빡임 방지)
+      if (appSettings.bookingEnabled !== prevBookingEnabled) {
+        applySettingsUI();
+      }
+    }
+
     // 슬롯 booked 상태 조용히 갱신 (선택 중인 UI 건드리지 않음)
     if (res.slots) {
       res.slots.forEach(newDay => {
