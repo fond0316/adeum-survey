@@ -783,8 +783,18 @@ async function gasPost(body) {
   return jsonp(GAS_URL + '?jsonBody=' + encoded);
 }
 
+// ── 설정 저장 중 플래그 (폴링이 저장 중인 설정을 덮어쓰는 race condition 방지) ──
+let _settingsSaving = false;
+
 // ── 초기 로딩 ─────────────────────────────────────────
 async function loadAll() {
+  // ★ 새로고침 직후: localStorage에 캐시된 bookingEnabled가 있으면 즉시 적용 (깜빡임 방지)
+  const cachedBookingEnabled = localStorage.getItem('consultBookingEnabled');
+  if (cachedBookingEnabled !== null) {
+    appSettings.bookingEnabled = (cachedBookingEnabled === 'true');
+    applySettingsUI();
+  }
+
   setBanner('loading', '⏳ 데이터 불러오는 중...');
   try {
     const data = await gasGet({ action:'getAll' });
@@ -807,14 +817,17 @@ async function pollSlots() {
     if (res.result !== 'success') return;
 
     // ★ 설정(bookingEnabled 등)도 폴링에서 동기화
+    // 단, 설정 저장 중(_settingsSaving)일 때는 덮어쓰지 않음 (race condition 방지)
     // phoneEnabled는 강제 true 유지, 나머지 설정은 서버 값 반영
-    if (res.settings) {
+    if (res.settings && !_settingsSaving) {
       const prevBookingEnabled = appSettings.bookingEnabled;
       appSettings = {
         ...appSettings,
         ...res.settings,
         phoneEnabled: true,  // 전화상담탭은 항상 표시
       };
+      // ★ bookingEnabled 캐시 갱신
+      localStorage.setItem('consultBookingEnabled', String(appSettings.bookingEnabled));
       // bookingEnabled 상태가 바뀐 경우에만 UI 갱신 (불필요한 깜빡임 방지)
       if (appSettings.bookingEnabled !== prevBookingEnabled) {
         applySettingsUI();
@@ -855,6 +868,8 @@ function applyAllData(data) {
     const incoming = { ...data.settings };
     incoming.phoneEnabled = true;
     appSettings = { ...appSettings, ...incoming };
+    // ★ bookingEnabled를 localStorage에 캐시 (새로고침 후 깜빡임 방지)
+    localStorage.setItem('consultBookingEnabled', String(appSettings.bookingEnabled));
     applySettingsUI();
   }
   if (data.slots)    { appSlots    = data.slots;    renderDateGrid(); }
@@ -1302,13 +1317,23 @@ function copyStudentLink() {
 // ── 관리자 설정 저장 (모두 GAS POST) ─────────────────
 async function adminSaveSettings(partial, toastMsg) {
   if (!GAS_URL) { showToast('⚠️ GAS URL 연결 후 사용 가능해요!'); return; }
+  _settingsSaving = true;  // ★ 폴링 덮어쓰기 방지 시작
   try {
-    appSettings = { ...appSettings, ...partial };
     const res = await gasPost({ action:'saveSettings', ...partial });
     if (res.result !== 'success') throw new Error(res.message);
+    // ★ GAS 저장 성공 확인 후에만 로컬 상태 업데이트 (순서 중요!)
+    appSettings = { ...appSettings, ...partial };
+    // ★ bookingEnabled 변경 시 localStorage 캐시도 즉시 갱신
+    if (partial.bookingEnabled !== undefined) {
+      localStorage.setItem('consultBookingEnabled', String(partial.bookingEnabled));
+    }
     applySettingsUI();
     showToast(toastMsg || '✅ 저장됐어요!');
-  } catch(err) { showToast('❌ 저장 실패: ' + err.message); }
+  } catch(err) {
+    showToast('❌ 저장 실패: ' + err.message);
+  } finally {
+    _settingsSaving = false;  // ★ 폴링 덮어쓰기 방지 해제
+  }
 }
 
 function adminSaveTeacherInfo() {
