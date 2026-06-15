@@ -208,6 +208,15 @@ textarea.form-input{line-height:1.65;}
 .save-btn-inner:hover{background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-mid);}
 .save-btn-inner.purple:hover{background:#ede9fe;color:#5b21b6;border-color:#c4b5fd;}
 .save-btn-inner.green:hover{background:#d1fae5;color:#065f46;border-color:#6ee7b7;}
+/* ── 진행률 프로그레스바 ── */
+.progress-wrap{padding:10px 16px 4px;background:white;position:sticky;top:44px;z-index:100;border-bottom:1px solid var(--gray-100);}
+.progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--gray-500);margin-bottom:5px;}
+.progress-label b{color:var(--primary-dark);}
+.progress-bar{height:6px;background:var(--gray-200);border-radius:99px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),#a78bfa);border-radius:99px;transition:width .35s ease;}
+/* ── 미입력 하이라이트 ── */
+.q-card.missing{border-color:#ef4444 !important;box-shadow:0 0 0 3px rgba(239,68,68,0.12);}
+.q-card.missing .form-input{border-color:#ef4444;}
 
 /* ══════════════════════════════ 설정 (기본) ══════════════════════════════ */
 .set-wrap{max-width:1140px;margin:0 auto;padding:32px 40px 80px;}
@@ -581,7 +590,7 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
           </div>
         </div>
         <div id="student-auto-questions"></div>
-        <button class="save-btn-inner" onclick="saveTab('자율')">💾 자율활동 임시저장</button>
+<div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 10px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">오류 방지를 위해 한 번에 작성 후 아래 최종 제출 버튼을 눌러주세요</span></div>
       </div>
       <div class="inner-section" id="inner-진로">
         <div id="student-career-checkcard" class="q-card">
@@ -592,11 +601,11 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
           </div>
         </div>
         <div id="student-career-questions"></div>
-        <button class="save-btn-inner" onclick="saveTab('진로')">💾 진로활동 임시저장</button>
+<div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 10px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">오류 방지를 위해 한 번에 작성 후 아래 최종 제출 버튼을 눌러주세요</span></div>
       </div>
       <div class="inner-section" id="inner-행발">
         <div id="student-hakgup-questions"></div>
-        <button class="save-btn-inner" onclick="saveTab('행발')">💾 행발 임시저장</button>
+<div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 10px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">오류 방지를 위해 한 번에 작성 후 아래 최종 제출 버튼을 눌러주세요</span></div>
       </div>
     </div>
 
@@ -604,17 +613,29 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
     <div id="form-math" style="display:none">
       <div class="save-status" id="save-status-math">　</div>
       <div id="student-math-questions"></div>
-      <button class="save-btn-inner purple" onclick="saveTab('수학')">💾 수학 교과 임시저장</button>
+<div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 10px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">오류 방지를 위해 한 번에 작성 후 아래 최종 제출 버튼을 눌러주세요</span></div>
     </div>
 
     <!-- ── 동아리 폼 ── -->
     <div id="form-club" style="display:none">
       <div class="save-status" id="save-status-club">　</div>
       <div id="student-club-questions"></div>
-      <button class="save-btn-inner green" onclick="saveTab('동아리')">💾 동아리 임시저장</button>
+<div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 10px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">오류 방지를 위해 한 번에 작성 후 아래 최종 제출 버튼을 눌러주세요</span></div>
+    </div>
+
+    <!-- 진행률 표시 -->
+    <div class="progress-wrap" id="progress-wrap" style="display:none;">
+      <div class="progress-label">
+        <span>필수 항목 진행률</span>
+        <b id="progress-text">0 / 0</b>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
     </div>
 
     <!-- 최종 제출 -->
+    <div style="text-align:center;font-size:12px;font-weight:700;color:#ef4444;padding:6px 0 4px;letter-spacing:-0.2px;">
+      ⚠️ 아래 버튼을 눌러야 선생님께 전달됩니다 — 임시보관은 제출이 아니에요!
+    </div>
     <button class="submit-btn" onclick="submitForm()">✅ 최종 제출하기</button>
 
   </div>
@@ -1444,6 +1465,7 @@ function renderStudentSection(section, containerId, color, startNum) {
 function createStudentQCard(q, num, color, inputId) {
   const card = document.createElement('div');
   card.className = 'q-card';
+  if (q.required) card.dataset.required = 'true';
 
   const titleFull = q.subtitle
     ? `${q.title} <span style="font-weight:400;color:var(--gray-400);font-size:11px;">${q.subtitle}</span>`
@@ -1615,6 +1637,60 @@ function setBanner(type, msg) {
     sub.style.display = 'none';
   }
 }
+// ── 진행률 업데이트 ──
+function updateProgress() {
+  const wrap = document.getElementById('progress-wrap');
+  const fill = document.getElementById('progress-fill');
+  const text = document.getElementById('progress-text');
+  if (!wrap || !fill || !text) return;
+
+  // 현재 보이는 필수 q-card만 대상
+  const cards = [...document.querySelectorAll('.q-card[data-required="true"]')]
+    .filter(c => c.style.display !== 'none');
+
+  if (!cards.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+
+  let filled = 0;
+  cards.forEach(card => {
+    const inp = card.querySelector('textarea, input[type="text"]');
+    const radio = card.querySelector('input[type="radio"]:checked');
+    const cb = card.querySelector('input[type="checkbox"]:checked');
+    if ((inp && inp.value.trim()) || radio || cb) filled++;
+  });
+
+  const pct = Math.round((filled / cards.length) * 100);
+  fill.style.width = pct + '%';
+  text.textContent = filled + ' / ' + cards.length;
+}
+
+// ── 필수 항목 미입력 하이라이트 & 스크롤 ──
+function validateRequired() {
+  // 기존 하이라이트 제거
+  document.querySelectorAll('.q-card.missing').forEach(c => c.classList.remove('missing'));
+
+  const missing = [];
+  document.querySelectorAll('.q-card[data-required="true"]').forEach(card => {
+    if (card.style.display === 'none') return; // showIf로 숨겨진 항목 제외
+    const inp   = card.querySelector('textarea, input[type="text"]');
+    const radio = card.querySelector('input[type="radio"]:checked');
+    const cb    = card.querySelector('input[type="checkbox"]:checked');
+    const empty = (!inp || !inp.value.trim()) && !radio && !cb;
+    if (empty) { card.classList.add('missing'); missing.push(card); }
+  });
+
+  if (missing.length) {
+    missing[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => {
+      const label = missing[0].querySelector('.q-title')?.textContent || '필수 항목';
+      alert(`⚠️ "${label.trim()}" 항목을 작성해주세요.
+(빨간 테두리 항목 ${missing.length}개 미입력)`);
+    }, 400);
+    return false;
+  }
+  return true;
+}
+
 function checkGasBanner() {
   const url = getGasUrl();
   if (!url) { setBanner('err', '❌ GAS URL 미설정 · 관리자 화면에서 설정해 주세요'); return; }
@@ -1668,6 +1744,7 @@ function switchInner(name, el){
 
 function autoSave(){
   localStorage.setItem('adum_form_draft', JSON.stringify(collectData()));
+  updateProgress();
 }
 
 function saveTab(tabName){
@@ -1777,6 +1854,17 @@ function loadDraft(){
       const t = typeMap[d.cat];
       if(t) goForm(t);
     }
+    // ── showIf 카드 재평가 (draft 복원 후) ──
+    document.querySelectorAll('[data-show-if-input]').forEach(card => {
+      const triggerName = card.dataset.showIfInput;
+      const triggerValue = card.dataset.showIfValue;
+      if (!triggerName) return;
+      const checked = document.querySelector(`input[type="radio"][name="${triggerName}"]:checked`);
+      const show = checked && checked.value === triggerValue;
+      card.style.display = show ? '' : 'none';
+    });
+    // 진행률 업데이트
+    updateProgress();
   } catch(e){}
 }
 
@@ -1806,6 +1894,8 @@ function submitForm(){
   if(!name || !grade || !ban || !num){
     alert('⚠️ 학년, 반, 번호, 이름을 모두 입력해주세요!'); return;
   }
+  // ── 필수 항목 미입력 체크 ──
+  if (!validateRequired()) return;
   const gasUrl = getGasUrl();
   if(!gasUrl){ alert('⚠️ 선생님이 구글 시트 연동을 아직 설정하지 않았어요.'); return; }
 
