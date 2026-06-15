@@ -2057,6 +2057,24 @@ window.addEventListener('load', () => {
   renderAllBuilders();
   loadSavedSettings();
   applyQuestionsToForm();
+
+  // 제출 완료한 학생이 다시 열면 draft 초기화 → 초기화면 표시
+  // (작성 중인 경우엔 draft 유지 → 이어서 작성 가능)
+  (function clearDraftIfSubmitted() {
+    const draft = localStorage.getItem('adum_form_draft');
+    if (!draft) return;
+    try {
+      const d = JSON.parse(draft);
+      const { grade, ban, num, name } = d;
+      if (!grade || !ban || !num || !name) return;
+      const submitKey = 'adum_submitted_' + grade + '_' + ban + '_' + num + '_' + name;
+      if (localStorage.getItem(submitKey)) {
+        // 제출 완료 기록 있음 → draft 삭제해서 초기화면으로
+        localStorage.removeItem('adum_form_draft');
+      }
+    } catch(e) {}
+  })();
+
   loadDraft();
   initDashboard();
   checkGasBanner();
