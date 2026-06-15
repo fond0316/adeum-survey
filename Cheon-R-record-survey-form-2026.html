@@ -581,6 +581,8 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
         <button class="inner-tab" onclick="switchInner('행발',this)">📝 행발</button>
       </div>
       <div class="save-status" id="save-status-hakgup">　</div>
+
+      <!-- 자율활동 탭 -->
       <div class="inner-section active" id="inner-자율">
         <div id="student-auto-checkcard" class="q-card">
           <div class="q-head"><div class="q-num blue">2</div><div class="q-title">자율활동 선택 <span style="font-weight:400;color:var(--gray-400);font-size:11px;">3개 권장</span></div><span class="q-req">필수</span></div>
@@ -590,8 +592,13 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
           </div>
         </div>
         <div id="student-auto-questions"></div>
-<div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 10px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">오류 방지를 위해 한 번에 작성 후 아래 최종 제출 버튼을 눌러주세요</span></div>
+        <div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 4px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">작성 완료 후 아래 제출 버튼을 눌러야 선생님께 전달됩니다</span></div>
+        <div style="text-align:center;font-size:12px;font-weight:700;color:#ef4444;padding:4px 0 4px;letter-spacing:-0.2px;">⚠️ 아래 버튼을 눌러야 선생님께 전달됩니다!</div>
+        <button class="submit-btn" id="submit-btn-auto" onclick="submitFormSection('자율')">🏃 자율활동 제출하기</button>
+        <div id="submit-status-auto" style="text-align:center;font-size:12px;padding:8px 0 4px;color:#6b7280;"></div>
       </div>
+
+      <!-- 진로활동 탭 -->
       <div class="inner-section" id="inner-진로">
         <div id="student-career-checkcard" class="q-card">
           <div class="q-head"><div class="q-num blue">2</div><div class="q-title">진로활동 선택 <span style="font-weight:400;color:var(--gray-400);font-size:11px;">3개 권장</span></div><span class="q-req">필수</span></div>
@@ -601,11 +608,19 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
           </div>
         </div>
         <div id="student-career-questions"></div>
-<div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 10px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">오류 방지를 위해 한 번에 작성 후 아래 최종 제출 버튼을 눌러주세요</span></div>
+        <div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 4px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">작성 완료 후 아래 제출 버튼을 눌러야 선생님께 전달됩니다</span></div>
+        <div style="text-align:center;font-size:12px;font-weight:700;color:#ef4444;padding:4px 0 4px;letter-spacing:-0.2px;">⚠️ 아래 버튼을 눌러야 선생님께 전달됩니다!</div>
+        <button class="submit-btn" id="submit-btn-career" onclick="submitFormSection('진로')">🎯 진로활동 제출하기</button>
+        <div id="submit-status-career" style="text-align:center;font-size:12px;padding:8px 0 4px;color:#6b7280;"></div>
       </div>
+
+      <!-- 행발 탭 -->
       <div class="inner-section" id="inner-행발">
         <div id="student-hakgup-questions"></div>
-<div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 10px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">오류 방지를 위해 한 번에 작성 후 아래 최종 제출 버튼을 눌러주세요</span></div>
+        <div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 4px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">작성 완료 후 아래 제출 버튼을 눌러야 선생님께 전달됩니다</span></div>
+        <div style="text-align:center;font-size:12px;font-weight:700;color:#ef4444;padding:4px 0 4px;letter-spacing:-0.2px;">⚠️ 아래 버튼을 눌러야 선생님께 전달됩니다!</div>
+        <button class="submit-btn" id="submit-btn-haengbal" onclick="submitFormSection('행발')">📝 행동발달 제출하기</button>
+        <div id="submit-status-haengbal" style="text-align:center;font-size:12px;padding:8px 0 4px;color:#6b7280;"></div>
       </div>
     </div>
 
@@ -613,17 +628,23 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
     <div id="form-math" style="display:none">
       <div class="save-status" id="save-status-math">　</div>
       <div id="student-math-questions"></div>
-<div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 10px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">오류 방지를 위해 한 번에 작성 후 아래 최종 제출 버튼을 눌러주세요</span></div>
+      <div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 4px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">작성 완료 후 아래 제출 버튼을 눌러야 선생님께 전달됩니다</span></div>
+      <div style="text-align:center;font-size:12px;font-weight:700;color:#ef4444;padding:4px 0 4px;letter-spacing:-0.2px;">⚠️ 아래 버튼을 눌러야 선생님께 전달됩니다!</div>
+      <button class="submit-btn" id="submit-btn-math" onclick="submitFormSection('수학')">📐 수학 교과 제출하기</button>
+      <div id="submit-status-math" style="text-align:center;font-size:12px;padding:8px 0 4px;color:#6b7280;"></div>
     </div>
 
     <!-- ── 동아리 폼 ── -->
     <div id="form-club" style="display:none">
       <div class="save-status" id="save-status-club">　</div>
       <div id="student-club-questions"></div>
-<div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 10px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">오류 방지를 위해 한 번에 작성 후 아래 최종 제출 버튼을 눌러주세요</span></div>
+      <div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 4px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">작성 완료 후 아래 제출 버튼을 눌러야 선생님께 전달됩니다</span></div>
+      <div style="text-align:center;font-size:12px;font-weight:700;color:#ef4444;padding:4px 0 4px;letter-spacing:-0.2px;">⚠️ 아래 버튼을 눌러야 선생님께 전달됩니다!</div>
+      <button class="submit-btn" id="submit-btn-club" onclick="submitFormSection('동아리')">🔭 동아리 제출하기</button>
+      <div id="submit-status-club" style="text-align:center;font-size:12px;padding:8px 0 4px;color:#6b7280;"></div>
     </div>
 
-    <!-- 진행률 표시 -->
+    <!-- 진행률 표시 (수학·동아리용) -->
     <div class="progress-wrap" id="progress-wrap" style="display:none;">
       <div class="progress-label">
         <span>필수 항목 진행률</span>
@@ -631,12 +652,6 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
       </div>
       <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
     </div>
-
-    <!-- 최종 제출 -->
-    <div style="text-align:center;font-size:12px;font-weight:700;color:#ef4444;padding:6px 0 4px;letter-spacing:-0.2px;">
-      ⚠️ 아래 버튼을 눌러야 선생님께 전달됩니다 — 임시보관은 제출이 아니에요!
-    </div>
-    <button class="submit-btn" onclick="submitForm()">✅ 최종 제출하기</button>
 
   </div>
   </div>
@@ -1848,8 +1863,9 @@ function loadDraft(){
       if(!el) return;
       if(el.tagName==='INPUT'||el.tagName==='TEXTAREA') el.value = v;
     });
-    // draft에 cat이 있으면 해당 폼 화면으로 복원
-    if(d.cat) {
+    // draft에 cat이 있고, 실제로 작성이 시작된 경우에만 폼 화면으로 복원
+    // (이름·학번 중 하나라도 있어야 "작성 중" 으로 간주 — 빈 draft면 런처 유지)
+    if(d.cat && (d.name || d.grade || d.ban || d.num)) {
       const typeMap = { '담임': 'hakgup', '수학': 'math', '동아리': 'club' };
       const t = typeMap[d.cat];
       if(t) goForm(t);
@@ -1886,7 +1902,9 @@ function _gasPost(gasUrl, body) {
   });
 }
 
-function submitForm(){
+// ── 섹션별 제출 함수 ──────────────────────────────────────────────
+// tabLabel: '자율' | '진로' | '행발' | '수학' | '동아리'
+function submitFormSection(tabLabel) {
   const name  = document.getElementById('f-name')?.value.trim();
   const grade = document.getElementById('f-grade')?.value.trim();
   const ban   = document.getElementById('f-ban')?.value.trim();
@@ -1894,44 +1912,175 @@ function submitForm(){
   if(!name || !grade || !ban || !num){
     alert('⚠️ 학년, 반, 번호, 이름을 모두 입력해주세요!'); return;
   }
-  // ── 필수 항목 미입력 체크 ──
-  if (!validateRequired()) return;
+  // 해당 탭의 필수 항목만 검사
+  if (!validateRequiredSection(tabLabel)) return;
+
   const gasUrl = getGasUrl();
   if(!gasUrl){ alert('⚠️ 선생님이 구글 시트 연동을 아직 설정하지 않았어요.'); return; }
 
-  // ── 재제출 여부 확인 ──
-  const submitKey = 'adum_submitted_' + grade + '_' + ban + '_' + num + '_' + name;
+  // 탭별 submit key (자율/진로/행발은 각각 독립)
+  const submitKey = 'adum_submitted_' + grade + '_' + ban + '_' + num + '_' + name + '_' + tabLabel;
   const alreadySubmitted = localStorage.getItem(submitKey);
   if (alreadySubmitted) {
-    showResubmitConfirm(name, () => doSubmit(name, grade, ban, num, gasUrl, submitKey));
+    showResubmitConfirm(name, () => doSubmitSection(tabLabel, name, grade, ban, num, gasUrl, submitKey));
     return;
   }
-  doSubmit(name, grade, ban, num, gasUrl, submitKey);
+  doSubmitSection(tabLabel, name, grade, ban, num, gasUrl, submitKey);
 }
 
-function doSubmit(name, grade, ban, num, gasUrl, submitKey){
-  const data = collectData();
-  data.submittedAt = new Date().toLocaleString('ko-KR');
-  data.sheetName   = getSheetName() + '_' + (data.cat || '담임');
+function doSubmitSection(tabLabel, name, grade, ban, num, gasUrl, submitKey) {
+  // 탭별 cat 및 section 매핑
+  const catMap     = { '자율':'자율', '진로':'진로', '행발':'행발', '수학':'수학', '동아리':'동아리' };
+  const sectionMap = { '자율':'auto', '진로':'career', '행발':'hakgup', '수학':'math', '동아리':'club' };
+  const btnIdMap   = { '자율':'submit-btn-auto', '진로':'submit-btn-career', '행발':'submit-btn-haengbal', '수학':'submit-btn-math', '동아리':'submit-btn-club' };
+  const statusIdMap= { '자율':'submit-status-auto', '진로':'submit-status-career', '행발':'submit-status-haengbal', '수학':'submit-status-math', '동아리':'submit-status-club' };
+  const labelMap   = { '자율':'🏃 자율활동', '진로':'🎯 진로활동', '행발':'📝 행동발달', '수학':'📐 수학 교과', '동아리':'🔭 동아리' };
 
-  const btn = document.querySelector('.submit-btn');
+  const cat      = catMap[tabLabel]     || tabLabel;
+  const section  = sectionMap[tabLabel] || 'auto';
+  const btnId    = btnIdMap[tabLabel];
+  const statusId = statusIdMap[tabLabel];
+  const label    = labelMap[tabLabel]   || tabLabel;
+
+  // 해당 섹션 데이터만 수집
+  const baseData = {
+    name, grade, ban, num,
+    cat,
+    composedBan: grade && ban ? grade + '-' + ban : '',
+    submittedAt: new Date().toLocaleString('ko-KR'),
+    sheetName:   getSheetName() + '_' + cat,
+  };
+  // 해당 section의 _form_ 필드만 추출
+  const sectionPrefix = section + '_form_';
+  document.querySelectorAll('[id*="_form_"]').forEach(el => {
+    const id = el.id || el.name || '';
+    if (!id.startsWith(sectionPrefix)) return;
+    const lbl = questionLabelMap[id] || id;
+    if (el.type === 'checkbox') return; // checkbox는 아래서 처리
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') baseData[lbl] = el.value;
+  });
+  // checkbox (체크된 항목명 텍스트로)
+  const handledCb = new Set();
+  document.querySelectorAll('[id*="_form_"]').forEach(el => {
+    const id = el.id || '';
+    if (!id.startsWith(sectionPrefix) || el.type !== 'checkbox') return;
+    const lbl = (questionLabelMap[id] || id).replace(/_\d+$/, '');
+    handledCb.add(lbl);
+  });
+  handledCb.forEach(baseLabel => {
+    const checked = [];
+    document.querySelectorAll('[id*="_form_"]').forEach(el => {
+      if (el.type !== 'checkbox') return;
+      const id = el.id || '';
+      if (!id.startsWith(sectionPrefix)) return;
+      const lbl = (questionLabelMap[id] || id).replace(/_\d+$/, '');
+      if (lbl !== baseLabel) return;
+      if (el.checked) {
+        const labelEl = document.querySelector(`label[for="${el.id}"]`);
+        checked.push(labelEl ? labelEl.textContent.trim() : el.value || lbl);
+      }
+    });
+    baseData[baseLabel] = checked.join(', ');
+  });
+  // radio
+  const handledRadio = new Set();
+  document.querySelectorAll(`input[type="radio"][name*="${sectionPrefix}"]`).forEach(el => {
+    if (handledRadio.has(el.name)) return;
+    handledRadio.add(el.name);
+    const lbl = questionLabelMap[el.name] || el.name;
+    const checked = document.querySelector(`input[type="radio"][name="${el.name}"]:checked`);
+    baseData[lbl] = checked ? checked.value : '';
+  });
+  // 희망진로 (auto_form_0 → 자율/진로/행발 모두에 포함)
+  const careerField = questionLabelMap['auto_form_0'] || '희망 진로 / 직업';
+  if (tabLabel !== '자율') {
+    const careerEl = document.getElementById('auto_form_0');
+    if (careerEl) baseData[careerField] = careerEl.value;
+  }
+
+  const btn = document.getElementById(btnId);
+  const statusEl = document.getElementById(statusId);
   if(btn){ btn.disabled = true; btn.textContent = '⏳ 제출 중...'; }
+  if(statusEl) statusEl.textContent = '';
 
-  _gasPost(gasUrl, data)
+  _gasPost(gasUrl, baseData)
   .then(res => {
-    if(btn){ btn.disabled=false; btn.textContent='✅ 최종 제출하기'; }
+    if(btn){ btn.disabled=false; btn.textContent= label + ' 제출하기 ✅'; }
     if(res && res.ok){
-      localStorage.removeItem('adum_form_draft');
       localStorage.setItem(submitKey, new Date().toISOString());
-      alert('✅ 최종 제출 완료!\n선생님께 전달되었습니다 😊\n\n입력하느라 수고했어요 🙌');
+      autoSave(); // draft 유지 (다른 탭 작성 중일 수 있으니 삭제 안 함)
+      if(statusEl) statusEl.innerHTML = '<span style="color:#22c55e;font-weight:700;">✅ ' + label + ' 제출 완료! 선생님께 전달되었습니다 😊</span>';
+      alert('✅ ' + label + ' 제출 완료!\n선생님께 전달되었습니다 😊\n\n입력하느라 수고했어요 🙌');
     } else {
+      if(btn){ btn.disabled=false; btn.textContent= label + ' 제출하기'; }
       alert('❌ 제출에 실패했어요.\n잠시 후 다시 시도해주세요.\n\n오류: ' + (res?.error || '알 수 없는 오류'));
     }
   })
   .catch(err => {
-    if(btn){ btn.disabled=false; btn.textContent='✅ 최종 제출하기'; }
+    if(btn){ btn.disabled=false; btn.textContent= label + ' 제출하기'; }
     alert('❌ 제출에 실패했어요.\n인터넷 연결을 확인하고 다시 시도해주세요.\n\n오류: ' + err.message);
   });
+}
+
+// 기존 호환용 (혹시 어딘가 남아있을 경우)
+function submitForm(){
+  // 현재 활성 탭을 감지해서 해당 섹션 제출
+  const activeInner = document.querySelector('.inner-section.active');
+  if(activeInner){
+    const id = activeInner.id; // inner-자율 / inner-진로 / inner-행발
+    const map = {'inner-자율':'자율','inner-진로':'진로','inner-행발':'행발'};
+    if(map[id]){ submitFormSection(map[id]); return; }
+  }
+  // 수학/동아리
+  if(currentFormType === 'math') { submitFormSection('수학'); return; }
+  if(currentFormType === 'club') { submitFormSection('동아리'); return; }
+}
+
+function doSubmit(name, grade, ban, num, gasUrl, submitKey){
+  // 하위 호환 래퍼 — 현재 탭 기준으로 처리
+  doSubmitSection(currentFormType === 'math' ? '수학' : currentFormType === 'club' ? '동아리' : '자율',
+    name, grade, ban, num, gasUrl, submitKey);
+}
+
+// ── 섹션별 필수 항목 검사 ──────────────────────────────────────────
+function validateRequiredSection(tabLabel) {
+  const sectionMap = { '자율':'auto', '진로':'career', '행발':'hakgup', '수학':'math', '동아리':'club' };
+  const section = sectionMap[tabLabel] || tabLabel;
+  const sectionPrefix = section + '_form_';
+  const sectionContainer = {
+    'auto':    document.getElementById('inner-자율'),
+    'career':  document.getElementById('inner-진로'),
+    'hakgup':  document.getElementById('inner-행발'),
+    'math':    document.getElementById('form-math'),
+    'club':    document.getElementById('form-club'),
+  }[section];
+
+  document.querySelectorAll('.q-card.missing').forEach(c => c.classList.remove('missing'));
+
+  const missing = [];
+  const cards = sectionContainer
+    ? sectionContainer.querySelectorAll('.q-card[data-required="true"]')
+    : document.querySelectorAll('.q-card[data-required="true"]');
+
+  cards.forEach(card => {
+    if (card.style.display === 'none') return;
+    const inp   = card.querySelector('textarea, input[type="text"]');
+    const radio = card.querySelector('input[type="radio"]:checked');
+    const cb    = card.querySelector('input[type="checkbox"]:checked');
+    const empty = (!inp || !inp.value.trim()) && !radio && !cb;
+    if (empty) { card.classList.add('missing'); missing.push(card); }
+  });
+
+  if (missing.length) {
+    missing[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => {
+      const lbl = missing[0].querySelector('.q-title')?.textContent || '필수 항목';
+      alert(`⚠️ "${lbl.trim()}" 항목을 작성해주세요.
+(빨간 테두리 항목 ${missing.length}개 미입력)`);
+    }, 400);
+    return false;
+  }
+  return true;
 }
 
 function showResubmitConfirm(name, onConfirm) {
@@ -2148,19 +2297,26 @@ window.addEventListener('load', () => {
   loadSavedSettings();
   applyQuestionsToForm();
 
-  // 제출 완료한 학생이 다시 열면 draft 초기화 → 초기화면 표시
-  // (작성 중인 경우엔 draft 유지 → 이어서 작성 가능)
+  // 모든 섹션 제출 완료한 학생이 다시 열면 draft 초기화 → 초기화면 표시
+  // (하나라도 미제출이면 draft 유지 → 이어서 작성 가능)
   (function clearDraftIfSubmitted() {
     const draft = localStorage.getItem('adum_form_draft');
     if (!draft) return;
     try {
       const d = JSON.parse(draft);
-      const { grade, ban, num, name } = d;
+      const { grade, ban, num, name, cat } = d;
       if (!grade || !ban || !num || !name) return;
-      const submitKey = 'adum_submitted_' + grade + '_' + ban + '_' + num + '_' + name;
-      if (localStorage.getItem(submitKey)) {
-        // 제출 완료 기록 있음 → draft 삭제해서 초기화면으로
-        localStorage.removeItem('adum_form_draft');
+      const base = 'adum_submitted_' + grade + '_' + ban + '_' + num + '_' + name;
+      // 담임 폼: 자율+진로+행발 모두 제출 완료 시 draft 삭제
+      // 수학/동아리: 해당 탭만 완료 시 삭제
+      if (cat === '담임' || !cat) {
+        const allDone = ['자율','진로','행발'].every(t => localStorage.getItem(base + '_' + t));
+        if (allDone) localStorage.removeItem('adum_form_draft');
+      } else {
+        // 수학·동아리 — cat 자체가 탭명
+        if (localStorage.getItem(base + '_' + cat)) {
+          localStorage.removeItem('adum_form_draft');
+        }
       }
     } catch(e) {}
   })();
