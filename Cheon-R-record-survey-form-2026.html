@@ -638,69 +638,119 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
 // ═══════════════════════════════════════════════════════
 const DEFAULT_QUESTIONS = {
   auto: [
+    { id: 'a0', title: '희망 진로 / 직업', subtitle: '자율·진로·행발 전체에 반영되는 중요 정보예요', type: 'short', required: true,
+      hint: '🎯 아직 구체적인 직업이 없으면 관심 분야나 희망 학과를 작성해도 돼요.\n예) 바이오공학자 / 소프트웨어 엔지니어 / 경영학과 진학 후 마케터',
+      placeholder: '예) 데이터 사이언티스트', rows: 1, options: [] },
+    { id: 'a0b', title: '학급에서 맡은 역할 및 에피소드', subtitle: '1인 1역할 외에도 기억에 남는 순간이 있으면 작성', type: 'long', required: false,
+      hint: '📌 역할(예: 환경부장, 모둠장)과 함께 구체적인 에피소드를 써주세요. 최소 3줄 이상\n예) 학급 환경부장으로서 분리수거 캠페인을 주도해 반 전체 참여율을 높임',
+      placeholder: '맡은 역할:\n\n기억에 남는 에피소드:', rows: 4, options: [] },
     { id: 'a1', title: '자율활동 ① 상세 서술', subtitle: '가장 강조할 활동 — 가장 길게 작성', type: 'long', required: true,
-      hint: '📝 ① 참여동기  ② 활동내용  ③ 배우고 느낀 점  ④ 후속활동  ⑤ 강조점',
+      hint: '📝 아래 5가지 항목을 각각 2줄 이상 작성하세요. (최소 10줄)\n① 참여동기  ② 활동내용  ③ 배우고 느낀 점  ④ 후속활동  ⑤ 강조점',
       placeholder: '<활동명>\n\n1. 참여 동기\n\n2. 활동 내용\n\n3. 배우고 느낀 점\n\n4. 추가 후속 활동\n\n5. 강조하고 싶은 점',
       rows: 7, options: [] },
     { id: 'a2', title: '자율활동 ② 상세 서술', subtitle: '두 번째로 강조할 활동', type: 'long', required: true,
-      hint: '📝 위와 동일한 5가지 항목으로 작성하세요.',
+      hint: '📝 위와 동일한 5가지 항목으로 작성하세요. (최소 6줄)',
       placeholder: '<활동명>\n\n1. 참여 동기\n...',
       rows: 7, options: [] },
-    { id: 'a3', title: '자율활동 ③ 상세 서술', subtitle: '세 번째 활동', type: 'long', required: false,
-      hint: '',
+    { id: 'a3', title: '자율활동 ③ 상세 서술', subtitle: '세 번째 활동 (선택)', type: 'long', required: false,
+      hint: '📝 활동이 있다면 최소 4줄 이상 작성하세요.',
       placeholder: '<활동명>\n\n1. 참여 동기\n...',
       rows: 7, options: [] },
+    { id: 'a_study0', title: '학급 자율스터디 참여 여부', subtitle: '', type: 'radio', required: false,
+      hint: '', placeholder: '', rows: 1, options: ['✅ 참여함', '❌ 참여 안 함'] },
+    { id: 'a_study1', title: '학급 자율스터디 참여 과목', subtitle: '참여한 과목을 모두 선택하세요', type: 'check', required: false,
+      hint: '📚 참여한 과목을 모두 체크하세요.',
+      placeholder: '', rows: 1, options: ['국어', '수학', '영어', '사회', '과학', '한국사'],
+      showIf: { id: 'a_study0', value: '✅ 참여함' } },
+    { id: 'a_study2', title: '자율스터디 — 과목별 역할 및 기여 내용', subtitle: '참여한 과목마다 역할(팀장/팀원)과 한 일을 작성', type: 'long', required: false,
+      hint: '📌 과목별로 나눠서 작성해주세요. (최소 2줄/과목)\n예)\n[수학] 팀장 — 주간 문제 선정 및 풀이 설명 담당\n[과학] 팀원 — 실험 보고서 요약 정리 담당',
+      placeholder: '[과목명] 팀장/팀원 — 구체적으로 한 일\n\n[과목명] 팀장/팀원 — 구체적으로 한 일',
+      rows: 5, options: [], showIf: { id: 'a_study0', value: '✅ 참여함' } },
+    { id: 'a_study3', title: '자율스터디 — 느낀 점 · 성장한 점', subtitle: '', type: 'long', required: false,
+      hint: '💡 스터디를 통해 학습 습관이나 협업 능력 면에서 달라진 점을 구체적으로 써주세요. (최소 3줄)\n예) 매주 수학 스터디를 통해 혼자 풀지 못했던 문제를 친구들과 논의하며 해결하는 과정에서 의사소통 능력이 향상됨.',
+      placeholder: '스터디를 통해 성장한 점을 구체적으로 작성하세요.', rows: 4, options: [],
+      showIf: { id: 'a_study0', value: '✅ 참여함' } },
   ],
   career: [
     { id: 'c1', title: '진로활동 ① 상세 서술', subtitle: '가장 강조할 활동 — 가장 길게 작성', type: 'long', required: true,
-      hint: '📝 ① 참여동기  ② 활동내용(보고서 있으면 요약 필수!)  ③ 배우고 느낀 점  ④ 후속활동  ⑤ 강조점',
+      hint: '📝 아래 5가지 항목을 각각 2줄 이상 작성하세요. (최소 10줄)\n① 참여동기  ② 활동내용(보고서 있으면 요약 필수!)  ③ 배우고 느낀 점  ④ 후속활동  ⑤ 강조점',
       placeholder: '<활동명>\n\n1. 참여 동기\n\n2. 활동 내용 (보고서 내용 요약)\n\n3. 배우고 느낀 점\n\n4. 추가 후속 활동\n\n5. 강조하고 싶은 점',
       rows: 8, options: [] },
     { id: 'c2', title: '진로활동 ② 상세 서술', subtitle: '두 번째로 강조할 활동', type: 'long', required: true,
-      hint: '', placeholder: '<활동명>\n\n1. 참여 동기\n...', rows: 7, options: [] },
-    { id: 'c3', title: '진로활동 ③ 상세 서술', subtitle: '세 번째 활동', type: 'long', required: false,
-      hint: '', placeholder: '<활동명>\n\n1. 참여 동기\n...', rows: 7, options: [] },
+      hint: '📝 위와 동일한 5가지 항목으로 작성하세요. (최소 6줄)', placeholder: '<활동명>\n\n1. 참여 동기\n...', rows: 7, options: [] },
+    { id: 'c3', title: '진로활동 ③ 상세 서술', subtitle: '세 번째 활동 (선택)', type: 'long', required: false,
+      hint: '📝 활동이 있다면 최소 4줄 이상 작성하세요.', placeholder: '<활동명>\n\n1. 참여 동기\n...', rows: 7, options: [] },
   ],
   hakgup: [
     { id: 'h1', title: '행동발달 (행발)', subtitle: '', type: 'long', required: true,
-      hint: '✏️ 아래 세 가지 항목을 각각 2줄 이상 작성하세요.\n① 본인의 장단점  ② 장점을 살린 에피소드  ③ 단점을 극복한 에피소드',
-      placeholder: '1. 본인의 장점 및 단점\n\n2. 장점을 살린 에피소드\n\n3. 단점을 극복한 에피소드',
+      hint: '✏️ 아래 세 가지 항목을 각각 3줄 이상 작성하세요. (최소 9줄)\n① 본인의 장단점  ② 장점을 살린 에피소드  ③ 단점을 극복한 에피소드\n\n💡 에피소드는 최대한 구체적으로! "성실하다" ❌ → "매일 아침 조기청소에 자발적으로 참여하여 ~~" ✅',
+      placeholder: '1. 본인의 장점 및 단점\n\n2. 장점을 살린 에피소드 (구체적인 상황·행동·결과)\n\n3. 단점을 극복한 에피소드 (구체적인 상황·행동·결과)',
       rows: 8, options: [] },
   ],
   math: [
     { id: 'm1', title: '진로 / 관심분야', subtitle: '', type: 'short', required: true,
-      hint: '', placeholder: '진로가 명확하지 않으면 관심분야 작성', rows: 1, options: [] },
-    { id: 'm2', title: '가장 자신 있는 내용', subtitle: '음슴체로, 최대한 자세히', type: 'long', required: true,
-      hint: '📝 예) 지수함수에서 정의역과 치역을 찾음에 있어 무리가 없으며...',
+      hint: '🎯 구체적일수록 좋아요. 예) 데이터 사이언티스트 / AI 연구원 / 의대 진학',
+      placeholder: '진로가 명확하지 않으면 관심분야 작성', rows: 1, options: [] },
+    { id: 'm2', title: '가장 자신 있는 내용', subtitle: '음슴체로, 최대한 자세히 (최소 5줄)', type: 'long', required: true,
+      hint: '📝 단원명 + 어떤 개념을 잘 이해했는지 구체적으로 써주세요.\n예) 지수함수에서 정의역·치역 파악에 무리가 없으며, 로그의 성질을 활용한 방정식 풀이에 능숙함. 특히 지수·로그 그래프의 평행이동과 대칭을 시각적으로 분석하는 것을 즐김.',
       placeholder: '자신 있는 단원/개념과 이유를 구체적으로 작성하세요.', rows: 5, options: [] },
+    { id: 'm2b', title: '수업 중 인상적이었던 순간', subtitle: '세특 차별화에 가장 중요한 항목이에요', type: 'long', required: true,
+      hint: '💡 발표, 토론, 문제풀이, 탐구활동 중 특별히 기억에 남는 순간을 구체적으로 써주세요. (최소 4줄)\n예) 이차방정식 단원 모둠 토론에서 판별식의 기하학적 의미를 직접 그래프로 설명했을 때, 친구들이 "아!" 하는 반응이 기억에 남음.',
+      placeholder: '언제, 어떤 활동에서, 어떤 생각이 들었는지 구체적으로 작성하세요.', rows: 5, options: [] },
     { id: 'm3', title: '어려웠던 부분 + 극복 방법 + 얻은 점', subtitle: '', type: 'long', required: true,
-      hint: '💡 극복 과정에서 얻은 역량도 함께 작성하세요.\n예) 수학에 대한 자신감, 협업능력, 문제해결능력 등',
+      hint: '💡 3단계로 나눠 각각 2줄 이상 작성하세요. (최소 6줄)\n어려웠던 점 → 어떻게 극복했는지 → 그 과정에서 얻은 역량',
       placeholder: '어려웠던 부분\n→ 극복 방법\n→ 얻은 점', rows: 5, options: [] },
+    { id: 'm3b', title: '조별활동에서 맡은 역할', subtitle: '', type: 'radio', required: true,
+      hint: '', placeholder: '', rows: 1, options: ['👑 팀장', '🤝 팀원'] },
+    { id: 'm3c', title: '조별활동 역할 상세', subtitle: '팀장/팀원으로서 구체적으로 무엇을 했는지', type: 'long', required: true,
+      hint: '📌 내가 맡은 파트, 기여한 내용, 팀에서의 역할을 구체적으로 써주세요. (최소 3줄)\n예) 팀장으로서 역할 분배를 주도하고, 발표 자료 PPT 초안을 직접 제작함.',
+      placeholder: '조별활동에서 내가 한 일을 구체적으로 작성하세요.', rows: 4, options: [] },
     { id: 'm4', title: '세특에 꼭 넣고 싶은 내용', subtitle: '', type: 'long', required: true,
-      hint: '📌 수행평가, 심화탐구활동, 수업시간 활동, 조별활동에서의 역할 등\n특히 1학년 때 탐구활동과 연결되는 내용이 있다면 반드시 작성!',
+      hint: '📌 수행평가, 심화탐구활동, 발표, 조별활동 중 생기부에 꼭 남기고 싶은 내용을 작성하세요. (최소 5줄)\n특히 1학년 탐구활동과 연결되는 내용이 있다면 반드시 작성!',
       placeholder: '자신이 활동한 내용 위주로 자세히 작성하세요.', rows: 6, options: [] },
     { id: 'm5', title: '심화탐구 발표 의향', subtitle: '', type: 'radio', required: true,
       hint: '', placeholder: '', rows: 1, options: ['⭕ 있음', '❌ 없음'] },
+    { id: 'm7', title: '스타터 발표 여부', subtitle: '', type: 'radio', required: true,
+      hint: '⚠️ 발표를 했더라도 해성에듀에 내용을 게시하지 않으면 생기부에 반영되지 않아요!',
+      placeholder: '', rows: 1, options: ['✅ 했음', '❌ 안 했음'] },
+    { id: 'm7b', title: '스타터 발표 — 해성에듀 게시 여부', subtitle: '발표를 한 경우에만 작성', type: 'radio', required: false,
+      hint: '📌 해성에듀에 게시되지 않은 발표는 생기부에 반영할 수 없어요. 반드시 게시 후 체크해주세요!',
+      placeholder: '', rows: 1, options: ['✅ 게시 완료', '❌ 아직 미게시'],
+      showIf: { id: 'm7', value: '✅ 했음' } },
+    { id: 'm8', title: 'Step2 문제 발표 여부', subtitle: '', type: 'radio', required: true,
+      hint: '⚠️ 발표를 했더라도 해성에듀에 내용을 게시하지 않으면 생기부에 반영되지 않아요!',
+      placeholder: '', rows: 1, options: ['✅ 했음', '❌ 안 했음'] },
+    { id: 'm8b', title: 'Step2 문제 발표 — 해성에듀 게시 여부', subtitle: '발표를 한 경우에만 작성', type: 'radio', required: false,
+      hint: '📌 해성에듀에 게시되지 않은 발표는 생기부에 반영할 수 없어요. 반드시 게시 후 체크해주세요!',
+      placeholder: '', rows: 1, options: ['✅ 게시 완료', '❌ 아직 미게시'],
+      showIf: { id: 'm8', value: '✅ 했음' } },
     { id: 'm6', title: '선생님께 하고 싶은 말', subtitle: '', type: 'long', required: false,
       hint: '', placeholder: '자유롭게 작성하세요 😊', rows: 4, options: [] },
   ],
   club: [
     { id: 'cl1', title: '진로 / 관심분야', subtitle: '', type: 'short', required: true,
-      hint: '', placeholder: '진로를 입력하세요.', rows: 1, options: [] },
+      hint: '🎯 구체적일수록 좋아요. 예) 데이터 사이언티스트 / 의대 진학 / 건축가',
+      placeholder: '진로를 입력하세요.', rows: 1, options: [] },
     { id: 'cl2', title: '읽은 수학 도서', subtitle: '', type: 'short', required: false,
       hint: '', placeholder: '제목(저자) 예) 미적분의 쓸모(한화택)', rows: 1, options: [] },
     { id: 'cl3', title: '도서 선택 이유 · 내용 · 느낀 점', subtitle: '', type: 'long', required: false,
-      hint: '', placeholder: '도서를 택한 이유, 주요 내용, 느낀 점을 작성하세요.', rows: 5, options: [] },
+      hint: '📖 왜 이 책을 골랐는지, 핵심 내용, 읽고 나서 달라진 생각을 각각 2줄 이상 작성하세요. (최소 6줄)',
+      placeholder: '도서를 택한 이유, 주요 내용, 느낀 점을 작성하세요.', rows: 5, options: [] },
     { id: 'cl4', title: '희망 진로와 수학의 연관성', subtitle: '', type: 'long', required: true,
-      hint: '🔍 자신의 희망분야에 수학이 어떤 영향을 미치는지 조사해서 작성하세요.',
+      hint: '🔍 단순히 "수학이 중요하다"는 내용은 ❌\n자신의 희망 진로에서 수학의 어떤 개념·분야가 어떻게 쓰이는지 조사해서 구체적으로 작성하세요. (최소 5줄)',
       placeholder: '희망 진로와 수학의 연관성을 구체적으로 작성하세요.', rows: 5, options: [] },
     { id: 'cl5', title: '생기부에 넣고 싶은 동아리 활동 내용', subtitle: '', type: 'long', required: true,
-      hint: '📌 자신이 활동한 내용 위주로 자세히 작성하세요.\n예) 문제만들기 활동에서 느낀 점, 축제 준비에서의 어려움과 극복 등',
+      hint: '📌 자신이 활동한 내용 위주로 자세히 작성하세요. (최소 6줄)\n예) 문제만들기 활동에서 이차방정식 응용문제를 직접 설계하고 친구들에게 풀이를 설명하는 역할을 맡음.',
       placeholder: '동아리 활동 내용을 자세히 작성하세요.', rows: 6, options: [] },
+    { id: 'cl5b', title: '동아리 활동 중 가장 기억에 남는 순간', subtitle: '긍정적인 경험 위주로', type: 'long', required: true,
+      hint: '🌟 어떤 활동에서, 어떤 순간이 왜 기억에 남는지 구체적으로 써주세요. (최소 3줄)\n예) 탐구 발표 준비 중 팀원들과 함께 새벽까지 자료를 정리하면서 수학적 협업의 즐거움을 처음 느꼈음.',
+      placeholder: '언제, 어떤 상황에서, 왜 기억에 남는지 구체적으로 작성하세요.', rows: 4, options: [] },
     { id: 'cl6', title: '축제에서 맡은 역할', subtitle: '', type: 'long', required: true,
-      hint: '', placeholder: '자신이 맡은 역할을 작성하세요.', rows: 3, options: [] },
+      hint: '📌 단순히 역할 이름만 쓰지 말고, 구체적으로 무엇을 했는지 작성하세요. (최소 2줄)\n예) 문제 출제 담당으로서 난이도별 3단계 문제를 설계하고 검토함.',
+      placeholder: '자신이 맡은 역할과 구체적으로 한 일을 작성하세요.', rows: 3, options: [] },
     { id: 'cl7', title: '축제 준비·운영 중 어려웠던 점 · 극복 · 느낀 점', subtitle: '', type: 'long', required: true,
-      hint: '', placeholder: '어려웠던 점, 극복한 점, 느낀 점 모두 작성하세요.', rows: 5, options: [] },
+      hint: '💡 3단계로 나눠 각각 2줄 이상 작성하세요. (최소 6줄)',
+      placeholder: '어려웠던 점\n→ 극복한 방법\n→ 느낀 점', rows: 5, options: [] },
   ],
 };
 
@@ -710,14 +760,22 @@ const DEFAULT_QUESTIONS = {
 let editingQuestions = {}; // 설정탭에서 편집 중인 데이터
 let savedQuestions = {};   // 저장된 데이터 (학생폼에 반영됨)
 
+// 질문 데이터 버전 — DEFAULT_QUESTIONS 변경 시 숫자 올리면 자동 초기화
+const QUESTIONS_VERSION = 6;
+
 function initQuestions() {
-  // localStorage에서 불러오거나 기본값 사용
+  const savedVersion = parseInt(localStorage.getItem('adum_questions_version') || '0');
   const saved = localStorage.getItem('adum_saved_questions');
-  if (saved) {
+
+  if (saved && savedVersion >= QUESTIONS_VERSION) {
+    // 버전 같으면 저장된 데이터 사용
     try { savedQuestions = JSON.parse(saved); }
     catch(e) { savedQuestions = deepCopy(DEFAULT_QUESTIONS); }
   } else {
+    // 버전 다르면 DEFAULT_QUESTIONS로 초기화
     savedQuestions = deepCopy(DEFAULT_QUESTIONS);
+    localStorage.setItem('adum_saved_questions', JSON.stringify(savedQuestions));
+    localStorage.setItem('adum_questions_version', String(QUESTIONS_VERSION));
   }
   editingQuestions = deepCopy(savedQuestions);
 }
@@ -1344,16 +1402,42 @@ function renderStudentSection(section, containerId, color, startNum) {
   if (!container) return;
   container.innerHTML = '';
   const qs = savedQuestions[section] || [];
+  // q.id → inputId 매핑 (showIf 참조용)
+  const idToInputId = {};
+  qs.forEach((q, i) => { if (q.id) idToInputId[q.id] = section + '_form_' + i; });
+
   qs.forEach((q, i) => {
-    const num     = startNum + i;
-    const inputId = section + '_form_' + i;
+    const num      = startNum + i;
+    const inputId  = section + '_form_' + i;
     const rawLabel = q.title || inputId;
     questionLabelMap[inputId] = rawLabel;
     if (q.type === 'check') {
       const opts = q.options && q.options.length ? q.options : ['항목 1'];
       opts.forEach((_, oi) => { questionLabelMap[inputId + '_' + oi] = rawLabel + '_' + (oi + 1); });
     }
-    container.appendChild(createStudentQCard(q, num, color, inputId));
+    const card = createStudentQCard(q, num, color, inputId);
+    // showIf 처리: 조건 미충족이면 처음엔 숨김
+    if (q.showIf) {
+      const triggerInputId = idToInputId[q.showIf.id];
+      card.dataset.showIfInput = triggerInputId || '';
+      card.dataset.showIfValue = q.showIf.value;
+      card.style.display = 'none'; // 기본 숨김
+    }
+    container.appendChild(card);
+  });
+
+  // 라디오 변경 시 showIf 카드 토글
+  container.addEventListener('change', function(e) {
+    if (e.target.type !== 'radio') return;
+    const changedName = e.target.name; // inputId
+    container.querySelectorAll('[data-show-if-input]').forEach(card => {
+      if (card.dataset.showIfInput !== changedName) return;
+      const show = e.target.value === card.dataset.showIfValue;
+      card.style.display = show ? '' : 'none';
+      // 숨길 때 선택값 초기화
+      if (!show) card.querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
+    });
+    autoSave();
   });
 }
 
