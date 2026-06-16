@@ -487,6 +487,7 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
   <div class="nav-logo">
     🌟 아듬's 생기부 AI
     <span class="made">· Made by Cheon_R</span>
+    <span class="nav-badge" id="nav-badge-count" style="display:none;">0</span>
     <button class="admin-open-btn" onclick="openAdminLogin()" style="margin-left:10px;">⚙️ 관리</button>
   </div>
 </nav>
@@ -838,8 +839,6 @@ let dashState = {
 
 function updateStats() {
   const d = dashState.data;
-  const badge = document.getElementById('nav-badge-count');
-  if (badge) badge.textContent = d.length;
   const total = d.filter(r=>r.submitted).length;
   const dam   = d.filter(r=>r.cat==='담임').length;
   const math  = d.filter(r=>r.cat==='수학').length;
@@ -853,8 +852,16 @@ function updateStats() {
   document.getElementById('stat-math-sub').textContent = '미제출 ' + (Math.round(d.length/3) - math) + '명';
   document.getElementById('stat-club').textContent = club;
   document.getElementById('stat-club-sub').textContent = '미제출 ' + (Math.round(d.length/3) - club) + '명';
-  const navBadge = document.querySelector('.nav-badge');
-  if(badge) navBadge.textContent = total;
+  // 네비 배지: 제출 완료 학생 수 표시
+  const navBadge = document.getElementById('nav-badge-count');
+  if (navBadge) {
+    if (total > 0) {
+      navBadge.textContent = total;
+      navBadge.style.display = '';
+    } else {
+      navBadge.style.display = 'none';
+    }
+  }
 }
 
 function buildBanFilters() {
@@ -1024,6 +1031,15 @@ const MODAL_SECTIONS = {
     { title: '🎯 진로활동', key: 'career' },
     { title: '📝 행동발달', key: 'haengbal' },
   ],
+  자율: [
+    { title: '🏃 자율활동', key: 'auto' },
+  ],
+  진로: [
+    { title: '🎯 진로활동', key: 'career' },
+  ],
+  행발: [
+    { title: '📝 행동발달', key: 'haengbal' },
+  ],
   수학: [
     { title: '📐 수학 교과 세특', key: 'math' },
   ],
@@ -1032,22 +1048,42 @@ const MODAL_SECTIONS = {
   ],
 };
 
-// 샘플 상세 내용 (실제 연동 시 구글 시트 데이터로 교체)
-function getSampleDetail(r) {
-  const detailMap = {
-    담임: {
-      auto: `[1인1역할 - 급식도우미]\n\n1. 참여 동기\n매일 급식 시간이 원활하게 진행되도록 돕고 싶어 자원했습니다.\n\n2. 활동 내용\n1학기 내내 급식 배식을 도왔으며, 줄 서기 지도와 잔반 처리까지 담당했습니다.\n\n3. 배우고 느낀 점\n꾸준한 책임감의 중요성을 체감했고, 학급 친구들과의 유대감도 깊어졌습니다.\n\n4. 후속 활동\n2학기에는 교실 환경 미화 담당으로 이어서 활동했습니다.\n\n5. 강조점\n하루도 빠짐없이 역할을 수행한 성실함을 강조하고 싶습니다.`,
-      career: `[진로콘서트 - 디지털 시대의 직업 변화]\n\n1. 참여 동기\n희망 진로인 회계사의 미래를 알고 싶어 신청했습니다.\n\n2. 활동 내용\nAI와 빅데이터 시대에 회계사의 역할이 어떻게 변화하는지 강의를 들었습니다.\n\n3. 배우고 느낀 점\n단순 계산보다 분석과 컨설팅 역량이 중요해짐을 알았습니다.\n\n4. 후속 활동\n관련 책 <AI 시대의 직업>을 읽고 독서 노트를 작성했습니다.\n\n5. 강조점\n진로에 대한 구체적 탐색이 이루어진 의미 있는 활동이었습니다.`,
-      haengbal: `1. 본인의 장점 및 단점\n장점: 맡은 일을 끝까지 책임지는 성실함과 친구들과 잘 어울리는 사교성\n단점: 때로 지나치게 완벽함을 추구해 시간 관리가 어려울 때가 있음\n\n2. 장점을 살린 에피소드\n1인1역할에서 급식도우미를 맡아 1년 내내 단 하루도 빠지지 않고 성실히 임했습니다.\n\n3. 단점을 극복한 에피소드\n수행평가 준비 시 완벽주의로 인해 마감이 촉박해지는 문제를 겪었고, 이후 세부 계획표를 작성하는 습관을 들여 시간 관리 능력을 향상시켰습니다.`,
-    },
-    수학: {
-      math: `진로/관심분야: 데이터 사이언스\n\n가장 자신 있는 내용:\n지수함수와 로그함수 단원에서 정의역, 치역, 그래프의 특성을 파악하는 데 무리가 없으며, 특히 지수방정식을 로그로 변환해 풀이하는 과정에서 탁월한 이해력을 보임.\n\n어려웠던 부분 → 극복:\n삼각함수의 합성 부분에서 처음에는 공식 암기에만 의존했으나, 단위원과 연결해 개념적으로 이해하는 방식으로 접근을 바꾼 후 응용 문제도 해결할 수 있게 됨. 이 과정에서 개념 중심 학습의 중요성을 체득함.\n\n세특에 꼭 넣고 싶은 내용:\n수업 시간 발표에서 지수함수의 실생활 적용 사례(인구 성장 모델, 방사성 붕괴)를 직접 조사해 발표하여 수학과 과학의 연결고리를 탐구함.\n\n심화탐구 발표 의향: ⭕ 있음`,
-    },
-    동아리: {
-      club: `진로/관심분야: 금융공학\n\n읽은 수학 도서: 미적분의 쓸모 (한화택)\n\n도서 감상:\n미분과 적분이 단순한 수학 계산이 아니라 경제, 물리, 공학 전반에 깊이 스며있다는 것을 흥미롭게 서술함. 특히 금융 파생상품 가격 결정에 미적분이 쓰인다는 내용이 진로와 연결되어 인상 깊었음.\n\n희망 진로와 수학의 연관성:\n금융공학에서는 블랙-숄즈 모델 등 편미분방정식이 핵심적으로 쓰임. 수학적 모델링 능력이 금융 상품 설계와 리스크 관리의 토대가 된다는 점을 조사하여 수학 학습의 동기를 구체화함.\n\n축제 역할:\n수학 게임 부스 총괄 기획 및 운영 담당\n\n축제 소감:\n문제 출제 단계에서 난이도 조절에 어려움이 있었으나 팀원들과 피드백을 주고받으며 수정함. 많은 학생들이 즐기는 모습을 보며 수학에 대한 흥미를 이끌어낼 수 있다는 보람을 느꼈음.`,
-    },
-  };
-  return detailMap[r.cat] || {};
+// 고정 시스템 컬럼 (제외 대상)
+const MODAL_FIXED_COLS = new Set([
+  '이름','name','제출시각','학년','grade','반','ban','번호','num',
+  '시트명','sheetName','구분','cat','composedBan','submittedAt','preview','id'
+]);
+
+// r.raw(구글 시트 실제 응답)에서 질문 컬럼만 추출해 섹션 키에 맞게 반환
+function getStudentDetail(r) {
+  const raw = r.raw || {};
+  const cat = r.cat || '';
+
+  // 질문 컬럼만 추출 (고정 컬럼 제외), "질문명:\n답변" 형식으로 합침
+  function buildText() {
+    const parts = [];
+    Object.keys(raw).forEach(function(k) {
+      if (MODAL_FIXED_COLS.has(k)) return;
+      const v = String(raw[k] || '').trim();
+      if (!v) return;
+      parts.push(k + ':\n' + v);
+    });
+    return parts.join('\n\n');
+  }
+
+  const text = buildText();
+
+  // cat별로 적절한 섹션 키에 매핑
+  if (cat === '자율')   return { auto:     text };
+  if (cat === '진로')   return { career:   text };
+  if (cat === '행발')   return { haengbal: text };
+  if (cat === '수학')   return { math:     text };
+  if (cat === '동아리') return { club:     text };
+  // 담임(구버전 호환)
+  if (cat === '담임') {
+    return { auto: text, career: '', haengbal: '' };
+  }
+  return { auto: text };
 }
 
 function openModal(id) {
@@ -1068,7 +1104,7 @@ function openModal(id) {
   // 본문 렌더링
   const body = document.getElementById('modal-body');
   const sections = MODAL_SECTIONS[r.cat] || [];
-  const detail = getSampleDetail(r);
+  const detail = getStudentDetail(r);
 
   body.innerHTML = sections.map(sec => {
     const text = detail[sec.key] || '';
