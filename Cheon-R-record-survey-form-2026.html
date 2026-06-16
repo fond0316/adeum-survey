@@ -1110,7 +1110,7 @@ function openModal(id) {
     const text = detail[sec.key] || '';
     return `<div class="modal-section">
       <div class="modal-sec-title">${sec.title}</div>
-      <div class="modal-content-box${text ? '' : ' empty'}">${text || '내용 없음'}</div>
+      <div class="modal-content-box${text ? '' : ' empty'}">${text ? escHtml(text) : '내용 없음'}</div>
     </div>`;
   }).join('');
 
