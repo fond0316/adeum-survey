@@ -1983,6 +1983,7 @@ function doSubmitSection(tabLabel, name, grade, ban, num, gasUrl, submitKey) {
   const baseData = {
     name, grade, ban, num,
     cat,
+    mathSubject: document.getElementById('set-math')?.value?.trim() || '',
     composedBan: grade && ban ? grade + '-' + ban : '',
     submittedAt: new Date().toLocaleString('ko-KR'),
     sheetName:   getSheetName() + '_' + cat,
