@@ -1587,7 +1587,7 @@ function loadSavedSettings() {
       }
       if (s.school) document.getElementById('set-school').value = s.school;
       if (s.club) document.getElementById('set-club').value = s.club;
-      if (s.math) document.getElementById('set-math').value = s.math;
+      if (s.math) { document.getElementById('set-math').value = s.math; updateMath(); }
       const gasUrlEl = document.getElementById('set-gas-url');
       if (gasUrlEl) {
         gasUrlEl.value = s.gasUrl || getGasUrl();
@@ -1764,7 +1764,8 @@ function goForm(type) {
   document.getElementById('form-club').style.display   = 'none';
 
   // 선택된 폼 표시
-  const titleMap = { hakgup: '🏫 학급 세특', math: '📐 수학 교과 세특', club: '🔭 동아리 세특' };
+  const mathName = document.getElementById('set-math')?.value?.trim();
+  const titleMap = { hakgup: '🏫 학급 세특', math: mathName ? '📐 ' + mathName + ' 세특' : '📐 수학 교과 세특', club: '🔭 동아리 세특' };
   document.getElementById('form-' + type).style.display = 'block';
   document.getElementById('form-screen-title').textContent = titleMap[type] || '';
 
@@ -2296,6 +2297,10 @@ function updateClub(){
 function updateMath(){
   const v = document.getElementById('set-math').value.trim();
   document.getElementById('math-sub').textContent = v || '교과 세특';
+  const mathTabBtn = document.querySelector('.q-section-tab[onclick*="math"]');
+  if(mathTabBtn) mathTabBtn.textContent = v ? '📐 ' + v : '📐 수학 교과';
+  const titleEl = document.getElementById('form-screen-title');
+  if(titleEl && titleEl.textContent.includes('수학')) titleEl.textContent = v ? '📐 ' + v + ' 세특' : '📐 수학 교과 세특';
 }
 
 function addAct(listId, inputId){
@@ -2517,7 +2522,19 @@ window.addEventListener('load', () => {
     </div>
     <div class="set-row">
       <label>수학 교과명</label>
-      <input class="set-inp" type="text" id="set-math" placeholder="예) 공통수학1, 수학2..." oninput="updateMath()"/>
+      <select class="set-inp" id="set-math" onchange="updateMath()" style="cursor:pointer;">
+        <option value="">선택하세요</option>
+        <option value="공통수학1">공통수학1 (1학기)</option>
+        <option value="공통수학2">공통수학2 (2학기)</option>
+        <option value="대수">대수</option>
+        <option value="미적분Ⅰ">미적분Ⅰ</option>
+        <option value="확률과통계">확률과통계</option>
+        <option value="미적분Ⅱ">미적분Ⅱ</option>
+        <option value="기하">기하</option>
+        <option value="경제수학">경제수학</option>
+        <option value="인공지능수학">인공지능수학</option>
+        <option value="수학과제탐구">수학과제탐구</option>
+      </select>
     </div>
     <div class="set-row">
       <label>미리보기</label>
