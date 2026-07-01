@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌿 아듬샘 취미허브</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<style>
+:root{
+  --g:#7CA982;--gl:#E8F1E9;
+  --b:#5B9BD5;--bl:#E3EFF9;
+  --r:#E07A5F;--rl:#FBEAE5;
+  --bg:#FAF8F3;--card:#fff;--text:#3B3B3B;--sub:#8A8A8A;
+  --danger:#E07A5F;--warn:#E8B84B;--radius:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);padding-bottom:76px;}
+.app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative;}
+.screen{display:none;padding:0 16px 20px;animation:fd .2s ease;}
+.screen.active{display:block;}
+@keyframes fd{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+/* HEADER */
+.ph{padding:18px 16px 10px;display:flex;align-items:center;justify-content:space-between;}
+.pt{font-size:20px;font-weight:800;}
+.back-row{padding:14px 16px 6px;display:flex;align-items:center;gap:8px;}
+.back-btn{background:none;border:none;font-size:22px;cursor:pointer;}
+/* BOTTOM NAV */
+.bnav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  max-width:480px;width:100%;background:white;border-top:1px solid #EEEBE4;
+  display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom);
+}
+.nbtn{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0;
+  background:none;border:none;font-family:'Pretendard',sans-serif;font-size:10px;color:var(--sub);gap:2px;cursor:pointer;}
+.nbtn .ni{font-size:20px;}
+.nbtn.active{color:var(--g);}
+/* TODAY BANNER */
+.banner{border-radius:var(--radius);padding:16px 18px;color:white;margin-bottom:14px;}
+.banner.green{background:linear-gradient(135deg,var(--g),#9DC3A2);}
+.banner.blue{background:linear-gradient(135deg,var(--b),#8ABDE8);}
+.banner.red{background:linear-gradient(135deg,var(--r),#E9957E);}
+.banner .bl{font-size:12px;opacity:.9;}
+.banner .bc{font-size:26px;font-weight:800;}
+/* TASK LIST */
+.task-list{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;}
+.task-item{background:var(--card);border-radius:12px;padding:11px 13px;display:flex;align-items:center;gap:10px;box-shadow:0 1px 5px rgba(0,0,0,.04);}
+.ti{font-size:20px;flex-shrink:0;}
+.t-info{flex:1;}
+.t-name{font-size:13px;font-weight:600;}
+.t-sub{font-size:11px;color:var(--sub);}
+.t-btn{border:none;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;color:white;cursor:pointer;white-space:nowrap;}
+.t-btn.g{background:var(--g);}
+.t-btn.b{background:var(--b);}
+.t-btn.r{background:var(--r);}
+/* SECTION TITLE */
+.sec-title{font-size:12px;font-weight:700;color:var(--sub);margin:16px 0 10px;text-transform:uppercase;letter-spacing:.05em;display:flex;justify-content:space-between;align-items:center;}
+/* HOBBY CARDS */
+.hobby-cards{display:flex;flex-direction:column;gap:10px;}
+.hcard{background:var(--card);border-radius:var(--radius);padding:16px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,.04);cursor:pointer;}
+.hcard .hicon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+.hcard.plants .hicon{background:var(--gl);}
+.hcard.fish .hicon{background:var(--bl);}
+.hcard.exercise .hicon{background:var(--rl);}
+.hcard .hinfo{flex:1;}
+.hcard .hname{font-size:16px;font-weight:700;}
+.hcard .hsub{font-size:12px;color:var(--sub);margin-top:2px;}
+.harrow{font-size:16px;color:#CCC;}
+/* PLANT GRID */
+.pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.pcard{background:var(--card);border-radius:14px;padding:12px;box-shadow:0 2px 6px rgba(0,0,0,.04);border:2px solid transparent;cursor:pointer;}
+.pcard.overdue{border-color:var(--danger);}
+.pthumb{width:100%;aspect-ratio:1;border-radius:10px;background:var(--gl);margin-bottom:8px;display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;}
+.pthumb img{width:100%;height:100%;object-fit:cover;}
+.pname{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ploc{font-size:10px;color:var(--sub);margin:2px 0 5px;}
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:7px;}
+.badge.ok{background:var(--gl);color:var(--g);}
+.badge.due{background:var(--rl);color:var(--danger);}
+.badge.soon{background:#FCF3DC;color:#C9952B;}
+/* CHIP ROW */
+.chip-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;scrollbar-width:none;}
+.chip-row::-webkit-scrollbar{display:none;}
+.chip{flex-shrink:0;padding:6px 12px;border-radius:20px;background:var(--card);font-size:12px;font-weight:600;color:var(--sub);border:1px solid #EEE;cursor:pointer;}
+.chip.active{background:var(--g);color:white;border-color:var(--g);}
+/* WINTER TOGGLE */
+.wtoggle{display:flex;align-items:center;gap:5px;font-size:11px;background:var(--card);border-radius:20px;padding:5px 9px;cursor:pointer;color:var(--sub);}
+.wtoggle.on{background:#6E9BC7;color:white;}
+.wknob{width:26px;height:15px;border-radius:8px;background:#DDD;position:relative;flex-shrink:0;}
+.wknob.on{background:white;}
+.wknob .k{position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:white;transition:.2s;}
+.wknob.on .k{left:13px;background:#6E9BC7;}
+/* FORMS */
+.fg{margin-bottom:14px;}
+.fl{font-size:12px;font-weight:700;color:var(--sub);margin-bottom:6px;display:block;}
+.fi,.fs,.fta{width:100%;padding:11px 13px;border-radius:11px;border:1px solid #E5E1D8;font-family:'Pretendard',sans-serif;font-size:13px;background:white;}
+.fta{min-height:70px;resize:vertical;}
+.photo-box{border:2px dashed #D9D4C7;border-radius:12px;padding:18px;text-align:center;color:var(--sub);font-size:13px;position:relative;overflow:hidden;}
+.photo-box input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.photo-box img{max-width:100%;max-height:130px;border-radius:8px;}
+/* BUTTONS */
+.btn{width:100%;border:none;border-radius:13px;padding:13px;font-size:14px;font-weight:700;font-family:'Pretendard',sans-serif;cursor:pointer;color:white;}
+.btn.g{background:var(--g);}
+.btn.b{background:var(--b);}
+.btn.r{background:var(--r);}
+.btn.ghost{background:none;border:1px solid #DDD;color:var(--text);}
+.btn-row{display:flex;gap:8px;margin-bottom:16px;}
+.cbtn{flex:1;border:none;border-radius:14px;padding:13px;font-size:13px;font-weight:700;color:white;font-family:'Pretendard',sans-serif;cursor:pointer;}
+.cbtn.g{background:var(--g);}
+.cbtn.b{background:#6E9BC7;}
+.sbtn{border:none;border-radius:8px;padding:7px 12px;font-size:11px;font-weight:700;color:white;font-family:'Pretendard',sans-serif;cursor:pointer;}
+.sbtn.g{background:var(--g);}
+.sbtn.b{background:var(--b);}
+.sbtn.r{background:var(--danger);}
+/* FAB */
+.fab{position:fixed;bottom:82px;right:max(16px,calc(50vw - 224px));z-index:50;}
+.fab button{width:52px;height:52px;border-radius:50%;border:none;font-size:24px;color:white;cursor:pointer;box-shadow:0 5px 15px rgba(0,0,0,.2);}
+.fab.g button{background:var(--g);}
+.fab.b button{background:var(--b);}
+/* DETAIL */
+.dhero{width:100%;aspect-ratio:4/3;border-radius:14px;background:var(--gl);display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:12px;overflow:hidden;}
+.dhero img{width:100%;height:100%;object-fit:cover;}
+.dname{font-size:20px;font-weight:800;}
+.dsub{font-size:12px;color:var(--sub);margin:2px 0 12px;}
+.stat-row{display:flex;gap:7px;margin-bottom:14px;}
+.sbox{flex:1;background:var(--card);border-radius:11px;padding:9px 4px;text-align:center;}
+.snum{font-size:14px;font-weight:800;color:var(--g);}
+.slab{font-size:9px;color:var(--sub);margin-top:1px;}
+/* CARE CARD */
+.care-card{background:var(--gl);border-radius:12px;padding:11px 13px;margin-bottom:12px;}
+.crow{display:flex;gap:6px;font-size:12px;margin-bottom:3px;line-height:1.4;}
+.clbl{font-weight:700;color:var(--g);flex-shrink:0;width:24px;}
+.ctip{font-size:11px;color:#3B6D11;font-weight:600;margin-top:5px;padding-top:5px;border-top:1px solid rgba(124,169,130,.25);}
+/* TABS */
+.tabs{display:flex;gap:6px;margin-bottom:12px;}
+.tab{flex:1;padding:8px;border-radius:9px;border:1px solid #E5E1D8;background:white;font-size:11px;font-weight:600;color:var(--sub);cursor:pointer;font-family:'Pretendard',sans-serif;}
+.tab.active{background:var(--g);color:white;border-color:var(--g);}
+.tab.active.b{background:var(--b);border-color:var(--b);}
+/* DIARY */
+.dentry{background:var(--card);border-radius:11px;padding:10px;margin-bottom:8px;}
+.dentry .dd{font-size:11px;color:var(--sub);margin-bottom:3px;display:flex;justify-content:space-between;}
+.dentry img{width:100%;border-radius:8px;margin-bottom:5px;}
+.dentry .dn{font-size:12px;line-height:1.5;}
+.tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:7px;}
+.tag.물주기{background:var(--gl);color:var(--g);}
+.tag.분무{background:var(--bl);color:var(--b);}
+.tag.영양제{background:#F0E9F7;color:#8B6BB8;}
+.tag.분갈이{background:#F6EAD9;color:#B8763B;}
+.tag.가지치기{background:#EAF3E0;color:#6E9C3D;}
+.tag.병충해{background:var(--rl);color:var(--danger);}
+.tag.꽃핌{background:#FCEAF1;color:#D45C8C;}
+.tag.메모{background:#F0F0F0;color:#888;}
+.tag\.물주기\(저면\){background:var(--gl);color:var(--g);}
+.tag\.물주기\(상면\){background:#E0F0E8;color:#3A8A5A;}
+.tag.급여{background:var(--bl);color:var(--b);}
+.tag.수질{background:#E8F4F8;color:#2E7D9E;}
+.type-chips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:9px;}
+.tc{padding:5px 10px;border-radius:11px;border:1px solid #E5E1D8;background:white;font-size:11px;font-weight:600;color:var(--sub);cursor:pointer;}
+.tc.active{background:var(--g);color:white;border-color:var(--g);}
+.album-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
+.album-grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;}
+/* FISH */
+.spi{background:var(--card);border-radius:12px;padding:11px 13px;display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.spi .si{flex:1;}
+.spi .sn{font-size:14px;font-weight:600;}
+.spi .sc{font-size:11px;color:var(--sub);}
+/* EXERCISE */
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:14px;}
+.wcell{border-radius:9px;border:1.5px solid #EEE;display:flex;flex-direction:column;align-items:center;padding:5px 2px;gap:2px;cursor:pointer;}
+.wcell .wd{font-size:9px;font-weight:700;color:var(--sub);}
+.wcell .wdate{font-size:10px;font-weight:600;}
+.wcell .dots{display:flex;gap:2px;margin-top:2px;}
+.wcell .dot{width:5px;height:5px;border-radius:50%;background:#EEE;}
+.wcell .dot.f{background:var(--r);}
+.wcell .dot.n{background:var(--b);}
+.wcell.today{border-color:var(--text);}
+.goal-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.gbar-wrap{background:#EEE;border-radius:10px;height:10px;overflow:hidden;margin-bottom:12px;}
+.gbar{height:100%;border-radius:10px;background:var(--r);transition:width .3s;}
+.exlog{background:var(--card);border-radius:11px;padding:10px 13px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+.exlog .ei{flex:1;}
+.exlog .etype{font-size:13px;font-weight:600;}
+.exlog .edate{font-size:11px;color:var(--sub);}
+.empty{text-align:center;color:var(--sub);font-size:13px;padding:28px 0;line-height:1.7;}
+.del-link{color:var(--danger);font-size:12px;text-align:center;display:block;margin-top:14px;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ===== HUB HOME ===== -->
+<div class="screen active" id="s-hub">
+  <div class="ph"><div class="pt">👋 안녕하세요, 아듬샘!</div><div style="font-size:13px;color:var(--sub)" id="hubDate"></div></div>
+  <div style="padding:0 16px 20px">
+    <div class="banner green" id="todayBanner" onclick="openCareZone()" style="cursor:pointer">
+      <div class="bl">🌿 오늘의 케어존 <span style="font-size:11px;opacity:.7">탭해서 확인</span></div>
+      <div class="bc" id="hubTodayCount">0개</div>
+    </div>
+    <div class="task-list" id="hubTaskList"></div>
+    <div class="sec-title">취미</div>
+    <div class="hobby-cards">
+      <div class="hcard plants" onclick="showPlants()">
+        <div class="hicon">🌱</div>
+        <div class="hinfo">
+          <div class="hname">식물집사</div>
+          <div class="hsub" id="hubPlantSub">로딩중...</div>
+        </div>
+        <div class="harrow">›</div>
+      </div>
+      <div class="hcard fish" onclick="showFish()">
+        <div class="hicon">🐠</div>
+        <div class="hinfo">
+          <div class="hname">물생활</div>
+          <div class="hsub" id="hubFishSub">어항 기록</div>
+        </div>
+        <div class="harrow">›</div>
+      </div>
+      <div class="hcard exercise" onclick="showExercise()">
+        <div class="hicon">🏋️</div>
+        <div class="hinfo">
+          <div class="hname">운동</div>
+          <div class="hsub" id="hubExSub">이번주 0/4회</div>
+        </div>
+        <div class="harrow">›</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PLANT LIST ===== -->
+<div class="screen" id="s-plants">
+  <div class="ph">
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="back-btn" onclick="goHub()">←</button>
+      <div class="pt">🌱 식물집사</div>
+    </div>
+    <div class="wtoggle" id="wtoggle" onclick="toggleWinter()">
+      ❄️ <span id="wlabel">겨울모드</span>
+      <div class="wknob" id="wknob"><div class="k"></div></div>
+    </div>
+  </div>
+  <div style="padding:0 16px 20px">
+    <div class="banner green">
+      <div class="bl">오늘 케어할 친구</div>
+      <div class="bc" id="plantTodayCount">0개</div>
+    </div>
+    <div class="task-list" id="plantTodayList"></div>
+    <div class="sec-title">전체 식물 <span id="plantTotalLabel" style="font-weight:400;font-size:11px;text-transform:none;letter-spacing:0"></span></div>
+    <div class="chip-row" id="catChips"></div>
+    <div class="pgrid" id="plantGrid"></div>
+    <div id="plannedSection" style="display:none">
+      <div class="sec-title" style="margin-top:20px">🛒 데려올 예정 <span id="plannedCount" style="font-weight:400;font-size:11px;text-transform:none;letter-spacing:0"></span></div>
+      <div class="pgrid" id="plannedGrid"></div>
+    </div>
+    <div class="empty" id="plantEmpty" style="display:none">등록된 식물이 없어요 🌿</div>
+  </div>
+  <div class="fab g"><button onclick="goAddPlant()">+</button></div>
+</div>
+
+<!-- ===== ADD PLANT ===== -->
+<div class="screen" id="s-add-plant">
+  <div class="back-row"><button class="back-btn" onclick="showPlants()">←</button><strong>식물 등록</strong></div>
+  <div style="padding:0 16px">
+    <div class="fg">
+      <label class="fl">사진</label>
+      <div class="photo-box" id="addPhotoBox">📷 사진 추가하기
+        <input type="file" accept="image/*" onchange="previewPhoto(event,'addPhotoBox','add')">
+      </div>
+    </div>
+    <div class="fg"><label class="fl">이름 (별명)</label><input class="fi" id="addName" placeholder="예: 거실 몬스테라"></div>
+    <div class="fg"><label class="fl">종류</label><input class="fi" id="addSpecies" placeholder="예: 몬스테라"></div>
+    <div class="fg">
+      <label class="fl">카테고리</label>
+      <select class="fs" id="addCat">
+        <option value="고사리류">고사리류</option><option value="다육이류">다육이류</option>
+        <option value="선인장류">선인장류</option><option value="페페류">페페류</option>
+        <option value="꽃류">꽃류</option><option value="관엽류">관엽류</option>
+        <option value="허브류">허브류</option><option value="에어플랜트">에어플랜트</option>
+        <option value="난류">난류</option><option value="공기정화류">공기정화류</option>
+        <option value="기타">기타</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">위치</label><input class="fi" id="addLoc" placeholder="예: 거실 창가, 베란다"></div>
+    <div class="fg"><label class="fl">물주기 주기 (일)</label><input class="fi" type="number" id="addDays" min="1" value="7"></div>
+    <div class="fg"><label class="fl">마지막 물 준 날</label><input class="fi" type="date" id="addLastW"></div>
+    <div class="fg"><label class="fl">데려온 날</label><input class="fi" type="date" id="addAcquired"></div>
+    <div class="fg"><label class="fl">케어 팁 (선택)</label><input class="fi" id="addTip" placeholder="예: 과습 주의!"></div>
+    <button class="btn g" onclick="submitAddPlant()">등록하기 🌿</button>
+  </div>
+</div>
+
+<!-- ===== PLANT DETAIL ===== -->
+<div class="screen" id="s-plant-detail">
+  <div class="back-row"><button class="back-btn" onclick="showPlants()">←</button><strong id="detailTitle"></strong></div>
+  <div style="padding:0 16px">
+    <div class="dhero" id="detailHero">🌱</div>
+    <div class="dname" id="detailName"></div>
+    <div class="dsub" id="detailSub"></div>
+    <div class="stat-row">
+      <div class="sbox"><div class="snum" id="dDday">-</div><div class="slab">물주기까지</div></div>
+      <div class="sbox"><div class="snum" id="dDays">-</div><div class="slab">키운지(일)</div></div>
+      <div class="sbox"><div class="snum" id="dLast">-</div><div class="slab">마지막 급수</div></div>
+      <div class="sbox"><div class="snum" id="dSpray">-</div><div class="slab">마지막 분무</div></div>
+    </div>
+    <div class="care-card" id="detailCare"></div>
+    <div class="btn-row">
+      <button class="cbtn g" onclick="waterNow()">💧 물주기</button>
+      <button class="cbtn b" onclick="sprayNow()">🌫️ 분무/영양제</button>
+    </div>
+    <div class="tabs">
+      <button class="tab active" id="tab-diary" onclick="switchTab('diary')">📔 일기장</button>
+      <button class="tab" id="tab-album" onclick="switchTab('album')">🖼️ 성장앨범</button>
+      <button class="tab" id="tab-edit" onclick="switchTab('edit')">⚙️ 수정</button>
+    </div>
+    <div id="pane-diary">
+      <div class="type-chips" id="dTypeChips"></div>
+      <div class="fg"><div class="photo-box" id="diaryPhotoBox">📷 사진 (선택)<input type="file" accept="image/*" onchange="previewPhoto(event,'diaryPhotoBox','diary')"></div></div>
+      <div class="fg"><textarea class="fta" id="diaryNote" placeholder="오늘 식물 상태는 어땠나요?"></textarea></div>
+      <button class="btn g" style="margin-bottom:16px" onclick="addDiary()">기록 남기기</button>
+      <div id="diaryList"></div>
+    </div>
+    <div id="pane-album" style="display:none">
+      <div class="album-grid" id="albumGrid"></div>
+      <div class="empty" id="albumEmpty" style="display:none">사진 기록이 아직 없어요 📸</div>
+    </div>
+    <div id="pane-edit" style="display:none">
+      <div class="fg"><label class="fl">이름</label><input class="fi" id="editName"></div>
+      <div class="fg"><label class="fl">위치</label><input class="fi" id="editLoc"></div>
+      <div class="fg"><label class="fl">물주기 주기 (일)</label><input class="fi" type="number" id="editDays"></div>
+      <div class="fg"><label class="fl">케어 팁</label><input class="fi" id="editTip"></div>
+      <button class="btn g" onclick="updatePlant()">저장</button>
+      <a class="del-link" onclick="deletePlant()">이 식물 삭제하기</a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FISH ===== -->
+<div class="screen" id="s-fish">
+  <div class="ph">
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="back-btn" onclick="goHub()">←</button>
+      <div class="pt">🐠 물생활</div>
+    </div>
+  </div>
+  <div style="padding:0 16px 20px">
+    <div class="banner blue">
+      <div class="bl">어항 케어</div>
+      <div class="bc" id="fishLastFeed">-</div>
+    </div>
+    <div class="sec-title">어종 등록</div>
+    <div id="speciesList"></div>
+    <div style="display:flex;gap:8px;margin-bottom:20px">
+      <input class="fi" id="newSpeciesName" placeholder="어종명 (예: 구피)" style="flex:1">
+      <input class="fi" id="newSpeciesCount" type="number" placeholder="수" style="width:60px">
+      <button class="sbtn b" onclick="addSpecies()">추가</button>
+    </div>
+    <div class="sec-title">오늘 기록 남기기</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="tab active b" id="ftab-feed" onclick="switchFishTab('feed')">🍤 먹이</button>
+      <button class="tab" id="ftab-water" onclick="switchFishTab('water')">🧪 수질</button>
+    </div>
+    <div id="fpane-feed">
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button class="tab active b" id="ftiming-morning" onclick="setFishTiming('아침')">🌅 아침</button>
+        <button class="tab" id="ftiming-evening" onclick="setFishTiming('저녁')">🌙 저녁</button>
+      </div>
+      <div class="fg"><label class="fl">먹이 종류 / 메모 (선택)</label><input class="fi" id="feedNote" placeholder="예: 건사료, 냉동 아르테미아"></div>
+      <button class="btn b" onclick="addFishLog('feed')">급여 기록 ✓</button>
+    </div>
+    <div id="fpane-water" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div><label class="fl">수온 (℃)</label><input class="fi" type="number" id="wTemp" placeholder="26"></div>
+        <div><label class="fl">pH</label><input class="fi" type="number" step="0.1" id="wPh" placeholder="7.0"></div>
+        <div><label class="fl">암모니아 (ppm)</label><input class="fi" type="number" step="0.01" id="wAmm" placeholder="0"></div>
+        <div><label class="fl">아질산 (ppm)</label><input class="fi" type="number" step="0.01" id="wNit" placeholder="0"></div>
+      </div>
+      <div class="fg"><textarea class="fta" id="wNote" placeholder="기타 메모 (예: 물갈이 30% 완료)"></textarea></div>
+      <button class="btn b" onclick="addFishLog('water')">수질 기록 ✓</button>
+    </div>
+    <div class="sec-title" style="margin-top:20px">최근 기록</div>
+    <div id="fishLogList"></div>
+  </div>
+</div>
+
+<!-- ===== EXERCISE ===== -->
+<div class="screen" id="s-exercise">
+  <div class="ph">
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="back-btn" onclick="goHub()">←</button>
+      <div class="pt">🏋️ 운동</div>
+    </div>
+  </div>
+  <div style="padding:0 16px 20px">
+    <div class="sec-title">이번 주 <span id="weekRange" style="font-weight:400;font-size:11px;text-transform:none;letter-spacing:0;color:var(--sub)"></span></div>
+    <div class="week-grid" id="weekGrid"></div>
+    <div class="banner red" style="margin-bottom:16px">
+      <div class="bl">이번주 목표 달성률</div>
+      <div class="bc" id="exGoalLabel">0 / 4회</div>
+    </div>
+    <div class="gbar-wrap"><div class="gbar" id="exGbar" style="width:0%"></div></div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:20px">
+      <span style="font-size:12px;color:var(--sub)">주간 목표</span>
+      <input class="fi" type="number" id="exGoalInput" min="1" max="14" style="width:60px;padding:8px 10px">
+      <span style="font-size:12px;color:var(--sub)">회/주</span>
+      <button class="sbtn r" onclick="saveGoal()">저장</button>
+    </div>
+    <div class="sec-title">오늘 운동 기록</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="cbtn r" onclick="logExercise('F45')">🏋️ F45 완료</button>
+      <button class="cbtn b" onclick="logExercise('러닝')">🏃 러닝 완료</button>
+    </div>
+    <div class="sec-title">최근 기록</div>
+    <div id="exLogList"></div>
+  </div>
+</div>
+
+</div><!-- /.app -->
+
+<!-- 케어존 모달 -->
+<div id="careModal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.45)" onclick="closeCareZone()">
+  <div onclick="event.stopPropagation()" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);max-width:480px;width:100%;background:white;border-radius:22px 22px 0 0;padding:20px 20px 40px;max-height:80vh;overflow-y:auto">
+    <div style="width:36px;height:4px;background:#DDD;border-radius:2px;margin:0 auto 16px"></div>
+    <div style="font-size:17px;font-weight:800;margin-bottom:16px">🌿 오늘의 케어존</div>
+
+    <div id="careNeedSection">
+      <div style="font-size:12px;font-weight:700;color:var(--danger);margin-bottom:8px">⚠️ 케어 필요</div>
+      <div id="careNeedList"></div>
+    </div>
+
+    <div id="careMistSection" style="margin-top:16px;display:none"><div style="font-size:12px;font-weight:700;color:#5B9BD5;margin-bottom:8px">💧 분무 할일</div><div id="careMistList"></div></div>
+    <div id="careDoneSection" style="margin-top:16px">
+      <div style="font-size:12px;font-weight:700;color:var(--g);margin-bottom:8px">✅ 오늘 완료</div>
+      <div id="careDoneList"></div>
+    </div>
+
+    <div id="careAllGood" style="display:none;text-align:center;padding:20px 0;color:var(--sub);font-size:13px">
+      오늘 케어할 식물이 없어요 🎉<br>모든 식물이 건강해요!
+    </div>
+
+    <button onclick="closeCareZone()" style="margin-top:20px;width:100%;padding:13px;border:none;border-radius:13px;background:var(--gl);color:var(--g);font-size:14px;font-weight:700;font-family:'Pretendard',sans-serif;cursor:pointer">닫기</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <button class="nbtn active" id="nav-hub" onclick="goHub()"><span class="ni">🏠</span>홈</button>
+  <button class="nbtn" id="nav-plants" onclick="showPlants()"><span class="ni">🌱</span>식물</button>
+  <button class="nbtn" id="nav-fish" onclick="showFish()"><span class="ni">🐠</span>물생활</button>
+  <button class="nbtn" id="nav-exercise" onclick="showExercise()"><span class="ni">🏋️</span>운동</button>
+</nav>
+
+<script>
+// ===== PLANT PRESET DATA =====
+const MIST_TARGET = {
+  '후마타고사리':2,'아디안텀':2,'더피고사리':2,'아스파라거스 나누스':2,
+  '초설':2,'푸테리스':2,'무늬보스턴고사리':2,'보스턴고사리':2,
+  '안테나고사리':2,'미스티클라우드':2,'아디안텀 프리츠루시':2,'에버잼고사리':2,
+  '잎큰아디안텀':2,'핑크아디안텀':2,'아디안텀 페루비아눔':2,'나비란':1,'미니아이비':1,
+};
+const PLANT_PRESETS = [
+  // 기존에 키우는 아이들
+  {name:'후마타고사리',cat:'고사리류',loc:'1층 반음지',days:7,emoji:'🕷️',
+   care:{l:'간접광 선호. 완전 음지는 NG',w:'겉흙 마르면 흠뻑. 상면관수 권장',m:'가끔 분무',tip:'거미발(토끼발)에 수분 저장! 고사리 중 건조에 가장 강함'}},
+  {name:'아디안텀',cat:'고사리류',loc:'1층 반음지',days:3,emoji:'🌱',
+   care:{l:'반음지~음지. 직사광 절대 금지',w:'살짝 마르면 바로. 소량 자주',m:'하루 2회 필수. 습도 70~90%',tip:'자리 고정 필수. 잎 바삭 = 즉시 분무!'}},
+  {name:'더피고사리',cat:'고사리류',loc:'1층 반음지',days:4,emoji:'🍋',
+   care:{l:'간접광~낮은 빛. 적응력 강함',w:'촉촉하게 유지. 겉흙 보송하면 바로',m:'건조한 계절엔 분무',tip:'여름에 은은한 레몬향! 잎 끝 갈변 → 물 부족 or 습도 부족 신호'}},
+  {name:'레드베리',cat:'다육이류',loc:'2층 간접광',days:14,emoji:'🔴',
+   care:{l:'밝은 빛 많이 필요. 빛 받을수록 빨개짐',w:'잎 쭈글해지면 신호. 상면관수 권장',m:'분무 NO. 잎에 물 닿으면 얼룩',tip:'과습이 최대 적! 물주고 싶은 마음 참기. 잎 촉촉하면 아직 OK'}},
+  {name:'오로라페페로미아',cat:'페페류',loc:'2층 간접광',days:5,emoji:'🌈',
+   care:{l:'밝은 간접광. 무늬 유지에 빛 필요',w:'여름 2~3일 1회, 겨울 10~15일 1회',m:'가끔 가능. 잎에 오래 남기지 말 것',tip:'잎 두꺼워 건조에 강함. 오래 집 비워도 걱정 덜해도 되는 아이!'}},
+  {name:'레위시아',cat:'꽃류',loc:'3층 간접광',days:12,emoji:'🌸',
+   care:{l:'밝은 간접광~약한 직사광',w:'흙 완전히 마른 후. 상면관수 필수',m:'분무 금지. 잎 중심 물 고이면 썩음',tip:'물이 잎 사이에 고이면 치명적! 항상 흙에만 물주기'}},
+  {name:'안젤로니아',cat:'꽃류',loc:'3층+저녁서창',days:4,emoji:'💜',
+   care:{l:'햇빛 많이 필요. 저녁 서창 이동 루틴 굿!',w:'흙 마르면 바로. 저면관수 가능 (20분 이내)',m:'가끔 분무 가능',tip:'시든 꽃 바로 제거 → 계속 개화 유도! 빛이 꽃 수에 직결'}},
+  {name:'덴드롱',cat:'꽃류',loc:'3층+저녁서창',days:6,emoji:'🌺',
+   care:{l:'밝은 빛 선호. 저녁 서창 이동 효과 좋음',w:'겉흙 마르면 흠뻑. 상면관수 권장',m:'가끔 잎 미스팅 가능',tip:'빛 부족하면 꽃이 금방 지거나 안 핌. 저녁 서창 이동 루틴 유지!'}},
+  {name:'밀리언하트',cat:'관엽류',loc:'행잉',days:10,emoji:'💚',
+   care:{l:'밝은 간접광. 반양지~반음지 적응',w:'잎 살짝 쭈글할 때 신호. 저면관수 가능',m:'가끔 미스팅 가능',tip:'잎 통통함이 물 상태 바로미터!'}},
+  {name:'나비란',cat:'관엽류',loc:'행잉',days:5,emoji:'🦋',
+   care:{l:'밝은 간접광. 반음지도 잘 적응',w:'겉흙 마르면 흠뻑. 여름 주 1~2회',m:'가끔 해주면 잎 싱싱하게 유지',tip:'초보 최강 식물! 러너(아기 나비란)가 뻗어 자람 → 번식 쉬움'}},
+  {name:'핑크트리안',cat:'관엽류',loc:'행잉',days:5,emoji:'🩷',
+   care:{l:'밝은 간접광. 빛 많을수록 핑크색 진해짐',w:'겉흙 마르면 흠뻑. 촉촉함 유지',m:'자주 분무하면 잎색 더 선명해짐',tip:'빛 부족하면 핑크빛 날아감 → 밝은 곳 유지가 색의 핵심!'}},
+  {name:'오렌지자스민',cat:'꽃류',loc:'창가(동향)',days:5,emoji:'🍊',
+   care:{l:'하루 4~6시간 직접광 필요',w:'흙 2~3cm 마르면 흠뻑. 상면관수 권장',m:'잎 분무 가능. 꽃망울엔 직접 분무 NG',tip:'꽃망울 떨어짐 → 온도 급변 or 이동 스트레스. 자리 고정 추천!'}},
+  {name:'쿠페아',cat:'꽃류',loc:'창가+저녁서창',days:3,emoji:'💜',
+   care:{l:'하루 4~6시간+ 필수. 빛 = 꽃 수',w:'항상 촉촉하게. 마르면 잎 노랗게 떨어짐',m:'건조한 계절 가끔. 꽃에 직접 X',tip:'꽃이 연중 피고 짐! 가지치기 → 새순 + 꽃 유도'}},
+  {name:'치자나무',cat:'꽃류',loc:'창가(동향)',days:7,emoji:'🌿',
+   care:{l:'밝은 직·간접광. 창가 위치가 최적',w:'겉흙 마르면 흠뻑. 상면관수 권장',m:'가끔 잎 분무 가능. 꽃엔 직접 NG',tip:'향기의 여왕! 꽃망울 맺히면 자리 이동 절대 금지. 산성토 선호'}},
+  {name:'아스파라거스 나누스',cat:'고사리류',loc:'1층 반음지',days:5,emoji:'🌾',
+   care:{l:'밝은 간접광~반음지. 직사광 닿으면 잎 노랗게 탐',w:'겉흙 마르면 흠뻑. 저면관수 추천',m:'하루 1회 이상. 가늘고 섬세한 잎이라 건조에 민감',tip:'잎 우수수 떨어짐 = 물 부족 or 건조 신호! 촉촉함 유지가 핵심'}},
+  {name:'무늬만리향',cat:'꽃류',loc:'창가(동향)',days:4,emoji:'🌼',planned:true,
+   care:{l:'하루 3~4시간 직사광 필수. 창가 자리 확보 필요',w:'물 많이 요구. 겉흙 마르면 흠뻑',m:'가끔 잎 분무 가능',tip:'5~6월 담황색 꽃 + 향기! 빛 부족하면 꽃 안 핌'}},
+  // 오늘 데려온 아이들
+  {name:'초설',cat:'고사리류',loc:'1층 반음지',days:6,emoji:'❄️',
+   care:{l:'음지~반음지. 빛 없는 어두운 실내도 가능',w:'겉흙 2~3cm 마르면 흠뻑',m:'하루 1~2회. 습도 70~90% 필요',tip:'잎에 흰 무늬가 눈처럼 예쁜 고사리. 음지 적응력 최강!'}},
+  {name:'푸테리스',cat:'고사리류',loc:'1층 반음지',days:4,emoji:'🌾',
+   care:{l:'반음지~밝은 간접광',w:'흙 마르지 않게 자주. 저면관수 가능',m:'하루 1~2회. 잎 오글거림 = 습도 부족 신호',tip:'건조하면 응애 잘 생김 → 분무로 예방이 핵심!'}},
+  {name:'무늬보스턴고사리',cat:'고사리류',loc:'1층 반음지',days:4,emoji:'🌿',
+   care:{l:'반음지. 무늬 유지하려면 완전 음지는 NG',w:'항상 촉촉하게. 저면관수 가능',m:'하루 1~2회 필수',tip:'무늬 선명도 = 빛의 양으로 조절됨. 기존 보스턴고사리와 케어 동일'}},
+  {name:'홍콩야자',cat:'관엽류',loc:'2층 간접광',days:7,emoji:'🌴',
+   care:{l:'밝은 간접광. 반음지도 적응 가능',w:'겉흙 마르면 흠뻑. 과습 주의',m:'가끔 가능 (필수 아님)',tip:'적응력 최강. 잎 노래지면 과습 의심!'}},
+  {name:'무늬홍콩야자',cat:'관엽류',loc:'2층 간접광',days:7,emoji:'🌟',
+   care:{l:'밝은 간접광 필수. 무늬 유지에 빛이 중요',w:'겉흙 마르면 흠뻑. 홍콩야자와 동일',m:'가끔 가능',tip:'일반 홍콩야자보다 빛 요구량 살짝 높음. 빛 부족하면 무늬가 사라질 수 있음'}},
+  {name:'아몬드페페',cat:'페페류',loc:'행잉',days:5,emoji:'🌰',
+   care:{l:'밝은 간접광~반양지. 빛 부족 시 웃자람',w:'겉흙 마르면 흠뻑',m:'가끔 가능. 잎에 수분 많아 과습 주의',tip:'줄기 길어지면 끝 잘라주면 더 풍성해짐'}},
+  {name:'미니아이비',cat:'관엽류',loc:'행잉',days:7,emoji:'🍃',
+   care:{l:'밝은 간접광~반음지. 빛 많을수록 잎색 선명',w:'겉흙 마르면 흠뻑. 건조에 강한 편',m:'가끔 분무하면 좋음',tip:'건조하면 응애 잘 생기므로 분무 + 통풍 세트로!'}},
+  {name:'머랭고아이비',cat:'관엽류',loc:'2층 간접광',days:7,emoji:'🤍',
+   care:{l:'밝은 간접광~반음지. 무늬 유지에 빛 필요. 직사광 NG',w:'겉흙 마르면 흠뻑. 과습에 매우 취약',m:'가끔 잎 분무. 물방울 남긴 채 직사광 NG',tip:'크림빛 무늬가 예쁜 아이비. 빛 부족 시 무늬 탈색 주의!'}},
+  {name:'잎큰아디안텀',cat:'고사리류',loc:'1층 반음지',days:3,emoji:'🌿',
+   care:{l:'반음지~음지. 직사광 절대 금지',w:'겉흙 살짝 마르면 바로. 저면관수 가능',m:'하루 2회 필수. 습도 70~90%',tip:'갈색 잎은 회복 안 됨 — 발견 즉시 밑동에서 제거'}},
+  {name:'핑크아디안텀',cat:'고사리류',loc:'1층 반음지',days:3,emoji:'🌸',
+   care:{l:'반음지~음지. 새순 핑크빛 유지하려면 직사광 피하기',w:'살짝 마르면 바로. 저면관수 가능',m:'하루 2회 필수. 습도 70~90%',tip:'새순이 분홍빛으로 올라오는 게 매력!'}},
+  {name:'큐피트페페',cat:'페페류',loc:'2층 간접광',days:5,emoji:'💚',
+   care:{l:'밝은 간접광. 무늬 유지에 빛 필요. 직사광은 잎 화상',w:'겉흙 마르면 흠뻑',m:'가끔 가능. 잎에 물 오래 남기지 말 것',tip:'잎 두꺼워 건조에 강한 편. 과습만 주의하면 수월함'}},
+  {name:'소코브레니아',cat:'관엽류',loc:'2층 간접광',days:7,emoji:'🌿',
+   care:{l:'밝은 간접광 필수. 무늬 유지에 빛이 핵심. 직사광은 잎 화상',w:'겉흙 마르면 흠뻑. 과습에 약함. 겨울엔 줄이기',m:'가끔 잎 분무 가능. 잎 닦아주면 광택 유지',tip:'자리 바꾸면 잎 우수수 떨어질 수 있음 → 자리 정하면 고정!'}},
+  // 추가로 데려올 아이들
+  {name:'에버프레시',cat:'관엽류',loc:'2층 간접광',days:7,emoji:'🌳',planned:true,
+   care:{l:'밝은 간접광. 직사광 금지',w:'겉흙 2cm 마르면 흠뻑. 상면관수 권장',m:'가끔 미스팅 가능',tip:'밤에 잎 오므림 → 야간 강한 조명 피할 것'}},
+  {name:'보스턴고사리',cat:'고사리류',loc:'1층 반음지',days:4,emoji:'🌿',planned:true,
+   care:{l:'반음지. 직사광 절대 NO',w:'항상 촉촉하게. 저면관수 가능',m:'하루 1~2회 필수. 습도에 매우 민감',tip:'잎 끝 갈변 → 즉시 분무 늘릴 것. 습도가 생명!'}},
+  {name:'디시디아',cat:'에어플랜트',loc:'행잉',days:12,emoji:'🪴',planned:true,
+   care:{l:'반양지~반음지. 은은한 간접광',w:'잎 쭈글해질 때 신호! 저면관수 필수 — 대야에 30분',m:'공중습도 분무 효과 좋음',tip:'13°C 이하 냉해 주의. 흙 심기 비추! 바크/코코넛 식재 필수'}},
+  {name:'호야 엔젤리아나',cat:'꽃류',loc:'행잉',days:10,emoji:'✨',planned:true,
+   care:{l:'밝은 간접광 하루 6시간+',w:'겉흙 마른 후 2~3일 더 기다렸다 흠뻑. 상면관수',m:'가끔 잎 미스팅 가능',tip:'꽃대 자리에서 매년 개화 → 절대 자르지 말 것!'}},
+  {name:'아디안텀 페루비아눔',cat:'고사리류',loc:'1층 반음지',days:3,emoji:'🌱',planned:true,
+   care:{l:'음지~반음지. 직사광 절대 금지',w:'살짝 마르면 바로. 소량 자주',m:'하루 2회 필수. 습도 70~90%',tip:'자리 정하면 최대한 고정. 환경 변화에 민감!'}},
+  {name:'안테나고사리',cat:'고사리류',loc:'1층 반음지',days:5,emoji:'📡',planned:true,
+   care:{l:'밝은 간접광~반음지',w:'표면 마르면 흠뻑. 촉촉함 유지',m:'하루 1회 이상. 60%+ 습도 필요',tip:'근경이 뻗으며 자람 → 화분에 여유 공간 줄 것'}},
+  {name:'미스티클라우드',cat:'고사리류',loc:'1층 반음지',days:4,emoji:'☁️',planned:true,
+   care:{l:'반음지 필수. 빛에 매우 민감',w:'소량 자주. 상면관수 권장',m:'하루 2~3회. 고사리 중 습도 요구 최상급',tip:'가장 섬세한 아이. 상토+펄라이트+바크 믹스 필수!'}},
+  {name:'아디안텀 프리츠루시',cat:'고사리류',loc:'1층 반음지',days:3,emoji:'🌾',planned:true,
+   care:{l:'반음지~반양지 (약간 빛 허용)',w:'표면 살짝 마르면 소량 자주',m:'하루 1~2회',tip:'아디안텀 루틴 그대로. 페루비아눔과 동급'}},
+  {name:'에버잼고사리',cat:'고사리류',loc:'1층 반음지',days:4,emoji:'💚',planned:true,
+   care:{l:'반음지~밝은 간접광',w:'촉촉하게 유지. 완전히 말리지 말 것',m:'하루 1회 이상',tip:'고사리 중 관리 쉬운 편. 입문 컬렉션에 딱!'}},
+  {name:'무늬필레아페페',cat:'페페류',loc:'2층 간접광',days:7,emoji:'🟢',planned:true,
+   care:{l:'밝은 간접광. 무늬 유지하려면 빛 충분해야. 직사광은 화상',w:'겉흙 바싹 마르면 흠뻑. 과습 금지',m:'가끔 가능. 건조한 계절에 효과적',tip:'자구(아기 필레아) 자연 번식! 땅에서 퐁퐁 올라오면 분리해서 나눠 심기 가능'}},
+  // 아듬샘 요청 추가
+  {name:'방울토마토',cat:'허브류',loc:'베란다/야외',days:2,emoji:'🍅',
+   care:{l:'하루 6시간+ 직사광 필수',w:'흙이 마르지 않도록. 거의 매일',m:'고온 건조 시 분무 가능',tip:'물 부족하면 열매 터짐. 꽃 필 때 가볍게 흔들어줘서 수분 도와주기!'}},
+  {name:'바질 1화분',cat:'허브류',loc:'베란다/야외',days:1,emoji:'🌿',
+   care:{l:'하루 6시간+ 직사광. 빛 부족 시 웃자람',w:'흙이 마르면 바로 축 늘어짐 → 즉시 물주기',m:'가끔 가능',tip:'꽃대 올라오면 바로 제거해야 잎 계속 수확 가능!'}},
+  {name:'바질 2화분 (모종 6개)',cat:'허브류',loc:'베란다/야외',days:1,emoji:'🌿',
+   care:{l:'하루 6시간+ 직사광. 빛 부족 시 웃자람',w:'흙이 마르면 바로 축 늘어짐 → 즉시 물주기',m:'가끔 가능',tip:'모종 6개 올라온 화분. 어느 정도 크면 솎아내기 고려!'}},
+  {name:'장미허브 (외목대)',cat:'허브류',loc:'창가',days:4,emoji:'🌹',
+   care:{l:'밝은 간접광~직사광. 빛 많을수록 향 진해짐',w:'겉흙 마르면 물주기. 과습 주의',m:'가끔 가능. 잎에 오래 남기지 말 것',tip:'외목대 잡는 중! 곁가지 계속 정리해줘야 함'}},
+  {name:'장미허브 (풍성)',cat:'허브류',loc:'창가',days:4,emoji:'🌹',
+   care:{l:'밝은 간접광~직사광. 빛 많을수록 향 진해짐',w:'겉흙 마르면 물주기. 과습 주의',m:'가끔 가능. 잎에 오래 남기지 말 것',tip:'풍성하게 키우는 중! 가지치기로 볼륨 유지'}},
+];
+
+// ===== STATE =====
+let plants = [], fish = {species:[],logs:[]}, exercise = {weeklyGoal:4,logs:[]};
+let winterMode = false;
+let currentPlantId = null, currentCat = '전체', currentDiaryType = '물주기(저면)';
+let addPhotoData = null, diaryPhotoData = null;
+let fishTiming = '아침';
+
+// ===== STORAGE =====
+function loadAll(){
+  const PLANNED_NAMES = ['에버프레시','보스턴고사리','디시디아','호야 엔젤리아나','아디안텀 페루비아눔','안테나고사리','미스티클라우드','아디안텀 프리츠루시','에버잼고사리','무늬필레아페페'];
+  const p = localStorage.getItem('hub_plants4');
+  if(p){
+    plants = JSON.parse(p);
+    let migrated = false;
+    plants.forEach(plant=>{
+      if(plant.mistTarget === undefined){ plant.mistTarget = plant.planned ? 0 : (MIST_TARGET[plant.name]||0); migrated=true; }
+      // mistTarget 항상 최신값으로 강제 동기화
+      const newTarget = plant.planned ? 0 : (MIST_TARGET[plant.name]||0);
+      if(plant.mistTarget !== newTarget){ plant.mistTarget = newTarget; migrated=true; }
+      if(plant.planned === undefined){
+        plant.planned = PLANNED_NAMES.includes(plant.name);
+        migrated = true;
+      }
+    });
+    if(migrated) saveAll();
+  } else { initPlants(); saveAll(); }
+  const fishRaw = localStorage.getItem('hub_fish6');
+  if(fishRaw) fish = JSON.parse(fishRaw);
+  else { initFish(); saveAll(); }
+  exercise = JSON.parse(localStorage.getItem('hub_exercise4')||'{"weeklyGoal":4,"logs":[]}');
+  winterMode = JSON.parse(localStorage.getItem('hub_winter4')||'false');
+}
+function saveAll(){
+  localStorage.setItem('hub_plants4', JSON.stringify(plants));
+  localStorage.setItem('hub_fish6', JSON.stringify(fish));
+  localStorage.setItem('hub_exercise4', JSON.stringify(exercise));
+  localStorage.setItem('hub_winter4', JSON.stringify(winterMode));
+}
+function initFish(){
+  fish = {
+    species:[
+      {id:'f1',name:'블루구피',count:3,note:''},
+      {id:'f2',name:'하프블랙구피',count:3,note:''},
+      {id:'f3',name:'화이트구피',count:2,note:''},
+      {id:'f4',name:'팬더코리',count:2,note:''},
+      {id:'f5',name:'왁플래티 또는 선셋구피',count:3,note:'🗓️ 이번 주말 데려올 예정'},
+      {id:'f6',name:'팬더코리 (추가)',count:2,note:'🗓️ 이번 주말 데려올 예정'},
+      {id:'f7',name:'오토싱',count:2,note:'🗓️ 이번 주말 데려올 예정'},
+      {id:'f8',name:'블루새우',count:10,note:'📅 한달 뒤 예정 — 어항 적응 후 입수'},
+    ],
+    logs:[]
+  };
+}
+const ACQUIRED = {
+  '후마타고사리':'2026-06-21','아디안텀':'2026-06-14','더피고사리':'2026-06-21',
+  '레드베리':'2026-04-01','오로라페페로미아':'2026-06-19','레위시아':'2026-06-21',
+  '안젤로니아':'2026-06-21','덴드롱':'2026-06-21','밀리언하트':'2026-06-21',
+  '나비란':'2026-06-21','핑크트리안':'2026-06-21','오렌지자스민':'2026-06-14',
+  '쿠페아':'2026-06-14','치자나무':'2026-06-21','아스파라거스 나누스':'2026-06-14',
+  '초설':'2026-06-27','푸테리스':'2026-06-27','무늬보스턴고사리':'2026-06-27',
+  '홍콩야자':'2026-06-27','무늬홍콩야자':'2026-06-27','아몬드페페':'2026-06-27',
+  '미니아이비':'2026-06-27','머랭고아이비':'2026-06-27',
+  '잎큰아디안텀':'2026-06-30','핑크아디안텀':'2026-06-30','큐피트페페':'2026-06-30','소코브레니아':'2026-06-30',
+  '장미허브 (외목대)':'2026-03-01','장미허브 (풍성)':'2026-03-01',
+  '방울토마토':'2026-05-17','바질 1화분':'2026-05-17','바질 2화분 (모종 6개)':'2026-05-17',
+};
+function initPlants(){
+  const today = todayStr();
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const yday = yesterday.toISOString().slice(0,10);
+  plants = PLANT_PRESETS.map((p,i)=>({
+    id: String(1000+i),
+    name:p.name, species:p.name, category:p.cat, location:p.loc,
+    wateringDays:p.days,
+    lastWatered: p.planned ? today : yday,
+    lastSprayed:null,
+    acquiredDate: ACQUIRED[p.name] || today,
+    photo:null, diary:[],
+    tip:p.care.tip, emoji:p.emoji,
+    care:{l:p.care.l, w:p.care.w, m:p.care.m},
+    planned: p.planned || false,
+    mistTarget: p.planned ? 0 : (MIST_TARGET[p.name] || 0)
+  }));
+}
+
+// ===== UTILS =====
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function daysBetween(a,b){ return Math.round((new Date(b)-new Date(a))/86400000); }
+function effectiveCycle(p){ return winterMode ? Math.round(p.wateringDays*1.6) : p.wateringDays; }
+function dDay(p){
+  const next = new Date(p.lastWatered);
+  next.setDate(next.getDate()+effectiveCycle(p));
+  return daysBetween(todayStr(), next.toISOString().slice(0,10));
+}
+function mmdd(s){ return s ? s.slice(5).replace('-','/') : '-'; }
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('active'));
+  const navMap = {'s-hub':'nav-hub','s-plants':'nav-plants','s-add-plant':'nav-plants',
+    's-plant-detail':'nav-plants','s-fish':'nav-fish','s-exercise':'nav-exercise'};
+  const nb = document.getElementById(navMap[id]);
+  if(nb) nb.classList.add('active');
+}
+function previewPhoto(e, boxId, target){
+  const file = e.target.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    const box = document.getElementById(boxId), input = box.querySelector('input');
+    box.innerHTML = `<img src="${ev.target.result}">`;
+    box.appendChild(input);
+    if(target==='add') addPhotoData = ev.target.result;
+    if(target==='diary') diaryPhotoData = ev.target.result;
+  };
+  r.readAsDataURL(file);
+}
+
+// ===== HUB =====
+function openCareZone(){
+  const today = todayStr();
+  const waterTypes = ['물주기','물주기(저면)','물주기(상면)','영양제'];
+  const wateredToday = p => p.diary.some(d=>d.date===today && waterTypes.includes(d.type));
+  const mistCountToday = p => p.diary.filter(d=>d.date===today && d.type==='분무').length;
+  const done = plants.filter(p=>!p.planned && wateredToday(p));
+  const doneIds = new Set(done.map(p=>p.id));
+  const need = plants.filter(p=>!p.planned && dDay(p)<=0 && !doneIds.has(p.id));
+  const needMist = plants.filter(p=>!p.planned && p.mistTarget>0 && mistCountToday(p)<p.mistTarget);
+
+  const makeItem = (p, isDone) => {
+    const todayLogs = p.diary.filter(d=>d.date===today && [...waterTypes,'분무'].includes(d.type));
+    const types = [...new Set(todayLogs.map(d=>d.type))].join(' · ');
+    const d = dDay(p);
+    const sub = isDone ? (types||'케어 완료') : (d===0?'오늘 급수일':`${Math.abs(d)}일 지남`);
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:${isDone?'var(--gl)':'#FEF5F3'};border-radius:11px;margin-bottom:7px">
+      <span style="font-size:18px">${p.emoji||'🌱'}</span>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600">${p.name}</div>
+        <div style="font-size:11px;color:var(--sub)">${sub}</div>
+      </div>
+      ${isDone ? '<span style="font-size:16px">✅</span>' : `<button class="t-btn g" onclick="quickWater('${p.id}');openCareZone()">물 줬어요</button>`}
+    </div>`;
+  };
+
+  const mistItems = needMist.map(p=>{
+    const cnt = mistCountToday(p);
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#EFF6FB;border-radius:11px;margin-bottom:7px">
+      <span style="font-size:18px">${p.emoji||'🌱'}</span>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600">${p.name}</div>
+        <div style="font-size:11px;color:var(--sub)">분무 ${cnt}/${p.mistTarget}회 완료</div>
+      </div>
+      <button class="t-btn b" onclick="quickSpray('${p.id}');openCareZone()">분무했어요</button>
+    </div>`;
+  }).join('');
+
+  document.getElementById('careNeedSection').style.display = need.length?'block':'none';
+  document.getElementById('careMistSection').style.display = needMist.length?'block':'none';
+  document.getElementById('careDoneSection').style.display = done.length?'block':'none';
+  document.getElementById('careAllGood').style.display = (!need.length&&!done.length&&!needMist.length)?'block':'none';
+  document.getElementById('careNeedList').innerHTML = need.map(p=>makeItem(p,false)).join('');
+  document.getElementById('careMistList').innerHTML = mistItems;
+  document.getElementById('careDoneList').innerHTML = done.map(p=>makeItem(p,true)).join('');
+  document.getElementById('careModal').style.display = 'block';
+}
+function closeCareZone(){
+  document.getElementById('careModal').style.display = 'none';
+}
+function goHub(){
+  renderHub();
+  showScreen('s-hub');
+}
+function renderHub(){
+  const today = new Date();
+  document.getElementById('hubDate').textContent = today.toLocaleDateString('ko',{month:'long',day:'numeric',weekday:'short'});
+  const today2 = todayStr();
+  const mistNeedCount = plants.filter(p=>!p.planned && p.mistTarget>0 && p.diary.filter(d=>d.date===today2&&d.type==='분무').length < p.mistTarget).length;
+  const due = plants.filter(p=>dDay(p)<=0);
+  const todayEx = exercise.logs.filter(l=>l.date===todayStr());
+  const goalLeft = Math.max(0, exercise.weeklyGoal - weekCount());
+  let tasks = [];
+  due.forEach(p=>tasks.push({icon:p.emoji||'🌱',name:p.name,sub:dDay(p)===0?'오늘 급수일':`${Math.abs(dDay(p))}일 지남`,action:'물 줬어요',cls:'g',cb:`quickWater('${p.id}')`}));
+  if(fish.logs.length){
+    const lastFeed = fish.logs.filter(l=>l.type==='feed').sort((a,b)=>b.date.localeCompare(a.date))[0];
+    if(lastFeed && daysBetween(lastFeed.date, todayStr())>=1)
+      tasks.push({icon:'🐠',name:'물고기 먹이 줄 시간!',sub:'어제 이후 급여 기록 없음',action:'기록하기',cls:'b',cb:"showFish()"});
+  }
+  if(mistNeedCount>0) tasks.unshift({icon:'💧',name:`분무 할일 ${mistNeedCount}종`,sub:'케어존에서 확인하세요',action:'케어존 열기',cls:'b',cb:'openCareZone()'});
+  document.getElementById('hubTodayCount').textContent = tasks.length+'개';
+  if(tasks.length===0){
+    document.getElementById('hubTaskList').innerHTML = '<div class="empty" style="padding:10px 0">오늘 할 일이 없어요 🎉</div>';
+  } else {
+    document.getElementById('hubTaskList').innerHTML = tasks.map(t=>`
+      <div class="task-item">
+        <div class="ti">${t.icon}</div>
+        <div class="t-info"><div class="t-name">${t.name}</div><div class="t-sub">${t.sub}</div></div>
+        <button class="t-btn ${t.cls}" onclick="${t.cb}">${t.action}</button>
+      </div>`).join('');
+  }
+  const thisWeek = weekCount();
+  document.getElementById('hubExSub').textContent = `이번주 ${thisWeek}/${exercise.weeklyGoal}회`;
+  document.getElementById('hubPlantSub').textContent = `${plants.length}종 키우는 중 · 오늘 ${due.length}개 케어`;
+  const fishSpecies = fish.species.length;
+  document.getElementById('hubFishSub').textContent = fishSpecies ? `${fishSpecies}종 합사 어항` : '어항 기록 시작하기';
+}
+
+// ===== PLANTS =====
+function showPlants(){
+  renderPlants();
+  showScreen('s-plants');
+}
+function renderPlants(){
+  applyWinterUI();
+  const due = plants.filter(p=>dDay(p)<=0).sort((a,b)=>dDay(a)-dDay(b));
+  document.getElementById('plantTodayCount').textContent = due.length+'개';
+  const todayList = document.getElementById('plantTodayList');
+  if(due.length===0){
+    todayList.innerHTML = '<div class="empty" style="padding:8px 0">오늘은 물 줄 식물이 없어요 🌤️</div>';
+  } else {
+    todayList.innerHTML = due.map(p=>`
+      <div class="task-item">
+        <div class="ti">${p.emoji||'🌱'}</div>
+        <div class="t-info"><div class="t-name">${p.name}</div><div class="t-sub">${p.location} · ${dDay(p)===0?'오늘 급수일':Math.abs(dDay(p))+'일 지남'}</div></div>
+        <button class="t-btn g" onclick="quickWater('${p.id}')">물 줬어요</button>
+      </div>`).join('');
+  }
+  document.getElementById('plantTotalLabel').textContent = `(${plants.length}종)`;
+  // category chips
+  const cats = ['전체',...new Set(plants.map(p=>p.category))];
+  document.getElementById('catChips').innerHTML = cats.map(c=>`<div class="chip ${c===currentCat?'active':''}" onclick="pickCat('${c}')">${c}</div>`).join('');
+  const filtered = currentCat==='전체' ? plants : plants.filter(p=>p.category===currentCat);
+  const active = filtered.filter(p=>!p.planned);
+  const planned = filtered.filter(p=>p.planned);
+  document.getElementById('plantEmpty').style.display = filtered.length?'none':'block';
+
+  const makeCard = (p) => {
+    const d = dDay(p);
+    let badge = `<span class="badge ok">D-${d}</span>`;
+    if(d<0) badge = `<span class="badge due">${Math.abs(d)}일 지남</span>`;
+    else if(d===0) badge = `<span class="badge due">오늘!</span>`;
+    else if(d<=2) badge = `<span class="badge soon">D-${d}</span>`;
+    const od = (!p.planned && d<=-3)?'overdue':'';
+    const content = p.planned
+      ? `<span class="badge" style="background:#FEF3DC;color:#B8840A">데려올 예정</span>`
+      : badge;
+    return `<div class="pcard ${od}" style="position:relative" onclick="openPlant('${p.id}')">
+      <button onclick="event.stopPropagation();deletePlantById('${p.id}')" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.08);border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1">✕</button>
+      <div class="pthumb">${p.photo?`<img src="${p.photo}">`:(p.emoji||'🌿')}</div>
+      <div class="pname">${p.name}</div>
+      <div class="ploc">${p.location||''}</div>
+      ${content}</div>`;
+  };
+
+  let html = active.map(makeCard).join('');
+  document.getElementById('plantGrid').innerHTML = html;
+
+  // 데려올 예정 섹션
+  const plannedSection = document.getElementById('plannedSection');
+  if(planned.length){
+    plannedSection.style.display='block';
+    document.getElementById('plannedGrid').innerHTML = planned.map(makeCard).join('');
+    document.getElementById('plannedCount').textContent = `(${planned.length})`;
+  } else {
+    plannedSection.style.display='none';
+  }
+}
+function pickCat(c){ currentCat=c; renderPlants(); }
+function toggleWinter(){ winterMode=!winterMode; saveAll(); renderPlants(); }
+function applyWinterUI(){
+  document.getElementById('wtoggle').classList.toggle('on',winterMode);
+  document.getElementById('wknob').classList.toggle('on',winterMode);
+  document.getElementById('wlabel').textContent = winterMode?'겨울모드 ON':'겨울모드';
+}
+function quickSpray(id){
+  const p = plants.find(p=>p.id===id);
+  p.lastSprayed = todayStr();
+  p.diary.push({date:todayStr(),note:'',photo:null,type:'분무'});
+  saveAll(); if(document.getElementById('s-plants').classList.contains('active')) renderPlants();
+}
+function quickWater(id){
+  const p = plants.find(p=>p.id===id);
+  p.lastWatered = todayStr();
+  p.diary.push({date:todayStr(),note:'',photo:null,type:'물주기'});
+  saveAll(); renderPlants(); renderHub();
+}
+function goAddPlant(){
+  addPhotoData = null;
+  document.getElementById('addPhotoBox').innerHTML = '📷 사진 추가하기<input type="file" accept="image/*" onchange="previewPhoto(event,\'addPhotoBox\',\'add\')">';
+  document.getElementById('addLastW').value = todayStr();
+  document.getElementById('addAcquired').value = todayStr();
+  document.getElementById('addName').value = '';
+  document.getElementById('addSpecies').value = '';
+  document.getElementById('addDays').value = 7;
+  document.getElementById('addTip').value = '';
+  showScreen('s-add-plant');
+}
+function submitAddPlant(){
+  const name = document.getElementById('addName').value.trim();
+  if(!name){ alert('이름을 입력해주세요'); return; }
+  const p = {
+    id: String(Date.now()),
+    name, species: document.getElementById('addSpecies').value||name,
+    category: document.getElementById('addCat').value,
+    location: document.getElementById('addLoc').value,
+    wateringDays: parseInt(document.getElementById('addDays').value)||7,
+    lastWatered: document.getElementById('addLastW').value||todayStr(),
+    lastSprayed: null,
+    acquiredDate: document.getElementById('addAcquired').value||todayStr(),
+    photo: addPhotoData, diary: [],
+    tip: document.getElementById('addTip').value,
+    emoji: '🌱', care: {}
+  };
+  plants.push(p); saveAll(); showPlants();
+}
+function openPlant(id){
+  currentPlantId = id;
+  const p = plants.find(p=>p.id===id);
+  document.getElementById('detailTitle').textContent = p.name;
+  document.getElementById('detailHero').innerHTML = p.photo?`<img src="${p.photo}">`:(p.emoji||'🌱');
+  document.getElementById('detailName').textContent = p.name;
+  document.getElementById('detailSub').textContent = `${p.category} · ${p.location||'위치 미입력'}`;
+  const d = dDay(p);
+  document.getElementById('dDday').textContent = d===0?'오늘':(d<0?`${Math.abs(d)}일 지남`:`D-${d}`);
+  document.getElementById('dDays').textContent = p.acquiredDate ? daysBetween(p.acquiredDate,todayStr()) : '-';
+  document.getElementById('dLast').textContent = mmdd(p.lastWatered);
+  document.getElementById('dSpray').textContent = p.lastSprayed ? mmdd(p.lastSprayed) : '-';
+  // care card
+  const care = p.care||{};
+  let careHtml = '';
+  if(care.l) careHtml += `<div class="crow"><span class="clbl">빛</span><span>${care.l}</span></div>`;
+  if(care.w) careHtml += `<div class="crow"><span class="clbl">물</span><span>${care.w}</span></div>`;
+  if(care.m) careHtml += `<div class="crow"><span class="clbl">분무</span><span>${care.m}</span></div>`;
+  if(p.tip) careHtml += `<div class="ctip">💡 ${p.tip}</div>`;
+  document.getElementById('detailCare').innerHTML = careHtml || '<div style="font-size:12px;color:var(--sub)">케어 정보 없음</div>';
+  document.getElementById('editName').value = p.name;
+  document.getElementById('editLoc').value = p.location||'';
+  document.getElementById('editDays').value = p.wateringDays;
+  document.getElementById('editTip').value = p.tip||'';
+  diaryPhotoData = null;
+  document.getElementById('diaryPhotoBox').innerHTML = '📷 사진 (선택)<input type="file" accept="image/*" onchange="previewPhoto(event,\'diaryPhotoBox\',\'diary\')">';
+  document.getElementById('diaryNote').value = '';
+  currentDiaryType = '물주기(저면)';
+  renderDiaryChips();
+  renderDiary(p); renderAlbum(p);
+  switchTab('diary');
+  showScreen('s-plant-detail');
+}
+function waterNow(){
+  const p = plants.find(p=>p.id===currentPlantId);
+  p.lastWatered = todayStr();
+  p.diary.push({date:todayStr(),note:'',photo:null,type:'물주기'});
+  saveAll(); openPlant(currentPlantId);
+}
+function sprayNow(){
+  const p = plants.find(p=>p.id===currentPlantId);
+  p.lastSprayed = todayStr();
+  p.diary.push({date:todayStr(),note:'',photo:null,type:'분무'});
+  saveAll(); openPlant(currentPlantId);
+}
+function renderDiaryChips(){
+  const types = ['물주기(저면)','물주기(상면)','분무','영양제','분갈이','가지치기','병충해','꽃핌','메모'];
+  document.getElementById('dTypeChips').innerHTML = types.map(t=>`
+    <button type="button" class="tc ${t===currentDiaryType?'active':''}" onclick="pickDiaryType('${t}')">${t}</button>`).join('');
+}
+function pickDiaryType(t){ currentDiaryType=t; renderDiaryChips(); }
+function addDiary(){
+  const note = document.getElementById('diaryNote').value.trim();
+  if(!note && !diaryPhotoData) return;
+  const p = plants.find(p=>p.id===currentPlantId);
+  p.diary.push({date:todayStr(), note, photo:diaryPhotoData, type:currentDiaryType});
+  saveAll(); openPlant(currentPlantId);
+}
+function renderDiary(p){
+  const el = document.getElementById('diaryList');
+  if(!p.diary.length){ el.innerHTML = '<div class="empty">아직 기록이 없어요 📝</div>'; return; }
+  el.innerHTML = [...p.diary].reverse().map((d,i)=>{
+    const realIdx = p.diary.length - 1 - i;
+    return `
+    <div class="dentry">
+      <div class="dd">
+        <span>${d.date}</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="tag" style="background:${d.type&&d.type.includes('물주기')?'var(--gl)':''};color:${d.type&&d.type.includes('물주기')?'var(--g)':''}">${d.type||'메모'}</span>
+          <button onclick="deleteDiary('${p.id}',${realIdx})" style="background:none;border:none;color:#CCC;font-size:14px;cursor:pointer;padding:0;line-height:1">✕</button>
+        </div>
+      </div>
+      ${d.photo?`<img src="${d.photo}">`:''}
+      <div class="dn">${(d.note||'').replace(/</g,'&lt;')}</div>
+    </div>`}).join('');
+}
+function deleteDiary(plantId, idx){
+  const p = plants.find(p=>p.id===plantId);
+  p.diary.splice(idx, 1);
+  saveAll(); renderDiary(p); renderAlbum(p);
+}
+function renderAlbum(p){
+  const photos = p.diary.filter(d=>d.photo);
+  document.getElementById('albumEmpty').style.display = photos.length?'none':'block';
+  document.getElementById('albumGrid').innerHTML = [...photos].reverse().map(d=>`<img src="${d.photo}" title="${d.date}">`).join('');
+}
+function switchTab(t){
+  ['diary','album','edit'].forEach(n=>{
+    document.getElementById('pane-'+n).style.display = n===t?'block':'none';
+    document.getElementById('tab-'+n).classList.toggle('active', n===t);
+  });
+}
+function updatePlant(){
+  const p = plants.find(p=>p.id===currentPlantId);
+  p.name = document.getElementById('editName').value;
+  p.location = document.getElementById('editLoc').value;
+  p.wateringDays = parseInt(document.getElementById('editDays').value)||p.wateringDays;
+  p.tip = document.getElementById('editTip').value;
+  saveAll(); openPlant(currentPlantId);
+}
+function deletePlantById(id){
+  const p = plants.find(p=>p.id===id);
+  if(!confirm(`'${p.name}' 삭제할까요?`)) return;
+  plants = plants.filter(p=>p.id!==id);
+  saveAll(); renderPlants();
+}
+function deletePlant(){
+  if(!confirm('정말 삭제할까요? 일기 기록도 같이 사라져요.')) return;
+  plants = plants.filter(p=>p.id!==currentPlantId);
+  saveAll(); showPlants();
+}
+
+// ===== FISH =====
+function showFish(){
+  renderFish();
+  showScreen('s-fish');
+}
+function renderFish(){
+  const logs = fish.logs;
+  const feedLogs = logs.filter(l=>l.type==='feed').sort((a,b)=>b.date.localeCompare(a.date));
+  const lastFeed = feedLogs[0];
+  const el = document.getElementById('fishLastFeed');
+  if(lastFeed){
+    const d = daysBetween(lastFeed.date, todayStr());
+    el.textContent = d===0?'오늘 급여 완료':`${d}일 전 급여`;
+  } else el.textContent = '급여 기록 없음';
+  const totalFish = fish.species.reduce((sum,s)=>sum+(s.count||0),0);
+  document.getElementById('speciesList').innerHTML = fish.species.map(s=>`
+    <div class="spi" id="spi-${s.id}">
+      <div class="si" style="flex:1">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+          <span style="font-size:13px;font-weight:700" id="sname-${s.id}">🐟 ${s.name}</span>
+          <button onclick="editSpeciesName('${s.id}')" style="background:none;border:none;font-size:12px;cursor:pointer;color:var(--sub)">✏️</button>
+        </div>
+        ${s.note?`<div style="font-size:11px;color:#C9952B;margin-bottom:4px">${s.note}</div>`:''}
+        <div style="display:flex;align-items:center;gap:8px">
+          <button onclick="changeCount('${s.id}',-1)" style="width:24px;height:24px;border-radius:50%;border:1px solid #DDD;background:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
+          <span style="font-size:14px;font-weight:700;min-width:24px;text-align:center" id="scount-${s.id}">${s.count}</span>
+          <button onclick="changeCount('${s.id}',1)" style="width:24px;height:24px;border-radius:50%;border:1px solid #DDD;background:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">+</button>
+          <span style="font-size:11px;color:var(--sub)">마리</span>
+        </div>
+      </div>
+      <button class="sbtn r" onclick="deleteSpecies('${s.id}')">삭제</button>
+    </div>`).join('')
+    + (fish.species.length ? `<div style="font-size:12px;color:var(--sub);text-align:right;margin-top:4px;margin-bottom:8px">총 ${totalFish}마리</div>` : '<div class="empty" style="padding:10px 0">등록된 어종이 없어요 🐠</div>');
+  const fishLogList = document.getElementById('fishLogList');
+  if(!logs.length){ fishLogList.innerHTML = '<div class="empty">아직 기록이 없어요</div>'; return; }
+  fishLogList.innerHTML = [...logs].reverse().slice(0,20).map(l=>{
+    if(l.type==='feed') return `<div class="dentry"><div class="dd"><span>${l.date} ${l.timing||''}</span><span class="tag 급여">${l.timing||''}급여</span></div><div class="dn">${l.note||'급여 완료'}</div></div>`;
+    const vals = [];
+    if(l.temp) vals.push(`수온 ${l.temp}℃`);
+    if(l.ph) vals.push(`pH ${l.ph}`);
+    if(l.amm!=null&&l.amm!=='') vals.push(`암모니아 ${l.amm}ppm`);
+    if(l.nit!=null&&l.nit!=='') vals.push(`아질산 ${l.nit}ppm`);
+    return `<div class="dentry"><div class="dd"><span>${l.date}</span><span class="tag 수질">수질</span></div><div class="dn">${vals.join(' · ')}${l.note?' / '+l.note:''}</div></div>`;
+  }).join('');
+}
+function changeCount(id, delta){
+  const s = fish.species.find(s=>s.id===id);
+  if(!s) return;
+  s.count = Math.max(0, (s.count||0) + delta);
+  document.getElementById('scount-'+id).textContent = s.count;
+  saveAll();
+}
+function editSpeciesName(id){
+  const s = fish.species.find(s=>s.id===id);
+  if(!s) return;
+  const newName = prompt('어종 이름 수정:', s.name);
+  if(newName && newName.trim()){
+    s.name = newName.trim();
+    saveAll(); renderFish();
+  }
+}
+function setFishTiming(t){
+  fishTiming = t;
+  document.getElementById('ftiming-morning').classList.toggle('active', t==='아침');
+  document.getElementById('ftiming-morning').classList.toggle('b', t==='아침');
+  document.getElementById('ftiming-evening').classList.toggle('active', t==='저녁');
+  document.getElementById('ftiming-evening').classList.toggle('b', t==='저녁');
+}
+function addSpecies(){
+  const name = document.getElementById('newSpeciesName').value.trim();
+  const count = parseInt(document.getElementById('newSpeciesCount').value)||1;
+  if(!name) return;
+  fish.species.push({id:String(Date.now()),name,count});
+  document.getElementById('newSpeciesName').value='';
+  document.getElementById('newSpeciesCount').value='';
+  saveAll(); renderFish();
+}
+function deleteSpecies(id){ fish.species=fish.species.filter(s=>s.id!==id); saveAll(); renderFish(); }
+function switchFishTab(t){
+  document.getElementById('fpane-feed').style.display = t==='feed'?'block':'none';
+  document.getElementById('fpane-water').style.display = t==='water'?'block':'none';
+  document.getElementById('ftab-feed').classList.toggle('active',t==='feed');
+  document.getElementById('ftab-water').classList.toggle('active',t==='water');
+}
+function addFishLog(type){
+  const log = {id:String(Date.now()), date:todayStr(), type};
+  if(type==='feed'){
+    log.timing = fishTiming;
+    log.note = document.getElementById('feedNote').value.trim();
+    document.getElementById('feedNote').value='';
+  } else {
+    log.temp = document.getElementById('wTemp').value;
+    log.ph = document.getElementById('wPh').value;
+    log.amm = document.getElementById('wAmm').value;
+    log.nit = document.getElementById('wNit').value;
+    log.note = document.getElementById('wNote').value.trim();
+    document.getElementById('wTemp').value='';
+    document.getElementById('wPh').value='';
+    document.getElementById('wAmm').value='';
+    document.getElementById('wNit').value='';
+    document.getElementById('wNote').value='';
+  }
+  fish.logs.push(log);
+  saveAll(); renderFish();
+}
+
+// ===== EXERCISE =====
+function showExercise(){
+  renderExercise();
+  showScreen('s-exercise');
+}
+function getWeekDates(){
+  const today = new Date(), day = today.getDay();
+  const mon = new Date(today); mon.setDate(today.getDate() - (day===0?6:day-1));
+  return Array.from({length:7},(_,i)=>{ const d=new Date(mon); d.setDate(mon.getDate()+i); return d.toISOString().slice(0,10); });
+}
+function weekCount(){
+  const week = getWeekDates();
+  return new Set(exercise.logs.filter(l=>week.includes(l.date)).map(l=>l.date)).size;
+}
+function renderExercise(){
+  const week = getWeekDates();
+  const today = todayStr();
+  const days = ['월','화','수','목','금','토','일'];
+  document.getElementById('weekRange').textContent = `${week[0].slice(5).replace('-','/')} ~ ${week[6].slice(5).replace('-','/')}`;
+  document.getElementById('weekGrid').innerHTML = week.map((d,i)=>{
+    const dayLogs = exercise.logs.filter(l=>l.date===d);
+    const hasF = dayLogs.some(l=>l.type==='F45');
+    const hasN = dayLogs.some(l=>l.type==='러닝');
+    return `<div class="wcell ${d===today?'today':''}">
+      <div class="wd">${days[i]}</div>
+      <div class="wdate">${d.slice(8)}</div>
+      <div class="dots">
+        <div class="dot ${hasF?'f':''}"></div>
+        <div class="dot ${hasN?'n':''}"></div>
+      </div></div>`;
+  }).join('');
+  const cnt = weekCount(), goal = exercise.weeklyGoal;
+  document.getElementById('exGoalLabel').textContent = `${cnt} / ${goal}회 달성`;
+  document.getElementById('exGbar').style.width = Math.min(100,cnt/goal*100)+'%';
+  document.getElementById('exGoalInput').value = goal;
+  const recent = [...exercise.logs].reverse().slice(0,20);
+  document.getElementById('exLogList').innerHTML = recent.length ? recent.map(l=>`
+    <div class="exlog">
+      <span style="font-size:20px">${l.type==='F45'?'🏋️':'🏃'}</span>
+      <div class="ei"><div class="etype">${l.type}</div><div class="edate">${l.date}</div></div>
+    </div>`).join('') : '<div class="empty">아직 기록이 없어요 💪</div>';
+}
+function logExercise(type){
+  exercise.logs.push({id:String(Date.now()), date:todayStr(), type});
+  saveAll(); renderExercise(); renderHub();
+}
+function saveGoal(){
+  exercise.weeklyGoal = parseInt(document.getElementById('exGoalInput').value)||4;
+  saveAll(); renderExercise();
+}
+
+// ===== INIT =====
+loadAll();
+renderHub();
+</script>
+</body>
+</html>
