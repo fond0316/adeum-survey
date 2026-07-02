@@ -233,8 +233,13 @@ textarea.form-input{line-height:1.65;}
 .prev-tag{font-size:12px;background:var(--primary-light);color:var(--primary-dark);padding:5px 12px;border-radius:7px;font-weight:600;margin-left:auto;}
 .act-item{display:flex;align-items:center;gap:7px;padding:9px 11px;border-radius:var(--radius-sm);border:1px solid var(--gray-200);margin-bottom:5px;background:var(--gray-50);font-size:13px;transition:all .12s;}
 .act-item:hover{border-color:var(--primary-mid);background:var(--primary-light);}
+.act-item.dragging{opacity:.4;}
 .act-drag{color:#d1d5db;cursor:grab;font-size:13px;}
-.act-name{flex:1;color:var(--gray-700);}
+.act-drag:active{cursor:grabbing;}
+.act-name{flex:1;color:var(--gray-700);cursor:text;border-radius:5px;padding:2px 4px;}
+.act-name:hover{background:rgba(255,255,255,.7);}
+.act-name-edit-input{width:100%;border:1.5px solid var(--primary);border-radius:5px;padding:2px 6px;font-size:13px;font-family:'Pretendard',-apple-system,sans-serif;background:white;}
+.act-hint{font-size:11px;color:var(--gray-400);margin:-4px 0 8px;}
 .act-del{width:20px;height:20px;border-radius:5px;border:none;background:var(--danger-light);color:var(--danger);cursor:pointer;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all .12s;flex-shrink:0;}
 .act-del:hover{background:var(--danger);color:white;}
 .add-row{display:flex;gap:7px;margin-top:8px;}
@@ -327,6 +332,11 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
 .notice-toolbar{margin-bottom:6px;}
 .notice-bold-btn{padding:4px 10px;border:1.5px solid var(--gray-200);background:white;border-radius:6px;font-size:11.5px;color:var(--gray-700);cursor:pointer;}
 .notice-bold-btn:hover{border-color:var(--primary);color:var(--primary);}
+.notice-color-btn{padding:4px 10px;border:1.5px solid var(--gray-200);background:white;border-radius:6px;font-size:11.5px;font-weight:700;cursor:pointer;margin-left:6px;}
+.notice-color-red{color:#DC2626;}
+.notice-color-red:hover{border-color:#DC2626;background:#FEF2F2;}
+.notice-color-blue{color:#2563EB;}
+.notice-color-blue:hover{border-color:#2563EB;background:#EFF6FF;}
 .notice-hint{font-size:11px;color:var(--gray-400);margin-top:5px;}
 
 /* 옵션 목록 (체크박스/라디오용) */
@@ -1436,6 +1446,9 @@ function switchQSection(name, el, colorClass) {
 //  💾 설정 저장 → 학생 폼 반영
 // ═══════════════════════════════════════════════════════
 function saveAllSettings() {
+  // 편집 중인 활동명 입력칸이 열려있으면 저장 전에 먼저 확정
+  document.querySelectorAll('.act-name-edit-input').forEach(inp => inp.blur());
+
   // 기본 설정 저장
   const basicSettings = {
     year: document.getElementById('set-year').value,
@@ -2257,34 +2270,44 @@ let noticeSettings = {
   club:   { closed:false, notice:'' },
 };
 
-// **텍스트** → <strong>텍스트</strong> (HTML 이스케이프 후 변환, XSS 방지)
+// **텍스트** → 굵게, [[c:red]]텍스트[[/c]] → 빨강, [[c:blue]]텍스트[[/c]] → 파랑
+// (HTML 이스케이프 먼저 처리 후 변환, XSS 방지)
 function noticeMarkupToHtml(text) {
-  const escaped = text
+  let escaped = text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
-  return escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  escaped = escaped.replace(/\[\[c:red\]\](.+?)\[\[\/c\]\]/g, '<span style="color:#DC2626">$1</span>');
+  escaped = escaped.replace(/\[\[c:blue\]\](.+?)\[\[\/c\]\]/g, '<span style="color:#2563EB">$1</span>');
+  escaped = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  return escaped;
 }
 
-// 관리자: 선택한 텍스트를 **굵게** 마크업으로 감싸기
-function wrapNoticeBold(cat) {
+const NOTICE_MARK_WRAP = {
+  bold: ['**', '**'],
+  red:  ['[[c:red]]', '[[/c]]'],
+  blue: ['[[c:blue]]', '[[/c]]'],
+};
+
+// 관리자: 선택한 텍스트를 마크업으로 감싸기 (type: bold/red/blue)
+function wrapNoticeMark(cat, type) {
   const ta = document.getElementById('noticeText-' + cat);
   if (!ta) return;
+  const [open, close] = NOTICE_MARK_WRAP[type];
   const start = ta.selectionStart;
   const end   = ta.selectionEnd;
   const val   = ta.value;
   if (start === end) {
-    // 선택 영역 없으면 커서 위치에 예시 삽입 후 선택
-    const insert = '**강조할 문구**';
-    ta.value = val.slice(0, start) + insert + val.slice(end);
+    const sample = '강조할 문구';
+    ta.value = val.slice(0, start) + open + sample + close + val.slice(end);
     ta.focus();
-    ta.setSelectionRange(start + 2, start + 2 + '강조할 문구'.length);
+    ta.setSelectionRange(start + open.length, start + open.length + sample.length);
     return;
   }
   const selected = val.slice(start, end);
-  ta.value = val.slice(0, start) + '**' + selected + '**' + val.slice(end);
+  ta.value = val.slice(0, start) + open + selected + close + val.slice(end);
   ta.focus();
-  ta.setSelectionRange(start, end + 4);
+  ta.setSelectionRange(start, end + open.length + close.length);
 }
 
 function loadNoticeSettingsCache() {
@@ -2494,9 +2517,79 @@ function addAct(listId, inputId){
   if(!v) return;
   const div = document.createElement('div');
   div.className = 'act-item';
+  div.draggable = true;
   div.innerHTML = `<span class="act-drag">⠿</span><span class="act-name">${v}</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button>`;
   document.getElementById(listId).appendChild(div);
   inp.value = '';
+}
+
+// ═══════════════════════════════════════════════════════
+//  활동 항목 수정 · 드래그 순서변경 (자율활동/진로활동 목록 공통)
+// ═══════════════════════════════════════════════════════
+function setupActListEditAndDrag(listId) {
+  const list = document.getElementById(listId);
+  if (!list || list._actInit) return; // 중복 바인딩 방지
+  list._actInit = true;
+
+  // 기존 항목들 드래그 가능하게
+  list.querySelectorAll('.act-item').forEach(el => el.draggable = true);
+
+  // ── 클릭해서 인라인 수정 ──
+  list.addEventListener('click', e => {
+    const nameEl = e.target.closest('.act-name');
+    if (!nameEl || nameEl.querySelector('input')) return;
+    const oldText = nameEl.textContent;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'act-name-edit-input';
+    input.value = oldText;
+    nameEl.textContent = '';
+    nameEl.appendChild(input);
+    input.focus();
+    input.select();
+
+    const commit = () => {
+      const v = input.value.trim();
+      nameEl.textContent = v || oldText;
+    };
+    input.addEventListener('blur', commit, { once: true });
+    input.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter') { ev.preventDefault(); input.blur(); }
+      if (ev.key === 'Escape') { input.value = oldText; input.blur(); }
+    });
+  });
+
+  // ── 드래그로 순서 변경 ──
+  list.addEventListener('dragstart', e => {
+    const item = e.target.closest('.act-item');
+    if (!item) return;
+    item.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  list.addEventListener('dragend', () => {
+    const dragging = list.querySelector('.act-item.dragging');
+    if (dragging) dragging.classList.remove('dragging');
+  });
+  list.addEventListener('dragover', e => {
+    e.preventDefault();
+    const dragging = list.querySelector('.act-item.dragging');
+    if (!dragging) return;
+    const after = getActDragAfterElement(list, e.clientY);
+    if (after == null) list.appendChild(dragging);
+    else list.insertBefore(dragging, after);
+  });
+}
+
+function getActDragAfterElement(list, y) {
+  const items = [...list.querySelectorAll('.act-item:not(.dragging)')];
+  return items.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) {
+      return { offset, element: child };
+    }
+    return closest;
+  }, { offset: -Infinity, element: null }).element;
 }
 
 function showLoading(msg) {
@@ -2522,6 +2615,10 @@ window.addEventListener('load', () => {
   renderAllBuilders();
   loadSavedSettings();
   applyQuestionsToForm();
+
+  // 자율활동·진로활동 목록: 클릭 수정 + 드래그 순서변경 (localStorage 복원 이후에 바인딩)
+  setupActListEditAndDrag('auto-list');
+  setupActListEditAndDrag('career-list');
 
   // 모든 섹션 제출 완료한 학생이 다시 열면 draft 초기화 → 초기화면 표시
   // (하나라도 미제출이면 draft 유지 → 이어서 작성 가능)
@@ -2696,7 +2793,7 @@ window.addEventListener('load', () => {
           </label>
         </div>
       </div>
-      <div class="notice-toolbar"><button type="button" class="notice-bold-btn" onclick="wrapNoticeBold('hakgup')"><b>B</b> 굵게</button></div>
+      <div class="notice-toolbar"><button type="button" class="notice-bold-btn" onclick="wrapNoticeMark('hakgup','bold')"><b>B</b> 굵게</button><button type="button" class="notice-color-btn notice-color-red" onclick="wrapNoticeMark('hakgup','red')">빨강</button><button type="button" class="notice-color-btn notice-color-blue" onclick="wrapNoticeMark('hakgup','blue')">파랑</button></div>
       <textarea id="noticeText-hakgup" placeholder="예: 자율활동은 6/20(금)까지 제출해주세요"></textarea>
       <div class="notice-hint">💡 굵게 하고 싶은 부분을 드래그하고 <b>B 굵게</b> 버튼을 누르세요</div>
     </div>
@@ -2712,7 +2809,7 @@ window.addEventListener('load', () => {
           </label>
         </div>
       </div>
-      <div class="notice-toolbar"><button type="button" class="notice-bold-btn" onclick="wrapNoticeBold('math')"><b>B</b> 굵게</button></div>
+      <div class="notice-toolbar"><button type="button" class="notice-bold-btn" onclick="wrapNoticeMark('math','bold')"><b>B</b> 굵게</button><button type="button" class="notice-color-btn notice-color-red" onclick="wrapNoticeMark('math','red')">빨강</button><button type="button" class="notice-color-btn notice-color-blue" onclick="wrapNoticeMark('math','blue')">파랑</button></div>
       <textarea id="noticeText-math" placeholder="예: 수학 세특은 이번 주까지만 받아요"></textarea>
       <div class="notice-hint">💡 굵게 하고 싶은 부분을 드래그하고 <b>B 굵게</b> 버튼을 누르세요</div>
     </div>
@@ -2728,7 +2825,7 @@ window.addEventListener('load', () => {
           </label>
         </div>
       </div>
-      <div class="notice-toolbar"><button type="button" class="notice-bold-btn" onclick="wrapNoticeBold('club')"><b>B</b> 굵게</button></div>
+      <div class="notice-toolbar"><button type="button" class="notice-bold-btn" onclick="wrapNoticeMark('club','bold')"><b>B</b> 굵게</button><button type="button" class="notice-color-btn notice-color-red" onclick="wrapNoticeMark('club','red')">빨강</button><button type="button" class="notice-color-btn notice-color-blue" onclick="wrapNoticeMark('club','blue')">파랑</button></div>
       <textarea id="noticeText-club" placeholder="예: 동아리 활동 3개 이상 선택해서 작성해주세요"></textarea>
       <div class="notice-hint">💡 굵게 하고 싶은 부분을 드래그하고 <b>B 굵게</b> 버튼을 누르세요</div>
     </div>
@@ -2824,6 +2921,7 @@ window.addEventListener('load', () => {
   <!-- ── 자율활동 체크박스 항목 ── -->
   <div class="set-sec">
     <div class="sec-ttl">🏃 자율활동 체크박스 항목</div>
+    <div class="act-hint">💡 항목을 클릭하면 문구를 수정할 수 있어요 · ⠿을 드래그하면 순서를 바꿀 수 있어요</div>
     <div id="auto-list">
       <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">1인1역할</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
       <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">꿀박사</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
@@ -2850,6 +2948,7 @@ window.addEventListener('load', () => {
   <!-- ── 진로활동 체크박스 항목 ── -->
   <div class="set-sec">
     <div class="sec-ttl">🎯 진로활동 체크박스 항목</div>
+    <div class="act-hint">💡 항목을 클릭하면 문구를 수정할 수 있어요 · ⠿을 드래그하면 순서를 바꿀 수 있어요</div>
     <div id="career-list">
       <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">공유캠퍼스 진로특강</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
       <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">전공심화프로그램(1학기)</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
