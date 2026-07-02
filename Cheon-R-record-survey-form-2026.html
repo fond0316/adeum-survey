@@ -311,6 +311,20 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
 .toggle-switch input:checked+.toggle-slider{background:#2563eb;}
 .toggle-switch input:checked+.toggle-slider:before{transform:translateX(16px);}
 
+/* ── 카테고리별 공지 / 마감 (학생 화면) ── */
+.cat-notice-box{display:none;background:rgba(155,142,196,0.12);border-left:3px solid var(--primary);border-radius:10px;padding:13px 15px;margin-bottom:12px;font-size:12.5px;color:#5b4b8a;line-height:1.75;white-space:pre-line;}
+.cat-closed-box{display:none;background:var(--danger-light);border:1.5px solid #fecaca;border-radius:14px;padding:26px 16px;margin-bottom:12px;text-align:center;}
+.cat-closed-box .cc-icon{font-size:30px;margin-bottom:8px;}
+.cat-closed-box .cc-text{font-size:13px;font-weight:700;color:#DC2626;line-height:1.7;}
+
+/* ── 관리자: 마감·공지 탭 ── */
+.notice-row{background:white;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:10px;}
+.notice-row-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.notice-row-title{font-size:13px;font-weight:700;color:var(--gray-900);}
+.notice-row-status{font-size:11px;font-weight:600;}
+.notice-row textarea{width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:12.5px;font-family:'Pretendard',-apple-system,sans-serif;resize:vertical;min-height:56px;}
+.notice-row textarea:focus{border-color:var(--primary);outline:none;}
+
 /* 옵션 목록 (체크박스/라디오용) */
 .opt-list{margin-top:8px;}
 .opt-item{display:flex;align-items:center;gap:7px;margin-bottom:5px;}
@@ -445,6 +459,7 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
 .s-menu-text{flex:1;}
 .s-menu-name{font-size:14px;font-weight:700;color:var(--gray-900);margin-bottom:4px;}
 .s-menu-desc{font-size:11px;color:var(--gray-400);line-height:1.5;}
+.s-menu-badge{display:none;font-size:10px;font-weight:700;color:#DC2626;background:#FEF2F2;border-radius:20px;padding:2px 7px;vertical-align:middle;margin-left:2px;}
 .s-menu-arrow{display:none;}
 
 /* 폼 화면 헤더 */
@@ -509,17 +524,17 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
     <div class="s-menu-grid">
       <div class="s-menu-card" onclick="goForm('hakgup')">
         <div class="s-menu-icon">🏫</div>
-        <div class="s-menu-name">학급</div>
+        <div class="s-menu-name">학급 <span class="s-menu-badge" id="badge-hakgup"></span></div>
         <div class="s-menu-desc">자율·진로·행발</div>
       </div>
       <div class="s-menu-card" onclick="goForm('math')">
         <div class="s-menu-icon">📐</div>
-        <div class="s-menu-name">수학 교과</div>
+        <div class="s-menu-name">수학 교과 <span class="s-menu-badge" id="badge-math"></span></div>
         <div class="s-menu-desc" id="math-sub">교과 세특</div>
       </div>
       <div class="s-menu-card" onclick="goForm('club')">
         <div class="s-menu-icon">🔭</div>
-        <div class="s-menu-name">동아리</div>
+        <div class="s-menu-name">동아리 <span class="s-menu-badge" id="badge-club"></span></div>
         <div class="s-menu-desc" id="club-sub">창의수학</div>
       </div>
     </div>
@@ -576,6 +591,12 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
 
     <!-- ── 학급 폼 ── -->
     <div id="form-hakgup" style="display:none">
+      <div class="cat-notice-box" id="catnotice-hakgup"></div>
+      <div class="cat-closed-box" id="catclosed-hakgup">
+        <div class="cc-icon">🔒</div>
+        <div class="cc-text">학급(담임) 설문이 마감되었어요.<br>선생님께 문의해 주세요.</div>
+      </div>
+      <div id="catbody-hakgup">
       <div class="inner-tabs">
         <button class="inner-tab active" onclick="switchInner('자율',this)">🏃 자율활동</button>
         <button class="inner-tab" onclick="switchInner('진로',this)">🎯 진로활동</button>
@@ -623,27 +644,43 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
         <button class="submit-btn" id="submit-btn-haengbal" onclick="submitFormSection('행발')">📝 행동발달 제출하기</button>
         <div id="submit-status-haengbal" style="text-align:center;font-size:12px;padding:8px 0 4px;color:#6b7280;"></div>
       </div>
+      </div>
     </div>
 
     <!-- ── 수학 교과 폼 ── -->
     <div id="form-math" style="display:none">
+      <div class="cat-notice-box" id="catnotice-math"></div>
+      <div class="cat-closed-box" id="catclosed-math">
+        <div class="cc-icon">🔒</div>
+        <div class="cc-text">수학 교과 설문이 마감되었어요.<br>선생님께 문의해 주세요.</div>
+      </div>
+      <div id="catbody-math">
       <div class="save-status" id="save-status-math">　</div>
       <div id="student-math-questions"></div>
       <div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 4px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">작성 완료 후 아래 제출 버튼을 눌러야 선생님께 전달됩니다</span></div>
       <div style="text-align:center;font-size:12px;font-weight:700;color:#ef4444;padding:4px 0 4px;letter-spacing:-0.2px;">⚠️ 아래 버튼을 눌러야 선생님께 전달됩니다!</div>
       <button class="submit-btn" id="submit-btn-math" onclick="submitFormSection('수학')">📐 수학 교과 제출하기</button>
       <div id="submit-status-math" style="text-align:center;font-size:12px;padding:8px 0 4px;color:#6b7280;"></div>
+      </div>
     </div>
 
     <!-- ── 동아리 폼 ── -->
     <div id="form-club" style="display:none">
+      <div class="cat-notice-box" id="catnotice-club"></div>
+      <div class="cat-closed-box" id="catclosed-club">
+        <div class="cc-icon">🔒</div>
+        <div class="cc-text">동아리 설문이 마감되었어요.<br>선생님께 문의해 주세요.</div>
+      </div>
+      <div id="catbody-club">
       <div class="save-status" id="save-status-club">　</div>
       <div id="student-club-questions"></div>
       <div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 4px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">작성 완료 후 아래 제출 버튼을 눌러야 선생님께 전달됩니다</span></div>
       <div style="text-align:center;font-size:12px;font-weight:700;color:#ef4444;padding:4px 0 4px;letter-spacing:-0.2px;">⚠️ 아래 버튼을 눌러야 선생님께 전달됩니다!</div>
       <button class="submit-btn" id="submit-btn-club" onclick="submitFormSection('동아리')">🔭 동아리 제출하기</button>
       <div id="submit-status-club" style="text-align:center;font-size:12px;padding:8px 0 4px;color:#6b7280;"></div>
+      </div>
     </div>
+
 
     <!-- 진행률 표시 (수학·동아리용) -->
     <div class="progress-wrap" id="progress-wrap" style="display:none;">
@@ -1652,6 +1689,8 @@ function doAdminLogin() {
     closeAdminLogin();
     document.getElementById('adminScreen').classList.add('open');
     switchAdminTab('dashboard');
+    applyNoticeSettings();
+    fetchNoticeSettingsFromGas();
   } else {
     document.getElementById('adminPwError').textContent = '비밀번호가 올바르지 않아요.';
     document.getElementById('adminPwInput').value = '';
@@ -1949,6 +1988,13 @@ function submitFormSection(tabLabel) {
   if(!name || !grade || !ban || !num){
     alert('⚠️ 학년, 반, 번호, 이름을 모두 입력해주세요!'); return;
   }
+  // 마감 여부 재확인 (화면이 우회되어도 여기서 한 번 더 막음)
+  const noticeCatMap = { '자율':'hakgup', '진로':'hakgup', '행발':'hakgup', '수학':'math', '동아리':'club' };
+  const noticeCat = noticeCatMap[tabLabel];
+  if (noticeCat && noticeSettings[noticeCat]?.closed) {
+    alert('🔒 현재 마감된 설문이에요.\n선생님께 문의해 주세요.');
+    return;
+  }
   // 해당 탭의 필수 항목만 검사
   if (!validateRequiredSection(tabLabel)) return;
 
@@ -2194,6 +2240,110 @@ function testGasUrl() {
     });
 }
 
+// ═══════════════════════════════════════════════════════
+//  마감 · 공지 (카테고리: hakgup 학급 / math 수학 / club 동아리)
+// ═══════════════════════════════════════════════════════
+const NOTICE_CATS = ['hakgup', 'math', 'club'];
+const NOTICE_LABEL = { hakgup:'학급', math:'수학 교과', club:'동아리' };
+const NOTICE_STORAGE_KEY = 'adum_notice_settings';
+
+let noticeSettings = {
+  hakgup: { closed:false, notice:'' },
+  math:   { closed:false, notice:'' },
+  club:   { closed:false, notice:'' },
+};
+
+function loadNoticeSettingsCache() {
+  try {
+    const raw = localStorage.getItem(NOTICE_STORAGE_KEY);
+    if (raw) noticeSettings = { ...noticeSettings, ...JSON.parse(raw) };
+  } catch(e) {}
+}
+
+function fetchNoticeSettingsFromGas() {
+  const url = getGasUrl();
+  if (!url) return;
+  fetch(url + '?action=getSettings')
+    .then(r => r.json())
+    .then(data => {
+      if (!data.ok || !data.settings) return;
+      noticeSettings = { ...noticeSettings, ...data.settings };
+      localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(noticeSettings));
+      applyNoticeSettings();
+    })
+    .catch(() => {}); // 실패하면 로컬 캐시값 그대로 유지
+}
+
+// 학생 화면 + 관리자 화면에 동시 반영
+function applyNoticeSettings() {
+  NOTICE_CATS.forEach(cat => {
+    const s = noticeSettings[cat] || { closed:false, notice:'' };
+
+    // ── 학생 화면: 공지 박스 ──
+    const noticeEl = document.getElementById('catnotice-' + cat);
+    if (noticeEl) {
+      if (s.notice && s.notice.trim()) {
+        noticeEl.textContent = '📢 ' + s.notice.trim();
+        noticeEl.style.display = '';
+      } else {
+        noticeEl.style.display = 'none';
+      }
+    }
+
+    // ── 학생 화면: 마감 시 입력영역 잠금 ──
+    const closedEl = document.getElementById('catclosed-' + cat);
+    const bodyEl   = document.getElementById('catbody-' + cat);
+    if (closedEl) closedEl.style.display = s.closed ? '' : 'none';
+    if (bodyEl)   bodyEl.style.display   = s.closed ? 'none' : '';
+
+    // ── 홈 화면 마감 배지 ──
+    const badgeEl = document.getElementById('badge-' + cat);
+    if (badgeEl) {
+      badgeEl.style.display = s.closed ? 'inline-block' : 'none';
+      badgeEl.textContent = '🔒 마감';
+    }
+
+    // ── 관리자 화면 입력값 채우기 ──
+    const toggleEl = document.getElementById('noticeClose-' + cat);
+    const textEl   = document.getElementById('noticeText-' + cat);
+    const statusEl = document.getElementById('noticeStatus-' + cat);
+    if (toggleEl) toggleEl.checked = !!s.closed;
+    if (textEl && document.activeElement !== textEl) textEl.value = s.notice || '';
+    if (statusEl) {
+      statusEl.textContent = s.closed ? '🔒 마감됨' : '✅ 제출 중';
+      statusEl.style.color = s.closed ? '#DC2626' : '#059669';
+    }
+  });
+}
+
+function saveNoticeSettingsUI() {
+  const url = getGasUrl();
+  if (!url) { alert('⚠️ 구글 시트 연동 URL이 아직 설정되지 않았어요.'); return; }
+
+  NOTICE_CATS.forEach(cat => {
+    noticeSettings[cat] = {
+      closed: !!document.getElementById('noticeClose-' + cat)?.checked,
+      notice: (document.getElementById('noticeText-' + cat)?.value || '').trim(),
+    };
+  });
+
+  const statusEl = document.getElementById('notice-save-status');
+  if (statusEl) statusEl.textContent = '⏳ 저장 중...';
+
+  _gasPost(url, { action: 'saveSettings', settings: noticeSettings })
+    .then(res => {
+      if (!res || !res.ok) throw new Error(res?.error || '저장 실패');
+      localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(noticeSettings));
+      applyNoticeSettings();
+      if (statusEl) statusEl.textContent = '✅ 저장됐어요 · ' + new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+      showToast('🔔 마감·공지가 저장됐어요! 학생 화면에 바로 반영돼요');
+    })
+    .catch(err => {
+      if (statusEl) statusEl.textContent = '❌ 저장 실패: ' + err.message;
+      alert('❌ 저장에 실패했어요.\n인터넷 연결을 확인하고 다시 시도해주세요.');
+    });
+}
+
 function loadFromGoogleSheet() {
   const url = getGasUrl();
   const statusEl = document.getElementById('sheet-load-status');
@@ -2366,6 +2516,11 @@ window.addEventListener('load', () => {
   loadDraft();
   initDashboard();
   checkGasBanner();
+
+  // 마감·공지: 로컬 캐시로 즉시 반영 → GAS에서 최신값 재조회
+  loadNoticeSettingsCache();
+  applyNoticeSettings();
+  fetchNoticeSettingsFromGas();
 });
 </script>
 
@@ -2411,6 +2566,7 @@ window.addEventListener('load', () => {
   </div>
   <div class="admin-nav-bar">
     <button class="admin-nav-btn active" onclick="switchAdminTab('dashboard')" id="aTab-dashboard">📊 대시보드</button>
+    <button class="admin-nav-btn" onclick="switchAdminTab('notice')" id="aTab-notice">🔔 마감·공지</button>
     <button class="admin-nav-btn" onclick="switchAdminTab('settings')" id="aTab-settings">⚙️ 설정·관리</button>
   </div>
   <div class="admin-body">
@@ -2478,6 +2634,67 @@ window.addEventListener('load', () => {
     <div class="bi"><span id="sel-count">0명</span>선택됨 · 일괄 작업을 선택하세요</div>
     <button class="bb bb-ghost" onclick="exportSelectedCSV()">⬇️ CSV 다운로드</button>
 
+  </div>
+
+</div>
+    </div>
+    <!-- 마감·공지 섹션 -->
+    <div class="admin-section" id="adminSec-notice">
+<div class="set-wrap">
+
+  <h2>마감 · 공지 관리</h2>
+  <p class="sub">카테고리별로 제출 마감을 걸거나 공지 문구를 남길 수 있어요. 저장하면 모든 학생 기기에 바로 반영돼요.</p>
+
+  <div class="set-sec">
+    <div class="sec-ttl">
+      🔔 카테고리별 설정
+      <span class="sec-cnt">마감하면 학생 화면에서 해당 폼이 잠겨요</span>
+    </div>
+
+    <div class="notice-row">
+      <div class="notice-row-head">
+        <span class="notice-row-title">🏫 학급 (자율·진로·행발)</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="notice-row-status" id="noticeStatus-hakgup"></span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="noticeClose-hakgup">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <textarea id="noticeText-hakgup" placeholder="예: 자율활동은 6/20(금)까지 제출해주세요"></textarea>
+    </div>
+
+    <div class="notice-row">
+      <div class="notice-row-head">
+        <span class="notice-row-title">📐 수학 교과</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="notice-row-status" id="noticeStatus-math"></span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="noticeClose-math">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <textarea id="noticeText-math" placeholder="예: 수학 세특은 이번 주까지만 받아요"></textarea>
+    </div>
+
+    <div class="notice-row">
+      <div class="notice-row-head">
+        <span class="notice-row-title">🔭 동아리</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="notice-row-status" id="noticeStatus-club"></span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="noticeClose-club">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <textarea id="noticeText-club" placeholder="예: 동아리 활동 3개 이상 선택해서 작성해주세요"></textarea>
+    </div>
+
+    <div id="notice-save-status" style="font-size:12px;color:var(--gray-400);margin:4px 2px 10px;"></div>
+    <button class="save-all-btn" onclick="saveNoticeSettingsUI()">💾 마감·공지 저장 · 학생 폼에 반영</button>
   </div>
 
 </div>
