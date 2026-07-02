@@ -246,6 +246,12 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
     <div class="task-list" id="hubTaskList"></div>
     <div class="sec-title" style="margin-top:16px">📊 이번 달</div>
     <div id="hubMonthStats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px"></div>
+    <div class="sec-title" style="margin-top:20px">📝 체크리스트</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <input class="fi" id="checklistInput" placeholder="예: 영양제, 기타 줄..." style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')addChecklistItem()">
+      <button onclick="addChecklistItem()" style="background:var(--g);color:white;border:none;border-radius:11px;padding:0 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">추가</button>
+    </div>
+    <div id="checklistList" style="margin-bottom:6px"></div>
     <div class="sec-title" style="margin-top:20px">취미</div>
     <div class="hobby-cards">
       <div class="hcard plants" onclick="showPlants()">
@@ -517,7 +523,6 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
   <button class="nbtn" id="nav-brain" onclick="showBrain()"><span class="ni">🧠</span>자기계발존</button>
 </nav>
 
-
 <!-- ===== BRAIN ===== -->
 <div class="screen" id="s-brain">
   <div class="ph">
@@ -526,7 +531,11 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
       <div class="pt">🧠 자기계발존</div>
     </div>
   </div>
-  <div style="padding:0 16px 20px">
+  <div style="padding:0 16px 14px;display:flex;gap:8px">
+    <button id="brainTab-training" onclick="switchBrainTab('training')" style="flex:1;border:none;border-radius:12px;padding:11px;font-size:13px;font-weight:700;font-family:'Pretendard',sans-serif;cursor:pointer;background:var(--br);color:white">🎓 수련</button>
+    <button id="brainTab-music" onclick="switchBrainTab('music')" style="flex:1;border:none;border-radius:12px;padding:11px;font-size:13px;font-weight:700;font-family:'Pretendard',sans-serif;cursor:pointer;background:var(--card);color:var(--sub)">🎸 음악</button>
+  </div>
+  <div id="brainSection-training" style="padding:0 16px 20px">
     <div style="display:flex;align-items:center;margin-bottom:20px;background:var(--card);border-radius:14px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.04)">
       <div id="stage-1" style="text-align:center;flex:1;cursor:pointer;border-radius:10px;padding:6px 4px" onclick="switchBrainStage('training')">
         <div style="font-size:20px">🎬</div>
@@ -638,6 +647,13 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
         <button onclick="addCustomGoal()" style="background:var(--br);color:white;border:none;border-radius:11px;padding:0 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">기록 ✓</button>
       </div>
       <div id="customGoalList"></div>
+    </div>
+  </div>
+  <div id="brainSection-music" style="display:none;padding:0 16px 20px">
+    <div style="padding:50px 20px;text-align:center;color:var(--sub)">
+      <div style="font-size:36px;margin-bottom:10px">🎸</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px">준비 중이에요</div>
+      <div style="font-size:12px;line-height:1.6">기타·베이스 연습 시간이나<br>곡 진도 같은 걸 기록하게 될 것 같아요</div>
     </div>
   </div>
 </div>
@@ -848,6 +864,7 @@ const PLANT_PRESETS = [
 // ===== STATE =====
 let plants = [], fish = {species:[],logs:[]}, exercise = {weeklyGoal:4,logs:[]}, brain = {}, darkMode = false;
 let winterMode = false;
+let checklist = [];
 let currentPlantId = null, currentCat = '전체', currentDiaryType = '물주기(저면)';
 let addPhotoData = null, editPhotoData = undefined;
 let fishTiming = '아침';
@@ -897,6 +914,7 @@ function loadAll(){
   exercise = safeParse(localStorage.getItem('hub_exercise4'), {weeklyGoal:4,logs:[]});
   brain = safeParse(localStorage.getItem('hub_brain1'), {examDate:'',goalHours:200,goalTraining:40,logs:[]});
   winterMode = safeParse(localStorage.getItem('hub_winter4'), false);
+  checklist = safeParse(localStorage.getItem('hub_checklist1'), []);
   darkMode = safeParse(localStorage.getItem('hub_darkmode1'), false);
   applyDarkMode();
   if(!localStorage.getItem('hub_appStart1')){
@@ -961,6 +979,7 @@ function saveAll(){
     localStorage.setItem('hub_fish8', JSON.stringify(fish));
     localStorage.setItem('hub_exercise4', JSON.stringify(exercise));
     localStorage.setItem('hub_winter4', JSON.stringify(winterMode));
+    localStorage.setItem('hub_checklist1', JSON.stringify(checklist));
     localStorage.setItem('hub_brain1', JSON.stringify(brain));
     localStorage.setItem('hub_darkmode1', JSON.stringify(darkMode));
   }catch(e){
@@ -1123,7 +1142,7 @@ const ACQUIRED = {
 function initPlants(){
   const today = todayStr();
   const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
-  const yday = yesterday.toISOString().slice(0,10);
+  const yday = localDateStr(yesterday);
   plants = PLANT_PRESETS.map((p,i)=>({
     id: String(1000+i),
     name:p.name, species:p.name, category:p.cat, location:p.loc,
@@ -1141,19 +1160,25 @@ function initPlants(){
 }
 
 // ===== UTILS =====
-function todayStr(){ return new Date().toISOString().slice(0,10); }
+function todayStr(){ return localDateStr(new Date()); }
+function localDateStr(d){
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
 function daysBetween(a,b){ return Math.round((new Date(b)-new Date(a))/86400000); }
 function effectiveCycle(p){ return winterMode ? Math.round(p.wateringDays*1.6) : p.wateringDays; }
 function dDay(p){
   const next = new Date(p.lastWatered);
   next.setDate(next.getDate()+effectiveCycle(p));
-  return daysBetween(todayStr(), next.toISOString().slice(0,10));
+  return daysBetween(todayStr(), localDateStr(next));
 }
 function mistCycleDDay(p){
   if(!p.lastSprayed) return -9999;
   const next = new Date(p.lastSprayed);
   next.setDate(next.getDate()+p.mistCycleDays);
-  return daysBetween(todayStr(), next.toISOString().slice(0,10));
+  return daysBetween(todayStr(), localDateStr(next));
 }
 function mmdd(s){ return s ? s.slice(5).replace('-','/') : '-'; }
 function plantFeatureTags(p){
@@ -1377,6 +1402,39 @@ function goHub(){
   renderHub();
   showScreen('s-hub');
 }
+// ===== 체크리스트 =====
+function addChecklistItem(){
+  const input = document.getElementById('checklistInput');
+  const text = input.value.trim();
+  if(!text) return;
+  checklist.push({id:String(Date.now()), text, done:false});
+  input.value = '';
+  saveAll();
+  renderChecklist();
+}
+function toggleChecklistItem(id){
+  const item = checklist.find(c=>c.id===id);
+  if(item){ item.done = !item.done; saveAll(); renderChecklist(); }
+}
+function deleteChecklistItem(id){
+  checklist = checklist.filter(c=>c.id!==id);
+  saveAll();
+  renderChecklist();
+}
+function renderChecklist(){
+  const el = document.getElementById('checklistList');
+  if(!el) return;
+  if(checklist.length===0){
+    el.innerHTML = '<div class="empty" style="padding:8px 0;font-size:12px">아직 담긴 항목이 없어요</div>';
+    return;
+  }
+  el.innerHTML = checklist.map(c=>`
+    <div style="display:flex;align-items:center;gap:10px;background:var(--card);border-radius:12px;padding:11px 12px;margin-bottom:6px">
+      <div onclick="toggleChecklistItem('${c.id}')" style="width:20px;height:20px;border-radius:6px;border:2px solid ${c.done?'var(--g)':'#DDD'};background:${c.done?'var(--g)':'transparent'};display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:12px;color:white">${c.done?'✓':''}</div>
+      <div onclick="toggleChecklistItem('${c.id}')" style="flex:1;font-size:13px;cursor:pointer;${c.done?'text-decoration:line-through;color:var(--sub)':''}">${escapeHtml(c.text)}</div>
+      <button onclick="deleteChecklistItem('${c.id}')" style="border:none;background:none;color:var(--sub);font-size:15px;cursor:pointer;padding:2px 4px">✕</button>
+    </div>`).join('');
+}
 function calcStreak(){
   const dates = new Set();
   plants.forEach(p=>p.diary.forEach(d=>dates.add(d.date)));
@@ -1386,7 +1444,7 @@ function calcStreak(){
   const cursor = new Date();
   if(!dates.has(todayStr())) cursor.setDate(cursor.getDate()-1);
   while(true){
-    const ds = cursor.toISOString().slice(0,10);
+    const ds = localDateStr(cursor);
     if(dates.has(ds)){ streak++; cursor.setDate(cursor.getDate()-1); }
     else break;
   }
@@ -1394,6 +1452,7 @@ function calcStreak(){
 }
 function monthPrefix(){ return todayStr().slice(0,7); } // 'YYYY-MM'
 function renderHub(){
+  renderChecklist();
   const today = new Date();
   document.getElementById('hubDate').textContent = today.toLocaleDateString('ko',{month:'long',day:'numeric',weekday:'short'});
   const today2 = todayStr();
@@ -1926,7 +1985,7 @@ function showExercise(){
 function getWeekDates(){
   const today = new Date(), day = today.getDay();
   const mon = new Date(today); mon.setDate(today.getDate() - (day===0?6:day-1));
-  return Array.from({length:7},(_,i)=>{ const d=new Date(mon); d.setDate(mon.getDate()+i); return d.toISOString().slice(0,10); });
+  return Array.from({length:7},(_,i)=>{ const d=new Date(mon); d.setDate(mon.getDate()+i); return localDateStr(d); });
 }
 function weekCount(){
   const week = getWeekDates();
@@ -1998,7 +2057,15 @@ function initBrain(){
   if(!brain.customLogs) brain.customLogs = [];
 }
 
-function showBrain(){ initBrain(); renderBrain(); showScreen('s-brain'); }
+function showBrain(){ initBrain(); switchBrainTab('training'); renderBrain(); showScreen('s-brain'); }
+function switchBrainTab(tab){
+  document.getElementById('brainSection-training').style.display = tab==='training' ? 'block' : 'none';
+  document.getElementById('brainSection-music').style.display = tab==='music' ? 'block' : 'none';
+  document.getElementById('brainTab-training').style.background = tab==='training' ? 'var(--br)' : 'var(--card)';
+  document.getElementById('brainTab-training').style.color = tab==='training' ? 'white' : 'var(--sub)';
+  document.getElementById('brainTab-music').style.background = tab==='music' ? 'var(--br)' : 'var(--card)';
+  document.getElementById('brainTab-music').style.color = tab==='music' ? 'white' : 'var(--sub)';
+}
 
 function switchBrainStage(stage){
   const writtenPassed = brain.writtenPassed;
