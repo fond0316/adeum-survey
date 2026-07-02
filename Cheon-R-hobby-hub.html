@@ -15,6 +15,19 @@
   --bg:#FAF8F3;--card:#fff;--text:#3B3B3B;--sub:#8A8A8A;
   --danger:#E07A5F;--warn:#E8B84B;--radius:16px;
 }
+body.dark{
+  --g:#8FBE95;--gl:#25352A;
+  --b:#7BB3E0;--bl:#1F2E3D;
+  --r:#E8927A;--rl:#3A2624;
+  --ex:#DCA37C;--ex2:#4A3B2C;--exl:#332821;
+  --br:#B79CC9;--br2:#4A3B54;--brl:#2C2532;
+  --bg:#1A1A1C;--card:#28282A;--text:#EDEDED;--sub:#9B9B9B;
+  --danger:#E8927A;--warn:#E8B84B;
+}
+body.dark .task-item,body.dark .spi,body.dark .fcard,body.dark .dentry{background:var(--card);}
+body.dark input,body.dark textarea{background:#333335;color:var(--text);border-color:#444 !important;}
+body.dark .tcell,body.dark .pcard{border-color:#3A3A3C;}
+body.dark .empty{color:var(--sub);}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);padding-bottom:76px;}
 .app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative;}
@@ -212,18 +225,28 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
       <div class="pt">👋 안녕하세요, 아듬샘!</div>
       <div style="display:flex;align-items:center;gap:10px">
         <div style="font-size:13px;color:var(--sub)" id="hubDate"></div>
+        <button onclick="toggleDarkMode()" title="다크모드" id="darkModeBtn" style="background:none;border:none;font-size:19px;cursor:pointer;padding:2px;line-height:1">🌙</button>
         <button onclick="openBackupModal()" title="백업/복원" style="background:none;border:none;font-size:19px;cursor:pointer;padding:2px;line-height:1">⚙️</button>
       </div>
     </div>
-    <div style="font-size:12px;color:var(--sub);margin-top:4px">🌟 아듬's 취미허브 · Made by Cheon_R</div>
+    <div style="font-size:12px;color:var(--sub);margin-top:4px">아듬's 취미허브 · Made by Cheon_R</div>
   </div>
   <div style="padding:0 16px 20px">
-    <div id="todayBanner" onclick="openCareZone()" style="cursor:pointer;border-radius:var(--radius);padding:16px 18px;color:white;margin-bottom:14px;background:#4A5568">
+    <div id="appDaysBanner" style="background:var(--gl);border-radius:13px;padding:8px 16px;margin-bottom:10px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:18px">🌟</span>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--g)" id="appDaysText"></div>
+        <div style="font-size:10px;color:var(--sub);margin-top:1px" id="appDaysSub"></div>
+      </div>
+    </div>
+    <div id="hubChips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"></div>
+    <div id="todayBanner" onclick="openCareZone()" style="cursor:pointer;border-radius:var(--radius);padding:22px 18px;min-height:24px;display:flex;align-items:center;color:white;margin-bottom:14px;background:#4A5568">
       <div class="bl">🌿 오늘의 케어존 <span style="font-size:11px;opacity:.7">탭해서 확인</span></div>
-      <div class="bc" id="hubTodayCount">0개</div>
     </div>
     <div class="task-list" id="hubTaskList"></div>
-    <div class="sec-title">취미</div>
+    <div class="sec-title" style="margin-top:16px">📊 이번 달</div>
+    <div id="hubMonthStats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px"></div>
+    <div class="sec-title" style="margin-top:20px">취미</div>
     <div class="hobby-cards">
       <div class="hcard plants" onclick="showPlants()">
         <div class="hicon">🌱</div>
@@ -280,6 +303,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
     </div>
     <div class="task-list" id="plantTodayList"></div>
     <div class="sec-title">전체 식물 <span id="plantTotalLabel" style="font-weight:400;font-size:11px;text-transform:none;letter-spacing:0"></span></div>
+    <input class="fi" id="plantSearch" placeholder="🔍 이름으로 검색" style="margin-bottom:10px" oninput="renderPlants()">
     <div class="chip-row" id="catChips"></div>
     <div id="plantGrid"></div>
     <div id="plannedSection" style="display:none">
@@ -804,7 +828,7 @@ const PLANT_PRESETS = [
 ];
 
 // ===== STATE =====
-let plants = [], fish = {species:[],logs:[]}, exercise = {weeklyGoal:4,logs:[]}, brain = {};
+let plants = [], fish = {species:[],logs:[]}, exercise = {weeklyGoal:4,logs:[]}, brain = {}, darkMode = false;
 let winterMode = false;
 let currentPlantId = null, currentCat = '전체', currentDiaryType = '물주기(저면)';
 let addPhotoData = null, editPhotoData = undefined;
@@ -855,6 +879,11 @@ function loadAll(){
   exercise = safeParse(localStorage.getItem('hub_exercise4'), {weeklyGoal:4,logs:[]});
   brain = safeParse(localStorage.getItem('hub_brain1'), {examDate:'',goalHours:200,goalTraining:40,logs:[]});
   winterMode = safeParse(localStorage.getItem('hub_winter4'), false);
+  darkMode = safeParse(localStorage.getItem('hub_darkmode1'), false);
+  applyDarkMode();
+  if(!localStorage.getItem('hub_appStart1')){
+    localStorage.setItem('hub_appStart1', todayStr());
+  }
 
   // 일회성 패치: 전문가 리뷰로 보완한 팁을 기존 저장 데이터에도 반영 (이미 있으면 건너뜀)
   if(!localStorage.getItem('hub_tipPatch_v1')){
@@ -915,6 +944,7 @@ function saveAll(){
     localStorage.setItem('hub_exercise4', JSON.stringify(exercise));
     localStorage.setItem('hub_winter4', JSON.stringify(winterMode));
     localStorage.setItem('hub_brain1', JSON.stringify(brain));
+    localStorage.setItem('hub_darkmode1', JSON.stringify(darkMode));
   }catch(e){
     console.error('저장 실패:', e);
     if(e && (e.name==='QuotaExceededError' || e.code===22)){
@@ -923,6 +953,16 @@ function saveAll(){
       alert('⚠️ 저장 중 문제가 발생했어요. 방금 변경사항이 저장되지 않았을 수 있어요.');
     }
   }
+}
+function applyDarkMode(){
+  document.body.classList.toggle('dark', !!darkMode);
+  const btn = document.getElementById('darkModeBtn');
+  if(btn) btn.textContent = darkMode ? '☀️' : '🌙';
+}
+function toggleDarkMode(){
+  darkMode = !darkMode;
+  applyDarkMode();
+  saveAll();
 }
 function escapeHtml(str){
   if(str===undefined || str===null) return '';
@@ -1258,10 +1298,49 @@ function goHub(){
   renderHub();
   showScreen('s-hub');
 }
+function calcStreak(){
+  const dates = new Set();
+  plants.forEach(p=>p.diary.forEach(d=>dates.add(d.date)));
+  fish.logs.forEach(l=>dates.add(l.date));
+  exercise.logs.forEach(l=>dates.add(l.date));
+  let streak = 0;
+  const cursor = new Date();
+  if(!dates.has(todayStr())) cursor.setDate(cursor.getDate()-1);
+  while(true){
+    const ds = cursor.toISOString().slice(0,10);
+    if(dates.has(ds)){ streak++; cursor.setDate(cursor.getDate()-1); }
+    else break;
+  }
+  return streak;
+}
+function monthPrefix(){ return todayStr().slice(0,7); } // 'YYYY-MM'
 function renderHub(){
   const today = new Date();
   document.getElementById('hubDate').textContent = today.toLocaleDateString('ko',{month:'long',day:'numeric',weekday:'short'});
   const today2 = todayStr();
+
+  const appStart = localStorage.getItem('hub_appStart1');
+  if(appStart){
+    const appDays = daysBetween(appStart, today2) + 1;
+    const [sy,sm,sd] = appStart.split('-').map(Number);
+    document.getElementById('appDaysText').textContent = `아듬's 취미허브 ${appDays}일째`;
+    document.getElementById('appDaysSub').textContent = `${sy}.${sm}.${sd}부터 함께하는 중`;
+  }
+
+  // 🔥 스트릭 + 📅 시험 D-day 칩
+  const chips = [];
+  const streak = calcStreak();
+  if(streak>=2) chips.push(`<span class="ftag" style="background:#FDEDE3;color:#C4632A">🔥 ${streak}일 연속 기록 중</span>`);
+  if(!brain.writtenPassed && brain.writtenExamDate){
+    const d = daysBetween(today2, brain.writtenExamDate);
+    if(d>=0) chips.push(`<span class="ftag" style="background:var(--brl);color:var(--br)">📅 필기시험 D-${d}</span>`);
+  } else if(!brain.practicalPassed && brain.practicalExamDate){
+    const d = daysBetween(today2, brain.practicalExamDate);
+    if(d>=0) chips.push(`<span class="ftag" style="background:var(--brl);color:var(--br)">📅 실기시험 D-${d}</span>`);
+  }
+  document.getElementById('hubChips').innerHTML = chips.join('');
+  document.getElementById('hubChips').style.display = chips.length ? 'flex' : 'none';
+
   const mistNeedCount = plants.filter(p=>!p.planned && p.mistTarget>0 && p.diary.filter(d=>d.date===today2&&d.type==='분무').length < p.mistTarget).length;
   const due = plants.filter(p=>!p.planned && dDay(p)<=0);
   const todayEx = exercise.logs.filter(l=>l.date===todayStr());
@@ -1285,7 +1364,6 @@ function renderHub(){
   const todayDow = new Date().getDay();
   if((fish.waterChangeDays||[]).includes(todayDow) && fish.lastWaterChange!==today2)
     tasks.push({icon:'🔄',name:'환수할 날이에요!',sub:'물집사에서 기록하세요',action:'기록하기',cls:'b',cb:'showFish()'});
-  document.getElementById('hubTodayCount').textContent = tasks.length+'개';
   if(tasks.length===0){
     document.getElementById('hubTaskList').innerHTML = '<div class="empty" style="padding:10px 0">오늘 할 일이 없어요 🎉</div>';
   } else {
@@ -1303,6 +1381,29 @@ function renderHub(){
   document.getElementById('hubPlantSub').textContent = `${plants.length}종 키우는 중 · 오늘 ${due.length}개 케어`;
   const fishSpecies = fish.species.length;
   document.getElementById('hubFishSub').textContent = fishSpecies ? `${fishSpecies}종 합사 어항` : '어항 기록 시작하기';
+
+  // 📊 이번 달 통계
+  const mp = monthPrefix();
+  const waterTypesM = ['물주기','물주기(저면)','물주기(상면)','영양제'];
+  const wateredDaysThisMonth = new Set();
+  const mistedDaysThisMonth = new Set();
+  plants.forEach(p=>p.diary.forEach(d=>{
+    if(!d.date.startsWith(mp)) return;
+    if(waterTypesM.includes(d.type)) wateredDaysThisMonth.add(d.date);
+    if(d.type==='분무') mistedDaysThisMonth.add(d.date);
+  }));
+  const daysSoFar = Number(today2.slice(8,10));
+  const waterRate = daysSoFar ? Math.round(wateredDaysThisMonth.size/daysSoFar*100) : 0;
+  const exCountMonth = exercise.logs.filter(l=>l.date.startsWith(mp)).length;
+  const mistRate = daysSoFar ? Math.round(mistedDaysThisMonth.size/daysSoFar*100) : 0;
+  const statBox = (label,value,color) => `<div style="background:var(--card);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 5px rgba(0,0,0,.04)">
+    <div style="font-size:17px;font-weight:800;color:${color}">${value}</div>
+    <div style="font-size:10px;color:var(--sub);margin-top:2px">${label}</div>
+  </div>`;
+  document.getElementById('hubMonthStats').innerHTML =
+    statBox('물주기 실천일', waterRate+'%', 'var(--g)') +
+    statBox('운동 횟수', exCountMonth+'회', 'var(--ex)') +
+    statBox('분무 실천일', mistRate+'%', 'var(--b)');
 }
 
 // ===== PLANTS =====
@@ -1329,10 +1430,13 @@ function renderPlants(){
   // category chips
   const cats = ['전체',...new Set(plants.map(p=>p.category))];
   document.getElementById('catChips').innerHTML = cats.map(c=>`<div class="chip ${c===currentCat?'active':''}" onclick="pickCat('${c}')">${c}</div>`).join('');
-  const filtered = currentCat==='전체' ? plants : plants.filter(p=>p.category===currentCat);
+  const filtered0 = currentCat==='전체' ? plants : plants.filter(p=>p.category===currentCat);
+  const searchTerm = (document.getElementById('plantSearch').value||'').trim().toLowerCase();
+  const filtered = searchTerm ? filtered0.filter(p=>p.name.toLowerCase().includes(searchTerm)) : filtered0;
   const active = filtered.filter(p=>!p.planned);
   const planned = filtered.filter(p=>p.planned);
   document.getElementById('plantEmpty').style.display = filtered.length?'none':'block';
+  document.getElementById('plantEmpty').textContent = searchTerm ? `'${searchTerm}' 검색 결과가 없어요 🔍` : '등록된 식물이 없어요 🌿';
 
   const makeCard = (p) => {
     const d = dDay(p);
