@@ -10,6 +10,7 @@
   --g:#7CA982;--gl:#E8F1E9;
   --b:#5B9BD5;--bl:#E3EFF9;
   --r:#E07A5F;--rl:#FBEAE5;
+  --ex:#E8925A;--exl:#FDF0E8;
   --bg:#FAF8F3;--card:#fff;--text:#3B3B3B;--sub:#8A8A8A;
   --danger:#E07A5F;--warn:#E8B84B;--radius:16px;
 }
@@ -58,9 +59,9 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
 .hobby-cards{display:flex;flex-direction:column;gap:10px;}
 .hcard{background:var(--card);border-radius:var(--radius);padding:16px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,.04);cursor:pointer;}
 .hcard .hicon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
-.hcard.plants .hicon{background:var(--gl);}
-.hcard.fish .hicon{background:var(--bl);}
-.hcard.exercise .hicon{background:var(--rl);}
+.hcard.plants .hicon{background:#E8F1E9;}
+.hcard.fish .hicon{background:#EAF3FB;}
+.hcard.exercise .hicon{background:#FEF0E6;}
 .hcard .hinfo{flex:1;}
 .hcard .hname{font-size:16px;font-weight:700;}
 .hcard .hsub{font-size:12px;color:var(--sub);margin-top:2px;}
@@ -191,7 +192,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
 <div class="screen active" id="s-hub">
   <div class="ph"><div class="pt">👋 안녕하세요, 아듬샘!</div><div style="font-size:13px;color:var(--sub)" id="hubDate"></div></div>
   <div style="padding:0 16px 20px">
-    <div class="banner green" id="todayBanner" onclick="openCareZone()" style="cursor:pointer">
+    <div id="todayBanner" onclick="openCareZone()" style="cursor:pointer;border-radius:var(--radius);padding:16px 18px;color:white;margin-bottom:14px;background:#4A5568">
       <div class="bl">🌿 오늘의 케어존 <span style="font-size:11px;opacity:.7">탭해서 확인</span></div>
       <div class="bc" id="hubTodayCount">0개</div>
     </div>
@@ -201,7 +202,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
       <div class="hcard plants" onclick="showPlants()">
         <div class="hicon">🌱</div>
         <div class="hinfo">
-          <div class="hname">식물집사</div>
+          <div class="hname">🌱 식집사</div>
           <div class="hsub" id="hubPlantSub">로딩중...</div>
         </div>
         <div class="harrow">›</div>
@@ -209,7 +210,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
       <div class="hcard fish" onclick="showFish()">
         <div class="hicon">🐠</div>
         <div class="hinfo">
-          <div class="hname">물생활</div>
+          <div class="hname">🐠 물집사</div>
           <div class="hsub" id="hubFishSub">어항 기록</div>
         </div>
         <div class="harrow">›</div>
@@ -217,13 +218,21 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
       <div class="hcard exercise" onclick="showExercise()">
         <div class="hicon">🏋️</div>
         <div class="hinfo">
-          <div class="hname">운동</div>
+          <div class="hname">💪 운동존</div>
           <div class="hsub" id="hubExSub">이번주 0/4회</div>
         </div>
         <div class="harrow">›</div>
       </div>
+      <div class="hcard brain" onclick="showBrain()" style="background:var(--card);border-radius:var(--radius);padding:16px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,.04);cursor:pointer;margin-top:0">
+        <div class="hicon" style="background:#F0EBF8;width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">🧠</div>
+        <div class="hinfo" style="flex:1">
+          <div style="font-size:16px;font-weight:700">🧠 자기계발존</div>
+          <div style="font-size:12px;color:var(--sub);margin-top:2px" id="hubBrainSub">임상심리사 수련 기록</div>
+        </div>
+        <div style="font-size:16px;color:#CCC">›</div>
+      </div>
     </div>
-  </div>
+    </div>
 </div>
 
 <!-- ===== PLANT LIST ===== -->
@@ -231,7 +240,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
   <div class="ph">
     <div style="display:flex;align-items:center;gap:8px">
       <button class="back-btn" onclick="goHub()">←</button>
-      <div class="pt">🌱 식물집사</div>
+      <div class="pt">🌱 식집사</div>
     </div>
     <div class="wtoggle" id="wtoggle" onclick="toggleWinter()">
       ❄️ <span id="wlabel">겨울모드</span>
@@ -246,10 +255,10 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
     <div class="task-list" id="plantTodayList"></div>
     <div class="sec-title">전체 식물 <span id="plantTotalLabel" style="font-weight:400;font-size:11px;text-transform:none;letter-spacing:0"></span></div>
     <div class="chip-row" id="catChips"></div>
-    <div class="pgrid" id="plantGrid"></div>
+    <div id="plantGrid"></div>
     <div id="plannedSection" style="display:none">
       <div class="sec-title" style="margin-top:20px">🛒 데려올 예정 <span id="plannedCount" style="font-weight:400;font-size:11px;text-transform:none;letter-spacing:0"></span></div>
-      <div class="pgrid" id="plannedGrid"></div>
+      <div id="plannedGrid"></div>
     </div>
     <div class="empty" id="plantEmpty" style="display:none">등록된 식물이 없어요 🌿</div>
   </div>
@@ -258,7 +267,18 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
 
 <!-- ===== ADD PLANT ===== -->
 <div class="screen" id="s-add-plant">
-  <div class="back-row"><button class="back-btn" onclick="showPlants()">←</button><strong>식물 등록</strong></div>
+  <div class="back-row">
+    <button class="back-btn" onclick="showPlants()">←</button><strong>식물 등록</strong>
+    <div id="apiChip" onclick="toggleApiInput()" style="margin-left:auto;cursor:pointer;padding:5px 10px;border-radius:20px;font-size:11px;font-weight:700;background:#EEE;color:var(--sub)">🔑 API키 설정</div>
+  </div>
+  <div id="apiInputRow" style="display:none;padding:0 16px 10px">
+    <div style="background:#FFF8F0;border-radius:12px;padding:11px 13px">
+      <div style="display:flex;gap:8px">
+        <input class="fi" type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." style="flex:1;font-size:12px;padding:9px 12px">
+        <button type="button" onclick="saveApiKey()" style="background:#B8763B;color:white;border:none;border-radius:9px;padding:9px 14px;font-size:12px;font-weight:700;cursor:pointer">저장</button>
+      </div>
+    </div>
+  </div>
   <div style="padding:0 16px">
     <div class="fg">
       <label class="fl">사진</label>
@@ -267,7 +287,20 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
       </div>
     </div>
     <div class="fg"><label class="fl">이름 (별명)</label><input class="fi" id="addName" placeholder="예: 거실 몬스테라"></div>
-    <div class="fg"><label class="fl">종류</label><input class="fi" id="addSpecies" placeholder="예: 몬스테라"></div>
+    <div class="fg">
+      <label class="fl">식물 정확한 이름</label>
+      <div style="display:flex;gap:8px">
+        <input class="fi" id="addSpecies" placeholder="예: 아디안텀, 홍콩야자" style="flex:1" oninput="document.getElementById('aiCareSection').style.display='none'">
+        <button type="button" onclick="autoFillPlant()" id="aiFillBtn" style="background:#8B6BB8;color:white;border:none;border-radius:11px;padding:10px 12px;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer;flex-shrink:0">🤖 자동완성</button>
+      </div>
+      <div id="aiFillStatus" style="font-size:11px;margin-top:5px;display:none;color:#8B6BB8;font-weight:600"></div>
+    </div>
+    <div id="aiCareSection" style="background:#F8F5FF;border-radius:13px;padding:13px 15px;margin-bottom:4px;display:none">
+      <div style="font-size:12px;font-weight:700;color:#8B6BB8;margin-bottom:10px">🤖 AI 케어 정보 (수정 가능해요)</div>
+      <div class="fg"><label class="fl">빛</label><input class="fi" id="addCareL" placeholder="빛 조건"></div>
+      <div class="fg"><label class="fl">물주기 방법</label><input class="fi" id="addCareW" placeholder="물주기 방법"></div>
+      <div class="fg"><label class="fl">분무</label><input class="fi" id="addCareM" placeholder="분무 방법"></div>
+    </div>
     <div class="fg">
       <label class="fl">카테고리</label>
       <select class="fs" id="addCat">
@@ -276,14 +309,23 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
         <option value="꽃류">꽃류</option><option value="관엽류">관엽류</option>
         <option value="허브류">허브류</option><option value="에어플랜트">에어플랜트</option>
         <option value="난류">난류</option><option value="공기정화류">공기정화류</option>
-        <option value="기타">기타</option>
+        <option value="침엽수류">침엽수류</option><option value="기타">기타</option>
       </select>
     </div>
     <div class="fg"><label class="fl">위치</label><input class="fi" id="addLoc" placeholder="예: 거실 창가, 베란다"></div>
     <div class="fg"><label class="fl">물주기 주기 (일)</label><input class="fi" type="number" id="addDays" min="1" value="7"></div>
+    <div class="fg"><label class="fl">케어 팁</label><input class="fi" id="addTip" placeholder="핵심 주의사항"></div>
+    <div class="fg">
+      <label class="fl">하루 분무 목표</label>
+      <div style="display:flex;gap:8px">
+        <button type="button" class="mist-chip active" data-val="0" onclick="pickMist(0)" style="flex:1;padding:9px;border-radius:10px;border:1px solid #E5E1D8;background:var(--gl);color:var(--g);font-size:12px;font-weight:700;cursor:pointer">🚫 안함</button>
+        <button type="button" class="mist-chip" data-val="1" onclick="pickMist(1)" style="flex:1;padding:9px;border-radius:10px;border:1px solid #E5E1D8;background:white;color:var(--sub);font-size:12px;font-weight:700;cursor:pointer">💧 1회</button>
+        <button type="button" class="mist-chip" data-val="2" onclick="pickMist(2)" style="flex:1;padding:9px;border-radius:10px;border:1px solid #E5E1D8;background:white;color:var(--sub);font-size:12px;font-weight:700;cursor:pointer">💧💧 2회+</button>
+      </div>
+      <input type="hidden" id="addMistTarget" value="0">
+    </div>
     <div class="fg"><label class="fl">마지막 물 준 날</label><input class="fi" type="date" id="addLastW"></div>
     <div class="fg"><label class="fl">데려온 날</label><input class="fi" type="date" id="addAcquired"></div>
-    <div class="fg"><label class="fl">케어 팁 (선택)</label><input class="fi" id="addTip" placeholder="예: 과습 주의!"></div>
     <button class="btn g" onclick="submitAddPlant()">등록하기 🌿</button>
   </div>
 </div>
@@ -332,89 +374,6 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
     </div>
   </div>
 </div>
-
-<!-- ===== FISH ===== -->
-<div class="screen" id="s-fish">
-  <div class="ph">
-    <div style="display:flex;align-items:center;gap:8px">
-      <button class="back-btn" onclick="goHub()">←</button>
-      <div class="pt">🐠 물생활</div>
-    </div>
-  </div>
-  <div style="padding:0 16px 20px">
-    <div class="banner blue">
-      <div class="bl">어항 케어</div>
-      <div class="bc" id="fishLastFeed">-</div>
-    </div>
-    <div class="sec-title">어종 등록</div>
-    <div id="speciesList"></div>
-    <div style="display:flex;gap:8px;margin-bottom:20px">
-      <input class="fi" id="newSpeciesName" placeholder="어종명 (예: 구피)" style="flex:1">
-      <input class="fi" id="newSpeciesCount" type="number" placeholder="수" style="width:60px">
-      <button class="sbtn b" onclick="addSpecies()">추가</button>
-    </div>
-    <div class="sec-title">오늘 기록 남기기</div>
-    <div style="display:flex;gap:8px;margin-bottom:12px">
-      <button class="tab active b" id="ftab-feed" onclick="switchFishTab('feed')">🍤 먹이</button>
-      <button class="tab" id="ftab-water" onclick="switchFishTab('water')">🧪 수질</button>
-    </div>
-    <div id="fpane-feed">
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <button class="tab active b" id="ftiming-morning" onclick="setFishTiming('아침')">🌅 아침</button>
-        <button class="tab" id="ftiming-evening" onclick="setFishTiming('저녁')">🌙 저녁</button>
-      </div>
-      <div class="fg"><label class="fl">먹이 종류 / 메모 (선택)</label><input class="fi" id="feedNote" placeholder="예: 건사료, 냉동 아르테미아"></div>
-      <button class="btn b" onclick="addFishLog('feed')">급여 기록 ✓</button>
-    </div>
-    <div id="fpane-water" style="display:none">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-        <div><label class="fl">수온 (℃)</label><input class="fi" type="number" id="wTemp" placeholder="26"></div>
-        <div><label class="fl">pH</label><input class="fi" type="number" step="0.1" id="wPh" placeholder="7.0"></div>
-        <div><label class="fl">암모니아 (ppm)</label><input class="fi" type="number" step="0.01" id="wAmm" placeholder="0"></div>
-        <div><label class="fl">아질산 (ppm)</label><input class="fi" type="number" step="0.01" id="wNit" placeholder="0"></div>
-      </div>
-      <div class="fg"><textarea class="fta" id="wNote" placeholder="기타 메모 (예: 물갈이 30% 완료)"></textarea></div>
-      <button class="btn b" onclick="addFishLog('water')">수질 기록 ✓</button>
-    </div>
-    <div class="sec-title" style="margin-top:20px">최근 기록</div>
-    <div id="fishLogList"></div>
-  </div>
-</div>
-
-<!-- ===== EXERCISE ===== -->
-<div class="screen" id="s-exercise">
-  <div class="ph">
-    <div style="display:flex;align-items:center;gap:8px">
-      <button class="back-btn" onclick="goHub()">←</button>
-      <div class="pt">🏋️ 운동</div>
-    </div>
-  </div>
-  <div style="padding:0 16px 20px">
-    <div class="sec-title">이번 주 <span id="weekRange" style="font-weight:400;font-size:11px;text-transform:none;letter-spacing:0;color:var(--sub)"></span></div>
-    <div class="week-grid" id="weekGrid"></div>
-    <div class="banner red" style="margin-bottom:16px">
-      <div class="bl">이번주 목표 달성률</div>
-      <div class="bc" id="exGoalLabel">0 / 4회</div>
-    </div>
-    <div class="gbar-wrap"><div class="gbar" id="exGbar" style="width:0%"></div></div>
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:20px">
-      <span style="font-size:12px;color:var(--sub)">주간 목표</span>
-      <input class="fi" type="number" id="exGoalInput" min="1" max="14" style="width:60px;padding:8px 10px">
-      <span style="font-size:12px;color:var(--sub)">회/주</span>
-      <button class="sbtn r" onclick="saveGoal()">저장</button>
-    </div>
-    <div class="sec-title">오늘 운동 기록</div>
-    <div style="display:flex;gap:8px;margin-bottom:16px">
-      <button class="cbtn r" onclick="logExercise('F45')">🏋️ F45 완료</button>
-      <button class="cbtn b" onclick="logExercise('러닝')">🏃 러닝 완료</button>
-    </div>
-    <div class="sec-title">최근 기록</div>
-    <div id="exLogList"></div>
-  </div>
-</div>
-
-</div><!-- /.app -->
-
 <!-- 케어존 모달 -->
 <div id="careModal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.45)" onclick="closeCareZone()">
   <div onclick="event.stopPropagation()" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);max-width:480px;width:100%;background:white;border-radius:22px 22px 0 0;padding:20px 20px 40px;max-height:80vh;overflow-y:auto">
@@ -426,14 +385,32 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
       <div id="careNeedList"></div>
     </div>
 
-    <div id="careMistSection" style="margin-top:16px;display:none"><div style="font-size:12px;font-weight:700;color:#5B9BD5;margin-bottom:8px">💧 분무 할일</div><div id="careMistList"></div></div>
+    <div id="careMistSection" style="margin-top:16px;display:none"><div id="careMistTitle" style="font-size:12px;font-weight:700;color:#5B9BD5;margin-bottom:8px">💧 분무 할일</div><div id="careMistList"></div></div>
     <div id="careDoneSection" style="margin-top:16px">
       <div style="font-size:12px;font-weight:700;color:var(--g);margin-bottom:8px">✅ 오늘 완료</div>
       <div id="careDoneList"></div>
     </div>
 
+    <!-- 물집사 섹션 -->
+    <div id="careFishSection" style="margin-top:16px;display:none">
+      <div style="font-size:12px;font-weight:700;color:var(--b);margin-bottom:8px">🐠 물집사</div>
+      <div id="careFishList"></div>
+    </div>
+
+    <!-- 운동 섹션 -->
+    <div id="careExSection" style="margin-top:16px;display:none">
+      <div style="font-size:12px;font-weight:700;color:var(--r);margin-bottom:8px">💪 운동존</div>
+      <div id="careExList"></div>
+    </div>
+
+    <!-- 자기계발 섹션 -->
+    <div id="careBrainSection" style="margin-top:16px;display:none">
+      <div style="font-size:12px;font-weight:700;color:#8B6BB8;margin-bottom:8px">🧠 자기계발존</div>
+      <div id="careBrainList"></div>
+    </div>
+
     <div id="careAllGood" style="display:none;text-align:center;padding:20px 0;color:var(--sub);font-size:13px">
-      오늘 케어할 식물이 없어요 🎉<br>모든 식물이 건강해요!
+      오늘 할 일이 없어요 🎉 완벽한 하루!
     </div>
 
     <button onclick="closeCareZone()" style="margin-top:20px;width:100%;padding:13px;border:none;border-radius:13px;background:var(--gl);color:var(--g);font-size:14px;font-weight:700;font-family:'Pretendard',sans-serif;cursor:pointer">닫기</button>
@@ -443,9 +420,10 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
 <!-- BOTTOM NAV -->
 <nav class="bnav">
   <button class="nbtn active" id="nav-hub" onclick="goHub()"><span class="ni">🏠</span>홈</button>
-  <button class="nbtn" id="nav-plants" onclick="showPlants()"><span class="ni">🌱</span>식물</button>
-  <button class="nbtn" id="nav-fish" onclick="showFish()"><span class="ni">🐠</span>물생활</button>
-  <button class="nbtn" id="nav-exercise" onclick="showExercise()"><span class="ni">🏋️</span>운동</button>
+  <button class="nbtn" id="nav-plants" onclick="showPlants()"><span class="ni">🌱</span>식집사</button>
+  <button class="nbtn" id="nav-fish" onclick="showFish()"><span class="ni">🐠</span>물집사</button>
+  <button class="nbtn" id="nav-exercise" onclick="showExercise()"><span class="ni">💪</span>운동존</button>
+  <button class="nbtn" id="nav-brain" onclick="showBrain()"><span class="ni">🧠</span>자기계발존</button>
 </nav>
 
 <script>
@@ -550,7 +528,7 @@ const PLANT_PRESETS = [
 ];
 
 // ===== STATE =====
-let plants = [], fish = {species:[],logs:[]}, exercise = {weeklyGoal:4,logs:[]};
+let plants = [], fish = {species:[],logs:[]}, exercise = {weeklyGoal:4,logs:[]}, brain = {};
 let winterMode = false;
 let currentPlantId = null, currentCat = '전체', currentDiaryType = '물주기(저면)';
 let addPhotoData = null, diaryPhotoData = null;
@@ -575,31 +553,38 @@ function loadAll(){
     });
     if(migrated) saveAll();
   } else { initPlants(); saveAll(); }
-  const fishRaw = localStorage.getItem('hub_fish6');
-  if(fishRaw) fish = JSON.parse(fishRaw);
-  else { initFish(); saveAll(); }
+  const fishRaw = localStorage.getItem('hub_fish8');
+  if(fishRaw){
+    fish = JSON.parse(fishRaw);
+    if(!fish.waterChangeDays) fish.waterChangeDays = [3,0];
+    if(fish.lastWaterChange===undefined) fish.lastWaterChange = null;
+  } else { initFish(); saveAll(); }
   exercise = JSON.parse(localStorage.getItem('hub_exercise4')||'{"weeklyGoal":4,"logs":[]}');
+  brain = JSON.parse(localStorage.getItem('hub_brain1')||'{"examDate":"","goalHours":200,"goalTraining":40,"logs":[]}');
   winterMode = JSON.parse(localStorage.getItem('hub_winter4')||'false');
 }
 function saveAll(){
   localStorage.setItem('hub_plants4', JSON.stringify(plants));
-  localStorage.setItem('hub_fish6', JSON.stringify(fish));
+  localStorage.setItem('hub_fish8', JSON.stringify(fish));
   localStorage.setItem('hub_exercise4', JSON.stringify(exercise));
   localStorage.setItem('hub_winter4', JSON.stringify(winterMode));
+  localStorage.setItem('hub_brain1', JSON.stringify(brain));
 }
 function initFish(){
   fish = {
     species:[
-      {id:'f1',name:'블루구피',count:3,note:''},
-      {id:'f2',name:'하프블랙구피',count:3,note:''},
-      {id:'f3',name:'화이트구피',count:2,note:''},
-      {id:'f4',name:'팬더코리',count:2,note:''},
-      {id:'f5',name:'왁플래티 또는 선셋구피',count:3,note:'🗓️ 이번 주말 데려올 예정'},
-      {id:'f6',name:'팬더코리 (추가)',count:2,note:'🗓️ 이번 주말 데려올 예정'},
-      {id:'f7',name:'오토싱',count:2,note:'🗓️ 이번 주말 데려올 예정'},
-      {id:'f8',name:'블루새우',count:10,note:'📅 한달 뒤 예정 — 어항 적응 후 입수'},
+      {id:'f1',name:'블루구피',count:3,note:'',emoji:'🐟'},
+      {id:'f2',name:'하프블랙구피',count:3,note:'',emoji:'🐠'},
+      {id:'f3',name:'화이트구피',count:2,note:'',emoji:'🐡'},
+      {id:'f4',name:'팬더코리',count:2,note:'',emoji:'🐼'},
+      {id:'f5',name:'왁플래티 또는 선셋구피',count:3,note:'🗓️ 이번 주말 데려올 예정',emoji:'🌅'},
+      {id:'f6',name:'팬더코리 (추가)',count:2,note:'🗓️ 이번 주말 데려올 예정',emoji:'🐼'},
+      {id:'f7',name:'오토싱',count:2,note:'🗓️ 이번 주말 데려올 예정',emoji:'🪸'},
+      {id:'f8',name:'블루새우',count:10,note:'📅 한달 뒤 예정 — 어항 적응 후 입수',emoji:'🦐'},
     ],
-    logs:[]
+    logs:[],
+    waterChangeDays: [3, 0],
+    lastWaterChange: null
   };
 }
 const ACQUIRED = {
@@ -649,7 +634,7 @@ function showScreen(id){
   document.getElementById(id).classList.add('active');
   document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('active'));
   const navMap = {'s-hub':'nav-hub','s-plants':'nav-plants','s-add-plant':'nav-plants',
-    's-plant-detail':'nav-plants','s-fish':'nav-fish','s-exercise':'nav-exercise'};
+    's-plant-detail':'nav-plants','s-fish':'nav-fish','s-exercise':'nav-exercise','s-brain':'nav-brain'};
   const nb = document.getElementById(navMap[id]);
   if(nb) nb.classList.add('active');
 }
@@ -675,7 +660,7 @@ function openCareZone(){
   const done = plants.filter(p=>!p.planned && wateredToday(p));
   const doneIds = new Set(done.map(p=>p.id));
   const need = plants.filter(p=>!p.planned && dDay(p)<=0 && !doneIds.has(p.id));
-  const needMist = plants.filter(p=>!p.planned && p.mistTarget>0 && mistCountToday(p)<p.mistTarget);
+  const needMist = plants.filter(p=>!p.planned && p.mistTarget>0);
 
   const makeItem = (p, isDone) => {
     const todayLogs = p.diary.filter(d=>d.date===today && [...waterTypes,'분무'].includes(d.type));
@@ -694,23 +679,107 @@ function openCareZone(){
 
   const mistItems = needMist.map(p=>{
     const cnt = mistCountToday(p);
-    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#EFF6FB;border-radius:11px;margin-bottom:7px">
-      <span style="font-size:18px">${p.emoji||'🌱'}</span>
+    const done2 = cnt >= p.mistTarget;
+    const partial = cnt > 0 && !done2;
+    const bg = done2 ? 'var(--gl)' : partial ? '#FFF8E8' : '#EFF6FB';
+    const btnBg = done2 ? 'var(--g)' : partial ? '#E8A020' : 'var(--b)';
+    const btnText = done2 ? '✅ 완료' : '분무했어요';
+    // 진행 도트
+    const totalDots = Math.max(p.mistTarget, cnt);
+    const dots = Array.from({length:totalDots},(_,i)=>`<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${i<cnt?(done2?'var(--g)':'#E8A020'):'#DDD'};margin-right:3px"></span>`).join('');
+    return `<div style="display:flex;align-items:center;gap:10px;padding:11px 13px;background:${bg};border-radius:11px;margin-bottom:7px;transition:background .2s">
+      <span style="font-size:20px">${p.emoji||'🌱'}</span>
       <div style="flex:1">
-        <div style="font-size:13px;font-weight:600">${p.name}</div>
-        <div style="font-size:11px;color:var(--sub)">분무 ${cnt}/${p.mistTarget}회 완료</div>
+        <div style="font-size:13px;font-weight:700">${p.name}</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+          ${dots}
+          <span style="font-size:12px;font-weight:700;color:${done2?'var(--g)':partial?'#C07800':'var(--sub)'}">${cnt}/${p.mistTarget}회</span>
+        </div>
       </div>
-      <button class="t-btn b" onclick="quickSpray('${p.id}');openCareZone()">분무했어요</button>
+      <button onclick="quickSpray('${p.id}');openCareZone()" style="border:none;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;color:white;background:${btnBg};cursor:pointer;white-space:nowrap">${btnText}</button>
     </div>`;
   }).join('');
 
   document.getElementById('careNeedSection').style.display = need.length?'block':'none';
   document.getElementById('careMistSection').style.display = needMist.length?'block':'none';
   document.getElementById('careDoneSection').style.display = done.length?'block':'none';
-  document.getElementById('careAllGood').style.display = (!need.length&&!done.length&&!needMist.length)?'block':'none';
   document.getElementById('careNeedList').innerHTML = need.map(p=>makeItem(p,false)).join('');
   document.getElementById('careMistList').innerHTML = mistItems;
   document.getElementById('careDoneList').innerHTML = done.map(p=>makeItem(p,true)).join('');
+  const mistDone = needMist.filter(p=>mistCountToday(p)>=p.mistTarget).length;
+  document.getElementById('careMistTitle').textContent = `💧 분무 ${mistDone}/${needMist.length}종 완료`;
+
+  // 🐠 물집사 - 아침/저녁 급여 체크
+  const feedLogs = fish.logs.filter(l=>l.type==='feed' && l.date===today);
+  const morningFed = feedLogs.some(l=>l.timing==='아침');
+  const eveningFed = feedLogs.some(l=>l.timing==='저녁');
+  const fishItems = [];
+  if(!morningFed) fishItems.push(`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#E3EFF9;border-radius:11px;margin-bottom:7px">
+    <span style="font-size:18px">🌅</span>
+    <div style="flex:1"><div style="font-size:13px;font-weight:600">아침 급여</div><div style="font-size:11px;color:var(--sub)">오늘 아침 급여 기록 없어요</div></div>
+    <button class="t-btn b" onclick="quickFeed('아침');openCareZone()">급여했어요</button>
+  </div>`);
+  if(!eveningFed) fishItems.push(`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#E3EFF9;border-radius:11px;margin-bottom:7px">
+    <span style="font-size:18px">🌙</span>
+    <div style="flex:1"><div style="font-size:13px;font-weight:600">저녁 급여</div><div style="font-size:11px;color:var(--sub)">오늘 저녁 급여 기록 없어요</div></div>
+    <button class="t-btn b" onclick="quickFeed('저녁');openCareZone()">급여했어요</button>
+  </div>`);
+  if(morningFed && eveningFed) fishItems.push(`<div style="padding:8px 12px;font-size:12px;color:var(--g);font-weight:600">✅ 아침·저녁 급여 완료!</div>`);
+  // 환수 체크
+  const todayDow = new Date().getDay();
+  const isWaterChangeDay = (fish.waterChangeDays||[]).includes(todayDow);
+  const alreadyChanged = fish.lastWaterChange === today;
+  if(isWaterChangeDay && !alreadyChanged){
+    fishItems.push(`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#E8F4F8;border-radius:11px;margin-bottom:7px">
+      <span style="font-size:18px">🔄</span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">환수할 날이에요!</div><div style="font-size:11px;color:var(--sub)">오늘 환수 기록이 없어요</div></div>
+      <button class="t-btn b" onclick="doWaterChange();openCareZone()">환수 완료</button>
+    </div>`);
+  } else if(alreadyChanged){
+    fishItems.push(`<div style="padding:8px 12px;font-size:12px;color:var(--g);font-weight:600">✅ 오늘 환수 완료!</div>`);
+  }
+  document.getElementById('careFishSection').style.display = 'block';
+  document.getElementById('careFishList').innerHTML = fishItems.join('');
+
+  // 💪 운동존
+  const todayExLogs = exercise.logs.filter(l=>l.date===today);
+  const weekDone = weekCount();
+  const weekGoal = exercise.weeklyGoal;
+  const exDoneStr = todayExLogs.map(l=>l.type).join(', ');
+  const exBg = weekDone>=weekGoal ? 'var(--gl)' : 'var(--exl)';
+  const exColor = weekDone>=weekGoal ? 'var(--g)' : 'var(--r)';
+  document.getElementById('careExSection').style.display = 'block';
+  document.getElementById('careExList').innerHTML = `<div style="padding:10px 12px;background:${exBg};border-radius:11px;margin-bottom:7px">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:13px;font-weight:700">이번주 ${weekDone}/${weekGoal}회 달성</div>
+        <div style="font-size:11px;color:var(--sub);margin-top:2px">${todayExLogs.length?'오늘: '+exDoneStr:'오늘 아직 운동 기록 없어요'}</div>
+      </div>
+      <span style="font-size:20px;font-weight:800;color:${exColor}">${weekDone>=weekGoal?'🎉':'💪'}</span>
+    </div>
+  </div>`;
+
+  // 🧠 자기계발존
+  const brainItems = [];
+  if(brain.trainingNextDate){
+    const diff = daysBetween(today, brain.trainingNextDate);
+    if(diff>=0 && diff<=7) brainItems.push(`<div style="padding:10px 12px;background:#F0EBF8;border-radius:11px;margin-bottom:7px">
+      <div style="font-size:13px;font-weight:700">🎬 다음 수련 ${diff===0?'오늘!':'D-'+diff}</div>
+      <div style="font-size:11px;color:var(--sub);margin-top:2px">${brain.trainingNextDate}</div>
+    </div>`);
+  }
+  const trainDone = (brain.training||[]).filter(t=>t.completed).length;
+  brainItems.push(`<div style="padding:10px 12px;background:#F8F5FF;border-radius:11px;margin-bottom:7px">
+    <div style="font-size:13px;font-weight:600">영상수련 ${trainDone}/12회 완료</div>
+    ${brain.studyLogs&&brain.studyLogs.some(l=>l.date===today)?
+      '<div style="font-size:11px;color:var(--g);margin-top:2px">✅ 오늘 공부 기록 있어요</div>':
+      '<div style="font-size:11px;color:var(--sub);margin-top:2px">오늘 학습 기록을 남겨보세요</div>'}
+  </div>`);
+  document.getElementById('careBrainSection').style.display = brainItems.length?'block':'none';
+  document.getElementById('careBrainList').innerHTML = brainItems.join('');
+
+  const hasAnything = need.length||done.length||needMist.length||fishItems.length>1||todayExLogs.length<weekGoal||brainItems.length;
+  document.getElementById('careAllGood').style.display = (!need.length&&!needMist.length&&morningFed&&eveningFed&&weekDone>=weekGoal)?'block':'none';
   document.getElementById('careModal').style.display = 'block';
 }
 function closeCareZone(){
@@ -725,17 +794,28 @@ function renderHub(){
   document.getElementById('hubDate').textContent = today.toLocaleDateString('ko',{month:'long',day:'numeric',weekday:'short'});
   const today2 = todayStr();
   const mistNeedCount = plants.filter(p=>!p.planned && p.mistTarget>0 && p.diary.filter(d=>d.date===today2&&d.type==='분무').length < p.mistTarget).length;
-  const due = plants.filter(p=>dDay(p)<=0);
+  const due = plants.filter(p=>!p.planned && dDay(p)<=0);
   const todayEx = exercise.logs.filter(l=>l.date===todayStr());
   const goalLeft = Math.max(0, exercise.weeklyGoal - weekCount());
   let tasks = [];
-  due.forEach(p=>tasks.push({icon:p.emoji||'🌱',name:p.name,sub:dDay(p)===0?'오늘 급수일':`${Math.abs(dDay(p))}일 지남`,action:'물 줬어요',cls:'g',cb:`quickWater('${p.id}')`}));
-  if(fish.logs.length){
-    const lastFeed = fish.logs.filter(l=>l.type==='feed').sort((a,b)=>b.date.localeCompare(a.date))[0];
-    if(lastFeed && daysBetween(lastFeed.date, todayStr())>=1)
-      tasks.push({icon:'🐠',name:'물고기 먹이 줄 시간!',sub:'어제 이후 급여 기록 없음',action:'기록하기',cls:'b',cb:"showFish()"});
-  }
-  if(mistNeedCount>0) tasks.unshift({icon:'💧',name:`분무 할일 ${mistNeedCount}종`,sub:'케어존에서 확인하세요',action:'케어존 열기',cls:'b',cb:'openCareZone()'});
+
+  // 분무 요약
+  if(mistNeedCount>0) tasks.push({icon:'💧',name:`분무 할일 ${mistNeedCount}종`,sub:'케어존에서 확인하세요',action:'케어존 열기',cls:'b',cb:'openCareZone()'});
+
+  // 식물 급수 요약
+  if(due.length>0) tasks.push({icon:'🌱',name:`식물 ${due.length}개 급수 필요`,sub:due.slice(0,2).map(p=>p.name).join(', ')+(due.length>2?` 외 ${due.length-2}개`:''),action:'케어존 열기',cls:'g',cb:'openCareZone()'});
+
+  // 물고기 급여
+  const feedToday = fish.logs.filter(l=>l.type==='feed'&&l.date===today2);
+  const morningFed = feedToday.some(l=>l.timing==='아침');
+  const eveningFed = feedToday.some(l=>l.timing==='저녁');
+  if(!morningFed) tasks.push({icon:'🐠',name:'아침 급여 안 했어요',sub:'물집사에서 기록하세요',action:'기록하기',cls:'b',cb:'showFish()'});
+  else if(!eveningFed) tasks.push({icon:'🐠',name:'저녁 급여 안 했어요',sub:'물집사에서 기록하세요',action:'기록하기',cls:'b',cb:'showFish()'});
+
+  // 환수
+  const todayDow = new Date().getDay();
+  if((fish.waterChangeDays||[]).includes(todayDow) && fish.lastWaterChange!==today2)
+    tasks.push({icon:'🔄',name:'환수할 날이에요!',sub:'물집사에서 기록하세요',action:'기록하기',cls:'b',cb:'showFish()'});
   document.getElementById('hubTodayCount').textContent = tasks.length+'개';
   if(tasks.length===0){
     document.getElementById('hubTaskList').innerHTML = '<div class="empty" style="padding:10px 0">오늘 할 일이 없어요 🎉</div>';
@@ -749,6 +829,8 @@ function renderHub(){
   }
   const thisWeek = weekCount();
   document.getElementById('hubExSub').textContent = `이번주 ${thisWeek}/${exercise.weeklyGoal}회`;
+  const bLogs = brain.logs||[]; const bTraining=bLogs.filter(l=>l.type==='training').reduce((s,l)=>s+(l.count||0),0); const bH=((bLogs.filter(l=>l.type==='study').reduce((s,l)=>s+(l.minutes||0),0))/60).toFixed(1);
+  if(document.getElementById('hubBrainSub')) document.getElementById('hubBrainSub').textContent = bTraining||bH>0 ? `수련 ${bTraining}회 · 공부 ${bH}h` : '임상심리사 수련 기록';
   document.getElementById('hubPlantSub').textContent = `${plants.length}종 키우는 중 · 오늘 ${due.length}개 케어`;
   const fishSpecies = fish.species.length;
   document.getElementById('hubFishSub').textContent = fishSpecies ? `${fishSpecies}종 합사 어항` : '어항 기록 시작하기';
@@ -789,22 +871,29 @@ function renderPlants(){
     if(d<0) badge = `<span class="badge due">${Math.abs(d)}일 지남</span>`;
     else if(d===0) badge = `<span class="badge due">오늘!</span>`;
     else if(d<=2) badge = `<span class="badge soon">D-${d}</span>`;
-    const od = (!p.planned && d<=-3)?'overdue':'';
+    const overdueBorder = (!p.planned && d<=-3) ? 'border-left:3px solid var(--danger);' : '';
     const content = p.planned
       ? `<span class="badge" style="background:#FEF3DC;color:#B8840A">데려올 예정</span>`
       : badge;
-    return `<div class="pcard ${od}" style="position:relative" onclick="openPlant('${p.id}')">
-      <button onclick="event.stopPropagation();deletePlantById('${p.id}')" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.08);border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1">✕</button>
-      <div class="pthumb">${p.photo?`<img src="${p.photo}">`:(p.emoji||'🌿')}</div>
-      <div class="pname">${p.name}</div>
-      <div class="ploc">${p.location||''}</div>
-      ${content}</div>`;
+    const thumb = p.photo
+      ? `<img src="${p.photo}" style="width:46px;height:46px;border-radius:11px;object-fit:cover;flex-shrink:0">`
+      : `<div style="width:46px;height:46px;border-radius:11px;background:var(--gl);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${p.emoji||'🌿'}</div>`;
+    return `<div onclick="openPlant('${p.id}')" style="background:var(--card);border-radius:13px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 5px rgba(0,0,0,.04);margin-bottom:8px;${overdueBorder}cursor:pointer">
+      ${thumb}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div>
+        <div style="font-size:11px;color:var(--sub);margin:2px 0 5px">${p.location||''}${p.location&&p.category?' · ':''}${p.category||''}</div>
+        ${content}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0">
+        <button onclick="event.stopPropagation();deletePlantById('${p.id}')" style="background:none;border:none;color:#CCC;font-size:14px;cursor:pointer;line-height:1;padding:0">✕</button>
+        <span style="font-size:16px;color:#DDD">›</span>
+      </div>
+    </div>`;
   };
 
-  let html = active.map(makeCard).join('');
-  document.getElementById('plantGrid').innerHTML = html;
+  document.getElementById('plantGrid').innerHTML = active.map(makeCard).join('');
 
-  // 데려올 예정 섹션
   const plannedSection = document.getElementById('plannedSection');
   if(planned.length){
     plannedSection.style.display='block';
@@ -820,6 +909,10 @@ function applyWinterUI(){
   document.getElementById('wtoggle').classList.toggle('on',winterMode);
   document.getElementById('wknob').classList.toggle('on',winterMode);
   document.getElementById('wlabel').textContent = winterMode?'겨울모드 ON':'겨울모드';
+}
+function quickFeed(timing){
+  fish.logs.push({id:String(Date.now()), date:todayStr(), type:'feed', timing, note:''});
+  saveAll();
 }
 function quickSpray(id){
   const p = plants.find(p=>p.id===id);
@@ -842,11 +935,29 @@ function goAddPlant(){
   document.getElementById('addSpecies').value = '';
   document.getElementById('addDays').value = 7;
   document.getElementById('addTip').value = '';
+  document.getElementById('aiCareSection').style.display = 'none';
+  document.getElementById('aiFillStatus').style.display = 'none';
+  document.getElementById('addCareL').value = '';
+  document.getElementById('addCareW').value = '';
+  document.getElementById('addCareM').value = '';
+  document.getElementById('addMistTarget').value = '0';
+  // API 키 칩 상태
+  const savedKey = localStorage.getItem('hub_apikey');
+  const chip = document.getElementById('apiChip');
+  if(chip) chip.style.cssText = savedKey
+    ? 'margin-left:auto;cursor:pointer;padding:5px 10px;border-radius:20px;font-size:11px;font-weight:700;background:#F0FFF4;color:var(--g)'
+    : 'margin-left:auto;cursor:pointer;padding:5px 10px;border-radius:20px;font-size:11px;font-weight:700;background:#FFF8F0;color:#B8763B';
+  if(chip) chip.textContent = savedKey ? '🔑 API키 ✅' : '🔑 API키 설정 필요';
+  document.getElementById('apiInputRow').style.display = 'none';
   showScreen('s-add-plant');
 }
 function submitAddPlant(){
   const name = document.getElementById('addName').value.trim();
   if(!name){ alert('이름을 입력해주세요'); return; }
+  const careL = document.getElementById('addCareL')?.value||'';
+  const careW = document.getElementById('addCareW')?.value||'';
+  const careM = document.getElementById('addCareM')?.value||'';
+  const mistT = parseInt(document.getElementById('addMistTarget')?.value)||0;
   const p = {
     id: String(Date.now()),
     name, species: document.getElementById('addSpecies').value||name,
@@ -858,7 +969,10 @@ function submitAddPlant(){
     acquiredDate: document.getElementById('addAcquired').value||todayStr(),
     photo: addPhotoData, diary: [],
     tip: document.getElementById('addTip').value,
-    emoji: '🌱', care: {}
+    emoji: '🌱',
+    care: {l:careL, w:careW, m:careM},
+    planned: false,
+    mistTarget: mistT
   };
   plants.push(p); saveAll(); showPlants();
 }
@@ -989,34 +1103,49 @@ function renderFish(){
     el.textContent = d===0?'오늘 급여 완료':`${d}일 전 급여`;
   } else el.textContent = '급여 기록 없음';
   const totalFish = fish.species.reduce((sum,s)=>sum+(s.count||0),0);
-  document.getElementById('speciesList').innerHTML = fish.species.map(s=>`
-    <div class="spi" id="spi-${s.id}">
-      <div class="si" style="flex:1">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
-          <span style="font-size:13px;font-weight:700" id="sname-${s.id}">🐟 ${s.name}</span>
-          <button onclick="editSpeciesName('${s.id}')" style="background:none;border:none;font-size:12px;cursor:pointer;color:var(--sub)">✏️</button>
+  document.getElementById('speciesList').innerHTML =
+    fish.species.map(s=>`
+    <div style="background:var(--card);border-radius:13px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 5px rgba(0,0,0,.04);margin-bottom:8px">
+      <div style="width:46px;height:46px;border-radius:11px;background:var(--bl);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🐟</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">
+          <span style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</span>
+          <button onclick="editSpeciesName('${s.id}')" style="background:none;border:none;font-size:11px;cursor:pointer;color:var(--sub);flex-shrink:0">✏️</button>
         </div>
-        ${s.note?`<div style="font-size:11px;color:#C9952B;margin-bottom:4px">${s.note}</div>`:''}
-        <div style="display:flex;align-items:center;gap:8px">
+        ${s.note?`<div style="font-size:10px;color:#C9952B;margin-bottom:5px">${s.note}</div>`:''}
+        <div style="display:flex;align-items:center;gap:6px">
           <button onclick="changeCount('${s.id}',-1)" style="width:24px;height:24px;border-radius:50%;border:1px solid #DDD;background:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
-          <span style="font-size:14px;font-weight:700;min-width:24px;text-align:center" id="scount-${s.id}">${s.count}</span>
+          <span style="font-size:15px;font-weight:800;min-width:22px;text-align:center;color:var(--b)" id="scount-${s.id}">${s.count}</span>
           <button onclick="changeCount('${s.id}',1)" style="width:24px;height:24px;border-radius:50%;border:1px solid #DDD;background:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">+</button>
           <span style="font-size:11px;color:var(--sub)">마리</span>
         </div>
       </div>
-      <button class="sbtn r" onclick="deleteSpecies('${s.id}')">삭제</button>
+      <button onclick="deleteSpecies('${s.id}')" style="background:none;border:none;color:#CCC;font-size:16px;cursor:pointer;padding:4px;flex-shrink:0">✕</button>
     </div>`).join('')
-    + (fish.species.length ? `<div style="font-size:12px;color:var(--sub);text-align:right;margin-top:4px;margin-bottom:8px">총 ${totalFish}마리</div>` : '<div class="empty" style="padding:10px 0">등록된 어종이 없어요 🐠</div>');
+    + (fish.species.length ? `<div style="font-size:12px;color:var(--sub);text-align:right;margin-bottom:8px">총 ${totalFish}마리</div>` : '<div class="empty" style="padding:10px 0">등록된 어종이 없어요 🐠</div>');
+  // 환수 요일 칩 렌더
+  const dayNames = ['일','월','화','수','목','금','토'];
+  const chips = document.getElementById('waterChangeDayChips');
+  if(chips){
+    chips.innerHTML = dayNames.map((d,i)=>{
+      const active = (fish.waterChangeDays||[]).includes(i);
+      return `<button onclick="toggleWaterDay(${i})" style="width:36px;height:36px;border-radius:50%;border:2px solid ${active?'var(--b)':'#EEE'};background:${active?'var(--b)':'white'};color:${active?'white':'var(--sub)'};font-size:12px;font-weight:700;cursor:pointer">${d}</button>`;
+    }).join('');
+  }
+  const lwcEl = document.getElementById('lastWaterChangeLabel');
+  if(lwcEl) lwcEl.textContent = fish.lastWaterChange ? `마지막 환수: ${fish.lastWaterChange}` : '환수 기록 없음';
+
   const fishLogList = document.getElementById('fishLogList');
   if(!logs.length){ fishLogList.innerHTML = '<div class="empty">아직 기록이 없어요</div>'; return; }
   fishLogList.innerHTML = [...logs].reverse().slice(0,20).map(l=>{
-    if(l.type==='feed') return `<div class="dentry"><div class="dd"><span>${l.date} ${l.timing||''}</span><span class="tag 급여">${l.timing||''}급여</span></div><div class="dn">${l.note||'급여 완료'}</div></div>`;
+    const delBtn = `<button onclick="deleteFishLog('${l.id}')" style="background:none;border:none;color:#CCC;font-size:14px;cursor:pointer;padding:2px;margin-left:auto">✕</button>`;
+    if(l.type==='feed') return `<div class="dentry"><div class="dd" style="display:flex;align-items:center"><span>${l.date} ${l.timing||''}</span><span class="tag 급여" style="margin-left:6px">${l.timing||''}급여</span>${delBtn}</div><div class="dn">${l.note||'급여 완료'}</div></div>`;
     const vals = [];
     if(l.temp) vals.push(`수온 ${l.temp}℃`);
     if(l.ph) vals.push(`pH ${l.ph}`);
     if(l.amm!=null&&l.amm!=='') vals.push(`암모니아 ${l.amm}ppm`);
     if(l.nit!=null&&l.nit!=='') vals.push(`아질산 ${l.nit}ppm`);
-    return `<div class="dentry"><div class="dd"><span>${l.date}</span><span class="tag 수질">수질</span></div><div class="dn">${vals.join(' · ')}${l.note?' / '+l.note:''}</div></div>`;
+    return `<div class="dentry"><div class="dd" style="display:flex;align-items:center"><span>${l.date}</span><span class="tag 수질" style="margin-left:6px">수질</span>${delBtn}</div><div class="dn">${vals.join(' · ')}${l.note?' / '+l.note:''}</div></div>`;
   }).join('');
 }
 function changeCount(id, delta){
@@ -1046,17 +1175,36 @@ function addSpecies(){
   const name = document.getElementById('newSpeciesName').value.trim();
   const count = parseInt(document.getElementById('newSpeciesCount').value)||1;
   if(!name) return;
-  fish.species.push({id:String(Date.now()),name,count});
+  const emoji = document.getElementById('newSpeciesEmoji').value.trim()||'🐟';
+  fish.species.push({id:String(Date.now()),name,count,emoji,note:''});
+  document.getElementById('newSpeciesEmoji').value='';
   document.getElementById('newSpeciesName').value='';
   document.getElementById('newSpeciesCount').value='';
   saveAll(); renderFish();
 }
 function deleteSpecies(id){ fish.species=fish.species.filter(s=>s.id!==id); saveAll(); renderFish(); }
+function deleteFishLog(id){
+  fish.logs = fish.logs.filter(l=>l.id!==id);
+  saveAll(); renderFish();
+}
+function toggleWaterDay(day){
+  if(!fish.waterChangeDays) fish.waterChangeDays = [];
+  const idx = fish.waterChangeDays.indexOf(day);
+  if(idx>=0) fish.waterChangeDays.splice(idx,1);
+  else fish.waterChangeDays.push(day);
+  saveAll(); renderFish();
+}
 function switchFishTab(t){
   document.getElementById('fpane-feed').style.display = t==='feed'?'block':'none';
   document.getElementById('fpane-water').style.display = t==='water'?'block':'none';
   document.getElementById('ftab-feed').classList.toggle('active',t==='feed');
   document.getElementById('ftab-water').classList.toggle('active',t==='water');
+}
+function doWaterChange(){
+  fish.lastWaterChange = todayStr();
+  fish.logs.push({id:String(Date.now()), date:todayStr(), type:'water', note:'🔄 환수 완료', temp:'', ph:'', amm:'', nit:''});
+  saveAll(); renderFish();
+  alert('✅ 환수 기록 완료!');
 }
 function addFishLog(type){
   const log = {id:String(Date.now()), date:todayStr(), type};
@@ -1118,9 +1266,21 @@ function renderExercise(){
   const recent = [...exercise.logs].reverse().slice(0,20);
   document.getElementById('exLogList').innerHTML = recent.length ? recent.map(l=>`
     <div class="exlog">
-      <span style="font-size:20px">${l.type==='F45'?'🏋️':'🏃'}</span>
+      <span style="font-size:20px">${l.type==='F45'?'🏋️':l.type==='러닝'?'🏃':'🤸'}</span>
       <div class="ei"><div class="etype">${l.type}</div><div class="edate">${l.date}</div></div>
+      <button onclick="deleteExLog('${l.id}')" style="background:none;border:none;color:#CCC;font-size:16px;cursor:pointer;padding:4px">✕</button>
     </div>`).join('') : '<div class="empty">아직 기록이 없어요 💪</div>';
+}
+function logCustomEx(){
+  const name = document.getElementById('customExInput').value.trim();
+  if(!name) return;
+  exercise.logs.push({id:String(Date.now()), date:todayStr(), type:name, custom:true});
+  document.getElementById('customExInput').value='';
+  saveAll(); renderExercise(); renderHub();
+}
+function deleteExLog(id){
+  exercise.logs = exercise.logs.filter(l=>l.id!==id);
+  saveAll(); renderExercise(); renderHub();
 }
 function logExercise(type){
   exercise.logs.push({id:String(Date.now()), date:todayStr(), type});
@@ -1131,9 +1291,594 @@ function saveGoal(){
   saveAll(); renderExercise();
 }
 
+
+// ===== BRAIN =====
+const SUBJECTS = ['이상심리학','임상심리학','심리검사','심리치료','심리학개론'];
+const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+let currentBrainStage = 'training';
+
+function initBrain(){
+  if(!brain.training) brain.training = Array.from({length:12},(_,i)=>({month:i+1,completed:false,date:'',note:''}));
+  if(!brain.subjects) brain.subjects = {};
+  SUBJECTS.forEach(s=>{ if(brain.subjects[s]===undefined) brain.subjects[s]=0; });
+  if(!brain.studyLogs) brain.studyLogs = [];
+  if(!brain.practicalLogs) brain.practicalLogs = [];
+  if(brain.caseCount===undefined) brain.caseCount = 0;
+  if(brain.reportCount===undefined) brain.reportCount = 0;
+  if(!brain.customLogs) brain.customLogs = [];
+}
+
+function showBrain(){ initBrain(); renderBrain(); showScreen('s-brain'); }
+
+function switchBrainStage(stage){
+  const trainingDone = brain.training && brain.training.filter(t=>t.completed).length >= 12;
+  const writtenPassed = brain.writtenPassed;
+  if(stage==='written' && !trainingDone){ alert('영상수련 12회 완료 후 활성화돼요! 현재 ' + (brain.training||[]).filter(t=>t.completed).length + '/12회 완료'); return; }
+  if(stage==='practical' && !writtenPassed){ alert('필기시험 합격 후 활성화돼요!'); return; }
+  currentBrainStage = stage;
+  renderBrain();
+}
+
+function renderBrain(){
+  initBrain();
+  const today = todayStr();
+  const trainDone = brain.training.filter(t=>t.completed).length;
+  const trainingDone = trainDone >= 12;
+  const writtenPassed = brain.writtenPassed;
+
+  // 단계 트래커 업데이트
+  document.getElementById('stage-1-sub').textContent = trainDone+'/12회';
+  document.getElementById('stage-2-sub').textContent = writtenPassed ? '✅ 합격' : (trainingDone ? '응시 가능' : '대기중');
+  document.getElementById('stage-3-sub').textContent = brain.practicalPassed ? '✅ 합격' : (writtenPassed ? '응시 가능' : '대기중');
+  document.getElementById('stage-2').style.opacity = trainingDone ? '1' : '0.4';
+  document.getElementById('stage-3').style.opacity = writtenPassed ? '1' : '0.4';
+
+  // 현재 단계 강조
+  ['training','written','practical'].forEach((s,i)=>{
+    const el = document.getElementById('stage-'+(i+1));
+    el.style.background = s===currentBrainStage ? '#F0EBF8' : 'transparent';
+    el.style.borderRadius = '10px';
+    el.style.padding = '6px 4px';
+  });
+
+  // 패널 전환
+  document.getElementById('panel-training').style.display = currentBrainStage==='training'?'block':'none';
+  document.getElementById('panel-written').style.display = currentBrainStage==='written'?'block':'none';
+  document.getElementById('panel-practical').style.display = currentBrainStage==='practical'?'block':'none';
+
+  if(currentBrainStage==='training') renderTraining(trainDone);
+  if(currentBrainStage==='written') renderWritten(today);
+  if(currentBrainStage==='practical') renderPractical(today);
+  renderCustomGoals();
+
+  // 허브 서브텍스트
+  const hub = document.getElementById('hubBrainSub');
+  if(hub){
+    const totalH = (brain.studyLogs.reduce((s,l)=>s+(l.minutes||0),0)/60).toFixed(1);
+    hub.textContent = `수련 ${trainDone}/12회 · 공부 ${totalH}h`;
+  }
+}
+
+function renderTraining(trainDone){
+  document.getElementById('trainingProgressText').textContent = trainDone+' / 12회';
+  document.getElementById('trainingGbar').style.width = (trainDone/12*100)+'%';
+  const next = brain.trainingNextDate;
+  document.getElementById('nextTrainingDate').textContent = next || '미설정';
+  if(next) document.getElementById('nextTrainingInput').value = next;
+
+  document.getElementById('trainingList').innerHTML = brain.training.map((t,i)=>{
+    const done = t.completed;
+    return `<div style="background:${done?'var(--gl)':'var(--card)'};border-radius:13px;padding:13px 15px;margin-bottom:8px;border:2px solid ${done?'var(--g)':'#EEE'}">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div style="width:32px;height:32px;border-radius:50%;background:${done?'var(--g)':'#EEE'};display:flex;align-items:center;justify-content:center;font-size:${done?14:12}px;color:${done?'white':'var(--sub)'};font-weight:700;flex-shrink:0">${done?'✓':(i+1)}</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:700">${MONTHS[i]} 수련</div>
+          ${done?`<div style="font-size:11px;color:var(--sub)">${t.date} ${t.note?'· '+t.note:''}</div>`:''}
+        </div>
+        ${!done?`<button onclick="openTrainingModal(${i})" style="background:#5B9BD5;color:white;border:none;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer">완료 기록</button>`
+        :`<button onclick="undoTraining(${i})" style="background:none;border:1px solid #CCC;color:var(--sub);border-radius:9px;padding:7px 10px;font-size:11px;cursor:pointer">취소</button>`}
+      </div>
+      ${!done?`<div style="margin-top:8px;display:none" id="tform-${i}">
+        <input type="date" class="fi" id="tdate-${i}" style="font-size:12px;padding:8px 10px;margin-bottom:6px">
+        <input type="text" class="fi" id="tnote-${i}" placeholder="메모 (선택)" style="font-size:12px;padding:8px 10px;margin-bottom:6px">
+        <button onclick="saveTraining(${i})" style="background:var(--g);color:white;border:none;border-radius:9px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;width:100%">저장</button>
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function openTrainingModal(i){
+  const form = document.getElementById('tform-'+i);
+  if(form){ form.style.display = form.style.display==='none'?'block':'none'; document.getElementById('tdate-'+i).value = todayStr(); }
+}
+function saveTraining(i){
+  const date = document.getElementById('tdate-'+i).value || todayStr();
+  const note = document.getElementById('tnote-'+i).value;
+  brain.training[i] = {month:i+1, completed:true, date, note};
+  saveAll(); renderBrain();
+}
+function undoTraining(i){
+  if(!confirm('이 회차 기록을 취소할까요?')) return;
+  brain.training[i] = {month:i+1, completed:false, date:'', note:''};
+  saveAll(); renderBrain();
+}
+function saveNextTraining(){
+  brain.trainingNextDate = document.getElementById('nextTrainingInput').value;
+  saveAll(); renderBrain();
+}
+
+function renderWritten(today){
+  // D-day
+  if(brain.writtenExamDate){
+    const diff = daysBetween(today, brain.writtenExamDate);
+    document.getElementById('writtenDday').textContent = diff>0?'D-'+diff:diff===0?'D-DAY!':'시험 완료';
+  }
+  if(brain.writtenExamDate) document.getElementById('writtenExamDate').value = brain.writtenExamDate;
+  document.getElementById('writtenPassBtn').textContent = brain.writtenPassed ? '✅ 합격' : '미합격';
+  document.getElementById('writtenPassBtn').style.background = brain.writtenPassed ? 'var(--g)' : '#EEE';
+  document.getElementById('writtenPassBtn').style.color = brain.writtenPassed ? 'white' : 'var(--sub)';
+
+  // 과목 슬라이더
+  document.getElementById('subjectSliders').innerHTML = SUBJECTS.map(s=>{
+    const val = brain.subjects[s]||0;
+    return `<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+        <span style="font-weight:600">${s}</span>
+        <span style="color:#8B6BB8;font-weight:700">${val}%</span>
+      </div>
+      <input type="range" min="0" max="100" value="${val}" style="width:100%;accent-color:#8B6BB8"
+        oninput="updateSubject('${s}',this.value)" onchange="saveAll()">
+    </div>`;
+  }).join('');
+
+  // 주간 캘린더
+  const week = getWeekDates();
+  const days = ['월','화','수','목','금','토','일'];
+  document.getElementById('studyWeekGrid').innerHTML = week.map((d,i)=>{
+    const mins = brain.studyLogs.filter(l=>l.date===d).reduce((s,l)=>s+(l.minutes||0),0);
+    return `<div class="wcell ${d===today?'today':''}">
+      <div class="wd">${days[i]}</div>
+      <div class="wdate">${d.slice(8)}</div>
+      <div class="dots"><div class="dot" style="${mins>0?'background:#8B6BB8':''}"></div></div>
+      ${mins>0?`<div style="font-size:8px;color:#8B6BB8;font-weight:700">${mins}m</div>`:''}
+    </div>`;
+  }).join('');
+
+  // 공부 로그
+  const logs = [...brain.studyLogs].reverse().slice(0,10);
+  document.getElementById('studyLogList').innerHTML = logs.length ? logs.map(l=>`
+    <div class="dentry">
+      <div class="dd"><span>${l.date}</span><span class="tag" style="background:#F0EBF8;color:#8B6BB8">📖 ${(l.minutes/60).toFixed(1)}h</span></div>
+      <div class="dn">${(l.note||'').replace(/</g,'&lt;')}</div>
+    </div>`).join('') : '<div class="empty">공부 기록을 남겨보세요 📚</div>';
+}
+
+function updateSubject(name, val){
+  brain.subjects[name] = parseInt(val);
+  document.querySelector(`[oninput="updateSubject('${name}',this.value)"]`)?.previousElementSibling?.querySelector('span:last-child')?.textContent;
+  // 즉시 % 업데이트
+  const sliders = document.getElementById('subjectSliders');
+  if(sliders){
+    sliders.querySelectorAll('input[type=range]').forEach(inp=>{
+      const label = inp.previousElementSibling.querySelector('span:last-child');
+      if(label) label.textContent = inp.value+'%';
+    });
+  }
+}
+
+function addStudyLog(){
+  const mins = parseInt(document.getElementById('studyMinutes').value);
+  if(!mins||mins<=0){ alert('공부 시간을 입력해주세요'); return; }
+  brain.studyLogs.push({id:String(Date.now()), date:todayStr(), minutes:mins, note:document.getElementById('studyNote').value.trim()});
+  document.getElementById('studyMinutes').value='';
+  document.getElementById('studyNote').value='';
+  saveAll(); renderBrain();
+}
+
+function toggleWrittenPass(){
+  brain.writtenPassed = !brain.writtenPassed;
+  saveAll(); renderBrain();
+  if(brain.writtenPassed) setTimeout(()=>alert('🎉 필기 합격 축하해요!! 실기 탭이 열렸어요!'),300);
+}
+
+function renderPractical(today){
+  if(brain.practicalExamDate){
+    const diff = daysBetween(today, brain.practicalExamDate);
+    document.getElementById('practicalDday').textContent = diff>0?'D-'+diff:diff===0?'D-DAY!':'시험 완료';
+  }
+  if(brain.practicalExamDate) document.getElementById('practicalExamDate').value = brain.practicalExamDate;
+  document.getElementById('practicalPassBtn').textContent = brain.practicalPassed ? '✅ 합격' : '미합격';
+  document.getElementById('practicalPassBtn').style.background = brain.practicalPassed ? 'var(--g)' : '#EEE';
+  document.getElementById('practicalPassBtn').style.color = brain.practicalPassed ? 'white' : 'var(--sub)';
+  document.getElementById('caseCount').textContent = brain.caseCount||0;
+  document.getElementById('reportCount').textContent = brain.reportCount||0;
+  const logs = [...brain.practicalLogs].reverse().slice(0,10);
+  document.getElementById('practicalLogList').innerHTML = logs.length ? logs.map(l=>`
+    <div class="dentry">
+      <div class="dd"><span>${l.date}</span><span class="tag" style="background:var(--rl);color:var(--r)">${l.type==='case'?'🧩 사례':'📄 보고서'}</span></div>
+      <div class="dn">${(l.note||'').replace(/</g,'&lt;')}</div>
+    </div>`).join('') : '<div class="empty">실기 준비 기록을 남겨보세요 ✏️</div>';
+}
+
+function addPracticalCount(type){
+  if(type==='case') brain.caseCount=(brain.caseCount||0)+1;
+  if(type==='report') brain.reportCount=(brain.reportCount||0)+1;
+  brain.practicalLogs.push({id:String(Date.now()), date:todayStr(), type, note:''});
+  saveAll(); renderBrain();
+}
+function addPracticalMemo(){
+  const note = document.getElementById('practicalMemo').value.trim();
+  if(!note) return;
+  brain.practicalLogs.push({id:String(Date.now()), date:todayStr(), type:'memo', note});
+  document.getElementById('practicalMemo').value='';
+  saveAll(); renderBrain();
+}
+function togglePracticalPass(){
+  brain.practicalPassed = !brain.practicalPassed;
+  saveAll(); renderBrain();
+  if(brain.practicalPassed) setTimeout(()=>alert('🎉🎉 임상심리사 합격 축하해요!!!'),300);
+}
+function addCustomGoal(){
+  const note = document.getElementById('customGoalInput').value.trim();
+  if(!note) return;
+  if(!brain.customLogs) brain.customLogs = [];
+  brain.customLogs.push({id:String(Date.now()), date:todayStr(), note});
+  document.getElementById('customGoalInput').value='';
+  saveAll(); renderCustomGoals();
+}
+function renderCustomGoals(){
+  if(!brain.customLogs) return;
+  const list = [...brain.customLogs].reverse().slice(0,15);
+  document.getElementById('customGoalList').innerHTML = list.length ? list.map(l=>`
+    <div class="dentry" style="display:flex;align-items:center;gap:8px">
+      <div style="flex:1"><div style="font-size:11px;color:var(--sub)">${l.date}</div><div style="font-size:13px">${l.note.replace(/</g,'&lt;')}</div></div>
+      <button onclick="deleteCustomGoal('${l.id}')" style="background:none;border:none;color:#CCC;font-size:14px;cursor:pointer">✕</button>
+    </div>`).join('') : '<div class="empty" style="padding:10px 0">기타 활동을 기록해보세요 📌</div>';
+}
+function deleteCustomGoal(id){
+  brain.customLogs = (brain.customLogs||[]).filter(l=>l.id!==id);
+  saveAll(); renderCustomGoals();
+}
+function saveBrainSettings(){
+  brain.writtenExamDate = document.getElementById('writtenExamDate')?.value||brain.writtenExamDate||'';
+  brain.practicalExamDate = document.getElementById('practicalExamDate')?.value||brain.practicalExamDate||'';
+  saveAll(); renderBrain();
+}
+
+
+// ===== AI 자동완성 =====
+function pickMist(val){
+  document.getElementById('addMistTarget').value = val;
+  document.querySelectorAll('.mist-chip').forEach(btn=>{
+    const active = parseInt(btn.dataset.val) === val;
+    btn.style.background = active ? 'var(--bl)' : 'white';
+    btn.style.color = active ? 'var(--b)' : 'var(--sub)';
+    btn.style.borderColor = active ? 'var(--b)' : '#E5E1D8';
+  });
+}
+function toggleApiInput(){
+  const row = document.getElementById('apiInputRow');
+  row.style.display = row.style.display==='none' ? 'block' : 'none';
+}
+function saveApiKey(){
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if(!key || !key.startsWith('sk-ant-')){ alert('올바른 Claude API 키를 입력해주세요 (sk-ant-로 시작)'); return; }
+  localStorage.setItem('hub_apikey', key);
+  document.getElementById('apiKeyInput').value = '';
+  document.getElementById('apiInputRow').style.display = 'none';
+  const chip = document.getElementById('apiChip');
+  if(chip){ chip.textContent='🔑 API키 ✅'; chip.style.background='#F0FFF4'; chip.style.color='var(--g)'; }
+  alert('✅ API 키 저장 완료!');
+}
+
+async function autoFillPlant(){
+  const species = document.getElementById('addSpecies').value.trim();
+  if(!species){ alert('식물 이름을 먼저 입력해주세요'); return; }
+  const apiKey = localStorage.getItem('hub_apikey');
+  if(!apiKey){ alert('API 키를 먼저 저장해주세요'); return; }
+
+  const btn = document.getElementById('aiFillBtn');
+  const status = document.getElementById('aiFillStatus');
+  btn.textContent = '⏳ 검색중...';
+  btn.disabled = true;
+  status.style.display = 'block';
+  status.style.color = '#8B6BB8';
+  status.textContent = `"${species}" 케어 정보 불러오는 중...`;
+
+  const systemPrompt = `당신은 식물 케어 전문가입니다. 식물 이름을 받으면 아래 JSON 형식으로만 응답하세요. 다른 텍스트나 마크다운 없이 JSON만 출력하세요.
+
+{
+  "cat": "카테고리",
+  "days": 숫자,
+  "emoji": "이모지1개",
+  "mistTarget": 숫자,
+  "care": {
+    "l": "빛 조건 설명 (한 줄)",
+    "w": "물주기 방법 (한 줄, 관수방식 포함)",
+    "m": "분무 방법 (한 줄, 빈도 포함)"
+  },
+  "tip": "이 식물의 가장 중요한 케어 포인트 (한 줄)"
+}
+
+규칙:
+- cat은 반드시 다음 중 하나: 고사리류, 다육이류, 선인장류, 페페류, 꽃류, 관엽류, 허브류, 에어플랜트, 난류, 공기정화류, 침엽수류, 기타
+- days: 일반적인 물주기 간격(일). 건조에 강한 식물 14~21일, 보통 5~10일, 습도 민감 2~4일
+- mistTarget: 0=분무 불필요 또는 가끔, 1=하루 1회 권장, 2=하루 2회 이상 필수 (고사리류 대부분 2)
+- care.l: "밝은 간접광 선호. 직사광 금지" 이런 형식으로 짧고 명확하게
+- care.w: "겉흙 마르면 흠뻑. 저면관수 권장" 이런 형식, 저면/상면/분무 등 방법 명시
+- care.m: "하루 1~2회 분무. 습도 60%+ 유지" 또는 "분무 불필요" 이런 형식
+- tip: 이 식물 키울 때 가장 많이 실패하는 포인트 또는 특별한 특징 한 줄`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 500,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: `식물 이름: ${species}` }]
+      })
+    });
+    const data = await res.json();
+    if(data.error){ throw new Error(data.error.message); }
+    const text = data.content[0].text.replace(/```json|```/g,'').trim();
+    const info = JSON.parse(text);
+
+    // 폼에 자동 채우기
+    if(info.cat){
+      const catEl = document.getElementById('addCat');
+      for(let o of catEl.options){ if(o.value===info.cat){ catEl.value=info.cat; break; } }
+    }
+    if(info.days) document.getElementById('addDays').value = info.days;
+    if(info.tip) document.getElementById('addTip').value = info.tip;
+    if(info.care){
+      document.getElementById('addCareL').value = info.care.l||'';
+      document.getElementById('addCareW').value = info.care.w||'';
+      document.getElementById('addCareM').value = info.care.m||'';
+    }
+    if(info.mistTarget !== undefined){ pickMist(info.mistTarget); }
+
+    document.getElementById('aiCareSection').style.display = 'block';
+    status.style.color = 'var(--g)';
+    status.textContent = '✅ 자동완성 완료! 내용 확인 후 수정하세요';
+  } catch(e) {
+    status.style.color = 'var(--danger)';
+    status.textContent = '❌ 오류: ' + e.message;
+  } finally {
+    btn.textContent = '🤖 자동완성';
+    btn.disabled = false;
+  }
+}
+
 // ===== INIT =====
 loadAll();
 renderHub();
 </script>
 </body>
 </html>
+
+<!-- ===== BRAIN ===== -->
+<div class="screen" id="s-brain">
+  <div class="ph">
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="back-btn" onclick="goHub()">←</button>
+      <div class="pt">🧠 자기계발존</div>
+    </div>
+  </div>
+  <div style="padding:0 16px 20px">
+    <div style="display:flex;align-items:center;margin-bottom:20px;background:var(--card);border-radius:14px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.04)">
+      <div id="stage-1" style="text-align:center;flex:1;cursor:pointer;border-radius:10px;padding:6px 4px" onclick="switchBrainStage('training')">
+        <div style="font-size:20px">🎬</div>
+        <div style="font-size:11px;font-weight:700;margin-top:3px">영상수련</div>
+        <div style="font-size:10px;color:var(--sub)" id="stage-1-sub">0/12회</div>
+      </div>
+      <div style="font-size:18px;color:#DDD;margin:0 4px">›</div>
+      <div id="stage-2" style="text-align:center;flex:1;cursor:pointer;border-radius:10px;padding:6px 4px;opacity:.4" onclick="switchBrainStage('written')">
+        <div style="font-size:20px">📖</div>
+        <div style="font-size:11px;font-weight:700;margin-top:3px">필기시험</div>
+        <div style="font-size:10px;color:var(--sub)" id="stage-2-sub">대기중</div>
+      </div>
+      <div style="font-size:18px;color:#DDD;margin:0 4px">›</div>
+      <div id="stage-3" style="text-align:center;flex:1;cursor:pointer;border-radius:10px;padding:6px 4px;opacity:.4" onclick="switchBrainStage('practical')">
+        <div style="font-size:20px">📝</div>
+        <div style="font-size:11px;font-weight:700;margin-top:3px">실기시험</div>
+        <div style="font-size:10px;color:var(--sub)" id="stage-3-sub">대기중</div>
+      </div>
+    </div>
+
+    <div id="panel-training">
+      <div style="border-radius:var(--radius);padding:16px 18px;color:white;margin-bottom:14px;background:linear-gradient(135deg,#8B6BB8,#B09ADA)">
+        <div style="font-size:12px;opacity:.9">영상수련 완료율</div>
+        <div style="font-size:26px;font-weight:800" id="trainingProgressText">0 / 12회</div>
+      </div>
+      <div class="gbar-wrap" style="margin-bottom:16px"><div id="trainingGbar" style="height:100%;border-radius:10px;background:#8B6BB8;width:0%;transition:width .4s"></div></div>
+      <div style="background:var(--card);border-radius:13px;padding:13px 15px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
+        <span style="font-size:20px">📅</span>
+        <div style="flex:1">
+          <div style="font-size:12px;color:var(--sub)">다음 수련 예정일</div>
+          <div style="font-size:14px;font-weight:700" id="nextTrainingDate">미설정</div>
+        </div>
+        <input type="date" id="nextTrainingInput" class="fi" style="width:130px;font-size:12px;padding:7px 10px" onchange="saveNextTraining()">
+      </div>
+      <div class="sec-title">회차별 기록</div>
+      <div id="trainingList"></div>
+    </div>
+
+    <div id="panel-written" style="display:none">
+      <div style="border-radius:var(--radius);padding:16px 18px;color:white;margin-bottom:14px;background:linear-gradient(135deg,#8B6BB8,#B09ADA)">
+        <div style="font-size:12px;opacity:.9">필기시험까지</div>
+        <div style="font-size:26px;font-weight:800" id="writtenDday">날짜 설정해주세요</div>
+      </div>
+      <div style="background:var(--card);border-radius:13px;padding:13px 15px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="flex:1"><label class="fl">시험일</label><input type="date" id="writtenExamDate" class="fi" style="font-size:12px;padding:8px 10px" onchange="saveBrainSettings()"></div>
+          <div style="text-align:center"><label class="fl">합격 여부</label>
+            <button id="writtenPassBtn" onclick="toggleWrittenPass()" style="border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;background:#EEE;color:var(--sub);cursor:pointer">미합격</button>
+          </div>
+        </div>
+      </div>
+      <div style="background:var(--card);border-radius:13px;padding:14px 15px;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:12px">📊 과목별 진도율</div>
+        <div id="subjectSliders"></div>
+      </div>
+      <div class="sec-title">오늘 공부 기록</div>
+      <div style="background:var(--card);border-radius:13px;padding:13px 15px;margin-bottom:14px">
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <input class="fi" type="number" id="studyMinutes" placeholder="공부 시간 (분)" style="flex:1">
+          <button class="btn g" style="width:80px;padding:0;background:#8B6BB8" onclick="addStudyLog()">기록 ✓</button>
+        </div>
+        <textarea class="fta" id="studyNote" placeholder="오늘 공부한 내용 메모"></textarea>
+      </div>
+      <div class="sec-title">이번 주 공부</div>
+      <div class="week-grid" id="studyWeekGrid" style="margin-bottom:14px"></div>
+      <div class="sec-title">최근 공부 기록</div>
+      <div id="studyLogList"></div>
+    </div>
+
+    <div id="panel-practical" style="display:none">
+      <div style="border-radius:var(--radius);padding:16px 18px;color:white;margin-bottom:14px;background:linear-gradient(135deg,var(--r),#E9957E)">
+        <div style="font-size:12px;opacity:.9">실기시험까지</div>
+        <div style="font-size:26px;font-weight:800" id="practicalDday">날짜 설정해주세요</div>
+      </div>
+      <div style="background:var(--card);border-radius:13px;padding:13px 15px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="flex:1"><label class="fl">시험일</label><input type="date" id="practicalExamDate" class="fi" style="font-size:12px;padding:8px 10px" onchange="saveBrainSettings()"></div>
+          <div style="text-align:center"><label class="fl">합격 여부</label>
+            <button id="practicalPassBtn" onclick="togglePracticalPass()" style="border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;background:#EEE;color:var(--sub);cursor:pointer">미합격</button>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div style="background:var(--card);border-radius:13px;padding:14px;text-align:center">
+          <div style="font-size:11px;color:var(--sub);margin-bottom:6px">🧩 사례개념화</div>
+          <div style="font-size:26px;font-weight:800;color:var(--r)" id="caseCount">0</div>
+          <div style="font-size:10px;color:var(--sub);margin-bottom:8px">회</div>
+          <button onclick="addPracticalCount('case')" style="background:var(--r);color:white;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer">+1</button>
+        </div>
+        <div style="background:var(--card);border-radius:13px;padding:14px;text-align:center">
+          <div style="font-size:11px;color:var(--sub);margin-bottom:6px">📄 심리평가 보고서</div>
+          <div style="font-size:26px;font-weight:800;color:var(--r)" id="reportCount">0</div>
+          <div style="font-size:10px;color:var(--sub);margin-bottom:8px">회</div>
+          <button onclick="addPracticalCount('report')" style="background:var(--r);color:white;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer">+1</button>
+        </div>
+      </div>
+      <div class="sec-title">메모</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <textarea class="fta" id="practicalMemo" placeholder="실기 준비 메모" style="flex:1;min-height:60px"></textarea>
+        <button onclick="addPracticalMemo()" style="background:var(--r);color:white;border:none;border-radius:11px;padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer;align-self:flex-end">저장</button>
+      </div>
+      <div id="practicalLogList"></div>
+    </div>
+
+    <div style="margin-top:16px">
+      <div class="sec-title">📌 기타 자기계발</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <input class="fi" id="customGoalInput" placeholder="예: 영어공부 30분, 독서..." style="flex:1;font-size:13px">
+        <button onclick="addCustomGoal()" style="background:#8B6BB8;color:white;border:none;border-radius:11px;padding:0 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">기록 ✓</button>
+      </div>
+      <div id="customGoalList"></div>
+    </div>
+  </div>
+</div>
+<!-- ===== EXERCISE ===== -->
+<div class="screen" id="s-exercise">
+  <div class="ph">
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="back-btn" onclick="goHub()">←</button>
+      <div class="pt">💪 운동존</div>
+    </div>
+  </div>
+  <div style="padding:0 16px 20px">
+    <div class="sec-title">이번 주 <span id="weekRange" style="font-weight:400;font-size:11px;text-transform:none;letter-spacing:0;color:var(--sub)"></span></div>
+    <div class="week-grid" id="weekGrid"></div>
+    <div style="border-radius:var(--radius);padding:16px 18px;color:white;margin-bottom:16px;background:var(--ex)">
+      <div style="font-size:12px;opacity:.9">이번주 목표 달성률</div>
+      <div style="font-size:26px;font-weight:800" id="exGoalLabel">0 / 4회</div>
+    </div>
+    <div class="gbar-wrap" style="margin-bottom:16px"><div id="exGbar" style="height:100%;border-radius:10px;background:var(--ex);width:0%;transition:width .3s"></div></div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:20px">
+      <span style="font-size:12px;color:var(--sub)">주간 목표</span>
+      <input class="fi" type="number" id="exGoalInput" min="1" max="14" style="width:60px;padding:8px 10px">
+      <span style="font-size:12px;color:var(--sub)">회/주</span>
+      <button class="sbtn r" onclick="saveGoal()" style="background:var(--ex)">저장</button>
+    </div>
+    <div class="sec-title">오늘 운동 기록</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button class="cbtn" onclick="logExercise('F45')" style="flex:1;background:var(--ex)">🏋️ F45 완료</button>
+      <button class="cbtn" onclick="logExercise('러닝')" style="flex:1;background:#EAA87A">🏃 러닝 완료</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:20px">
+      <input class="fi" id="customExInput" placeholder="기타 운동 (예: 클라이밍, 스쿼시...)" style="flex:1;font-size:13px">
+      <button onclick="logCustomEx()" style="background:var(--ex);color:white;border:none;border-radius:11px;padding:0 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">기록 ✓</button>
+    </div>
+    <div class="sec-title">최근 기록</div>
+    <div id="exLogList"></div>
+  </div>
+</div>
+
+<!-- ===== FISH ===== -->
+<div class="screen" id="s-fish">
+  <div class="ph">
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="back-btn" onclick="goHub()">←</button>
+      <div class="pt">🐠 물집사</div>
+    </div>
+  </div>
+  <div style="padding:0 16px 20px">
+    <div style="border-radius:var(--radius);padding:16px 18px;color:white;margin-bottom:14px;background:linear-gradient(135deg,var(--b),#8ABDE8)">
+      <div style="font-size:12px;opacity:.9">어항 케어</div>
+      <div style="font-size:26px;font-weight:800" id="fishLastFeed">-</div>
+    </div>
+    <div class="sec-title">어종 등록</div>
+    <div id="speciesList"></div>
+    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+      <input class="fi" id="newSpeciesEmoji" placeholder="🐟" style="width:56px;text-align:center;font-size:18px">
+      <input class="fi" id="newSpeciesName" placeholder="어종명 (예: 구피)" style="flex:1">
+      <input class="fi" id="newSpeciesCount" type="number" placeholder="수" style="width:56px">
+      <button class="sbtn b" onclick="addSpecies()">추가</button>
+    </div>
+    <!-- 환수 설정 -->
+    <div style="background:var(--card);border-radius:13px;padding:13px 15px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px">🔄 환수 루틴 설정</div>
+      <div style="font-size:12px;color:var(--sub);margin-bottom:8px">환수하는 요일을 선택해주세요</div>
+      <div style="display:flex;gap:6px;margin-bottom:10px" id="waterChangeDayChips"></div>
+      <div style="font-size:11px;color:var(--sub)" id="lastWaterChangeLabel"></div>
+    </div>
+    <div class="sec-title">오늘 기록 남기기</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="tab active b" id="ftab-feed" onclick="switchFishTab('feed')">🍤 먹이</button>
+      <button class="tab" id="ftab-water" onclick="switchFishTab('water')">🧪 수질</button>
+    </div>
+    <div id="fpane-feed">
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button class="tab active b" id="ftiming-morning" onclick="setFishTiming('아침')">🌅 아침</button>
+        <button class="tab" id="ftiming-evening" onclick="setFishTiming('저녁')">🌙 저녁</button>
+      </div>
+      <div class="fg"><label class="fl">먹이 종류 / 메모 (선택)</label><input class="fi" id="feedNote" placeholder="예: 건사료, 냉동 아르테미아"></div>
+      <button class="btn b" onclick="addFishLog('feed')">급여 기록 ✓</button>
+    </div>
+    <div id="fpane-water" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div><label class="fl">수온 (℃)</label><input class="fi" type="number" id="wTemp" placeholder="26"></div>
+        <div><label class="fl">pH</label><input class="fi" type="number" step="0.1" id="wPh" placeholder="7.0"></div>
+        <div><label class="fl">암모니아 (ppm)</label><input class="fi" type="number" step="0.01" id="wAmm" placeholder="0"></div>
+        <div><label class="fl">아질산 (ppm)</label><input class="fi" type="number" step="0.01" id="wNit" placeholder="0"></div>
+      </div>
+      <div class="fg"><textarea class="fta" id="wNote" placeholder="기타 메모 (예: 물갈이 30% 완료)"></textarea></div>
+      <button class="btn b" onclick="addFishLog('water')">수질 기록 ✓</button>
+      <button onclick="doWaterChange()" style="width:100%;margin-top:8px;background:#2E7D9E;color:white;border:none;border-radius:13px;padding:13px;font-size:14px;font-weight:700;cursor:pointer">🔄 환수 완료 기록</button>
+    </div>
+    <div class="sec-title" style="margin-top:20px">최근 기록</div>
+    <div id="fishLogList"></div>
+  </div>
+</div>
+
+</div><!-- /.app --></div><!-- /.app -->
+
+
