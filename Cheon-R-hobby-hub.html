@@ -283,6 +283,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
         <div class="hinfo" style="flex:1">
           <div style="font-size:16px;font-weight:700">🧠 자기계발존</div>
           <div style="font-size:12px;color:var(--sub);margin-top:2px" id="hubBrainSub">임상심리사 수련 기록</div>
+          <div style="font-size:12px;color:var(--sub);margin-top:2px" id="hubMusicSub"></div>
         </div>
         <div style="font-size:16px;color:#CCC">›</div>
       </div>
@@ -459,6 +460,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
     <div id="careBrainSection" style="margin-top:16px;display:none">
       <div style="font-size:12px;font-weight:700;color:var(--br);margin-bottom:8px">🧠 자기계발존</div>
       <div id="careBrainList"></div>
+      <div id="careMusicList"></div>
     </div>
 
     <div id="careAllGood" style="display:none;text-align:center;padding:20px 0;color:var(--sub);font-size:13px">
@@ -650,11 +652,42 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
     </div>
   </div>
   <div id="brainSection-music" style="display:none;padding:0 16px 20px">
-    <div style="padding:50px 20px;text-align:center;color:var(--sub)">
-      <div style="font-size:36px;margin-bottom:10px">🎸</div>
-      <div style="font-size:14px;font-weight:700;margin-bottom:6px">준비 중이에요</div>
-      <div style="font-size:12px;line-height:1.6">기타·베이스 연습 시간이나<br>곡 진도 같은 걸 기록하게 될 것 같아요</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      <div style="background:var(--card);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 5px rgba(0,0,0,.04)">
+        <div style="font-size:17px;font-weight:800;color:var(--br)" id="musicMonthMinutes">0h</div>
+        <div style="font-size:10px;color:var(--sub);margin-top:2px">이번 달 연습시간</div>
+      </div>
+      <div style="background:var(--card);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 5px rgba(0,0,0,.04)">
+        <div style="font-size:17px;font-weight:800;color:var(--br)" id="musicMonthDays">0일</div>
+        <div style="font-size:10px;color:var(--sub);margin-top:2px">이번 달 연습일수</div>
+      </div>
     </div>
+
+    <div class="sec-title">오늘 연습 기록</div>
+    <div style="background:var(--card);border-radius:13px;padding:13px 15px;margin-bottom:16px">
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button id="musicInstBtn-guitar" onclick="setMusicInstrument('guitar')" style="flex:1;border:none;border-radius:10px;padding:9px;font-size:12px;font-weight:700;font-family:'Pretendard',sans-serif;cursor:pointer;background:var(--br);color:white">🎸 통기타</button>
+        <button id="musicInstBtn-bass" onclick="setMusicInstrument('bass')" style="flex:1;border:none;border-radius:10px;padding:9px;font-size:12px;font-weight:700;font-family:'Pretendard',sans-serif;cursor:pointer;background:#EEE;color:var(--sub)">🎸 베이스</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <input class="fi" type="number" id="musicMinutes" placeholder="연습 시간 (분)" style="flex:1">
+        <button class="btn g" style="width:80px;padding:0;background:var(--br)" onclick="addMusicLog()">기록 ✓</button>
+      </div>
+      <textarea class="fta" id="musicNote" placeholder="오늘 연습한 내용 메모 (예: G-C-D 코드, 캐논변주곡 등)"></textarea>
+    </div>
+
+    <div class="sec-title">이번 주 연습</div>
+    <div class="week-grid" id="musicWeekGrid" style="margin-bottom:16px"></div>
+
+    <div class="sec-title">🎵 배우는 곡 / 코드</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <input class="fi" id="musicSongInput" placeholder="예: 캐논변주곡 (통기타)" style="flex:1;font-size:13px" onkeydown="if(event.key==='Enter')addMusicSong()">
+      <button onclick="addMusicSong()" style="background:var(--br);color:white;border:none;border-radius:11px;padding:0 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">추가</button>
+    </div>
+    <div id="musicSongList" style="margin-bottom:16px"></div>
+
+    <div class="sec-title">최근 연습 기록</div>
+    <div id="musicLogList"></div>
   </div>
 </div>
 <!-- ===== EXERCISE ===== -->
@@ -865,6 +898,8 @@ const PLANT_PRESETS = [
 let plants = [], fish = {species:[],logs:[]}, exercise = {weeklyGoal:4,logs:[]}, brain = {}, darkMode = false;
 let winterMode = false;
 let checklist = [];
+let music = {logs:[], songs:[]};
+let musicInstrument = 'guitar';
 let currentPlantId = null, currentCat = '전체', currentDiaryType = '물주기(저면)';
 let addPhotoData = null, editPhotoData = undefined;
 let fishTiming = '아침';
@@ -915,6 +950,9 @@ function loadAll(){
   brain = safeParse(localStorage.getItem('hub_brain1'), {examDate:'',goalHours:200,goalTraining:40,logs:[]});
   winterMode = safeParse(localStorage.getItem('hub_winter4'), false);
   checklist = safeParse(localStorage.getItem('hub_checklist1'), []);
+  music = safeParse(localStorage.getItem('hub_music1'), {logs:[], songs:[]});
+  if(!Array.isArray(music.logs)) music.logs = [];
+  if(!Array.isArray(music.songs)) music.songs = [];
   darkMode = safeParse(localStorage.getItem('hub_darkmode1'), false);
   applyDarkMode();
   if(!localStorage.getItem('hub_appStart1')){
@@ -980,6 +1018,7 @@ function saveAll(){
     localStorage.setItem('hub_exercise4', JSON.stringify(exercise));
     localStorage.setItem('hub_winter4', JSON.stringify(winterMode));
     localStorage.setItem('hub_checklist1', JSON.stringify(checklist));
+    localStorage.setItem('hub_music1', JSON.stringify(music));
     localStorage.setItem('hub_brain1', JSON.stringify(brain));
     localStorage.setItem('hub_darkmode1', JSON.stringify(darkMode));
   }catch(e){
@@ -1009,7 +1048,7 @@ function escapeHtml(str){
 function openBackupModal(){ document.getElementById('backupModal').style.display = 'block'; }
 function closeBackupModal(){ document.getElementById('backupModal').style.display = 'none'; }
 function exportData(){
-  const data = { plants, fish, exercise, brain, winterMode, exportedAt: new Date().toISOString(), version: 1 };
+  const data = { plants, fish, exercise, brain, winterMode, checklist, music, exportedAt: new Date().toISOString(), version: 2 };
   const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1036,6 +1075,8 @@ function importDataFile(event){
       exercise = data.exercise || {weeklyGoal:4,logs:[]};
       brain = data.brain || {examDate:'',goalHours:200,goalTraining:40,logs:[]};
       winterMode = data.winterMode || false;
+      checklist = Array.isArray(data.checklist) ? data.checklist : [];
+      music = data.music && Array.isArray(data.music.logs) ? data.music : {logs:[], songs:[]};
       saveAll();
       alert('✅ 백업 복원 완료!');
       closeBackupModal();
@@ -1066,6 +1107,7 @@ function resetCategory(type){
       break;
     case 'brain':
       brain = {examDate:'', goalHours:200, goalTraining:40, logs:[]};
+      music = {logs:[], songs:[]};
       break;
   }
   saveAll();
@@ -1391,6 +1433,17 @@ function openCareZone(){
   document.getElementById('careBrainSection').style.display = brainItems.length?'block':'none';
   document.getElementById('careBrainList').innerHTML = brainItems.join('');
 
+  // 🎸 음악
+  const todayMusicLogs = (music.logs||[]).filter(l=>l.date===today);
+  const musicMinsToday = todayMusicLogs.reduce((s,l)=>s+(l.minutes||0),0);
+  document.getElementById('careMusicList').innerHTML = `<div style="padding:10px 12px;background:#F8F5FF;border-radius:11px;margin-bottom:7px">
+    <div style="font-size:13px;font-weight:600">🎸 음악 ${musicMinsToday>0?musicMinsToday+'분 연습':'연습 기록 없음'}</div>
+    ${musicMinsToday>0?
+      '<div style="font-size:11px;color:var(--g);margin-top:2px">✅ 오늘 연습 기록 있어요</div>':
+      '<div style="font-size:11px;color:var(--sub);margin-top:2px">오늘 연습 기록을 남겨보세요</div>'}
+  </div>`;
+  document.getElementById('careBrainSection').style.display = 'block';
+
   const waterAllDone = watering.every(p=>wateredIds.has(p.id));
   document.getElementById('careAllGood').style.display = (waterAllDone&&mistDone>=needMist.length&&morningFed&&eveningFed&&weekDone>=weekGoal)?'block':'none';
   document.getElementById('careModal').style.display = 'block';
@@ -1516,6 +1569,12 @@ function renderHub(){
   document.getElementById('hubExSub').textContent = `이번주 ${thisWeek}/${exercise.weeklyGoal}회`;
   const bLogs = brain.logs||[]; const bTraining=bLogs.filter(l=>l.type==='training').reduce((s,l)=>s+(l.count||0),0); const bH=((bLogs.filter(l=>l.type==='study').reduce((s,l)=>s+(l.minutes||0),0))/60).toFixed(1);
   if(document.getElementById('hubBrainSub')) document.getElementById('hubBrainSub').textContent = bTraining||bH>0 ? `수련 ${bTraining}회 · 공부 ${bH}h` : '임상심리사 수련 기록';
+  if(document.getElementById('hubMusicSub')){
+    const mp2 = monthPrefix();
+    const musicMonthLogs = (music.logs||[]).filter(l=>l.date.startsWith(mp2));
+    const musicMin = musicMonthLogs.reduce((s,l)=>s+(l.minutes||0),0);
+    document.getElementById('hubMusicSub').textContent = musicMin>0 ? `이번달 연습 ${(musicMin/60).toFixed(1)}h` : '음악 연습 시작해보기';
+  }
   document.getElementById('hubPlantSub').textContent = `${plants.length}종 키우는 중 · 오늘 ${due.length}개 케어`;
   const fishSpecies = fish.species.length;
   document.getElementById('hubFishSub').textContent = fishSpecies ? `${fishSpecies}종 합사 어항` : '어항 기록 시작하기';
@@ -2065,6 +2124,75 @@ function switchBrainTab(tab){
   document.getElementById('brainTab-training').style.color = tab==='training' ? 'white' : 'var(--sub)';
   document.getElementById('brainTab-music').style.background = tab==='music' ? 'var(--br)' : 'var(--card)';
   document.getElementById('brainTab-music').style.color = tab==='music' ? 'white' : 'var(--sub)';
+  if(tab==='music') renderMusic();
+}
+function setMusicInstrument(inst){
+  musicInstrument = inst;
+  document.getElementById('musicInstBtn-guitar').style.background = inst==='guitar' ? 'var(--br)' : '#EEE';
+  document.getElementById('musicInstBtn-guitar').style.color = inst==='guitar' ? 'white' : 'var(--sub)';
+  document.getElementById('musicInstBtn-bass').style.background = inst==='bass' ? 'var(--br)' : '#EEE';
+  document.getElementById('musicInstBtn-bass').style.color = inst==='bass' ? 'white' : 'var(--sub)';
+}
+function instEmoji(inst){ return inst==='bass' ? '🎸(베이스)' : '🎸(통기타)'; }
+function addMusicLog(){
+  const mins = parseInt(document.getElementById('musicMinutes').value);
+  if(!mins||mins<=0){ alert('연습 시간을 입력해주세요'); return; }
+  music.logs.push({id:String(Date.now()), date:todayStr(), instrument:musicInstrument, minutes:mins, note:document.getElementById('musicNote').value.trim()});
+  document.getElementById('musicMinutes').value='';
+  document.getElementById('musicNote').value='';
+  saveAll(); renderMusic();
+}
+function addMusicSong(){
+  const name = document.getElementById('musicSongInput').value.trim();
+  if(!name) return;
+  music.songs.push({id:String(Date.now()), name, instrument:musicInstrument, status:'learning'});
+  document.getElementById('musicSongInput').value='';
+  saveAll(); renderMusic();
+}
+function toggleMusicSong(id){
+  const s = music.songs.find(x=>x.id===id);
+  if(s){ s.status = s.status==='done' ? 'learning' : 'done'; saveAll(); renderMusic(); }
+}
+function deleteMusicSong(id){
+  music.songs = music.songs.filter(x=>x.id!==id);
+  saveAll(); renderMusic();
+}
+function renderMusic(){
+  const mp = monthPrefix();
+  const monthLogs = music.logs.filter(l=>l.date.startsWith(mp));
+  const totalMin = monthLogs.reduce((s,l)=>s+(l.minutes||0),0);
+  document.getElementById('musicMonthMinutes').textContent = (totalMin/60).toFixed(1)+'h';
+  document.getElementById('musicMonthDays').textContent = new Set(monthLogs.map(l=>l.date)).size+'일';
+
+  const week = getWeekDates();
+  const days = ['월','화','수','목','금','토','일'];
+  const today = todayStr();
+  document.getElementById('musicWeekGrid').innerHTML = week.map((d,i)=>{
+    const mins = music.logs.filter(l=>l.date===d).reduce((s,l)=>s+(l.minutes||0),0);
+    return `<div class="wcell ${d===today?'today':''}">
+      <div class="wd">${days[i]}</div>
+      <div class="wdate">${d.slice(8)}</div>
+      <div class="dots"><div class="dot" style="${mins>0?'background:var(--br)':''}"></div></div>
+      ${mins>0?`<div style="font-size:8px;color:var(--br);font-weight:700">${mins}m</div>`:''}
+    </div>`;
+  }).join('');
+
+  document.getElementById('musicSongList').innerHTML = music.songs.length ? music.songs.map(s=>`
+    <div style="display:flex;align-items:center;gap:10px;background:var(--card);border-radius:12px;padding:11px 12px;margin-bottom:6px">
+      <div onclick="toggleMusicSong('${s.id}')" style="width:20px;height:20px;border-radius:6px;border:2px solid ${s.status==='done'?'var(--g)':'#DDD'};background:${s.status==='done'?'var(--g)':'transparent'};display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:12px;color:white">${s.status==='done'?'✓':''}</div>
+      <div onclick="toggleMusicSong('${s.id}')" style="flex:1;cursor:pointer">
+        <div style="font-size:13px;${s.status==='done'?'text-decoration:line-through;color:var(--sub)':''}">${escapeHtml(s.name)}</div>
+        <div style="font-size:10px;color:var(--sub)">${instEmoji(s.instrument)} · ${s.status==='done'?'완성':'배우는 중'}</div>
+      </div>
+      <button onclick="deleteMusicSong('${s.id}')" style="border:none;background:none;color:var(--sub);font-size:15px;cursor:pointer;padding:2px 4px">✕</button>
+    </div>`).join('') : '<div class="empty" style="padding:10px 0">배우고 싶은 곡이나 코드를 추가해보세요 🎵</div>';
+
+  const recentLogs = [...music.logs].reverse().slice(0,10);
+  document.getElementById('musicLogList').innerHTML = recentLogs.length ? recentLogs.map(l=>`
+    <div class="dentry">
+      <div class="dd"><span>${l.date}</span><span class="tag" style="background:var(--brl);color:var(--br)">${instEmoji(l.instrument)} ${l.minutes}분</span></div>
+      <div class="dn">${escapeHtml(l.note||'')}</div>
+    </div>`).join('') : '<div class="empty">연습 기록을 남겨보세요 🎸</div>';
 }
 
 function switchBrainStage(stage){
