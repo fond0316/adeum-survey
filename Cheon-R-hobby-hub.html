@@ -462,6 +462,15 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
     <button onclick="closeCareZone()" style="margin-top:20px;width:100%;padding:13px;border:none;border-radius:13px;background:var(--gl);color:var(--g);font-size:14px;font-weight:700;font-family:'Pretendard',sans-serif;cursor:pointer">닫기</button>
   </div>
 </div>
+<!-- 이번 달 통계 상세 모달 -->
+<div id="statDetailModal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.45)" onclick="closeStatDetail()">
+  <div onclick="event.stopPropagation()" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);max-width:480px;width:100%;background:white;border-radius:22px 22px 0 0;padding:20px 20px 40px;max-height:75vh;overflow-y:auto">
+    <div style="width:36px;height:4px;background:#DDD;border-radius:2px;margin:0 auto 16px"></div>
+    <div style="font-size:17px;font-weight:800;margin-bottom:14px" id="statDetailTitle"></div>
+    <div id="statDetailList"></div>
+    <button onclick="closeStatDetail()" style="margin-top:16px;width:100%;padding:13px;border:none;border-radius:13px;background:var(--gl);color:var(--g);font-size:14px;font-weight:700;font-family:'Pretendard',sans-serif;cursor:pointer">닫기</button>
+  </div>
+</div>
 <!-- 백업/복원 모달 -->
 <div id="backupModal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.45)" onclick="closeBackupModal()">
   <div onclick="event.stopPropagation()" style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);max-width:480px;width:100%;background:white;border-radius:22px 22px 0 0;padding:20px 20px 40px">
@@ -474,6 +483,15 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
       <input type="file" accept="application/json" onchange="importDataFile(event)" style="display:none">
     </label>
     <div style="font-size:11px;color:var(--danger);margin-top:8px">⚠️ 불러오기를 하면 현재 데이터를 덮어써요.</div>
+    <div style="height:1px;background:#EEE;margin:18px 0"></div>
+    <div style="font-size:14px;font-weight:800;margin-bottom:4px">🗑️ 카테고리별 초기화</div>
+    <div style="font-size:11px;color:var(--sub);margin-bottom:12px;line-height:1.6">해당 카테고리 데이터만 싹 비워요. 식물이 집단으로 상했거나 어항을 리셋할 때처럼요. 눌러도 자동으로 백업 파일이 먼저 저장되니 걱정 마세요.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button onclick="resetCategory('plants')" style="border:1px solid var(--danger);border-radius:12px;padding:10px 6px;font-size:12px;font-weight:700;font-family:'Pretendard',sans-serif;cursor:pointer;color:var(--danger);background:white">🌱 식집사 초기화</button>
+      <button onclick="resetCategory('fish')" style="border:1px solid var(--danger);border-radius:12px;padding:10px 6px;font-size:12px;font-weight:700;font-family:'Pretendard',sans-serif;cursor:pointer;color:var(--danger);background:white">🐠 물집사 초기화</button>
+      <button onclick="resetCategory('exercise')" style="border:1px solid var(--danger);border-radius:12px;padding:10px 6px;font-size:12px;font-weight:700;font-family:'Pretendard',sans-serif;cursor:pointer;color:var(--danger);background:white">💪 운동존 초기화</button>
+      <button onclick="resetCategory('brain')" style="border:1px solid var(--danger);border-radius:12px;padding:10px 6px;font-size:12px;font-weight:700;font-family:'Pretendard',sans-serif;cursor:pointer;color:var(--danger);background:white">🧠 자기계발존 초기화</button>
+    </div>
     <button onclick="closeBackupModal()" style="margin-top:16px;width:100%;padding:13px;border:none;border-radius:13px;background:var(--gl);color:var(--g);font-size:14px;font-weight:700;font-family:'Pretendard',sans-serif;cursor:pointer">닫기</button>
   </div>
 </div>
@@ -1011,6 +1029,67 @@ function importDataFile(event){
   };
   reader.readAsText(file);
 }
+function resetCategory(type){
+  const labels = {plants:'🌱 식집사', fish:'🐠 물집사', exercise:'💪 운동존', brain:'🧠 자기계발존'};
+  const label = labels[type];
+  if(!label) return;
+  if(!confirm(`${label} 데이터를 전부 초기화할까요?\n\n➡️ 초기화 전 백업 파일이 자동으로 저장돼요.\n➡️ 초기화 후에는 되돌릴 수 없어요.`)) return;
+  try{ exportData(); }catch(e){ console.error('자동 백업 실패:', e); }
+  switch(type){
+    case 'plants':
+      plants = [];
+      break;
+    case 'fish':
+      fish = {species:[], logs:[], waterChangeDays:[3,0], lastWaterChange:null};
+      break;
+    case 'exercise':
+      exercise = {weeklyGoal:(exercise && exercise.weeklyGoal) || 4, logs:[]};
+      break;
+    case 'brain':
+      brain = {examDate:'', goalHours:200, goalTraining:40, logs:[]};
+      break;
+  }
+  saveAll();
+  alert(`✅ ${label} 초기화 완료!\n(백업 파일은 다운로드 폴더에 저장됐어요)`);
+  closeBackupModal();
+  goHub();
+}
+function openStatDetail(type){
+  const mp = monthPrefix();
+  const waterTypesM = ['물주기','물주기(저면)','물주기(상면)','영양제'];
+  const row = (dateStr, text) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 2px;border-bottom:1px solid #F0EEE8">
+      <span style="font-size:12px;color:var(--sub)">${dateStr.slice(5).replace('-','.')}</span>
+      <span style="font-size:13px;font-weight:600;flex:1;margin-left:10px">${escapeHtml(text)}</span>
+    </div>`;
+  let title = '', html = '';
+  if(type==='water'){
+    title = '💧 이번 달 물주기 기록';
+    const map = {};
+    plants.forEach(p=>p.diary.forEach(d=>{
+      if(!d.date.startsWith(mp) || !waterTypesM.includes(d.type)) return;
+      (map[d.date] = map[d.date]||[]).push(p.name);
+    }));
+    const dates = Object.keys(map).sort().reverse();
+    html = dates.length ? dates.map(d=>row(d, map[d].join(', '))).join('') : '<div class="empty" style="padding:16px 0">이번 달 물주기 기록이 아직 없어요</div>';
+  } else if(type==='mist'){
+    title = '💦 이번 달 분무 기록';
+    const map = {};
+    plants.forEach(p=>p.diary.forEach(d=>{
+      if(!d.date.startsWith(mp) || d.type!=='분무') return;
+      (map[d.date] = map[d.date]||[]).push(p.name);
+    }));
+    const dates = Object.keys(map).sort().reverse();
+    html = dates.length ? dates.map(d=>row(d, map[d].join(', '))).join('') : '<div class="empty" style="padding:16px 0">이번 달 분무 기록이 아직 없어요</div>';
+  } else if(type==='exercise'){
+    title = '💪 이번 달 운동 기록';
+    const logs = (exercise.logs||[]).filter(l=>l.date.startsWith(mp)).sort((a,b)=>b.date.localeCompare(a.date));
+    html = logs.length ? logs.map(l=>row(l.date, l.type ? l.type : '운동 완료')).join('') : '<div class="empty" style="padding:16px 0">이번 달 운동 기록이 아직 없어요</div>';
+  }
+  document.getElementById('statDetailTitle').textContent = title;
+  document.getElementById('statDetailList').innerHTML = html;
+  document.getElementById('statDetailModal').style.display = 'block';
+}
+function closeStatDetail(){ document.getElementById('statDetailModal').style.display = 'none'; }
 function initFish(){
   fish = {
     species:[
@@ -1396,14 +1475,14 @@ function renderHub(){
   const waterRate = daysSoFar ? Math.round(wateredDaysThisMonth.size/daysSoFar*100) : 0;
   const exCountMonth = exercise.logs.filter(l=>l.date.startsWith(mp)).length;
   const mistRate = daysSoFar ? Math.round(mistedDaysThisMonth.size/daysSoFar*100) : 0;
-  const statBox = (label,value,color) => `<div style="background:var(--card);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 5px rgba(0,0,0,.04)">
+  const statBox = (label,value,color,onclick) => `<div onclick="${onclick}" style="cursor:pointer;background:var(--card);border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 5px rgba(0,0,0,.04)">
     <div style="font-size:17px;font-weight:800;color:${color}">${value}</div>
     <div style="font-size:10px;color:var(--sub);margin-top:2px">${label}</div>
   </div>`;
   document.getElementById('hubMonthStats').innerHTML =
-    statBox('물주기 실천일', waterRate+'%', 'var(--g)') +
-    statBox('운동 횟수', exCountMonth+'회', 'var(--ex)') +
-    statBox('분무 실천일', mistRate+'%', 'var(--b)');
+    statBox('물주기 실천일', waterRate+'%', 'var(--g)', "openStatDetail('water')") +
+    statBox('운동 횟수', exCountMonth+'회', 'var(--ex)', "openStatDetail('exercise')") +
+    statBox('분무 실천일', mistRate+'%', 'var(--b)', "openStatDetail('mist')");
 }
 
 // ===== PLANTS =====
