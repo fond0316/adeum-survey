@@ -324,6 +324,10 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
 .notice-row-status{font-size:11px;font-weight:600;}
 .notice-row textarea{width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:12.5px;font-family:'Pretendard',-apple-system,sans-serif;resize:vertical;min-height:56px;}
 .notice-row textarea:focus{border-color:var(--primary);outline:none;}
+.notice-toolbar{margin-bottom:6px;}
+.notice-bold-btn{padding:4px 10px;border:1.5px solid var(--gray-200);background:white;border-radius:6px;font-size:11.5px;color:var(--gray-700);cursor:pointer;}
+.notice-bold-btn:hover{border-color:var(--primary);color:var(--primary);}
+.notice-hint{font-size:11px;color:var(--gray-400);margin-top:5px;}
 
 /* 옵션 목록 (체크박스/라디오용) */
 .opt-list{margin-top:8px;}
@@ -2253,6 +2257,36 @@ let noticeSettings = {
   club:   { closed:false, notice:'' },
 };
 
+// **텍스트** → <strong>텍스트</strong> (HTML 이스케이프 후 변환, XSS 방지)
+function noticeMarkupToHtml(text) {
+  const escaped = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  return escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+}
+
+// 관리자: 선택한 텍스트를 **굵게** 마크업으로 감싸기
+function wrapNoticeBold(cat) {
+  const ta = document.getElementById('noticeText-' + cat);
+  if (!ta) return;
+  const start = ta.selectionStart;
+  const end   = ta.selectionEnd;
+  const val   = ta.value;
+  if (start === end) {
+    // 선택 영역 없으면 커서 위치에 예시 삽입 후 선택
+    const insert = '**강조할 문구**';
+    ta.value = val.slice(0, start) + insert + val.slice(end);
+    ta.focus();
+    ta.setSelectionRange(start + 2, start + 2 + '강조할 문구'.length);
+    return;
+  }
+  const selected = val.slice(start, end);
+  ta.value = val.slice(0, start) + '**' + selected + '**' + val.slice(end);
+  ta.focus();
+  ta.setSelectionRange(start, end + 4);
+}
+
 function loadNoticeSettingsCache() {
   try {
     const raw = localStorage.getItem(NOTICE_STORAGE_KEY);
@@ -2279,11 +2313,11 @@ function applyNoticeSettings() {
   NOTICE_CATS.forEach(cat => {
     const s = noticeSettings[cat] || { closed:false, notice:'' };
 
-    // ── 학생 화면: 공지 박스 ──
+    // ── 학생 화면: 공지 박스 (**굵게** 마크업 지원) ──
     const noticeEl = document.getElementById('catnotice-' + cat);
     if (noticeEl) {
       if (s.notice && s.notice.trim()) {
-        noticeEl.textContent = '📢 ' + s.notice.trim();
+        noticeEl.innerHTML = noticeMarkupToHtml('📢 ' + s.notice.trim());
         noticeEl.style.display = 'block';
       } else {
         noticeEl.style.display = 'none';
@@ -2662,7 +2696,9 @@ window.addEventListener('load', () => {
           </label>
         </div>
       </div>
+      <div class="notice-toolbar"><button type="button" class="notice-bold-btn" onclick="wrapNoticeBold('hakgup')"><b>B</b> 굵게</button></div>
       <textarea id="noticeText-hakgup" placeholder="예: 자율활동은 6/20(금)까지 제출해주세요"></textarea>
+      <div class="notice-hint">💡 굵게 하고 싶은 부분을 드래그하고 <b>B 굵게</b> 버튼을 누르세요</div>
     </div>
 
     <div class="notice-row">
@@ -2676,7 +2712,9 @@ window.addEventListener('load', () => {
           </label>
         </div>
       </div>
+      <div class="notice-toolbar"><button type="button" class="notice-bold-btn" onclick="wrapNoticeBold('math')"><b>B</b> 굵게</button></div>
       <textarea id="noticeText-math" placeholder="예: 수학 세특은 이번 주까지만 받아요"></textarea>
+      <div class="notice-hint">💡 굵게 하고 싶은 부분을 드래그하고 <b>B 굵게</b> 버튼을 누르세요</div>
     </div>
 
     <div class="notice-row">
@@ -2690,7 +2728,9 @@ window.addEventListener('load', () => {
           </label>
         </div>
       </div>
+      <div class="notice-toolbar"><button type="button" class="notice-bold-btn" onclick="wrapNoticeBold('club')"><b>B</b> 굵게</button></div>
       <textarea id="noticeText-club" placeholder="예: 동아리 활동 3개 이상 선택해서 작성해주세요"></textarea>
+      <div class="notice-hint">💡 굵게 하고 싶은 부분을 드래그하고 <b>B 굵게</b> 버튼을 누르세요</div>
     </div>
 
     <div id="notice-save-status" style="font-size:12px;color:var(--gray-400);margin:4px 2px 10px;"></div>
