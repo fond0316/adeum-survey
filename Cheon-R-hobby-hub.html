@@ -214,7 +214,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
 .empty{text-align:center;color:var(--sub);font-size:13px;padding:28px 0;line-height:1.7;}
 .del-link{color:var(--danger);font-size:12px;text-align:center;display:block;margin-top:14px;cursor:pointer;}
 </style>
-<meta name="app-build" content="2026-07-03T00:00:00Z">
+<meta name="app-build" content="2026-07-03T02:00:00Z">
 </head>
 <body>
 <div id="updateBanner" style="display:none;position:fixed;top:0;left:50%;transform:translateX(-50%);max-width:480px;width:100%;background:#3B3B3B;color:white;z-index:500;padding:10px 16px;font-size:13px;font-weight:600;display:none;align-items:center;justify-content:space-between;gap:10px;box-sizing:border-box">
@@ -404,11 +404,13 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
       <div class="sbox"><div class="snum" id="dDays">-</div><div class="slab">키운지(일)</div></div>
       <div class="sbox"><div class="snum" id="dLast">-</div><div class="slab">마지막 급수</div></div>
       <div class="sbox"><div class="snum" id="dSpray">-</div><div class="slab">마지막 분무</div></div>
+      <div class="sbox"><div class="snum" id="dFert">-</div><div class="slab">마지막 영양제</div></div>
     </div>
     <div class="care-card" id="detailCare"></div>
     <div class="btn-row">
       <button class="cbtn g" onclick="waterNow()">💧 물주기</button>
-      <button class="cbtn b" onclick="sprayNow()">🌫️ 분무/영양제</button>
+      <button class="cbtn b" onclick="sprayNow()">🌫️ 분무</button>
+      <button class="cbtn" style="background:var(--br)" onclick="fertilizeNow()">🧪 영양제</button>
     </div>
     <div class="tabs">
       <button class="tab active" id="tab-diary" onclick="switchTab('diary')">📔 일기장</button>
@@ -430,6 +432,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
       <div class="fg"><label class="fl">물주기 주기 (일)</label><input class="fi" type="number" id="editDays"></div>
       <div class="fg"><label class="fl">케어 팁</label><input class="fi" id="editTip"></div>
       <div class="fg"><label class="fl">가끔 분무 주기 (일, 0=사용 안 함)</label><input class="fi" type="number" id="editMistCycle" min="0" placeholder="예: 7"></div>
+      <div class="fg"><label class="fl">영양제 주기 (일, 0=사용 안 함)</label><input class="fi" type="number" id="editFertCycle" min="0" placeholder="예: 14"></div>
       <button class="btn g" onclick="updatePlant()">저장</button>
       <a class="del-link" onclick="deletePlant()">이 식물 삭제하기</a>
     </div>
@@ -448,6 +451,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
 
     <div id="careMistSection" style="margin-top:16px;display:none"><div id="careMistTitle" style="font-size:12px;font-weight:700;color:#5B9BD5;margin-bottom:8px">💧 분무 할일</div><div id="careMistList"></div></div>
     <div id="careOccMistSection" style="margin-top:16px;display:none"><div id="careOccMistTitle" style="font-size:12px;font-weight:700;color:#8A8A6E;margin-bottom:8px">🌫️ 가끔 분무</div><div id="careOccMistList"></div></div>
+    <div id="careFertSection" style="margin-top:16px;display:none"><div id="careFertTitle" style="font-size:12px;font-weight:700;color:var(--br);margin-bottom:8px">🧪 영양제 할일</div><div id="careFertList"></div></div>
 
     <!-- 물집사 섹션 -->
     <div id="careFishSection" style="margin-top:16px;display:none">
@@ -937,6 +941,8 @@ function loadAll(){
           const newTarget = plant.planned ? 0 : (MIST_TARGET[plant.name]||0);
           if(plant.mistTarget !== newTarget){ plant.mistTarget = newTarget; needsSave=true; }
           if(plant.mistCycleDays === undefined){ plant.mistCycleDays = plant.planned ? 0 : (MIST_CYCLE_DAYS[plant.name]||0); needsSave=true; }
+          if(plant.fertCycleDays === undefined){ plant.fertCycleDays = plant.planned ? 0 : 7; needsSave=true; }
+          if(plant.lastFertilized === undefined){ plant.lastFertilized = null; needsSave=true; }
           if(plant.planned === undefined){
             plant.planned = PLANNED_NAMES.includes(plant.name);
             needsSave = true;
@@ -1019,6 +1025,15 @@ function loadAll(){
       }
     });
     localStorage.setItem('hub_tipPatch_v3', '1');
+  }
+  if(!localStorage.getItem('hub_fertDefaultPatch_v1')){
+    plants.forEach(plant=>{
+      if(!plant.planned && (plant.fertCycleDays===0 || plant.fertCycleDays===undefined)){
+        plant.fertCycleDays = 7;
+        needsSave = true;
+      }
+    });
+    localStorage.setItem('hub_fertDefaultPatch_v1', '1');
   }
 
   if(needsSave) saveAll();
@@ -1246,6 +1261,12 @@ function mistCycleDDay(p){
   next.setDate(next.getDate()+p.mistCycleDays);
   return daysBetween(todayStr(), localDateStr(next));
 }
+function fertCycleDDay(p){
+  if(!p.lastFertilized) return -9999;
+  const next = new Date(p.lastFertilized);
+  next.setDate(next.getDate()+p.fertCycleDays);
+  return daysBetween(todayStr(), localDateStr(next));
+}
 function mmdd(s){ return s ? s.slice(5).replace('-','/') : '-'; }
 function plantFeatureTags(p){
   const tags = [];
@@ -1392,6 +1413,36 @@ function openCareZone(){
   const occDone = occList.filter(p=>occSprayedToday(p)).length;
   document.getElementById('careOccMistTitle').textContent = `🌫️ 가끔 분무 ${occDone}/${occList.length}종 완료`;
 
+  // 🧪 영양제
+  const fertCandidates = plants.filter(p=>!p.planned && p.fertCycleDays>0);
+  const fertCountToday = p => p.diary.filter(d=>d.date===today && d.type==='영양제').length;
+  const fertList = fertCandidates.filter(p=>fertCycleDDay(p)<=0 || fertCountToday(p)>0);
+  const fertItems = fertList.map(p=>{
+    const cnt = fertCountToday(p);
+    const done = cnt>0;
+    const dd = fertCycleDDay(p);
+    const sub = done ? `오늘 ${cnt}회 줌` : (dd===0?'오늘이 영양제 주는 날':`${Math.abs(dd)}일 지남`);
+    const dots = Array.from({length:cnt},(_,i)=>
+      `<button onclick="deleteFertEntry('${p.id}',${i})" title="눌러서 이 기록 취소" style="width:14px;height:14px;border-radius:50%;border:none;padding:0;cursor:pointer;background:var(--br);margin-right:3px"></button>`
+    ).join('');
+    const btnText = done ? '➕ 추가 영양제' : '영양제 줬어요';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:${done?'var(--brl)':'#F4F2EC'};border-radius:11px;margin-bottom:7px;transition:background .2s">
+      <span style="font-size:18px">${p.emoji||'🌱'}</span>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600">${escapeHtml(p.name)}</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+          ${dots}
+          <span style="font-size:11px;color:var(--sub)">${sub} · ${p.fertCycleDays}일마다</span>
+        </div>
+      </div>
+      <button class="t-btn" style="background:var(--br)" onclick="quickFertilize('${p.id}');openCareZone()">${btnText}</button>
+    </div>`;
+  }).join('');
+  document.getElementById('careFertSection').style.display = fertList.length?'block':'none';
+  document.getElementById('careFertList').innerHTML = fertItems;
+  const fertDone = fertList.filter(p=>fertCountToday(p)>0).length;
+  document.getElementById('careFertTitle').textContent = `🧪 영양제 할일 ${fertDone}/${fertList.length}종 완료`;
+
   // 🐠 물집사 - 아침/저녁 급여 체크
   const feedLogs = fish.logs.filter(l=>l.type==='feed' && l.date===today);
   const morningFed = feedLogs.some(l=>l.timing==='아침');
@@ -1469,7 +1520,7 @@ function openCareZone(){
   document.getElementById('careBrainSection').style.display = 'block';
 
   const waterAllDone = watering.every(p=>wateredIds.has(p.id));
-  document.getElementById('careAllGood').style.display = (waterAllDone&&mistDone>=needMist.length&&morningFed&&eveningFed&&weekDone>=weekGoal)?'block':'none';
+  document.getElementById('careAllGood').style.display = (waterAllDone&&mistDone>=needMist.length&&fertDone>=fertList.length&&morningFed&&eveningFed&&weekDone>=weekGoal)?'block':'none';
   document.getElementById('careModal').style.display = 'block';
 }
 function closeCareZone(){
@@ -1720,6 +1771,12 @@ function quickSpray(id){
   p.diary.push({date:todayStr(),note:'',photo:null,type:'분무'});
   saveAll(); if(document.getElementById('s-plants').classList.contains('active')) renderPlants();
 }
+function quickFertilize(id){
+  const p = plants.find(p=>p.id===id);
+  p.lastFertilized = todayStr();
+  p.diary.push({date:todayStr(),note:'',photo:null,type:'영양제'});
+  saveAll(); if(document.getElementById('s-plants').classList.contains('active')) renderPlants();
+}
 function deleteMistEntry(plantId, doseIndex){
   const p = plants.find(p=>p.id===plantId);
   if(!p) return;
@@ -1730,6 +1787,20 @@ function deleteMistEntry(plantId, doseIndex){
   p.diary.splice(idxs[doseIndex],1);
   const remaining = p.diary.filter(d=>d.type==='분무').map(d=>d.date).sort();
   p.lastSprayed = remaining.length ? remaining[remaining.length-1] : null;
+  saveAll();
+  if(document.getElementById('s-plants').classList.contains('active')) renderPlants();
+  openCareZone();
+}
+function deleteFertEntry(plantId, doseIndex){
+  const p = plants.find(p=>p.id===plantId);
+  if(!p) return;
+  const today = todayStr();
+  const idxs = [];
+  p.diary.forEach((d,i)=>{ if(d.date===today && d.type==='영양제') idxs.push(i); });
+  if(doseIndex>=idxs.length) return;
+  p.diary.splice(idxs[doseIndex],1);
+  const remaining = p.diary.filter(d=>d.type==='영양제').map(d=>d.date).sort();
+  p.lastFertilized = remaining.length ? remaining[remaining.length-1] : null;
   saveAll();
   if(document.getElementById('s-plants').classList.contains('active')) renderPlants();
   openCareZone();
@@ -1790,6 +1861,7 @@ function submitAddPlant(){
     wateringDays: parseInt(document.getElementById('addDays').value)||7,
     lastWatered: document.getElementById('addLastW').value||todayStr(),
     lastSprayed: null,
+    lastFertilized: null,
     acquiredDate: document.getElementById('addAcquired').value||todayStr(),
     photo: addPhotoData, diary: [],
     tip: document.getElementById('addTip').value,
@@ -1812,6 +1884,7 @@ function openPlant(id){
   document.getElementById('dDays').textContent = p.acquiredDate ? daysBetween(p.acquiredDate,todayStr()) : '-';
   document.getElementById('dLast').textContent = mmdd(p.lastWatered);
   document.getElementById('dSpray').textContent = p.lastSprayed ? mmdd(p.lastSprayed) : '-';
+  document.getElementById('dFert').textContent = p.lastFertilized ? mmdd(p.lastFertilized) : '-';
   // care card
   const care = p.care||{};
   let careHtml = '';
@@ -1825,6 +1898,7 @@ function openPlant(id){
   document.getElementById('editDays').value = p.wateringDays;
   document.getElementById('editTip').value = p.tip||'';
   document.getElementById('editMistCycle').value = p.mistCycleDays||0;
+  document.getElementById('editFertCycle').value = p.fertCycleDays||0;
   editPhotoData = undefined;
   const editBox = document.getElementById('editPhotoBox');
   editBox.innerHTML = (p.photo ? `<img src="${p.photo}">` : '📷 사진 변경하기') + '<input type="file" accept="image/*" onchange="previewPhoto(event,\'editPhotoBox\',\'edit\')">';
@@ -1845,6 +1919,12 @@ function sprayNow(){
   const p = plants.find(p=>p.id===currentPlantId);
   p.lastSprayed = todayStr();
   p.diary.push({date:todayStr(),note:'',photo:null,type:'분무'});
+  saveAll(); openPlant(currentPlantId);
+}
+function fertilizeNow(){
+  const p = plants.find(p=>p.id===currentPlantId);
+  p.lastFertilized = todayStr();
+  p.diary.push({date:todayStr(),note:'',photo:null,type:'영양제'});
   saveAll(); openPlant(currentPlantId);
 }
 function renderDiaryChips(){
@@ -1896,6 +1976,7 @@ function updatePlant(){
   p.wateringDays = parseInt(document.getElementById('editDays').value)||p.wateringDays;
   p.tip = document.getElementById('editTip').value;
   p.mistCycleDays = parseInt(document.getElementById('editMistCycle').value)||0;
+  p.fertCycleDays = parseInt(document.getElementById('editFertCycle').value)||0;
   if(editPhotoData !== undefined) p.photo = editPhotoData;
   saveAll(); openPlant(currentPlantId);
 }
