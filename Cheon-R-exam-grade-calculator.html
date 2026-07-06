@@ -167,6 +167,8 @@
       <p class="desc" id="uploadDesc">반별 파일 여러 개를 한 번에 올려도 되고, 한 파일 안에 시트가 여러 개(반별)여도 자동으로 다 합쳐서 인식해요.
         필요한 열: <code>학번</code>(또는 <code>반</code>+<code>번호</code>), <code>이름</code>, <code>점수</code></p>
 
+      <div class="guide" id="pathGuide" style="margin-bottom:14px;"></div>
+
       <div class="dropzone" id="dropzone">
         <div class="big">📂 클릭해서 파일 선택 (또는 여기로 드래그)</div>
         <span>.xlsx / .xls 파일, 여러 개 선택 가능</span>
@@ -177,7 +179,7 @@
       <div id="uploadWarn"></div>
 
       <details style="margin-top:14px;" id="guideDetails">
-        <summary>💡 엑셀 형식 / 나이스 다운로드 방법 보기</summary>
+        <summary>💡 엑셀 열 형식 자세히 보기</summary>
         <div class="guide" id="guideBody"></div>
       </details>
 
@@ -218,6 +220,14 @@
     <h2 id="resultTitle">2️⃣ 계산 결과 (전체 학년 통합 기준)</h2>
     <div id="examMetaBox"></div>
     <div class="stats" id="statsBox"></div>
+
+    <div class="disttitle" style="font-size:13px;font-weight:600;color:var(--main-dark);margin:4px 0 8px;">📊 반별 등급 분포</div>
+    <div class="tablewrap" style="max-height:300px; margin-bottom:20px;">
+      <table>
+        <thead><tr id="distHead"></tr></thead>
+        <tbody id="distBody"></tbody>
+      </table>
+    </div>
 
     <div class="tablewrap">
       <table>
@@ -288,21 +298,17 @@
   const resultTitle = document.getElementById('resultTitle');
   const downloadCard = document.getElementById('downloadCard');
   const statsBox = document.getElementById('statsBox');
+  const distHead = document.getElementById('distHead');
+  const distBody = document.getElementById('distBody');
   const resultBody = document.getElementById('resultBody');
   const classGrid = document.getElementById('classGrid');
 
-  const NEIS_GUIDE = `
-    <div class="path">교과담임 → 정기시험조회 → 과목별일람표조회 → 전체학급 선택 → 학기 선택 → 중간고사/기말고사 설정 → 조회 → 엑셀 다운로드</div>
-    나이스에서 위 경로로 받은 "정기시험 교과목별 일람표" 엑셀은 그대로 업로드하면 자동으로 인식돼요 (반+번호+점수 매트릭스 형식).
-  `;
+  const NEIS_PATH = `<div class="path">📍 교과담임 → 정기시험조회 → 과목별일람표조회 → 전체학급 선택 → 학기 선택 → 중간고사/기말고사 설정 → 조회 → 엑셀 다운로드</div>
+    위 경로로 받은 "정기시험 교과목별 일람표" 엑셀은 그대로 업로드하면 자동으로 인식돼요.`;
+  const PERFORMANCE_PATH = `<div class="path">📍 수행평가는 나이스 정기시험 일람표 형식이 아니에요</div>
+    직접 만든 명렬표(학번 또는 반+번호, 이름, 점수)를 올려주세요. 여러 항목을 합산한 <b>최종 수행평가 총점 1개</b> 열로 정리해서 넣으면 계산이 가능해요.`;
 
-  const GUIDE_TEXT = {
-    midterm: NEIS_GUIDE, final: NEIS_GUIDE,
-    performance: `
-      수행평가는 나이스 정기시험 일람표 형식이 아니라, 직접 만든 명렬표(학번 또는 반+번호, 이름, 점수)를 올려주세요.<br>
-      여러 항목을 합산한 <b>최종 수행평가 총점 1개</b> 열로 정리해서 넣으면 계산이 가능해요.
-    `
-  };
+  const GUIDE_TEXT = { midterm: NEIS_PATH, final: NEIS_PATH, performance: PERFORMANCE_PATH };
   const GUIDE_COMMON = `
     · 첫 번째 행은 <b>헤더(열 이름)</b>여야 해요. (학번 / 반 / 번호 / 이름 / 점수 등)<br>
     · <code>학번</code> 열이 5자리(예: 10101 = 1학년 1반 1번)면 반/번호는 자동으로 계산돼요.<br>
@@ -336,7 +342,8 @@
       combineCard.style.display = 'none';
       const label = TABS.find(t=>t.id===tabId).label;
       uploadTitle.textContent = `1️⃣ ${label} 명렬표 / 점수 엑셀 업로드`;
-      guideBody.innerHTML = (GUIDE_TEXT[tabId]||'') + '<br>' + GUIDE_COMMON;
+      document.getElementById('pathGuide').innerHTML = GUIDE_TEXT[tabId] || '';
+      guideBody.innerHTML = GUIDE_COMMON;
       renderFileList();
       uploadWarn.innerHTML = '';
       calcBtn.disabled = cur().uploadedFiles.length === 0;
@@ -779,6 +786,7 @@
     sortRows();
     drawTable();
     updateSortArrows();
+    renderGradeDistribution(st.results);
 
     document.querySelectorAll('thead th').forEach(th=>{
       th.onclick = ()=>{
@@ -791,6 +799,26 @@
         updateSortArrows();
       };
     });
+  }
+
+  function renderGradeDistribution(results){
+    const classes = [...new Set(results.map(r=>r.classNo))].sort((a,b)=>a-b);
+    const grades = [1,2,3,4,5];
+
+    distHead.innerHTML = `<th style="cursor:default;">반</th>` +
+      grades.map(g=>`<th style="cursor:default;"><span class="badge g${g}">${g}등급</span></th>`).join('') +
+      `<th style="cursor:default;">합계</th>`;
+
+    const rows = classes.map(c=>{
+      const classResults = results.filter(r=> r.classNo === c);
+      const counts = grades.map(g=> classResults.filter(r=> r.grade === g).length);
+      return `<tr><td><b>${c}반</b></td>${counts.map(cnt=>`<td>${cnt}</td>`).join('')}<td><b>${classResults.length}</b></td></tr>`;
+    });
+
+    const totalCounts = grades.map(g=> results.filter(r=> r.grade === g).length);
+    rows.push(`<tr style="background:#F7F5FC;"><td><b>전체</b></td>${totalCounts.map(cnt=>`<td><b>${cnt}</b></td>`).join('')}<td><b>${results.length}</b></td></tr>`);
+
+    distBody.innerHTML = rows.join('');
   }
 
   function updateSortArrows(){
