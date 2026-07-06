@@ -807,16 +807,18 @@
 
     distHead.innerHTML = `<th style="cursor:default;">반</th>` +
       grades.map(g=>`<th style="cursor:default;"><span class="badge g${g}">${g}등급</span></th>`).join('') +
-      `<th style="cursor:default;">합계</th>`;
+      `<th style="cursor:default;">합계</th><th style="cursor:default;">반평균</th>`;
 
     const rows = classes.map(c=>{
       const classResults = results.filter(r=> r.classNo === c);
       const counts = grades.map(g=> classResults.filter(r=> r.grade === g).length);
-      return `<tr><td><b>${c}반</b></td>${counts.map(cnt=>`<td>${cnt}</td>`).join('')}<td><b>${classResults.length}</b></td></tr>`;
+      const classAvg = classResults.reduce((a,r)=> a+r.score, 0) / classResults.length;
+      return `<tr><td><b>${c}반</b></td>${counts.map(cnt=>`<td>${cnt}</td>`).join('')}<td><b>${classResults.length}</b></td><td>${classAvg.toFixed(1)}</td></tr>`;
     });
 
     const totalCounts = grades.map(g=> results.filter(r=> r.grade === g).length);
-    rows.push(`<tr style="background:#F7F5FC;"><td><b>전체</b></td>${totalCounts.map(cnt=>`<td><b>${cnt}</b></td>`).join('')}<td><b>${results.length}</b></td></tr>`);
+    const totalAvg = results.reduce((a,r)=> a+r.score, 0) / results.length;
+    rows.push(`<tr style="background:#F7F5FC;"><td><b>전체</b></td>${totalCounts.map(cnt=>`<td><b>${cnt}</b></td>`).join('')}<td><b>${results.length}</b></td><td><b>${totalAvg.toFixed(1)}</b></td></tr>`);
 
     distBody.innerHTML = rows.join('');
   }
