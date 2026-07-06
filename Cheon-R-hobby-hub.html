@@ -757,7 +757,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
     </div>
     <div class="sec-title">어종 등록 <span onclick="toggleAddSpeciesForm()" style="cursor:pointer;font-weight:700;color:var(--b);text-transform:none;letter-spacing:0" id="addSpeciesToggle">+ 새 어종 추가</span></div>
     <div id="addSpeciesRow" style="display:none;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-      <input class="fi" id="newSpeciesEmoji" placeholder="🐟" style="width:56px;text-align:center;font-size:18px">
+      <input class="fi" id="newSpeciesEmoji" placeholder="비워도OK" style="width:70px;text-align:center;font-size:13px">
       <input class="fi" id="newSpeciesName" placeholder="어종명 (예: 구피)" style="flex:1">
       <input class="fi" id="newSpeciesCount" type="number" placeholder="수" style="width:56px">
       <button class="sbtn b" onclick="addSpecies()">추가</button>
@@ -809,7 +809,7 @@ const MIST_TARGET = {
   '초설':2,'푸테리스':2,'무늬보스턴고사리':2,'보스턴고사리':2,
   '안테나고사리':2,'미스티클라우드':2,'아디안텀 프리츠루시':2,'에버잼고사리':2,
   '잎큰아디안텀':2,'핑크아디안텀':2,'아디안텀 페루비아눔':2,'나비란':1,'미니아이비':1,
-  '쿠페아':1,'핑크트리안':2,
+  '쿠페아':1,'핑크트리안':2,'피코크아디안텀':2,
 };
 // 가끔(주기적) 분무 — 매일은 아니지만 잎 상태 유지에 도움되는 애들, 며칠마다 한 번
 const MIST_CYCLE_DAYS = {
@@ -908,6 +908,23 @@ const PLANT_PRESETS = [
    care:{l:'밝은 간접광~직사광. 빛 많을수록 향 진해짐',w:'겉흙 마르면 물주기. 과습 주의',m:'가끔 가능. 잎에 오래 남기지 말 것',tip:'외목대 잡는 중! 곁가지 계속 정리해줘야 함. 서리엔 약하지만 5℃ 정도까진 버팀 — 늦가을에 완전 추워지기 전 실내 이동 권장'}},
   {name:'장미허브 (풍성)',cat:'허브류',loc:'창가',days:4,emoji:'🌹',
    care:{l:'밝은 간접광~직사광. 빛 많을수록 향 진해짐',w:'겉흙 마르면 물주기. 과습 주의',m:'가끔 가능. 잎에 오래 남기지 말 것',tip:'풍성하게 키우는 중! 가지치기로 볼륨 유지. 서리엔 약하지만 5℃ 정도까진 버팀 — 늦가을에 완전 추워지기 전 실내 이동 권장'}},
+  // 새로 늘어난 아이들 (2026-07-06 추가, 위치/주기는 임시값이니 확인 후 알려주세요!)
+  {name:'타마린드',cat:'관엽류',loc:'창가(동향)',days:5,emoji:'🌳',
+   care:{l:'밝은 직사광~반양지 선호. 어릴 땐 간접광도 무난',w:'겉흙 마르면 흠뻑. 상면관수 권장',m:'가끔 잎 분무 가능',tip:'밤이 되면 잎을 접는 습성(미모사류와 비슷)! 추위에 약해 10℃ 이하 주의'}},
+  {name:'하트아이비',cat:'관엽류',loc:'행잉',days:7,emoji:'❤️',
+   care:{l:'밝은 간접광~반음지. 빛 많을수록 잎색 선명',w:'겉흙 마르면 흠뻑. 건조에 강한 편',m:'가끔 분무하면 좋음',tip:'하트모양 잎이 매력! 덩굴성이라 지지대나 행잉으로 늘어뜨려 키우기 좋음'}},
+  {name:'원더아이비',cat:'관엽류',loc:'행잉',days:7,emoji:'🍀',
+   care:{l:'밝은 간접광 필수. 무늬 유지에 빛이 중요. 직사광 NG',w:'겉흙 마르면 흠뻑. 과습 주의',m:'가끔 잎 분무',tip:'불규칙한 무늬가 매력 포인트! 빛 부족하면 무늬가 흐려질 수 있음'}},
+  {name:'펠로아페페',cat:'페페류',loc:'2층 간접광',days:7,emoji:'🪙',
+   care:{l:'밝은 간접광. 반음지도 적응 가능',w:'겉흙 마르면 흠뻑. 페페류치곤 물 좋아하는 편',m:'가끔 가능',tip:'목대가 굵어지면서 자람 → 밑동 오래된 잎은 정리해주면 깔끔'}},
+  {name:'피코크아디안텀',cat:'고사리류',loc:'1층 반음지',days:3,emoji:'🦚',
+   care:{l:'반음지~음지. 직사광 절대 금지',w:'살짝 마르면 바로. 소량 자주',m:'하루 2회 필수. 습도 70~90%',tip:'다른 아디안텀류와 케어 루틴 동일. 청록빛 도는 잎이 포인트!'}},
+  {name:'아스파라거스 비르가투스',cat:'고사리류',loc:'1층 반음지',days:5,emoji:'🌾',
+   care:{l:'밝은 간접광~반음지. 직사광 닿으면 잎 노랗게 탐',w:'겉흙 마르면 흠뻑. 저면관수 추천',m:'하루 1회 이상. 가늘고 섬세한 잎이라 건조에 민감',tip:'잎 우수수 떨어짐 = 물 부족 or 건조 신호! 아스파라거스 나누스와 케어 동일'}},
+  {name:'히메몬스테라',cat:'관엽류',loc:'2층 간접광',days:6,emoji:'🍃',
+   care:{l:'밝은 간접광. 반음지도 적응 가능',w:'겉흙 마르면 흠뻑',m:'가끔 잎 분무하면 좋음. 공중습도 선호',tip:'미니 몬스테라라 불리는 덩굴식물! 지주대 세워주면 잎이 더 크게 자람'}},
+  {name:'안스리움폴리쉬스텀',cat:'관엽류',loc:'2층 간접광',days:5,emoji:'🌿',
+   care:{l:'밝은 간접광. 직사광은 잎 화상 위험',w:'겉흙 마르면 흠뻑. 과습 주의 (배수 잘되는 흙 추천)',m:'하루 1회 정도. 습도 선호',tip:'깊게 갈라진 독특한 잎 모양이 매력! 착생식물 특성이 있어 바크 섞은 흙이 잘 맞음'}},
 ];
 
 // ===== STATE =====
@@ -952,6 +969,35 @@ function loadAll(){
     } else { initPlants(); needsSave = true; }
   }catch(e){ console.error('식물 데이터 로드 실패:', e); initPlants(); needsSave = true; }
 
+  // 기존 데이터 보존 + 새로 추가된 PLANT_PRESETS 항목만 병합
+  try{
+    const existingNames = new Set(plants.map(p=>p.name));
+    const today = todayStr();
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+    const yday = localDateStr(yesterday);
+    PLANT_PRESETS.forEach((p)=>{
+      if(!existingNames.has(p.name)){
+        plants.push({
+          id: 'new_' + Date.now() + '_' + Math.floor(Math.random()*10000),
+          name:p.name, species:p.name, category:p.cat, location:p.loc,
+          wateringDays:p.days,
+          lastWatered: p.planned ? today : yday,
+          lastSprayed:null,
+          acquiredDate: ACQUIRED[p.name] || today,
+          photo:null, diary:[],
+          tip:p.care.tip, emoji:p.emoji,
+          care:{l:p.care.l, w:p.care.w, m:p.care.m},
+          planned: p.planned || false,
+          fertCycleDays: p.planned ? 0 : 7,
+          lastFertilized: null,
+          mistTarget: p.planned ? 0 : (MIST_TARGET[p.name] || 0),
+          mistCycleDays: p.planned ? 0 : (MIST_CYCLE_DAYS[p.name] || 0)
+        });
+        needsSave = true;
+      }
+    });
+  }catch(e){ console.error('신규 식물 병합 실패:', e); }
+
   try{
     const fishRaw = localStorage.getItem('hub_fish8');
     if(fishRaw){
@@ -960,6 +1006,21 @@ function loadAll(){
         fish = parsed;
         if(!fish.waterChangeDays){ fish.waterChangeDays = [3,0]; needsSave = true; }
         if(fish.lastWaterChange===undefined){ fish.lastWaterChange = null; needsSave = true; }
+        // 2026-07-06: 실제 어종 현황(아듬샘 확인)에 맞춰 목록 1회 재설정. 급여/수질 기록·환수 설정은 그대로 보존
+        if(!fish.speciesResetV2){
+          fish.species = [
+            {id:'f1',name:'팬더코리',count:2,note:'',emoji:guessFishEmoji('팬더코리')},
+            {id:'f2',name:'하프블랙구피',count:1,note:'',emoji:guessFishEmoji('하프블랙구피')},
+            {id:'f3',name:'블루그라데이션구피',count:1,note:'',emoji:guessFishEmoji('블루그라데이션구피')},
+            {id:'f4',name:'화이트구피',count:1,note:'',emoji:guessFishEmoji('화이트구피')},
+            {id:'f5',name:'옐로우미키마우스플래티',count:1,note:'',emoji:guessFishEmoji('옐로우미키마우스플래티')},
+            {id:'f6',name:'레드미키마우스플래티',count:1,note:'',emoji:guessFishEmoji('레드미키마우스플래티')},
+            {id:'f7',name:'오토싱',count:1,note:'🗓️ 데려올 예정',emoji:guessFishEmoji('오토싱')},
+            {id:'f8',name:'새우',count:1,note:'🗓️ 데려올 예정 (블루/레드/레드화이트줄무늬 중 고민)',emoji:guessFishEmoji('새우')},
+          ];
+          fish.speciesResetV2 = true;
+          needsSave = true;
+        }
       } else { initFish(); needsSave = true; }
     } else { initFish(); needsSave = true; }
   }catch(e){ console.error('물고기 데이터 로드 실패:', e); initFish(); needsSave = true; }
@@ -1193,14 +1254,14 @@ function closeStatDetail(){ document.getElementById('statDetailModal').style.dis
 function initFish(){
   fish = {
     species:[
-      {id:'f1',name:'블루구피',count:3,note:'',emoji:'🐟'},
-      {id:'f2',name:'하프블랙구피',count:3,note:'',emoji:'🐠'},
-      {id:'f3',name:'화이트구피',count:2,note:'',emoji:'🐡'},
-      {id:'f4',name:'팬더코리',count:2,note:'',emoji:'🐼'},
-      {id:'f5',name:'왁플래티 또는 선셋구피',count:3,note:'🗓️ 이번 주말 데려올 예정',emoji:'🌅'},
-      {id:'f6',name:'팬더코리 (추가)',count:2,note:'🗓️ 이번 주말 데려올 예정',emoji:'🐼'},
-      {id:'f7',name:'오토싱',count:2,note:'🗓️ 이번 주말 데려올 예정',emoji:'🪸'},
-      {id:'f8',name:'블루새우',count:10,note:'📅 한달 뒤 예정 — 어항 적응 후 입수',emoji:'🦐'},
+      {id:'f1',name:'팬더코리',count:2,note:'',emoji:guessFishEmoji('팬더코리')},
+      {id:'f2',name:'하프블랙구피',count:1,note:'',emoji:guessFishEmoji('하프블랙구피')},
+      {id:'f3',name:'블루그라데이션구피',count:1,note:'',emoji:guessFishEmoji('블루그라데이션구피')},
+      {id:'f4',name:'화이트구피',count:1,note:'',emoji:guessFishEmoji('화이트구피')},
+      {id:'f5',name:'옐로우미키마우스플래티',count:1,note:'',emoji:guessFishEmoji('옐로우미키마우스플래티')},
+      {id:'f6',name:'레드미키마우스플래티',count:1,note:'',emoji:guessFishEmoji('레드미키마우스플래티')},
+      {id:'f7',name:'오토싱',count:1,note:'🗓️ 데려올 예정',emoji:guessFishEmoji('오토싱')},
+      {id:'f8',name:'새우',count:1,note:'🗓️ 데려올 예정 (블루/레드/레드화이트줄무늬 중 고민)',emoji:guessFishEmoji('새우')},
     ],
     logs:[],
     waterChangeDays: [3, 0],
@@ -1219,6 +1280,8 @@ const ACQUIRED = {
   '잎큰아디안텀':'2026-06-30','핑크아디안텀':'2026-06-30','큐피트페페':'2026-06-30','소코브레니아':'2026-06-30',
   '장미허브 (외목대)':'2026-03-01','장미허브 (풍성)':'2026-03-01',
   '방울토마토':'2026-05-17','바질 1화분':'2026-05-17','바질 2화분 (모종 6개)':'2026-05-17',
+  '타마린드':'2026-07-06','하트아이비':'2026-07-06','원더아이비':'2026-07-06','펠로아페페':'2026-07-06',
+  '피코크아디안텀':'2026-07-06','아스파라거스 비르가투스':'2026-07-06','히메몬스테라':'2026-07-06','안스리움폴리쉬스텀':'2026-07-06',
 };
 function initPlants(){
   const today = todayStr();
@@ -1460,13 +1523,17 @@ function openCareZone(){
   const isWaterChangeDay = (fish.waterChangeDays||[]).includes(todayDow);
   const alreadyChanged = fish.lastWaterChange === today;
   if(isWaterChangeDay && !alreadyChanged){
-    fishItems.push(`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#E8F4F8;border-radius:11px;margin-bottom:7px">
+    fishItems.push(`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#E8F4F8;border-radius:11px;margin-bottom:7px;transition:background .2s">
       <span style="font-size:18px">🔄</span>
       <div style="flex:1"><div style="font-size:13px;font-weight:600">환수할 날이에요!</div><div style="font-size:11px;color:var(--sub)">오늘 환수 기록이 없어요</div></div>
-      <button class="t-btn b" onclick="doWaterChange();openCareZone()">환수 완료</button>
+      <button class="t-btn b" onclick="doWaterChange()">환수 완료</button>
     </div>`);
   } else if(alreadyChanged){
-    fishItems.push(`<div style="padding:8px 12px;font-size:12px;color:var(--g);font-weight:600">✅ 오늘 환수 완료!</div>`);
+    fishItems.push(`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--gl);border-radius:11px;margin-bottom:7px;transition:background .2s">
+      <span style="font-size:18px">🔄</span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">환수</div><div style="font-size:11px;color:var(--sub)">오늘 환수 완료</div></div>
+      <button onclick="undoWaterChangeToday()" title="눌러서 취소" style="background:none;border:none;font-size:16px;cursor:pointer;padding:2px">✅</button>
+    </div>`);
   }
   document.getElementById('careFishSection').style.display = 'block';
   document.getElementById('careFishList').innerHTML = fishItems.join('');
@@ -2082,11 +2149,27 @@ function toggleAddSpeciesForm(){
   row.style.display = isOpen ? 'none' : 'flex';
   document.getElementById('addSpeciesToggle').textContent = isOpen ? '+ 새 어종 추가' : '닫기';
 }
+// 어종 이름 → 이모지 자동 매칭 (아듬샘 확정 규칙)
+// - 팬더코리: 고정 🐼 / 오토싱: 고정 🪸 / 새우: 색상 무관 고정 🦐
+// - 물고기: 블랙→🦈, 블루→🐟, 옐로우·골드→🐠, 화이트·레드→🐡, 그 외 색은 위 4개 중 랜덤
+function guessFishEmoji(name){
+  if(name.includes('팬더코리')||name.includes('판다코리')) return '🐼';
+  if(name.includes('오토싱')||name.includes('오토')) return '🪸';
+  if(name.includes('달팽이')||name.includes('스네일')) return '🐌';
+  if(name.includes('새우')||name.includes('쉬림프')) return '🦐';
+  if(name.includes('블랙')) return '🦈';
+  if(name.includes('블루')) return '🐟';
+  if(name.includes('옐로우')||name.includes('주황')) return '🐠';
+  if(name.includes('화이트')||name.includes('레드')) return '🐡';
+  const pool = ['🐠','🐟','🐡','🦈'];
+  return pool[Math.floor(Math.random()*pool.length)];
+}
 function addSpecies(){
   const name = document.getElementById('newSpeciesName').value.trim();
   const count = parseInt(document.getElementById('newSpeciesCount').value)||1;
   if(!name) return;
-  const emoji = document.getElementById('newSpeciesEmoji').value.trim()||'🐟';
+  const emojiInput = document.getElementById('newSpeciesEmoji').value.trim();
+  const emoji = emojiInput || guessFishEmoji(name);
   fish.species.push({id:String(Date.now()),name,count,emoji,note:''});
   document.getElementById('newSpeciesEmoji').value='';
   document.getElementById('newSpeciesName').value='';
@@ -2116,8 +2199,17 @@ function switchFishTab(t){
 function doWaterChange(){
   fish.lastWaterChange = todayStr();
   fish.logs.push({id:String(Date.now()), date:todayStr(), type:'water', note:'🔄 환수 완료', temp:'', ph:'', amm:'', nit:''});
-  saveAll(); renderFish();
-  alert('✅ 환수 기록 완료!');
+  saveAll();
+  if(document.getElementById('s-fish').classList.contains('active')) renderFish();
+  openCareZone();
+}
+function undoWaterChangeToday(){
+  const today = todayStr();
+  fish.lastWaterChange = null;
+  fish.logs = fish.logs.filter(l=>!(l.type==='water' && l.date===today && l.note==='🔄 환수 완료'));
+  saveAll();
+  if(document.getElementById('s-fish').classList.contains('active')) renderFish();
+  openCareZone();
 }
 function addFishLog(type){
   const log = {id:String(Date.now()), date:todayStr(), type};
