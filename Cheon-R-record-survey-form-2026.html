@@ -203,7 +203,11 @@ textarea.form-input{line-height:1.65;}
 .inner-tab{flex:1;padding:9px 6px;border-radius:8px;border:none;background:transparent;font-size:12px;font-weight:600;color:var(--gray-500);cursor:pointer;font-family:'Pretendard',-apple-system,sans-serif;transition:all .15s;}
 .inner-tab.active{background:var(--primary);color:white;box-shadow:0 2px 8px rgba(37,99,235,0.25);}
 .inner-section{display:none;}.inner-section.active{display:block;}
-.save-status{font-size:11px;color:#10b981;text-align:right;margin-bottom:10px;min-height:16px;font-weight:600;}
+.save-status{font-size:11px;color:#10b981;text-align:right;font-weight:600;}
+.save-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.manual-save-btn{font-size:12px;font-weight:700;padding:7px 16px;background:var(--primary);color:#fff;border:none;border-radius:20px;cursor:pointer;white-space:nowrap;transition:all .15s;box-shadow:0 2px 6px rgba(155,142,196,0.3);}
+.manual-save-btn:hover{background:var(--primary-dark);}
+.manual-save-btn:active{transform:scale(0.96);}
 .save-btn-inner{width:100%;padding:13px;margin-top:4px;margin-bottom:8px;background:var(--gray-100);color:var(--gray-700);border:1.5px solid var(--gray-200);border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Pretendard',-apple-system,sans-serif;transition:all .15s;}
 .save-btn-inner:hover{background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-mid);}
 .save-btn-inner.purple:hover{background:#ede9fe;color:#5b21b6;border-color:#c4b5fd;}
@@ -616,7 +620,10 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
         <button class="inner-tab" onclick="switchInner('진로',this)">🎯 진로활동</button>
         <button class="inner-tab" onclick="switchInner('행발',this)">📝 행발</button>
       </div>
-      <div class="save-status" id="save-status-hakgup">　</div>
+      <div class="save-bar">
+        <div class="save-status" id="save-status-hakgup">✏️ 입력하면 자동으로 저장돼요</div>
+        <button class="manual-save-btn" onclick="manualSave('hakgup')">💾 지금 저장하기</button>
+      </div>
 
       <!-- 자율활동 탭 -->
       <div class="inner-section active" id="inner-자율">
@@ -669,7 +676,10 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
         <div class="cc-text">수학 교과 설문이 마감되었어요.<br>선생님께 문의해 주세요.</div>
       </div>
       <div id="catbody-math">
-      <div class="save-status" id="save-status-math">　</div>
+      <div class="save-bar">
+        <div class="save-status" id="save-status-math">✏️ 입력하면 자동으로 저장돼요</div>
+        <button class="manual-save-btn" onclick="manualSave('math')">💾 지금 저장하기</button>
+      </div>
       <div id="student-math-questions"></div>
       <div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 4px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">작성 완료 후 아래 제출 버튼을 눌러야 선생님께 전달됩니다</span></div>
       <div style="text-align:center;font-size:12px;font-weight:700;color:#ef4444;padding:4px 0 4px;letter-spacing:-0.2px;">⚠️ 아래 버튼을 눌러야 선생님께 전달됩니다!</div>
@@ -686,7 +696,10 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
         <div class="cc-text">동아리 설문이 마감되었어요.<br>선생님께 문의해 주세요.</div>
       </div>
       <div id="catbody-club">
-      <div class="save-status" id="save-status-club">　</div>
+      <div class="save-bar">
+        <div class="save-status" id="save-status-club">✏️ 입력하면 자동으로 저장돼요</div>
+        <button class="manual-save-btn" onclick="manualSave('club')">💾 지금 저장하기</button>
+      </div>
       <div id="student-club-questions"></div>
       <div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 4px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">작성 완료 후 아래 제출 버튼을 눌러야 선생님께 전달됩니다</span></div>
       <div style="text-align:center;font-size:12px;font-weight:700;color:#ef4444;padding:4px 0 4px;letter-spacing:-0.2px;">⚠️ 아래 버튼을 눌러야 선생님께 전달됩니다!</div>
@@ -1853,15 +1866,27 @@ function switchInner(name, el){
 function autoSave(){
   localStorage.setItem('adum_form_draft', JSON.stringify(collectData()));
   updateProgress();
+  stampAutoSaved();
 }
 
-function saveTab(tabName){
+// formKey: 'hakgup' | 'math' | 'club' → 해당 폼의 저장상태 표시줄에 "자동저장됨 · 시각" 표시
+function stampAutoSaved(formKey){
+  const idMap = { hakgup: 'save-status-hakgup', math: 'save-status-math', club: 'save-status-club' };
+  const key = formKey || currentFormType || 'hakgup';
+  const el = document.getElementById(idMap[key]);
+  if(!el) return;
+  const t = new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+  el.textContent = '✅ 자동저장됨 · ' + t;
+}
+
+// "💾 지금 저장하기" 버튼: 수동으로 즉시 저장 + 잠깐 확인 메시지 표시
+function manualSave(formKey){
   autoSave();
-  const statusMap = {'자율':'save-status-hakgup','진로':'save-status-hakgup','행발':'save-status-hakgup','수학':'save-status-math','동아리':'save-status-club'};
-  const el = document.getElementById(statusMap[tabName]);
+  const idMap = { hakgup: 'save-status-hakgup', math: 'save-status-math', club: 'save-status-club' };
+  const el = document.getElementById(idMap[formKey]);
   if(el){
-    el.textContent = '✅ ' + tabName + ' 임시저장 완료 · ' + new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
-    setTimeout(()=>{ el.textContent='　'; }, 3000);
+    el.textContent = '💾 방금 저장했어요!';
+    setTimeout(()=>{ stampAutoSaved(formKey); }, 1500);
   }
 }
 
@@ -1995,6 +2020,39 @@ function _gasPost(gasUrl, body) {
   });
 }
 
+// ── 실제 제출용 POST 유틸 ──────────────────────────────────────
+// 서술형 답변이 길어질 수 있는 "제출" 요청 전용.
+// data를 URL이 아니라 요청 body에 담아 보내므로 URL 길이 제한이 없음.
+// Content-Type을 text/plain으로 두면 브라우저가 사전확인(OPTIONS preflight)을
+// 보내지 않아 GAS 웹앱에서 별도 처리 없이도 그대로 doPost(e)에서 받아짐.
+// (GAS 쪽 doPost는 이미 구현되어 있어 재배포 불필요)
+function _gasPostReal(gasUrl, body, timeoutMs) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs || 20000);
+  return fetch(gasUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(body),
+    signal: controller.signal,
+  })
+  .then(r => {
+    clearTimeout(timer);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
+  .catch(err => {
+    clearTimeout(timer);
+    if (err.name === 'AbortError') throw new Error('timeout');
+    throw err;
+  });
+}
+
+// 실패 시 조용히 한 번 더 자동 재시도 (일시적 네트워크 끊김 대비)
+// 최종 실패 시에만 사용자에게 알림
+function _gasPostRealWithRetry(gasUrl, body) {
+  return _gasPostReal(gasUrl, body).catch(() => _gasPostReal(gasUrl, body));
+}
+
 // ── 섹션별 제출 함수 ──────────────────────────────────────────────
 // tabLabel: '자율' | '진로' | '행발' | '수학' | '동아리'
 function submitFormSection(tabLabel) {
@@ -2104,7 +2162,7 @@ function doSubmitSection(tabLabel, name, grade, ban, num, gasUrl, submitKey) {
   if(btn){ btn.disabled = true; btn.textContent = '⏳ 제출 중...'; }
   if(statusEl) statusEl.textContent = '';
 
-  _gasPost(gasUrl, baseData)
+  _gasPostRealWithRetry(gasUrl, baseData)
   .then(res => {
     if(btn){ btn.disabled=false; btn.textContent= label + ' 제출하기 ✅'; }
     if(res && res.ok){
@@ -2114,12 +2172,12 @@ function doSubmitSection(tabLabel, name, grade, ban, num, gasUrl, submitKey) {
       alert('✅ ' + label + ' 제출 완료!\n선생님께 전달되었습니다 😊\n\n입력하느라 수고했어요 🙌');
     } else {
       if(btn){ btn.disabled=false; btn.textContent= label + ' 제출하기'; }
-      alert('❌ 제출에 실패했어요.\n잠시 후 다시 시도해주세요.\n\n오류: ' + (res?.error || '알 수 없는 오류'));
+      alert('❌ 제출에 실패했어요.\n입력한 내용은 이 기기에 안전하게 저장되어 있으니, 다시 제출해주세요.\n\n오류: ' + (res?.error || '알 수 없는 오류'));
     }
   })
   .catch(err => {
     if(btn){ btn.disabled=false; btn.textContent= label + ' 제출하기'; }
-    alert('❌ 제출에 실패했어요.\n인터넷 연결을 확인하고 다시 시도해주세요.\n\n오류: ' + err.message);
+    alert('❌ 제출에 실패했어요.\n입력한 내용은 이 기기에 안전하게 저장되어 있으니, 인터넷 연결을 확인하고 다시 제출해주세요.\n\n오류: ' + err.message);
   });
 }
 
