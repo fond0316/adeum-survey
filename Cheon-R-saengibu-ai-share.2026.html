@@ -1020,6 +1020,11 @@ textarea{resize:vertical;}
                 <button onclick="openTplModal()" style="font-size:10px;padding:3px 8px;border:1px solid #e5e7eb;border-radius:5px;background:white;color:#6b7280;cursor:pointer;">📝 템플릿</button>
               </div>
               <textarea id="activity" class="ta" rows="3" placeholder="수행한 활동, 탐구 주제, 결과물 등을 자유롭게 입력하세요."></textarea>
+              <div style="margin-top:8px;">
+                <div style="font-size:11px;color:#9ca3af;margin-bottom:4px;">🌟 강조하고 싶은 부분 (선택 — 글자수가 부족할 때 이 지시가 우선 반영돼요)</div>
+                <input type="text" id="emphasis-note" placeholder="예: 독서탐구 활동을 좀 더 자세히 써줘 / 조별활동은 짧게"
+                  style="width:100%;border:1px solid #e0e5ed;border-radius:6px;padding:6px 9px;font-size:12px;outline:none;color:#111;"/>
+              </div>
             </div>
             <!-- 📋 수학 설문 참고자료 섹션 -->
             <div id="g-survey-section" style="display:none;background:white;border-radius:9px;border:1.5px solid #7c3aed;padding:12px 14px;">
@@ -3823,6 +3828,16 @@ const SYSTEM_PROMPT=`당신은 대한민국 고등학교 생활기록부 작성 
 ## 작성 순서 (7단계 — 하나도 빠짐없이 반드시 포함)
 전체 흐름 요약: 학생 인성적 관찰(1) → 수업활동(2~4) → 탐구활동+학생 느낀점(5) → 교사 관찰·느낀점(2,5 안에 포함) → 학생의 미래에 대한 기대(7) 순으로 하나의 문단이 자연스럽게 흘러가야 함. 이 순서를 절대 뒤바꾸지 말 것.
 
+⚠️⚠️ [최우선 절대 규칙] 독서탐구보고서가 입력된 경우, 5번 항목은 예외 없이 반드시 아래 고정 문장으로 시작할 것 — 이 문장을 빠뜨리거나 다른 표현으로 바꾸는 것은 절대 금지:
+"(도서명)(저자)를 읽고 '(탐구주제)'를 주제로 독서탐구보고서를 작성함."
+(자세한 규칙은 아래 5번 항목 참고 — 도서명·저자는 학생 입력 원문 그대로, 탐구주제는 작은따옴표 안에)
+
+## 글자수가 부족할 때 항목별 우선순위 [목표 글자수(MIN~MAX)를 넘길 수밖에 없을 때 적용]
+· 1번(학습태도 첫 문장)과 7번(발전가능성 마지막 문장)은 절대 축약·생략 금지 — 항상 완전한 문장으로 유지할 것.
+· 2번(수업활동 발표)과 5번(심화탐구활동)은 입력된 내용이 있으면 절대 통째로 생략하지 말고, 분량(문장 길이·세부 묘사)만 줄일 것.
+· 공간이 부족하면 아래 순서로 먼저 줄일 것: ① 3번(교사·학생 상호작용) → ② 6번(성취수준+교과역량 서술) → ③ 4번(조별활동)
+· 만약 "[강조 지시]"가 입력에 포함되어 있으면, 위 기본 우선순위보다 그 지시를 최우선으로 반영하여 분량을 배분할 것 (예: "독서탐구를 자세히"라고 하면 5번에 분량을 더 배정하고 3·6·4번을 더 줄임).
+
 1. 학습태도·인성 [첫 문장 — 절대 규칙, 반드시 준수]
 첫 문장은 반드시 학생의 인성적 특성(자기주도성·성실함·탐구 의지·집중력·교사 및 동료와의 상호작용 태도 등)을 수업 중 구체적 행동 장면으로 표현하며 ~이 인상적임. 또는 ~이 뛰어남. 으로 마무리할 것.
 ※ 단, 학습참여도가 [하] 또는 [최하]인 경우 "인상적임/뛰어남"이 아니라 "~하려는 모습이 관찰됨. / ~하려는 노력이 확인됨." 형태로 마무리할 것 (아래 "학습참여도 등급별 절대 준수 사항"의 허용 표현을 따를 것).
@@ -3850,8 +3865,8 @@ const SYSTEM_PROMPT=`당신은 대한민국 고등학교 생활기록부 작성 
 5. 심화탐구활동 → 탐구주제 + 탐구 내용 + 학생 느낀점 + 교사 관찰평가 + 핵심 결론 서술. 따옴표 없이 서술
    ※ 독서탐구보고서가 입력된 경우 반드시 이 항목에 녹여서 서술할 것
 
-   [★ 독서탐구보고서 문장 형식 — 절대 고정, 반드시 이 형식 그대로 시작]
-   반드시 아래 형식 그대로 문장을 시작할 것. 형식 자체는 절대 바꾸지 말고, 밑줄 친 자리에만 학생별 값을 채워 넣을 것.
+   [★ 독서탐구보고서 문장 형식 — 절대 고정, 예외 없이 매번 이 형식 그대로 시작]
+   반드시 아래 형식 그대로 문장을 시작할 것. 형식 자체는 절대 바꾸지 말고, 밑줄 친 자리에만 학생별 값을 채워 넣을 것. 이 문장이 누락되면 절대 안 됨.
      형식: "(도서명)(저자)를 읽고 '(탐구주제)'를 주제로 독서탐구보고서를 작성함."
      예시: 수학을 움직인 결정적 질문 (정갑수)를 읽고 '좌표와 함수는 실생활에서 어떻게 활용되는가?'를 주제로 독서탐구보고서를 작성함.
    - 입력된 도서명(저자)는 학생이 입력한 원문 그대로 한 글자도 바꾸거나 생략하지 말고 사용할 것 (다른 서술 내용은 문체를 다듬어도, 도서명(저자)만큼은 예외 없이 원문 그대로)
@@ -5551,6 +5566,7 @@ function resetFormOnly(){
   document.getElementById("attitude-custom").style.display="none";
   updateAttitudeBtn();
   document.getElementById("major").value="";
+  const emNote=document.getElementById("emphasis-note");if(emNote)emNote.value="";
   renderStdList();renderCompBtns();renderActivities();
   document.getElementById("error-box").style.display="none";
 }
@@ -5579,6 +5595,10 @@ function updateResultStatBar(){
 }
 function showError(msg){const el=document.getElementById("error-box");if(msg){el.textContent="⚠ "+msg;el.style.display="block";}else el.style.display="none";}
 
+function getEmphasisNote(){
+  const v=(document.getElementById("emphasis-note")?.value||"").trim();
+  return v?`[강조 지시 — 글자수가 부족하면 이 지시를 최우선으로 반영할 것] ${v}`:"";
+}
 function buildPrompt(extraNote=""){
   // 참여도/태도 다중선택 처리
   let attitude="(미입력)";
@@ -5940,7 +5960,7 @@ async function handleGenerate(){
       if(a.on&&a.files&&a.files.length)acc.push(...a.files);
       return acc;
     },[]);
-    const text=postProcess(await callAPI(buildPrompt(),null,attachedFiles));
+    const text=postProcess(await callAPI(buildPrompt(getEmphasisNote()),null,attachedFiles));
     result=text;
     document.getElementById("result-area").innerHTML=boldRender(result);
     showResult(true);
@@ -6007,7 +6027,8 @@ async function handleBulkGenerate(){
     document.getElementById("bulk-prog-bar").style.width=`${((idx+1)/checkedStus.length)*100}%`;
     try{
       const note=`[개별화 지시] 이 학생은 ${si+1}번 ${nm}입니다. 앞서 생성된 다른 학생과 반드시 다른 구조·어휘·강조점으로 작성하세요. (순서: ${idx+1}/${checkedStus.length})`;
-      const text=postProcess(await callAPI(buildPrompt(note)));
+      const emphasisNote=getEmphasisNote();
+      const text=postProcess(await callAPI(buildPrompt(emphasisNote?note+"\n"+emphasisNote:note)));
       const stu=cd.list[si];
       if(!stu.history)stu.history=[];
       stu.history.unshift({text,time:new Date().toLocaleTimeString()});
