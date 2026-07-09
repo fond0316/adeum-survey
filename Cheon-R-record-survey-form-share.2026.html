@@ -1,0 +1,3277 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌟 아듬's 생기부 AI</title>
+<style>
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+:root {
+  --primary: #9B8EC4;
+  --primary-dark: #7B6BA8;
+  --primary-light: rgba(196,181,253,0.15);
+  --primary-mid: rgba(196,181,253,0.35);
+  --accent: #10B981; --accent-light: #ECFDF5;
+  --warning: #F59E0B; --warning-light: #FFFBEB;
+  --danger: #EF4444; --danger-light: #FEF2F2;
+  --bg: #F4F2FA;
+  --white: #FFFFFF;
+  --gray-50:#F9FAFB; --gray-100:#F3F4F6; --gray-200:#E5E7EB;
+  --gray-300:#D1D5DB; --gray-400:#9CA3AF; --gray-500:#6B7280;
+  --gray-600:#4B5563; --gray-700:#374151; --gray-800:#1F2937; --gray-900:#111827;
+  --radius:14px; --radius-sm:9px;
+  --shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md:0 4px 12px rgba(155,142,196,0.12),0 2px 4px rgba(0,0,0,0.05);
+  --shadow-lg:0 10px 30px rgba(155,142,196,0.18),0 4px 6px rgba(0,0,0,0.05);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Pretendard',-apple-system,sans-serif;font-size:13px;background:var(--bg);min-height:100vh;}
+button,input,textarea,select{font-family:'Pretendard',-apple-system,sans-serif;}
+textarea{resize:vertical;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:3px;}
+
+/* ══════════════════════════════ 네비 ══════════════════════════════ */
+.nav{position:sticky;top:0;left:0;right:0;z-index:200;height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:rgba(255,255,255,0.92);backdrop-filter:blur(12px);border-bottom:1px solid #e5e7eb;box-shadow:0 1px 8px rgba(0,0,0,0.06);}
+.nav-logo{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--gray-900);}
+.nav-logo .made{font-size:11px;font-weight:400;color:var(--gray-400);margin-left:2px;}
+.nav-badge{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;background:var(--primary);color:white;border-radius:8px;font-size:10px;font-weight:700;margin-left:4px;vertical-align:middle;}
+.admin-open-btn{font-size:11px;padding:5px 12px;background:rgba(196,181,253,0.15);border:1.5px solid rgba(196,181,253,0.35);border-radius:20px;color:#7B6BA8;cursor:pointer;font-family:'Pretendard',-apple-system,sans-serif;font-weight:600;white-space:nowrap;transition:all .15s;}
+.admin-open-btn:hover{background:rgba(196,181,253,0.35);border-color:#9B8EC4;color:#7B6BA8;}
+
+/* ── GAS 배너 ── */
+.gas-banner{position:sticky;top:0;z-index:201;padding:9px 16px;font-size:12px;font-weight:600;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;}
+.gas-banner.ok{background:#ECFDF5;color:#059669;}
+.gas-banner.err{background:#FEF2F2;color:#DC2626;}
+.gas-banner.loading{background:#FFF7ED;color:#D97706;}
+
+/* ── 관리자 로그인 오버레이 ── */
+.admin-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:600;display:none;align-items:center;justify-content:center;padding:20px;}
+.admin-overlay.open{display:flex;}
+.admin-login-box{background:white;border-radius:20px;padding:32px 28px;width:100%;max-width:360px;box-shadow:0 24px 64px rgba(0,0,0,.2);text-align:center;}
+.admin-login-box h3{font-size:18px;font-weight:800;color:var(--gray-900);margin-bottom:6px;}
+.admin-login-box p{font-size:13px;color:var(--gray-500);margin-bottom:24px;}
+.admin-pw-input{width:100%;padding:13px;border:1.5px solid var(--gray-200);border-radius:10px;font-size:18px;text-align:center;letter-spacing:6px;outline:none;font-family:'Pretendard',-apple-system,sans-serif;margin-bottom:10px;}
+.admin-pw-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px #dbeafe;}
+.admin-pw-error{font-size:12px;color:#ef4444;min-height:18px;margin-bottom:10px;}
+.admin-login-btns{display:flex;gap:8px;}
+.admin-login-btns button{flex:1;padding:12px;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Pretendard',-apple-system,sans-serif;}
+.btn-admin-cancel{background:var(--gray-100);color:var(--gray-700);}
+.btn-admin-confirm{background:#7B6BA8;color:white;}
+.btn-admin-confirm:hover{background:#9B8EC4;}
+
+/* ── 관리자 화면 ── */
+.admin-screen{display:none;position:fixed;inset:0;z-index:500;background:var(--bg);overflow-y:auto;}
+.admin-screen.open{display:block;}
+.admin-screen-header{background:#7B6BA8;color:white;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;}
+.admin-screen-title{font-size:15px;font-weight:700;}
+.admin-logout-btn{font-size:11px;background:rgba(255,255,255,.15);border:none;color:white;padding:5px 12px;border-radius:20px;cursor:pointer;font-family:'Pretendard',-apple-system,sans-serif;font-weight:600;transition:all .15s;}
+.admin-logout-btn:hover{background:rgba(255,255,255,.25);}
+.admin-nav-bar{background:white;border-bottom:1px solid #e5e7eb;display:flex;overflow-x:auto;padding:0 16px;}
+.admin-nav-btn{padding:13px 16px;border:none;background:none;font-family:'Pretendard',-apple-system,sans-serif;font-size:13px;color:var(--gray-400);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s;font-weight:600;}
+.admin-nav-btn.active{color:#7B6BA8;border-bottom-color:#9B8EC4;font-weight:700;}
+.admin-body{max-width:1140px;margin:0 auto;padding:28px 40px 80px;}
+.admin-section{display:none;}.admin-section.active{display:block;}
+.main{padding-top:0;}
+.view{display:none;}
+.view.active{display:block;min-height:calc(100vh - 48px);}
+
+/* ══════════════════════════════ 학생 폼 ══════════════════════════════ */
+.student-wrap{max-width:1140px;margin:0 auto;padding:32px 40px 80px;}
+.hero{text-align:center;margin-bottom:28px;animation:fadeUp .4s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.hero-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#7B6BA8;background:rgba(196,181,253,0.2);border-radius:20px;padding:4px 12px;margin-bottom:14px;}
+.hero h1{font-size:24px;font-weight:700;color:var(--gray-900);line-height:1.35;letter-spacing:-.5px;margin-bottom:8px;}
+.hero p{font-size:13px;color:var(--gray-500);line-height:1.7;}
+.hero .made-by{font-size:11px;color:var(--gray-400);display:block;margin-top:4px;}
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;animation:fadeUp .4s .08s ease both;}
+.type-card{background:white;border:2px solid #e5e7eb;border-radius:20px;padding:20px 12px 16px;text-align:center;cursor:pointer;transition:all .18s;box-shadow:var(--shadow);}
+.type-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.1);}
+.type-card.active.blue{border-color:var(--primary);background:var(--primary-light);}
+.type-card.active.purple{border-color:#7c3aed;background:#f5f3ff;}
+.type-card.active.green{border-color:#059669;background:#ecfdf5;}
+.type-card .tc-icon{font-size:28px;margin-bottom:8px;}
+.type-card .tc-name{font-size:14px;font-weight:700;color:var(--gray-900);margin-bottom:4px;}
+.type-card .tc-sub{font-size:11px;color:var(--gray-400);line-height:1.5;}
+.q-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--gray-200);box-shadow:var(--shadow-md);margin-bottom:12px;overflow:hidden;animation:fadeUp .4s ease both;}
+.q-card:nth-child(1){animation-delay:.1s;}
+.q-card:nth-child(2){animation-delay:.14s;}
+.q-card:nth-child(3){animation-delay:.18s;}
+.q-card:nth-child(4){animation-delay:.22s;}
+.q-card:nth-child(5){animation-delay:.26s;}
+.q-head{display:flex;align-items:center;gap:8px;padding:14px 18px 12px;border-bottom:1px solid #f3f4f6;}
+.q-num{width:24px;height:24px;border-radius:7px;background:#111;color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.q-num.blue{background:#7B6BA8;}
+.q-num.purple{background:#7c3aed;}
+.q-num.green{background:#059669;}
+.q-title{font-size:13px;font-weight:700;color:var(--gray-900);flex:1;}
+.q-req{font-size:11px;font-weight:600;color:var(--primary-dark);background:var(--primary-light);padding:2px 8px;border-radius:5px;}
+.q-opt{font-size:11px;color:var(--gray-400);background:var(--gray-100);padding:2px 8px;border-radius:5px;}
+.q-body{padding:14px 18px;}
+.hint{font-size:12px;color:var(--primary-dark);background:var(--primary-light);border-radius:8px;padding:9px 12px;margin-bottom:10px;line-height:1.6;}
+.form-input{width:100%;padding:11px 13px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:13px;color:var(--gray-900);background:var(--gray-50);outline:none;transition:all .15s;}
+.form-input:focus{border-color:var(--primary);background:white;box-shadow:0 0 0 3px var(--primary-light);}
+.form-input::placeholder{color:var(--gray-400);}
+textarea.form-input{line-height:1.65;}
+.cb-list{display:flex;flex-direction:column;gap:6px;}
+.cb-item{display:flex;align-items:center;gap:9px;padding:10px 13px;border-radius:var(--radius-sm);border:1.5px solid var(--gray-200);cursor:pointer;transition:all .12s;background:var(--gray-50);}
+.cb-item:hover{border-color:var(--primary-mid);background:var(--primary-light);}
+.cb-item input[type=checkbox]{width:15px;height:15px;accent-color:var(--primary);flex-shrink:0;}
+.cb-item label{font-size:13px;color:var(--gray-700);cursor:pointer;}
+.radio-row{display:flex;gap:8px;}
+.radio-item{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px;border-radius:var(--radius-sm);border:1.5px solid var(--gray-200);cursor:pointer;transition:all .12s;background:var(--gray-50);font-size:13px;font-weight:500;}
+.radio-item:hover{border-color:var(--primary-mid);background:var(--primary-light);}
+.radio-item input{accent-color:var(--primary);}
+.submit-btn{width:100%;padding:16px;margin-top:8px;background:#7B6BA8;color:white;border:none;border-radius:var(--radius);font-size:15px;font-weight:700;cursor:pointer;transition:all .18s;box-shadow:0 4px 14px rgba(0,0,0,0.2);animation:fadeUp .4s .3s ease both;}
+.submit-btn:hover{background:#9B8EC4;transform:translateY(-2px);box-shadow:0 8px 24px rgba(155,142,196,0.35);}
+.submit-btn:active{transform:translateY(0);}
+
+/* ══════════════════════════════ 대시보드 ══════════════════════════════ */
+.dash-wrap{padding:32px 40px 60px;max-width:1200px;margin:0 auto;}
+.dash-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;}
+.dash-top h2{font-size:20px;font-weight:700;color:var(--gray-900);letter-spacing:-.3px;margin-bottom:3px;}
+.dash-top p{font-size:12px;color:var(--gray-500);}
+.dash-btns{display:flex;gap:8px;}
+.btn-sm{padding:8px 14px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;border:none;font-family:'Pretendard',-apple-system,sans-serif;transition:all .15s;}
+.btn-outline{background:white;border:1.5px solid var(--gray-200);color:var(--gray-700);}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary);}
+.btn-blue{background:var(--primary);color:white;box-shadow:0 3px 10px rgba(37,99,235,0.25);}
+.btn-blue:hover{background:var(--primary-dark);transform:translateY(-1px);}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.sc{background:white;border-radius:var(--radius);padding:18px 20px;border:1px solid var(--gray-200);box-shadow:var(--shadow);border-top:3px solid #e5e7eb;}
+.sc.t{border-top-color:var(--primary);}.sc.d{border-top-color:#7c3aed;}.sc.m{border-top-color:var(--primary);}.sc.c{border-top-color:#059669;}
+.sc .s-ico{font-size:18px;margin-bottom:8px;}.sc .s-lbl{font-size:11px;font-weight:600;color:var(--gray-500);letter-spacing:.04em;margin-bottom:5px;}.sc .s-val{font-size:30px;font-weight:700;color:var(--gray-900);line-height:1;letter-spacing:-.02em;margin-bottom:3px;}.sc .s-sub{font-size:11px;color:var(--gray-400);}
+
+/* 필터 바 2줄 구조 */
+.filter-wrap{background:white;border-radius:var(--radius);border:1px solid var(--gray-200);box-shadow:var(--shadow);padding:14px 18px;margin-bottom:14px;}
+.filter-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.filter-row+.filter-row{margin-top:10px;padding-top:10px;border-top:1px solid #f3f4f6;}
+.filter-label{font-size:11px;font-weight:700;color:var(--gray-400);letter-spacing:.04em;min-width:36px;}
+.fpill{padding:5px 13px;border-radius:20px;border:1.5px solid var(--gray-200);background:white;font-size:12px;font-weight:600;cursor:pointer;transition:all .12s;color:var(--gray-500);font-family:'Pretendard',-apple-system,sans-serif;}
+.fpill.active{background:#111;border-color:var(--gray-900);color:white;}
+.fpill:hover:not(.active){border-color:var(--primary);color:var(--primary);}
+.fpill.danger{border-color:#fca5a5;color:#ef4444;}
+.fpill.danger.active{background:#ef4444;border-color:#ef4444;color:white;}
+.search-box{margin-left:auto;padding:7px 14px 7px 32px;border:1.5px solid var(--gray-200);border-radius:20px;font-size:12px;outline:none;width:200px;background:white;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.5'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:10px center;transition:border-color .15s;}
+.search-box:focus{border-color:var(--primary);outline:none;}
+
+/* 결과 카운트 */
+.result-count{font-size:12px;color:var(--gray-500);margin-bottom:10px;font-weight:500;}
+.result-count strong{color:var(--gray-900);}
+
+/* 테이블 */
+.resp-table{background:white;border-radius:var(--radius);border:1px solid var(--gray-200);box-shadow:var(--shadow);overflow:hidden;margin-bottom:16px;}
+.t-cols{grid-template-columns:36px 90px 56px 46px 80px 1fr 160px;}
+.t-head{display:grid;padding:11px 18px;background:#f8fafc;border-bottom:1px solid #e5e7eb;font-size:11px;font-weight:700;color:var(--gray-500);letter-spacing:.05em;user-select:none;}
+.t-head .th{display:flex;align-items:center;gap:4px;cursor:pointer;transition:color .12s;}
+.t-head .th:hover{color:var(--primary);}
+.t-head .th.sorted{color:var(--primary);}
+.sort-icon{font-size:10px;opacity:.5;}.sort-icon.on{opacity:1;}
+.t-row{display:grid;padding:12px 18px;border-bottom:1px solid #f5f5f5;align-items:center;transition:background .1s;}
+.t-row:last-child{border-bottom:none;}
+.t-row:hover{background:#f8fafc;}
+.t-row.checked{background:var(--primary-light);}
+.t-name{font-size:13px;font-weight:700;}
+.t-id{font-size:12px;color:var(--gray-500);font-variant-numeric:tabular-nums;}
+.t-ban{font-size:12px;font-weight:700;color:var(--gray-700);}
+.ctag{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;}
+.c-d{background:#ede9fe;color:#5b21b6;}.c-m{background:var(--primary-light);color:var(--primary-dark);}.c-c{background:#d1fae5;color:#065f46;}
+.c-missing{background:var(--danger-light);color:var(--danger);}
+.t-prev{font-size:12px;color:var(--gray-500);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:12px;}
+.t-acts{display:flex;gap:5px;justify-content:flex-end;}
+.ta{padding:5px 10px;border-radius:7px;border:none;font-size:11px;font-weight:700;cursor:pointer;font-family:'Pretendard',-apple-system,sans-serif;transition:all .12s;}
+.ta-v{background:var(--gray-100);color:var(--gray-700);border:1px solid var(--gray-200);}.ta-v:hover{background:var(--primary-light);color:var(--primary);border-color:var(--primary-mid);}
+.ta-l{background:#111;color:white;}.ta-l:hover{background:#2563eb;}
+.ta-dis{background:var(--gray-100);color:#d1d5db;border:1px solid #f3f4f6;cursor:default;}
+
+/* 빈 상태 */
+.empty-state{text-align:center;padding:48px 20px;color:var(--gray-400);}
+.empty-state .e-ico{font-size:32px;margin-bottom:10px;}
+.empty-state p{font-size:13px;}
+
+/* 일괄 바 */
+.bulk-bar{background:#7B6BA8;border-radius:12px;padding:14px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.2);transition:opacity .2s;}
+.bulk-bar.hidden{opacity:.4;pointer-events:none;}
+.bulk-bar .bi{font-size:13px;font-weight:700;color:white;flex:1;}
+.bi span{background:#2563eb;border-radius:5px;padding:2px 7px;margin-right:5px;font-size:11px;}
+.bb{padding:8px 16px;border-radius:var(--radius-sm);border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:'Pretendard',-apple-system,sans-serif;transition:all .12s;}
+.bb-ghost{background:rgba(255,255,255,.1);color:white;border:1px solid rgba(255,255,255,.2);}.bb-ghost:hover{background:rgba(255,255,255,.2);}
+.bb-solid{background:var(--primary);color:white;box-shadow:0 3px 10px rgba(37,99,235,0.4);}.bb-solid:hover{background:var(--primary-dark);}
+
+/* ══════════════════════════════ 내부 탭 ══════════════════════════════ */
+.inner-tabs{display:flex;gap:4px;background:white;border-radius:12px;padding:4px;border:1px solid var(--gray-200);margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.inner-tab{flex:1;padding:9px 6px;border-radius:8px;border:none;background:transparent;font-size:12px;font-weight:600;color:var(--gray-500);cursor:pointer;font-family:'Pretendard',-apple-system,sans-serif;transition:all .15s;}
+.inner-tab.active{background:var(--primary);color:white;box-shadow:0 2px 8px rgba(37,99,235,0.25);}
+.inner-section{display:none;}.inner-section.active{display:block;}
+.save-status{font-size:11px;color:#10b981;text-align:right;font-weight:600;}
+.save-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.manual-save-btn{font-size:12px;font-weight:700;padding:7px 16px;background:var(--primary);color:#fff;border:none;border-radius:20px;cursor:pointer;white-space:nowrap;transition:all .15s;box-shadow:0 2px 6px rgba(155,142,196,0.3);}
+.manual-save-btn:hover{background:var(--primary-dark);}
+.manual-save-btn:active{transform:scale(0.96);}
+.save-btn-inner{width:100%;padding:13px;margin-top:4px;margin-bottom:8px;background:var(--gray-100);color:var(--gray-700);border:1.5px solid var(--gray-200);border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Pretendard',-apple-system,sans-serif;transition:all .15s;}
+.save-btn-inner:hover{background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary-mid);}
+.save-btn-inner.purple:hover{background:#ede9fe;color:#5b21b6;border-color:#c4b5fd;}
+.save-btn-inner.green:hover{background:#d1fae5;color:#065f46;border-color:#6ee7b7;}
+/* ── 진행률 프로그레스바 ── */
+.progress-wrap{padding:10px 16px 4px;background:white;position:sticky;top:44px;z-index:100;border-bottom:1px solid var(--gray-100);}
+.progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--gray-500);margin-bottom:5px;}
+.progress-label b{color:var(--primary-dark);}
+.progress-bar{height:6px;background:var(--gray-200);border-radius:99px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),#a78bfa);border-radius:99px;transition:width .35s ease;}
+/* ── 미입력 하이라이트 ── */
+.q-card.missing{border-color:#ef4444 !important;box-shadow:0 0 0 3px rgba(239,68,68,0.12);}
+.q-card.missing .form-input{border-color:#ef4444;}
+
+/* ══════════════════════════════ 설정 (기본) ══════════════════════════════ */
+.set-wrap{max-width:1140px;margin:0 auto;padding:32px 40px 80px;}
+.set-wrap h2{font-size:20px;font-weight:700;color:var(--gray-900);letter-spacing:-.3px;margin-bottom:4px;}
+.set-wrap .sub{font-size:12px;color:var(--gray-500);margin-bottom:28px;}
+.set-sec{background:white;border-radius:var(--radius);border:1px solid var(--gray-200);box-shadow:var(--shadow);padding:20px;margin-bottom:14px;}
+.sec-ttl{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:700;color:var(--gray-900);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #f3f4f6;}
+.sec-cnt{margin-left:auto;font-size:11px;font-weight:500;color:var(--gray-400);}
+.set-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.set-row label{font-size:12px;font-weight:600;color:var(--gray-500);min-width:72px;}
+.set-inp{flex:1;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:13px;color:var(--gray-900);background:var(--gray-50);outline:none;font-family:'Pretendard',-apple-system,sans-serif;transition:all .15s;}
+.set-inp:focus{border-color:var(--primary);background:white;}
+.set-sel{flex:1;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:13px;color:var(--gray-900);background:var(--gray-50);outline:none;cursor:pointer;font-family:'Pretendard',-apple-system,sans-serif;}
+.prev-tag{font-size:12px;background:var(--primary-light);color:var(--primary-dark);padding:5px 12px;border-radius:7px;font-weight:600;margin-left:auto;}
+.act-item{display:flex;align-items:center;gap:7px;padding:9px 11px;border-radius:var(--radius-sm);border:1px solid var(--gray-200);margin-bottom:5px;background:var(--gray-50);font-size:13px;transition:all .12s;}
+.act-item:hover{border-color:var(--primary-mid);background:var(--primary-light);}
+.act-item.dragging{opacity:.4;}
+.act-drag{color:#d1d5db;cursor:grab;font-size:13px;}
+.act-drag:active{cursor:grabbing;}
+.act-name{flex:1;color:var(--gray-700);cursor:text;border-radius:5px;padding:2px 4px;}
+.act-name:hover{background:rgba(255,255,255,.7);}
+.act-name-edit-input{width:100%;border:1.5px solid var(--primary);border-radius:5px;padding:2px 6px;font-size:13px;font-family:'Pretendard',-apple-system,sans-serif;background:white;}
+.act-hint{font-size:11px;color:var(--gray-400);margin:-4px 0 8px;}
+.act-del{width:20px;height:20px;border-radius:5px;border:none;background:var(--danger-light);color:var(--danger);cursor:pointer;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all .12s;flex-shrink:0;}
+.act-del:hover{background:var(--danger);color:white;}
+.add-row{display:flex;gap:7px;margin-top:8px;}
+.add-row input{flex:1;padding:9px 12px;border:1.5px dashed #d1d5db;border-radius:var(--radius-sm);font-size:13px;color:var(--gray-900);background:var(--gray-50);outline:none;font-family:'Pretendard',-apple-system,sans-serif;transition:all .15s;}
+.add-row input:focus{border-color:var(--primary);border-style:solid;background:white;}
+.add-row button,.add-q-row button{padding:9px 14px;background:#111;color:white;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Pretendard',-apple-system,sans-serif;transition:all .12s;}
+.add-row button:hover,.add-q-row button:hover{background:#2563eb;}
+
+/* ══════════════════════════════ 구글폼 스타일 질문 빌더 ══════════════════════════════ */
+
+/* 섹션 탭 (학급/수학/동아리) */
+.q-section-tabs{display:flex;gap:6px;margin-bottom:18px;}
+.q-section-tab{padding:8px 18px;border-radius:20px;border:1.5px solid var(--gray-200);background:white;font-size:12px;font-weight:600;color:var(--gray-500);cursor:pointer;transition:all .15s;font-family:'Pretendard',-apple-system,sans-serif;}
+.q-section-tab.active.blue{background:var(--primary-light);border-color:var(--primary);color:var(--primary-dark);}
+.q-section-tab.active.purple{background:#f5f3ff;border-color:#7c3aed;color:#5b21b6;}
+.q-section-tab.active.green{background:#ecfdf5;border-color:#059669;color:#065f46;}
+
+/* 질문 패널 */
+.q-section-panel{display:none;}
+.q-section-panel.active{display:block;}
+
+/* 질문 카드 빌더 */
+.qb-card{
+  background:white;border-radius:var(--radius);border:1.5px solid var(--gray-200);
+  margin-bottom:10px;overflow:hidden;transition:all .18s;
+  box-shadow:0 2px 6px rgba(0,0,0,0.04);
+}
+.qb-card:hover{border-color:var(--primary-mid);box-shadow:0 4px 14px rgba(37,99,235,0.1);}
+.qb-card.expanded{border-color:var(--primary);box-shadow:0 4px 20px rgba(37,99,235,0.12);}
+
+/* 질문 헤더 (항상 보임) */
+.qb-header{
+  display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;
+  user-select:none;
+}
+.qb-drag{color:#d1d5db;cursor:grab;font-size:14px;flex-shrink:0;}
+.qb-type-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:5px;white-space:nowrap;flex-shrink:0;}
+.qb-type-badge.short{background:var(--primary-light);color:var(--primary-dark);}
+.qb-type-badge.long{background:#ede9fe;color:#5b21b6;}
+.qb-type-badge.check{background:#d1fae5;color:#065f46;}
+.qb-type-badge.radio{background:#fef3c7;color:#92400e;}
+.qb-title-text{flex:1;font-size:13px;font-weight:600;color:var(--gray-900);}
+.qb-req-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;flex-shrink:0;}
+.qb-req-badge.req{background:var(--primary-light);color:var(--primary-dark);}
+.qb-req-badge.opt{background:var(--gray-100);color:var(--gray-400);}
+.qb-toggle{color:var(--gray-400);font-size:16px;flex-shrink:0;transition:transform .2s;}
+.qb-card.expanded .qb-toggle{transform:rotate(180deg);}
+.qb-del-btn{width:24px;height:24px;border-radius:6px;border:none;background:var(--danger-light);color:var(--danger);cursor:pointer;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .12s;}
+.qb-del-btn:hover{background:var(--danger);color:white;}
+
+/* 질문 편집 본문 (펼쳐질 때) */
+.qb-body{
+  display:none;padding:0 16px 16px;border-top:1px solid #f3f4f6;
+  animation:slideDown .15s ease;
+}
+.qb-card.expanded .qb-body{display:block;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
+
+.qb-field-row{display:flex;align-items:flex-start;gap:10px;margin-top:12px;}
+.qb-field-row label{font-size:11px;font-weight:700;color:var(--gray-500);min-width:60px;padding-top:10px;letter-spacing:.03em;}
+.qb-inp{flex:1;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:13px;color:var(--gray-900);background:var(--gray-50);outline:none;font-family:'Pretendard',-apple-system,sans-serif;transition:all .15s;}
+.qb-inp:focus{border-color:var(--primary);background:white;box-shadow:0 0 0 3px var(--primary-light);}
+textarea.qb-inp{resize:vertical;line-height:1.6;}
+.qb-sel{padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:12px;font-weight:600;color:var(--gray-700);background:white;outline:none;cursor:pointer;font-family:'Pretendard',-apple-system,sans-serif;transition:all .15s;}
+.qb-sel:focus{border-color:var(--primary);}
+
+/* 필수/선택 토글 */
+.req-toggle-wrap{display:flex;align-items:center;gap:8px;margin-top:12px;}
+.req-toggle-wrap span{font-size:12px;font-weight:600;color:var(--gray-500);}
+.toggle-switch{position:relative;width:36px;height:20px;cursor:pointer;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;top:0;left:0;right:0;bottom:0;background:#d1d5db;border-radius:20px;transition:.2s;}
+.toggle-slider:before{position:absolute;content:"";height:14px;width:14px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.2s;}
+.toggle-switch input:checked+.toggle-slider{background:#2563eb;}
+.toggle-switch input:checked+.toggle-slider:before{transform:translateX(16px);}
+
+/* ── 카테고리별 공지 / 마감 (학생 화면) ── */
+.cat-notice-box{display:none;background:rgba(155,142,196,0.12);border-left:3px solid var(--primary);border-radius:10px;padding:13px 15px;margin-bottom:12px;font-size:12.5px;color:#5b4b8a;line-height:1.75;white-space:pre-line;}
+.cat-closed-box{display:none;background:var(--danger-light);border:1.5px solid #fecaca;border-radius:14px;padding:26px 16px;margin-bottom:12px;text-align:center;}
+.cat-closed-box .cc-icon{font-size:30px;margin-bottom:8px;}
+.cat-closed-box .cc-text{font-size:13px;font-weight:700;color:#DC2626;line-height:1.7;}
+
+/* ── 관리자: 마감·공지 탭 ── */
+.notice-row{background:white;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:10px;}
+.notice-row-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.notice-row-title{font-size:13px;font-weight:700;color:var(--gray-900);}
+.notice-row-status{font-size:11px;font-weight:600;}
+.notice-row textarea{width:100%;padding:9px 12px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:12.5px;font-family:'Pretendard',-apple-system,sans-serif;resize:vertical;min-height:56px;}
+.notice-row textarea:focus{border-color:var(--primary);outline:none;}
+.notice-toolbar{margin-bottom:6px;}
+.notice-bold-btn{padding:4px 10px;border:1.5px solid var(--gray-200);background:white;border-radius:6px;font-size:11.5px;color:var(--gray-700);cursor:pointer;}
+.notice-bold-btn:hover{border-color:var(--primary);color:var(--primary);}
+.notice-color-btn{padding:4px 10px;border:1.5px solid var(--gray-200);background:white;border-radius:6px;font-size:11.5px;font-weight:700;cursor:pointer;margin-left:6px;}
+.notice-color-red{color:#DC2626;}
+.notice-color-red:hover{border-color:#DC2626;background:#FEF2F2;}
+.notice-color-blue{color:#2563EB;}
+.notice-color-blue:hover{border-color:#2563EB;background:#EFF6FF;}
+.notice-hint{font-size:11px;color:var(--gray-400);margin-top:5px;}
+
+/* 옵션 목록 (체크박스/라디오용) */
+.opt-list{margin-top:8px;}
+.opt-item{display:flex;align-items:center;gap:7px;margin-bottom:5px;}
+.opt-item input[type=text]{flex:1;padding:7px 10px;border:1.5px solid var(--gray-200);border-radius:7px;font-size:12px;color:var(--gray-900);background:var(--gray-50);outline:none;font-family:'Pretendard',-apple-system,sans-serif;transition:all .15s;}
+.opt-item input[type=text]:focus{border-color:var(--primary);background:white;}
+.opt-del{width:20px;height:20px;border-radius:5px;border:none;background:var(--danger-light);color:var(--danger);cursor:pointer;font-size:11px;font-weight:700;flex-shrink:0;transition:all .12s;}
+.opt-del:hover{background:var(--danger);color:white;}
+.add-opt-btn{font-size:12px;font-weight:600;color:var(--primary);background:transparent;border:none;cursor:pointer;padding:4px 0;font-family:'Pretendard',-apple-system,sans-serif;}
+.add-opt-btn:hover{text-decoration:underline;}
+
+/* 새 질문 추가 버튼 */
+.add-q-btn{
+  width:100%;padding:12px;border:2px dashed #d1d5db;border-radius:12px;
+  background:transparent;color:var(--gray-500);font-size:13px;font-weight:600;cursor:pointer;
+  font-family:'Pretendard',-apple-system,sans-serif;transition:all .15s;margin-top:6px;
+}
+.add-q-btn:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light);}
+
+/* 저장 버튼 */
+.save-all-btn{
+  width:100%;padding:14px;margin-top:8px;
+  background:#7B6BA8;color:white;border:none;border-radius:12px;
+  font-size:14px;font-weight:700;cursor:pointer;
+  box-shadow:0 4px 14px rgba(0,0,0,0.2);transition:all .18s;
+  font-family:'Pretendard',-apple-system,sans-serif;
+}
+.save-all-btn:hover{background:#9B8EC4;transform:translateY(-1px);box-shadow:0 6px 20px rgba(155,142,196,0.35);}
+
+/* 저장 완료 토스트 */
+/* ── 로딩 오버레이 ── */
+.loading-overlay{display:none;position:fixed;inset:0;background:rgba(255,255,255,.88);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:12px;}
+.loading-overlay.show{display:flex;}
+.loading-spinner{width:38px;height:38px;border:4px solid var(--gray-200);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-overlay p{font-size:13px;font-weight:600;color:var(--gray-500);}
+
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);
+  background:#111;color:white;padding:12px 24px;border-radius:12px;
+  font-size:13px;font-weight:700;z-index:999;
+  box-shadow:0 8px 32px rgba(0,0,0,0.2);
+  transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  pointer-events:none;opacity:0;
+}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+
+@media(max-width:480px){
+  .type-grid{grid-template-columns:repeat(3,1fr);gap:7px;}
+  .type-card{padding:14px 8px 12px;}
+  .type-card .tc-icon{font-size:22px;margin-bottom:6px;}
+  .type-card .tc-name{font-size:13px;}
+  .type-card .tc-sub{font-size:10px;}
+  .student-wrap{padding:24px 12px 80px;}
+  .hero h1{font-size:22px;}
+}
+@media(max-width:360px){
+  .type-grid{grid-template-columns:1fr;gap:6px;}
+  .type-card{display:flex;align-items:center;gap:12px;text-align:left;padding:12px 14px;}
+  .type-card .tc-icon{font-size:24px;margin-bottom:0;flex-shrink:0;}
+}
+
+/* ══════════════════════════════ 모달 ══════════════════════════════ */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:500;
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal-box{
+  background:white;border-radius:20px;width:100%;max-width:680px;
+  max-height:85vh;display:flex;flex-direction:column;
+  box-shadow:0 24px 64px rgba(0,0,0,0.2);
+  transform:translateY(16px);transition:transform .25s cubic-bezier(.34,1.56,.64,1);
+}
+.modal-overlay.open .modal-box{transform:translateY(0);}
+.modal-head{
+  display:flex;align-items:center;gap:10px;padding:18px 22px 16px;
+  border-bottom:1px solid #f3f4f6;flex-shrink:0;
+}
+.modal-head-info{flex:1;}
+.modal-head-info h3{font-size:16px;font-weight:700;color:var(--gray-900);margin-bottom:3px;}
+.modal-head-info p{font-size:12px;color:var(--gray-500);}
+.modal-close{
+  width:30px;height:30px;border-radius:8px;border:none;
+  background:var(--gray-100);color:var(--gray-500);font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .12s;flex-shrink:0;
+}
+.modal-close:hover{background:var(--danger-light);color:var(--danger);}
+.modal-body{padding:20px 22px;overflow-y:auto;flex:1;}
+.modal-section{margin-bottom:18px;}
+.modal-section:last-child{margin-bottom:0;}
+.modal-sec-title{
+  font-size:11px;font-weight:700;color:var(--gray-500);letter-spacing:.06em;
+  margin-bottom:8px;display:flex;align-items:center;gap:6px;
+}
+.modal-sec-title::after{content:'';flex:1;height:1px;background:var(--gray-100);}
+.modal-content-box{
+  background:#f8fafc;border-radius:10px;border:1px solid var(--gray-200);
+  padding:12px 14px;font-size:13px;color:var(--gray-700);line-height:1.75;
+  white-space:pre-wrap;word-break:break-all;
+}
+.modal-content-box.empty{color:var(--gray-400);font-style:italic;}
+.modal-foot{
+  padding:14px 22px;border-top:1px solid #f3f4f6;
+  display:flex;justify-content:flex-end;gap:8px;flex-shrink:0;
+}
+.modal-tag{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;
+}
+
+/* ══════════════════════════════
+   화면 전환 (s-screen)
+══════════════════════════════ */
+.s-screen{display:none;}
+.s-screen.active{display:block;}
+
+/* 홈 메뉴 카드 (정사각형 3열 그리드) */
+.s-menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;}
+.s-menu-card{
+  background:var(--white);border:2px solid var(--gray-200);
+  border-radius:20px;padding:20px 12px 16px;
+  text-align:center;cursor:pointer;
+  transition:all .18s;box-shadow:var(--shadow);
+}
+.s-menu-card:hover{
+  transform:translateY(-3px);box-shadow:var(--shadow-lg);
+  border-color:var(--primary);background:var(--primary-light);
+}
+.s-menu-card:active{transform:translateY(0);}
+.s-menu-icon{font-size:28px;margin-bottom:8px;}
+.s-menu-text{flex:1;}
+.s-menu-name{font-size:14px;font-weight:700;color:var(--gray-900);margin-bottom:4px;}
+.s-menu-desc{font-size:11px;color:var(--gray-400);line-height:1.5;}
+.s-menu-badge{display:none;font-size:10px;font-weight:700;color:#DC2626;background:#FEF2F2;border-radius:20px;padding:2px 7px;vertical-align:middle;margin-left:2px;}
+.s-menu-arrow{display:none;}
+
+/* 폼 화면 헤더 */
+.form-screen-header{
+  background:var(--white);border-bottom:1px solid var(--gray-200);
+  padding:12px 20px;display:flex;align-items:center;gap:12px;
+  box-shadow:var(--shadow);
+}
+.form-back-btn{
+  font-size:13px;font-weight:700;color:var(--primary-dark);
+  background:var(--primary-light);border:1.5px solid var(--primary-mid);
+  border-radius:20px;padding:6px 14px;cursor:pointer;
+  font-family:'Pretendard',-apple-system,sans-serif;
+  transition:all .15s;white-space:nowrap;
+}
+.form-back-btn:hover{background:var(--primary-mid);}
+.form-screen-title{
+  font-size:15px;font-weight:700;color:var(--gray-900);
+}
+
+@media(max-width:480px){
+  .s-menu-grid{gap:7px;}
+  .s-menu-card{padding:14px 8px 12px;}
+  .s-menu-icon{font-size:22px;margin-bottom:6px;}
+  .s-menu-name{font-size:13px;}
+  .s-menu-desc{font-size:10px;}
+}
+</style>
+</head>
+<body>
+
+<!-- GAS 배너 -->
+<div class="gas-banner loading" id="gasBanner">
+  <span id="gasBannerText">⏳ GAS 연결 확인 중...</span>
+  <span id="gasBannerSub" style="font-size:11px;font-weight:400;display:none;"></span>
+</div>
+
+<!-- 네비 -->
+<nav class="nav">
+  <div class="nav-logo">
+    🌟 아듬's 생기부 AI
+    <span class="made">· Made by Cheon_R</span>
+    <span class="nav-badge" id="nav-badge-count" style="display:none;">0</span>
+    <button class="admin-open-btn" onclick="openAdminLogin()" style="margin-left:10px;">⚙️ 관리</button>
+  </div>
+</nav>
+
+<div class="main">
+
+<!-- ══════════════════ 학생 폼 ══════════════════ -->
+<div id="view-student" class="view active">
+
+  <!-- ── SCREEN: 홈 ── -->
+  <div class="s-screen active" id="screen-home">
+  <div class="student-wrap">
+    <div class="hero">
+      <div class="hero-badge">📋 <span id="year-display">2025학년도 2학년</span></div>
+      <h1>🌟 아듬's 생기부<br>기초자료 설문링크</h1>
+      <p>아래에서 해당하는 폼을 선택하고<br>꼼꼼하게 작성해 주세요 🙏</p>
+      <span class="made-by">Made by Cheon_R</span>
+    </div>
+    <div class="s-menu-grid">
+      <div class="s-menu-card" onclick="goForm('hakgup')">
+        <div class="s-menu-icon">🏫</div>
+        <div class="s-menu-name">학급 <span class="s-menu-badge" id="badge-hakgup"></span></div>
+        <div class="s-menu-desc">자율·진로·행발</div>
+      </div>
+      <div class="s-menu-card" onclick="goForm('math')">
+        <div class="s-menu-icon">📐</div>
+        <div class="s-menu-name">수학 교과 <span class="s-menu-badge" id="badge-math"></span></div>
+        <div class="s-menu-desc" id="math-sub">교과 세특</div>
+      </div>
+      <div class="s-menu-card" onclick="goForm('club')">
+        <div class="s-menu-icon">🔭</div>
+        <div class="s-menu-name">동아리 <span class="s-menu-badge" id="badge-club"></span></div>
+        <div class="s-menu-desc" id="club-sub">창의수학</div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- ── SCREEN: 폼 ── -->
+  <div class="s-screen" id="screen-form">
+
+    <!-- 폼 헤더 (뒤로가기 + 제목) -->
+    <div class="form-screen-header">
+      <button class="form-back-btn" onclick="goHome()">‹ 처음으로</button>
+      <div class="form-screen-title" id="form-screen-title">학급 세특</div>
+    </div>
+
+  <div class="student-wrap">
+
+    <!-- 공통: 학생 기본정보 -->
+    <div class="q-card">
+      <div class="q-head">
+        <div class="q-num blue">1</div>
+        <div class="q-title">학생 기본정보</div>
+        <span class="q-req">필수</span>
+      </div>
+      <div class="q-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 2fr;gap:10px;">
+          <div>
+            <div style="font-size:11px;color:var(--gray-500);margin-bottom:4px;font-weight:600;">학년 <span style="color:var(--danger);">*</span></div>
+            <select class="form-input" id="f-grade" onchange="autoSave()" style="padding:10px 8px;">
+              <option value="">선택</option>
+              <option value="1">1학년</option>
+              <option value="2">2학년</option>
+              <option value="3">3학년</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--gray-500);margin-bottom:4px;font-weight:600;">반 <span style="color:var(--danger);">*</span></div>
+            <input class="form-input" id="f-ban" type="number" min="1" max="20" placeholder="예) 3" oninput="autoSave()"/>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--gray-500);margin-bottom:4px;font-weight:600;">번호 <span style="color:var(--danger);">*</span></div>
+            <input class="form-input" id="f-num" type="number" min="1" max="40" placeholder="예) 15" oninput="autoSave()"/>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--gray-500);margin-bottom:4px;font-weight:600;">이름 <span style="color:var(--danger);">*</span></div>
+            <input class="form-input" id="f-name" type="text" placeholder="예) 홍길동" oninput="autoSave()"/>
+          </div>
+        </div>
+        <div style="margin-top:8px;padding:8px 12px;background:var(--primary-light);border-radius:8px;border-left:3px solid var(--primary);">
+          <span style="font-size:12px;color:var(--primary-dark);">📌 입력 예시: 1학년 · 3반 · 15번 · 홍길동</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 학급 폼 ── -->
+    <div id="form-hakgup" style="display:none">
+      <div class="cat-notice-box" id="catnotice-hakgup"></div>
+      <div class="cat-closed-box" id="catclosed-hakgup">
+        <div class="cc-icon">🔒</div>
+        <div class="cc-text">학급(담임) 설문이 마감되었어요.<br>선생님께 문의해 주세요.</div>
+      </div>
+      <div id="catbody-hakgup">
+      <div class="inner-tabs">
+        <button class="inner-tab active" onclick="switchInner('자율',this)">🏃 자율활동</button>
+        <button class="inner-tab" onclick="switchInner('진로',this)">🎯 진로활동</button>
+        <button class="inner-tab" onclick="switchInner('행발',this)">📝 행발</button>
+      </div>
+      <div class="save-bar">
+        <div class="save-status" id="save-status-hakgup">✏️ 입력하면 자동으로 저장돼요</div>
+        <button class="manual-save-btn" onclick="manualSave('hakgup')">💾 지금 저장하기</button>
+      </div>
+
+      <!-- 자율활동 탭 -->
+      <div class="inner-section active" id="inner-자율">
+        <div id="student-auto-checkcard" class="q-card">
+          <div class="q-head"><div class="q-num blue">2</div><div class="q-title">자율활동 선택 <span style="font-weight:400;color:var(--gray-400);font-size:11px;">3개 권장</span></div><span class="q-req">필수</span></div>
+          <div class="q-body">
+            <div class="hint">💡 생기부에 기록하고 싶은 활동 3개를 선택하세요.</div>
+            <div class="cb-list" id="cb-auto-list"></div>
+          </div>
+        </div>
+        <div id="student-auto-questions"></div>
+        <div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 4px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">작성 완료 후 아래 제출 버튼을 눌러야 선생님께 전달됩니다</span></div>
+        <div style="text-align:center;font-size:12px;font-weight:700;color:#ef4444;padding:4px 0 4px;letter-spacing:-0.2px;">⚠️ 아래 버튼을 눌러야 선생님께 전달됩니다!</div>
+        <button class="submit-btn" id="submit-btn-auto" onclick="submitFormSection('자율')">🏃 자율활동 제출하기</button>
+        <div id="submit-status-auto" style="text-align:center;font-size:12px;padding:8px 0 4px;color:#6b7280;"></div>
+      </div>
+
+      <!-- 진로활동 탭 -->
+      <div class="inner-section" id="inner-진로">
+        <div id="student-career-checkcard" class="q-card">
+          <div class="q-head"><div class="q-num blue">2</div><div class="q-title">진로활동 선택 <span style="font-weight:400;color:var(--gray-400);font-size:11px;">3개 권장</span></div><span class="q-req">필수</span></div>
+          <div class="q-body">
+            <div class="hint">💡 생기부에 기록하고 싶은 진로활동 3개를 선택하세요.</div>
+            <div class="cb-list" id="cb-career-list"></div>
+          </div>
+        </div>
+        <div id="student-career-questions"></div>
+        <div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 4px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">작성 완료 후 아래 제출 버튼을 눌러야 선생님께 전달됩니다</span></div>
+        <div style="text-align:center;font-size:12px;font-weight:700;color:#ef4444;padding:4px 0 4px;letter-spacing:-0.2px;">⚠️ 아래 버튼을 눌러야 선생님께 전달됩니다!</div>
+        <button class="submit-btn" id="submit-btn-career" onclick="submitFormSection('진로')">🎯 진로활동 제출하기</button>
+        <div id="submit-status-career" style="text-align:center;font-size:12px;padding:8px 0 4px;color:#6b7280;"></div>
+      </div>
+
+      <!-- 행발 탭 -->
+      <div class="inner-section" id="inner-행발">
+        <div id="student-hakgup-questions"></div>
+        <div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 4px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">작성 완료 후 아래 제출 버튼을 눌러야 선생님께 전달됩니다</span></div>
+        <div style="text-align:center;font-size:12px;font-weight:700;color:#ef4444;padding:4px 0 4px;letter-spacing:-0.2px;">⚠️ 아래 버튼을 눌러야 선생님께 전달됩니다!</div>
+        <button class="submit-btn" id="submit-btn-haengbal" onclick="submitFormSection('행발')">📝 행동발달 제출하기</button>
+        <div id="submit-status-haengbal" style="text-align:center;font-size:12px;padding:8px 0 4px;color:#6b7280;"></div>
+      </div>
+      </div>
+    </div>
+
+    <!-- ── 수학 교과 폼 ── -->
+    <div id="form-math" style="display:none">
+      <div class="cat-notice-box" id="catnotice-math"></div>
+      <div class="cat-closed-box" id="catclosed-math">
+        <div class="cc-icon">🔒</div>
+        <div class="cc-text">수학 교과 설문이 마감되었어요.<br>선생님께 문의해 주세요.</div>
+      </div>
+      <div id="catbody-math">
+      <div class="save-bar">
+        <div class="save-status" id="save-status-math">✏️ 입력하면 자동으로 저장돼요</div>
+        <button class="manual-save-btn" onclick="manualSave('math')">💾 지금 저장하기</button>
+      </div>
+      <div id="student-math-questions"></div>
+      <div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 4px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">작성 완료 후 아래 제출 버튼을 눌러야 선생님께 전달됩니다</span></div>
+      <div style="text-align:center;font-size:12px;font-weight:700;color:#ef4444;padding:4px 0 4px;letter-spacing:-0.2px;">⚠️ 아래 버튼을 눌러야 선생님께 전달됩니다!</div>
+      <button class="submit-btn" id="submit-btn-math" onclick="submitFormSection('수학')">📐 수학 교과 제출하기</button>
+      <div id="submit-status-math" style="text-align:center;font-size:12px;padding:8px 0 4px;color:#6b7280;"></div>
+      </div>
+    </div>
+
+    <!-- ── 동아리 폼 ── -->
+    <div id="form-club" style="display:none">
+      <div class="cat-notice-box" id="catnotice-club"></div>
+      <div class="cat-closed-box" id="catclosed-club">
+        <div class="cc-icon">🔒</div>
+        <div class="cc-text">동아리 설문이 마감되었어요.<br>선생님께 문의해 주세요.</div>
+      </div>
+      <div id="catbody-club">
+      <div class="save-bar">
+        <div class="save-status" id="save-status-club">✏️ 입력하면 자동으로 저장돼요</div>
+        <button class="manual-save-btn" onclick="manualSave('club')">💾 지금 저장하기</button>
+      </div>
+      <div id="student-club-questions"></div>
+      <div style="text-align:center;font-size:11px;color:var(--gray-500);padding:6px 12px 4px;line-height:1.7;">✏️ 작성 내용은 이 기기에 <b>임시보관</b>됩니다<br><span style="color:var(--gray-400);">작성 완료 후 아래 제출 버튼을 눌러야 선생님께 전달됩니다</span></div>
+      <div style="text-align:center;font-size:12px;font-weight:700;color:#ef4444;padding:4px 0 4px;letter-spacing:-0.2px;">⚠️ 아래 버튼을 눌러야 선생님께 전달됩니다!</div>
+      <button class="submit-btn" id="submit-btn-club" onclick="submitFormSection('동아리')">🔭 동아리 제출하기</button>
+      <div id="submit-status-club" style="text-align:center;font-size:12px;padding:8px 0 4px;color:#6b7280;"></div>
+      </div>
+    </div>
+
+
+    <!-- 진행률 표시 (수학·동아리용) -->
+    <div class="progress-wrap" id="progress-wrap" style="display:none;">
+      <div class="progress-label">
+        <span>필수 항목 진행률</span>
+        <b id="progress-text">0 / 0</b>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+
+  </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════ 대시보드 ══════════════════ -->
+
+<!-- ══════════════════ 설정·관리 ══════════════════ -->
+
+</div><!-- /main -->
+
+<!-- 토스트 -->
+<div class="loading-overlay" id="loadingOverlay"><div class="loading-spinner"></div><p id="loadingMsg">불러오는 중...</p></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  🔗 배포 링크 부트스트랩 (공유용 사본 전용)
+//  선생님이 만든 배포 링크(?gas=...&y=...&g=...&s=...)로 학생이 들어오면,
+//  그 파라미터를 이 학생 브라우저의 localStorage(adum_basic_settings)에
+//  저장해서, 이후 제출이 자동으로 해당 선생님의 구글시트로 가도록 함.
+//  파라미터가 없으면(=관리자가 직접 접속) 기존 로컬 설정을 그대로 사용.
+// ═══════════════════════════════════════════════════════
+(function bootstrapFromShareLink() {
+  try {
+    var params = new URLSearchParams(window.location.search);
+    var gas = params.get('gas');
+    var y = params.get('y');
+    var g = params.get('g');
+    var s = params.get('s');
+    var sch = params.get('sch');
+    var club = params.get('club');
+    var math = params.get('math');
+    if (!gas && !y && !g && !s && !sch && !club && !math) return;
+
+    var settings = {};
+    try { settings = JSON.parse(localStorage.getItem('adum_basic_settings') || '{}'); } catch(e) { settings = {}; }
+
+    if (gas)   settings.gasUrl = gas;
+    if (y)     settings.year = y;
+    if (g)     settings.grade = g;
+    if (s)     settings.semester = s;
+    if (sch)   settings.school = sch;
+    if (club)  settings.club = club;
+    if (math)  settings.math = math;
+
+    localStorage.setItem('adum_basic_settings', JSON.stringify(settings));
+
+    // 주소창에 GAS 주소가 그대로 남지 않도록 정리
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  } catch(e) { /* 파라미터 처리 실패 시에도 기존 로컬 설정으로 계속 진행 */ }
+})();
+
+// ═══════════════════════════════════════════════════════
+//  초기 데이터 (기본값)
+// ═══════════════════════════════════════════════════════
+const DEFAULT_QUESTIONS = {
+  auto: [
+    { id: 'a0', title: '희망 진로 / 직업', subtitle: '자율·진로·행발 전체에 반영되는 중요 정보예요', type: 'short', required: true,
+      hint: '🎯 아직 구체적인 직업이 없으면 관심 분야나 희망 학과를 작성해도 돼요.\n예) 바이오공학자 / 소프트웨어 엔지니어 / 경영학과 진학 후 마케터',
+      placeholder: '예) 데이터 사이언티스트', rows: 1, options: [] },
+    { id: 'a0b', title: '학급에서 맡은 역할 및 에피소드', subtitle: '1인 1역할 외에도 기억에 남는 순간이 있으면 작성', type: 'long', required: false,
+      hint: '📌 역할(예: 환경부장, 모둠장)과 함께 구체적인 에피소드를 써주세요. 최소 3줄 이상\n예) 학급 환경부장으로서 분리수거 캠페인을 주도해 반 전체 참여율을 높임',
+      placeholder: '맡은 역할:\n\n기억에 남는 에피소드:', rows: 4, options: [] },
+    { id: 'a1', title: '자율활동 ① 상세 서술', subtitle: '가장 강조할 활동 — 가장 길게 작성', type: 'long', required: true,
+      hint: '📝 아래 5가지 항목을 각각 2줄 이상 작성하세요. (최소 10줄)\n① 참여동기  ② 활동내용  ③ 배우고 느낀 점  ④ 후속활동  ⑤ 강조점',
+      placeholder: '<활동명>\n\n1. 참여 동기\n\n2. 활동 내용\n\n3. 배우고 느낀 점\n\n4. 추가 후속 활동\n\n5. 강조하고 싶은 점',
+      rows: 7, options: [] },
+    { id: 'a2', title: '자율활동 ② 상세 서술', subtitle: '두 번째로 강조할 활동', type: 'long', required: true,
+      hint: '📝 위와 동일한 5가지 항목으로 작성하세요. (최소 6줄)',
+      placeholder: '<활동명>\n\n1. 참여 동기\n...',
+      rows: 7, options: [] },
+    { id: 'a3', title: '자율활동 ③ 상세 서술', subtitle: '세 번째 활동 (선택)', type: 'long', required: false,
+      hint: '📝 활동이 있다면 최소 4줄 이상 작성하세요.',
+      placeholder: '<활동명>\n\n1. 참여 동기\n...',
+      rows: 7, options: [] },
+    { id: 'a_study0', title: '학급 자율스터디 참여 여부', subtitle: '', type: 'radio', required: false,
+      hint: '', placeholder: '', rows: 1, options: ['✅ 참여함', '❌ 참여 안 함'] },
+    { id: 'a_study1', title: '학급 자율스터디 참여 과목', subtitle: '참여한 과목을 모두 선택하세요', type: 'check', required: false,
+      hint: '📚 참여한 과목을 모두 체크하세요.',
+      placeholder: '', rows: 1, options: ['국어', '수학', '영어', '사회', '과학', '한국사'],
+      showIf: { id: 'a_study0', value: '✅ 참여함' } },
+    { id: 'a_study2', title: '자율스터디 — 과목별 역할 및 기여 내용', subtitle: '참여한 과목마다 역할(팀장/팀원)과 한 일을 작성', type: 'long', required: false,
+      hint: '📌 과목별로 나눠서 작성해주세요. (최소 2줄/과목)\n예)\n[수학] 팀장 — 주간 문제 선정 및 풀이 설명 담당\n[과학] 팀원 — 실험 보고서 요약 정리 담당',
+      placeholder: '[과목명] 팀장/팀원 — 구체적으로 한 일\n\n[과목명] 팀장/팀원 — 구체적으로 한 일',
+      rows: 5, options: [], showIf: { id: 'a_study0', value: '✅ 참여함' } },
+    { id: 'a_study3', title: '자율스터디 — 느낀 점 · 성장한 점', subtitle: '', type: 'long', required: false,
+      hint: '💡 스터디를 통해 학습 습관이나 협업 능력 면에서 달라진 점을 구체적으로 써주세요. (최소 3줄)\n예) 매주 수학 스터디를 통해 혼자 풀지 못했던 문제를 친구들과 논의하며 해결하는 과정에서 의사소통 능력이 향상됨.',
+      placeholder: '스터디를 통해 성장한 점을 구체적으로 작성하세요.', rows: 4, options: [],
+      showIf: { id: 'a_study0', value: '✅ 참여함' } },
+  ],
+  career: [
+    { id: 'c1', title: '진로활동 ① 상세 서술', subtitle: '가장 강조할 활동 — 가장 길게 작성', type: 'long', required: true,
+      hint: '📝 아래 5가지 항목을 각각 2줄 이상 작성하세요. (최소 10줄)\n① 참여동기  ② 활동내용(보고서 있으면 요약 필수!)  ③ 배우고 느낀 점  ④ 후속활동  ⑤ 강조점',
+      placeholder: '<활동명>\n\n1. 참여 동기\n\n2. 활동 내용 (보고서 내용 요약)\n\n3. 배우고 느낀 점\n\n4. 추가 후속 활동\n\n5. 강조하고 싶은 점',
+      rows: 8, options: [] },
+    { id: 'c2', title: '진로활동 ② 상세 서술', subtitle: '두 번째로 강조할 활동', type: 'long', required: true,
+      hint: '📝 위와 동일한 5가지 항목으로 작성하세요. (최소 6줄)', placeholder: '<활동명>\n\n1. 참여 동기\n...', rows: 7, options: [] },
+    { id: 'c3', title: '진로활동 ③ 상세 서술', subtitle: '세 번째 활동 (선택)', type: 'long', required: false,
+      hint: '📝 활동이 있다면 최소 4줄 이상 작성하세요.', placeholder: '<활동명>\n\n1. 참여 동기\n...', rows: 7, options: [] },
+  ],
+  hakgup: [
+    { id: 'h1', title: '행동발달 (행발)', subtitle: '', type: 'long', required: true,
+      hint: '✏️ 아래 세 가지 항목을 각각 3줄 이상 작성하세요. (최소 9줄)\n① 본인의 장단점  ② 장점을 살린 에피소드  ③ 단점을 극복한 에피소드\n\n💡 에피소드는 최대한 구체적으로! "성실하다" ❌ → "매일 아침 조기청소에 자발적으로 참여하여 ~~" ✅',
+      placeholder: '1. 본인의 장점 및 단점\n\n2. 장점을 살린 에피소드 (구체적인 상황·행동·결과)\n\n3. 단점을 극복한 에피소드 (구체적인 상황·행동·결과)',
+      rows: 8, options: [] },
+  ],
+  math: [
+    { id: 'm1', title: '진로 / 관심분야', subtitle: '', type: 'short', required: true,
+      hint: '🎯 구체적일수록 좋아요. 예) 데이터 사이언티스트 / AI 연구원 / 의대 진학',
+      placeholder: '진로가 명확하지 않으면 관심분야 작성', rows: 1, options: [] },
+    { id: 'm2', title: '가장 자신 있는 내용', subtitle: '음슴체로, 최대한 자세히 (최소 5줄)', type: 'long', required: true,
+      hint: '📝 단원명 + 어떤 개념을 잘 이해했는지 구체적으로 써주세요.\n예) 지수함수에서 정의역·치역 파악에 무리가 없으며, 로그의 성질을 활용한 방정식 풀이에 능숙함. 특히 지수·로그 그래프의 평행이동과 대칭을 시각적으로 분석하는 것을 즐김.',
+      placeholder: '자신 있는 단원/개념과 이유를 구체적으로 작성하세요.', rows: 5, options: [] },
+    { id: 'm2b', title: '수업 중 인상적이었던 순간', subtitle: '세특 차별화에 가장 중요한 항목이에요', type: 'long', required: true,
+      hint: '💡 발표, 토론, 문제풀이, 탐구활동 중 특별히 기억에 남는 순간을 구체적으로 써주세요. (최소 4줄)\n예) 이차방정식 단원 모둠 토론에서 판별식의 기하학적 의미를 직접 그래프로 설명했을 때, 친구들이 "아!" 하는 반응이 기억에 남음.',
+      placeholder: '언제, 어떤 활동에서, 어떤 생각이 들었는지 구체적으로 작성하세요.', rows: 5, options: [] },
+    { id: 'm3', title: '어려웠던 부분 + 극복 방법 + 얻은 점', subtitle: '', type: 'long', required: true,
+      hint: '💡 3단계로 나눠 각각 2줄 이상 작성하세요. (최소 6줄)\n어려웠던 점 → 어떻게 극복했는지 → 그 과정에서 얻은 역량',
+      placeholder: '어려웠던 부분\n→ 극복 방법\n→ 얻은 점', rows: 5, options: [] },
+    { id: 'm3b', title: '조별활동에서 맡은 역할', subtitle: '', type: 'radio', required: true,
+      hint: '', placeholder: '', rows: 1, options: ['👑 팀장', '🤝 팀원'] },
+    { id: 'm3c', title: '조별활동 역할 상세', subtitle: '팀장/팀원으로서 구체적으로 무엇을 했는지', type: 'long', required: true,
+      hint: '📌 내가 맡은 파트, 기여한 내용, 팀에서의 역할을 구체적으로 써주세요. (최소 3줄)\n예) 팀장으로서 역할 분배를 주도하고, 발표 자료 PPT 초안을 직접 제작함.',
+      placeholder: '조별활동에서 내가 한 일을 구체적으로 작성하세요.', rows: 4, options: [] },
+    { id: 'm4', title: '세특에 꼭 넣고 싶은 내용', subtitle: '', type: 'long', required: true,
+      hint: '📌 수행평가, 심화탐구활동, 발표, 조별활동 중 생기부에 꼭 남기고 싶은 내용을 작성하세요. (최소 5줄)\n특히 1학년 탐구활동과 연결되는 내용이 있다면 반드시 작성!',
+      placeholder: '자신이 활동한 내용 위주로 자세히 작성하세요.', rows: 6, options: [] },
+    { id: 'm5', title: '심화탐구 발표 의향', subtitle: '', type: 'radio', required: true,
+      hint: '', placeholder: '', rows: 1, options: ['⭕ 있음', '❌ 없음'] },
+    { id: 'm7', title: '스타터 발표 여부', subtitle: '', type: 'radio', required: true,
+      hint: '⚠️ 발표를 했더라도 해성에듀에 내용을 게시하지 않으면 생기부에 반영되지 않아요!',
+      placeholder: '', rows: 1, options: ['✅ 했음', '❌ 안 했음'] },
+    { id: 'm7b', title: '스타터 발표 — 해성에듀 게시 여부', subtitle: '발표를 한 경우에만 작성', type: 'radio', required: false,
+      hint: '📌 해성에듀에 게시되지 않은 발표는 생기부에 반영할 수 없어요. 반드시 게시 후 체크해주세요!',
+      placeholder: '', rows: 1, options: ['✅ 게시 완료', '❌ 아직 미게시'],
+      showIf: { id: 'm7', value: '✅ 했음' } },
+    { id: 'm8', title: 'Step2 문제 발표 여부', subtitle: '', type: 'radio', required: true,
+      hint: '⚠️ 발표를 했더라도 해성에듀에 내용을 게시하지 않으면 생기부에 반영되지 않아요!',
+      placeholder: '', rows: 1, options: ['✅ 했음', '❌ 안 했음'] },
+    { id: 'm8b', title: 'Step2 문제 발표 — 해성에듀 게시 여부', subtitle: '발표를 한 경우에만 작성', type: 'radio', required: false,
+      hint: '📌 해성에듀에 게시되지 않은 발표는 생기부에 반영할 수 없어요. 반드시 게시 후 체크해주세요!',
+      placeholder: '', rows: 1, options: ['✅ 게시 완료', '❌ 아직 미게시'],
+      showIf: { id: 'm8', value: '✅ 했음' } },
+    { id: 'm6', title: '선생님께 하고 싶은 말', subtitle: '', type: 'long', required: false,
+      hint: '', placeholder: '자유롭게 작성하세요 😊', rows: 4, options: [] },
+  ],
+  club: [
+    { id: 'cl1', title: '진로 / 관심분야', subtitle: '', type: 'short', required: true,
+      hint: '🎯 구체적일수록 좋아요. 예) 데이터 사이언티스트 / 의대 진학 / 건축가',
+      placeholder: '진로를 입력하세요.', rows: 1, options: [] },
+    { id: 'cl2', title: '읽은 수학 도서', subtitle: '', type: 'short', required: false,
+      hint: '', placeholder: '제목(저자) 예) 미적분의 쓸모(한화택)', rows: 1, options: [] },
+    { id: 'cl3', title: '도서 선택 이유 · 내용 · 느낀 점', subtitle: '', type: 'long', required: false,
+      hint: '📖 왜 이 책을 골랐는지, 핵심 내용, 읽고 나서 달라진 생각을 각각 2줄 이상 작성하세요. (최소 6줄)',
+      placeholder: '도서를 택한 이유, 주요 내용, 느낀 점을 작성하세요.', rows: 5, options: [] },
+    { id: 'cl4', title: '희망 진로와 수학의 연관성', subtitle: '', type: 'long', required: true,
+      hint: '🔍 단순히 "수학이 중요하다"는 내용은 ❌\n자신의 희망 진로에서 수학의 어떤 개념·분야가 어떻게 쓰이는지 조사해서 구체적으로 작성하세요. (최소 5줄)',
+      placeholder: '희망 진로와 수학의 연관성을 구체적으로 작성하세요.', rows: 5, options: [] },
+    { id: 'cl5', title: '생기부에 넣고 싶은 동아리 활동 내용', subtitle: '', type: 'long', required: true,
+      hint: '📌 자신이 활동한 내용 위주로 자세히 작성하세요. (최소 6줄)\n예) 문제만들기 활동에서 이차방정식 응용문제를 직접 설계하고 친구들에게 풀이를 설명하는 역할을 맡음.',
+      placeholder: '동아리 활동 내용을 자세히 작성하세요.', rows: 6, options: [] },
+    { id: 'cl5b', title: '동아리 활동 중 가장 기억에 남는 순간', subtitle: '긍정적인 경험 위주로', type: 'long', required: true,
+      hint: '🌟 어떤 활동에서, 어떤 순간이 왜 기억에 남는지 구체적으로 써주세요. (최소 3줄)\n예) 탐구 발표 준비 중 팀원들과 함께 새벽까지 자료를 정리하면서 수학적 협업의 즐거움을 처음 느꼈음.',
+      placeholder: '언제, 어떤 상황에서, 왜 기억에 남는지 구체적으로 작성하세요.', rows: 4, options: [] },
+    { id: 'cl6', title: '축제에서 맡은 역할', subtitle: '', type: 'long', required: true,
+      hint: '📌 단순히 역할 이름만 쓰지 말고, 구체적으로 무엇을 했는지 작성하세요. (최소 2줄)\n예) 문제 출제 담당으로서 난이도별 3단계 문제를 설계하고 검토함.',
+      placeholder: '자신이 맡은 역할과 구체적으로 한 일을 작성하세요.', rows: 3, options: [] },
+    { id: 'cl7', title: '축제 준비·운영 중 어려웠던 점 · 극복 · 느낀 점', subtitle: '', type: 'long', required: true,
+      hint: '💡 3단계로 나눠 각각 2줄 이상 작성하세요. (최소 6줄)',
+      placeholder: '어려웠던 점\n→ 극복한 방법\n→ 느낀 점', rows: 5, options: [] },
+  ],
+};
+
+// ═══════════════════════════════════════════════════════
+//  State: 편집 중인 질문 데이터 (설정탭)
+// ═══════════════════════════════════════════════════════
+let editingQuestions = {}; // 설정탭에서 편집 중인 데이터
+let savedQuestions = {};   // 저장된 데이터 (학생폼에 반영됨)
+
+// 질문 데이터 버전 — DEFAULT_QUESTIONS 변경 시 숫자 올리면 자동 초기화
+const QUESTIONS_VERSION = 6;
+
+function initQuestions() {
+  const savedVersion = parseInt(localStorage.getItem('adum_questions_version') || '0');
+  const saved = localStorage.getItem('adum_saved_questions');
+
+  if (saved && savedVersion >= QUESTIONS_VERSION) {
+    // 버전 같으면 저장된 데이터 사용
+    try { savedQuestions = JSON.parse(saved); }
+    catch(e) { savedQuestions = deepCopy(DEFAULT_QUESTIONS); }
+  } else {
+    // 버전 다르면 DEFAULT_QUESTIONS로 초기화
+    savedQuestions = deepCopy(DEFAULT_QUESTIONS);
+    localStorage.setItem('adum_saved_questions', JSON.stringify(savedQuestions));
+    localStorage.setItem('adum_questions_version', String(QUESTIONS_VERSION));
+  }
+  editingQuestions = deepCopy(savedQuestions);
+}
+
+function deepCopy(obj) {
+  return JSON.parse(JSON.stringify(obj));
+}
+
+
+// ═══════════════════════════════════════════════════════
+//  대시보드 — 샘플 데이터 & 상태
+// ═══════════════════════════════════════════════════════
+
+const SAMPLE_DATA = [];
+
+let dashState = {
+  data: SAMPLE_DATA,
+  catFilter: '전체',
+  banFilter: '전체',
+  sortKey: 'id',
+  sortDir: 'asc',
+  checked: new Set(),
+};
+
+function updateStats() {
+  const d = dashState.data;
+  const total = d.filter(r=>r.submitted).length;
+  const dam   = d.filter(r=>r.cat==='담임').length;
+  const math  = d.filter(r=>r.cat==='수학').length;
+  const club  = d.filter(r=>r.cat==='동아리').length;
+  const miss  = d.filter(r=>!r.submitted).length;
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-total-sub').textContent = '미제출 ' + miss + '명';
+  document.getElementById('stat-dam').textContent = dam;
+  document.getElementById('stat-dam-sub').textContent = '미제출 ' + (Math.round(d.length/3) - dam) + '명';
+  document.getElementById('stat-math').textContent = math;
+  document.getElementById('stat-math-sub').textContent = '미제출 ' + (Math.round(d.length/3) - math) + '명';
+  document.getElementById('stat-club').textContent = club;
+  document.getElementById('stat-club-sub').textContent = '미제출 ' + (Math.round(d.length/3) - club) + '명';
+  // 네비 배지: 제출 완료 학생 수 표시
+  const navBadge = document.getElementById('nav-badge-count');
+  if (navBadge) {
+    if (total > 0) {
+      navBadge.textContent = total;
+      navBadge.style.display = '';
+    } else {
+      navBadge.style.display = 'none';
+    }
+  }
+}
+
+function buildBanFilters() {
+  const bans = [...new Set(dashState.data.map(r=>r.ban))].sort();
+  const wrap = document.getElementById('ban-filters');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  const allBtn = document.createElement('button');
+  allBtn.className = 'fpill active';
+  allBtn.dataset.ban = '전체';
+  allBtn.textContent = '전체';
+  allBtn.onclick = () => setBanFilter(allBtn);
+  wrap.appendChild(allBtn);
+  bans.forEach(ban => {
+    const btn = document.createElement('button');
+    btn.className = 'fpill';
+    btn.dataset.ban = ban;
+    btn.textContent = ban + '반';
+    btn.onclick = () => setBanFilter(btn);
+    wrap.appendChild(btn);
+  });
+}
+
+function setCatFilter(el) {
+  document.querySelectorAll('[data-cat]').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  dashState.catFilter = el.dataset.cat;
+  dashState.checked.clear();
+  renderTable();
+}
+
+function setBanFilter(el) {
+  document.querySelectorAll('[data-ban]').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  dashState.banFilter = el.dataset.ban;
+  dashState.checked.clear();
+  renderTable();
+}
+
+function setSort(key) {
+  if (dashState.sortKey === key) {
+    dashState.sortDir = dashState.sortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    dashState.sortKey = key;
+    dashState.sortDir = 'asc';
+  }
+  ['name','id','ban','cat','preview'].forEach(k => {
+    const el = document.getElementById('si-' + k);
+    if (!el) return;
+    if (k === dashState.sortKey) {
+      el.textContent = dashState.sortDir === 'asc' ? '↑' : '↓';
+      el.classList.add('on');
+      el.closest('.th').classList.add('sorted');
+    } else {
+      el.textContent = '↕';
+      el.classList.remove('on');
+      el.closest ? el.closest('.th').classList.remove('sorted') : null;
+    }
+  });
+  renderTable();
+}
+
+function getFiltered() {
+  const search = (document.getElementById('dash-search')?.value || '').trim().toLowerCase();
+  let rows = dashState.data.filter(r => {
+    if (dashState.catFilter !== '전체' && r.cat !== dashState.catFilter) return false;
+    if (dashState.banFilter !== '전체' && r.ban !== dashState.banFilter) return false;
+    if (search && !r.name.includes(search) && !r.id.includes(search)) return false;
+    return true;
+  });
+  rows.sort((a, b) => {
+    let va = a[dashState.sortKey] || '', vb = b[dashState.sortKey] || '';
+    if (dashState.sortKey === 'id' || dashState.sortKey === 'ban') {
+      va = parseInt(va) || 0; vb = parseInt(vb) || 0;
+    }
+    if (va < vb) return dashState.sortDir === 'asc' ? -1 : 1;
+    if (va > vb) return dashState.sortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+  return rows;
+}
+
+function renderTable() {
+  const rows = getFiltered();
+  const body = document.getElementById('t-body');
+  if (!body) return;
+  const catMap = { '담임':'c-d','수학':'c-m','동아리':'c-c','미제출':'c-missing' };
+  const cols = '36px 90px 80px 46px 80px 1fr 160px';
+
+  if (rows.length === 0) {
+    body.innerHTML = '<div class="empty-state"><div class="e-ico">🔍</div><p>검색 결과가 없어요</p></div>';
+  } else {
+    body.innerHTML = rows.map(r => {
+      const checked = dashState.checked.has(r.id);
+      const catCls = catMap[r.cat] || 'c-missing';
+      const actHtml = r.submitted
+        ? `<button class="ta ta-v" onclick="openModal('${r.id}')">보기</button>`
+        : '<button class="ta ta-dis" disabled>미제출</button>';
+      const chk = checked ? 'checked' : '';
+      const rowCls = checked ? 't-row checked' : 't-row';
+      return `<div class="${rowCls}" style="display:grid;grid-template-columns:${cols};">` +
+        `<div><input type="checkbox" style="accent-color:#2563eb" ${chk} onchange="toggleCheck('${r.id}',this)"></div>` +
+        `<div class="t-name">${r.name}</div>` +
+        `<div class="t-id">${r.id}</div>` +
+        `<div class="t-ban">${r.ban}반</div>` +
+        `<div><span class="ctag ${catCls}">${r.cat}</span></div>` +
+        `<div class="t-prev">${r.preview || '—'}</div>` +
+        `<div class="t-acts">${actHtml}</div>` +
+        '</div>';
+    }).join('');
+  }
+
+  const rc = document.getElementById('result-count');
+  if (rc) rc.innerHTML = '<strong>' + rows.length + '명</strong> 표시 중 (전체 ' + dashState.data.length + '명)';
+  updateBulkBar();
+}
+
+function toggleCheck(id, el) {
+  if (el.checked) dashState.checked.add(id);
+  else dashState.checked.delete(id);
+  el.closest('.t-row').classList.toggle('checked', el.checked);
+  updateBulkBar();
+}
+
+function toggleAllCheck(masterCb) {
+  const rows = getFiltered();
+  if (masterCb.checked) rows.forEach(r => dashState.checked.add(r.id));
+  else rows.forEach(r => dashState.checked.delete(r.id));
+  renderTable();
+}
+
+function updateBulkBar() {
+  const cnt = dashState.checked.size;
+  const bar = document.getElementById('bulk-bar');
+  const span = document.getElementById('sel-count');
+  if (span) span.textContent = cnt + '명';
+  if (bar) bar.classList.toggle('hidden', cnt === 0);
+}
+
+function exportCSV() {
+  csvDownload(getFiltered(), 'adum_dashboard');
+}
+function exportSelectedCSV() {
+  csvDownload(dashState.data.filter(r => dashState.checked.has(r.id)), 'adum_selected');
+}
+function csvDownload(rows, filename) {
+  const header = '이름,학번,학년,반,번호,유형,내용미리보기';
+  const body = rows.map(r =>
+    [r.name, r.id, r.grade, r.ban+'반', r.num, r.cat, '"'+(r.preview||'').replace(/"/g,'""')+'"'].join(',')
+  ).join('\n');
+  const blob = new Blob(['\uFEFF'+header+'\n'+body], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename + '.csv';
+  a.click();
+}
+
+
+// ═══════════════════════════════════════════════════════
+//  학생 응답 보기 모달
+// ═══════════════════════════════════════════════════════
+
+// 섹션별 표시 설정
+const MODAL_SECTIONS = {
+  담임: [
+    { title: '🏃 자율활동', key: 'auto' },
+    { title: '🎯 진로활동', key: 'career' },
+    { title: '📝 행동발달', key: 'haengbal' },
+  ],
+  자율: [
+    { title: '🏃 자율활동', key: 'auto' },
+  ],
+  진로: [
+    { title: '🎯 진로활동', key: 'career' },
+  ],
+  행발: [
+    { title: '📝 행동발달', key: 'haengbal' },
+  ],
+  수학: [
+    { title: '📐 수학 교과 세특', key: 'math' },
+  ],
+  동아리: [
+    { title: '🔭 동아리 세특', key: 'club' },
+  ],
+};
+
+// 고정 시스템 컬럼 (제외 대상)
+const MODAL_FIXED_COLS = new Set([
+  '이름','name','제출시각','학년','grade','반','ban','번호','num',
+  '시트명','sheetName','구분','cat','composedBan','submittedAt','preview','id'
+]);
+
+// r.raw(구글 시트 실제 응답)에서 질문 컬럼만 추출해 섹션 키에 맞게 반환
+function getStudentDetail(r) {
+  const raw = r.raw || {};
+  const cat = r.cat || '';
+
+  // 질문 컬럼만 추출 (고정 컬럼 제외), "질문명:\n답변" 형식으로 합침
+  function buildText() {
+    const parts = [];
+    Object.keys(raw).forEach(function(k) {
+      if (MODAL_FIXED_COLS.has(k)) return;
+      const v = String(raw[k] || '').trim();
+      if (!v) return;
+      parts.push(k + ':\n' + v);
+    });
+    return parts.join('\n\n');
+  }
+
+  const text = buildText();
+
+  // cat별로 적절한 섹션 키에 매핑
+  if (cat === '자율')   return { auto:     text };
+  if (cat === '진로')   return { career:   text };
+  if (cat === '행발')   return { haengbal: text };
+  if (cat === '수학')   return { math:     text };
+  if (cat === '동아리') return { club:     text };
+  // 담임(구버전 호환)
+  if (cat === '담임') {
+    return { auto: text, career: '', haengbal: '' };
+  }
+  return { auto: text };
+}
+
+function openModal(id) {
+  const r = dashState.data.find(d => d.id === id);
+  if (!r) return;
+
+  // 헤더 정보
+  document.getElementById('modal-name').textContent = r.name;
+  document.getElementById('modal-meta').textContent =
+    `학번 ${r.id} · ${r.grade}학년 ${r.ban}반 ${r.num}번`;
+
+  const catTag = document.getElementById('modal-cat-tag');
+  const catMap = { '담임':'c-d', '수학':'c-m', '동아리':'c-c' };
+  const catIcon = { '담임':'👨‍🏫', '수학':'📐', '동아리':'🔭' };
+  catTag.className = 'modal-tag ' + (catMap[r.cat] || 'c-d');
+  catTag.textContent = (catIcon[r.cat] || '') + ' ' + r.cat;
+
+  // 본문 렌더링
+  const body = document.getElementById('modal-body');
+  const sections = MODAL_SECTIONS[r.cat] || [];
+  const detail = getStudentDetail(r);
+
+  body.innerHTML = sections.map(sec => {
+    const text = detail[sec.key] || '';
+    return `<div class="modal-section">
+      <div class="modal-sec-title">${sec.title}</div>
+      <div class="modal-content-box${text ? '' : ' empty'}">${text ? escHtml(text) : '내용 없음'}</div>
+    </div>`;
+  }).join('');
+
+  // 모달 열기
+  document.getElementById('student-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('student-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+
+// ═══════════════════════════════════════════════════════
+//  생기부AI 연동 (제거됨 - 구글 시트 직접 연동 방식으로 변경)
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('student-modal')) closeModal();
+}
+
+// ESC 키로 닫기
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+function initDashboard() {
+  updateStats();
+  buildBanFilters();
+  renderTable();
+}
+
+// ═══════════════════════════════════════════════════════
+//  구글폼 스타일 빌더 렌더링
+// ═══════════════════════════════════════════════════════
+const TYPE_LABELS = { short:'단답형', long:'장문형', check:'체크박스', radio:'객관식' };
+const TYPE_CLASS  = { short:'short', long:'long', check:'check', radio:'radio' };
+
+function renderAllBuilders() {
+  ['auto','career','hakgup','math','club'].forEach(sec => renderBuilder(sec));
+}
+
+function renderBuilder(section) {
+  const container = document.getElementById('qpanel-' + section);
+  if (!container) return;
+  const qs = editingQuestions[section] || [];
+  container.innerHTML = '';
+  qs.forEach((q, idx) => container.appendChild(createQBCard(section, q, idx)));
+  // 추가 버튼
+  const btn = document.createElement('button');
+  btn.className = 'add-q-btn';
+  btn.textContent = '+ 질문 추가';
+  btn.onclick = () => addNewQuestion(section);
+  container.appendChild(btn);
+}
+
+function createQBCard(section, q, idx) {
+  const div = document.createElement('div');
+  div.className = 'qb-card';
+  div.id = 'qbcard-' + section + '-' + idx;
+
+  const typeClass = TYPE_CLASS[q.type] || 'long';
+  const typeLabel = TYPE_LABELS[q.type] || '장문형';
+  const reqLabel  = q.required ? '필수' : '선택';
+  const reqClass  = q.required ? 'req' : 'opt';
+
+  div.innerHTML = `
+    <div class="qb-header" onclick="toggleQBCard(this.closest('.qb-card'))">
+      <span class="act-drag">⠿</span>
+      <span class="qb-type-badge ${typeClass}">${typeLabel}</span>
+      <span class="qb-title-text">${q.title}</span>
+      <span class="qb-req-badge ${reqClass}">${reqLabel}</span>
+      <span class="qb-toggle">▾</span>
+      <button class="qb-del-btn" onclick="event.stopPropagation();deleteQuestion('${section}',${idx})">×</button>
+    </div>
+    <div class="qb-body">
+      ${renderQBBody(section, q, idx)}
+    </div>
+  `;
+  return div;
+}
+
+function renderQBBody(section, q, idx) {
+  const hasOptions = (q.type === 'check' || q.type === 'radio');
+  const optionsHTML = hasOptions ? renderOptionsEditor(section, q, idx) : '';
+  const hintFormatted = (q.hint || '').replace(/\n/g, '<br>');
+
+  return `
+    <div class="qb-field-row">
+      <label>질문 제목</label>
+      <input class="qb-inp" type="text" value="${escHtml(q.title)}"
+        oninput="updateQField('${section}',${idx},'title',this.value)" placeholder="질문을 입력하세요"/>
+    </div>
+    <div class="qb-field-row">
+      <label>부제목</label>
+      <input class="qb-inp" type="text" value="${escHtml(q.subtitle||'')}"
+        oninput="updateQField('${section}',${idx},'subtitle',this.value)" placeholder="부제목 (선택)"/>
+    </div>
+    <div class="qb-field-row">
+      <label>유형</label>
+      <select class="qb-sel" onchange="updateQType('${section}',${idx},this.value)">
+        <option value="short" ${q.type==='short'?'selected':''}>단답형</option>
+        <option value="long"  ${q.type==='long' ?'selected':''}>장문형</option>
+        <option value="check" ${q.type==='check'?'selected':''}>체크박스</option>
+        <option value="radio" ${q.type==='radio'?'selected':''}>객관식</option>
+      </select>
+    </div>
+    <div class="qb-field-row">
+      <label>힌트</label>
+      <textarea class="qb-inp" rows="2"
+        oninput="updateQField('${section}',${idx},'hint',this.value)"
+        placeholder="학생에게 보여줄 안내 문구 (선택)">${escHtml(q.hint||'')}</textarea>
+    </div>
+    ${q.type !== 'radio' && q.type !== 'check' ? `
+    <div class="qb-field-row">
+      <label>플레이스홀더</label>
+      <input class="qb-inp" type="text" value="${escHtml(q.placeholder||'')}"
+        oninput="updateQField('${section}',${idx},'placeholder',this.value)" placeholder="입력창 안내 텍스트"/>
+    </div>` : ''}
+    ${q.type === 'long' ? `
+    <div class="qb-field-row">
+      <label>행 수</label>
+      <input class="qb-inp" type="number" value="${q.rows||5}" min="2" max="20" style="max-width:80px"
+        oninput="updateQField('${section}',${idx},'rows',parseInt(this.value)||5)"/>
+    </div>` : ''}
+    ${optionsHTML}
+    <div class="req-toggle-wrap" style="margin-top:14px;">
+      <span>필수 응답</span>
+      <label class="toggle-switch">
+        <input type="checkbox" ${q.required?'checked':''} onchange="updateQField('${section}',${idx},'required',this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+      <span style="font-size:12px;color:var(--gray-500);">${q.required ? '필수' : '선택'}</span>
+    </div>
+  `;
+}
+
+function renderOptionsEditor(section, q, idx) {
+  const opts = q.options || [];
+  let html = `<div class="qb-field-row"><label>선택지</label><div style="flex:1">`;
+  html += `<div class="opt-list" id="optlist-${section}-${idx}">`;
+  opts.forEach((opt, oi) => {
+    html += `<div class="opt-item">
+      <input type="text" value="${escHtml(opt)}"
+        oninput="updateOption('${section}',${idx},${oi},this.value)"
+        placeholder="선택지 ${oi+1}"/>
+      <button class="opt-del" onclick="deleteOption('${section}',${idx},${oi})">×</button>
+    </div>`;
+  });
+  html += `</div>
+    <button class="add-opt-btn" onclick="addOption('${section}',${idx})">+ 선택지 추가</button>
+  </div></div>`;
+  return html;
+}
+
+function escHtml(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─── 카드 토글 ───
+function toggleQBCard(card) {
+  card.classList.toggle('expanded');
+  // 펼쳐질 때 body 재렌더 (최신 데이터 반영)
+  if (card.classList.contains('expanded')) {
+    const [,sec,idxStr] = card.id.split('-').reduce((a,c,i)=>{ if(i===0)return[c]; if(i===1)return[...a,c]; return[...a,a[a.length-1]+'-'+c]; },[]);
+    // 더 단순하게: id = qbcard-{section}-{idx}
+    const parts = card.id.replace('qbcard-','').split('-');
+    // section은 마지막 숫자 제외 다 합침
+    const idx = parseInt(parts[parts.length-1]);
+    const section = parts.slice(0,-1).join('-');
+    const q = editingQuestions[section]?.[idx];
+    if (q) {
+      card.querySelector('.qb-body').innerHTML = renderQBBody(section, q, idx);
+    }
+  }
+}
+
+// ─── 필드 업데이트 ───
+function updateQField(section, idx, field, value) {
+  if (!editingQuestions[section]?.[idx]) return;
+  editingQuestions[section][idx][field] = value;
+  // 헤더 갱신
+  refreshQBHeader(section, idx);
+}
+
+function updateQType(section, idx, newType) {
+  if (!editingQuestions[section]?.[idx]) return;
+  editingQuestions[section][idx].type = newType;
+  if (newType === 'check' || newType === 'radio') {
+    if (!editingQuestions[section][idx].options?.length) {
+      editingQuestions[section][idx].options = ['옵션 1'];
+    }
+  } else {
+    editingQuestions[section][idx].options = [];
+  }
+  // 카드 전체 재렌더
+  const container = document.getElementById('qpanel-' + section);
+  const cards = container.querySelectorAll('.qb-card');
+  if (cards[idx]) {
+    const newCard = createQBCard(section, editingQuestions[section][idx], idx);
+    newCard.classList.add('expanded');
+    cards[idx].replaceWith(newCard);
+  }
+}
+
+function refreshQBHeader(section, idx) {
+  const card = document.getElementById('qbcard-' + section + '-' + idx);
+  if (!card) return;
+  const q = editingQuestions[section][idx];
+  const typeClass = TYPE_CLASS[q.type] || 'long';
+  const typeLabel = TYPE_LABELS[q.type] || '장문형';
+  card.querySelector('.qb-type-badge').className = `qb-type-badge ${typeClass}`;
+  card.querySelector('.qb-type-badge').textContent = typeLabel;
+  card.querySelector('.qb-title-text').textContent = q.title;
+  card.querySelector('.qb-req-badge').className = `qb-req-badge ${q.required ? 'req' : 'opt'}`;
+  card.querySelector('.qb-req-badge').textContent = q.required ? '필수' : '선택';
+}
+
+// ─── 옵션 관리 ───
+function addOption(section, idx) {
+  const opts = editingQuestions[section][idx].options || [];
+  opts.push('옵션 ' + (opts.length + 1));
+  editingQuestions[section][idx].options = opts;
+  reRenderBody(section, idx);
+}
+
+function deleteOption(section, idx, oi) {
+  editingQuestions[section][idx].options.splice(oi, 1);
+  reRenderBody(section, idx);
+}
+
+function updateOption(section, idx, oi, value) {
+  editingQuestions[section][idx].options[oi] = value;
+}
+
+function reRenderBody(section, idx) {
+  const card = document.getElementById('qbcard-' + section + '-' + idx);
+  if (card) card.querySelector('.qb-body').innerHTML = renderQBBody(section, editingQuestions[section][idx], idx);
+}
+
+// ─── 질문 추가/삭제 ───
+function addNewQuestion(section) {
+  const newQ = {
+    id: section + '_new_' + Date.now(),
+    title: '새 질문',
+    subtitle: '',
+    type: 'long',
+    required: false,
+    hint: '',
+    placeholder: '입력하세요.',
+    rows: 5,
+    options: [],
+  };
+  editingQuestions[section] = editingQuestions[section] || [];
+  editingQuestions[section].push(newQ);
+  renderBuilder(section);
+  // 새 카드 펼치기
+  const panels = document.getElementById('qpanel-' + section);
+  const cards = panels.querySelectorAll('.qb-card');
+  const lastCard = cards[cards.length - 1];
+  if (lastCard) {
+    lastCard.classList.add('expanded');
+    const idx = editingQuestions[section].length - 1;
+    lastCard.querySelector('.qb-body').innerHTML = renderQBBody(section, newQ, idx);
+    lastCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+function deleteQuestion(section, idx) {
+  if (!confirm('이 질문을 삭제할까요?')) return;
+  editingQuestions[section].splice(idx, 1);
+  renderBuilder(section);
+}
+
+// ─── 섹션 탭 전환 ───
+function switchQSection(name, el, colorClass) {
+  document.querySelectorAll('.q-section-tab').forEach(t => t.classList.remove('active','blue','purple','green'));
+  document.querySelectorAll('.q-section-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active', colorClass);
+  document.getElementById('qpanel-' + name).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════
+//  💾 설정 저장 → 학생 폼 반영
+// ═══════════════════════════════════════════════════════
+function saveAllSettings() {
+  // 편집 중인 활동명 입력칸이 열려있으면 저장 전에 먼저 확정
+  document.querySelectorAll('.act-name-edit-input').forEach(inp => inp.blur());
+
+  // 기본 설정 저장
+  const basicSettings = {
+    year: document.getElementById('set-year').value,
+    grade: document.getElementById('set-grade').value,
+    semester: document.getElementById('set-semester')?.value || '1학기',
+    gasUrl: document.getElementById('set-gas-url')?.value.trim() || '',
+    school: document.getElementById('set-school').value,
+    club: document.getElementById('set-club').value,
+    math: document.getElementById('set-math').value,
+  };
+  localStorage.setItem('adum_basic_settings', JSON.stringify(basicSettings));
+
+  // 체크박스 항목 저장
+  const autoItems = [...document.querySelectorAll('#auto-list .act-name')].map(el=>el.textContent);
+  const careerItems = [...document.querySelectorAll('#career-list .act-name')].map(el=>el.textContent);
+  localStorage.setItem('adum_auto_items', JSON.stringify(autoItems));
+  localStorage.setItem('adum_career_items', JSON.stringify(careerItems));
+
+  // 질문 데이터 저장
+  savedQuestions = deepCopy(editingQuestions);
+  localStorage.setItem('adum_saved_questions', JSON.stringify(savedQuestions));
+
+  // 학생 폼 반영
+  applyBasicSettings(basicSettings);
+  applyCheckboxItems(autoItems, careerItems);
+  applyQuestionsToForm();
+
+  // ☁️ 구글시트(GAS)에도 저장 → 다른 기기(학생 화면 등)에도 이 문항 구성이 반영됨
+  const gasUrlForSync = basicSettings.gasUrl || getGasUrl();
+  if (gasUrlForSync) {
+    noticeSettings.formConfig = { autoItems, careerItems, savedQuestions };
+    _gasPost(gasUrlForSync, { action: 'saveSettings', settings: noticeSettings })
+      .catch(() => { console.warn('문항 설정 서버 동기화 실패 (이 기기에는 저장됨)'); });
+  }
+
+  // 토스트
+  showToast('✅ 저장 완료! 학생 폼에 반영되었습니다.');
+}
+
+function applyBasicSettings(s) {
+  const sem = s.semester || '1학기';
+  const txt = s.year + '학년도 ' + s.grade + ' ' + sem;
+  const sheetName = '아듬_생기부_' + s.year + '학년도_' + s.grade + '_' + sem;
+  document.getElementById('year-display').textContent = txt;
+  document.getElementById('prev-tag').textContent = '📋 ' + txt;
+  const el = document.getElementById('sheet-name-preview');
+  if(el) el.textContent = sheetName;
+  if (s.club) { document.getElementById('club-sub').textContent = s.club; }
+  if (s.math) { document.getElementById('math-sub').textContent = s.math; }
+}
+
+function applyCheckboxItems(autoItems, careerItems) {
+  const autoList = document.getElementById('cb-auto-list');
+  autoList.innerHTML = '';
+  autoItems.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'cb-item';
+    div.innerHTML = `<input type="checkbox" id="cb-auto-${i}" onchange="autoSave()"><label for="cb-auto-${i}">${item}</label>`;
+    autoList.appendChild(div);
+  });
+
+  const careerList = document.getElementById('cb-career-list');
+  careerList.innerHTML = '';
+  careerItems.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'cb-item';
+    div.innerHTML = `<input type="checkbox" id="cb-career-${i}" onchange="autoSave()"><label for="cb-career-${i}">${item}</label>`;
+    careerList.appendChild(div);
+  });
+}
+
+function applyQuestionsToForm() {
+  renderStudentSection('auto', 'student-auto-questions', 'blue', 3);
+  renderStudentSection('career', 'student-career-questions', 'blue', 3);
+  renderStudentSection('hakgup', 'student-hakgup-questions', 'blue', 2);
+  renderStudentSection('math', 'student-math-questions', 'purple', 2);
+  renderStudentSection('club', 'student-club-questions', 'green', 2);
+}
+
+// id → 질문 제목 매핑 (GAS 컬럼 헤더용)
+const questionLabelMap = {};
+
+function renderStudentSection(section, containerId, color, startNum) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+  const qs = savedQuestions[section] || [];
+  // q.id → inputId 매핑 (showIf 참조용)
+  const idToInputId = {};
+  qs.forEach((q, i) => { if (q.id) idToInputId[q.id] = section + '_form_' + i; });
+
+  qs.forEach((q, i) => {
+    const num      = startNum + i;
+    const inputId  = section + '_form_' + i;
+    const rawLabel = q.title || inputId;
+    questionLabelMap[inputId] = rawLabel;
+    if (q.type === 'check') {
+      const opts = q.options && q.options.length ? q.options : ['항목 1'];
+      opts.forEach((_, oi) => { questionLabelMap[inputId + '_' + oi] = rawLabel + '_' + (oi + 1); });
+    }
+    const card = createStudentQCard(q, num, color, inputId);
+    // showIf 처리: 조건 미충족이면 처음엔 숨김
+    if (q.showIf) {
+      const triggerInputId = idToInputId[q.showIf.id];
+      card.dataset.showIfInput = triggerInputId || '';
+      card.dataset.showIfValue = q.showIf.value;
+      card.style.display = 'none'; // 기본 숨김
+    }
+    container.appendChild(card);
+  });
+
+  // 라디오 변경 시 showIf 카드 토글
+  container.addEventListener('change', function(e) {
+    if (e.target.type !== 'radio') return;
+    const changedName = e.target.name; // inputId
+    container.querySelectorAll('[data-show-if-input]').forEach(card => {
+      if (card.dataset.showIfInput !== changedName) return;
+      const show = e.target.value === card.dataset.showIfValue;
+      card.style.display = show ? '' : 'none';
+      // 숨길 때 선택값 초기화
+      if (!show) card.querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
+    });
+    autoSave();
+  });
+}
+
+function createStudentQCard(q, num, color, inputId) {
+  const card = document.createElement('div');
+  card.className = 'q-card';
+  if (q.required) card.dataset.required = 'true';
+
+  const titleFull = q.subtitle
+    ? `${q.title} <span style="font-weight:400;color:var(--gray-400);font-size:11px;">${q.subtitle}</span>`
+    : q.title;
+  const reqHtml = q.required
+    ? `<span class="q-req">필수</span>`
+    : `<span class="q-opt">선택</span>`;
+  const hintHtml = q.hint
+    ? `<div class="hint">${q.hint.replace(/\n/g,'<br>')}</div>`
+    : '';
+
+  let inputHtml = '';
+  if (q.type === 'short') {
+    inputHtml = `<input class="form-input" id="${inputId}" type="text" oninput="autoSave()" placeholder="${escHtml(q.placeholder||'')}"/>`;
+  } else if (q.type === 'long') {
+    inputHtml = `<textarea class="form-input" id="${inputId}" rows="${q.rows||5}" oninput="autoSave()" placeholder="${escHtml(q.placeholder||'')}"></textarea>`;
+  } else if (q.type === 'radio') {
+    const opts = q.options && q.options.length ? q.options : ['⭕ 있음', '❌ 없음'];
+    inputHtml = `<div class="radio-row">${opts.map(opt =>
+      `<label class="radio-item"><input type="radio" name="${inputId}" value="${escHtml(opt)}" onchange="autoSave()"> ${escHtml(opt)}</label>`
+    ).join('')}</div>`;
+  } else if (q.type === 'check') {
+    const opts = q.options && q.options.length ? q.options : ['항목 1'];
+    inputHtml = `<div class="cb-list">${opts.map((opt,oi) =>
+      `<div class="cb-item"><input type="checkbox" id="${inputId}_${oi}" onchange="autoSave()"><label for="${inputId}_${oi}">${escHtml(opt)}</label></div>`
+    ).join('')}</div>`;
+  }
+
+  card.innerHTML = `
+    <div class="q-head">
+      <div class="q-num ${color}">${num}</div>
+      <div class="q-title">${titleFull}</div>
+      ${reqHtml}
+    </div>
+    <div class="q-body">
+      ${hintHtml}
+      ${inputHtml}
+    </div>
+  `;
+  return card;
+}
+
+// ═══════════════════════════════════════════════════════
+//  로드 시 저장된 설정 복원
+// ═══════════════════════════════════════════════════════
+function loadSavedSettings() {
+  // GAS URL 칸은 항상 하드코딩 URL로 채우기 (localStorage 무관)
+  const gasUrlEl = document.getElementById('set-gas-url');
+  if (gasUrlEl && !gasUrlEl.value) gasUrlEl.value = getGasUrl();
+  // GitHub Pages 환경 대비 딜레이 후 재확인
+  setTimeout(() => {
+    const el = document.getElementById('set-gas-url');
+    if (el && !el.value) el.value = getGasUrl();
+  }, 500);
+
+  const basic = localStorage.getItem('adum_basic_settings');
+  if (basic) {
+    try {
+      const s = JSON.parse(basic);
+      if (s.year) document.getElementById('set-year').value = s.year;
+      if (s.grade) {
+        const sel = document.getElementById('set-grade');
+        [...sel.options].forEach(o => { if(o.text===s.grade) o.selected=true; });
+      }
+      if (s.semester) {
+        const semSel = document.getElementById('set-semester');
+        if(semSel) [...semSel.options].forEach(o => { if(o.text===s.semester) o.selected=true; });
+      }
+      if (s.school) document.getElementById('set-school').value = s.school;
+      if (s.club) document.getElementById('set-club').value = s.club;
+      if (s.math) { document.getElementById('set-math').value = s.math; updateMath(); }
+      const gasUrlEl = document.getElementById('set-gas-url');
+      if (gasUrlEl) {
+        gasUrlEl.value = s.gasUrl || getGasUrl();
+      }
+      applyBasicSettings(s);
+    } catch(e){}
+  }
+
+  const autoItems = localStorage.getItem('adum_auto_items');
+  const careerItems = localStorage.getItem('adum_career_items');
+  if (autoItems && careerItems) {
+    try {
+      const ai = JSON.parse(autoItems);
+      const ci = JSON.parse(careerItems);
+      // 체크박스 목록 복원
+      const autoList = document.getElementById('auto-list');
+      autoList.innerHTML = ai.map(item =>
+        `<div class="act-item"><span class="act-drag">⠿</span><span class="act-name">${item}</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>`
+      ).join('');
+      const careerList = document.getElementById('career-list');
+      careerList.innerHTML = ci.map(item =>
+        `<div class="act-item"><span class="act-drag">⠿</span><span class="act-name">${item}</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>`
+      ).join('');
+      applyCheckboxItems(ai, ci);
+    } catch(e) {}
+  } else {
+    // 기본 체크박스 적용
+    const ai = [...document.querySelectorAll('#auto-list .act-name')].map(el=>el.textContent);
+    const ci = [...document.querySelectorAll('#career-list .act-name')].map(el=>el.textContent);
+    applyCheckboxItems(ai, ci);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  기존 기능들
+// ═══════════════════════════════════════════════════════
+function switchView(name, el){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+// ══════════════════════════════════════════════
+//  관리자 로그인/로그아웃
+// ══════════════════════════════════════════════
+const ADMIN_PW_KEY = 'adum_admin_pw';
+function getAdminPw() { return localStorage.getItem(ADMIN_PW_KEY) || '0413'; }
+
+function openAdminLogin() {
+  const overlay = document.getElementById('adminOverlay');
+  document.getElementById('adminPwInput').value = '';
+  document.getElementById('adminPwError').textContent = '';
+  overlay.classList.add('open');
+  setTimeout(() => document.getElementById('adminPwInput').focus(), 100);
+}
+function closeAdminLogin() {
+  document.getElementById('adminOverlay').classList.remove('open');
+}
+function doAdminLogin() {
+  const pw = document.getElementById('adminPwInput').value;
+  if (pw === getAdminPw()) {
+    closeAdminLogin();
+    document.getElementById('adminScreen').classList.add('open');
+    switchAdminTab('dashboard');
+    applyNoticeSettings();
+    fetchNoticeSettingsFromGas();
+  } else {
+    document.getElementById('adminPwError').textContent = '비밀번호가 올바르지 않아요.';
+    document.getElementById('adminPwInput').value = '';
+    document.getElementById('adminPwInput').focus();
+  }
+}
+function adminLogout() {
+  document.getElementById('adminScreen').classList.remove('open');
+}
+function switchAdminTab(name) {
+  document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('aTab-' + name).classList.add('active');
+  document.getElementById('adminSec-' + name).classList.add('active');
+}
+
+// ══════════════════════════════════════════════
+//  GAS 배너
+// ══════════════════════════════════════════════
+function setBanner(type, msg) {
+  const b = document.getElementById('gasBanner');
+  b.className = 'gas-banner ' + type;
+  document.getElementById('gasBannerText').textContent = msg;
+  const sub = document.getElementById('gasBannerSub');
+  if (type === 'ok') {
+    sub.textContent = '✔ 위 상태일 때만 제출 내용이 저장돼요';
+    sub.style.display = 'block';
+    sub.style.opacity = '0.75';
+  } else if (type === 'err') {
+    sub.textContent = '⚠ 제출해도 저장되지 않아요 · 선생님께 문의하세요';
+    sub.style.display = 'block';
+    sub.style.opacity = '1';
+  } else {
+    sub.style.display = 'none';
+  }
+}
+// ── 진행률 업데이트 ──
+function updateProgress() {
+  const wrap = document.getElementById('progress-wrap');
+  const fill = document.getElementById('progress-fill');
+  const text = document.getElementById('progress-text');
+  if (!wrap || !fill || !text) return;
+
+  // 현재 보이는 필수 q-card만 대상
+  const cards = [...document.querySelectorAll('.q-card[data-required="true"]')]
+    .filter(c => c.style.display !== 'none');
+
+  if (!cards.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+
+  let filled = 0;
+  cards.forEach(card => {
+    const inp = card.querySelector('textarea, input[type="text"]');
+    const radio = card.querySelector('input[type="radio"]:checked');
+    const cb = card.querySelector('input[type="checkbox"]:checked');
+    if ((inp && inp.value.trim()) || radio || cb) filled++;
+  });
+
+  const pct = Math.round((filled / cards.length) * 100);
+  fill.style.width = pct + '%';
+  text.textContent = filled + ' / ' + cards.length;
+}
+
+// ── 필수 항목 미입력 하이라이트 & 스크롤 ──
+function validateRequired() {
+  // 기존 하이라이트 제거
+  document.querySelectorAll('.q-card.missing').forEach(c => c.classList.remove('missing'));
+
+  const missing = [];
+  document.querySelectorAll('.q-card[data-required="true"]').forEach(card => {
+    if (card.style.display === 'none') return; // showIf로 숨겨진 항목 제외
+    const inp   = card.querySelector('textarea, input[type="text"]');
+    const radio = card.querySelector('input[type="radio"]:checked');
+    const cb    = card.querySelector('input[type="checkbox"]:checked');
+    const empty = (!inp || !inp.value.trim()) && !radio && !cb;
+    if (empty) { card.classList.add('missing'); missing.push(card); }
+  });
+
+  if (missing.length) {
+    missing[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => {
+      const label = missing[0].querySelector('.q-title')?.textContent || '필수 항목';
+      alert(`⚠️ "${label.trim()}" 항목을 작성해주세요.
+(빨간 테두리 항목 ${missing.length}개 미입력)`);
+    }, 400);
+    return false;
+  }
+  return true;
+}
+
+function checkGasBanner() {
+  const url = getGasUrl();
+  if (!url) { setBanner('err', '❌ GAS URL 미설정 · 관리자 화면에서 설정해 주세요'); return; }
+  setBanner('loading', '⏳ GAS 연결 확인 중...');
+  fetch(url + '?action=sheets')
+    .then(r => r.json())
+    .then(() => setBanner('ok', '✅ GAS 연결됨 · 실시간 동기화 중'))
+    .catch(() => setBanner('err', '❌ GAS 연결 실패 · 잠시 후 새로고침 해주세요'));
+}
+
+// 현재 선택된 폼 타입 추적
+let currentFormType = '';
+
+function goForm(type) {
+  currentFormType = type;
+
+  // 모든 폼 숨김
+  document.getElementById('form-hakgup').style.display = 'none';
+  document.getElementById('form-math').style.display   = 'none';
+  document.getElementById('form-club').style.display   = 'none';
+
+  // 선택된 폼 표시
+  const mathName = document.getElementById('set-math')?.value?.trim();
+  const titleMap = { hakgup: '🏫 학급 세특', math: mathName ? '📐 ' + mathName + ' 세특' : '📐 수학 교과 세특', club: '🔭 동아리 세특' };
+  document.getElementById('form-' + type).style.display = 'block';
+  document.getElementById('form-screen-title').textContent = titleMap[type] || '';
+
+  // 화면 전환
+  document.querySelectorAll('.s-screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-form').classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goHome() {
+  document.querySelectorAll('.s-screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-home').classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// 기존 호환성 유지 (혹시 어딘가 남아있을 경우)
+function selectType(el, color){
+  const map = { blue: 'hakgup', purple: 'math', green: 'club' };
+  goForm(map[color] || 'hakgup');
+}
+
+function switchInner(name, el){
+  document.querySelectorAll('.inner-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.inner-section').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('inner-'+name).classList.add('active');
+}
+
+function autoSave(){
+  localStorage.setItem('adum_form_draft', JSON.stringify(collectData()));
+  updateProgress();
+  stampAutoSaved();
+}
+
+// formKey: 'hakgup' | 'math' | 'club' → 해당 폼의 저장상태 표시줄에 "자동저장됨 · 시각" 표시
+function stampAutoSaved(formKey){
+  const idMap = { hakgup: 'save-status-hakgup', math: 'save-status-math', club: 'save-status-club' };
+  const key = formKey || currentFormType || 'hakgup';
+  const el = document.getElementById(idMap[key]);
+  if(!el) return;
+  const t = new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+  el.textContent = '✅ 자동저장됨 · ' + t;
+}
+
+// "💾 지금 저장하기" 버튼: 수동으로 즉시 저장 + 잠깐 확인 메시지 표시
+function manualSave(formKey){
+  autoSave();
+  const idMap = { hakgup: 'save-status-hakgup', math: 'save-status-math', club: 'save-status-club' };
+  const el = document.getElementById(idMap[formKey]);
+  if(el){
+    el.textContent = '💾 방금 저장했어요!';
+    setTimeout(()=>{ stampAutoSaved(formKey); }, 1500);
+  }
+}
+
+function collectData(){
+  const grade = document.getElementById('f-grade')?.value.trim() || '';
+  const ban   = document.getElementById('f-ban')?.value.trim()   || '';
+  const num   = document.getElementById('f-num')?.value.trim()   || '';
+  // 현재 선택된 폼 타입으로 cat 결정
+  const catMap = { hakgup: '담임', math: '수학', club: '동아리' };
+  let cat = catMap[currentFormType] || '담임';
+  const data = {
+    name:        document.getElementById('f-name')?.value.trim() || '',
+    grade,
+    ban,
+    num,
+    cat,
+    composedBan: grade && ban ? grade + '-' + ban : '',
+  };
+  // ── checkbox: 체크된 항목명 텍스트로 저장 ──
+  const handledCheckIds = new Set();
+  document.querySelectorAll('[id*="_form_"]').forEach(el => {
+    if (el.type !== 'checkbox') return;
+    const label = questionLabelMap[el.id] || el.id;
+    // 같은 질문 그룹(label)에서 체크된 항목명 모아서 저장
+    const baseLabel = label.replace(/_\d+$/, '');
+    handledCheckIds.add(baseLabel);
+  });
+  handledCheckIds.forEach(baseLabel => {
+    const checked = [];
+    document.querySelectorAll('[id*="_form_"]').forEach(el => {
+      if (el.type !== 'checkbox') return;
+      const lbl = questionLabelMap[el.id] || el.id;
+      if (lbl.replace(/_\d+$/, '') !== baseLabel) return;
+      if (el.checked) {
+        const labelEl = document.querySelector(`label[for="${el.id}"]`);
+        checked.push(labelEl ? labelEl.textContent.trim() : el.value || lbl);
+      }
+    });
+    data[baseLabel] = checked.join(', ');
+  });
+
+  // ── short / long / radio ──
+  document.querySelectorAll('[id*="_form_"]').forEach(el => {
+    if (el.type === 'checkbox') return; // 위에서 처리
+    const label = questionLabelMap[el.id] || el.id;
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') { data[label] = el.value; }
+  });
+
+  // ── radio: name="_form_" 패턴으로 checked 값 읽기 ──
+  const handledRadioNames = new Set();
+  document.querySelectorAll('input[type="radio"][name*="_form_"]').forEach(el => {
+    if (handledRadioNames.has(el.name)) return;
+    handledRadioNames.add(el.name);
+    const label = questionLabelMap[el.name] || el.name;
+    const checked = document.querySelector(`input[type="radio"][name="${el.name}"]:checked`);
+    data[label] = checked ? checked.value : '';
+  });
+  return data;
+}
+
+function loadDraft(){
+  const saved = localStorage.getItem('adum_form_draft');
+  if(!saved) return;
+  try {
+    const d = JSON.parse(saved);
+    if(d.name)  document.getElementById('f-name').value  = d.name;
+    if(d.grade) document.getElementById('f-grade').value = d.grade;
+    if(d.ban)   document.getElementById('f-ban').value   = d.ban;
+    if(d.num)   document.getElementById('f-num').value   = d.num;
+    Object.entries(d).forEach(([k,v]) => {
+      // radio 복원: name으로 찾아서 checked 세팅
+      const radioEls = document.querySelectorAll(`input[type="radio"][name="${k}"]`);
+      if (radioEls.length > 0) {
+        radioEls.forEach(r => { r.checked = (r.value === v); });
+        return;
+      }
+      // checkbox 복원: draft 텍스트와 라벨 비교해서 체크 세팅
+      let cbRestored = false;
+      document.querySelectorAll('[id*="_form_"]').forEach(el => {
+        if (el.type !== 'checkbox') return;
+        const lbl = questionLabelMap[el.id] || el.id;
+        if (lbl.replace(/_\d+$/, '') !== k) return;
+        cbRestored = true;
+        const labelEl = document.querySelector(`label[for="${el.id}"]`);
+        const itemText = labelEl ? labelEl.textContent.trim() : '';
+        const checkedList = String(v).split(',').map(s => s.trim());
+        el.checked = checkedList.includes(itemText);
+      });
+      if (cbRestored) return;
+      // 일반 input / textarea
+      const el = document.getElementById(k);
+      if(!el) return;
+      if(el.tagName==='INPUT'||el.tagName==='TEXTAREA') el.value = v;
+    });
+    // draft에 cat이 있고, 실제로 작성이 시작된 경우에만 폼 화면으로 복원
+    // (이름·학번 중 하나라도 있어야 "작성 중" 으로 간주 — 빈 draft면 런처 유지)
+    if(d.cat && (d.name || d.grade || d.ban || d.num)) {
+      const typeMap = { '담임': 'hakgup', '수학': 'math', '동아리': 'club' };
+      const t = typeMap[d.cat];
+      if(t) goForm(t);
+    }
+    // ── showIf 카드 재평가 (draft 복원 후) ──
+    document.querySelectorAll('[data-show-if-input]').forEach(card => {
+      const triggerName = card.dataset.showIfInput;
+      const triggerValue = card.dataset.showIfValue;
+      if (!triggerName) return;
+      const checked = document.querySelector(`input[type="radio"][name="${triggerName}"]:checked`);
+      const show = checked && checked.value === triggerValue;
+      card.style.display = show ? '' : 'none';
+    });
+    // 진행률 업데이트
+    updateProgress();
+  } catch(e){}
+}
+
+// ── JSONP 유틸 (학부모 예약 시스템과 동일 방식) ──────────────────
+function _gasPost(gasUrl, body) {
+  const cb  = 'cb_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+  const url = gasUrl + '?jsonBody=' + encodeURIComponent(JSON.stringify(body)) + '&callback=' + cb;
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    const timer  = setTimeout(() => { cleanup(); reject(new Error('timeout')); }, 15000);
+    function cleanup() {
+      clearTimeout(timer); delete window[cb];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cb]     = (data) => { cleanup(); resolve(data); };
+    script.onerror = ()     => { cleanup(); reject(new Error('네트워크 오류')); };
+    script.src     = url;
+    document.head.appendChild(script);
+  });
+}
+
+// ── 실제 제출용 POST 유틸 ──────────────────────────────────────
+// 서술형 답변이 길어질 수 있는 "제출" 요청 전용.
+// data를 URL이 아니라 요청 body에 담아 보내므로 URL 길이 제한이 없음.
+// Content-Type을 text/plain으로 두면 브라우저가 사전확인(OPTIONS preflight)을
+// 보내지 않아 GAS 웹앱에서 별도 처리 없이도 그대로 doPost(e)에서 받아짐.
+// (GAS 쪽 doPost는 이미 구현되어 있어 재배포 불필요)
+function _gasPostReal(gasUrl, body, timeoutMs) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs || 20000);
+  return fetch(gasUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(body),
+    signal: controller.signal,
+  })
+  .then(r => {
+    clearTimeout(timer);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
+  .catch(err => {
+    clearTimeout(timer);
+    if (err.name === 'AbortError') throw new Error('timeout');
+    throw err;
+  });
+}
+
+// 실패 시 조용히 한 번 더 자동 재시도 (일시적 네트워크 끊김 대비)
+// 최종 실패 시에만 사용자에게 알림
+function _gasPostRealWithRetry(gasUrl, body) {
+  return _gasPostReal(gasUrl, body).catch(() => _gasPostReal(gasUrl, body));
+}
+
+// ── 섹션별 제출 함수 ──────────────────────────────────────────────
+// tabLabel: '자율' | '진로' | '행발' | '수학' | '동아리'
+function submitFormSection(tabLabel) {
+  const name  = document.getElementById('f-name')?.value.trim();
+  const grade = document.getElementById('f-grade')?.value.trim();
+  const ban   = document.getElementById('f-ban')?.value.trim();
+  const num   = document.getElementById('f-num')?.value.trim();
+  if(!name || !grade || !ban || !num){
+    alert('⚠️ 학년, 반, 번호, 이름을 모두 입력해주세요!'); return;
+  }
+  // 마감 여부 재확인 (화면이 우회되어도 여기서 한 번 더 막음)
+  const noticeCatMap = { '자율':'hakgup', '진로':'hakgup', '행발':'hakgup', '수학':'math', '동아리':'club' };
+  const noticeCat = noticeCatMap[tabLabel];
+  if (noticeCat && noticeSettings[noticeCat]?.closed) {
+    alert('🔒 현재 마감된 설문이에요.\n선생님께 문의해 주세요.');
+    return;
+  }
+  // 해당 탭의 필수 항목만 검사
+  if (!validateRequiredSection(tabLabel)) return;
+
+  const gasUrl = getGasUrl();
+  if(!gasUrl){ alert('⚠️ 선생님이 구글 시트 연동을 아직 설정하지 않았어요.'); return; }
+
+  // 탭별 submit key (자율/진로/행발은 각각 독립)
+  const submitKey = 'adum_submitted_' + grade + '_' + ban + '_' + num + '_' + name + '_' + tabLabel;
+  const alreadySubmitted = localStorage.getItem(submitKey);
+  if (alreadySubmitted) {
+    showResubmitConfirm(name, () => doSubmitSection(tabLabel, name, grade, ban, num, gasUrl, submitKey));
+    return;
+  }
+  doSubmitSection(tabLabel, name, grade, ban, num, gasUrl, submitKey);
+}
+
+function doSubmitSection(tabLabel, name, grade, ban, num, gasUrl, submitKey) {
+  // 탭별 cat 및 section 매핑
+  const catMap     = { '자율':'자율', '진로':'진로', '행발':'행발', '수학':'수학', '동아리':'동아리' };
+  const sectionMap = { '자율':'auto', '진로':'career', '행발':'hakgup', '수학':'math', '동아리':'club' };
+  const btnIdMap   = { '자율':'submit-btn-auto', '진로':'submit-btn-career', '행발':'submit-btn-haengbal', '수학':'submit-btn-math', '동아리':'submit-btn-club' };
+  const statusIdMap= { '자율':'submit-status-auto', '진로':'submit-status-career', '행발':'submit-status-haengbal', '수학':'submit-status-math', '동아리':'submit-status-club' };
+  const labelMap   = { '자율':'🏃 자율활동', '진로':'🎯 진로활동', '행발':'📝 행동발달', '수학':'📐 수학 교과', '동아리':'🔭 동아리' };
+
+  const cat      = catMap[tabLabel]     || tabLabel;
+  const section  = sectionMap[tabLabel] || 'auto';
+  const btnId    = btnIdMap[tabLabel];
+  const statusId = statusIdMap[tabLabel];
+  const label    = labelMap[tabLabel]   || tabLabel;
+
+  // 해당 섹션 데이터만 수집
+  const baseData = {
+    name, grade, ban, num,
+    cat,
+    mathSubject: document.getElementById('set-math')?.value?.trim() || '',
+    composedBan: grade && ban ? grade + '-' + ban : '',
+    submittedAt: new Date().toLocaleString('ko-KR'),
+    sheetName:   getSheetName() + '_' + cat,
+  };
+  // 해당 section의 _form_ 필드만 추출
+  const sectionPrefix = section + '_form_';
+  document.querySelectorAll('[id*="_form_"]').forEach(el => {
+    const id = el.id || el.name || '';
+    if (!id.startsWith(sectionPrefix)) return;
+    const lbl = questionLabelMap[id] || id;
+    if (el.type === 'checkbox') return; // checkbox는 아래서 처리
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') baseData[lbl] = el.value;
+  });
+  // checkbox (체크된 항목명 텍스트로)
+  const handledCb = new Set();
+  document.querySelectorAll('[id*="_form_"]').forEach(el => {
+    const id = el.id || '';
+    if (!id.startsWith(sectionPrefix) || el.type !== 'checkbox') return;
+    const lbl = (questionLabelMap[id] || id).replace(/_\d+$/, '');
+    handledCb.add(lbl);
+  });
+  handledCb.forEach(baseLabel => {
+    const checked = [];
+    document.querySelectorAll('[id*="_form_"]').forEach(el => {
+      if (el.type !== 'checkbox') return;
+      const id = el.id || '';
+      if (!id.startsWith(sectionPrefix)) return;
+      const lbl = (questionLabelMap[id] || id).replace(/_\d+$/, '');
+      if (lbl !== baseLabel) return;
+      if (el.checked) {
+        const labelEl = document.querySelector(`label[for="${el.id}"]`);
+        checked.push(labelEl ? labelEl.textContent.trim() : el.value || lbl);
+      }
+    });
+    baseData[baseLabel] = checked.join(', ');
+  });
+  // radio
+  const handledRadio = new Set();
+  document.querySelectorAll(`input[type="radio"][name*="${sectionPrefix}"]`).forEach(el => {
+    if (handledRadio.has(el.name)) return;
+    handledRadio.add(el.name);
+    const lbl = questionLabelMap[el.name] || el.name;
+    const checked = document.querySelector(`input[type="radio"][name="${el.name}"]:checked`);
+    baseData[lbl] = checked ? checked.value : '';
+  });
+  // 희망진로 (auto_form_0 → 자율/진로/행발 모두에 포함)
+  const careerField = questionLabelMap['auto_form_0'] || '희망 진로 / 직업';
+  if (tabLabel !== '자율') {
+    const careerEl = document.getElementById('auto_form_0');
+    if (careerEl) baseData[careerField] = careerEl.value;
+  }
+
+  const btn = document.getElementById(btnId);
+  const statusEl = document.getElementById(statusId);
+  if(btn){ btn.disabled = true; btn.textContent = '⏳ 제출 중...'; }
+  if(statusEl) statusEl.textContent = '';
+
+  _gasPostRealWithRetry(gasUrl, baseData)
+  .then(res => {
+    if(btn){ btn.disabled=false; btn.textContent= label + ' 제출하기 ✅'; }
+    if(res && res.ok){
+      localStorage.setItem(submitKey, new Date().toISOString());
+      autoSave(); // draft 유지 (다른 탭 작성 중일 수 있으니 삭제 안 함)
+      if(statusEl) statusEl.innerHTML = '<span style="color:#22c55e;font-weight:700;">✅ ' + label + ' 제출 완료! 선생님께 전달되었습니다 😊</span>';
+      alert('✅ ' + label + ' 제출 완료!\n선생님께 전달되었습니다 😊\n\n입력하느라 수고했어요 🙌');
+    } else {
+      if(btn){ btn.disabled=false; btn.textContent= label + ' 제출하기'; }
+      alert('❌ 제출에 실패했어요.\n입력한 내용은 이 기기에 안전하게 저장되어 있으니, 다시 제출해주세요.\n\n오류: ' + (res?.error || '알 수 없는 오류'));
+    }
+  })
+  .catch(err => {
+    if(btn){ btn.disabled=false; btn.textContent= label + ' 제출하기'; }
+    alert('❌ 제출에 실패했어요.\n입력한 내용은 이 기기에 안전하게 저장되어 있으니, 인터넷 연결을 확인하고 다시 제출해주세요.\n\n오류: ' + err.message);
+  });
+}
+
+// 기존 호환용 (혹시 어딘가 남아있을 경우)
+function submitForm(){
+  // 현재 활성 탭을 감지해서 해당 섹션 제출
+  const activeInner = document.querySelector('.inner-section.active');
+  if(activeInner){
+    const id = activeInner.id; // inner-자율 / inner-진로 / inner-행발
+    const map = {'inner-자율':'자율','inner-진로':'진로','inner-행발':'행발'};
+    if(map[id]){ submitFormSection(map[id]); return; }
+  }
+  // 수학/동아리
+  if(currentFormType === 'math') { submitFormSection('수학'); return; }
+  if(currentFormType === 'club') { submitFormSection('동아리'); return; }
+}
+
+function doSubmit(name, grade, ban, num, gasUrl, submitKey){
+  // 하위 호환 래퍼 — 현재 탭 기준으로 처리
+  doSubmitSection(currentFormType === 'math' ? '수학' : currentFormType === 'club' ? '동아리' : '자율',
+    name, grade, ban, num, gasUrl, submitKey);
+}
+
+// ── 섹션별 필수 항목 검사 ──────────────────────────────────────────
+function validateRequiredSection(tabLabel) {
+  const sectionMap = { '자율':'auto', '진로':'career', '행발':'hakgup', '수학':'math', '동아리':'club' };
+  const section = sectionMap[tabLabel] || tabLabel;
+  const sectionPrefix = section + '_form_';
+  const sectionContainer = {
+    'auto':    document.getElementById('inner-자율'),
+    'career':  document.getElementById('inner-진로'),
+    'hakgup':  document.getElementById('inner-행발'),
+    'math':    document.getElementById('form-math'),
+    'club':    document.getElementById('form-club'),
+  }[section];
+
+  document.querySelectorAll('.q-card.missing').forEach(c => c.classList.remove('missing'));
+
+  const missing = [];
+  const cards = sectionContainer
+    ? sectionContainer.querySelectorAll('.q-card[data-required="true"]')
+    : document.querySelectorAll('.q-card[data-required="true"]');
+
+  cards.forEach(card => {
+    if (card.style.display === 'none') return;
+    const inp   = card.querySelector('textarea, input[type="text"]');
+    const radio = card.querySelector('input[type="radio"]:checked');
+    const cb    = card.querySelector('input[type="checkbox"]:checked');
+    const empty = (!inp || !inp.value.trim()) && !radio && !cb;
+    if (empty) { card.classList.add('missing'); missing.push(card); }
+  });
+
+  if (missing.length) {
+    missing[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => {
+      const lbl = missing[0].querySelector('.q-title')?.textContent || '필수 항목';
+      alert(`⚠️ "${lbl.trim()}" 항목을 작성해주세요.
+(빨간 테두리 항목 ${missing.length}개 미입력)`);
+    }, 400);
+    return false;
+  }
+  return true;
+}
+
+function showResubmitConfirm(name, onConfirm) {
+  const existing = document.getElementById('resubmit-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'resubmit-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;';
+
+  overlay.innerHTML = `
+    <div style="background:white;border-radius:20px;padding:28px 24px;width:100%;max-width:340px;box-shadow:0 24px 64px rgba(0,0,0,.25);text-align:center;">
+      <div style="font-size:36px;margin-bottom:12px;">⚠️</div>
+      <div style="font-size:16px;font-weight:800;color:#111;margin-bottom:8px;">이미 제출한 기록이 있어요</div>
+      <div style="font-size:13px;color:#6b7280;line-height:1.7;margin-bottom:6px;">
+        <b style="color:#111;">${name}</b> 학생의 이전 제출 내용이<br>
+        <span style="color:#ef4444;font-weight:700;">자동으로 삭제</span>되고 새 내용으로 덮어써져요.
+      </div>
+      <div style="font-size:12px;color:#9ca3af;margin-bottom:22px;">정말 다시 제출할까요?</div>
+      <div style="display:flex;gap:10px;">
+        <button id="resubmit-cancel"
+          style="flex:1;padding:13px;border:1.5px solid #e5e7eb;border-radius:12px;background:white;font-size:14px;font-weight:700;color:#374151;cursor:pointer;font-family:'Pretendard',-apple-system,sans-serif;">
+          취소
+        </button>
+        <button id="resubmit-confirm"
+          style="flex:1;padding:13px;border:none;border-radius:12px;background:#ef4444;font-size:14px;font-weight:700;color:white;cursor:pointer;font-family:'Pretendard',-apple-system,sans-serif;">
+          다시 제출
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  document.getElementById('resubmit-cancel').onclick  = () => overlay.remove();
+  document.getElementById('resubmit-confirm').onclick = () => { overlay.remove(); onConfirm(); };
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+}
+
+function getSheetName() {
+  try {
+    const s = JSON.parse(localStorage.getItem('adum_basic_settings') || '{}');
+    const year     = s.year     || new Date().getFullYear();
+    const grade    = s.grade    || '1학년';
+    const semester = s.semester || '1학기';
+    return '아듬_생기부_' + year + '학년도_' + grade + '_' + semester;
+  } catch(e) { return '설문제출'; }
+}
+
+function getGasUrl() {
+  // 하드코딩된 GAS URL (최우선)
+  // 공유용 사본: 하드코딩 제거. 관리자 설정(set-gas-url)에 입력한 선생님 본인 GAS 주소를 사용합니다.
+  const HARDCODED_GAS_URL = '';
+  if (HARDCODED_GAS_URL) return HARDCODED_GAS_URL;
+  const el = document.getElementById('set-gas-url');
+  if (el && el.value.trim()) return el.value.trim();
+  try {
+    const s = JSON.parse(localStorage.getItem('adum_basic_settings') || '{}');
+    return s.gasUrl || '';
+  } catch(e) { return ''; }
+}
+
+// ── 공유용: 다른 선생님이 복사해서 쓸 수 있는 GAS 코드 템플릿 ──
+const GAS_TEMPLATE_CODE = "// ═══════════════════════════════════════════════════════════════\n//  아듬's 생기부AI — Google Apps Script\n//  이 파일을 구글 시트의 확장 프로그램 > Apps Script에 붙여넣으세요\n//\n//  ★ 시트명은 설문폼 설정(학년도·학기)에서 자동으로 결정됩니다.\n//    매 학기 설문폼 설정탭에서 학년도·학기만 바꾸면 새 시트가 생성되고\n//    이전 학기 데이터는 그대로 보존됩니다. GAS 코드는 수정 불필요!\n//\n//  ★★ 2026-07-08 수정 사항 (컬럼 밀림 버그 수정) ★★\n//    기존: 헤더는 첫 제출 때 한 번만 고정되고, 이후 제출은 그 시점의\n//          Object.keys(params) 순서 그대로 값을 오른쪽에 append만 했음.\n//          → 조건부 문항(showIf)이 있거나 문항 구성이 버전업되면\n//            학생별로 값 개수/순서가 달라져 헤더와 어긋남.\n//    수정: 매 제출마다 \"헤더 이름\"을 기준으로 값을 매칭해서 씀.\n//          기존 열은 순서·위치 그대로 유지되고, 새로운 문항이 생기면\n//          시트 맨 오른쪽에 새 열로만 추가됨. 없는 문항은 해당 칸만 공란.\n// ═══════════════════════════════════════════════════════════════\n\n// ── 웹앱 진입점 (POST) : 학생 제출 데이터 저장 ─────────────────\nfunction doPost(e) {\n  try {\n    const params    = JSON.parse(e.postData.contents);\n    const sheetName = sanitizeSheetName(params.sheetName || '설문제출');\n    const sheet     = getOrCreateSheet(sheetName);\n\n    upsertRow(sheet, params);\n\n    return jsonResponse({ ok: true });\n\n  } catch (err) {\n    return jsonResponse({ ok: false, error: err.message });\n  }\n}\n\n// ── 웹앱 진입점 (GET) : 대시보드 요청 + JSONP POST 우회 ─────────\nfunction doGet(e) {\n  const callback = e.parameter.callback || null;\n  try {\n    // ★ JSONP POST 우회: 프론트 gasPost()로 보낸 제출 데이터\n    if (e.parameter.jsonBody) {\n      const params    = JSON.parse(decodeURIComponent(e.parameter.jsonBody));\n\n      // ★ 마감·공지 설정 저장 (기존 제출 로직과 완전 분리)\n      if (params.action === 'saveSettings') {\n        saveNoticeSettings(params.settings);\n        return jsonpResponse({ ok: true }, callback);\n      }\n\n      const sheetName = sanitizeSheetName(params.sheetName || '설문제출');\n      const sheet     = getOrCreateSheet(sheetName);\n      upsertRow(sheet, params);\n      return jsonpResponse({ ok: true }, callback);\n    }\n\n    const action    = e.parameter.action    || 'list';\n    const sheetName = sanitizeSheetName(e.parameter.sheetName || '설문제출');\n\n    if (action === 'list') {\n      const sheet = getOrCreateSheet(sheetName);\n      const rows  = sheet.getDataRange().getValues();\n\n      if (rows.length <= 1) {\n        return jsonpResponse({ ok: true, students: [], sheetName }, callback);\n      }\n\n      const headers  = rows[0];\n      const students = rows.slice(1).map(row => {\n        const obj = {};\n        headers.forEach((h, i) => { obj[h] = row[i] ?? ''; });\n        return obj;\n      });\n\n      return jsonpResponse({ ok: true, students, sheetName }, callback);\n    }\n\n    // 전체 시트 목록 (학기 선택용)\n    if (action === 'sheets') {\n      const ss     = SpreadsheetApp.getActiveSpreadsheet();\n      const sheets = ss.getSheets().map(s => s.getName());\n      return jsonpResponse({ ok: true, sheets }, callback);\n    }\n\n    // ★ 마감·공지 설정 조회\n    if (action === 'getSettings') {\n      const settings = loadNoticeSettings();\n      return jsonpResponse({ ok: true, settings }, callback);\n    }\n\n    // 특정 학생 삭제\n    if (action === 'delete') {\n      const name  = e.parameter.name;\n      const sheet = getOrCreateSheet(sheetName);\n      deleteRowByName(sheet, name);\n      return jsonpResponse({ ok: true }, callback);\n    }\n\n    return jsonpResponse({ ok: false, error: '알 수 없는 action' }, callback);\n\n  } catch (err) {\n    return jsonpResponse({ ok: false, error: err.message }, callback);\n  }\n}\n\n// ── 마감·공지 설정 (전용 시트 A1셀에 JSON 통째로 저장) ───────────\nconst NOTICE_SETTINGS_SHEET = '⚙️설문설정';\n\nfunction loadNoticeSettings() {\n  const ss    = SpreadsheetApp.getActiveSpreadsheet();\n  const sheet = ss.getSheetByName(NOTICE_SETTINGS_SHEET);\n  if (!sheet) return null;\n  const raw = sheet.getRange('A1').getValue();\n  if (!raw) return null;\n  try { return JSON.parse(raw); } catch (e) { return null; }\n}\n\nfunction saveNoticeSettings(settings) {\n  const ss = SpreadsheetApp.getActiveSpreadsheet();\n  let sheet = ss.getSheetByName(NOTICE_SETTINGS_SHEET);\n  if (!sheet) sheet = ss.insertSheet(NOTICE_SETTINGS_SHEET);\n  sheet.getRange('A1').setValue(JSON.stringify(settings || {}));\n}\n\n// ── 내부 헬퍼 ─────────────────────────────────────────────────\n\nfunction sanitizeSheetName(name) {\n  return String(name).replace(/[\\/\\\\*\\[\\]:?]/g, '_').slice(0, 100);\n}\n\nfunction getOrCreateSheet(sheetName) {\n  const ss    = SpreadsheetApp.getActiveSpreadsheet();\n  let   sheet = ss.getSheetByName(sheetName);\n  if (!sheet) sheet = ss.insertSheet(sheetName);\n  return sheet;\n}\n\nfunction deleteRowByName(sheet, name, num) {\n  if (!name) return;\n  const rows = sheet.getDataRange().getValues();\n  // 헤더에서 번호 컬럼 인덱스 찾기\n  const headers = rows[0] || [];\n  const numColIdx = headers.indexOf('번호');\n  for (let i = rows.length - 1; i >= 1; i--) {\n    const rowName = rows[i][0];\n    const rowNum  = numColIdx >= 0 ? String(rows[i][numColIdx]) : '';\n    const nameMatch = rowName === name;\n    // 번호 컬럼이 있으면 이름+번호 조합, 없으면 이름만 (이전 데이터 호환)\n    const numMatch  = numColIdx >= 0 ? rowNum === String(num || '') : true;\n    if (nameMatch && numMatch) sheet.deleteRow(i + 1);\n  }\n}\n\n// ★ NEW: 고정 컬럼 목록 + params에서 뽑아낸 동적 문항 키 목록을 반환\nfunction getFixedAndDynamicKeys(params) {\n  const fixed    = ['이름', '제출시각', '학년', '반', '번호', '시트명', '구분'];\n  const reserved = new Set(['name','grade','ban','num','submittedAt','sheetName','cat','composedBan']);\n  const dynamic  = Object.keys(params).filter(k => !reserved.has(k));\n  return { fixed, dynamic };\n}\n\n// ★ NEW: 시트가 비어있으면 헤더 생성, 이미 있으면 \"새로 등장한 문항\"만\n//        맨 오른쪽에 추가. 기존 열은 절대 이동/삭제하지 않음.\nfunction ensureHeaders(sheet, params) {\n  const { fixed, dynamic } = getFixedAndDynamicKeys(params);\n\n  if (sheet.getLastRow() === 0) {\n    sheet.appendRow([...fixed, ...dynamic]);\n    formatHeaderRow(sheet);\n    return;\n  }\n\n  const headerRange = sheet.getRange(1, 1, 1, sheet.getLastColumn());\n  const headers      = headerRange.getValues()[0];\n  const headerSet     = new Set(headers);\n  const newCols       = dynamic.filter(k => !headerSet.has(k));\n\n  if (newCols.length > 0) {\n    sheet.getRange(1, headers.length + 1, 1, newCols.length).setValues([newCols]);\n    formatHeaderRow(sheet);\n  }\n}\n\n// ★ NEW: 현재 헤더 순서에 맞춰 값 배열을 만듦 (헤더 이름으로 매칭).\n//        해당 제출에 없는 문항(조건부 미노출 등)은 그 칸만 공란으로 둠.\nfunction buildRowByHeader(headers, params) {\n  const fixedMap = {\n    '이름':     params.name        || '',\n    '제출시각': params.submittedAt || new Date().toLocaleString('ko-KR'),\n    '학년':     params.grade       || '',\n    '반':       params.ban         || '',\n    '번호':     params.num         || '',\n    '시트명':   params.sheetName   || '',\n    '구분':     params.cat         || '담임',\n  };\n  return headers.map(h => {\n    if (Object.prototype.hasOwnProperty.call(fixedMap, h)) return fixedMap[h];\n    return Object.prototype.hasOwnProperty.call(params, h) ? params[h] : '';\n  });\n}\n\n// ★ NEW: 헤더 보정 → 동일 이름+번호 재제출이면 기존 행 삭제 →\n//        헤더 이름 기준으로 정렬된 값으로 새 행 추가\nfunction upsertRow(sheet, params) {\n  ensureHeaders(sheet, params);\n  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];\n  deleteRowByName(sheet, params.name, params.num);\n  const row = buildRowByHeader(headers, params);\n  sheet.appendRow(row);\n}\n\nfunction formatHeaderRow(sheet) {\n  const range = sheet.getRange(1, 1, 1, sheet.getLastColumn());\n  range.setBackground('#2563eb');\n  range.setFontColor('#ffffff');\n  range.setFontWeight('bold');\n  sheet.setFrozenRows(1);\n}\n\nfunction jsonpResponse(obj, callback) {\n  const json = JSON.stringify(obj);\n  const body = callback ? callback + '(' + json + ');' : json;\n  const mime = callback ? ContentService.MimeType.JAVASCRIPT : ContentService.MimeType.JSON;\n  return ContentService.createTextOutput(body).setMimeType(mime);\n}\n\nfunction jsonResponse(obj) {\n  return ContentService\n    .createTextOutput(JSON.stringify(obj))\n    .setMimeType(ContentService.MimeType.JSON);\n}\n";
+
+function toggleGasGuide() {
+  const body = document.getElementById('gas-guide-body');
+  const arrow = document.getElementById('gas-guide-arrow');
+  if (!body) return;
+  const open = body.style.display === 'block';
+  body.style.display = open ? 'none' : 'block';
+  if (arrow) arrow.textContent = open ? '▼' : '▲';
+}
+
+function copyGasTemplate() {
+  const btn = document.getElementById('gas-copy-btn');
+  const done = () => { if (btn) { const old = btn.textContent; btn.textContent = '✅ 복사됨!'; setTimeout(() => btn.textContent = old, 1800); } };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(GAS_TEMPLATE_CODE).then(done).catch(() => legacyCopyGasTemplate(done));
+  } else {
+    legacyCopyGasTemplate(done);
+  }
+}
+
+function legacyCopyGasTemplate(done) {
+  const ta = document.createElement('textarea');
+  ta.value = GAS_TEMPLATE_CODE;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try { document.execCommand('copy'); done(); } catch(e) { alert('복사에 실패했어요. 직접 선택해서 복사해주세요.'); }
+  document.body.removeChild(ta);
+}
+
+function downloadGasTemplate() {
+  const blob = new Blob([GAS_TEMPLATE_CODE], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '아듬_생기부AI_GAS_템플릿.gs';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function generateShareLink() {
+  let s = {};
+  try { s = JSON.parse(localStorage.getItem('adum_basic_settings') || '{}'); } catch(e) {}
+
+  const gasUrl   = (document.getElementById('set-gas-url')?.value || s.gasUrl || '').trim();
+  const year     = document.getElementById('set-year')?.value || s.year || '';
+  const grade    = document.getElementById('set-grade')?.value || s.grade || '';
+  const semester = document.getElementById('set-semester')?.value || s.semester || '';
+  const school   = document.getElementById('set-school')?.value || s.school || '';
+  const club     = document.getElementById('set-club')?.value || s.club || '';
+  const math     = document.getElementById('set-math')?.value || s.math || '';
+
+  if (!gasUrl) {
+    alert('⚠️ 먼저 위에서 구글시트 연동 URL을 입력하고 저장해주세요.');
+    return;
+  }
+
+  const base = window.location.origin + window.location.pathname;
+  const params = new URLSearchParams();
+  params.set('gas', gasUrl);
+  if (year) params.set('y', year);
+  if (grade) params.set('g', grade);
+  if (semester) params.set('s', semester);
+  if (school) params.set('sch', school);
+  if (club) params.set('club', club);
+  if (math) params.set('math', math);
+
+  const link = base + '?' + params.toString();
+  const box = document.getElementById('share-link-box');
+  const output = document.getElementById('share-link-output');
+  if (output) output.value = link;
+  if (box) box.style.display = 'block';
+}
+
+function copyShareLink() {
+  const output = document.getElementById('share-link-output');
+  if (!output || !output.value) return;
+  const btn = document.getElementById('share-link-copy-btn');
+  const done = () => { if (btn) { const old = btn.textContent; btn.textContent = '✅ 복사됨'; setTimeout(() => btn.textContent = old, 1600); } };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(output.value).then(done).catch(() => legacyCopyShareLink(output.value, done));
+  } else {
+    legacyCopyShareLink(output.value, done);
+  }
+}
+
+function legacyCopyShareLink(text, done) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try { document.execCommand('copy'); done(); } catch(e) { alert('복사에 실패했어요. 직접 선택해서 복사해주세요.'); }
+  document.body.removeChild(ta);
+}
+
+function testGasUrl() {
+  const url = document.getElementById('set-gas-url')?.value.trim();
+  const statusEl = document.getElementById('gas-url-status');
+  if (!url) { if(statusEl) statusEl.textContent = '⚠️ URL을 먼저 입력해주세요.'; return; }
+  if(statusEl) statusEl.textContent = '⏳ 연결 테스트 중...';
+  fetch(url + '?action=list&sheetName=' + encodeURIComponent(getSheetName()))
+    .then(r => r.json())
+    .then(data => {
+      if(statusEl) statusEl.innerHTML = '✅ 연결 성공! 현재 제출 학생 수: <b>' + ((data.students||[]).length) + '명</b>';
+    })
+    .catch(() => {
+      if(statusEl) statusEl.textContent = '❌ 연결 실패. URL 또는 GAS 배포 설정을 확인해주세요.';
+    });
+}
+
+// ═══════════════════════════════════════════════════════
+//  마감 · 공지 (카테고리: hakgup 학급 / math 수학 / club 동아리)
+// ═══════════════════════════════════════════════════════
+const NOTICE_CATS = ['hakgup', 'math', 'club'];
+const NOTICE_LABEL = { hakgup:'학급', math:'수학 교과', club:'동아리' };
+const NOTICE_STORAGE_KEY = 'adum_notice_settings';
+
+let noticeSettings = {
+  hakgup: { closed:false, notice:'' },
+  math:   { closed:false, notice:'' },
+  club:   { closed:false, notice:'' },
+};
+
+// **텍스트** → 굵게, [[c:red]]텍스트[[/c]] → 빨강, [[c:blue]]텍스트[[/c]] → 파랑
+// (HTML 이스케이프 먼저 처리 후 변환, XSS 방지)
+function noticeMarkupToHtml(text) {
+  let escaped = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  escaped = escaped.replace(/\[\[c:red\]\](.+?)\[\[\/c\]\]/g, '<span style="color:#DC2626">$1</span>');
+  escaped = escaped.replace(/\[\[c:blue\]\](.+?)\[\[\/c\]\]/g, '<span style="color:#2563EB">$1</span>');
+  escaped = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  return escaped;
+}
+
+const NOTICE_MARK_WRAP = {
+  bold: ['**', '**'],
+  red:  ['[[c:red]]', '[[/c]]'],
+  blue: ['[[c:blue]]', '[[/c]]'],
+};
+
+// 관리자: 선택한 텍스트를 마크업으로 감싸기 (type: bold/red/blue)
+function wrapNoticeMark(cat, type) {
+  const ta = document.getElementById('noticeText-' + cat);
+  if (!ta) return;
+  const [open, close] = NOTICE_MARK_WRAP[type];
+  const start = ta.selectionStart;
+  const end   = ta.selectionEnd;
+  const val   = ta.value;
+  if (start === end) {
+    const sample = '강조할 문구';
+    ta.value = val.slice(0, start) + open + sample + close + val.slice(end);
+    ta.focus();
+    ta.setSelectionRange(start + open.length, start + open.length + sample.length);
+    return;
+  }
+  const selected = val.slice(start, end);
+  ta.value = val.slice(0, start) + open + selected + close + val.slice(end);
+  ta.focus();
+  ta.setSelectionRange(start, end + open.length + close.length);
+}
+
+function loadNoticeSettingsCache() {
+  try {
+    const raw = localStorage.getItem(NOTICE_STORAGE_KEY);
+    if (raw) noticeSettings = { ...noticeSettings, ...JSON.parse(raw) };
+  } catch(e) {}
+}
+
+function fetchNoticeSettingsFromGas() {
+  const url = getGasUrl();
+  if (!url) return;
+  fetch(url + '?action=getSettings')
+    .then(r => r.json())
+    .then(data => {
+      if (!data.ok || !data.settings) return;
+      noticeSettings = { ...noticeSettings, ...data.settings };
+      localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(noticeSettings));
+      applyNoticeSettings();
+
+      // ★ 문항 커스터마이징 동기화: 선생님이 다른 기기(또는 관리자 화면)에서
+      //   저장한 체크박스 항목·문항 구성을 이 기기에도 그대로 반영
+      const fc = noticeSettings.formConfig;
+      if (fc) {
+        if (fc.savedQuestions) {
+          savedQuestions = fc.savedQuestions;
+          editingQuestions = deepCopy(savedQuestions);
+          localStorage.setItem('adum_saved_questions', JSON.stringify(savedQuestions));
+          localStorage.setItem('adum_questions_version', String(QUESTIONS_VERSION));
+        }
+        if (fc.autoItems || fc.careerItems) {
+          localStorage.setItem('adum_auto_items', JSON.stringify(fc.autoItems || []));
+          localStorage.setItem('adum_career_items', JSON.stringify(fc.careerItems || []));
+          applyCheckboxItems(fc.autoItems || [], fc.careerItems || []);
+        }
+        applyQuestionsToForm();
+        if (typeof renderAllBuilders === 'function') renderAllBuilders();
+      }
+    })
+    .catch(() => {}); // 실패하면 로컬 캐시값 그대로 유지
+}
+
+// 학생 화면 + 관리자 화면에 동시 반영
+function applyNoticeSettings() {
+  NOTICE_CATS.forEach(cat => {
+    const s = noticeSettings[cat] || { closed:false, notice:'' };
+
+    // ── 학생 화면: 공지 박스 (**굵게** 마크업 지원) ──
+    const noticeEl = document.getElementById('catnotice-' + cat);
+    if (noticeEl) {
+      if (s.notice && s.notice.trim()) {
+        noticeEl.innerHTML = noticeMarkupToHtml('📢 ' + s.notice.trim());
+        noticeEl.style.display = 'block';
+      } else {
+        noticeEl.style.display = 'none';
+      }
+    }
+
+    // ── 학생 화면: 마감 시 입력영역 잠금 ──
+    const closedEl = document.getElementById('catclosed-' + cat);
+    const bodyEl   = document.getElementById('catbody-' + cat);
+    if (closedEl) closedEl.style.display = s.closed ? 'block' : 'none';
+    if (bodyEl)   bodyEl.style.display   = s.closed ? 'none' : '';
+
+    // ── 홈 화면 마감 배지 ──
+    const badgeEl = document.getElementById('badge-' + cat);
+    if (badgeEl) {
+      badgeEl.style.display = s.closed ? 'inline-block' : 'none';
+      badgeEl.textContent = '🔒 마감';
+    }
+
+    // ── 관리자 화면 입력값 채우기 ──
+    const toggleEl = document.getElementById('noticeClose-' + cat);
+    const textEl   = document.getElementById('noticeText-' + cat);
+    const statusEl = document.getElementById('noticeStatus-' + cat);
+    if (toggleEl) toggleEl.checked = !!s.closed;
+    if (textEl && document.activeElement !== textEl) textEl.value = s.notice || '';
+    if (statusEl) {
+      statusEl.textContent = s.closed ? '🔒 마감됨' : '✅ 제출 중';
+      statusEl.style.color = s.closed ? '#DC2626' : '#059669';
+    }
+  });
+}
+
+function saveNoticeSettingsUI() {
+  const url = getGasUrl();
+  if (!url) { alert('⚠️ 구글 시트 연동 URL이 아직 설정되지 않았어요.'); return; }
+
+  NOTICE_CATS.forEach(cat => {
+    noticeSettings[cat] = {
+      closed: !!document.getElementById('noticeClose-' + cat)?.checked,
+      notice: (document.getElementById('noticeText-' + cat)?.value || '').trim(),
+    };
+  });
+
+  const statusEl = document.getElementById('notice-save-status');
+  if (statusEl) statusEl.textContent = '⏳ 저장 중...';
+
+  _gasPost(url, { action: 'saveSettings', settings: noticeSettings })
+    .then(res => {
+      if (!res || !res.ok) throw new Error(res?.error || '저장 실패');
+      localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(noticeSettings));
+      applyNoticeSettings();
+      if (statusEl) statusEl.textContent = '✅ 저장됐어요 · ' + new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+      showToast('🔔 마감·공지가 저장됐어요! 학생 화면에 바로 반영돼요');
+    })
+    .catch(err => {
+      if (statusEl) statusEl.textContent = '❌ 저장 실패: ' + err.message;
+      alert('❌ 저장에 실패했어요.\n인터넷 연결을 확인하고 다시 시도해주세요.');
+    });
+}
+
+function loadFromGoogleSheet() {
+  const url = getGasUrl();
+  const statusEl = document.getElementById('sheet-load-status');
+  const btn = document.getElementById('btn-load-sheet');
+  if (!url) { alert('⚠️ 설정탭에서 구글 시트 연동 URL을 먼저 입력해주세요.'); return; }
+  if(statusEl) statusEl.textContent = '';
+  if(btn){ btn.disabled = true; btn.textContent = '⏳ 불러오는 중...'; }
+  showLoading('구글 시트에서 불러오는 중...');
+
+  fetch(url + '?action=list&sheetName=' + encodeURIComponent(getSheetName()))
+    .then(r => r.json())
+    .then(data => {
+      if(!data.ok) throw new Error(data.error || '응답 오류');
+      const students = (data.students || []).map(s => ({
+        id:      String(s['번호'] || ''),
+        name:    s['이름'] || '',
+        grade:   String(s['학년'] || ''),
+        ban:     String(s['반']   || ''),
+        num:     String(s['번호'] || ''),
+        cat:     detectCat(s),
+        submitted: true,
+        preview: buildPreview(s),
+        raw:     s
+      }));
+      // ★ dashState.data 업데이트 → 기존 renderTable이 바로 반영
+      dashState.data = students;
+      dashState.checked.clear();
+      dashState.catFilter = '전체';
+      dashState.banFilter = '전체';
+      window._dashboardStudents = students;
+      updateStats();
+      buildBanFilters();
+      renderTable();
+      hideLoading();
+      if(statusEl) statusEl.textContent = '✅ ' + students.length + '명 완료 · ' + new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+      if(btn){ btn.disabled = false; btn.textContent = '📊 구글 시트에서 불러오기'; }
+    })
+    .catch(err => {
+      hideLoading();
+      if(statusEl) statusEl.textContent = '❌ ' + err.message;
+      if(btn){ btn.disabled = false; btn.textContent = '📊 구글 시트에서 불러오기'; }
+    });
+}
+
+function detectCat(row) {
+  // GAS에서 저장한 '구분' 컬럼 직접 사용 (가장 정확)
+  if (row['구분']) return row['구분'];
+  // 이전 데이터 호환: cat 컬럼
+  if (row['cat']) return row['cat'];
+  return '담임';
+}
+
+function buildPreview(row) {
+  for (const [k, v] of Object.entries(row)) {
+    if (typeof v === 'string' && v.length > 10) return v.slice(0, 60) + '...';
+  }
+  return '(내용 없음)';
+}
+
+function renderDashboard(students) {
+  if (typeof renderDashboardRows === 'function') { renderDashboardRows(students); return; }
+  const tbody = document.getElementById('dashboard-tbody') || document.querySelector('.dash-table tbody');
+  if (!tbody) return;
+  tbody.innerHTML = students.map((s, i) => {
+    const catColor = s.cat==='수학'?'#7c3aed':s.cat==='동아리'?'#065f46':'#2563eb';
+    const catBg    = s.cat==='수학'?'#f5f3ff':s.cat==='동아리'?'#d1fae5':'#eff6ff';
+    return '<tr>'
+      + '<td style="padding:9px 12px;font-size:12px;color:var(--gray-500);">'+(i+1)+'</td>'
+      + '<td style="padding:9px 12px;font-size:13px;font-weight:700;color:var(--gray-900);">'+s.name+'</td>'
+      + '<td style="padding:9px 12px;font-size:12px;color:var(--gray-700);">'+s.grade+'학년 '+s.ban+'반 '+s.num+'번</td>'
+      + '<td style="padding:9px 12px;"><span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;background:'+catBg+';color:'+catColor+';">'+s.cat+'</span></td>'
+      + '<td style="padding:9px 12px;font-size:11px;color:var(--gray-500);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+s.preview+'</td>'
+      + '<td style="padding:9px 12px;"></td>'
+      + '</tr>';
+  }).join('');
+}
+
+
+
+function fpill(el){
+  document.querySelectorAll('.fpill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function updateDisplay(){
+  const y = document.getElementById('set-year').value;
+  const g = document.getElementById('set-grade').value;
+  const s = document.getElementById('set-semester')?.value || '1학기';
+  const txt = y+'학년도 '+g+' '+s;
+  const sheetName = '아듬_생기부_'+y+'학년도_'+g+'_'+s;
+  document.getElementById('year-display').textContent = txt;
+  document.getElementById('prev-tag').textContent = '📋 '+txt;
+  const el = document.getElementById('sheet-name-preview');
+  if(el) el.textContent = sheetName;
+}
+
+function updateClub(){
+  const v = document.getElementById('set-club').value.trim();
+  document.getElementById('club-sub').textContent = v || '창의수학';
+}
+
+function updateMath(){
+  const v = document.getElementById('set-math').value.trim();
+  document.getElementById('math-sub').textContent = v || '교과 세특';
+  const mathTabBtn = document.querySelector('.q-section-tab[onclick*="math"]');
+  if(mathTabBtn) mathTabBtn.textContent = v ? '📐 ' + v : '📐 수학 교과';
+  const titleEl = document.getElementById('form-screen-title');
+  if(titleEl && titleEl.textContent.includes('수학')) titleEl.textContent = v ? '📐 ' + v + ' 세특' : '📐 수학 교과 세특';
+}
+
+function addAct(listId, inputId){
+  const inp = document.getElementById(inputId);
+  const v = inp.value.trim();
+  if(!v) return;
+  const div = document.createElement('div');
+  div.className = 'act-item';
+  div.draggable = true;
+  div.innerHTML = `<span class="act-drag">⠿</span><span class="act-name">${v}</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button>`;
+  document.getElementById(listId).appendChild(div);
+  inp.value = '';
+}
+
+// ═══════════════════════════════════════════════════════
+//  활동 항목 수정 · 드래그 순서변경 (자율활동/진로활동 목록 공통)
+// ═══════════════════════════════════════════════════════
+function setupActListEditAndDrag(listId) {
+  const list = document.getElementById(listId);
+  if (!list || list._actInit) return; // 중복 바인딩 방지
+  list._actInit = true;
+
+  // 기존 항목들 드래그 가능하게
+  list.querySelectorAll('.act-item').forEach(el => el.draggable = true);
+
+  // ── 클릭해서 인라인 수정 ──
+  list.addEventListener('click', e => {
+    const nameEl = e.target.closest('.act-name');
+    if (!nameEl || nameEl.querySelector('input')) return;
+    const oldText = nameEl.textContent;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'act-name-edit-input';
+    input.value = oldText;
+    nameEl.textContent = '';
+    nameEl.appendChild(input);
+    input.focus();
+    input.select();
+
+    const commit = () => {
+      const v = input.value.trim();
+      nameEl.textContent = v || oldText;
+    };
+    input.addEventListener('blur', commit, { once: true });
+    input.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter') { ev.preventDefault(); input.blur(); }
+      if (ev.key === 'Escape') { input.value = oldText; input.blur(); }
+    });
+  });
+
+  // ── 드래그로 순서 변경 ──
+  list.addEventListener('dragstart', e => {
+    const item = e.target.closest('.act-item');
+    if (!item) return;
+    item.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  list.addEventListener('dragend', () => {
+    const dragging = list.querySelector('.act-item.dragging');
+    if (dragging) dragging.classList.remove('dragging');
+  });
+  list.addEventListener('dragover', e => {
+    e.preventDefault();
+    const dragging = list.querySelector('.act-item.dragging');
+    if (!dragging) return;
+    const after = getActDragAfterElement(list, e.clientY);
+    if (after == null) list.appendChild(dragging);
+    else list.insertBefore(dragging, after);
+  });
+}
+
+function getActDragAfterElement(list, y) {
+  const items = [...list.querySelectorAll('.act-item:not(.dragging)')];
+  return items.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) {
+      return { offset, element: child };
+    }
+    return closest;
+  }, { offset: -Infinity, element: null }).element;
+}
+
+function showLoading(msg) {
+  document.getElementById('loadingMsg').textContent = msg || '불러오는 중...';
+  document.getElementById('loadingOverlay').classList.add('show');
+}
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.remove('show');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ═══════════════════════════════════════════════════════
+//  페이지 초기화
+// ═══════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  initQuestions();
+  renderAllBuilders();
+  loadSavedSettings();
+  applyQuestionsToForm();
+
+  // 자율활동·진로활동 목록: 클릭 수정 + 드래그 순서변경 (localStorage 복원 이후에 바인딩)
+  setupActListEditAndDrag('auto-list');
+  setupActListEditAndDrag('career-list');
+
+  // 모든 섹션 제출 완료한 학생이 다시 열면 draft 초기화 → 초기화면 표시
+  // (하나라도 미제출이면 draft 유지 → 이어서 작성 가능)
+  (function clearDraftIfSubmitted() {
+    const draft = localStorage.getItem('adum_form_draft');
+    if (!draft) return;
+    try {
+      const d = JSON.parse(draft);
+      const { grade, ban, num, name, cat } = d;
+      if (!grade || !ban || !num || !name) return;
+      const base = 'adum_submitted_' + grade + '_' + ban + '_' + num + '_' + name;
+      // 담임 폼: 자율+진로+행발 모두 제출 완료 시 draft 삭제
+      // 수학/동아리: 해당 탭만 완료 시 삭제
+      if (cat === '담임' || !cat) {
+        const allDone = ['자율','진로','행발'].every(t => localStorage.getItem(base + '_' + t));
+        if (allDone) localStorage.removeItem('adum_form_draft');
+      } else {
+        // 수학·동아리 — cat 자체가 탭명
+        if (localStorage.getItem(base + '_' + cat)) {
+          localStorage.removeItem('adum_form_draft');
+        }
+      }
+    } catch(e) {}
+  })();
+
+  loadDraft();
+  initDashboard();
+  checkGasBanner();
+
+  // 마감·공지: 로컬 캐시로 즉시 반영 → GAS에서 최신값 재조회
+  loadNoticeSettingsCache();
+  applyNoticeSettings();
+  fetchNoticeSettingsFromGas();
+});
+</script>
+
+<!-- 학생 응답 보기 모달 -->
+<div class="modal-overlay" id="student-modal" onclick="closeModalOutside(event)">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-head-info">
+        <h3 id="modal-name">김민준</h3>
+        <p id="modal-meta">학번 10301 · 1학년 3반 01번</p>
+      </div>
+      <span id="modal-cat-tag" class="modal-tag c-d"></span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-foot">
+      <button class="btn-sm btn-outline" onclick="closeModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ 관리자 로그인 오버레이 ══════════════ -->
+<div class="admin-overlay" id="adminOverlay">
+  <div class="admin-login-box">
+    <h3>⚙️ 관리자 로그인</h3>
+    <p>관리자 비밀번호를 입력하세요</p>
+    <input class="admin-pw-input" type="password" id="adminPwInput" placeholder="●●●●"
+      onkeydown="if(event.key==='Enter')doAdminLogin()">
+    <div class="admin-pw-error" id="adminPwError"></div>
+    <div class="admin-login-btns">
+      <button class="btn-admin-cancel" onclick="closeAdminLogin()">취소</button>
+      <button class="btn-admin-confirm" onclick="doAdminLogin()">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ 관리자 화면 ══════════════ -->
+<div class="admin-screen" id="adminScreen">
+  <div class="admin-screen-header">
+    <div class="admin-screen-title">⚙️ 관리자 화면 · <span style="font-size:11px;opacity:.7;">Made by Cheon_R</span>
+      <button class="admin-logout-btn" onclick="adminLogout()" style="margin-left:10px;">✕ 닫기</button>
+    </div>
+  </div>
+  <div class="admin-nav-bar">
+    <button class="admin-nav-btn active" onclick="switchAdminTab('dashboard')" id="aTab-dashboard">📊 대시보드</button>
+    <button class="admin-nav-btn" onclick="switchAdminTab('notice')" id="aTab-notice">🔔 마감·공지</button>
+    <button class="admin-nav-btn" onclick="switchAdminTab('settings')" id="aTab-settings">⚙️ 설정·관리</button>
+  </div>
+  <div class="admin-body">
+    <!-- 대시보드 섹션 -->
+    <div class="admin-section active" id="adminSec-dashboard">
+<div class="dash-wrap">
+
+  <div class="dash-top">
+    <div>
+      <h2>응답 대시보드</h2>
+      <p>학생 제출 현황을 확인하고 아듬으로 연동하세요.</p>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap;">
+        <button onclick="loadFromGoogleSheet()" id="btn-load-sheet"
+          style="padding:9px 18px;background:var(--primary);color:white;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;cursor:pointer;">
+          📊 구글 시트에서 불러오기
+        </button>
+        <span id="sheet-load-status" style="font-size:12px;color:var(--gray-500);"></span>
+      </div>
+    </div>
+    <div class="dash-btns">
+      <button class="btn-sm btn-outline" onclick="exportCSV()">📥 CSV 다운로드</button>
+
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="sc t"><div class="s-ico">📊</div><div class="s-lbl">전체 응답</div><div class="s-val" id="stat-total">0</div><div class="s-sub" id="stat-total-sub">-</div></div>
+    <div class="sc d"><div class="s-ico">👨‍🏫</div><div class="s-lbl">담임</div><div class="s-val" id="stat-dam">0</div><div class="s-sub" id="stat-dam-sub">-</div></div>
+    <div class="sc m"><div class="s-ico">📐</div><div class="s-lbl">수학 교과</div><div class="s-val" id="stat-math">0</div><div class="s-sub" id="stat-math-sub">-</div></div>
+    <div class="sc c"><div class="s-ico">🔭</div><div class="s-lbl">동아리</div><div class="s-val" id="stat-club">0</div><div class="s-sub" id="stat-club-sub">-</div></div>
+  </div>
+
+  <div class="filter-wrap">
+    <div class="filter-row">
+      <span class="filter-label">유형</span>
+      <button class="fpill active" data-cat="전체" onclick="setCatFilter(this)">전체</button>
+      <button class="fpill" data-cat="담임" onclick="setCatFilter(this)">👨‍🏫 담임</button>
+      <button class="fpill" data-cat="수학" onclick="setCatFilter(this)">📐 수학</button>
+      <button class="fpill" data-cat="동아리" onclick="setCatFilter(this)">🔭 동아리</button>
+      <button class="fpill danger" data-cat="미제출" onclick="setCatFilter(this)">⚠️ 미제출</button>
+      <input class="search-box" type="text" id="dash-search" placeholder="이름 또는 학번 검색..." oninput="renderTable()"/>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">반</span>
+      <div id="ban-filters" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+    </div>
+  </div>
+
+  <div class="result-count" id="result-count"></div>
+
+  <div class="resp-table">
+    <div class="t-head t-cols" style="display:grid;grid-template-columns:36px 90px 80px 46px 80px 1fr 160px;">
+      <div><input type="checkbox" id="check-all" style="accent-color:#2563eb" onchange="toggleAllCheck(this)"></div>
+      <div class="th" onclick="setSort('name')">이름 <span class="sort-icon" id="si-name">↕</span></div>
+      <div class="th" onclick="setSort('id')">학번 <span class="sort-icon" id="si-id">↕</span></div>
+      <div class="th" onclick="setSort('ban')">반 <span class="sort-icon" id="si-ban">↕</span></div>
+      <div class="th" onclick="setSort('cat')">유형 <span class="sort-icon" id="si-cat">↕</span></div>
+      <div class="th" onclick="setSort('preview')">내용 미리보기 <span class="sort-icon" id="si-preview">↕</span></div>
+      <div style="text-align:right;font-size:11px;font-weight:700;color:var(--gray-500);letter-spacing:.05em;">액션</div>
+    </div>
+    <div id="t-body"></div>
+  </div>
+
+  <div class="bulk-bar hidden" id="bulk-bar">
+    <div class="bi"><span id="sel-count">0명</span>선택됨 · 일괄 작업을 선택하세요</div>
+    <button class="bb bb-ghost" onclick="exportSelectedCSV()">⬇️ CSV 다운로드</button>
+
+  </div>
+
+</div>
+    </div>
+    <!-- 마감·공지 섹션 -->
+    <div class="admin-section" id="adminSec-notice">
+<div class="set-wrap">
+
+  <h2>마감 · 공지 관리</h2>
+  <p class="sub">카테고리별로 제출 마감을 걸거나 공지 문구를 남길 수 있어요. 저장하면 모든 학생 기기에 바로 반영돼요.</p>
+
+  <div class="set-sec">
+    <div class="sec-ttl">
+      🔔 카테고리별 설정
+      <span class="sec-cnt">마감하면 학생 화면에서 해당 폼이 잠겨요</span>
+    </div>
+
+    <div class="notice-row">
+      <div class="notice-row-head">
+        <span class="notice-row-title">🏫 학급 (자율·진로·행발)</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="notice-row-status" id="noticeStatus-hakgup"></span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="noticeClose-hakgup">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="notice-toolbar"><button type="button" class="notice-bold-btn" onclick="wrapNoticeMark('hakgup','bold')"><b>B</b> 굵게</button><button type="button" class="notice-color-btn notice-color-red" onclick="wrapNoticeMark('hakgup','red')">빨강</button><button type="button" class="notice-color-btn notice-color-blue" onclick="wrapNoticeMark('hakgup','blue')">파랑</button></div>
+      <textarea id="noticeText-hakgup" placeholder="예: 자율활동은 6/20(금)까지 제출해주세요"></textarea>
+      <div class="notice-hint">💡 굵게 하고 싶은 부분을 드래그하고 <b>B 굵게</b> 버튼을 누르세요</div>
+    </div>
+
+    <div class="notice-row">
+      <div class="notice-row-head">
+        <span class="notice-row-title">📐 수학 교과</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="notice-row-status" id="noticeStatus-math"></span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="noticeClose-math">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="notice-toolbar"><button type="button" class="notice-bold-btn" onclick="wrapNoticeMark('math','bold')"><b>B</b> 굵게</button><button type="button" class="notice-color-btn notice-color-red" onclick="wrapNoticeMark('math','red')">빨강</button><button type="button" class="notice-color-btn notice-color-blue" onclick="wrapNoticeMark('math','blue')">파랑</button></div>
+      <textarea id="noticeText-math" placeholder="예: 수학 세특은 이번 주까지만 받아요"></textarea>
+      <div class="notice-hint">💡 굵게 하고 싶은 부분을 드래그하고 <b>B 굵게</b> 버튼을 누르세요</div>
+    </div>
+
+    <div class="notice-row">
+      <div class="notice-row-head">
+        <span class="notice-row-title">🔭 동아리</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="notice-row-status" id="noticeStatus-club"></span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="noticeClose-club">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="notice-toolbar"><button type="button" class="notice-bold-btn" onclick="wrapNoticeMark('club','bold')"><b>B</b> 굵게</button><button type="button" class="notice-color-btn notice-color-red" onclick="wrapNoticeMark('club','red')">빨강</button><button type="button" class="notice-color-btn notice-color-blue" onclick="wrapNoticeMark('club','blue')">파랑</button></div>
+      <textarea id="noticeText-club" placeholder="예: 동아리 활동 3개 이상 선택해서 작성해주세요"></textarea>
+      <div class="notice-hint">💡 굵게 하고 싶은 부분을 드래그하고 <b>B 굵게</b> 버튼을 누르세요</div>
+    </div>
+
+    <div id="notice-save-status" style="font-size:12px;color:var(--gray-400);margin:4px 2px 10px;"></div>
+    <button class="save-all-btn" onclick="saveNoticeSettingsUI()">💾 마감·공지 저장 · 학생 폼에 반영</button>
+  </div>
+
+</div>
+    </div>
+    <!-- 설정 섹션 -->
+    <div class="admin-section" id="adminSec-settings">
+<div class="set-wrap">
+
+  <h2>설정 · 관리</h2>
+  <p class="sub">기본 정보와 질문을 편집하세요. 저장 시 학생 폼에 즉시 반영됩니다.</p>
+
+  <!-- ── 기본 설정 ── -->
+  <div class="set-sec">
+    <div class="sec-ttl">⚙️ 기본 설정</div>
+    <div class="set-row">
+      <label>학년도</label>
+      <input class="set-inp" type="number" id="set-year" value="2025" min="2020" max="2040" style="max-width:90px" oninput="updateDisplay()"/>
+      <span style="font-size:13px;color:#6b7280">학년도</span>
+    </div>
+    <div class="set-row">
+      <label>학년</label>
+      <select class="set-sel" id="set-grade" style="max-width:110px" onchange="updateDisplay()">
+        <option>1학년</option>
+        <option selected>2학년</option>
+        <option>3학년</option>
+      </select>
+    </div>
+    <div class="set-row">
+      <label>학기</label>
+      <select class="set-sel" id="set-semester" style="max-width:110px" onchange="updateDisplay()">
+        <option selected>1학기</option>
+        <option>2학기</option>
+      </select>
+      <span style="font-size:12px;color:var(--gray-400);">※ 학기 변경 시 구글 시트 새 파일 생성</span>
+    </div>
+    <div class="set-row">
+      <label>학교명</label>
+      <input class="set-inp" type="text" id="set-school" placeholder="○○고등학교 (선택)"/>
+    </div>
+    <div class="set-row">
+      <label>동아리명</label>
+      <input class="set-inp" type="text" id="set-club" placeholder="예) 창의수학, 과학탐구반..." oninput="updateClub()"/>
+    </div>
+    <div class="set-row">
+      <label>수학 교과명</label>
+      <select class="set-inp" id="set-math" onchange="updateMath()" style="cursor:pointer;">
+        <option value="">선택하세요</option>
+        <option value="공통수학1">공통수학1 (1학기)</option>
+        <option value="공통수학2">공통수학2 (2학기)</option>
+        <option value="대수">대수</option>
+        <option value="미적분Ⅰ">미적분Ⅰ</option>
+        <option value="확률과통계">확률과통계</option>
+        <option value="미적분Ⅱ">미적분Ⅱ</option>
+        <option value="기하">기하</option>
+        <option value="경제수학">경제수학</option>
+        <option value="인공지능수학">인공지능수학</option>
+        <option value="수학과제탐구">수학과제탐구</option>
+      </select>
+    </div>
+    <div class="set-row">
+      <label>미리보기</label>
+      <div class="prev-tag" id="prev-tag">📋 2025학년도 2학년 1학기</div>
+    </div>
+    <div class="set-row" style="margin-top:4px;">
+      <label>시트명</label>
+      <div style="flex:1;font-size:12px;color:var(--gray-500);background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);padding:9px 12px;">
+        📊 <span id="sheet-name-preview">아듬_생기부_2025학년도_2학년_1학기</span>
+        <span style="font-size:11px;color:var(--gray-400);margin-left:6px;">← 구글 시트 파일명</span>
+      </div>
+    </div>
+    <div class="set-row" style="margin-top:12px;flex-direction:column;align-items:flex-start;gap:6px;">
+      <label style="font-size:12px;font-weight:700;color:var(--gray-900);">🔗 구글 시트 연동 URL</label>
+      <div style="width:100%;display:flex;gap:8px;">
+        <input class="set-inp" type="text" id="set-gas-url"
+          placeholder="Apps Script 웹앱 URL (https://script.google.com/...)"
+          style="flex:1;font-size:12px;"/>
+        <button onclick="testGasUrl()" style="padding:8px 14px;border:1px solid var(--gray-200);border-radius:var(--radius-sm);background:white;font-size:12px;color:var(--gray-700);cursor:pointer;white-space:nowrap;">연결 테스트</button>
+      </div>
+      <div id="gas-url-status" style="font-size:11px;color:var(--gray-400);"></div>
+
+      <div style="width:100%;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;box-sizing:border-box;overflow:hidden;">
+        <div onclick="toggleGasGuide()" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:10px 12px;font-size:12px;font-weight:700;color:#2563eb;">
+          <span>📋 처음이신가요? 내 구글시트 연동 설정 가이드 보기</span>
+          <span id="gas-guide-arrow">▼</span>
+        </div>
+        <div id="gas-guide-body" style="display:none;padding:0 12px 14px;font-size:12px;color:var(--gray-700);line-height:1.9;">
+          <ol style="margin:0 0 10px 18px;padding:0;">
+            <li>새 <b>구글 스프레드시트</b>를 하나 만드세요. (본인 구글 계정으로)</li>
+            <li>시트 상단 메뉴 <b>확장 프로그램 → Apps Script</b>를 클릭하세요.</li>
+            <li>편집기에 원래 있던 코드를 전체 삭제하고, 아래 <b>코드 복사</b> 버튼으로 복사한 코드를 붙여넣으세요.</li>
+            <li>저장(💾) → 우측 상단 <b>배포 → 새 배포</b> → 유형: <b>웹 앱</b></li>
+            <li>실행 사용자: <b>나</b> · 액세스 권한: <b>모든 사용자</b> 로 설정 후 <b>배포</b></li>
+            <li>나오는 <b>웹 앱 URL</b>을 복사해서 위 입력창에 붙여넣고 저장 → 연결 테스트로 확인하세요.</li>
+          </ol>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+            <button onclick="copyGasTemplate()" id="gas-copy-btn" style="padding:8px 14px;border:none;border-radius:7px;background:#2563eb;color:white;font-size:12px;font-weight:700;cursor:pointer;">📋 코드 복사하기</button>
+            <button onclick="downloadGasTemplate()" style="padding:8px 14px;border:1px solid var(--gray-200);border-radius:7px;background:white;color:var(--gray-700);font-size:12px;cursor:pointer;">📥 .gs 파일로 다운로드</button>
+          </div>
+          <div style="font-size:11px;color:var(--gray-400);">
+            ⚠️ 이 GAS 주소는 <b>본인의 구글시트 전용</b>이에요. 같은 앱을 쓰는 다른 선생님과 절대 같은 주소를 쓰면 안 돼요 (데이터가 섞여요).<br/>
+            💡 여기서 만든 주소는 <b>생기부AI 앱의 설정 탭</b>에도 똑같이 입력해야 두 앱이 연동돼요.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="set-row" style="margin-top:4px;flex-direction:column;align-items:flex-start;gap:6px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:12px;box-sizing:border-box;">
+      <label style="font-size:12px;font-weight:700;color:#15803d;">🔗 학생용 배포 링크 만들기</label>
+      <div style="font-size:11px;color:#4b5563;line-height:1.7;">
+        위 설정(구글시트 주소·학년도·학년·학기 등)을 <b>먼저 저장</b>한 다음 아래 버튼을 누르면,
+        학생 전용 링크가 만들어져요. 이 링크로 들어온 학생은 이 기기가 아니어도
+        <b>자동으로 선생님의 구글시트</b>로 제출돼요.
+      </div>
+      <div style="width:100%;background:#fef2f2;border:1px solid #fca5a5;border-radius:7px;padding:8px 10px;font-size:11px;color:#991b1b;line-height:1.6;box-sizing:border-box;">
+        ⚠️ <b>지금 이 화면의 주소(브라우저 주소창 URL)를 학생에게 보내면 안 돼요.</b><br/>
+        반드시 아래 버튼을 눌러서 <b>새로 만들어지는 링크</b>만 학생들에게 전달해주세요.
+        원본 링크로 들어오면 제출이 막혀요 (선생님 시트가 특정 안 되기 때문).
+      </div>
+      <button onclick="generateShareLink()" style="padding:8px 16px;border:none;border-radius:7px;background:#16a34a;color:white;font-size:12px;font-weight:700;cursor:pointer;">🔗 배포 링크 만들기</button>
+      <div id="share-link-box" style="display:none;width:100%;">
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="share-link-output" readonly
+            style="flex:1;font-size:11px;color:var(--gray-700);background:white;border:1px solid #86efac;border-radius:7px;padding:8px 10px;"/>
+          <button onclick="copyShareLink()" id="share-link-copy-btn" style="padding:8px 14px;border:1px solid var(--gray-200);border-radius:7px;background:white;color:var(--gray-700);font-size:12px;cursor:pointer;white-space:nowrap;">복사</button>
+        </div>
+        <div style="margin-top:6px;font-size:10px;color:#15803d;">✅ 이 링크를 학급 공지·카톡 등으로 학생들에게 보내주세요.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 자율활동 체크박스 항목 ── -->
+  <div class="set-sec">
+    <div class="sec-ttl">🏃 자율활동 체크박스 항목</div>
+    <div class="act-hint">💡 항목을 클릭하면 문구를 수정할 수 있어요 · ⠿을 드래그하면 순서를 바꿀 수 있어요</div>
+    <div id="auto-list">
+      <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">1인1역할</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
+      <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">꿀박사</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
+      <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">교내체육마당</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
+      <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">개교기념식공연</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
+      <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">백일장 및 미술실기의 날</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
+      <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">2학기 도서관, 한강 체험학습</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
+      <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">삼삼오오</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
+      <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">또래멘토링(멘티만)</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
+      <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">학급활동(교과연계탐구활동보고서)</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
+      <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">학급활동(자율스터디)</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
+      <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">학급활동(중간, 기말고사 학습 플랜 및 자기평가)</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
+      <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">대학-고교연계프로그램</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
+      <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">인문/자연 독서토론 프로그램</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
+      <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">얼리버드</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
+      <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">기타</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
+    </div>
+    <div class="add-row">
+      <input type="text" id="add-auto" placeholder="새 활동 추가..."/>
+      <button onclick="addAct('auto-list','add-auto')">+ 추가</button>
+    </div>
+  </div>
+
+  <!-- ── 진로활동 체크박스 항목 ── -->
+  <div class="set-sec">
+    <div class="sec-ttl">🎯 진로활동 체크박스 항목</div>
+    <div class="act-hint">💡 항목을 클릭하면 문구를 수정할 수 있어요 · ⠿을 드래그하면 순서를 바꿀 수 있어요</div>
+    <div id="career-list">
+      <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">공유캠퍼스 진로특강</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
+      <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">전공심화프로그램(1학기)</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
+      <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">전공심화프로그램(2학기)</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
+      <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">진로콘서트</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
+      <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">대학전공체험프로그램(시립대, 서울과기대)</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
+      <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">고교-대학연계프로그램(코딩없이 머신러닝 이해하기)</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
+      <div class="act-item"><span class="act-drag">⠿</span><span class="act-name">기타</span><button class="act-del" onclick="this.closest('.act-item').remove()">×</button></div>
+    </div>
+    <div class="add-row">
+      <input type="text" id="add-career" placeholder="새 진로활동 추가..."/>
+      <button onclick="addAct('career-list','add-career')">+ 추가</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       구글폼 스타일 질문 빌더
+  ══════════════════════════════ -->
+  <div class="set-sec">
+    <div class="sec-ttl">
+      📋 질문 편집기
+      <span class="sec-cnt">카드를 클릭하면 편집 가능 · 저장 시 학생 폼에 반영</span>
+    </div>
+
+    <!-- 섹션 탭 -->
+    <div class="q-section-tabs">
+      <button class="q-section-tab active blue" onclick="switchQSection('auto',this,'blue')">🏃 자율활동</button>
+      <button class="q-section-tab" onclick="switchQSection('career',this,'blue')">🎯 진로활동</button>
+      <button class="q-section-tab" onclick="switchQSection('hakgup',this,'blue')">📝 행발</button>
+      <button class="q-section-tab" onclick="switchQSection('math',this,'purple')">📐 수학 교과</button>
+      <button class="q-section-tab" onclick="switchQSection('club',this,'green')">🔭 동아리</button>
+    </div>
+
+    <!-- 자율활동 패널 -->
+    <div class="q-section-panel active" id="qpanel-auto"></div>
+    <!-- 진로활동 패널 -->
+    <div class="q-section-panel" id="qpanel-career"></div>
+    <!-- 행발 패널 -->
+    <div class="q-section-panel" id="qpanel-hakgup"></div>
+    <!-- 수학 패널 -->
+    <div class="q-section-panel" id="qpanel-math"></div>
+    <!-- 동아리 패널 -->
+    <div class="q-section-panel" id="qpanel-club"></div>
+  </div>
+
+  <button class="save-all-btn" onclick="saveAllSettings()">💾 설정 저장 · 학생 폼에 반영</button>
+
+</div>
+</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
