@@ -156,6 +156,7 @@
   <header>
     <h1>📝 아듬's 등급계산기</h1>
     <p>2022 개정 교육과정 5등급제 · 반별 엑셀을 넣으면 전체 학년 기준으로 자동 계산됩니다</p>
+    <button class="btn ghost small" id="clearStorageBtn" style="margin-top:10px;">🗑️ 전체 데이터 삭제</button>
   </header>
 
   <div class="tabbar" id="tabBar"></div>
@@ -168,6 +169,8 @@
         필요한 열: <code>학번</code>(또는 <code>반</code>+<code>번호</code>), <code>이름</code>, <code>점수</code></p>
 
       <div class="guide" id="pathGuide" style="margin-bottom:14px;"></div>
+
+      <div id="restoredNote"></div>
 
       <div class="dropzone" id="dropzone">
         <div class="big">📂 클릭해서 파일 선택 (또는 여기로 드래그)</div>
@@ -193,21 +196,28 @@
   <!-- 학기말(종합) 반영비율 카드 -->
   <div class="card" id="combineCard" style="display:none;">
     <h2>1️⃣ 반영비율 설정</h2>
-    <p class="desc">중간고사 / 기말고사 / 수행평가 탭에서 각각 계산을 먼저 마쳐야 종합 계산을 할 수 있어요. 세 비율의 합은 100이어야 해요.</p>
+    <p class="desc">중간고사 / 기말고사 / 수행평가 탭에서 각각 계산을 먼저 마쳐야 종합 계산을 할 수 있어요. 세 비율의 합은 100이어야 해요.<br>
+      <b>만점이 서로 다르면(예: 수행평가 40점) 꼭 만점을 정확히 입력해주세요</b> — 100점 기준으로 환산한 뒤에 비율을 곱해요.</p>
     <div class="weightbox">
       <div class="weightitem">
         <label>중간고사 반영비율(%)</label>
         <div class="inputrow"><input type="number" id="wMidterm" value="34" min="0" max="100"></div>
+        <label style="margin-top:8px;">중간고사 만점</label>
+        <div class="inputrow"><input type="number" id="fmMidterm" value="100" min="1"></div>
         <div class="status" id="statMidterm"></div>
       </div>
       <div class="weightitem">
         <label>기말고사 반영비율(%)</label>
         <div class="inputrow"><input type="number" id="wFinal" value="33" min="0" max="100"></div>
+        <label style="margin-top:8px;">기말고사 만점</label>
+        <div class="inputrow"><input type="number" id="fmFinal" value="100" min="1"></div>
         <div class="status" id="statFinal"></div>
       </div>
       <div class="weightitem">
         <label>수행평가 반영비율(%)</label>
         <div class="inputrow"><input type="number" id="wPerformance" value="33" min="0" max="100"></div>
+        <label style="margin-top:8px;">수행평가 만점</label>
+        <div class="inputrow"><input type="number" id="fmPerformance" value="100" min="1"></div>
         <div class="status" id="statPerformance"></div>
       </div>
     </div>
@@ -272,7 +282,7 @@
     { id:'combined',    label:'학기말(종합)' }
   ];
   function newExamStore(){
-    return { uploadedFiles: [], students: [], results: [], examMeta: null, sortState: { key:'classNo', asc:true } };
+    return { uploadedFiles: [], students: [], results: [], examMeta: null, fullMark: 100, sortState: { key:'classNo', asc:true } };
   }
   const store = { midterm: newExamStore(), final: newExamStore(), performance: newExamStore() };
   const combinedStore = { weights: { midterm:34, final:33, performance:33 }, results: [], sortState: { key:'classNo', asc:true } };
@@ -347,6 +357,13 @@
       renderFileList();
       uploadWarn.innerHTML = '';
       calcBtn.disabled = cur().uploadedFiles.length === 0;
+
+      const restoredNote = document.getElementById('restoredNote');
+      if(cur().uploadedFiles.length === 0 && cur().results.length > 0){
+        restoredNote.innerHTML = `<div class="metabanner">✅ 저장해둔 계산 결과를 불러왔어요 (아래에서 바로 확인 가능). 원본 파일은 저장하지 않기 때문에 다시 업로드해야 새로 계산할 수 있어요.</div>`;
+      } else {
+        restoredNote.innerHTML = '';
+      }
     }
 
     // 결과/다운로드 카드는 해당 탭에 결과가 있을 때만 표시
@@ -385,6 +402,7 @@
           cur().uploadedFiles.push({ name: file.name, workbook: wb });
           renderFileList();
           calcBtn.disabled = cur().uploadedFiles.length === 0;
+          document.getElementById('restoredNote').innerHTML = '';
         }catch(err){
           uploadWarn.innerHTML = `<div class="warn">⚠️ "${file.name}" 파일을 읽을 수 없어요. 엑셀 파일(.xlsx/.xls)인지 확인해주세요.</div>`;
         }
@@ -416,6 +434,7 @@
     downloadCard.style.display = 'none';
     fileInput.value = '';
     renderTabBar();
+    saveToStorage();
   };
 
   // ---------- 헤더 별칭 매칭 (일반 표 형식용) ----------
@@ -642,6 +661,57 @@
     return 5;
   }
 
+  // ---------- 로컬 저장 (같은 브라우저에만, 파일 원본은 저장 안 하고 계산 결과만 저장) ----------
+  const STORAGE_KEY = 'cheonr_grade_calc_v1';
+
+  function saveToStorage(){
+    try{
+      const data = {
+        midterm: { students: store.midterm.students, results: store.midterm.results, examMeta: store.midterm.examMeta, fullMark: store.midterm.fullMark, sortState: store.midterm.sortState },
+        final: { students: store.final.students, results: store.final.results, examMeta: store.final.examMeta, fullMark: store.final.fullMark, sortState: store.final.sortState },
+        performance: { students: store.performance.students, results: store.performance.results, examMeta: store.performance.examMeta, fullMark: store.performance.fullMark, sortState: store.performance.sortState },
+        combined: { weights: combinedStore.weights, results: combinedStore.results, sortState: combinedStore.sortState, missingCount: combinedStore.missingCount },
+        savedAt: new Date().toISOString()
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }catch(e){ console.warn('저장 실패', e); }
+  }
+
+  function loadFromStorage(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return;
+      const data = JSON.parse(raw);
+      ['midterm','final','performance'].forEach(k=>{
+        if(data[k]){
+          store[k].students = data[k].students || [];
+          store[k].results = data[k].results || [];
+          store[k].examMeta = data[k].examMeta || null;
+          store[k].fullMark = data[k].fullMark || 100;
+          store[k].sortState = data[k].sortState || { key:'classNo', asc:true };
+        }
+      });
+      if(data.combined){
+        combinedStore.weights = data.combined.weights || combinedStore.weights;
+        combinedStore.results = data.combined.results || [];
+        combinedStore.sortState = data.combined.sortState || { key:'classNo', asc:true };
+        combinedStore.missingCount = data.combined.missingCount || 0;
+      }
+    }catch(e){ console.warn('불러오기 실패', e); }
+  }
+
+  document.getElementById('clearStorageBtn').onclick = ()=>{
+    if(!confirm('저장된 모든 탭의 성적 데이터를 삭제할까요? 되돌릴 수 없어요.')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    store.midterm = newExamStore();
+    store.final = newExamStore();
+    store.performance = newExamStore();
+    combinedStore.weights = { midterm:34, final:33, performance:33 };
+    combinedStore.results = [];
+    combinedStore.sortState = { key:'classNo', asc:true };
+    switchTab(currentTab);
+  };
+
   // ---------- 계산 버튼 (시험 탭) ----------
   calcBtn.onclick = ()=>{
     parseAll();
@@ -651,12 +721,16 @@
     }
     cur().results = computeRanks(cur().students);
     cur().sortState = { key:'studentId', asc:true };
+    if(cur().examMeta && cur().examMeta.fullMark){
+      cur().fullMark = parseFloat(cur().examMeta.fullMark) || 100;
+    }
     resultTitle.textContent = `2️⃣ ${TABS.find(t=>t.id===currentTab).label} 계산 결과 (전체 학년 통합 기준)`;
     renderResults();
     renderDownloadButtons();
     resultCard.style.display = 'block';
     downloadCard.style.display = 'block';
     renderTabBar();
+    saveToStorage();
     resultCard.scrollIntoView({behavior:'smooth'});
   };
 
@@ -664,6 +738,9 @@
   const wMidterm = document.getElementById('wMidterm');
   const wFinal = document.getElementById('wFinal');
   const wPerformance = document.getElementById('wPerformance');
+  const fmMidterm = document.getElementById('fmMidterm');
+  const fmFinal = document.getElementById('fmFinal');
+  const fmPerformance = document.getElementById('fmPerformance');
   const weightSum = document.getElementById('weightSum');
   const combineBtn = document.getElementById('combineBtn');
   const statMidterm = document.getElementById('statMidterm');
@@ -674,6 +751,9 @@
     wMidterm.value = combinedStore.weights.midterm;
     wFinal.value = combinedStore.weights.final;
     wPerformance.value = combinedStore.weights.performance;
+    fmMidterm.value = store.midterm.fullMark;
+    fmFinal.value = store.final.fullMark;
+    fmPerformance.value = store.performance.fullMark;
     updateWeightUI();
   }
 
@@ -684,10 +764,13 @@
     const sum = mid + fin + perf;
 
     combinedStore.weights = { midterm: mid, final: fin, performance: perf };
+    store.midterm.fullMark = Number(fmMidterm.value) || 100;
+    store.final.fullMark = Number(fmFinal.value) || 100;
+    store.performance.fullMark = Number(fmPerformance.value) || 100;
 
-    statMidterm.innerHTML = store.midterm.results.length>0 ? '<span class="ok">✓ 계산완료</span>' : '<span class="no">계산 필요</span>';
-    statFinal.innerHTML = store.final.results.length>0 ? '<span class="ok">✓ 계산완료</span>' : '<span class="no">계산 필요</span>';
-    statPerformance.innerHTML = store.performance.results.length>0 ? '<span class="ok">✓ 계산완료</span>' : '<span class="no">계산 필요</span>';
+    statMidterm.innerHTML = store.midterm.results.length>0 ? `<span class="ok">✓ 계산완료 (만점 ${store.midterm.fullMark})</span>` : '<span class="no">계산 필요</span>';
+    statFinal.innerHTML = store.final.results.length>0 ? `<span class="ok">✓ 계산완료 (만점 ${store.final.fullMark})</span>` : '<span class="no">계산 필요</span>';
+    statPerformance.innerHTML = store.performance.results.length>0 ? `<span class="ok">✓ 계산완료 (만점 ${store.performance.fullMark})</span>` : '<span class="no">계산 필요</span>';
 
     if(sum === 100){
       weightSum.textContent = `합계: ${sum}% ✓`;
@@ -697,8 +780,9 @@
       weightSum.className = 'weightsum bad';
     }
     combineBtn.disabled = (sum !== 100);
+    saveToStorage();
   }
-  [wMidterm, wFinal, wPerformance].forEach(el=> el.addEventListener('input', updateWeightUI));
+  [wMidterm, wFinal, wPerformance, fmMidterm, fmFinal, fmPerformance].forEach(el=> el.addEventListener('input', updateWeightUI));
 
   combineBtn.onclick = ()=>{
     const weights = combinedStore.weights;
@@ -724,10 +808,15 @@
       store[k].results.forEach(r=> lookups[k][r.studentId] = r);
     });
 
+    // 만점이 서로 다르면 100점 만점으로 환산한 뒤 비율을 곱함
     const combined = allIds.map(id=>{
       const base = lookups[included[0]][id];
       let weightedScore = 0;
-      included.forEach(k=> weightedScore += lookups[k][id].score * (weights[k]/100));
+      included.forEach(k=>{
+        const fullMark = store[k].fullMark || 100;
+        const normalized = (lookups[k][id].score / fullMark) * 100;
+        weightedScore += normalized * (weights[k]/100);
+      });
       return {
         studentId: id, classNo: base.classNo, no: base.no, name: base.name,
         score: Math.round(weightedScore*10)/10
@@ -748,6 +837,7 @@
     resultCard.style.display = 'block';
     downloadCard.style.display = 'block';
     renderTabBar();
+    saveToStorage();
     resultCard.scrollIntoView({behavior:'smooth'});
   };
 
@@ -758,7 +848,7 @@
 
     if(currentTab === 'combined'){
       const w = combinedStore.weights;
-      let html = `<div class="metabanner">📌 반영비율 — 중간 ${w.midterm}% · 기말 ${w.final}% · 수행평가 ${w.performance}%`;
+      let html = `<div class="metabanner">📌 반영비율 — 중간 ${w.midterm}%(만점${store.midterm.fullMark}) · 기말 ${w.final}%(만점${store.final.fullMark}) · 수행평가 ${w.performance}%(만점${store.performance.fullMark})`;
       if(combinedStore.missingCount > 0) html += `<br>⚠️ 일부 시험에 점수가 없어 종합 계산에서 제외된 학생 ${combinedStore.missingCount}명이 있어요.`;
       html += `</div>`;
       metaBox.innerHTML = html;
@@ -913,6 +1003,7 @@
   }
 
   // ---------- 초기화 ----------
+  loadFromStorage();
   renderTabBar();
   switchTab('midterm');
 })();
