@@ -1504,23 +1504,21 @@ textarea{resize:vertical;}
             </button>
             <!-- 선택된 활동 태그 -->
             <div id="d-selected-ev-tags" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;"></div>
-            <!-- 직접 추가 -->
-            <div style="margin-top:9px;padding-top:9px;border-top:1px dashed #e5e7eb;">
-              <div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:5px;">직접 추가</div>
-              <div style="display:flex;gap:6px;">
-                <input id="d-custom-input" placeholder="활동명 입력 후 Enter"
-                  onkeydown="if(event.key==='Enter')dAddCustomEvent()"
-                  style="flex:1;border:1px solid #e0e5ed;border-radius:7px;padding:6px 10px;font-size:12px;color:#111;outline:none;"/>
-                <button onclick="dAddCustomEvent()" style="padding:6px 12px;border-radius:7px;border:none;background:#2563eb;color:white;font-size:11px;font-weight:700;cursor:pointer;">+ 추가</button>
-              </div>
-              <div id="d-custom-btns" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;"></div>
-            </div>
             <!-- 1인1역 (자율탭만) -->
             <div id="d-onerole-section" style="margin-top:10px;padding-top:10px;border-top:1px dashed #e5e7eb;">
-              <div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:6px;">1인1역 <span style="font-weight:400;color:#9ca3af;">(담당 역할)</span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                <div style="font-size:11px;font-weight:700;color:#6b7280;">1인1역 <span style="font-weight:400;color:#9ca3af;">(담당 역할)</span></div>
+                <div style="display:flex;gap:4px;">
+                  <button onclick="dDownloadOneRoleTemplate()" style="padding:2px 8px;border:1px solid #e5e7eb;border-radius:5px;background:white;font-size:10px;color:#6b7280;cursor:pointer;">📋 양식</button>
+                  <button onclick="document.getElementById('d-onerole-file').click()" style="padding:2px 8px;border:1px solid #93c5fd;border-radius:5px;background:#eff6ff;font-size:10px;color:#2563eb;cursor:pointer;">📥 일괄 업로드</button>
+                  <input type="file" id="d-onerole-file" accept=".xlsx,.xls,.csv" style="display:none;" onchange="dUploadOneRoleExcel(event)"/>
+                </div>
+              </div>
               <input id="d-onerole-input" placeholder="예: 환경부장, 칠판닦기, 창문담당"
-                oninput="dOneRole=this.value"
+                oninput="dSetOneRole(this.value)"
                 style="width:100%;box-sizing:border-box;border:1px solid #e0e5ed;border-radius:7px;padding:7px 10px;font-size:12px;color:#111;outline:none;"/>
+              <div style="font-size:10px;color:#9ca3af;margin-top:4px;">💡 엑셀(학번·이름·1인1역·활동내용·특이사항)로 반 전체 일괄 입력 가능</div>
+              <div id="d-onerole-note" style="display:none;margin-top:6px;padding:7px 9px;background:#f8faff;border:1px solid #dce8f5;border-radius:6px;font-size:11px;color:#374151;line-height:1.6;white-space:pre-wrap;"></div>
             </div>
           </div>
           <!-- 활동별 학생 자료 입력 (동적 생성) -->
@@ -7951,6 +7949,96 @@ const D_CAREER_EVENTS = {
   "진로 체험":["직업 체험 활동 참가","진로 특강 참여","전문가 멘토링 참여","대학 전공 탐색 활동","진로 박람회 참가","직업인 인터뷰 활동"],
   "진로 발표":["진로 발표 수업 참여","진로 UCC 제작 참여","진로 탐색 보고서 작성"],
 };
+
+/* ══ 활동 목록 커스터마이징 저장소 (전체앱/반별 공통추가 + 프리셋 수정·삭제) ══ */
+const D_LS_EV_CUSTOM_GLOBAL="damin_v2_ev_custom_global"; // {event:{group:[..]}, career:{group:[..]}}
+const D_LS_EV_CUSTOM_CLASS="damin_v2_ev_custom_class";   // {className:{event:{...},career:{...}}}
+const D_LS_EV_OVERRIDES="damin_v2_ev_overrides";         // {event:{edits:{"g||orig":"new"},deletes:["g||orig"]}, career:{...}}
+var D_DIRECT_TAB = "✏️ 직접입력";
+
+function dEvType(){ return dActiveTab==="진로" ? "career" : "event"; }
+function dEvBase(type){ return type==="career" ? D_CAREER_EVENTS : D_EVENTS; }
+function dLSGet(key,fallback){ try{ var v=JSON.parse(localStorage.getItem(key)); return v||fallback; }catch(e){ return fallback; } }
+function dLSSet(key,val){ localStorage.setItem(key,JSON.stringify(val)); }
+
+function dGetEvCustomGlobal(type){ var all=dLSGet(D_LS_EV_CUSTOM_GLOBAL,{}); return all[type]||{}; }
+function dSaveEvCustomGlobal(type,data){ var all=dLSGet(D_LS_EV_CUSTOM_GLOBAL,{}); all[type]=data; dLSSet(D_LS_EV_CUSTOM_GLOBAL,all); }
+function dGetEvCustomClass(type){ var all=dLSGet(D_LS_EV_CUSTOM_CLASS,{}); var c=all[dClassName]||{}; return c[type]||{}; }
+function dSaveEvCustomClass(type,data){ var all=dLSGet(D_LS_EV_CUSTOM_CLASS,{}); if(!all[dClassName])all[dClassName]={}; all[dClassName][type]=data; dLSSet(D_LS_EV_CUSTOM_CLASS,all); }
+function dGetEvOverrides(type){ var all=dLSGet(D_LS_EV_OVERRIDES,{}); return all[type]||{edits:{},deletes:[]}; }
+function dSaveEvOverrides(type,data){ var all=dLSGet(D_LS_EV_OVERRIDES,{}); all[type]=data; dLSSet(D_LS_EV_OVERRIDES,all); }
+
+function dAddCustomEventToStore(type,scope,group,name){
+  var data = scope==="global" ? dGetEvCustomGlobal(type) : dGetEvCustomClass(type);
+  if(!data[group]) data[group]=[];
+  if(data[group].indexOf(name)===-1) data[group].push(name);
+  if(scope==="global") dSaveEvCustomGlobal(type,data); else dSaveEvCustomClass(type,data);
+}
+function dEditCustomEventInStore(type,scope,group,idx,newName){
+  var data = scope==="global" ? dGetEvCustomGlobal(type) : dGetEvCustomClass(type);
+  if(data[group]&&data[group][idx]!==undefined){ data[group][idx]=newName; }
+  if(scope==="global") dSaveEvCustomGlobal(type,data); else dSaveEvCustomClass(type,data);
+}
+function dDeleteCustomEventInStore(type,scope,group,idx){
+  var data = scope==="global" ? dGetEvCustomGlobal(type) : dGetEvCustomClass(type);
+  if(data[group]) data[group].splice(idx,1);
+  if(scope==="global") dSaveEvCustomGlobal(type,data); else dSaveEvCustomClass(type,data);
+}
+function dSetPresetOverrideText(type,group,orig,newText){
+  var ov=dGetEvOverrides(type); ov.edits[group+"||"+orig]=newText; dSaveEvOverrides(type,ov);
+}
+function dSetPresetDeleted(type,group,orig){
+  var ov=dGetEvOverrides(type);
+  if(ov.deletes.indexOf(group+"||"+orig)===-1) ov.deletes.push(group+"||"+orig);
+  dSaveEvOverrides(type,ov);
+}
+
+/* 그룹별 아이템 객체 목록 (모달의 수정/삭제 UI용) */
+function dGetGroupedItems(type){
+  var base=dEvBase(type), ov=dGetEvOverrides(type);
+  var out={};
+  Object.keys(base).forEach(function(g){
+    out[g]=[];
+    base[g].forEach(function(orig){
+      var key=g+"||"+orig;
+      if(ov.deletes.indexOf(key)!==-1) return;
+      out[g].push({text: ov.edits[key]||orig, kind:"preset", group:g, orig:orig});
+    });
+  });
+  var gCustom=dGetEvCustomGlobal(type);
+  Object.keys(gCustom).forEach(function(g){
+    if(!out[g]) out[g]=[];
+    gCustom[g].forEach(function(name,idx){ out[g].push({text:name,kind:"global",group:g,idx:idx}); });
+  });
+  var cCustom=dGetEvCustomClass(type);
+  Object.keys(cCustom).forEach(function(g){
+    if(!out[g]) out[g]=[];
+    cCustom[g].forEach(function(name,idx){ out[g].push({text:name,kind:"class",group:g,idx:idx}); });
+  });
+  return out;
+}
+function dGetGroupedTexts(type){
+  var grouped=dGetGroupedItems(type), out={};
+  Object.keys(grouped).forEach(function(g){ out[g]=grouped[g].map(function(it){return it.text;}); });
+  return out;
+}
+function dEditEvItem(it){
+  var val=prompt("활동 문구 수정",it.text);
+  if(val===null) return; val=val.trim(); if(!val) return;
+  var type=dEvType();
+  if(it.kind==="preset") dSetPresetOverrideText(type,it.group,it.orig,val);
+  else dEditCustomEventInStore(type,it.kind,it.group,it.idx,val);
+  var pos=dEvents.indexOf(it.text); if(pos!==-1) dEvents[pos]=val;
+  dRenderEvModal();
+}
+function dDeleteEvItem(it){
+  if(!confirm("\""+it.text+"\" 항목을 목록에서 삭제할까요?\n(전체 앱 공통으로 적용돼요. 선택도 함께 해제됩니다)"))return;
+  var type=dEvType();
+  if(it.kind==="preset") dSetPresetDeleted(type,it.group,it.orig);
+  else dDeleteCustomEventInStore(type,it.kind,it.group,it.idx);
+  dEvents=dEvents.filter(function(x){return x!==it.text;});
+  dRenderEvModal();
+}
 // 행발용 성격·인성 키워드
 const D_PERSONALITY = {
   "대인관계":["친화력이 뛰어남","배려심이 깊음","유머 감각이 있음","갈등 조율 능력이 있음","리더십이 있음","팔로워십이 훌륭함","경청하는 자세가 뛰어남","타인을 먼저 생각하는 이타적 성격","새로운 친구를 사귀는 데 거리낌이 없음","다양한 배경의 친구들과 잘 어울림","갈등 상황에서 중재자 역할을 자연스럽게 수행함","조용하지만 필요한 순간 존재감이 뚜렷함","친구들에게 신뢰를 주는 언행을 지님","상대의 감정을 빠르게 파악하고 적절히 반응함","집단 내 분위기를 긍정적으로 이끄는 능력이 있음"],
@@ -7991,7 +8079,7 @@ const SHARED_API_KEY="saengiboo_apikey"; // 교과·담임·동아리 공통 API
 /* ── 상태 ── */
 let dActiveTab="자율", dActiveSubTab="생기부", dSelStu=0;
 let dStudents=[], dCount=30, dClassName="1-1";
-let dEvents=[], dCustomEvents=[], dOneRole="", dPersonality=[], dCustomPersonalities=[], dCareer="", dEpisode="";
+let dEvents=[], dOneRole="", dPersonality=[], dCustomPersonalities=[], dCareer="", dEpisode="";
 let dResult="", dLoading=false, dError="", dCopied=false;
 let dOpenCounselId=null;
 let dCounselDate=new Date().toISOString().slice(0,10), dCounselType="학업", dCounselContent="";
@@ -8013,7 +8101,7 @@ function dLoadStudents(){
     var s=localStorage.getItem(key)||localStorage.getItem(D_LS_STU);
     if(s)return JSON.parse(s).map(function(st){return Object.assign({counseling:[],info:{},nuga:[],tags:[],history:{}},st);});
   }catch(e){}
-  return Array.from({length:40},function(){return {name:"",results:{자율:"",진로:"",행발:""},done:{자율:false,진로:false,행발:false},counseling:[],info:{},nuga:[],tags:[],history:{}};});
+  return Array.from({length:40},function(){return {name:"",results:{자율:"",진로:"",행발:""},done:{자율:false,진로:false,행발:false},counseling:[],info:{},nuga:[],tags:[],history:{},oneRole:"",oneRoleNote:""};});
 }
 function dLoadSettings(){
   try{var s=localStorage.getItem(D_LS_SET);if(s)return JSON.parse(s);}catch(e){}
@@ -8185,15 +8273,14 @@ function dRenderInputCol(){
     dRenderEvModalBtn();
     dRenderSelectedEvTags();
     dRenderEvNotes();
-    document.getElementById("d-custom-btns").innerHTML=dCustomEvents.map(function(item){
-      var on=dEvents.includes(item);
-      return "<div style=\"display:flex;align-items:center;gap:2px\">"
-        +"<button onclick=\"dToggleEvent('"+item+"')\" style=\"padding:4px 8px;border-radius:20px 0 0 20px;border:"+(on?"none":"1px solid #d1d5db")+";border-right:none;background:"+(on?col:"white")+";color:"+(on?"white":"#374151")+";font-size:11px;font-weight:"+(on?700:400)+";cursor:pointer\">"+item+"<\/button>"
-        +"<button onclick=\"dRemoveCustomEvent('"+item+"')\" style=\"padding:4px 7px;border-radius:0 20px 20px 0;border:"+(on?"none":"1px solid #d1d5db")+";border-left:"+(on?"1px solid rgba(255,255,255,0.3)":"1px solid #e5e7eb")+";background:"+(on?col:"white")+";color:"+(on?"rgba(255,255,255,0.8)":"#9ca3af")+";font-size:10px;cursor:pointer\">✕<\/button>"
-        +"<\/div>";
-    }).join("");
     document.getElementById("d-onerole-section").style.display=dActiveTab==="자율"?"block":"none";
     document.getElementById("d-onerole-input").value=dOneRole;
+    var oneRoleNoteEl=document.getElementById("d-onerole-note");
+    if(oneRoleNoteEl){
+      var noteVal=(dStudents[dSelStu]&&dStudents[dSelStu].oneRoleNote)||"";
+      if(noteVal){oneRoleNoteEl.style.display="block";oneRoleNoteEl.textContent="📌 업로드된 메모\n"+noteVal;}
+      else{oneRoleNoteEl.style.display="none";oneRoleNoteEl.textContent="";}
+    }
   }
   // 성격 키워드 섹션 라벨 탭별 업데이트
   var labelEl = document.getElementById("d-personality-section-label");
@@ -8560,7 +8647,7 @@ function dSwitchTab(t){
 function dSwitchStu(i){dSelStu=i;dResult=(dStudents[i]&&dStudents[i].results[dActiveTab])||"";dResetForm();dRender();if(dActiveSubTab==="기본정보")dRenderInfoTab();else if(dActiveSubTab==="누가기록")dRenderNuga();dRenderSurveySection();dCloseStoryPanel();}
 function dSwitchSubTab(t){dActiveSubTab=t;dRenderHeader();dRenderBody();}
 function dResetForm(){
-  dEvents=[];dCustomEvents=[];dOneRole="";dPersonality=[];dCustomPersonalities=[];dCareer="";dEpisode="";dError="";dEvNotes={};dSurveyChecked={};dNugaChecked={};
+  dEvents=[];dOneRole=(dStudents[dSelStu]&&dStudents[dSelStu].oneRole)||"";dPersonality=[];dCustomPersonalities=[];dCareer="";dEpisode="";dError="";dEvNotes={};dSurveyChecked={};dNugaChecked={};
   var btn=document.getElementById("d-personality-modal-btn");
   if(btn){btn.textContent="-- 키워드 선택 (다중선택 가능) --";btn.style.color="#6b7280";btn.style.borderColor="#e0e5ed";}
   var tags=document.getElementById("d-selected-personality-tags");
@@ -8576,8 +8663,9 @@ var dEvModalGroup = "";
 var dEvNotes = {}; // {활동명: 자료내용}
 
 function dOpenEvModal() {
-  var eventList = dActiveTab==="진로" ? D_CAREER_EVENTS : D_EVENTS;
-  dEvModalGroup = Object.keys(eventList)[0];
+  var type = dEvType();
+  var groups = Object.keys(dGetGroupedItems(type));
+  dEvModalGroup = groups[0] || D_DIRECT_TAB;
   document.getElementById("d-ev-modal").style.display = "flex";
   document.getElementById("d-ev-modal-title").textContent = dActiveTab==="진로" ? "진로활동 선택" : "행사·활동 선택";
   dRenderEvModal();
@@ -8589,20 +8677,21 @@ function dCloseEvModal() {
   dRenderEvNotes();
 }
 function dClearAllEvents() {
-  var eventList = dActiveTab==="진로" ? D_CAREER_EVENTS : D_EVENTS;
-  var allPreset = Object.values(eventList).flat();
-  dEvents = dEvents.filter(function(e){ return !allPreset.includes(e); });
+  var type = dEvType();
+  var allTexts = [].concat.apply([], Object.values(dGetGroupedTexts(type)));
+  dEvents = dEvents.filter(function(e){ return allTexts.indexOf(e)===-1; });
   dRenderEvModal();
 }
 function dRenderEvModal() {
   var col = dCol();
-  var eventList = dActiveTab==="진로" ? D_CAREER_EVENTS : D_EVENTS;
-  var groups = Object.keys(eventList);
+  var type = dEvType();
+  var grouped = dGetGroupedItems(type);
+  var groups = Object.keys(grouped);
 
-  // 탭
-  document.getElementById("d-ev-modal-tabs").innerHTML = groups.map(function(g) {
+  // 탭 (그룹 + 직접입력 탭)
+  var tabsHtml = groups.map(function(g) {
     var on = dEvModalGroup === g;
-    var cnt = eventList[g].filter(function(k){ return dEvents.includes(k); }).length;
+    var cnt = grouped[g].filter(function(it){ return dEvents.indexOf(it.text)!==-1; }).length;
     return "<button onclick=\"dEvModalGroup='"+g+"';dRenderEvModal();\""
       +" style=\"padding:10px 14px;font-size:12px;font-weight:"+(on?700:400)+";color:"+(on?col:"#6b7280")
       +";border-bottom:2px solid "+(on?col:"transparent")+";border-top:none;border-left:none;border-right:none"
@@ -8610,27 +8699,57 @@ function dRenderEvModal() {
       +g+(cnt>0?" <span style=\"color:"+col+";font-weight:700;\">("+cnt+")<\/span>":"")
       +"<\/button>";
   }).join("");
+  var directOn = dEvModalGroup === D_DIRECT_TAB;
+  tabsHtml += "<button onclick=\"dEvModalGroup='"+D_DIRECT_TAB+"';dRenderEvModal();\""
+    +" style=\"padding:10px 14px;font-size:12px;font-weight:"+(directOn?700:400)+";color:"+(directOn?col:"#6b7280")
+    +";border-bottom:2px solid "+(directOn?col:"transparent")+";border-top:none;border-left:none;border-right:none"
+    +";background:none;cursor:pointer;white-space:nowrap;\">"+D_DIRECT_TAB+"<\/button>";
+  document.getElementById("d-ev-modal-tabs").innerHTML = tabsHtml;
 
   // 아이템
-  var items = (eventList[dEvModalGroup]||[]);
-  var itemsHtml = "<div style=\"display:flex;flex-direction:column;gap:6px;margin-bottom:14px;\">"
-    + items.map(function(k) {
-      var on = dEvents.includes(k);
-      return "<label style=\"display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;border:1.5px solid "+(on?col:"#e5e7eb")+";background:"+(on?col+"0d":"white")+";cursor:pointer;\">"
-        +"<input type=\"checkbox\" "+(on?"checked":"")
-        +" onchange=\"dToggleEventInModal('"+k.replace(/'/g,"\\'")+"',this.checked)\""
-        +" style=\"accent-color:"+col+";cursor:pointer;width:15px;height:15px;flex-shrink:0;\"/>"
-        +"<span style=\"font-size:12px;color:"+(on?col:"#374151")+";font-weight:"+(on?600:400)+";\">"+k+"<\/span>"
-        +"<\/label>";
-    }).join("")
-    +"<\/div>";
+  var itemsHtml;
+  if (dEvModalGroup === D_DIRECT_TAB) {
+    var groupOpts = groups.map(function(g){ return "<option value=\""+g+"\">"+g+"<\/option>"; }).join("");
+    itemsHtml = "<div style=\"display:flex;flex-direction:column;gap:10px;\">"
+      +"<div style=\"font-size:11px;color:#6b7280;line-height:1.6;\">새 활동을 입력하고 저장 범위·카테고리를 선택해주세요.<br/>'이번 학생만'을 고르면 이 학생에게만 임시로 붙어요.<\/div>"
+      +"<input id=\"d-ev-direct-input\" placeholder=\"활동명 입력\" style=\"border:1px solid #e0e5ed;border-radius:7px;padding:8px 10px;font-size:12px;color:#111;outline:none;\"/>"
+      +"<div style=\"display:flex;gap:6px;\">"
+      +"<select id=\"d-ev-direct-scope\" style=\"flex:1;border:1px solid #e0e5ed;border-radius:7px;padding:7px 8px;font-size:12px;background:white;color:#111;\">"
+      +"<option value=\"once\">이번 학생만 사용<\/option>"
+      +"<option value=\"class\">이 반 공통 저장<\/option>"
+      +"<option value=\"global\">전체 앱 공통 저장<\/option>"
+      +"<\/select>"
+      +"<select id=\"d-ev-direct-group\" style=\"flex:1;border:1px solid #e0e5ed;border-radius:7px;padding:7px 8px;font-size:12px;background:white;color:#111;\">"+groupOpts+"<\/select>"
+      +"<\/div>"
+      +"<button onclick=\"dConfirmAddDirectEvent()\" style=\"padding:8px;border-radius:7px;border:none;background:#2563eb;color:white;font-size:12px;font-weight:700;cursor:pointer;\">+ 추가하기<\/button>"
+      +"<\/div>";
+  } else {
+    var items = grouped[dEvModalGroup] || [];
+    itemsHtml = "<div style=\"display:flex;flex-direction:column;gap:6px;margin-bottom:14px;\">"
+      + items.map(function(it) {
+        var on = dEvents.indexOf(it.text)!==-1;
+        var itJson = JSON.stringify(it).replace(/'/g,"&#39;");
+        var badge = it.kind==="preset" ? "" : "<span style=\"font-size:9px;padding:1px 6px;border-radius:10px;background:#f3f4f6;color:#9ca3af;margin-left:6px;flex-shrink:0;\">"+(it.kind==="global"?"공통추가":"반추가")+"<\/span>";
+        return "<div style=\"display:flex;align-items:center;gap:4px;padding:9px 10px;border-radius:8px;border:1.5px solid "+(on?col:"#e5e7eb")+";background:"+(on?col+"0d":"white")+";\">"
+          +"<label style=\"display:flex;align-items:center;gap:10px;flex:1;cursor:pointer;min-width:0;\">"
+          +"<input type=\"checkbox\" "+(on?"checked":"")
+          +" onchange=\"dToggleEventInModal('"+it.text.replace(/'/g,"\\'")+"',this.checked)\""
+          +" style=\"accent-color:"+col+";cursor:pointer;width:15px;height:15px;flex-shrink:0;\"/>"
+          +"<span style=\"font-size:12px;color:"+(on?col:"#374151")+";font-weight:"+(on?600:400)+";overflow-wrap:anywhere;\">"+it.text+"<\/span>"+badge
+          +"<\/label>"
+          +"<button onclick='dEditEvItem("+itJson+")' style=\"border:none;background:none;color:#9ca3af;cursor:pointer;font-size:12px;flex-shrink:0;padding:2px 4px;\" title=\"수정\">✏️<\/button>"
+          +"<button onclick='dDeleteEvItem("+itJson+")' style=\"border:none;background:none;color:#f87171;cursor:pointer;font-size:12px;flex-shrink:0;padding:2px 4px;\" title=\"삭제\">🗑<\/button>"
+          +"<\/div>";
+      }).join("")
+      +"<\/div>";
+  }
 
   // 선택된 활동 미리보기
-  var allPreset = Object.values(eventList).flat();
-  var selected = dEvents.filter(function(e){ return allPreset.includes(e); });
+  var allTexts = [].concat.apply([], Object.values(grouped).map(function(arr){ return arr.map(function(it){ return it.text; }); }));
+  var selected = dEvents.filter(function(e){ return allTexts.indexOf(e)!==-1; });
   var previewHtml = "";
   if(selected.length) {
-    previewHtml = "<div style=\"border-top:1px solid #e5e7eb;padding-top:12px;\">"
+    previewHtml = "<div style=\"border-top:1px solid #e5e7eb;padding-top:12px;margin-top:14px;\">"
       +"<div style=\"font-size:11px;font-weight:700;color:#6b7280;margin-bottom:8px;\">✓ 선택된 활동 ("+selected.length+"개)<\/div>"
       +"<div style=\"display:flex;flex-wrap:wrap;gap:6px;\">"
       + selected.map(function(k){
@@ -8648,9 +8767,24 @@ function dRenderEvModal() {
   document.getElementById("d-ev-modal-count").textContent = selected.length>0 ? selected.length+"개 선택됨" : "";
 }
 
+function dConfirmAddDirectEvent(){
+  var input = document.getElementById("d-ev-direct-input");
+  var v = input.value.trim();
+  if(!v) return;
+  var scope = document.getElementById("d-ev-direct-scope").value;
+  var group = document.getElementById("d-ev-direct-group").value;
+  var type = dEvType();
+  if(scope==="global") dAddCustomEventToStore(type,"global",group,v);
+  else if(scope==="class") dAddCustomEventToStore(type,"class",group,v);
+  if(dEvents.indexOf(v)===-1) dEvents.push(v);
+  input.value="";
+  if(scope!=="once") dEvModalGroup = group;
+  dRenderEvModal();
+}
+
 function dToggleEventInModal(k, checked) {
   if(checked) {
-    if(!dEvents.includes(k)) dEvents.push(k);
+    if(dEvents.indexOf(k)===-1) dEvents.push(k);
   } else {
     dEvents = dEvents.filter(function(x){ return x!==k; });
   }
@@ -8661,10 +8795,8 @@ function dRenderEvModalBtn() {
   var btn = document.getElementById("d-ev-modal-btn");
   if(!btn) return;
   var col = dCol();
-  var eventList = dActiveTab==="진로" ? D_CAREER_EVENTS : D_EVENTS;
-  var allPreset = Object.values(eventList).flat();
-  var selected = dEvents.filter(function(e){ return allPreset.includes(e); });
   var label = dActiveTab==="진로" ? "진로활동" : "행사·활동";
+  var selected = dEvents;
   if(selected.length > 0) {
     btn.textContent = selected.length+"개 선택됨: "+selected.slice(0,2).join(", ")+(selected.length>2?" 외 "+(selected.length-2)+"개":"");
     btn.style.color = col;
@@ -8680,12 +8812,9 @@ function dRenderEvModalBtn() {
 
 function dRenderSelectedEvTags() {
   var col = dCol();
-  var eventList = dActiveTab==="진로" ? D_CAREER_EVENTS : D_EVENTS;
-  var allPreset = Object.values(eventList).flat();
-  var selected = dEvents.filter(function(e){ return allPreset.includes(e); });
   var el = document.getElementById("d-selected-ev-tags");
   if(!el) return;
-  el.innerHTML = selected.map(function(k) {
+  el.innerHTML = dEvents.map(function(k) {
     return "<span style=\"display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:20px;background:"+col+"15;border:1px solid "+col+"40;font-size:11px;color:"+col+";font-weight:600;\">"
       +k
       +"<button onclick=\"dEvents=dEvents.filter(function(x){return x!=='"+k.replace(/'/g,"\\'")+"';});dRenderSelectedEvTags();dRenderEvModalBtn();dRenderEvNotes();\" style=\"border:none;background:none;color:"+col+";cursor:pointer;font-size:12px;padding:0 2px;line-height:1;\">×<\/button>"
@@ -8862,14 +8991,6 @@ function dRenderCustomPersonalityBtns(){
       +"<\/div>";
   }).join("");
 }
-function dAddCustomEvent(){
-  var v=document.getElementById("d-custom-input").value.trim();
-  if(!v)return;
-  if(!dCustomEvents.includes(v)){dCustomEvents.push(v);dEvents.push(v);}
-  document.getElementById("d-custom-input").value="";
-  dRenderInputCol();
-}
-function dRemoveCustomEvent(item){dCustomEvents=dCustomEvents.filter(function(x){return x!==item;});dEvents=dEvents.filter(function(x){return x!==item;});dRenderInputCol();}
 function dSetClassName(v){dClassName=v;localStorage.setItem(D_LS_SET,JSON.stringify({className:v,count:dCount}));dRenderSidebar();dRenderHeader();}
 function dSetCount(v){dCount=Math.max(1,Math.min(40,Number(v)));localStorage.setItem(D_LS_SET,JSON.stringify({className:dClassName,count:dCount}));dRenderSidebar();}
 function dToggleTagFilter(tag){dTagFilter=dTagFilter===tag?"":tag;dRenderStuList();dRenderSidebar();}
@@ -9020,6 +9141,80 @@ function dDownloadRosterTemplate(){
   var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"명렬표");
   XLSX.writeFile(wb,"담임_명렬표_양식.xlsx");
 }
+function dSetOneRole(v){
+  dOneRole=v;
+  if(dStudents[dSelStu]){ dStudents[dSelStu].oneRole=v; dSaveStudents(); }
+}
+function dDownloadOneRoleTemplate(){
+  var ws=XLSX.utils.aoa_to_sheet([
+    ["학번","이름","1인1역","활동내용","특이사항"],
+    ["10101","홍길동","환경부장","분리수거 및 교실 환경 정비 담당","꾸준히 성실하게 수행함"],
+    ["10102","김철수","칠판닦기","매일 아침 칠판 정리","자발적으로 참여함"]
+  ]);
+  var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"1인1역");
+  XLSX.writeFile(wb,"1인1역_양식.xlsx");
+}
+function dUploadOneRoleExcel(event){
+  var file=event.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var wb=XLSX.read(e.target.result,{type:"binary"});
+      var ws=wb.Sheets[wb.SheetNames[0]];
+      var data=XLSX.utils.sheet_to_json(ws,{header:1});
+      if(!data||!data.length){alert("파일에 데이터가 없습니다.");return;}
+      var NUM_KW=["학번","번호","번"],NAME_KW=["이름","성명","학생명"],ROLE_KW=["1인1역","역할","담당"],
+          CONTENT_KW=["활동내용","내용"],NOTE_KW=["특이사항","비고","메모"];
+      var headerRow=-1,colNum=-1,colName=-1,colRole=-1,colContent=-1,colNote=-1;
+      for(var ri=0;ri<Math.min(5,data.length);ri++){
+        var row=data[ri].map(function(c){return String(c||"").trim();});
+        var nu=-1,na=-1,ro=-1,co=-1,note=-1;
+        row.forEach(function(cell,ci){
+          if(nu<0&&NUM_KW.some(function(k){return cell.includes(k);}))nu=ci;
+          if(na<0&&NAME_KW.some(function(k){return cell.includes(k);}))na=ci;
+          if(ro<0&&ROLE_KW.some(function(k){return cell.includes(k);}))ro=ci;
+          if(co<0&&CONTENT_KW.some(function(k){return cell.includes(k);}))co=ci;
+          if(note<0&&NOTE_KW.some(function(k){return cell.includes(k);}))note=ci;
+        });
+        if(na>=0&&ro>=0){headerRow=ri;colNum=nu;colName=na;colRole=ro;colContent=co;colNote=note;break;}
+      }
+      if(colRole<0){alert("'1인1역' 또는 '역할' 컬럼을 찾을 수 없습니다.\n양식 다운로드를 참고해 작성해주세요.");return;}
+      var rows=headerRow>=0?data.slice(headerRow+1):data;
+      var updated=0;
+      rows.forEach(function(r){
+        if(!r||!r.length)return;
+        var rawName=colName>=0?String(r[colName]||"").trim():"";
+        var role=String(r[colRole]||"").trim();
+        if(!role)return;
+        var num=-1;
+        if(colNum>=0){
+          var v=parseInt(String(r[colNum]||"").trim());
+          if(!isNaN(v)){
+            var vv=v;
+            if(vv>100)vv=vv%100; // 학번(예:10101) → 마지막 두 자리를 번호로 인식
+            if(vv>0&&vv<=40)num=vv-1;
+          }
+        }
+        if(num<0&&rawName){ num=dStudents.findIndex(function(s){return s.name&&s.name.trim()===rawName;}); }
+        if(num>=0&&num<dStudents.length){
+          dStudents[num].oneRole=role;
+          if(!dStudents[num].name&&rawName)dStudents[num].name=rawName;
+          var noteParts=[];
+          if(colContent>=0&&r[colContent])noteParts.push("[활동내용] "+String(r[colContent]).trim());
+          if(colNote>=0&&r[colNote])noteParts.push("[특이사항] "+String(r[colNote]).trim());
+          dStudents[num].oneRoleNote=noteParts.join("\n");
+          updated++;
+        }
+      });
+      dSaveStudents();
+      if(dStudents[dSelStu]){ dOneRole=dStudents[dSelStu].oneRole||""; }
+      dRenderInputCol();dRenderStuList();
+      alert("1인1역 업로드 완료! "+updated+"명 반영됐어요.");
+    }catch(err){alert("파일 오류: "+err.message);}
+  };
+  reader.readAsBinaryString(file);
+  event.target.value="";
+}
 
 /* ── JSON 백업 ── */
 function dSaveJSON(){
@@ -9093,7 +9288,7 @@ async function dHandleGenerate(){
   var dSurveyBlock = dGetSurveyPromptBlock();
   var dNugaBlock = dGetNugaPromptBlock();
   var prompt="다음 학생 정보를 바탕으로 "+tabLabel+"을 작성해주세요.\n"+infoBlock+evNotesBlock+dSurveyBlock+dNugaBlock+"\n"
-    +eventLabel+": "+(dEvents.join(", ")||"(없음)")+(dActiveTab==="자율"&&dOneRole?"\n1인1역 담당: "+dOneRole:"")+"\n"
+    +eventLabel+": "+(dEvents.join(", ")||"(없음)")+(dActiveTab==="자율"&&dOneRole?"\n1인1역 담당: "+dOneRole+((dStudents[dSelStu]&&dStudents[dSelStu].oneRoleNote)?" ("+dStudents[dSelStu].oneRoleNote.replace(/\n/g,"; ")+")":""):"")+"\n"
     +keywordLabel+": "+(dPersonality.join(", ")||"(없음)")+"\n"
     +"희망진로: "+(dCareer||info.career||"(미입력)")+"\n"
     +"특이사항·에피소드: "+(dEpisode||"(없음)")+"\n"
@@ -9162,7 +9357,7 @@ function daminResetConfirm(){
     function(){
       dStudents = Array.from({length:40},function(){
         return {name:"",results:{자율:"",진로:"",행발:""},done:{자율:false,진로:false,행발:false},
-          counseling:[],info:{},nuga:[],tags:[],history:{}};
+          counseling:[],info:{},nuga:[],tags:[],history:{},oneRole:"",oneRoleNote:""};
       });
       dSaveStudents();
       dSelStu=0; dResult="";
