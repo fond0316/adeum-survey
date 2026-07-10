@@ -1012,7 +1012,7 @@ async function closeSlotConflictModal() {
 // ══════════════════════════════════════════════════════
 function showAdminLogin() { document.getElementById('loginPwInput').value=''; document.getElementById('loginError').style.display='none'; showScreen('adminLoginScreen'); }
 function doLogin() {
-  if (document.getElementById('loginPwInput').value===appSettings.password) {
+  if (document.getElementById('loginPwInput').value===String(appSettings.password)) {
     showScreen('adminScreen'); applySettingsUI(); renderPresetList(); renderDaySlotList();
     switchAdminTab('gasurl');
   } else { document.getElementById('loginError').style.display='block'; }
@@ -1125,7 +1125,7 @@ async function adminSavePassword() {
   const msg=document.getElementById('pwChangeMsg');
   msg.style.display='block';
   if (!GAS_URL) { msg.style.color='#D97706'; msg.textContent='⚠️ GAS URL 연결 후 사용 가능해요!'; return; }
-  if (cur!==appSettings.password) { msg.style.color='#EF4444'; msg.textContent='현재 비밀번호가 올바르지 않아요.'; return; }
+  if (cur!==String(appSettings.password)) { msg.style.color='#EF4444'; msg.textContent='현재 비밀번호가 올바르지 않아요.'; return; }
   if (!nw) { msg.style.color='#EF4444'; msg.textContent='새 비밀번호를 입력해 주세요.'; return; }
   if (nw!==cf) { msg.style.color='#EF4444'; msg.textContent='새 비밀번호가 일치하지 않아요.'; return; }
   try {
