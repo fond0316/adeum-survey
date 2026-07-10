@@ -1513,6 +1513,13 @@ textarea{resize:vertical;}
               <input id="d-onerole-input" placeholder="예: 환경부장, 칠판닦기, 창문담당"
                 oninput="dSetOneRole(this.value)"
                 style="width:100%;box-sizing:border-box;border:1px solid #e0e5ed;border-radius:7px;padding:7px 10px;font-size:12px;color:#111;outline:none;"/>
+              <div style="display:flex;align-items:center;gap:6px;margin-top:7px;">
+                <span style="font-size:11px;color:#6b7280;flex-shrink:0;">수행도</span>
+                <div id="d-onerole-grade-btns" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
+              </div>
+              <textarea id="d-onerole-note" rows="2" oninput="dSetOneRoleNote(this.value)"
+                placeholder="추가 메모 (활동내용, 특이사항 등을 직접 입력하거나 업로드 결과가 여기 표시돼요)"
+                style="width:100%;box-sizing:border-box;margin-top:7px;border:1px solid #e0e5ed;border-radius:7px;padding:7px 10px;font-size:12px;line-height:1.6;color:#111;outline:none;resize:vertical;font-family:inherit;"></textarea>
               <div id="d-onerole-drop-zone"
                 ondragover="event.preventDefault();event.stopPropagation();this.style.background='#eff6ff';this.style.borderColor='#2563eb';"
                 ondragleave="this.style.background='white';this.style.borderColor='#93c5fd';"
@@ -1526,7 +1533,6 @@ textarea{resize:vertical;}
                 </div>
               </div>
               <input type="file" id="d-onerole-file" accept=".xlsx,.xls,.csv" style="display:none;" onchange="dUploadOneRoleExcel(event)"/>
-              <div id="d-onerole-note" style="display:none;margin-top:6px;padding:7px 9px;background:#f8faff;border:1px solid #dce8f5;border-radius:6px;font-size:11px;color:#374151;line-height:1.6;white-space:pre-wrap;"></div>
             </div>
           </div>
           <!-- 활동별 학생 자료 입력 (동적 생성) -->
@@ -1562,6 +1568,13 @@ textarea{resize:vertical;}
             <textarea id="d-episode-ta" rows="3" oninput="dEpisode=this.value"
               placeholder="담임 교사가 관찰한 구체적인 에피소드, 특이사항 등을 입력하세요."
               style="width:100%;box-sizing:border-box;border:1px solid #e0e5ed;border-radius:7px;padding:7px 10px;font-size:12px;line-height:1.65;color:#111;outline:none;resize:vertical;"></textarea>
+          </div>
+          <!-- 강조하고 싶은 부분 -->
+          <div style="background:white;border-radius:9px;border:1px solid #e5e7eb;padding:12px 14px;">
+            <div style="font-size:12px;font-weight:700;color:#111;margin-bottom:4px;">🌟 강조하고 싶은 부분 <span style="color:#9ca3af;font-weight:400;">(선택)</span></div>
+            <div style="font-size:11px;color:#9ca3af;margin-bottom:6px;">글자수가 부족할 때 이 지시가 우선 반영돼요.</div>
+            <input type="text" id="d-emphasis-note" oninput="dEmphasisNote=this.value" placeholder="예: 1인1역 활동을 좀 더 자세히 써줘 / 교우관계는 짧게"
+              style="width:100%;box-sizing:border-box;border:1px solid #e0e5ed;border-radius:7px;padding:7px 10px;font-size:12px;color:#111;outline:none;"/>
           </div>
           <!-- 📋 설문 참고자료 섹션 (탭별) -->
           <div id="d-survey-section" style="display:none;background:white;border-radius:9px;border:1.5px solid #f59e0b;padding:12px 14px;">
@@ -8087,7 +8100,7 @@ const SHARED_API_KEY="saengiboo_apikey"; // 교과·담임·동아리 공통 API
 /* ── 상태 ── */
 let dActiveTab="자율", dActiveSubTab="생기부", dSelStu=0;
 let dStudents=[], dCount=30, dClassName="1-1";
-let dEvents=[], dOneRole="", dPersonality=[], dCustomPersonalities=[], dCareer="", dEpisode="";
+let dEvents=[], dOneRole="", dPersonality=[], dCustomPersonalities=[], dCareer="", dEpisode="", dEmphasisNote="";
 let dResult="", dLoading=false, dError="", dCopied=false;
 let dOpenCounselId=null;
 let dCounselDate=new Date().toISOString().slice(0,10), dCounselType="학업", dCounselContent="";
@@ -8109,7 +8122,7 @@ function dLoadStudents(){
     var s=localStorage.getItem(key)||localStorage.getItem(D_LS_STU);
     if(s)return JSON.parse(s).map(function(st){return Object.assign({counseling:[],info:{},nuga:[],tags:[],history:{}},st);});
   }catch(e){}
-  return Array.from({length:40},function(){return {name:"",results:{자율:"",진로:"",행발:""},done:{자율:false,진로:false,행발:false},counseling:[],info:{},nuga:[],tags:[],history:{},oneRole:"",oneRoleNote:""};});
+  return Array.from({length:40},function(){return {name:"",results:{자율:"",진로:"",행발:""},done:{자율:false,진로:false,행발:false},counseling:[],info:{},nuga:[],tags:[],history:{},oneRole:"",oneRoleNote:"",oneRoleGrade:""};});
 }
 function dLoadSettings(){
   try{var s=localStorage.getItem(D_LS_SET);if(s)return JSON.parse(s);}catch(e){}
@@ -8283,12 +8296,6 @@ function dRenderInputCol(){
     dRenderEvNotes();
     document.getElementById("d-onerole-section").style.display=dActiveTab==="자율"?"block":"none";
     document.getElementById("d-onerole-input").value=dOneRole;
-    var oneRoleNoteEl=document.getElementById("d-onerole-note");
-    if(oneRoleNoteEl){
-      var noteVal=(dStudents[dSelStu]&&dStudents[dSelStu].oneRoleNote)||"";
-      if(noteVal){oneRoleNoteEl.style.display="block";oneRoleNoteEl.textContent="📌 업로드된 메모\n"+noteVal;}
-      else{oneRoleNoteEl.style.display="none";oneRoleNoteEl.textContent="";}
-    }
   }
   // 성격 키워드 섹션 라벨 탭별 업데이트
   var labelEl = document.getElementById("d-personality-section-label");
@@ -8300,6 +8307,10 @@ function dRenderInputCol(){
   dRenderSelectedPersonalityTags();
   document.getElementById("d-career-input").value=dCareer;
   document.getElementById("d-episode-ta").value=dEpisode;
+  var emEl=document.getElementById("d-emphasis-note"); if(emEl) emEl.value=dEmphasisNote;
+  var oneRoleNoteEl=document.getElementById("d-onerole-note");
+  if(oneRoleNoteEl) oneRoleNoteEl.value=(dStudents[dSelStu]&&dStudents[dSelStu].oneRoleNote)||"";
+  dRenderOneRoleGradeBtns();
   dRenderCustomPersonalityBtns();
   dRenderSurveySection();
   dRenderNugaSection();
@@ -8655,7 +8666,7 @@ function dSwitchTab(t){
 function dSwitchStu(i){dSelStu=i;dResult=(dStudents[i]&&dStudents[i].results[dActiveTab])||"";dResetForm();dRender();if(dActiveSubTab==="기본정보")dRenderInfoTab();else if(dActiveSubTab==="누가기록")dRenderNuga();dRenderSurveySection();dCloseStoryPanel();}
 function dSwitchSubTab(t){dActiveSubTab=t;dRenderHeader();dRenderBody();}
 function dResetForm(){
-  dEvents=[];dOneRole=(dStudents[dSelStu]&&dStudents[dSelStu].oneRole)||"";dPersonality=[];dCustomPersonalities=[];dCareer="";dEpisode="";dError="";dEvNotes={};dSurveyChecked={};dNugaChecked={};
+  dEvents=[];dOneRole=(dStudents[dSelStu]&&dStudents[dSelStu].oneRole)||"";dPersonality=[];dCustomPersonalities=[];dCareer="";dEpisode="";dEmphasisNote="";dError="";dEvNotes={};dSurveyChecked={};dNugaChecked={};
   var btn=document.getElementById("d-personality-modal-btn");
   if(btn){btn.textContent="-- 키워드 선택 (다중선택 가능) --";btn.style.color="#6b7280";btn.style.borderColor="#e0e5ed";}
   var tags=document.getElementById("d-selected-personality-tags");
@@ -9153,6 +9164,27 @@ function dSetOneRole(v){
   dOneRole=v;
   if(dStudents[dSelStu]){ dStudents[dSelStu].oneRole=v; dSaveStudents(); }
 }
+const D_ONEROLE_GRADES=["최상","상","중","하"];
+function dRenderOneRoleGradeBtns(){
+  var el=document.getElementById("d-onerole-grade-btns");
+  if(!el) return;
+  var cur=(dStudents[dSelStu]&&dStudents[dSelStu].oneRoleGrade)||"";
+  el.innerHTML=D_ONEROLE_GRADES.map(function(g){
+    var on=cur===g;
+    var gc=g==="최상"?"#2563eb":g==="상"?"#0891b2":g==="중"?"#16a34a":"#d97706";
+    return "<button onclick=\"dSetOneRoleGrade('"+g+"')\" style=\"padding:3px 10px;border-radius:20px;font-size:11px;cursor:pointer;border:1.5px solid "+(on?gc:"#e5e7eb")+";background:"+(on?gc:"white")+";color:"+(on?"white":"#6b7280")+";font-weight:"+(on?700:400)+";\">"+g+"<\/button>";
+  }).join("");
+}
+function dSetOneRoleGrade(g){
+  if(!dStudents[dSelStu]) return;
+  var cur=dStudents[dSelStu].oneRoleGrade||"";
+  dStudents[dSelStu].oneRoleGrade = cur===g ? "" : g;
+  dSaveStudents();
+  dRenderOneRoleGradeBtns();
+}
+function dSetOneRoleNote(v){
+  if(dStudents[dSelStu]){ dStudents[dSelStu].oneRoleNote=v; dSaveStudents(); }
+}
 function dDownloadOneRoleTemplate(){
   var ws=XLSX.utils.aoa_to_sheet([
     ["학번","이름","1인1역","활동내용","특이사항"],
@@ -9270,6 +9302,7 @@ async function dHandleGenerate(){
   dOneRole=document.getElementById("d-onerole-input")?document.getElementById("d-onerole-input").value:"";
   dCareer=document.getElementById("d-career-input").value||"";
   dEpisode=document.getElementById("d-episode-ta").value||"";
+  dEmphasisNote=document.getElementById("d-emphasis-note")?document.getElementById("d-emphasis-note").value:"";
   if(!dEvents.length&&!dPersonality.length&&!dEpisode.trim()){dError="활동/키워드를 선택하거나 특이사항을 입력해주세요.";dRenderInputCol();return;}
   dError="";dResult="";dLoading=true;dRenderInputCol();dRenderResultCol();
   var tabLabel=dActiveTab==="행발"?"행동특성 및 종합의견":dActiveTab+"활동 특기사항";
@@ -9296,10 +9329,11 @@ async function dHandleGenerate(){
   var dSurveyBlock = dGetSurveyPromptBlock();
   var dNugaBlock = dGetNugaPromptBlock();
   var prompt="다음 학생 정보를 바탕으로 "+tabLabel+"을 작성해주세요.\n"+infoBlock+evNotesBlock+dSurveyBlock+dNugaBlock+"\n"
-    +eventLabel+": "+(dEvents.join(", ")||"(없음)")+(dActiveTab==="자율"&&dOneRole?"\n1인1역 담당: "+dOneRole+((dStudents[dSelStu]&&dStudents[dSelStu].oneRoleNote)?" ("+dStudents[dSelStu].oneRoleNote.replace(/\n/g,"; ")+")":""):"")+"\n"
+    +eventLabel+": "+(dEvents.join(", ")||"(없음)")+(dActiveTab==="자율"&&dOneRole?"\n1인1역 담당: "+dOneRole+((dStudents[dSelStu]&&dStudents[dSelStu].oneRoleGrade)?" (수행도: "+dStudents[dSelStu].oneRoleGrade+")":"")+((dStudents[dSelStu]&&dStudents[dSelStu].oneRoleNote)?" ("+dStudents[dSelStu].oneRoleNote.replace(/\n/g,"; ")+")":""):"")+"\n"
     +keywordLabel+": "+(dPersonality.join(", ")||"(없음)")+"\n"
     +"희망진로: "+(dCareer||info.career||"(미입력)")+"\n"
     +"특이사항·에피소드: "+(dEpisode||"(없음)")+"\n"
+    +(dEmphasisNote&&dEmphasisNote.trim()?"[강조 지시 — 글자수가 부족하면 이 지시를 최우선으로 반영할 것] "+dEmphasisNote.trim()+"\n":"")
     +"글자수 기준: "+(dByteGoals[dActiveTab]||1500)+"바이트 내외 (한글 1자=2바이트) — 반드시 준수";
   try{
     var res=await fetch("https://api.openai.com/v1/chat/completions",{
@@ -9365,7 +9399,7 @@ function daminResetConfirm(){
     function(){
       dStudents = Array.from({length:40},function(){
         return {name:"",results:{자율:"",진로:"",행발:""},done:{자율:false,진로:false,행발:false},
-          counseling:[],info:{},nuga:[],tags:[],history:{},oneRole:"",oneRoleNote:""};
+          counseling:[],info:{},nuga:[],tags:[],history:{},oneRole:"",oneRoleNote:"",oneRoleGrade:""};
       });
       dSaveStudents();
       dSelStu=0; dResult="";
