@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🌟 아듬's 생기부 AI</title>
+<title>🌟 아듬's 생기부 AI · 기초자료조사</title>
 <style>
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
 :root {
@@ -518,7 +518,7 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
 <!-- 네비 -->
 <nav class="nav">
   <div class="nav-logo">
-    🌟 아듬's 생기부 AI
+    🌟 아듬's 생기부 AI <span style="font-size:11px;font-weight:400;color:var(--gray-400);margin-left:2px;">기초자료조사</span>
     <span class="made">· Made by Cheon_R</span>
     <span class="nav-badge" id="nav-badge-count" style="display:none;">0</span>
     <button class="admin-open-btn" onclick="openAdminLogin()" style="margin-left:10px;">⚙️ 관리</button>
@@ -1543,7 +1543,7 @@ function saveAllSettings() {
 function applyBasicSettings(s) {
   const sem = s.semester || '1학기';
   const txt = s.year + '학년도 ' + s.grade + ' ' + sem;
-  const sheetName = '아듬_생기부_' + s.year + '학년도_' + s.grade + '_' + sem;
+  const sheetName = '생기부_' + s.year + '학년도_' + s.grade + '_' + sem;
   document.getElementById('year-display').textContent = txt;
   document.getElementById('prev-tag').textContent = '📋 ' + txt;
   const el = document.getElementById('sheet-name-preview');
@@ -1677,6 +1677,10 @@ function createStudentQCard(q, num, color, inputId) {
 //  로드 시 저장된 설정 복원
 // ═══════════════════════════════════════════════════════
 function loadSavedSettings() {
+  // 연도 기본값: 저장된 값이 없으면 오늘 날짜 기준 현재 연도로 (매년 손으로 안 고쳐도 되게)
+  const yearEl = document.getElementById('set-year');
+  if (yearEl) yearEl.value = new Date().getFullYear();
+
   // GAS URL 칸은 항상 하드코딩 URL로 채우기 (localStorage 무관)
   const gasUrlEl = document.getElementById('set-gas-url');
   if (gasUrlEl && !gasUrlEl.value) gasUrlEl.value = getGasUrl();
@@ -2331,7 +2335,7 @@ function getSheetName() {
     const year     = s.year     || new Date().getFullYear();
     const grade    = s.grade    || '1학년';
     const semester = s.semester || '1학기';
-    return '아듬_생기부_' + year + '학년도_' + grade + '_' + semester;
+    return '생기부_' + year + '학년도_' + grade + '_' + semester;
   } catch(e) { return '설문제출'; }
 }
 
@@ -2717,7 +2721,7 @@ function updateDisplay(){
   const g = document.getElementById('set-grade').value;
   const s = document.getElementById('set-semester')?.value || '1학기';
   const txt = y+'학년도 '+g+' '+s;
-  const sheetName = '아듬_생기부_'+y+'학년도_'+g+'_'+s;
+  const sheetName = '생기부_'+y+'학년도_'+g+'_'+s;
   document.getElementById('year-display').textContent = txt;
   document.getElementById('prev-tag').textContent = '📋 '+txt;
   const el = document.getElementById('sheet-name-preview');
@@ -3125,7 +3129,7 @@ window.addEventListener('load', () => {
     <div class="set-row" style="margin-top:4px;">
       <label>시트명</label>
       <div style="flex:1;font-size:12px;color:var(--gray-500);background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);padding:9px 12px;">
-        📊 <span id="sheet-name-preview">아듬_생기부_2025학년도_2학년_1학기</span>
+        📊 <span id="sheet-name-preview">생기부_2025학년도_2학년_1학기</span>
         <span style="font-size:11px;color:var(--gray-400);margin-left:6px;">← 구글 시트 파일명</span>
       </div>
     </div>
