@@ -809,7 +809,7 @@ const MIST_TARGET = {
   '초설':2,'푸테리스':2,'무늬보스턴고사리':2,'보스턴고사리':2,
   '안테나고사리':2,'미스티클라우드':2,'아디안텀 프리츠루시':2,'에버잼고사리':2,
   '잎큰아디안텀':2,'핑크아디안텀':2,'아디안텀 페루비아눔':2,'나비란':1,'미니아이비':1,
-  '쿠페아':1,'핑크트리안':2,'피코크아디안텀':2,
+  '쿠페아':1,'핑크트리안':2,'피코크아디안텀':2,'아지리고사리':2,
 };
 // 가끔(주기적) 분무 — 매일은 아니지만 잎 상태 유지에 도움되는 애들, 며칠마다 한 번
 const MIST_CYCLE_DAYS = {
@@ -879,7 +879,7 @@ const PLANT_PRESETS = [
   // 추가로 데려올 아이들
   {name:'에버프레시',cat:'관엽류',loc:'2층 간접광',days:7,emoji:'🌳',planned:true,
    care:{l:'밝은 간접광. 직사광 금지',w:'겉흙 2cm 마르면 흠뻑. 상면관수 권장',m:'가끔 미스팅 가능',tip:'밤에 잎 오므림 → 야간 강한 조명 피할 것'}},
-  {name:'보스턴고사리',cat:'고사리류',loc:'1층 반음지',days:4,emoji:'🌿',planned:true,
+  {name:'보스턴고사리',cat:'고사리류',loc:'1층 반음지',days:4,emoji:'🌿',
    care:{l:'반음지. 직사광 절대 NO',w:'항상 촉촉하게. 저면관수 가능',m:'하루 1~2회 필수. 습도에 매우 민감',tip:'잎 끝 갈변 → 즉시 분무 늘릴 것. 습도가 생명!'}},
   {name:'디시디아',cat:'에어플랜트',loc:'행잉',days:12,emoji:'🪴',planned:true,
    care:{l:'반양지~반음지. 은은한 간접광',w:'잎 쭈글해질 때 신호! 저면관수 필수 — 대야에 30분',m:'공중습도 분무 효과 좋음',tip:'13°C 이하 냉해 주의. 흙 심기 비추! 바크/코코넛 식재 필수'}},
@@ -925,6 +925,9 @@ const PLANT_PRESETS = [
    care:{l:'밝은 간접광. 반음지도 적응 가능',w:'겉흙 마르면 흠뻑',m:'가끔 잎 분무하면 좋음. 공중습도 선호',tip:'미니 몬스테라라 불리는 덩굴식물! 지주대 세워주면 잎이 더 크게 자람'}},
   {name:'안스리움폴리쉬스텀',cat:'관엽류',loc:'2층 간접광',days:5,emoji:'🌿',
    care:{l:'밝은 간접광. 직사광은 잎 화상 위험',w:'겉흙 마르면 흠뻑. 과습 주의 (배수 잘되는 흙 추천)',m:'하루 1회 정도. 습도 선호',tip:'깊게 갈라진 독특한 잎 모양이 매력! 착생식물 특성이 있어 바크 섞은 흙이 잘 맞음'}},
+  // 2026-07-12 새로 데려온 아이들
+  {name:'아지리고사리',cat:'고사리류',loc:'1층 반음지',days:4,emoji:'🎋',
+   care:{l:'반음지. 무늬 유지하려면 어느 정도 밝기 필요, 직사광은 NO',w:'겉흙 마르면 흠뻑',m:'습한 환경 좋아함. 자주 공중분무 필요',tip:'잎에 무늬(斑)가 있는 고사리. 다른 고사리류와 케어 루틴 비슷 — 건조에 약하니 습도 신경쓰기'}},
 ];
 
 // ===== STATE =====
@@ -944,7 +947,9 @@ function safeParse(raw, fallback){
   catch(e){ console.error('데이터 파싱 오류, 기본값으로 대체:', e); return fallback; }
 }
 function loadAll(){
-  const PLANNED_NAMES = ['에버프레시','보스턴고사리','디시디아','호야 엔젤리아나','아디안텀 페루비아눔','안테나고사리','미스티클라우드','아디안텀 프리츠루시','에버잼고사리','무늬필레아페페'];
+  const PLANNED_NAMES = ['에버프레시','디시디아','호야 엔젤리아나','아디안텀 페루비아눔','안테나고사리','미스티클라우드','아디안텀 프리츠루시','에버잼고사리','무늬필레아페페'];
+  // '데려올 예정'이었다가 실제로 도착한 아이들 — 기존 저장 데이터의 planned 플래그를 자동으로 해제
+  const ARRIVED_NAMES = ['보스턴고사리'];
   let needsSave = false;
   try{
     const p = localStorage.getItem('hub_plants4');
@@ -953,6 +958,14 @@ function loadAll(){
       if(parsed && Array.isArray(parsed)){
         plants = parsed;
         plants.forEach(plant=>{
+          if(ARRIVED_NAMES.includes(plant.name) && plant.planned){
+            plant.planned = false;
+            plant.acquiredDate = ACQUIRED[plant.name] || plant.acquiredDate;
+            const yday = new Date(); yday.setDate(yday.getDate()-1);
+            plant.lastWatered = localDateStr(yday);
+            plant.fertCycleDays = 7;
+            needsSave = true;
+          }
           if(plant.mistTarget === undefined){ plant.mistTarget = plant.planned ? 0 : (MIST_TARGET[plant.name]||0); needsSave=true; }
           // mistTarget 항상 최신값으로 강제 동기화
           const newTarget = plant.planned ? 0 : (MIST_TARGET[plant.name]||0);
@@ -1282,6 +1295,7 @@ const ACQUIRED = {
   '방울토마토':'2026-05-17','바질 1화분':'2026-05-17','바질 2화분 (모종 6개)':'2026-05-17',
   '타마린드':'2026-07-06','하트아이비':'2026-07-06','원더아이비':'2026-07-06','펠로아페페':'2026-07-06',
   '피코크아디안텀':'2026-07-06','아스파라거스 비르가투스':'2026-07-06','히메몬스테라':'2026-07-06','안스리움폴리쉬스텀':'2026-07-06',
+  '보스턴고사리':'2026-07-12','아지리고사리':'2026-07-12',
 };
 function initPlants(){
   const today = todayStr();
