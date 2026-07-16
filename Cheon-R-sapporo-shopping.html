@@ -176,10 +176,14 @@
 
   /* ADD FORM */
   .add-row { margin-top: 14px; }
+  .add-row-top { margin-top: 0; margin-bottom: 16px; }
   .add-toggle {
-    font-size: 12px; color: var(--accent); font-weight: 600;
-    cursor: pointer; padding: 8px 0; display: inline-flex; align-items: center; gap: 4px;
+    font-size: 12.5px; color: var(--accent); font-weight: 700;
+    cursor: pointer; padding: 10px 12px; display: flex; align-items: center; gap: 4px;
+    background: rgba(155,143,196,0.08); border: 1px dashed var(--accent-light); border-radius: 10px;
   }
+  .add-row-top .add-toggle { justify-content: center; }
+  .add-toggle:active { background: rgba(155,143,196,0.16); }
   .add-form { display: none; gap: 8px; flex-direction: column; margin-top: 8px; background: rgba(155,143,196,0.06); padding: 12px; border-radius: 10px; }
   .add-form.open { display: flex; }
   .add-form input, .add-form select {
@@ -557,9 +561,8 @@ function render() {
         </div>
         <div class="cat-body">
           <div class="howto-box"><strong>📍 가는 법</strong><br/>${escapeHtml(cat.howto)}</div>
-          <div class="item-grid">${itemsHtml}</div>
-          <div class="add-row">
-            <div class="add-toggle" data-addtoggle="${cat.id}">+ 이 매장에 즉흥 추가하기</div>
+          <div class="add-row add-row-top">
+            <div class="add-toggle" data-addtoggle="${cat.id}">✨ 이 매장에 즉흥 추가하기</div>
             <div class="add-form" id="addform-${cat.id}">
               <input type="text" placeholder="상품명" id="addname-${cat.id}"/>
               <input type="text" placeholder="설명/메모 (선택)" id="adddesc-${cat.id}"/>
@@ -572,6 +575,7 @@ function render() {
               <button class="add-btn" data-addsubmit="${cat.id}">추가하기</button>
             </div>
           </div>
+          <div class="item-grid">${itemsHtml}</div>
         </div>
       </div>`;
   });
