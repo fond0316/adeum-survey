@@ -444,12 +444,13 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
     <div style="width:36px;height:4px;background:#DDD;border-radius:2px;margin:0 auto 16px"></div>
     <div style="font-size:17px;font-weight:800;margin-bottom:16px">🌿 오늘의 케어존</div>
 
-    <div id="careWaterSection">
+    <div id="careMistSection" style="display:none"><div id="careMistTitle" style="font-size:12px;font-weight:700;color:#5B9BD5;margin-bottom:8px">💧 분무 할일</div><div id="careMistList"></div></div>
+
+    <div id="careWaterSection" style="margin-top:16px">
       <div style="font-size:12px;font-weight:700;color:var(--g);margin-bottom:8px" id="careWaterTitle">💧 물주기</div>
       <div id="careWaterList"></div>
     </div>
 
-    <div id="careMistSection" style="margin-top:16px;display:none"><div id="careMistTitle" style="font-size:12px;font-weight:700;color:#5B9BD5;margin-bottom:8px">💧 분무 할일</div><div id="careMistList"></div></div>
     <div id="careOccMistSection" style="margin-top:16px;display:none"><div id="careOccMistTitle" style="font-size:12px;font-weight:700;color:#8A8A6E;margin-bottom:8px">🌫️ 가끔 분무</div><div id="careOccMistList"></div></div>
     <div id="careFertSection" style="margin-top:16px;display:none"><div id="careFertTitle" style="font-size:12px;font-weight:700;color:var(--br);margin-bottom:8px">🧪 영양제 할일</div><div id="careFertList"></div></div>
 
@@ -609,16 +610,21 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
         <div style="font-size:13px;font-weight:700;margin-bottom:12px">📊 과목별 진도율</div>
         <div id="subjectSliders"></div>
       </div>
-      <div class="sec-title">오늘 공부 기록</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 10px">
+        <button onclick="navStudyWeek(1)" style="background:none;border:none;font-size:15px;color:var(--sub);cursor:pointer;padding:4px 10px">◀</button>
+        <div style="font-size:12px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.05em" id="studyWeekLabel">이번 주 공부</div>
+        <button onclick="navStudyWeek(-1)" style="background:none;border:none;font-size:15px;color:var(--sub);cursor:pointer;padding:4px 10px">▶</button>
+      </div>
+      <div class="week-grid" id="studyWeekGrid" style="margin-bottom:14px"></div>
+      <div class="sec-title">공부 기록</div>
+      <div id="studySelectedDateLabel" style="font-size:11px;color:var(--sub);margin-bottom:8px">📅 선택한 날짜에 기록돼요</div>
       <div style="background:var(--card);border-radius:13px;padding:13px 15px;margin-bottom:14px">
         <div style="display:flex;gap:8px;margin-bottom:10px">
           <input class="fi" type="number" id="studyMinutes" placeholder="공부 시간 (분)" style="flex:1">
-          <button class="btn g" style="width:80px;padding:0;background:var(--br)" onclick="addStudyLog()">기록 ✓</button>
+          <button class="btn g" style="width:70px;padding:0;background:var(--br)" onclick="addStudyLog()">기록 ✓</button>
         </div>
         <textarea class="fta" id="studyNote" placeholder="오늘 공부한 내용 메모"></textarea>
       </div>
-      <div class="sec-title">이번 주 공부</div>
-      <div class="week-grid" id="studyWeekGrid" style="margin-bottom:14px"></div>
       <div class="sec-title">최근 공부 기록</div>
       <div id="studyLogList"></div>
     </div>
@@ -635,6 +641,10 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
             <button id="practicalPassBtn" onclick="togglePracticalPass()" style="border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;background:#EEE;color:var(--sub);cursor:pointer">미합격</button>
           </div>
         </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
+        <span style="font-size:12px;color:var(--sub);white-space:nowrap">📅 기록 날짜</span>
+        <input type="date" id="practicalLogDate" class="fi" style="flex:1;font-size:12px;padding:8px 10px">
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
         <div style="background:var(--card);border-radius:13px;padding:14px;text-align:center">
@@ -661,6 +671,7 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
     <div style="margin-top:16px">
       <div class="sec-title">📌 기타 자기계발</div>
       <div style="display:flex;gap:8px;margin-bottom:10px">
+        <input type="date" id="customGoalDate" class="fi" style="width:112px;font-size:12px;padding:8px 8px;flex-shrink:0">
         <input class="fi" id="customGoalInput" placeholder="예: 영어공부 30분, 독서..." style="flex:1;font-size:13px">
         <button onclick="addCustomGoal()" style="background:var(--br);color:white;border:none;border-radius:11px;padding:0 14px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">기록 ✓</button>
       </div>
@@ -679,7 +690,15 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
       </div>
     </div>
 
-    <div class="sec-title">오늘 연습 기록</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 10px">
+      <button onclick="navMusicWeek(1)" style="background:none;border:none;font-size:15px;color:var(--sub);cursor:pointer;padding:4px 10px">◀</button>
+      <div style="font-size:12px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.05em" id="musicWeekLabel">이번 주 연습</div>
+      <button onclick="navMusicWeek(-1)" style="background:none;border:none;font-size:15px;color:var(--sub);cursor:pointer;padding:4px 10px">▶</button>
+    </div>
+    <div class="week-grid" id="musicWeekGrid" style="margin-bottom:16px"></div>
+
+    <div class="sec-title">연습 기록</div>
+    <div id="musicSelectedDateLabel" style="font-size:11px;color:var(--sub);margin-bottom:8px">📅 선택한 날짜에 기록돼요</div>
     <div style="background:var(--card);border-radius:13px;padding:13px 15px;margin-bottom:16px">
       <div style="display:flex;gap:8px;margin-bottom:10px">
         <button id="musicInstBtn-guitar" onclick="setMusicInstrument('guitar')" style="flex:1;border:none;border-radius:10px;padding:9px;font-size:12px;font-weight:700;font-family:'Pretendard',sans-serif;cursor:pointer;background:var(--br);color:white">🎸 통기타</button>
@@ -687,13 +706,10 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
       </div>
       <div style="display:flex;gap:8px;margin-bottom:10px">
         <input class="fi" type="number" id="musicMinutes" placeholder="연습 시간 (분)" style="flex:1">
-        <button class="btn g" style="width:80px;padding:0;background:var(--br)" onclick="addMusicLog()">기록 ✓</button>
+        <button class="btn g" style="width:70px;padding:0;background:var(--br)" onclick="addMusicLog()">기록 ✓</button>
       </div>
       <textarea class="fta" id="musicNote" placeholder="오늘 연습한 내용 메모 (예: G-C-D 코드, 캐논변주곡 등)"></textarea>
     </div>
-
-    <div class="sec-title">이번 주 연습</div>
-    <div class="week-grid" id="musicWeekGrid" style="margin-bottom:16px"></div>
 
     <div class="sec-title">🎵 배우는 곡 / 코드</div>
     <div style="display:flex;gap:8px;margin-bottom:10px">
@@ -715,7 +731,11 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
     </div>
   </div>
   <div style="padding:0 16px 20px">
-    <div class="sec-title">이번 주 <span id="weekRange" style="font-weight:400;font-size:11px;text-transform:none;letter-spacing:0;color:var(--sub)"></span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 10px">
+      <button onclick="navExWeek(1)" style="background:none;border:none;font-size:15px;color:var(--sub);cursor:pointer;padding:4px 10px">◀</button>
+      <div style="font-size:12px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.05em" id="exWeekLabel">이번 주 <span id="weekRange" style="font-weight:400;font-size:11px;text-transform:none;letter-spacing:0;color:var(--sub)"></span></div>
+      <button onclick="navExWeek(-1)" style="background:none;border:none;font-size:15px;color:var(--sub);cursor:pointer;padding:4px 10px">▶</button>
+    </div>
     <div class="week-grid" id="weekGrid"></div>
     <div style="border-radius:var(--radius);padding:16px 18px;color:white;margin-bottom:16px;background:var(--ex)">
       <div style="font-size:12px;opacity:.9">이번주 목표 달성률</div>
@@ -728,7 +748,8 @@ body{font-family:'Pretendard',sans-serif;background:var(--bg);color:var(--text);
       <span style="font-size:12px;color:var(--sub)">회/주</span>
       <button class="sbtn r" onclick="saveGoal()" style="background:var(--ex)">저장</button>
     </div>
-    <div class="sec-title">오늘 운동 기록</div>
+    <div class="sec-title">운동 기록</div>
+    <div id="exSelectedDateLabel" style="font-size:11px;color:var(--sub);margin-bottom:8px">📅 선택한 날짜에 기록돼요</div>
     <div style="display:flex;gap:8px;margin-bottom:10px">
       <button class="cbtn" onclick="logExercise('F45')" style="flex:1;background:var(--ex)">🏋️ F45 완료</button>
       <button class="cbtn" onclick="logExercise('러닝')" style="flex:1;background:var(--ex2);color:#7A5330">🏃 러닝 완료</button>
@@ -809,28 +830,23 @@ const MIST_TARGET = {
   '초설':2,'푸테리스':2,'무늬보스턴고사리':2,'보스턴고사리':2,
   '안테나고사리':2,'미스티클라우드':2,'아디안텀 프리츠루시':2,'에버잼고사리':2,
   '잎큰아디안텀':2,'핑크아디안텀':2,'아디안텀 페루비아눔':2,'나비란':1,'미니아이비':1,
-  '쿠페아':1,'핑크트리안':2,'피코크아디안텀':2,'아지리고사리':2,
+  '쿠페아':1,'핑크트리안':2,'피코크아디안텀':2,'아지리고사리':2,'아스파라거스 비르가투스':2,
+  '머랭고아이비':2,'소코브레니아':2,'큐피트페페':2,
 };
-// 가끔(주기적) 분무 — 매일은 아니지만 잎 상태 유지에 도움되는 애들, 며칠마다 한 번
-const MIST_CYCLE_DAYS = {
-  '머랭고아이비':7,   // 무늬 탈색 방지, 습도 유지
-  '소코브레니아':7,   // 잎 광택 유지, 먼지/응애 예방
-  '큐피트페페':7,     // 잎 두꺼워 건조엔 강하지만 응애 예방 겸
-};
+// 가끔(주기적) 분무 — 폐지됨(2026-07-18). 이제 분무는 '공중분무' 하나로 통일, MIST_TARGET만 사용
+const MIST_CYCLE_DAYS = {};
 const PLANT_PRESETS = [
   // 기존에 키우는 아이들
   {name:'후마타고사리',cat:'고사리류',loc:'1층 반음지',days:7,emoji:'🕷️',
-   care:{l:'간접광 선호. 완전 음지는 NG',w:'겉흙 마르면 흠뻑. 상면관수 권장',m:'가끔 분무',tip:'거미발(토끼발)에 수분 저장! 고사리 중 건조에 가장 강함'}},
+   care:{l:'간접광 선호. 완전 음지는 NG',w:'겉흙 마르면 흠뻑. 상면관수 권장',m:'공중분무 하루 2~4회 (잎에 직접 X, 주변에 뿌리기)',tip:'거미발(토끼발)에 수분 저장! 고사리 중 건조에 가장 강함'}},
   {name:'아디안텀',cat:'고사리류',loc:'1층 반음지',days:3,emoji:'🌱',
-   care:{l:'반음지~음지. 직사광 절대 금지',w:'살짝 마르면 바로. 소량 자주',m:'하루 2회 필수. 습도 70~90%',tip:'자리 고정 필수. 잎 바삭 = 즉시 분무!'}},
+   care:{l:'반음지~음지. 직사광 절대 금지',w:'살짝 마르면 바로. 소량 자주',m:'공중분무 하루 2~4회. 습도 70~90% 유지',tip:'자리 고정 필수. 잎 바삭 = 공중분무 늘릴 신호!'}},
   {name:'더피고사리',cat:'고사리류',loc:'1층 반음지',days:4,emoji:'🍋',
-   care:{l:'간접광~낮은 빛. 적응력 강함',w:'촉촉하게 유지. 겉흙 보송하면 바로',m:'건조한 계절엔 분무',tip:'여름에 은은한 레몬향! 잎 끝 갈변 → 물 부족 or 습도 부족 신호'}},
+   care:{l:'간접광~낮은 빛. 적응력 강함',w:'촉촉하게 유지. 겉흙 보송하면 바로',m:'공중분무 하루 2~4회. 건조한 계절엔 더 자주',tip:'여름에 은은한 레몬향! 잎 끝 갈변 → 물 부족 or 습도 부족 신호'}},
   {name:'레드베리',cat:'다육이류',loc:'1층 LED광',days:14,emoji:'🔴',
    care:{l:'밝은 빛 많이 필요. 빛 받을수록 빨개짐. LED 그로우라이트로 보충 중',w:'잎 쭈글해지면 신호. 상면관수 권장',m:'분무 NO. 잎에 물 닿으면 얼룩',tip:'과습이 최대 적! 물주고 싶은 마음 참기. 잎 촉촉하면 아직 OK. 🌱 현재 가지치기 후 번식 중 — 자른 가지는 물 없이 휴지 위에 올려 건조한 반그늘에 일주일 정도 두고 절단면이 마르면(캘러스) 그때 화분에 심기. 심은 후에도 며칠은 물 주지 말고 뿌리 내릴 시간 주기'}},
   {name:'오로라페페로미아',cat:'페페류',loc:'2층 간접광',days:5,emoji:'🌈',
    care:{l:'밝은 간접광. 무늬 유지에 빛 필요',w:'여름 2~3일 1회, 겨울 10~15일 1회',m:'가끔 가능. 잎에 오래 남기지 말 것',tip:'잎 두꺼워 건조에 강함. 오래 집 비워도 걱정 덜해도 되는 아이!'}},
-  {name:'레위시아',cat:'꽃류',loc:'3층 간접광',days:12,emoji:'🌸',
-   care:{l:'밝은 간접광~약한 직사광',w:'흙 완전히 마른 후. 상면관수 필수',m:'분무 금지. 잎 중심 물 고이면 썩음',tip:'물이 잎 사이에 고이면 치명적! 항상 흙에만 물주기'}},
   {name:'안젤로니아',cat:'꽃류',loc:'3층+저녁서창',days:4,emoji:'💜',
    care:{l:'햇빛 많이 필요. 저녁 서창 이동 루틴 굿!',w:'흙 마르면 바로. 저면관수 가능 (20분 이내)',m:'가끔 분무 가능',tip:'시든 꽃 바로 제거 → 계속 개화 유도! 빛이 꽃 수에 직결'}},
   {name:'덴드롱',cat:'꽃류',loc:'3층+저녁서창',days:6,emoji:'🌺',
@@ -848,16 +864,16 @@ const PLANT_PRESETS = [
   {name:'치자나무',cat:'꽃류',loc:'창가(동향)',days:7,emoji:'🌿',
    care:{l:'밝은 직·간접광. 창가 위치가 최적',w:'겉흙 마르면 흠뻑. 상면관수 권장',m:'가끔 잎 분무 가능. 꽃엔 직접 NG',tip:'향기의 여왕! 꽃망울 맺히면 자리 이동 절대 금지. 산성토 선호. 수돗물만 계속 주면 잎맥 사이가 노랗게 변하는 황화현상(철분 부족) 올 수 있음 — 심하면 받아둔 물이나 빗물 활용'}},
   {name:'아스파라거스 나누스',cat:'고사리류',loc:'1층 반음지',days:5,emoji:'🌾',
-   care:{l:'밝은 간접광~반음지. 직사광 닿으면 잎 노랗게 탐',w:'겉흙 마르면 흠뻑. 저면관수 추천',m:'하루 1회 이상. 가늘고 섬세한 잎이라 건조에 민감',tip:'잎 우수수 떨어짐 = 물 부족 or 건조 신호! 촉촉함 유지가 핵심'}},
+   care:{l:'밝은 간접광~반음지. 직사광 닿으면 잎 노랗게 탐',w:'겉흙 마르면 흠뻑. 저면관수 추천',m:'공중분무 하루 2~4회. 가늘고 섬세한 잎이라 건조에 민감',tip:'잎 우수수 떨어짐 = 물 부족 or 건조 신호! 촉촉함 유지가 핵심'}},
   {name:'무늬만리향',cat:'꽃류',loc:'창가(동향)',days:4,emoji:'🌼',planned:true,
    care:{l:'하루 3~4시간 직사광 필수. 창가 자리 확보 필요',w:'물 많이 요구. 겉흙 마르면 흠뻑',m:'가끔 잎 분무 가능',tip:'5~6월 담황색 꽃 + 향기! 빛 부족하면 꽃 안 핌'}},
   // 오늘 데려온 아이들
   {name:'초설',cat:'고사리류',loc:'1층 반음지',days:6,emoji:'❄️',
-   care:{l:'음지~반음지. 빛 없는 어두운 실내도 가능',w:'겉흙 2~3cm 마르면 흠뻑',m:'하루 1~2회. 습도 70~90% 필요',tip:'잎에 흰 무늬가 눈처럼 예쁜 고사리. 음지 적응력 최강!'}},
+   care:{l:'음지~반음지. 빛 없는 어두운 실내도 가능',w:'겉흙 2~3cm 마르면 흠뻑',m:'공중분무 하루 2~4회. 습도 70~90% 필요',tip:'잎에 흰 무늬가 눈처럼 예쁜 고사리. 음지 적응력 최강!'}},
   {name:'푸테리스',cat:'고사리류',loc:'1층 반음지',days:4,emoji:'🌾',
-   care:{l:'반음지~밝은 간접광',w:'흙 마르지 않게 자주. 저면관수 가능',m:'하루 1~2회. 잎 오글거림 = 습도 부족 신호',tip:'건조하면 응애 잘 생김 → 분무로 예방이 핵심!'}},
+   care:{l:'반음지~밝은 간접광',w:'흙 마르지 않게 자주. 저면관수 가능',m:'공중분무 하루 2~4회. 잎 오글거림 = 습도 부족 신호',tip:'건조하면 응애 잘 생김 → 통풍 + 습도 관리로 예방'}},
   {name:'무늬보스턴고사리',cat:'고사리류',loc:'1층 반음지',days:4,emoji:'🌿',
-   care:{l:'반음지. 무늬 유지하려면 완전 음지는 NG',w:'항상 촉촉하게. 저면관수 가능',m:'하루 1~2회 필수',tip:'무늬 선명도 = 빛의 양으로 조절됨. 기존 보스턴고사리와 케어 동일'}},
+   care:{l:'반음지. 무늬 유지하려면 완전 음지는 NG',w:'항상 촉촉하게. 저면관수 가능',m:'공중분무 하루 2~4회',tip:'무늬 선명도 = 빛의 양으로 조절됨. 기존 보스턴고사리와 케어 동일'}},
   {name:'홍콩야자',cat:'관엽류',loc:'2층 간접광',days:7,emoji:'🌴',
    care:{l:'밝은 간접광. 반음지도 적응 가능',w:'겉흙 마르면 흠뻑. 과습 주의',m:'가끔 가능 (필수 아님)',tip:'적응력 최강. 잎 노래지면 과습 의심!'}},
   {name:'무늬홍콩야자',cat:'관엽류',loc:'2층 간접광',days:7,emoji:'🌟',
@@ -867,43 +883,41 @@ const PLANT_PRESETS = [
   {name:'미니아이비',cat:'관엽류',loc:'행잉',days:7,emoji:'🍃',
    care:{l:'밝은 간접광~반음지. 빛 많을수록 잎색 선명',w:'겉흙 마르면 흠뻑. 건조에 강한 편',m:'가끔 분무하면 좋음',tip:'건조하면 응애 잘 생기므로 분무 + 통풍 세트로!'}},
   {name:'머랭고아이비',cat:'관엽류',loc:'2층 간접광',days:7,emoji:'🤍',
-   care:{l:'밝은 간접광~반음지. 무늬 유지에 빛 필요. 직사광 NG',w:'겉흙 마르면 흠뻑. 과습에 매우 취약',m:'가끔 잎 분무. 물방울 남긴 채 직사광 NG',tip:'크림빛 무늬가 예쁜 아이비. 빛 부족 시 무늬 탈색 주의!'}},
+   care:{l:'밝은 간접광~반음지. 무늬 유지에 빛 필요. 직사광 NG',w:'겉흙 마르면 흠뻑. 과습에 매우 취약',m:'공중분무 하루 2~4회. 물방울 남긴 채 직사광 NG',tip:'크림빛 무늬가 예쁜 아이비. 빛 부족 시 무늬 탈색 주의!'}},
   {name:'잎큰아디안텀',cat:'고사리류',loc:'1층 반음지',days:3,emoji:'🌿',
-   care:{l:'반음지~음지. 직사광 절대 금지',w:'겉흙 살짝 마르면 바로. 저면관수 가능',m:'하루 2회 필수. 습도 70~90%',tip:'갈색 잎은 회복 안 됨 — 발견 즉시 밑동에서 제거'}},
+   care:{l:'반음지~음지. 직사광 절대 금지',w:'겉흙 살짝 마르면 바로. 저면관수 가능',m:'공중분무 하루 2~4회. 습도 70~90% 유지',tip:'갈색 잎은 회복 안 됨 — 발견 즉시 밑동에서 제거'}},
   {name:'핑크아디안텀',cat:'고사리류',loc:'1층 반음지',days:3,emoji:'🌸',
-   care:{l:'반음지~음지. 새순 핑크빛 유지하려면 직사광 피하기',w:'살짝 마르면 바로. 저면관수 가능',m:'하루 2회 필수. 습도 70~90%',tip:'새순이 분홍빛으로 올라오는 게 매력!'}},
+   care:{l:'반음지~음지. 새순 핑크빛 유지하려면 직사광 피하기',w:'살짝 마르면 바로. 저면관수 가능',m:'공중분무 하루 2~4회. 습도 70~90% 유지',tip:'새순이 분홍빛으로 올라오는 게 매력!'}},
   {name:'큐피트페페',cat:'페페류',loc:'2층 간접광',days:5,emoji:'💚',
-   care:{l:'밝은 간접광. 무늬 유지에 빛 필요. 직사광은 잎 화상',w:'겉흙 마르면 흠뻑',m:'가끔 가능. 잎에 물 오래 남기지 말 것',tip:'잎 두꺼워 건조에 강한 편. 과습만 주의하면 수월함'}},
+   care:{l:'밝은 간접광. 무늬 유지에 빛 필요. 직사광은 잎 화상',w:'겉흙 마르면 흠뻑',m:'공중분무 하루 2~4회. 잎에 물 오래 남기지 말 것',tip:'잎 두꺼워 건조에 강한 편. 과습만 주의하면 수월함'}},
   {name:'소코브레니아',cat:'관엽류',loc:'2층 간접광',days:7,emoji:'🌿',
-   care:{l:'밝은 간접광 필수. 무늬 유지에 빛이 핵심. 직사광은 잎 화상',w:'겉흙 마르면 흠뻑. 과습에 약함. 겨울엔 줄이기',m:'가끔 잎 분무 가능. 잎 닦아주면 광택 유지',tip:'자리 바꾸면 잎 우수수 떨어질 수 있음 → 자리 정하면 고정! 🍃 흰 부분은 엽록소가 없어 광합성을 못 하니, 새잎이 자꾸 초록색으로만 나오면 빛이 부족하다는 신호 — 좀 더 밝은 자리로'}},
+   care:{l:'밝은 간접광 필수. 무늬 유지에 빛이 핵심. 직사광은 잎 화상',w:'겉흙 마르면 흠뻑. 과습에 약함. 겨울엔 줄이기',m:'공중분무 하루 2~4회. 잎 닦아주면 광택 유지',tip:'자리 바꾸면 잎 우수수 떨어질 수 있음 → 자리 정하면 고정! 🍃 흰 부분은 엽록소가 없어 광합성을 못 하니, 새잎이 자꾸 초록색으로만 나오면 빛이 부족하다는 신호 — 좀 더 밝은 자리로'}},
   // 추가로 데려올 아이들
   {name:'에버프레시',cat:'관엽류',loc:'2층 간접광',days:7,emoji:'🌳',planned:true,
    care:{l:'밝은 간접광. 직사광 금지',w:'겉흙 2cm 마르면 흠뻑. 상면관수 권장',m:'가끔 미스팅 가능',tip:'밤에 잎 오므림 → 야간 강한 조명 피할 것'}},
   {name:'보스턴고사리',cat:'고사리류',loc:'1층 반음지',days:4,emoji:'🌿',
-   care:{l:'반음지. 직사광 절대 NO',w:'항상 촉촉하게. 저면관수 가능',m:'하루 1~2회 필수. 습도에 매우 민감',tip:'잎 끝 갈변 → 즉시 분무 늘릴 것. 습도가 생명!'}},
+   care:{l:'반음지. 직사광 절대 NO',w:'항상 촉촉하게. 저면관수 가능',m:'공중분무 하루 2~4회. 습도에 매우 민감',tip:'잎 끝 갈변 → 공중분무 늘릴 신호! 습도가 생명!'}},
   {name:'디시디아',cat:'에어플랜트',loc:'행잉',days:12,emoji:'🪴',planned:true,
    care:{l:'반양지~반음지. 은은한 간접광',w:'잎 쭈글해질 때 신호! 저면관수 필수 — 대야에 30분',m:'공중습도 분무 효과 좋음',tip:'13°C 이하 냉해 주의. 흙 심기 비추! 바크/코코넛 식재 필수'}},
   {name:'호야 엔젤리아나',cat:'꽃류',loc:'행잉',days:10,emoji:'✨',planned:true,
    care:{l:'밝은 간접광 하루 6시간+',w:'겉흙 마른 후 2~3일 더 기다렸다 흠뻑. 상면관수',m:'가끔 잎 미스팅 가능',tip:'꽃대 자리에서 매년 개화 → 절대 자르지 말 것!'}},
   {name:'아디안텀 페루비아눔',cat:'고사리류',loc:'1층 반음지',days:3,emoji:'🌱',planned:true,
-   care:{l:'음지~반음지. 직사광 절대 금지',w:'살짝 마르면 바로. 소량 자주',m:'하루 2회 필수. 습도 70~90%',tip:'자리 정하면 최대한 고정. 환경 변화에 민감!'}},
+   care:{l:'음지~반음지. 직사광 절대 금지',w:'살짝 마르면 바로. 소량 자주',m:'공중분무 하루 2~4회. 습도 70~90% 유지',tip:'자리 정하면 최대한 고정. 환경 변화에 민감!'}},
   {name:'안테나고사리',cat:'고사리류',loc:'1층 반음지',days:5,emoji:'📡',planned:true,
-   care:{l:'밝은 간접광~반음지',w:'표면 마르면 흠뻑. 촉촉함 유지',m:'하루 1회 이상. 60%+ 습도 필요',tip:'근경이 뻗으며 자람 → 화분에 여유 공간 줄 것'}},
+   care:{l:'밝은 간접광~반음지',w:'표면 마르면 흠뻑. 촉촉함 유지',m:'공중분무 하루 2~4회. 습도 60%+ 필요',tip:'근경이 뻗으며 자람 → 화분에 여유 공간 줄 것'}},
   {name:'미스티클라우드',cat:'고사리류',loc:'1층 반음지',days:4,emoji:'☁️',planned:true,
-   care:{l:'반음지 필수. 빛에 매우 민감',w:'소량 자주. 상면관수 권장',m:'하루 2~3회. 고사리 중 습도 요구 최상급',tip:'가장 섬세한 아이. 상토+펄라이트+바크 믹스 필수!'}},
+   care:{l:'반음지 필수. 빛에 매우 민감',w:'소량 자주. 상면관수 권장',m:'공중분무 하루 2~4회. 고사리 중 습도 요구 최상급',tip:'가장 섬세한 아이. 상토+펄라이트+바크 믹스 필수!'}},
   {name:'아디안텀 프리츠루시',cat:'고사리류',loc:'1층 반음지',days:3,emoji:'🌾',planned:true,
-   care:{l:'반음지~반양지 (약간 빛 허용)',w:'표면 살짝 마르면 소량 자주',m:'하루 1~2회',tip:'아디안텀 루틴 그대로. 페루비아눔과 동급'}},
+   care:{l:'반음지~반양지 (약간 빛 허용)',w:'표면 살짝 마르면 소량 자주',m:'공중분무 하루 2~4회 (아디안텀 루틴과 동일)',tip:'아디안텀 루틴 그대로. 페루비아눔과 동급'}},
   {name:'에버잼고사리',cat:'고사리류',loc:'1층 반음지',days:4,emoji:'💚',planned:true,
-   care:{l:'반음지~밝은 간접광',w:'촉촉하게 유지. 완전히 말리지 말 것',m:'하루 1회 이상',tip:'고사리 중 관리 쉬운 편. 입문 컬렉션에 딱!'}},
+   care:{l:'반음지~밝은 간접광',w:'촉촉하게 유지. 완전히 말리지 말 것',m:'공중분무 하루 2~4회. 고사리 중 비교적 수월한 편',tip:'고사리 중 관리 쉬운 편. 입문 컬렉션에 딱!'}},
   {name:'무늬필레아페페',cat:'페페류',loc:'2층 간접광',days:7,emoji:'🟢',planned:true,
    care:{l:'밝은 간접광. 무늬 유지하려면 빛 충분해야. 직사광은 화상',w:'겉흙 바싹 마르면 흠뻑. 과습 금지',m:'가끔 가능. 건조한 계절에 효과적',tip:'자구(아기 필레아) 자연 번식! 땅에서 퐁퐁 올라오면 분리해서 나눠 심기 가능'}},
   // 아듬샘 요청 추가
   {name:'방울토마토',cat:'허브류',loc:'베란다/야외',days:2,emoji:'🍅',
    care:{l:'하루 6시간+ 직사광 필수',w:'흙이 마르지 않도록. 거의 매일',m:'고온 건조 시 분무 가능',tip:'물 부족하면 열매 터짐. 꽃 필 때 가볍게 흔들어줘서 수분 도와주기! ⚠️ 10℃ 이하 추위에 매우 약함 — 초가을부터 밤 기온 체크, 서리 오기 전 정리하거나 실내 이동'}},
-  {name:'바질 1화분',cat:'허브류',loc:'베란다/야외',days:1,emoji:'🌿',
-   care:{l:'하루 6시간+ 직사광. 빛 부족 시 웃자람',w:'흙이 마르면 바로 축 늘어짐 → 즉시 물주기',m:'가끔 가능',tip:'꽃대 올라오면 바로 제거해야 잎 계속 수확 가능! ⚠️ 10℃ 이하에서 잎이 검게 상함 — 초가을엔 밤 기온 확인 필수'}},
-  {name:'바질 2화분 (모종 6개)',cat:'허브류',loc:'베란다/야외',days:1,emoji:'🌿',
-   care:{l:'하루 6시간+ 직사광. 빛 부족 시 웃자람',w:'흙이 마르면 바로 축 늘어짐 → 즉시 물주기',m:'가끔 가능',tip:'모종 6개 올라온 화분. 어느 정도 크면 솎아내기 고려! ⚠️ 10℃ 이하에서 잎이 검게 상함 — 초가을엔 밤 기온 확인 필수'}},
+  {name:'바질',cat:'허브류',loc:'베란다/야외',days:1,emoji:'🌿',
+   care:{l:'하루 6시간+ 직사광. 빛 부족 시 웃자람',w:'흙이 마르면 바로 축 늘어짐 → 즉시 물주기',m:'가끔 가능',tip:'꽃대 올라오면 바로 제거해야 잎 계속 수확 가능! 큰 화분 하나에 여러 포기 합쳐 키우는 중 — 다닥다닥 붙으면 통풍 신경쓰기. ⚠️ 10℃ 이하에서 잎이 검게 상함 — 초가을엔 밤 기온 확인 필수'}},
   {name:'장미허브 (외목대)',cat:'허브류',loc:'창가',days:4,emoji:'🌹',
    care:{l:'밝은 간접광~직사광. 빛 많을수록 향 진해짐',w:'겉흙 마르면 물주기. 과습 주의',m:'가끔 가능. 잎에 오래 남기지 말 것',tip:'외목대 잡는 중! 곁가지 계속 정리해줘야 함. 서리엔 약하지만 5℃ 정도까진 버팀 — 늦가을에 완전 추워지기 전 실내 이동 권장'}},
   {name:'장미허브 (풍성)',cat:'허브류',loc:'창가',days:4,emoji:'🌹',
@@ -918,22 +932,35 @@ const PLANT_PRESETS = [
   {name:'펠로아페페',cat:'페페류',loc:'2층 간접광',days:7,emoji:'🪙',
    care:{l:'밝은 간접광. 반음지도 적응 가능',w:'겉흙 마르면 흠뻑. 페페류치곤 물 좋아하는 편',m:'가끔 가능',tip:'목대가 굵어지면서 자람 → 밑동 오래된 잎은 정리해주면 깔끔'}},
   {name:'피코크아디안텀',cat:'고사리류',loc:'1층 반음지',days:3,emoji:'🦚',
-   care:{l:'반음지~음지. 직사광 절대 금지',w:'살짝 마르면 바로. 소량 자주',m:'하루 2회 필수. 습도 70~90%',tip:'다른 아디안텀류와 케어 루틴 동일. 청록빛 도는 잎이 포인트!'}},
+   care:{l:'반음지~음지. 직사광 절대 금지',w:'살짝 마르면 바로. 소량 자주',m:'공중분무 하루 2~4회. 습도 70~90% 유지',tip:'다른 아디안텀류와 케어 루틴 동일. 청록빛 도는 잎이 포인트!'}},
   {name:'아스파라거스 비르가투스',cat:'고사리류',loc:'1층 반음지',days:5,emoji:'🌾',
-   care:{l:'밝은 간접광~반음지. 직사광 닿으면 잎 노랗게 탐',w:'겉흙 마르면 흠뻑. 저면관수 추천',m:'하루 1회 이상. 가늘고 섬세한 잎이라 건조에 민감',tip:'잎 우수수 떨어짐 = 물 부족 or 건조 신호! 아스파라거스 나누스와 케어 동일'}},
+   care:{l:'밝은 간접광~반음지. 직사광 닿으면 잎 노랗게 탐',w:'겉흙 마르면 흠뻑. 저면관수 추천',m:'공중분무 하루 2~4회. 가늘고 섬세한 잎이라 건조에 민감',tip:'잎 우수수 떨어짐 = 물 부족 or 건조 신호! 아스파라거스 나누스와 케어 동일'}},
   {name:'히메몬스테라',cat:'관엽류',loc:'2층 간접광',days:6,emoji:'🍃',
    care:{l:'밝은 간접광. 반음지도 적응 가능',w:'겉흙 마르면 흠뻑',m:'가끔 잎 분무하면 좋음. 공중습도 선호',tip:'미니 몬스테라라 불리는 덩굴식물! 지주대 세워주면 잎이 더 크게 자람'}},
   {name:'안스리움폴리쉬스텀',cat:'관엽류',loc:'2층 간접광',days:5,emoji:'🌿',
    care:{l:'밝은 간접광. 직사광은 잎 화상 위험',w:'겉흙 마르면 흠뻑. 과습 주의 (배수 잘되는 흙 추천)',m:'하루 1회 정도. 습도 선호',tip:'깊게 갈라진 독특한 잎 모양이 매력! 착생식물 특성이 있어 바크 섞은 흙이 잘 맞음'}},
   // 2026-07-12 새로 데려온 아이들
   {name:'아지리고사리',cat:'고사리류',loc:'1층 반음지',days:4,emoji:'🎋',
-   care:{l:'반음지. 무늬 유지하려면 어느 정도 밝기 필요, 직사광은 NO',w:'겉흙 마르면 흠뻑',m:'습한 환경 좋아함. 자주 공중분무 필요',tip:'잎에 무늬(斑)가 있는 고사리. 다른 고사리류와 케어 루틴 비슷 — 건조에 약하니 습도 신경쓰기'}},
+   care:{l:'반음지. 무늬 유지하려면 어느 정도 밝기 필요, 직사광은 NO',w:'겉흙 마르면 흠뻑',m:'공중분무 하루 2~4회. 습한 환경 좋아함',tip:'잎에 무늬(斑)가 있는 고사리. 다른 고사리류와 케어 루틴 비슷 — 건조에 약하니 습도 신경쓰기'}},
+  // 2026-07-18 새로 데려온 아이
+  {name:'필로덴드론 버킨',cat:'관엽류',loc:'2층 간접광',days:5,emoji:'🍃',
+   care:{l:'밝은 간접광 필수. 무늬 유지에 빛이 중요, 직사광은 잎 화상',w:'겉흙 마르면 흠뻑. 흙은 약간 건조하게 유지, 과습에 민감(뿌리썩음 주의)',m:'공중분무로 습도 유지 (40~70%)',tip:'잎맥의 크림빛 줄무늬가 매력! 물은 적게, 공중습도는 넉넉하게 주는 게 핵심'}},
+  {name:'몬스테라',cat:'관엽류',loc:'2층 간접광',days:6,emoji:'🌿',
+   care:{l:'밝은 간접광. 반음지도 적응은 가능하지만 잎 갈라짐엔 빛이 중요',w:'겉흙 2~3cm 마르면 흠뻑. 과습 주의(뿌리썩음)',m:'공중분무로 습도 유지. 잎 먼지는 젖은 천으로 가끔 닦아주기',tip:'다 크면 지주대(모스폴) 세워주면 기근이 붙으면서 잎이 더 커짐. 잎에 구멍/갈라짐 생기는 게 매력 포인트'}},
+  // 2026-07-19 새로 데려온 아이들
+  {name:'무늬몬스테라',cat:'관엽류',loc:'2층 간접광',days:6,emoji:'🌿',
+   care:{l:'일반 몬스테라보다 더 밝은 간접광 필요. 빛 부족하면 무늬 옅어지고 초록으로 돌아감(리버전)',w:'겉흙 2~3cm 마르면 흠뻑. 흰 부분은 광합성을 못 해 과습에 특히 약함',m:'공중분무로 습도 유지',tip:'흰 무늬 부분은 엽록소가 없어 직사광엔 화상 위험 — 밝은 간접광이 정답. 리버전(초록잎만 나옴) 생기면 그 잎 아래서 잘라주기'}},
+  {name:'안스리움',cat:'관엽류',loc:'2층 간접광',days:5,emoji:'❤️',
+   care:{l:'밝은 간접광. 직사광은 잎 화상',w:'겉흙 마르면 흠뻑. 과습 주의(뿌리썩음 잘 생김)',m:'공중분무로 습도 유지 (60%+ 선호)',tip:'하트 모양 광택 잎 + 빨간/분홍 꽃(포엽)이 매력. 꽃대 하나가 오래(몇 달) 가는 편, 시들면 밑동에서 제거'}},
 ];
 
 // ===== STATE =====
 let plants = [], fish = {species:[],logs:[]}, exercise = {weeklyGoal:4,logs:[]}, brain = {}, darkMode = false;
 let winterMode = false;
 let checklist = [];
+let mistGlobal = {logs:[]};
+let selectedExDate = null, selectedStudyDate = null, selectedMusicDate = null;
+let exWeekOffset = 0, studyWeekOffset = 0, musicWeekOffset = 0;
 let music = {logs:[], songs:[]};
 let musicInstrument = 'guitar';
 let currentPlantId = null, currentCat = '전체', currentDiaryType = '물주기(저면)';
@@ -982,6 +1009,40 @@ function loadAll(){
     } else { initPlants(); needsSave = true; }
   }catch(e){ console.error('식물 데이터 로드 실패:', e); initPlants(); needsSave = true; }
 
+  // 2026-07-19: 레위시아 수명이 다해 폐기 — 기존 저장 데이터에서도 한 번만 제거
+  if(!localStorage.getItem('hub_lewisiaRemove_v1')){
+    const before = plants.length;
+    plants = plants.filter(p=>p.name!=='레위시아');
+    if(plants.length!==before) needsSave = true;
+    localStorage.setItem('hub_lewisiaRemove_v1', '1');
+  }
+
+  // 2026-07-19: 바질 두 화분(1화분 + 2화분/모종6개) → 큰 화분 하나로 실제 합침. 기존 저장 데이터도 한 번만 병합
+  // (아래 '새 프리셋 자동추가' 로직보다 반드시 먼저 실행되어야 중복 생성을 막을 수 있음)
+  if(!localStorage.getItem('hub_basilMerge_v1')){
+    const b1 = plants.find(p=>p.name==='바질 1화분');
+    const b2 = plants.find(p=>p.name==='바질 2화분 (모종 6개)');
+    if(b1 && b2){
+      b1.name = '바질';
+      b1.diary = [...(b1.diary||[]), ...(b2.diary||[])];
+      const acq = [b1.acquiredDate, b2.acquiredDate].filter(Boolean).sort();
+      if(acq.length) b1.acquiredDate = acq[0];
+      const lw = [b1.lastWatered, b2.lastWatered].filter(Boolean).sort();
+      if(lw.length) b1.lastWatered = lw[lw.length-1];
+      const lf = [b1.lastFertilized, b2.lastFertilized].filter(Boolean).sort();
+      if(lf.length) b1.lastFertilized = lf[lf.length-1];
+      plants = plants.filter(p=>p.id!==b2.id);
+      needsSave = true;
+    } else if(b1 && !b2){
+      b1.name = '바질';
+      needsSave = true;
+    } else if(b2 && !b1){
+      b2.name = '바질';
+      needsSave = true;
+    }
+    localStorage.setItem('hub_basilMerge_v1', '1');
+  }
+
   // 기존 데이터 보존 + 새로 추가된 PLANT_PRESETS 항목만 병합
   try{
     const existingNames = new Set(plants.map(p=>p.name));
@@ -1019,6 +1080,7 @@ function loadAll(){
         fish = parsed;
         if(!fish.waterChangeDays){ fish.waterChangeDays = [3,0]; needsSave = true; }
         if(fish.lastWaterChange===undefined){ fish.lastWaterChange = null; needsSave = true; }
+        if(fish.lastVitamin===undefined){ fish.lastVitamin = null; needsSave = true; }
         // 2026-07-06: 실제 어종 현황(아듬샘 확인)에 맞춰 목록 1회 재설정. 급여/수질 기록·환수 설정은 그대로 보존
         if(!fish.speciesResetV2){
           fish.species = [
@@ -1042,6 +1104,8 @@ function loadAll(){
   brain = safeParse(localStorage.getItem('hub_brain1'), {examDate:'',goalHours:200,goalTraining:40,logs:[]});
   winterMode = safeParse(localStorage.getItem('hub_winter4'), false);
   checklist = safeParse(localStorage.getItem('hub_checklist1'), []);
+  mistGlobal = safeParse(localStorage.getItem('hub_mistglobal1'), {logs:[]});
+  if(!mistGlobal.logs) mistGlobal.logs = [];
   music = safeParse(localStorage.getItem('hub_music1'), {logs:[], songs:[]});
   if(!Array.isArray(music.logs)) music.logs = [];
   if(!Array.isArray(music.songs)) music.songs = [];
@@ -1119,6 +1183,7 @@ function saveAll(){
     localStorage.setItem('hub_exercise4', JSON.stringify(exercise));
     localStorage.setItem('hub_winter4', JSON.stringify(winterMode));
     localStorage.setItem('hub_checklist1', JSON.stringify(checklist));
+    localStorage.setItem('hub_mistglobal1', JSON.stringify(mistGlobal));
     localStorage.setItem('hub_music1', JSON.stringify(music));
     localStorage.setItem('hub_brain1', JSON.stringify(brain));
     localStorage.setItem('hub_darkmode1', JSON.stringify(darkMode));
@@ -1246,14 +1311,14 @@ function openStatDetail(type){
     const dates = Object.keys(map).sort().reverse();
     html = dates.length ? dates.map(d=>row(d, map[d].join(', '))).join('') : '<div class="empty" style="padding:16px 0">이번 달 물주기 기록이 아직 없어요</div>';
   } else if(type==='mist'){
-    title = '💦 이번 달 분무 기록';
+    title = '💨 이번 달 공중분무 기록';
     const map = {};
-    plants.forEach(p=>p.diary.forEach(d=>{
-      if(!d.date.startsWith(mp) || d.type!=='분무') return;
-      (map[d.date] = map[d.date]||[]).push(p.name);
-    }));
+    (mistGlobal.logs||[]).forEach(l=>{
+      if(!l.date.startsWith(mp)) return;
+      map[l.date] = (map[l.date]||0) + 1;
+    });
     const dates = Object.keys(map).sort().reverse();
-    html = dates.length ? dates.map(d=>row(d, map[d].join(', '))).join('') : '<div class="empty" style="padding:16px 0">이번 달 분무 기록이 아직 없어요</div>';
+    html = dates.length ? dates.map(d=>row(d, `${map[d]}회`)).join('') : '<div class="empty" style="padding:16px 0">이번 달 공중분무 기록이 아직 없어요</div>';
   } else if(type==='exercise'){
     title = '💪 이번 달 운동 기록';
     const logs = (exercise.logs||[]).filter(l=>l.date.startsWith(mp)).sort((a,b)=>b.date.localeCompare(a.date));
@@ -1278,12 +1343,13 @@ function initFish(){
     ],
     logs:[],
     waterChangeDays: [3, 0],
-    lastWaterChange: null
+    lastWaterChange: null,
+    lastVitamin: null
   };
 }
 const ACQUIRED = {
   '후마타고사리':'2026-06-21','아디안텀':'2026-06-14','더피고사리':'2026-06-21',
-  '레드베리':'2026-04-01','오로라페페로미아':'2026-06-19','레위시아':'2026-06-21',
+  '레드베리':'2026-04-01','오로라페페로미아':'2026-06-19',
   '안젤로니아':'2026-06-21','덴드롱':'2026-06-21','밀리언하트':'2026-06-21',
   '나비란':'2026-06-21','핑크트리안':'2026-06-21','오렌지자스민':'2026-06-14',
   '쿠페아':'2026-06-14','치자나무':'2026-06-21','아스파라거스 나누스':'2026-06-14',
@@ -1292,10 +1358,11 @@ const ACQUIRED = {
   '미니아이비':'2026-06-27','머랭고아이비':'2026-06-27',
   '잎큰아디안텀':'2026-06-30','핑크아디안텀':'2026-06-30','큐피트페페':'2026-06-30','소코브레니아':'2026-06-30',
   '장미허브 (외목대)':'2026-03-01','장미허브 (풍성)':'2026-03-01',
-  '방울토마토':'2026-05-17','바질 1화분':'2026-05-17','바질 2화분 (모종 6개)':'2026-05-17',
+  '방울토마토':'2026-05-17','바질':'2026-05-17',
   '타마린드':'2026-07-06','하트아이비':'2026-07-06','원더아이비':'2026-07-06','펠로아페페':'2026-07-06',
   '피코크아디안텀':'2026-07-06','아스파라거스 비르가투스':'2026-07-06','히메몬스테라':'2026-07-06','안스리움폴리쉬스텀':'2026-07-06',
-  '보스턴고사리':'2026-07-12','아지리고사리':'2026-07-12',
+  '보스턴고사리':'2026-07-12','아지리고사리':'2026-07-12','필로덴드론 버킨':'2026-07-18','몬스테라':'2026-07-18',
+  '무늬몬스테라':'2026-07-19','안스리움':'2026-07-19',
 };
 function initPlants(){
   const today = todayStr();
@@ -1319,6 +1386,11 @@ function initPlants(){
 
 // ===== UTILS =====
 function todayStr(){ return localDateStr(new Date()); }
+// 날짜 선택 인풋에서 값을 가져오되, 비어있으면 오늘 날짜로 대체
+function getPickedDate(inputId){
+  const v = document.getElementById(inputId)?.value;
+  return v || todayStr();
+}
 function localDateStr(d){
   const y = d.getFullYear();
   const m = String(d.getMonth()+1).padStart(2,'0');
@@ -1343,6 +1415,11 @@ function fertCycleDDay(p){
   const next = new Date(p.lastFertilized);
   next.setDate(next.getDate()+p.fertCycleDays);
   return daysBetween(todayStr(), localDateStr(next));
+}
+// 물준지 며칠째인지 (날짜 기반 급수 판단이 아니라, 토분 측정 등으로 직접 판단하는 방식에 맞춘 표시용)
+function daysSinceWatered(p){
+  if(!p.lastWatered) return null;
+  return daysBetween(p.lastWatered, todayStr());
 }
 function mmdd(s){ return s ? s.slice(5).replace('-','/') : '-'; }
 function plantFeatureTags(p){
@@ -1407,88 +1484,88 @@ async function previewPhoto(e, boxId, target){
 }
 
 // ===== HUB =====
+function undoWaterOnlyToday(id){
+  const p = plants.find(p=>p.id===id); if(!p) return;
+  const today = todayStr();
+  const waterOnlyTypes = ['물주기','물주기(저면)','물주기(상면)'];
+  p.diary = p.diary.filter(d=>!(d.date===today && waterOnlyTypes.includes(d.type)));
+  const remaining = p.diary.filter(d=>waterOnlyTypes.includes(d.type)).map(d=>d.date).sort();
+  p.lastWatered = remaining.length ? remaining[remaining.length-1] : (p.acquiredDate || today);
+  saveAll(); renderPlants(); renderHub(); openCareZone();
+}
+function undoFertOnlyToday(id){
+  const p = plants.find(p=>p.id===id); if(!p) return;
+  const today = todayStr();
+  p.diary = p.diary.filter(d=>!(d.date===today && d.type==='영양제'));
+  const remaining = p.diary.filter(d=>d.type==='영양제').map(d=>d.date).sort();
+  p.lastFertilized = remaining.length ? remaining[remaining.length-1] : null;
+  saveAll(); if(document.getElementById('s-plants').classList.contains('active')) renderPlants(); openCareZone();
+}
 function openCareZone(){
   const today = todayStr();
-  const waterTypes = ['물주기','물주기(저면)','물주기(상면)','영양제'];
-  const wateredToday = p => p.diary.some(d=>d.date===today && waterTypes.includes(d.type));
-  const mistCountToday = p => p.diary.filter(d=>d.date===today && d.type==='분무').length;
-  const wateredIds = new Set(plants.filter(p=>wateredToday(p)).map(p=>p.id));
-  const watering = plants.filter(p=>!p.planned && (dDay(p)<=0 || wateredIds.has(p.id)));
-  const needMist = plants.filter(p=>!p.planned && p.mistTarget>0);
+  const watering = plants.filter(p=>!p.planned);
 
+  const waterOnlyTypes = ['물주기','물주기(저면)','물주기(상면)'];
   const makeItem = (p) => {
-    const isDone = wateredIds.has(p.id);
-    const todayLogs = p.diary.filter(d=>d.date===today && [...waterTypes,'분무'].includes(d.type));
-    const types = [...new Set(todayLogs.map(d=>d.type))].join(' · ');
-    const d = dDay(p);
-    const sub = isDone ? (types||'케어 완료') : (d===0?'오늘 급수일':`${Math.abs(d)}일 지남`);
-    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:${isDone?'var(--gl)':'#FEF5F3'};border-radius:11px;margin-bottom:7px;transition:background .2s">
-      <span style="font-size:18px">${p.emoji||'🌱'}</span>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:600">${escapeHtml(p.name)}</div>
-        <div style="font-size:11px;color:var(--sub)">${sub}</div>
+    const isWatered = p.diary.some(d=>d.date===today && waterOnlyTypes.includes(d.type));
+    const isFert = p.diary.some(d=>d.date===today && d.type==='영양제');
+    const dsw = daysSinceWatered(p);
+    const waterSub = isWatered ? '오늘 물 줌' : (dsw===null ? '물 기록 없음' : `물준지 ${dsw}일째`);
+    const fertSub = isFert ? '오늘 영양제 줌' : (p.lastFertilized ? `영양제 ${daysBetween(p.lastFertilized, today)}일째` : '영양제 기록 없음');
+    return `<div style="padding:10px 12px;background:${isWatered&&isFert?'var(--gl)':'var(--card)'};border-radius:11px;margin-bottom:7px;transition:background .2s">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span style="font-size:18px">${p.emoji||'🌱'}</span>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600">${escapeHtml(p.name)}</div>
+          <div style="font-size:11px;color:var(--sub)">${waterSub} · ${fertSub}</div>
+        </div>
       </div>
-      ${isDone ? `<button onclick="undoWaterToday('${p.id}')" title="눌러서 취소" style="background:none;border:none;font-size:16px;cursor:pointer;padding:2px">✅</button>` : `<button class="t-btn g" onclick="quickWater('${p.id}');openCareZone()">물 줬어요</button>`}
+      <div style="display:flex;gap:8px">
+        ${isWatered
+          ? `<button onclick="undoWaterOnlyToday('${p.id}')" style="flex:1;border:none;border-radius:9px;padding:8px;font-size:12px;font-weight:700;font-family:'Pretendard',sans-serif;cursor:pointer;background:var(--g);color:white">✅ 물 줌</button>`
+          : `<button class="t-btn g" style="flex:1" onclick="quickWater('${p.id}');openCareZone()">💧 물 줬어요</button>`}
+        ${isFert
+          ? `<button onclick="undoFertOnlyToday('${p.id}')" style="flex:1;border:none;border-radius:9px;padding:8px;font-size:12px;font-weight:700;font-family:'Pretendard',sans-serif;cursor:pointer;background:var(--br);color:white">✅ 영양제 줌</button>`
+          : `<button style="flex:1;border:none;border-radius:9px;padding:8px;font-size:12px;font-weight:700;font-family:'Pretendard',sans-serif;cursor:pointer;background:#EEE;color:var(--sub)" onclick="quickFertilize('${p.id}');openCareZone()">🧪 영양제 줬어요</button>`}
+      </div>
     </div>`;
   };
 
-  const mistItems = needMist.map(p=>{
-    const cnt = mistCountToday(p);
-    const done2 = cnt >= p.mistTarget;
-    const partial = cnt > 0 && !done2;
-    const bg = done2 ? 'var(--gl)' : partial ? '#FFF8E8' : '#EFF6FB';
-    const btnBg = done2 ? '#8AA88E' : partial ? '#E8A020' : 'var(--b)';
-    const btnText = done2 ? '➕ 추가 분무' : '분무했어요';
-    // 진행 도트 - 채워진 점을 누르면 그 기록 하나만 삭제
-    const totalDots = Math.max(p.mistTarget, cnt);
-    const dots = Array.from({length:totalDots},(_,i)=>
-      i<cnt
-        ? `<button onclick="deleteMistEntry('${p.id}',${i})" title="눌러서 이 기록 취소" style="width:14px;height:14px;border-radius:50%;border:none;padding:0;cursor:pointer;background:${done2?'var(--g)':'#E8A020'};margin-right:3px"></button>`
-        : `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#DDD;margin-right:3px;margin:0 5px 0 2px"></span>`
-    ).join('');
-    return `<div style="display:flex;align-items:center;gap:10px;padding:11px 13px;background:${bg};border-radius:11px;margin-bottom:7px;transition:background .2s">
-      <span style="font-size:20px">${p.emoji||'🌱'}</span>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:700">${escapeHtml(p.name)}</div>
-        <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
-          ${dots}
-          <span style="font-size:12px;font-weight:700;color:${done2?'var(--g)':partial?'#C07800':'var(--sub)'}">${cnt}/${p.mistTarget}회</span>
-        </div>
+  // 💨 공중분무 — 식물별 구분 없이 전체 통틀어 하루 2~4회 체크하는 단일 항목
+  const todayMistCount = (mistGlobal.logs||[]).filter(l=>l.date===today).length;
+  const mistDone = todayMistCount >= 2;
+  const mistPartial = todayMistCount > 0 && !mistDone;
+  const mistBg = mistDone ? 'var(--gl)' : mistPartial ? '#FFF8E8' : '#EFF6FB';
+  const mistBtnBg = mistDone ? '#8AA88E' : mistPartial ? '#E8A020' : 'var(--b)';
+  const mistBtnText = mistDone ? '➕ 추가 공중분무' : '공중분무했어요';
+  const mistTotalDots = Math.max(4, todayMistCount);
+  const mistDots = Array.from({length:mistTotalDots},(_,i)=>
+    i<todayMistCount
+      ? `<button onclick="undoMistGlobalEntry(${i})" title="눌러서 이 기록 취소" style="width:14px;height:14px;border-radius:50%;border:none;padding:0;cursor:pointer;background:${mistDone?'var(--g)':'#E8A020'};margin-right:3px"></button>`
+      : `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#DDD;margin-right:3px;margin:0 5px 0 2px"></span>`
+  ).join('');
+  const mistItems = `<div style="display:flex;align-items:center;gap:10px;padding:11px 13px;background:${mistBg};border-radius:11px;margin-bottom:7px;transition:background .2s">
+    <span style="font-size:20px">💨</span>
+    <div style="flex:1">
+      <div style="font-size:13px;font-weight:700">공중분무</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+        ${mistDots}
+        <span style="font-size:12px;font-weight:700;color:${mistDone?'var(--g)':mistPartial?'#C07800':'var(--sub)'}">${todayMistCount}/2~4회</span>
       </div>
-      <button onclick="quickSpray('${p.id}');openCareZone()" style="border:none;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;color:white;background:${btnBg};cursor:pointer;white-space:nowrap">${btnText}</button>
-    </div>`;
-  }).join('');
+    </div>
+    <button onclick="doMistGlobal()" style="border:none;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;color:white;background:${mistBtnBg};cursor:pointer;white-space:nowrap">${mistBtnText}</button>
+  </div>`;
 
   document.getElementById('careWaterSection').style.display = watering.length?'block':'none';
-  document.getElementById('careMistSection').style.display = needMist.length?'block':'none';
+  document.getElementById('careMistSection').style.display = 'block';
   document.getElementById('careWaterList').innerHTML = watering.map(p=>makeItem(p)).join('');
   document.getElementById('careMistList').innerHTML = mistItems;
-  const waterDone = watering.filter(p=>wateredIds.has(p.id)).length;
+  const waterDone = watering.filter(p=>p.diary.some(d=>d.date===today && waterOnlyTypes.includes(d.type))).length;
   document.getElementById('careWaterTitle').textContent = `💧 물주기 ${waterDone}/${watering.length}종 완료`;
-  const mistDone = needMist.filter(p=>mistCountToday(p)>=p.mistTarget).length;
-  document.getElementById('careMistTitle').textContent = `💧 분무 ${mistDone}/${needMist.length}종 완료`;
+  document.getElementById('careMistTitle').textContent = mistDone ? '💨 공중분무 완료' : `💨 공중분무 ${todayMistCount}/2회`;
 
-  // 🌫️ 가끔(주기적) 분무
-  const occCandidates = plants.filter(p=>!p.planned && p.mistCycleDays>0);
-  const occSprayedToday = p => p.lastSprayed===today;
-  const occList = occCandidates.filter(p=>mistCycleDDay(p)<=0 || occSprayedToday(p));
-  const occItems = occList.map(p=>{
-    const done = occSprayedToday(p);
-    const dd = mistCycleDDay(p);
-    const sub = done ? '오늘 분무 완료' : (dd===0?'오늘이 분무일':`${Math.abs(dd)}일 지남`);
-    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:${done?'var(--gl)':'#F4F2EC'};border-radius:11px;margin-bottom:7px;transition:background .2s">
-      <span style="font-size:18px">${p.emoji||'🌱'}</span>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:600">${escapeHtml(p.name)}</div>
-        <div style="font-size:11px;color:var(--sub)">${sub} · ${p.mistCycleDays}일마다</div>
-      </div>
-      ${done ? `<button onclick="deleteMistEntry('${p.id}',0)" title="눌러서 취소" style="background:none;border:none;font-size:16px;cursor:pointer;padding:2px">✅</button>` : `<button class="t-btn g" onclick="quickSpray('${p.id}');openCareZone()">분무했어요</button>`}
-    </div>`;
-  }).join('');
-  document.getElementById('careOccMistSection').style.display = occList.length?'block':'none';
-  document.getElementById('careOccMistList').innerHTML = occItems;
-  const occDone = occList.filter(p=>occSprayedToday(p)).length;
-  document.getElementById('careOccMistTitle').textContent = `🌫️ 가끔 분무 ${occDone}/${occList.length}종 완료`;
+  // 🌫️ 가끔(주기적) 분무 — 폐지됨, 공중분무로 통합
+  document.getElementById('careOccMistSection').style.display = 'none';
 
   // 🧪 영양제
   const fertCandidates = plants.filter(p=>!p.planned && p.fertCycleDays>0);
@@ -1515,7 +1592,7 @@ function openCareZone(){
       <button class="t-btn" style="background:var(--br)" onclick="quickFertilize('${p.id}');openCareZone()">${btnText}</button>
     </div>`;
   }).join('');
-  document.getElementById('careFertSection').style.display = fertList.length?'block':'none';
+  document.getElementById('careFertSection').style.display = 'none';
   document.getElementById('careFertList').innerHTML = fertItems;
   const fertDone = fertList.filter(p=>fertCountToday(p)>0).length;
   document.getElementById('careFertTitle').textContent = `🧪 영양제 할일 ${fertDone}/${fertList.length}종 완료`;
@@ -1547,6 +1624,22 @@ function openCareZone(){
       <span style="font-size:18px">🔄</span>
       <div style="flex:1"><div style="font-size:13px;font-weight:600">환수</div><div style="font-size:11px;color:var(--sub)">오늘 환수 완료</div></div>
       <button onclick="undoWaterChangeToday()" title="눌러서 취소" style="background:none;border:none;font-size:16px;cursor:pointer;padding:2px">✅</button>
+    </div>`);
+  }
+  // 비타민 체크 (일요일 고정)
+  const isVitaminDay = todayDow === 0;
+  const vitaminGivenToday = fish.lastVitamin === today;
+  if(isVitaminDay && !vitaminGivenToday){
+    fishItems.push(`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#FFF3E0;border-radius:11px;margin-bottom:7px;transition:background .2s">
+      <span style="font-size:18px">💊</span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">비타민 넣을 날이에요!</div><div style="font-size:11px;color:var(--sub)">일요일마다 비타민 챙기기</div></div>
+      <button class="t-btn b" onclick="doVitamin()">넣었어요</button>
+    </div>`);
+  } else if(vitaminGivenToday){
+    fishItems.push(`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--gl);border-radius:11px;margin-bottom:7px;transition:background .2s">
+      <span style="font-size:18px">💊</span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">비타민</div><div style="font-size:11px;color:var(--sub)">오늘 비타민 완료</div></div>
+      <button onclick="undoVitaminToday()" title="눌러서 취소" style="background:none;border:none;font-size:16px;cursor:pointer;padding:2px">✅</button>
     </div>`);
   }
   document.getElementById('careFishSection').style.display = 'block';
@@ -1600,8 +1693,8 @@ function openCareZone(){
   </div>`;
   document.getElementById('careBrainSection').style.display = 'block';
 
-  const waterAllDone = watering.every(p=>wateredIds.has(p.id));
-  document.getElementById('careAllGood').style.display = (waterAllDone&&mistDone>=needMist.length&&fertDone>=fertList.length&&morningFed&&eveningFed&&weekDone>=weekGoal)?'block':'none';
+  const waterAllDone = watering.every(p=>p.diary.some(d=>d.date===today && waterOnlyTypes.includes(d.type)));
+  document.getElementById('careAllGood').style.display = (waterAllDone&&mistDone&&fertDone>=fertList.length&&morningFed&&eveningFed&&weekDone>=weekGoal)?'block':'none';
   document.getElementById('careModal').style.display = 'block';
 }
 function closeCareZone(){
@@ -1688,17 +1781,17 @@ function renderHub(){
   document.getElementById('hubChips').innerHTML = chips.join('');
   document.getElementById('hubChips').style.display = chips.length ? 'flex' : 'none';
 
-  const mistNeedCount = plants.filter(p=>!p.planned && p.mistTarget>0 && p.diary.filter(d=>d.date===today2&&d.type==='분무').length < p.mistTarget).length;
-  const due = plants.filter(p=>!p.planned && dDay(p)<=0);
+  const todayMistCountHub = (mistGlobal.logs||[]).filter(l=>l.date===today2).length;
   const todayEx = exercise.logs.filter(l=>l.date===todayStr());
   const goalLeft = Math.max(0, exercise.weeklyGoal - weekCount());
   let tasks = [];
 
   // 분무 요약
-  if(mistNeedCount>0) tasks.push({icon:'💧',name:`분무 할일 ${mistNeedCount}종`,sub:'케어존에서 확인하세요',action:'케어존 열기',cls:'b',cb:'openCareZone()'});
+  if(todayMistCountHub<2) tasks.push({icon:'💨',name:'공중분무하기',sub:`오늘 ${todayMistCountHub}/2회 · 케어존에서 확인하세요`,action:'케어존 열기',cls:'b',cb:'openCareZone()'});
 
-  // 식물 급수 요약
-  if(due.length>0) tasks.push({icon:'🌱',name:`식물 ${due.length}개 급수 필요`,sub:due.slice(0,2).map(p=>p.name).join(', ')+(due.length>2?` 외 ${due.length-2}개`:''),action:'케어존 열기',cls:'g',cb:'openCareZone()'});
+  // 식물 케어 안내 (날짜 계산이 아니라 케어존에서 직접 확인하고 판단하는 방식)
+  const activePlants = plants.filter(p=>!p.planned).length;
+  if(activePlants>0) tasks.push({icon:'🌱',name:'식물 케어하기',sub:'케어존에서 흙 상태 보고 필요한 애들만 물주세요',action:'케어존 열기',cls:'g',cb:'openCareZone()'});
 
   // 물고기 급여
   const feedToday = fish.logs.filter(l=>l.type==='feed'&&l.date===today2);
@@ -1711,6 +1804,10 @@ function renderHub(){
   const todayDow = new Date().getDay();
   if((fish.waterChangeDays||[]).includes(todayDow) && fish.lastWaterChange!==today2)
     tasks.push({icon:'🔄',name:'환수할 날이에요!',sub:'물집사에서 기록하세요',action:'기록하기',cls:'b',cb:'showFish()'});
+
+  // 비타민 (일요일 고정)
+  if(todayDow===0 && fish.lastVitamin!==today2)
+    tasks.push({icon:'💊',name:'비타민 넣을 날이에요!',sub:'케어존에서 기록하세요',action:'케어존 열기',cls:'b',cb:'openCareZone()'});
   if(tasks.length===0){
     document.getElementById('hubTaskList').innerHTML = '<div class="empty" style="padding:10px 0">오늘 할 일이 없어요 🎉</div>';
   } else {
@@ -1731,7 +1828,8 @@ function renderHub(){
     const musicMin = musicMonthLogs.reduce((s,l)=>s+(l.minutes||0),0);
     document.getElementById('hubMusicSub').textContent = musicMin>0 ? `이번달 연습 ${(musicMin/60).toFixed(1)}h` : '음악 연습 시작해보기';
   }
-  document.getElementById('hubPlantSub').textContent = `${plants.length}종 키우는 중 · 오늘 ${due.length}개 케어`;
+  const wateredTodayCount = plants.filter(p=>!p.planned && p.diary.some(d=>d.date===today2 && ['물주기','물주기(저면)','물주기(상면)','영양제'].includes(d.type))).length;
+  document.getElementById('hubPlantSub').textContent = `${plants.length}종 키우는 중 · 오늘 ${wateredTodayCount}개 케어 완료`;
   const fishSpecies = fish.species.length;
   document.getElementById('hubFishSub').textContent = fishSpecies ? `${fishSpecies}종 합사 어항` : '어항 기록 시작하기';
 
@@ -1740,10 +1838,10 @@ function renderHub(){
   const waterTypesM = ['물주기','물주기(저면)','물주기(상면)','영양제'];
   const wateredDaysThisMonth = new Set();
   const mistedDaysThisMonth = new Set();
+  (mistGlobal.logs||[]).forEach(l=>{ if(l.date.startsWith(mp)) mistedDaysThisMonth.add(l.date); });
   plants.forEach(p=>p.diary.forEach(d=>{
     if(!d.date.startsWith(mp)) return;
     if(waterTypesM.includes(d.type)) wateredDaysThisMonth.add(d.date);
-    if(d.type==='분무') mistedDaysThisMonth.add(d.date);
   }));
   const daysSoFar = Number(today2.slice(8,10));
   const waterRate = daysSoFar ? Math.round(wateredDaysThisMonth.size/daysSoFar*100) : 0;
@@ -1844,6 +1942,18 @@ function quickFeed(timing){
 function undoFeedToday(timing){
   const today = todayStr();
   fish.logs = fish.logs.filter(l=>!(l.date===today && l.type==='feed' && l.timing===timing));
+  saveAll(); openCareZone();
+}
+function doMistGlobal(){
+  mistGlobal.logs.push({id:String(Date.now()), date:todayStr()});
+  saveAll(); openCareZone();
+}
+function undoMistGlobalEntry(idx){
+  const today = todayStr();
+  const idxs = [];
+  mistGlobal.logs.forEach((l,i)=>{ if(l.date===today) idxs.push(i); });
+  if(idx>=idxs.length) return;
+  mistGlobal.logs.splice(idxs[idx],1);
   saveAll(); openCareZone();
 }
 function quickSpray(id){
@@ -2126,6 +2236,7 @@ function renderFish(){
   fishLogList.innerHTML = [...logs].reverse().slice(0,20).map(l=>{
     const delBtn = `<button onclick="deleteFishLog('${l.id}')" style="background:none;border:none;color:#CCC;font-size:14px;cursor:pointer;padding:2px;margin-left:auto">✕</button>`;
     if(l.type==='feed') return `<div class="dentry"><div class="dd" style="display:flex;align-items:center"><span>${l.date} ${l.timing||''}</span><span class="tag 급여" style="margin-left:6px">${l.timing||''}급여</span>${delBtn}</div><div class="dn">${l.note||'급여 완료'}</div></div>`;
+    if(l.type==='vitamin') return `<div class="dentry"><div class="dd" style="display:flex;align-items:center"><span>${l.date}</span><span class="tag" style="margin-left:6px;background:#FFF3E0;color:#B8720A">💊 비타민</span>${delBtn}</div><div class="dn">${l.note||'비타민 완료'}</div></div>`;
     const vals = [];
     if(l.temp) vals.push(`수온 ${l.temp}℃`);
     if(l.ph) vals.push(`pH ${l.ph}`);
@@ -2225,6 +2336,21 @@ function undoWaterChangeToday(){
   if(document.getElementById('s-fish').classList.contains('active')) renderFish();
   openCareZone();
 }
+function doVitamin(){
+  fish.lastVitamin = todayStr();
+  fish.logs.push({id:String(Date.now()), date:todayStr(), type:'vitamin', note:'💊 비타민 완료', temp:'', ph:'', amm:'', nit:''});
+  saveAll();
+  if(document.getElementById('s-fish').classList.contains('active')) renderFish();
+  openCareZone();
+}
+function undoVitaminToday(){
+  const today = todayStr();
+  fish.lastVitamin = null;
+  fish.logs = fish.logs.filter(l=>!(l.type==='vitamin' && l.date===today && l.note==='💊 비타민 완료'));
+  saveAll();
+  if(document.getElementById('s-fish').classList.contains('active')) renderFish();
+  openCareZone();
+}
 function addFishLog(type){
   const log = {id:String(Date.now()), date:todayStr(), type};
   if(type==='feed'){
@@ -2249,28 +2375,39 @@ function addFishLog(type){
 
 // ===== EXERCISE =====
 function showExercise(){
+  selectedExDate = todayStr();
+  exWeekOffset = 0;
   renderExercise();
   showScreen('s-exercise');
 }
-function getWeekDates(){
+function getWeekDates(offset=0){
   const today = new Date(), day = today.getDay();
-  const mon = new Date(today); mon.setDate(today.getDate() - (day===0?6:day-1));
+  const mon = new Date(today); mon.setDate(today.getDate() - (day===0?6:day-1) - offset*7);
   return Array.from({length:7},(_,i)=>{ const d=new Date(mon); d.setDate(mon.getDate()+i); return localDateStr(d); });
 }
+function weekLabel(offset){ return offset===0 ? '이번 주' : offset===1 ? '지난 주' : `${offset}주 전`; }
 function weekCount(){
   const week = getWeekDates();
   return new Set(exercise.logs.filter(l=>week.includes(l.date)).map(l=>l.date)).size;
 }
+function selectExDate(d){ selectedExDate = d; renderExercise(); }
+function navExWeek(delta){
+  exWeekOffset = Math.max(0, exWeekOffset+delta);
+  const week = getWeekDates(exWeekOffset);
+  const dow = new Date().getDay();
+  selectedExDate = week[dow===0?6:dow-1];
+  renderExercise();
+}
 function renderExercise(){
-  const week = getWeekDates();
+  const week = getWeekDates(exWeekOffset);
   const today = todayStr();
   const days = ['월','화','수','목','금','토','일'];
-  document.getElementById('weekRange').textContent = `${week[0].slice(5).replace('-','/')} ~ ${week[6].slice(5).replace('-','/')}`;
+  document.getElementById('exWeekLabel').innerHTML = `${weekLabel(exWeekOffset)} <span id="weekRange" style="font-weight:400;font-size:11px;text-transform:none;letter-spacing:0;color:var(--sub)">${week[0].slice(5).replace('-','/')} ~ ${week[6].slice(5).replace('-','/')}</span>`;
   document.getElementById('weekGrid').innerHTML = week.map((d,i)=>{
     const dayLogs = exercise.logs.filter(l=>l.date===d);
     const hasF = dayLogs.some(l=>l.type==='F45');
     const hasN = dayLogs.some(l=>l.type==='러닝');
-    return `<div class="wcell ${d===today?'today':''}">
+    return `<div class="wcell ${d===selectedExDate?'today':''}" onclick="selectExDate('${d}')">
       <div class="wd">${days[i]}</div>
       <div class="wdate">${d.slice(8)}</div>
       <div class="dots">
@@ -2278,6 +2415,11 @@ function renderExercise(){
         <div class="dot ${hasN?'n':''}"></div>
       </div></div>`;
   }).join('');
+  const dLabel = document.getElementById('exSelectedDateLabel');
+  if(dLabel){
+    const sd = selectedExDate || today;
+    dLabel.textContent = sd===today ? '📅 오늘 기록으로 남겨요' : `📅 ${sd.slice(5).replace('-','/')} 기록으로 남겨요`;
+  }
   const cnt = weekCount(), goal = exercise.weeklyGoal;
   document.getElementById('exGoalLabel').textContent = `${cnt} / ${goal}회 달성`;
   document.getElementById('exGbar').style.width = Math.min(100,cnt/goal*100)+'%';
@@ -2293,7 +2435,7 @@ function renderExercise(){
 function logCustomEx(){
   const name = document.getElementById('customExInput').value.trim();
   if(!name) return;
-  exercise.logs.push({id:String(Date.now()), date:todayStr(), type:name, custom:true});
+  exercise.logs.push({id:String(Date.now()), date:selectedExDate||todayStr(), type:name, custom:true});
   document.getElementById('customExInput').value='';
   saveAll(); renderExercise(); renderHub();
 }
@@ -2302,7 +2444,7 @@ function deleteExLog(id){
   saveAll(); renderExercise(); renderHub();
 }
 function logExercise(type){
-  exercise.logs.push({id:String(Date.now()), date:todayStr(), type});
+  exercise.logs.push({id:String(Date.now()), date:selectedExDate||todayStr(), type});
   saveAll(); renderExercise(); renderHub();
 }
 function saveGoal(){
@@ -2327,7 +2469,18 @@ function initBrain(){
   if(!brain.customLogs) brain.customLogs = [];
 }
 
-function showBrain(){ initBrain(); switchBrainTab('training'); renderBrain(); showScreen('s-brain'); }
+function showBrain(){
+  selectedStudyDate = todayStr();
+  selectedMusicDate = todayStr();
+  studyWeekOffset = 0;
+  musicWeekOffset = 0;
+  initBrain(); switchBrainTab('training'); renderBrain(); showScreen('s-brain');
+  const today = todayStr();
+  ['practicalLogDate','customGoalDate'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = today;
+  });
+}
 function switchBrainTab(tab){
   document.getElementById('brainSection-training').style.display = tab==='training' ? 'block' : 'none';
   document.getElementById('brainSection-music').style.display = tab==='music' ? 'block' : 'none';
@@ -2345,10 +2498,18 @@ function setMusicInstrument(inst){
   document.getElementById('musicInstBtn-bass').style.color = inst==='bass' ? 'white' : 'var(--sub)';
 }
 function instEmoji(inst){ return inst==='bass' ? '🎸(베이스)' : '🎸(통기타)'; }
+function navMusicWeek(delta){
+  musicWeekOffset = Math.max(0, musicWeekOffset+delta);
+  const week = getWeekDates(musicWeekOffset);
+  const dow = new Date().getDay();
+  selectedMusicDate = week[dow===0?6:dow-1];
+  renderMusic();
+}
+function selectMusicDate(d){ selectedMusicDate = d; renderMusic(); }
 function addMusicLog(){
   const mins = parseInt(document.getElementById('musicMinutes').value);
   if(!mins||mins<=0){ alert('연습 시간을 입력해주세요'); return; }
-  music.logs.push({id:String(Date.now()), date:todayStr(), instrument:musicInstrument, minutes:mins, note:document.getElementById('musicNote').value.trim()});
+  music.logs.push({id:String(Date.now()), date:selectedMusicDate||todayStr(), instrument:musicInstrument, minutes:mins, note:document.getElementById('musicNote').value.trim()});
   document.getElementById('musicMinutes').value='';
   document.getElementById('musicNote').value='';
   saveAll(); renderMusic();
@@ -2375,18 +2536,24 @@ function renderMusic(){
   document.getElementById('musicMonthMinutes').textContent = (totalMin/60).toFixed(1)+'h';
   document.getElementById('musicMonthDays').textContent = new Set(monthLogs.map(l=>l.date)).size+'일';
 
-  const week = getWeekDates();
+  const week = getWeekDates(musicWeekOffset);
   const days = ['월','화','수','목','금','토','일'];
   const today = todayStr();
+  document.getElementById('musicWeekLabel').textContent = weekLabel(musicWeekOffset)+' 연습 ('+week[0].slice(5).replace('-','/')+' ~ '+week[6].slice(5).replace('-','/')+')';
   document.getElementById('musicWeekGrid').innerHTML = week.map((d,i)=>{
     const mins = music.logs.filter(l=>l.date===d).reduce((s,l)=>s+(l.minutes||0),0);
-    return `<div class="wcell ${d===today?'today':''}">
+    return `<div class="wcell ${d===(selectedMusicDate||today)?'today':''}" onclick="selectMusicDate('${d}')">
       <div class="wd">${days[i]}</div>
       <div class="wdate">${d.slice(8)}</div>
       <div class="dots"><div class="dot" style="${mins>0?'background:var(--br)':''}"></div></div>
       ${mins>0?`<div style="font-size:8px;color:var(--br);font-weight:700">${mins}m</div>`:''}
     </div>`;
   }).join('');
+  const musicDLabel = document.getElementById('musicSelectedDateLabel');
+  if(musicDLabel){
+    const sd = selectedMusicDate || today;
+    musicDLabel.textContent = sd===today ? '📅 오늘 기록으로 남겨요' : `📅 ${sd.slice(5).replace('-','/')} 기록으로 남겨요`;
+  }
 
   document.getElementById('musicSongList').innerHTML = music.songs.length ? music.songs.map(s=>`
     <div style="display:flex;align-items:center;gap:10px;background:var(--card);border-radius:12px;padding:11px 12px;margin-bottom:6px">
@@ -2526,17 +2693,23 @@ function renderWritten(today){
   }).join('');
 
   // 주간 캘린더
-  const week = getWeekDates();
+  const week = getWeekDates(studyWeekOffset);
   const days = ['월','화','수','목','금','토','일'];
+  document.getElementById('studyWeekLabel').textContent = weekLabel(studyWeekOffset)+' 공부 ('+week[0].slice(5).replace('-','/')+' ~ '+week[6].slice(5).replace('-','/')+')';
   document.getElementById('studyWeekGrid').innerHTML = week.map((d,i)=>{
     const mins = brain.studyLogs.filter(l=>l.date===d).reduce((s,l)=>s+(l.minutes||0),0);
-    return `<div class="wcell ${d===today?'today':''}">
+    return `<div class="wcell ${d===(selectedStudyDate||today)?'today':''}" onclick="selectStudyDate('${d}')">
       <div class="wd">${days[i]}</div>
       <div class="wdate">${d.slice(8)}</div>
       <div class="dots"><div class="dot" style="${mins>0?'background:var(--br)':''}"></div></div>
       ${mins>0?`<div style="font-size:8px;color:var(--br);font-weight:700">${mins}m</div>`:''}
     </div>`;
   }).join('');
+  const studyDLabel = document.getElementById('studySelectedDateLabel');
+  if(studyDLabel){
+    const sd = selectedStudyDate || today;
+    studyDLabel.textContent = sd===today ? '📅 오늘 기록으로 남겨요' : `📅 ${sd.slice(5).replace('-','/')} 기록으로 남겨요`;
+  }
 
   // 공부 로그
   const logs = [...brain.studyLogs].reverse().slice(0,10);
@@ -2547,6 +2720,14 @@ function renderWritten(today){
     </div>`).join('') : '<div class="empty">공부 기록을 남겨보세요 📚</div>';
 }
 
+function navStudyWeek(delta){
+  studyWeekOffset = Math.max(0, studyWeekOffset+delta);
+  const week = getWeekDates(studyWeekOffset);
+  const dow = new Date().getDay();
+  selectedStudyDate = week[dow===0?6:dow-1];
+  renderBrain();
+}
+function selectStudyDate(d){ selectedStudyDate = d; renderBrain(); }
 function updateSubject(name, val){
   brain.subjects[name] = parseInt(val);
   document.querySelector(`[oninput="updateSubject('${name}',this.value)"]`)?.previousElementSibling?.querySelector('span:last-child')?.textContent;
@@ -2563,7 +2744,7 @@ function updateSubject(name, val){
 function addStudyLog(){
   const mins = parseInt(document.getElementById('studyMinutes').value);
   if(!mins||mins<=0){ alert('공부 시간을 입력해주세요'); return; }
-  brain.studyLogs.push({id:String(Date.now()), date:todayStr(), minutes:mins, note:document.getElementById('studyNote').value.trim()});
+  brain.studyLogs.push({id:String(Date.now()), date:selectedStudyDate||todayStr(), minutes:mins, note:document.getElementById('studyNote').value.trim()});
   document.getElementById('studyMinutes').value='';
   document.getElementById('studyNote').value='';
   saveAll(); renderBrain();
@@ -2597,13 +2778,13 @@ function renderPractical(today){
 function addPracticalCount(type){
   if(type==='case') brain.caseCount=(brain.caseCount||0)+1;
   if(type==='report') brain.reportCount=(brain.reportCount||0)+1;
-  brain.practicalLogs.push({id:String(Date.now()), date:todayStr(), type, note:''});
+  brain.practicalLogs.push({id:String(Date.now()), date:getPickedDate('practicalLogDate'), type, note:''});
   saveAll(); renderBrain();
 }
 function addPracticalMemo(){
   const note = document.getElementById('practicalMemo').value.trim();
   if(!note) return;
-  brain.practicalLogs.push({id:String(Date.now()), date:todayStr(), type:'memo', note});
+  brain.practicalLogs.push({id:String(Date.now()), date:getPickedDate('practicalLogDate'), type:'memo', note});
   document.getElementById('practicalMemo').value='';
   saveAll(); renderBrain();
 }
@@ -2616,7 +2797,7 @@ function addCustomGoal(){
   const note = document.getElementById('customGoalInput').value.trim();
   if(!note) return;
   if(!brain.customLogs) brain.customLogs = [];
-  brain.customLogs.push({id:String(Date.now()), date:todayStr(), note});
+  brain.customLogs.push({id:String(Date.now()), date:getPickedDate('customGoalDate'), note});
   document.getElementById('customGoalInput').value='';
   saveAll(); renderCustomGoals();
 }
