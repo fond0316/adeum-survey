@@ -2496,8 +2496,8 @@ function testGasUrl() {
   const statusEl = document.getElementById('gas-url-status');
   if (!url) { if(statusEl) statusEl.textContent = '⚠️ URL을 먼저 입력해주세요.'; return; }
   if(statusEl) statusEl.textContent = '⏳ 연결 테스트 중...';
-  fetch(url + '?action=list&sheetName=' + encodeURIComponent(getSheetName()))
-    .then(r => r.json())
+  // ★ 2026-08 수정: 일반 fetch()는 CORS에 막혀 항상 실패로 표시됐음 → JSONP(_gasGet)로 교체
+  _gasGet(url, { action: 'list', sheetName: getSheetName() })
     .then(data => {
       if(statusEl) statusEl.innerHTML = '✅ 연결 성공! 현재 제출 학생 수: <b>' + ((data.students||[]).length) + '명</b>';
     })
@@ -2681,8 +2681,8 @@ function loadFromGoogleSheet() {
   if(btn){ btn.disabled = true; btn.textContent = '⏳ 불러오는 중...'; }
   showLoading('구글 시트에서 불러오는 중...');
 
-  fetch(url + '?action=list&sheetName=' + encodeURIComponent(getSheetName()))
-    .then(r => r.json())
+  // ★ 2026-08 수정: 일반 fetch()는 CORS에 막혀 항상 실패했음 → JSONP(_gasGet)로 교체
+  _gasGet(url, { action: 'list', sheetName: getSheetName() })
     .then(data => {
       if(!data.ok) throw new Error(data.error || '응답 오류');
       const students = (data.students || []).map(s => ({
