@@ -278,7 +278,7 @@ canvas{width:100%;height:440px;display:block}
       <div class="lc-vnum">v1</div>
       <div class="lc-name">다항함수</div>
       <div class="lc-desc">방정식 · 부등식<br>그래프로 직접 탐구</div>
-      <div class="lc-badge" style="background:#dbeafe;color:#1e40af;">공통수학 1</div>
+      <div class="lc-badge" style="background:#dbeafe;color:#1e40af;">공통수학 1 · 미적분</div>
     </div>
 
     <!-- V2 -->
@@ -374,7 +374,7 @@ canvas{width:100%;height:440px;display:block}
   </button>
   <button class="nt" onclick="showTab('t7',this)">
     <span class="nt-m">🧩 심화(함수변환)</span>
-    <span class="nt-s">절댓값·조각·최대최소·합성역함수</span>
+    <span class="nt-s">절댓값·조각·최대최소·합성역함수·평행이동</span>
   </button>
 </div>
 
@@ -1068,6 +1068,7 @@ canvas{width:100%;height:440px;display:block}
     <button class="adv-tab" id="ft-t2-btn" onclick="showFtTab('ft-t2',this)">📐 조각함수</button>
     <button class="adv-tab" id="ft-t3-btn" onclick="showFtTab('ft-t3',this)">📊 최대·최소</button>
     <button class="adv-tab" id="ft-t4-btn" onclick="showFtTab('ft-t4',this)">🔗 합성·역함수</button>
+    <button class="adv-tab" id="ft-t5-btn" onclick="showFtTab('ft-t5',this)">↔️ 평행이동</button>
   </div>
 
   <!-- ── 절댓값 변환 ── -->
@@ -1239,6 +1240,83 @@ canvas{width:100%;height:440px;display:block}
               <span style="display:inline-block;width:10px;height:3px;background:#2D7D46;margin-right:4px;margin-left:10px;vertical-align:middle"></span>f(g(x))
             </div>
             <button onclick="openCompLawModal()" style="display:flex;align-items:center;gap:6px;background:var(--pu-bg);border:1px solid var(--pu-lt);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--pu);font-weight:600;cursor:pointer;font-family:inherit;">🔗 법칙 &amp; 개념 탐구</button>
+            <div style="font-size:11px;color:var(--tx3)">🖱️ 휠 줌 · 드래그 · 더블클릭 초기화</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 평행이동 ── -->
+  <div class="adv-sec" id="ft-t5">
+    <div class="g2">
+      <div>
+        <div class="card">
+          <div class="ctit">원본 1차함수 y = mx + n</div>
+          <div class="cw">
+            <div class="cw-top"><span class="cw-name">m (기울기)</span>
+              <input class="cw-num" type="number" id="tr-mn" value="1" step="0.1"
+                onchange="fromTrNum('m',this.value)" onkeydown="if(event.key==='Enter')fromTrNum('m',this.value)">
+            </div>
+            <input type="range" id="tr-mr" min="-5" max="5" step="0.1" value="1" oninput="fromTrSlider('m',this.value)">
+          </div>
+          <div class="cw">
+            <div class="cw-top"><span class="cw-name">n (y절편)</span>
+              <input class="cw-num" type="number" id="tr-nn" value="-1" step="0.1"
+                onchange="fromTrNum('n',this.value)" onkeydown="if(event.key==='Enter')fromTrNum('n',this.value)">
+            </div>
+            <input type="range" id="tr-nr" min="-8" max="8" step="0.1" value="-1" oninput="fromTrSlider('n',this.value)">
+          </div>
+          <div class="sdiv"></div>
+          <div class="ctit">점 P의 위치 (그래프 위)</div>
+          <div class="cw">
+            <div class="cw-top"><span class="cw-name">P의 x좌표</span>
+              <input class="cw-num" type="number" id="tr-pxn" value="-2" step="0.5"
+                onchange="fromTrNum('px',this.value)" onkeydown="if(event.key==='Enter')fromTrNum('px',this.value)">
+            </div>
+            <input type="range" id="tr-pxr" min="-6" max="6" step="0.5" value="-2" oninput="fromTrSlider('px',this.value)">
+          </div>
+          <div class="sdiv"></div>
+          <div class="ctit">평행이동량 (a, b)</div>
+          <div class="cw">
+            <div class="cw-top"><span class="cw-name">a (x축 방향)</span>
+              <input class="cw-num" type="number" id="tr-dxn" value="3" step="0.5"
+                onchange="fromTrNum('dx',this.value)" onkeydown="if(event.key==='Enter')fromTrNum('dx',this.value)">
+            </div>
+            <input type="range" id="tr-dxr" min="-6" max="6" step="0.5" value="3" oninput="fromTrSlider('dx',this.value)">
+          </div>
+          <div class="cw">
+            <div class="cw-top"><span class="cw-name">b (y축 방향)</span>
+              <input class="cw-num" type="number" id="tr-dyn" value="2" step="0.5"
+                onchange="fromTrNum('dy',this.value)" onkeydown="if(event.key==='Enter')fromTrNum('dy',this.value)">
+            </div>
+            <input type="range" id="tr-dyr" min="-6" max="6" step="0.5" value="2" oninput="fromTrSlider('dy',this.value)">
+          </div>
+          <div class="sdiv"></div>
+          <div class="ctit">표시 모드</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" id="tr-mode-row">
+            <button class="db" onclick="setTrMode('point')">점만</button>
+            <button class="db" onclick="setTrMode('shape')">도형만</button>
+            <button class="db on" onclick="setTrMode('both')">둘 다</button>
+          </div>
+          <button onclick="animateTranslateTr()" style="display:flex;align-items:center;gap:6px;background:var(--tl-bg);border:1px solid var(--tl-lt);border-radius:20px;padding:6px 14px;font-size:12px;color:var(--tl);font-weight:700;cursor:pointer;font-family:inherit;width:100%;justify-content:center;margin-bottom:12px">▶ 이동 애니메이션 보기</button>
+          <div class="sdiv"></div>
+          <div class="eq" id="tr-eq" style="font-size:13px">y = x − 1  →  y = x − 6</div>
+          <div id="tr-formula-box" style="margin-top:10px;padding:10px 14px;background:var(--bg);border:1px solid var(--bor);border-radius:10px;font-size:13px;line-height:2;min-height:44px"></div>
+          <div class="sdiv"></div>
+          <div class="irow" id="tr-info"></div>
+        </div>
+      </div>
+      <div>
+        <div class="gcard">
+          <canvas id="gc_tr" style="height:480px"></canvas>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+            <div style="font-size:12px;color:var(--tx3)" id="tr-legend">
+              <span style="display:inline-block;width:10px;height:3px;background:rgba(26,95,180,0.55);margin-right:4px;vertical-align:middle"></span>원본
+              <span style="display:inline-block;width:10px;height:3px;background:#2D7D46;margin-right:4px;margin-left:10px;vertical-align:middle"></span>이동 후
+              <span style="display:inline-block;width:10px;height:3px;background:#C0392B;margin-right:4px;margin-left:10px;vertical-align:middle"></span>P → P′
+            </div>
+            <button onclick="openTrLawModal()" style="display:flex;align-items:center;gap:6px;background:var(--gn-bg);border:1px solid var(--gn-lt);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--gn);font-weight:600;cursor:pointer;font-family:inherit;">↔️ 법칙 &amp; 개념 탐구</button>
             <div style="font-size:11px;color:var(--tx3)">🖱️ 휠 줌 · 드래그 · 더블클릭 초기화</div>
           </div>
         </div>
@@ -1689,6 +1767,30 @@ canvas{width:100%;height:440px;display:block}
       <span style="color:var(--tx3);font-size:12px;font-family:inherit">← 위 법칙을 선택하면 수치가 표시돼요</span>
     </div>
     <div id="compLawDesc" style="padding:12px 16px;font-size:13px;color:var(--tx2);line-height:1.8;max-height:300px;overflow-y:auto;min-height:48px"></div>
+  </div>
+</div>
+
+<!-- 평행이동 법칙 모달 -->
+<div id="trLawModal" style="display:none;position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:500;width:420px;max-width:95vw;">
+  <div style="background:#fff;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,0.22);border:1px solid var(--bor);overflow:hidden;user-select:none;">
+    <div id="trLawHandle" style="padding:12px 16px 10px;cursor:grab;border-bottom:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between;gap:8px;">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:var(--gn-bg);color:var(--gn)">↔️</div>
+        <div>
+          <div style="font-size:15px;font-weight:800;color:var(--tx)">평행이동 법칙</div>
+          <div style="font-size:11px;color:var(--tx3)">⠿ 드래그로 이동</div>
+        </div>
+      </div>
+      <button onclick="closeTrLawModal()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--tx3);padding:0;line-height:1;flex-shrink:0">✕</button>
+    </div>
+    <div style="padding:10px 14px;border-bottom:1px solid var(--bor);display:grid;grid-template-columns:1fr 1fr;gap:5px" id="tr-law-btns">
+      <button class="law-btn" onclick="setTrLaw(0)">① 점의 평행이동</button>
+      <button class="law-btn" onclick="setTrLaw(1)">② 도형의 평행이동</button>
+    </div>
+    <div id="trLawStats" style="padding:12px 16px;border-bottom:1px solid var(--bor);background:var(--bg);font-size:13px;line-height:1.9;font-family:'JetBrains Mono',monospace;min-height:48px">
+      <span style="color:var(--tx3);font-size:12px;font-family:inherit">← 위 항목을 선택하면 수치가 표시돼요</span>
+    </div>
+    <div id="trLawDesc" style="padding:12px 16px;font-size:13px;color:var(--tx2);line-height:1.8;max-height:300px;overflow-y:auto;min-height:48px"></div>
   </div>
 </div>
 <div id="c3LawModal" style="display:none;position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:500;width:400px;max-width:95vw;">
@@ -4305,6 +4407,7 @@ function showFtTab(id,btn){
     if(id==='ft-t2'){gPw=null;renderPw();}
     if(id==='ft-t3'){gMm=null;renderMm();}
     if(id==='ft-t4'){gComp=null;renderComp();}
+    if(id==='ft-t5'){gTr=null;renderTr();}
   },60);
 }
 
@@ -6580,6 +6683,341 @@ function renderComp(){
 
 
 // ════════════════════════════════════════
+// ↔️ 평행이동 (점의 이동 vs 도형의 이동)
+// ════════════════════════════════════════
+const STr={
+  m:1, n:-1,       // 원본 1차함수 y = mx + n
+  dx:3, dy:2,       // 평행이동량 (a, b)
+  px:-2,            // 점 P의 x좌표 (그래프 위의 점)
+  mode:'both',      // 'point' | 'shape' | 'both'
+  animT:1,          // 애니메이션 진행도 0~1 (기본 1 = 이동 완료 상태)
+  animating:false,
+  pulseTarget:null, // 'point' | 'shape' | 'both' | null — 법칙 모달과 그래프 연동 하이라이트
+  pulseStart:0,
+  pulseDur:700,
+  pulseActive:false
+};
+let gTr=null, rafTr=null, animTrRaf=null, pulseTrRaf=null;
+
+// 법칙 모달에서 선택한 항목을 그래프 위에서 반짝여 보여줌 (모달 ↔ 그래프 연동)
+function triggerTrPulse(target){
+  STr.pulseTarget=target;
+  STr.pulseActive=true;
+  STr.pulseStart=performance.now();
+  if(pulseTrRaf)cancelAnimationFrame(pulseTrRaf);
+  function step(now){
+    const p=Math.min(1,(now-STr.pulseStart)/STr.pulseDur);
+    renderTr();
+    if(p<1){ pulseTrRaf=requestAnimationFrame(step); }
+    else { STr.pulseActive=false; STr.pulseTarget=null; pulseTrRaf=null; renderTr(); }
+  }
+  pulseTrRaf=requestAnimationFrame(step);
+}
+
+function drawPulseRing(g,x,y,color,extraR){
+  const {ctx}=g;
+  if(extraR<=0.3)return;
+  ctx.save();
+  ctx.globalAlpha=0.32;
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.arc(toSX(g,x),toSY(g,y),(6+extraR)*devicePixelRatio,0,Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function trF(x){ return STr.m*x+STr.n; }
+
+function fmtNum(v){
+  const r=Math.round(v*100)/100;
+  return String(r);
+}
+
+function trLinearStr(m,n){ return polyStr([m,n,0,0,0],1); }
+
+function buildTrSliders(){
+  // HTML 기본값과 STr 초기 상태를 동기화 (향후 초기값 변경 시 이중관리 방지)
+  const keys=['m','n','px','dx','dy'];
+  keys.forEach(k=>{
+    const rEl=document.getElementById('tr-'+k+'r');
+    const nEl=document.getElementById('tr-'+k+'n');
+    if(rEl)rEl.value=STr[k];
+    if(nEl)nEl.value=STr[k];
+  });
+}
+
+function fromTrSlider(key,val){
+  const v=parseFloat(val);
+  if(isNaN(v))return;
+  STr[key]=v; STr.animT=1; STr.animating=false;
+  if(animTrRaf){cancelAnimationFrame(animTrRaf);animTrRaf=null;}
+  const n=document.getElementById('tr-'+key+'n');
+  if(n)n.value=fmtNum(v);
+  scheduleRenderTr();
+}
+function fromTrNum(key,val){
+  const v=parseFloat(val);
+  if(isNaN(v))return;
+  STr[key]=v; STr.animT=1; STr.animating=false;
+  if(animTrRaf){cancelAnimationFrame(animTrRaf);animTrRaf=null;}
+  const r=document.getElementById('tr-'+key+'r');
+  if(r)r.value=v;
+  scheduleRenderTr();
+}
+function setTrMode(mode){
+  STr.mode=mode;
+  document.querySelectorAll('#tr-mode-row .db').forEach(b=>b.classList.toggle('on',b.getAttribute('onclick').includes("'"+mode+"'")));
+  scheduleRenderTr();
+}
+function scheduleRenderTr(){ if(rafTr)cancelAnimationFrame(rafTr); rafTr=requestAnimationFrame(renderTr); }
+
+function animateTranslateTr(){
+  if(STr.animating)return;
+  STr.animating=true;
+  STr.animT=0;
+  const start=performance.now(), dur=900;
+  function step(now){
+    const p=Math.min(1,(now-start)/dur);
+    STr.animT=1-Math.pow(1-p,3); // ease-out cubic
+    renderTr();
+    if(p<1){ animTrRaf=requestAnimationFrame(step); }
+    else { STr.animating=false; STr.animT=1; animTrRaf=null; renderTr(); }
+  }
+  animTrRaf=requestAnimationFrame(step);
+}
+
+function drawArrowTr(g,x1,y1,x2,y2,color){
+  const {ctx}=g;
+  const sx1=toSX(g,x1),sy1=toSY(g,y1),sx2=toSX(g,x2),sy2=toSY(g,y2);
+  const dx=sx2-sx1, dy=sy2-sy1;
+  const len=Math.hypot(dx,dy);
+  if(len<2)return;
+  ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=2*devicePixelRatio;
+  ctx.setLineDash([5*devicePixelRatio,4*devicePixelRatio]);
+  ctx.beginPath();ctx.moveTo(sx1,sy1);ctx.lineTo(sx2,sy2);ctx.stroke();
+  ctx.setLineDash([]);
+  const aw=7*devicePixelRatio;
+  const ang=Math.atan2(dy,dx);
+  ctx.beginPath();
+  ctx.moveTo(sx2,sy2);
+  ctx.lineTo(sx2-aw*Math.cos(ang-Math.PI/6), sy2-aw*Math.sin(ang-Math.PI/6));
+  ctx.lineTo(sx2-aw*Math.cos(ang+Math.PI/6), sy2-aw*Math.sin(ang+Math.PI/6));
+  ctx.closePath();ctx.fill();
+}
+
+function updateTrInfo(){
+  const m=STr.m,n=STr.n,dx=STr.dx,dy=STr.dy,px=STr.px;
+  const py=trF(px);
+  const px2=px+dx, py2=py+dy;
+  const newN=(-m*dx)+n+dy; // y=m(x-dx)+n+dy = mx -m*dx+n+dy
+  const origStr=trLinearStr(m,n);
+  const finalStr=trLinearStr(m,newN);
+  const mCoef=m===1?'':(m===-1?'−':fmtNum(m));
+
+  document.getElementById('tr-eq').textContent=`y = ${origStr}  →  y = ${finalStr}`;
+  document.getElementById('tr-formula-box').innerHTML=
+    `<span style="color:var(--tx2);font-weight:700">점의 이동</span> <span style="color:var(--tx3)">P(${fmtNum(px)}, ${fmtNum(py)}) → P′(${fmtNum(px2)}, ${fmtNum(py2)})</span><br>`+
+    `<span style="color:var(--tx2);font-weight:700">도형의 이동</span> <span style="color:var(--tx3)">y = ${origStr} &nbsp;→&nbsp; y − ${fmtNum(dy)} = ${mCoef}(x − ${fmtNum(dx)}) ${n>=0?'+ '+fmtNum(n):'− '+fmtNum(-n)}</span><br>`+
+    `<span style="color:var(--gn);font-weight:700">전개하면</span> <span style="color:var(--tx3)">y = ${finalStr}</span>`;
+
+  document.getElementById('tr-info').innerHTML=
+    `<div class="ib"><div class="ibl">점 P</div><div class="ibv" style="color:var(--bl)">(${fmtNum(px)}, ${fmtNum(py)})</div></div>`+
+    `<div class="ib"><div class="ibl">점 P′</div><div class="ibv" style="color:var(--rd)">(${fmtNum(px2)}, ${fmtNum(py2)})</div></div>`+
+    `<div class="ib"><div class="ibl">원본 y절편</div><div class="ibv" style="color:var(--bl)">${fmtNum(n)}</div></div>`+
+    `<div class="ib"><div class="ibl">이동 후 y절편</div><div class="ibv" style="color:var(--gn)">${fmtNum(newN)}</div></div>`;
+}
+
+function renderTr(){
+  if(!gTr){
+    gTr=makeAdvGraph('gc_tr',scheduleRenderTr);
+    const _r=gTr.cv.parentElement.getBoundingClientRect();
+    if(_r.width>0){gTr.cv.width=_r.width*devicePixelRatio;gTr.cv.style.width=_r.width+'px';}
+  }
+  const {ctx,cv}=gTr;
+  ctx.clearRect(0,0,cv.width,cv.height);
+  drawAxes(gTr);
+
+  const m=STr.m,n=STr.n;
+  const edx=STr.animT*STr.dx, edy=STr.animT*STr.dy;
+  const showPoint=STr.mode!=='shape';
+  const showShape=STr.mode!=='point';
+
+  let pulseP=0;
+  if(STr.pulseActive) pulseP=Math.min(1,(performance.now()-STr.pulseStart)/STr.pulseDur);
+  const pulseR=STr.pulseActive?6*Math.sin(Math.PI*pulseP):0; // 한 번 커졌다 작아지는 펄스
+  const pulsePoint=STr.pulseActive&&(STr.pulseTarget==='point'||STr.pulseTarget==='both');
+  const pulseShape=STr.pulseActive&&(STr.pulseTarget==='shape'||STr.pulseTarget==='both');
+
+  // 원본 그래프 (점선)
+  ctx.setLineDash([4*devicePixelRatio,3*devicePixelRatio]);
+  drawCurve(gTr, x=>m*x+n, 'rgba(26,95,180,0.55)', 1.5);
+  ctx.setLineDash([]);
+
+  if(showShape){
+    if(pulseShape){
+      ctx.save();ctx.globalAlpha=0.28;
+      drawCurve(gTr, x=>m*(x-edx)+n+edy, '#2D7D46', 2.5+pulseR);
+      ctx.restore();
+    }
+    drawCurve(gTr, x=>m*(x-edx)+n+edy, '#2D7D46', 2.5);
+  }
+
+  if(showPoint){
+    const px=STr.px, py=trF(px);
+    const px2=px+edx, py2=py+edy;
+    if(Math.abs(edx)>0.001||Math.abs(edy)>0.001){
+      drawArrowTr(gTr, px,py, px2,py2, '#C0392B');
+    }
+    if(pulsePoint){
+      drawPulseRing(gTr, px, py, '#1A5FB4', pulseR);
+      drawPulseRing(gTr, px2, py2, '#C0392B', pulseR);
+    }
+    drawPoint(gTr, px, py, '#1A5FB4', 6);
+    drawLabel(gTr, px, py, 'P', '#1A5FB4', -16, -10);
+    drawPoint(gTr, px2, py2, '#C0392B', 6);
+    drawLabel(gTr, px2, py2, 'P′', '#C0392B', 8, -10);
+  }
+
+  updateTrInfo();
+
+  drawEqLabel(gTr,[
+    {text:`y = ${trLinearStr(m,n)}`,bold:true,color:'#1A5FB4'},
+    {text:`(a, b) = (${fmtNum(STr.dx)}, ${fmtNum(STr.dy)})`,bold:false,color:'#8B5E00'},
+    {text:`y = ${trLinearStr(m,(-m*STr.dx)+n+STr.dy)}`,bold:false,color:'#2D7D46'},
+  ]);
+}
+
+function openTrLawModal(){
+  const m=document.getElementById('trLawModal');
+  if(!m._placed){m.style.top='90px';m.style.left='50%';m.style.transform='translateX(-50%)';m._placed=true;}
+  m.style.display='block';
+  document.querySelectorAll('#tr-law-btns .law-btn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('trLawStats').innerHTML=`<span style="color:var(--tx3);font-size:12px;font-family:inherit">← 위 항목을 선택하면 수치가 표시돼요</span>`;
+  document.getElementById('trLawDesc').innerHTML='';
+  triggerTrPulse('both'); // 모달을 여는 순간 그래프의 점·도형이 반짝여서 "여기 보라"는 신호
+}
+function closeTrLawModal(){
+  const m=document.getElementById('trLawModal');
+  m.style.display='none';
+  m.style.top='90px'; m.style.left='50%'; m.style.transform='translateX(-50%)';
+  m._placed=false;
+}
+
+function setTrLaw(idx){
+  document.querySelectorAll('#tr-law-btns .law-btn').forEach((b,i)=>b.classList.toggle('on',i===idx));
+  const m=STr.m,n=STr.n,dx=STr.dx,dy=STr.dy,px=STr.px;
+  const py=trF(px);
+  const px2=px+dx, py2=py+dy;
+
+  if(idx===0){
+    document.getElementById('trLawStats').innerHTML=
+      `P(x, y) → P′(x+a, y+b)<br>`+
+      `지금: P(${fmtNum(px)}, ${fmtNum(py)}) → P′(${fmtNum(px2)}, ${fmtNum(py2)})<br>`+
+      `a = ${fmtNum(dx)}, b = ${fmtNum(dy)}`;
+    document.getElementById('trLawDesc').innerHTML=lawDesc(
+      `점 (x, y) → (x + a, y + b)`,
+      `오른쪽 그래프에서 지금 반짝이는 두 점을 봐봐.<br>
+      <b style="color:var(--bl)">파란 점 P</b>는 (${fmtNum(px)}, ${fmtNum(py)})에 있고,<br>
+      <b style="color:var(--rd)">빨간 점 P′</b>는 (${fmtNum(px2)}, ${fmtNum(py2)})에 있어.<br><br>
+      x좌표: ${fmtNum(px)} + ${fmtNum(dx)} = <b>${fmtNum(px2)}</b><br>
+      y좌표: ${fmtNum(py)} + ${fmtNum(dy)} = <b>${fmtNum(py2)}</b><br>
+      이렇게 <b>좌표에 그대로 더한 것</b> 뿐이야. 점을 옮기는 건 이렇게<br>
+      직관적이라서 대부분 헷갈리지 않아.`,
+      `점의 평행이동은 계산이 단순해서<br>
+      도형의 이동 문제를 풀 때 "그래프 위의 한 점"으로 바꿔서<br>
+      검산하는 용도로 자주 사용해.`
+    );
+    triggerTrPulse('point');
+  } else {
+    const newN=(-m*dx)+n+dy;
+    const calcY=m*px2+n;
+    const diff=calcY-py2;
+    const mismatchLine=Math.abs(diff)<0.01
+      ? `어? x=${fmtNum(px2)}일 때 원래 식도 y=${fmtNum(calcY)}로 P′의 y좌표(${fmtNum(py2)})와 우연히 같네!<br>
+         이건 지금 이동 방향(a, b)이 마침 원래 그래프와 나란하기 때문이야.<br>
+         a나 b 슬라이더를 조금 바꿔서 다시 확인해봐 — 보통은 안 맞아!`
+      : `x=${fmtNum(px2)}일 때 원래 식 y = ${trLinearStr(m,n)} 값은 <b>${fmtNum(calcY)}</b>인데,<br>
+         실제 P′의 y좌표는 <b>${fmtNum(py2)}</b>니까 <b style="color:var(--rd)">안 맞아!</b>`;
+    document.getElementById('trLawStats').innerHTML=
+      `y = f(x) → y − b = f(x − a)<br>`+
+      `지금: y = ${trLinearStr(m,n)} → y = ${trLinearStr(m,newN)}<br>`+
+      `(x 자리에 x−a, y 자리에 y−b 대입)`;
+    document.getElementById('trLawDesc').innerHTML=lawDesc(
+      `y − b = f(x − a)`,
+      `오른쪽 그래프에서 지금 반짝이는 <b style="color:var(--gn)">초록 그래프</b>와<br>
+      그 위의 <b style="color:var(--rd)">빨간 점 P′</b>(${fmtNum(px2)}, ${fmtNum(py2)})를 보자.<br><br>
+
+      <div style="margin:2px 0 10px;padding:7px 12px;background:rgba(26,95,180,0.08);border:1px solid rgba(26,95,180,0.25);border-radius:8px">
+      <b style="color:var(--bl)">📘 파란 그래프 식 (원래 함수)</b><br>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:13px">y = ${trLinearStr(m,n)}</span>
+      </div>
+
+      <b>① 그대로 넣어보면 안 맞아</b><br>
+      빨간 점 P′를 방금 위에 적은 <b style="color:var(--bl)">파란 식</b>에 그대로 넣으면?<br>
+      ${mismatchLine}<br><br>
+
+      <b>② 왜 안 맞을까?</b><br>
+      P′는 원래부터 파란 그래프 위에 있던 점이 아니야.<br>
+      <b style="color:var(--bl)">파란 점 P</b>(${fmtNum(px)}, ${fmtNum(py)})를 (a, b) = (${fmtNum(dx)}, ${fmtNum(dy)})만큼<br>
+      <b>"더해서"</b> 옮겨 만든 새 점이야. 그러니까 파란 식은 P′를 알 리가 없지.<br><br>
+
+      <b>③ 그럼 원래 점은 어떻게 찾을까?</b><br>
+      새 점을 만들 때 (+a, +b)를 더했으니까, 거꾸로 원래 점으로<br>
+      되돌아가려면 반대로 <b>(−a, −b)</b>를 하면 돼.<br>
+      x: ${fmtNum(px2)} − ${fmtNum(dx)} = ${fmtNum(px)} &nbsp;/&nbsp; y: ${fmtNum(py2)} − ${fmtNum(dy)} = ${fmtNum(py)}<br>
+      → 원래 <b style="color:var(--bl)">파란 점 P</b>(${fmtNum(px)}, ${fmtNum(py)}) 맞다! 이 점은 파란 식을 만족해. ✓<br><br>
+
+      <b>④ 이걸 모든 점에 대한 식으로 일반화하면</b><br>
+      <b style="color:var(--gn)">초록 그래프</b> 위에는 P′뿐 아니라 무수히 많은 점이 있어.<br>
+      그 점들을 통틀어서 (x, y)라고 하자. 이 (x, y)도 방금과 똑같이<br>
+      (x−a, y−b)로 되돌리면 <b style="color:var(--bl)">파란 그래프</b> 위의 점이 되니까,<br>
+      그 되돌린 점이 <b style="color:var(--bl)">파란 식 y = f(x)</b>를 만족해야 해:<br>
+      <b>y − b = f(x − a)</b><br>
+      <span style="font-size:12px;color:var(--tx3)">→ 이 식이 정리되면 바로 <b style="color:var(--gn)">초록 그래프</b>의 식이 되는 거야!</span><br><br>
+
+      <b>⑤ 비유로 확 와닿게 정리하면</b><br>
+      집에서 학교까지 오른쪽으로 5칸 걸어갔다고 하자.<br>
+      학교에서 다시 집으로 돌아가려면? 오른쪽으로 5칸 더 가면 안 되고,<br>
+      반대 방향인 <b>왼쪽으로 5칸</b> 가야 집이 나오지?<br><br>
+      그래프의 이동도 똑같아. 점을 (+a, +b)만큼 <b>"이동"</b>시켰다면,<br>
+      그 이동된 점에서 원래 자리로 <b>"되돌아가려면"</b> 반드시<br>
+      (−a, −b), 즉 반대 방향으로 가야 해.<br>
+      식 y=f(x)는 <b>"원래 자리에 있는 점만 알아듣는 언어"</b>라서,<br>
+      새 점을 이 언어로 통역하려면 먼저 원래 자리로<br>
+      되돌려놔야(빼야) 알아들을 수 있는 거야.<br><br>
+
+      <b>💬 한 줄로 정리하면</b><br>
+      여기서 <b>"점을 만드는 방향"</b>이란 원래 점을 옮겨서<br>
+      새 점을 만들 때 쓴 방향, 즉 <b>(+a, +b)</b>를 말해.<br>
+      <b>"식에 넣는 방향"</b>이란 그 새 점을 원래 함수 식에 넣기 위해<br>
+      거꾸로 되돌리는 방향, 즉 <b>(−a, −b)</b>를 말하고.<br>
+      점은 <b>더하기(+a, +b)</b>로 이동했지만, 식에는<br>
+      <b>빼기(−a, −b)</b>로 들어가 — 마치 걸어갔던 길을 그대로<br>
+      되짚어 돌아오는 것처럼, 이 둘이 정확히 반대 방향인 거야!`,
+      `f(x) = mx + n을 (a, b)만큼 평행이동하면<br>
+      y = m(x − a) + n + b 로 바뀌어. 전개하면 y절편이<br>
+      n + b − ma 로 바뀐다는 걸 기억해두면 계산이 빨라져.`,
+      `왼쪽 슬라이더로 a, b를 바꾸면서 P와 P′가 어떻게 움직이는지,<br>
+      그리고 도형(그래프)이 어떻게 옮겨지는지 동시에 관찰해봐.<br>
+      점은 "더하기"인데 식은 "빼기"로 들어가는 이유를 여기서 눈으로 확인할 수 있어!`
+    );
+    triggerTrPulse('shape');
+  }
+}
+
+// 드래그 (평행이동 법칙 모달)
+(function(){
+  const handle=document.getElementById('trLawHandle');
+  const modal=document.getElementById('trLawModal');
+  let drag=false,ox=0,oy=0;
+  handle.addEventListener('mousedown',e=>{drag=true;const r=modal.getBoundingClientRect();modal.style.left=r.left+'px';modal.style.top=r.top+'px';modal.style.transform='none';ox=e.clientX-r.left;oy=e.clientY-r.top;handle.style.cursor='grabbing';e.preventDefault();});
+  document.addEventListener('mousemove',e=>{if(!drag)return;modal.style.left=Math.max(0,Math.min(window.innerWidth-modal.offsetWidth,e.clientX-ox))+'px';modal.style.top=Math.max(0,Math.min(window.innerHeight-modal.offsetHeight,e.clientY-oy))+'px';});
+  document.addEventListener('mouseup',()=>{drag=false;handle.style.cursor='grab';});
+  handle.addEventListener('touchstart',e=>{const r=modal.getBoundingClientRect();modal.style.left=r.left+'px';modal.style.top=r.top+'px';modal.style.transform='none';const t=e.touches[0];ox=t.clientX-r.left;oy=t.clientY-r.top;},{passive:true});
+  handle.addEventListener('touchmove',e=>{const t=e.touches[0];modal.style.left=Math.max(0,Math.min(window.innerWidth-modal.offsetWidth,t.clientX-ox))+'px';modal.style.top=Math.max(0,Math.min(window.innerHeight-modal.offsetHeight,t.clientY-oy))+'px';e.preventDefault();},{passive:false});
+})();
+
+// ════════════════════════════════════════
 // 📐 조각함수 법칙 모달
 // ════════════════════════════════════════
 function openPwLawModal(){
@@ -6942,6 +7380,7 @@ function initDeepTab(){
   buildPwSliders();
   buildMmSliders();
   buildCompSliders();
+  buildTrSliders();
 }
 
 
