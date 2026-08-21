@@ -1231,6 +1231,27 @@ canvas{width:100%;height:440px;display:block}
       <div>
         <div class="gcard">
           <canvas id="gc_comp" style="height:480px"></canvas>
+
+          <!-- 🔗 대응 트레이서 — 그래프 바로 아래 배치 (그래프와 동시에 보기 쉽게) -->
+          <div id="comp-tracer-block" style="margin-top:10px;padding:12px 14px;background:var(--pu-bg);border:1px solid var(--pu-lt);border-radius:10px">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+              <div style="font-size:13px;font-weight:700;color:var(--pu)">🔗 대응 트레이서 (4상한 그래프)</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <button class="db" id="comp-tracer-toggle" onclick="toggleCompTracer()">트레이서 켜기</button>
+                <button class="db" onclick="animateCompTracer()">▶ 자동 스윕</button>
+              </div>
+            </div>
+            <div style="font-size:11.5px;color:var(--tx3);margin-bottom:8px;line-height:1.6">슬라이더로 점을 하나씩 옮겨봐! 지나간 점은 연하게 남아서 쌓여.</div>
+            <div class="cw" id="comp-x0-wrap" style="display:none;margin-bottom:0">
+              <div class="cw-top"><span class="cw-name">x₀</span>
+                <input class="cw-num" type="number" id="comp-x0n" value="-1" step="0.1"
+                  onchange="fromCompX0(this.value)" onkeydown="if(event.key==='Enter')fromCompX0(this.value)">
+              </div>
+              <input type="range" id="comp-x0r" min="-6" max="6" step="0.1" value="-1" oninput="fromCompX0(this.value)">
+            </div>
+            <div id="comp-tracer-info" style="display:none;font-size:12px;color:var(--tx3);line-height:1.8;padding:7px 10px;background:var(--sur);border-radius:8px;margin-top:8px"></div>
+          </div>
+
           <!-- 식 표시 박스 -->
           <div id="comp-formula-box" style="margin-top:10px;padding:10px 14px;background:var(--bg);border:1px solid var(--bor);border-radius:10px;font-size:13px;line-height:2;min-height:44px"></div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
@@ -1239,6 +1260,7 @@ canvas{width:100%;height:440px;display:block}
               <span style="display:inline-block;width:10px;height:3px;background:#C0392B;margin-right:4px;margin-left:10px;vertical-align:middle"></span>g(x)
               <span style="display:inline-block;width:10px;height:3px;background:#2D7D46;margin-right:4px;margin-left:10px;vertical-align:middle"></span>f(g(x))
             </div>
+            <button id="comp-mono-toggle" onclick="toggleCompMono()" style="display:flex;align-items:center;gap:6px;background:var(--gn-bg);border:1px solid var(--gn-lt);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--gn);font-weight:600;cursor:pointer;font-family:inherit;">📐 증가·감소 구간 보기</button>
             <button onclick="openCompLawModal()" style="display:flex;align-items:center;gap:6px;background:var(--pu-bg);border:1px solid var(--pu-lt);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--pu);font-weight:600;cursor:pointer;font-family:inherit;">🔗 법칙 &amp; 개념 탐구</button>
             <div style="font-size:11px;color:var(--tx3)">🖱️ 휠 줌 · 드래그 · 더블클릭 초기화</div>
           </div>
@@ -6546,9 +6568,84 @@ function renderMm(){
 const SComp={
   mode:'comp',
   f:{deg:1,c:[2,1,0,0,0]},
-  g:{deg:1,c:[1,-1,0,0,0]}
+  g:{deg:1,c:[1,-1,0,0,0]},
+  tracerOn:false,   // 4상한 대응 트레이서 on/off
+  x0:-1,             // 트레이서 기준점
+  tracerAnimating:false,
+  trail:[],          // 지나간 점들의 흔적 [{x0,fgy}, ...]
+  _trailKeys:new Set(),
+  monoOn:false        // 증가·감소 구간(단조성) 표시 on/off
 };
-let gComp=null,rafComp=null;
+let gComp=null,rafComp=null,tracerRaf=null;
+
+function resetCompTrail(){ SComp.trail=[]; SComp._trailKeys=new Set(); }
+
+// f∘g의 구간별 증가/감소를 연쇄법칙 부호(g'(x)·f'(g(x)))로 판정
+function getCompMonoIntervals(){
+  const[ga,gb]=SComp.g.c, gDeg=SComp.g.deg;
+  const[fa,fb]=SComp.f.c, fDeg=SComp.f.deg;
+  let breaks=[];
+  // g의 꼭짓점 (g가 2차일 때만 존재)
+  if(gDeg===2 && Math.abs(ga)>1e-9) breaks.push(-gb/(2*ga));
+  // f의 꼭짓점을 g로 되돌린 x값 (f가 2차일 때만 발생)
+  if(fDeg===2 && Math.abs(fa)>1e-9){
+    const xf=-fb/(2*fa);
+    if(gDeg===1){
+      if(Math.abs(ga)>1e-9) breaks.push((xf-gb)/ga);
+    } else if(Math.abs(ga)>1e-9){
+      const A=ga,B=gb,C=SComp.g.c[2]-xf;
+      const disc=B*B-4*A*C;
+      if(disc>=0){
+        const sq=Math.sqrt(disc);
+        breaks.push((-B+sq)/(2*A));
+        breaks.push((-B-sq)/(2*A));
+      }
+    }
+  }
+  breaks=[...new Set(breaks.map(b=>Math.round(b*1000)/1000))].filter(b=>Math.abs(b)<50).sort((a,b)=>a-b);
+
+  const bounds=[-Infinity,...breaks,Infinity];
+  const intervals=[];
+  for(let i=0;i<bounds.length-1;i++){
+    const lo=bounds[i], hi=bounds[i+1];
+    let sample;
+    if(lo===-Infinity && hi===Infinity) sample=0;
+    else if(lo===-Infinity) sample=hi-2;
+    else if(hi===Infinity) sample=lo+2;
+    else sample=(lo+hi)/2;
+    const gp=gDeg===1?ga:2*ga*sample+gb;      // g'(sample)
+    const gVal=compG(sample);
+    const fp=fDeg===1?fa:2*fa*gVal+fb;         // f'(g(sample))
+    const dir=Math.sign(gp*fp);                 // +1 증가, -1 감소, 0 판단불가
+    intervals.push({lo,hi,sample,dir});
+  }
+  return {breaks,intervals};
+}
+
+function compMonoTableHTML(){
+  const{intervals}=getCompMonoIntervals();
+  return intervals.map(iv=>{
+    const loStr=iv.lo===-Infinity?'−∞':fmtNum(iv.lo);
+    const hiStr=iv.hi===Infinity?'∞':fmtNum(iv.hi);
+    const dirStr=iv.dir>0?'<b style="color:var(--gn)">증가 ↗</b>':iv.dir<0?'<b style="color:var(--rd)">감소 ↘</b>':'<span style="color:var(--tx3)">판단불가</span>';
+    // 구간 안에서 실제 두 x값을 골라 f(g(x))가 진짜 커지는지/작아지는지 숫자로 보여줌
+    let xa,xb;
+    if(iv.lo===-Infinity && iv.hi===Infinity){ xa=-1; xb=1; }
+    else if(iv.lo===-Infinity){ xa=iv.hi-2; xb=iv.hi-0.5; }
+    else if(iv.hi===Infinity){ xa=iv.lo+0.5; xb=iv.lo+2; }
+    else { const span=iv.hi-iv.lo; xa=iv.lo+span*0.25; xb=iv.lo+span*0.75; }
+    const ya=compFG(xa), yb=compFG(xb);
+    const proof=`x=${fmtNum(xa)} → f(g(x))=${fmtNum(ya)},&nbsp; x=${fmtNum(xb)} → f(g(x))=${fmtNum(yb)}`;
+    return `${loStr} &lt; x &lt; ${hiStr} : ${dirStr}<br><span style="font-size:11px;color:var(--tx3)">　└ 실제로 대입: ${proof}</span>`;
+  }).join('<br>');
+}
+
+function toggleCompMono(){
+  SComp.monoOn=!SComp.monoOn;
+  const b=document.getElementById('comp-mono-toggle');
+  if(b){b.classList.toggle('on',SComp.monoOn);b.textContent=SComp.monoOn?'📐 구간 숨기기':'📐 증가·감소 구간 보기';}
+  scheduleRenderComp();
+}
 
 function compF(x){const[a,b,c]=SComp.f.c;const deg=SComp.f.deg;if(deg===1)return a*x+b;return a*x*x+b*x+c;}
 function compG(x){const[a,b,c]=SComp.g.c;const deg=SComp.g.deg;if(deg===1)return a*x+b;return a*x*x+b*x+c;}
@@ -6570,13 +6667,27 @@ function buildCompSliders(){
         </div>`).join('');
   });
 }
-function setCompDeg(fn,deg){SComp[fn].deg=deg;SComp[fn].c=[1,0,0,0,0];buildCompSliders();scheduleRenderComp();}
-function fromCompSlider(fn,idx,val){const v=parseFloat(val);SComp[fn].c[idx]=v;const n=document.getElementById('comp-'+fn+'n'+idx);if(n)n.value=v.toFixed(2);scheduleRenderComp();}
-function fromCompNum(fn,idx,val){let v=parseFloat(val);if(isNaN(v))return;SComp[fn].c[idx]=v;scheduleRenderComp();}
+function setCompDeg(fn,deg){
+  SComp[fn].deg=deg;SComp[fn].c=[1,0,0,0,0];buildCompSliders();resetCompTrail();
+  const row=document.getElementById('comp-'+fn+'-deg');
+  if(row) row.querySelectorAll('.db').forEach(b=>b.classList.toggle('on', b.getAttribute('onclick')===`setCompDeg('${fn}',${deg})`));
+  scheduleRenderComp();
+}
+function fromCompSlider(fn,idx,val){const v=parseFloat(val);SComp[fn].c[idx]=v;const n=document.getElementById('comp-'+fn+'n'+idx);if(n)n.value=v.toFixed(2);resetCompTrail();scheduleRenderComp();}
+function fromCompNum(fn,idx,val){let v=parseFloat(val);if(isNaN(v))return;SComp[fn].c[idx]=v;resetCompTrail();scheduleRenderComp();}
 function setCompMode(mode){
   SComp.mode=mode;
   document.querySelectorAll('#comp-mode-row .db').forEach(b=>b.classList.toggle('on',b.getAttribute('onclick').includes("'"+mode+"'")));
   document.getElementById('comp-g-section').style.display=mode==='inv'?'none':'';
+  document.getElementById('comp-tracer-block').style.display=mode==='inv'?'none':'';
+  if(mode==='inv'){
+    SComp.tracerOn=false; SComp.tracerAnimating=false;
+    if(tracerRaf){cancelAnimationFrame(tracerRaf);tracerRaf=null;}
+    const tb=document.getElementById('comp-tracer-toggle');
+    if(tb){tb.classList.remove('on');tb.textContent='트레이서 켜기';}
+    const xw=document.getElementById('comp-x0-wrap'); if(xw)xw.style.display='none';
+    const ti=document.getElementById('comp-tracer-info'); if(ti)ti.style.display='none';
+  }
   // 역함수 모드: f를 1차로 강제 (일대일 보장), 2차 버튼 비활성화
   const fDegRow=document.getElementById('comp-f-deg');
   if(fDegRow){
@@ -6596,6 +6707,45 @@ function setCompMode(mode){
   scheduleRenderComp();
 }
 function scheduleRenderComp(){if(rafComp)cancelAnimationFrame(rafComp);rafComp=requestAnimationFrame(renderComp);}
+
+function toggleCompTracer(){
+  SComp.tracerOn=!SComp.tracerOn;
+  const tb=document.getElementById('comp-tracer-toggle');
+  tb.classList.toggle('on',SComp.tracerOn);
+  tb.textContent=SComp.tracerOn?'트레이서 끄기':'트레이서 켜기';
+  document.getElementById('comp-x0-wrap').style.display=SComp.tracerOn?'':'none';
+  document.getElementById('comp-tracer-info').style.display=SComp.tracerOn?'':'none';
+  scheduleRenderComp();
+}
+function fromCompX0(val){
+  const v=parseFloat(val);
+  if(isNaN(v))return;
+  SComp.x0=v;
+  const r=document.getElementById('comp-x0r'), n=document.getElementById('comp-x0n');
+  if(r)r.value=v;
+  if(n)n.value=v;
+  scheduleRenderComp();
+}
+function animateCompTracer(){
+  if(SComp.mode!=='comp')return;
+  if(!SComp.tracerOn) toggleCompTracer();
+  if(SComp.tracerAnimating)return;
+  SComp.tracerAnimating=true;
+  const xMin=-6,xMax=6,dur=3000;
+  const start=performance.now();
+  function step(now){
+    const p=Math.min(1,(now-start)/dur);
+    SComp.x0=xMin+(xMax-xMin)*p;
+    const r=document.getElementById('comp-x0r'), n=document.getElementById('comp-x0n');
+    if(r)r.value=SComp.x0.toFixed(2);
+    if(n)n.value=SComp.x0.toFixed(2);
+    renderComp();
+    if(p<1){ tracerRaf=requestAnimationFrame(step); }
+    else { SComp.tracerAnimating=false; tracerRaf=null; renderComp(); }
+  }
+  tracerRaf=requestAnimationFrame(step);
+}
+
 
 function fmtLinear(fn){
   const[a,b]=SComp[fn].c;
@@ -6631,6 +6781,73 @@ function renderComp(){
     document.getElementById('comp-info').innerHTML=
       `<div class="ib"><div class="ibl">f(g(0))</div><div class="ibv" style="color:var(--gn)">${compFG(0).toFixed(3)}</div></div>`+
       `<div class="ib"><div class="ibl">f(g(1))</div><div class="ibv" style="color:var(--gn)">${compFG(1).toFixed(3)}</div></div>`;
+
+    // 🔗 4상한 대응 트레이서: x0 → g(x0) → y=x 반사 → f(g(x0)) → 합성함수 위의 점
+    if(SComp.tracerOn){
+      const x0=SComp.x0;
+      const gy=compG(x0);
+      const fgy=compF(gy);
+
+      // 지나간 점 흔적(트레일) 기록 — 0.05 간격으로 중복 방지
+      const key=Math.round(x0*20);
+      if(!SComp._trailKeys.has(key)){
+        SComp._trailKeys.add(key);
+        SComp.trail.push({x0,fgy});
+        if(SComp.trail.length>500){
+          const old=SComp.trail.shift();
+          SComp._trailKeys.delete(Math.round(old.x0*20));
+        }
+      }
+      // 흔적 점들 먼저 그리기 (연한 초록, 현재 점보다 아래 레이어)
+      SComp.trail.forEach(p=>{ drawPoint(gComp, p.x0, p.fgy, 'rgba(45,125,70,0.35)', 3); });
+
+      // y=x 거울선 + 라벨
+      ctx.setLineDash([4*devicePixelRatio,4*devicePixelRatio]);
+      drawCurve(gComp,x=>x,'rgba(139,94,0,0.45)',1.5);
+      ctx.setLineDash([]);
+      const yxLabelX=toWX(gComp, cv.width*0.8);
+      drawLabel(gComp, yxLabelX, yxLabelX, 'y = x', 'rgba(139,94,0,0.9)', 6, -8);
+
+      // ① x0 → g(x0)
+      drawArrowTr(gComp, x0, 0, x0, gy, 'rgba(192,57,43,0.65)');
+      drawPoint(gComp, x0, gy, '#C0392B', 6);
+      drawLabel(gComp, x0, gy/2, '①', '#C0392B', -18, 4);
+
+      // ② g(x0) → y=x 거울선 (수평 이동, "출력을 입력으로 환승")
+      drawArrowTr(gComp, x0, gy, gy, gy, 'rgba(139,94,0,0.7)');
+      drawPoint(gComp, gy, gy, 'rgba(139,94,0,0.9)', 5);
+      drawLabel(gComp, (x0+gy)/2, gy, '②', 'rgba(139,94,0,0.9)', -5, -12);
+
+      // ③ 거울점 → f(g(x0))
+      drawArrowTr(gComp, gy, gy, gy, fgy, 'rgba(26,95,180,0.65)');
+      drawPoint(gComp, gy, fgy, '#1A5FB4', 6);
+      drawLabel(gComp, gy, (gy+fgy)/2, '③', '#1A5FB4', 8, 4);
+
+      // ④ f(g(x0)) → 최종점 (x0, f(g(x0)))을 합성함수 그래프 위에 표시
+      drawArrowTr(gComp, gy, fgy, x0, fgy, 'rgba(45,125,70,0.7)');
+      drawPoint(gComp, x0, fgy, '#2D7D46', 7);
+      drawLabel(gComp, (gy+x0)/2, fgy, '④', '#2D7D46', -5, -14);
+
+      document.getElementById('comp-tracer-info').innerHTML=
+        `<b style="color:var(--rd)">① x₀ = ${fmtNum(x0)} → g(x₀) = ${fmtNum(gy)}</b><br>`+
+        `<span style="color:rgba(139,94,0,0.9)">② y=x 거울선으로 환승</span><br>`+
+        `<b style="color:var(--bl)">③ f(g(x₀)) = ${fmtNum(fgy)}</b><br>`+
+        `<b style="color:var(--gn)">④ 합성함수 위의 점 (${fmtNum(x0)}, ${fmtNum(fgy)})</b><br>`+
+        `<span style="color:var(--tx3);font-size:11px">🧵 지금까지 지나온 점: ${SComp.trail.length}개 — 다른 x₀로도 옮겨봐!</span>`;
+    }
+
+    // 📐 증가·감소 구간(단조성) 표시
+    if(SComp.monoOn){
+      const{breaks,intervals}=getCompMonoIntervals();
+      breaks.forEach(b=>{ drawVLine(gComp, b, 'rgba(139,94,0,0.4)', [4,4]); });
+      intervals.forEach(iv=>{
+        const arrow=iv.dir>0?'↗ 증가':iv.dir<0?'↘ 감소':'?';
+        const color=iv.dir>0?'#2D7D46':iv.dir<0?'#C0392B':'var(--tx3)';
+        const labelX=iv.sample;
+        const labelY=compFG(labelX);
+        drawLabel(gComp, labelX, labelY, arrow, color, -14, iv.dir>0?-16:18);
+      });
+    }
   } else {
     // 역함수 모드 — 1차만 (일대일 보장)
     const[a,b]=SComp.f.c;
@@ -7207,7 +7424,7 @@ function setMmLaw(idx){
 // ════════════════════════════════════════
 // 합성함수 모드별 버튼 정의
 const COMP_LAW_BTNS={
-  comp:['① 합성의 정의','② 교환법칙 불성립','③ 합성의 연속·미분','④ 수능 출제 유형'],
+  comp:['① 합성의 정의','② 교환법칙 불성립','③ 합성의 연속·미분','④ 수능 출제 유형','⑤ 기하적 대응법','⑥ 개형 빨리 그리기'],
   inv: ['① 역함수 존재 조건','② y=x 대칭','③ f∘f⁻¹ = 항등함수','④ 수능 출제 유형']
 };
 
@@ -7247,7 +7464,11 @@ function setCompLaw(idx){
       `f(g(0)) = <strong style="color:var(--gn)">${compFG(0).toFixed(3)}</strong><br>f(g(1)) = <strong style="color:var(--gn)">${compFG(1).toFixed(3)}</strong><br>f(g(2)) = <strong style="color:var(--gn)">${compFG(2).toFixed(3)}</strong>`,
       `f(g(1)) = <strong style="color:var(--gn)">${compFG(1).toFixed(3)}</strong> &nbsp; g(f(1)) = <strong style="color:var(--rd)">${compF(compG(1))<compFG(1)?compF(compG(1)).toFixed(3):compG(compF(1)).toFixed(3)}</strong><br>f∘g ${Math.abs(compFG(1)-compG(compF(1)))<0.001?'= g∘f (우연히 같음)':'≠ g∘f'}`,
       `f(g(x)) = <strong style="color:var(--gn)">${fStr} ∘ ${gStr}</strong><br>f 차수: ${fDeg}차 &nbsp; g 차수: ${gDeg}차<br>합성 결과 최고차: ${fDeg*gDeg}차`,
-      `현재: f(x)=${fStr}<br>g(x)=${gStr}<br>f(g(x)) 확인 슬라이더로 직접 탐구해봐`
+      `현재: f(x)=${fStr}<br>g(x)=${gStr}<br>f(g(x)) 확인 슬라이더로 직접 탐구해봐`,
+      `왼쪽 그래프에서 <strong style="color:var(--pu)">대응 트레이서</strong>가<br>
+      x₀ = −2 지점 하나로 켜져요. 이 점의 과정을 먼저<br>
+      찬찬히 살펴보고, 슬라이더로 다른 점들도 옮겨봐!`,
+      compMonoTableHTML()
     ];
     const descs=[
       lawDesc(
@@ -7257,7 +7478,10 @@ function setCompLaw(idx){
         예: f(x)=2x+1, g(x)=x²이면<br>
         (f∘g)(x) = f(x²) = 2x²+1<br>
         (g∘f)(x) = g(2x+1) = (2x+1)² ← 전혀 달라!<br>
-        그래프에서 초록선이 f(g(x))야. 슬라이더로 f,g를 바꾸면서 확인해봐.`,
+        그래프에서 초록선이 f(g(x))야. 슬라이더로 f,g를 바꾸면서 확인해봐.<br><br>
+        <span style="color:var(--pu)">🔗 어떻게 눈으로 확인하는지 궁금하면<br>
+        아래 "⑤ 기하적 대응법" 항목을 눌러봐 — 대응 트레이서가<br>
+        자동으로 실행되면서 원리를 그래프에서 보여줄 거야.</span>`,
         `f(g(a))=k 풀기:<br>
         ① g(a)=t로 치환 → f(t)=k → t값 구하기<br>
         ② g(a)=t → a값 구하기 (2단계)<br>
@@ -7300,10 +7524,113 @@ function setCompLaw(idx){
         `수능에서 합성함수는 단독으로 나오기보다<br>
         극한·미분·적분 문제 안에 포함되어 나오는 경우가 많아.<br>
         g(x)의 치역과 f의 정의역 범위 확인이 핵심이야.`
+      ),
+      lawDesc(
+        `y=x 거울선 → "출력"을 "입력"으로 환승`,
+        `지금 그래프에 나온 초록 점이 어떻게 만들어지는지, 그 원리를 알아보자.<br><br>
+        <b>① x₀에서 출발해서 위로 올라가면</b><br>
+        g그래프와 만나는 점의 y좌표가 바로 g(x₀)야.<br>
+        그런데 이 값은 지금 "y좌표"로 표현돼 있어.<br><br>
+        <b>② 문제는 다음 단계야</b><br>
+        f(g(x₀))를 구하려면 g(x₀)를 f의 <b>입력(x좌표)</b>으로 써야 하는데,<br>
+        방금 구한 건 <b>출력(y좌표)</b>이잖아. 좌표축이 안 맞아서 그냥은 못 써.<br><br>
+        <b>③ 여기서 y=x 거울선이 등장</b><br>
+        y=x 위의 모든 점은 x좌표와 y좌표가 항상 같아.<br>
+        그러니까 (x₀, g(x₀))에서 수평으로 이동해서 y=x와 만나는 점을 찾으면,<br>
+        그 점은 정확히 (g(x₀), g(x₀))가 돼 — <b>x좌표도 g(x₀)</b>인 거지!<br>
+        이제 g(x₀)이 "입력값"으로 쓸 수 있는 x좌표가 된 거야.<br><br>
+        <b>④ 그 x좌표로 f그래프까지 수직으로 올라가면</b><br>
+        f(g(x₀))를 읽을 수 있어. 마지막으로 이 값을 원래 x₀ 자리로<br>
+        수평이동시켜서, 합성함수 그래프 위에 점을 찍는 거야.<br><br>
+        <b>⑤ 이 과정을 모든 점에 반복하면?</b><br>
+        방금은 x₀ <b>하나</b>에 대해서만 ①~④를 따라갔지만,<br>
+        사실 그래프 위의 <b>모든 점</b>에 대해 똑같은 과정이 반복돼.<br>
+        왼쪽 슬라이더로 점을 하나씩 옮겨봐 — 지나간 자리마다<br>
+        <b style="color:var(--gn)">연한 초록 점</b>이 남아서 계속 쌓일 거야.<br>
+        그 점들을 다 모으면 그게 바로 <b style="color:var(--gn)">f(g(x))의 전체 그래프</b>야!<br>
+        <b>"모든 점이 y=x로 한 번 보내졌다가, 다시 함숫값으로<br>
+        튀어나오는"</b> 과정이 겹겹이 쌓인 게 합성함수의 그래프인 거지.<br><br>
+        <b>💬 핵심</b><br>
+        y=x 거울선은 <b>"출력 승강장에서 입력 승강장으로 갈아타는<br>
+        환승역"</b> 같은 역할을 해. 이 방법은 <b>f, g가 몇 차 함수든<br>
+        상관없이</b> 똑같이 통해서, 2차∘2차처럼 식으로는 감이<br>
+        안 잡히는 경우에 특히 유용해.`,
+        `수능에서 "그래프가 주어진 두 함수 f, g의 합성함수 개형"을<br>
+        묻는 문제가 바로 이 원리야. 함수식 없이 그래프만 주어져도<br>
+        이 방법으로 f(g(x))의 개형을 점 찍어가며 추론할 수 있어.<br>
+        왼쪽 "대응 트레이서"를 켜고 x₀를 슬라이더로 하나씩<br>
+        옮기면서, 연한 초록 점이 쌓이는 걸 직접 지켜봐!`
+      ),
+      lawDesc(
+        `방향이 같으면 증가, 다르면 감소 — 단, f는 항상 g(x)의 "출력값" 기준!`,
+        `트레이서처럼 점을 일일이 확인하지 않고도, 규칙 하나로<br>
+        f(g(x))의 개형을 빠르게 그릴 수 있어. 근데 이 규칙, 순서가 중요해.<br><br>
+        <b>⚠️ 예시부터 먼저 보자 (다들 여기서 헷갈려)</b><br>
+        f(x)=x², g(x)=−0.2x²이고, x&gt;0 구간을 볼게.<br>
+        g(1)=−0.2, g(2)=−0.8 → g는 확실히 <b>감소</b>야.<br>
+        근데 f(g(1))=f(−0.2)=0.04, f(g(2))=f(−0.8)=0.64<br>
+        → f(g(x))는 오히려 <b style="color:var(--gn)">증가</b>했어!<br><br>
+        왜 이럴까? "f가 증가냐 감소냐"를 볼 때, <b style="color:var(--rd)">x값(1, 2)이 아니라<br>
+        g(x)가 실제로 뱉어낸 값(−0.2, −0.8)을 f에 넣어서</b> 봐야 하기 때문이야.<br>
+        f(x)=x²은 음수 구간(x&lt;0)에서는 <b>감소함수</b>야<br>
+        (−0.8→−0.2로 갈수록 f는 0.64→0.04로 작아지니까).<br>
+        즉 여기서는 <b>g 감소 + f(음수 구간에서) 감소 → 방향이 같아서 증가</b>가 되는 거야.<br><br>
+        <b>✅ 그래서 규칙은 이렇게 써야 안전해</b><br>
+        · g가 증가 + <u>g(x) 값 자리에서 본</u> f도 증가 → f∘g <b style="color:var(--gn)">증가</b><br>
+        · g가 감소 + <u>g(x) 값 자리에서 본</u> f도 감소 → f∘g <b style="color:var(--gn)">증가</b><br>
+        · 위 둘의 방향이 다르면 → f∘g <b style="color:var(--rd)">감소</b><br>
+        <span style="color:var(--rd)">밑줄 친 부분을 절대 빼먹으면 안 돼 — "f의 방향"은 x가 아니라<br>
+        g(x)가 만들어낸 값 기준이야, 매번!</span><br><br>
+        <b>🚧 진짜 마지막 함정 — "지나가는 순서"로 판단하면 안 돼</b><br>
+        x=1→2로 갈 때 g는 −0.59→−2.36으로 이동해 (이게 g가 "지나가는 경로").<br>
+        이 경로를 그대로 따라가면서 f값을 보면 0.35→5.57로 커지니까,<br>
+        <b style="color:var(--rd)">"어? f도 커지네, 증가네"</b>라고 착각하기 쉬운데 — 이건 틀렸어!<br><br>
+        <b>증가·감소는 반드시 입력을 "작은 값 → 큰 값" 순서로 정렬해서 봐야 해.</b><br>
+        g가 실제로 어느 방향으로 지나가는지는 상관없어. 그러니까:<br>
+        입력을 크기순으로 다시 정렬하면 <b>−2.36(작음) → −0.59(큼)</b><br>
+        f(−2.36)=5.57, f(−0.59)=0.35 → 입력이 커지는데 f값은 <b>작아졌지?</b><br>
+        입력 커짐 + 출력 작아짐 = <b style="color:var(--rd)">감소함수</b>의 정의 그대로야.<br><br>
+        <b>💡 정리</b><br>
+        "0.35→5.57로 커졌다"는 관찰 자체는 맞아. 근데 그 순서가<br>
+        <b>입력이 작아지는 방향</b>이었으니까, 오히려 그게 감소함수라는<br>
+        증거였던 거야 (감소함수는 "입력 작아짐 → 출력 커짐"도 성립하거든).<br>
+        g가 지나가는 경로는 무시하고, 항상 <b>입력값 크기순 재정렬</b> 후에<br>
+        f를 살펴보는 습관을 들이면 이 함정을 피할 수 있어.<br><br>
+        <b>🔗 ⑤번(기하적 대응법)이랑 연결해보면</b><br>
+        사실 이거, ⑤번에서 이미 다룬 얘기야! 거기서 f는 x₀을<br>
+        직접 받는 게 아니라, <b>y=x 거울선을 거쳐서 넘어온 g(x₀) 값</b>을<br>
+        입력으로 받는다고 했잖아. f 입장에서는 애초에 <b>x라는 게 안 보이고,<br>
+        오직 g(x)가 거울선 너머로 던져준 값만 보여</b> — 그러니까 f의<br>
+        증가·감소도 당연히 그 값(g(x)) 기준일 수밖에 없는 거지.<br>
+        "f는 g(x) 기준"이라는 이 규칙은 결국 ⑤번의 거울선 원리를<br>
+        <b>방향(증가·감소)에 적용한 버전</b>인 셈이야.<br><br>
+        <b>실전 절차</b><br>
+        ① g를 증가·감소 구간으로 나눈다 (2차면 꼭짓점 기준 좌우)<br>
+        ② 각 구간에서 <b>g(x)의 출력값 범위</b>부터 구하고,<br>
+        그 값 범위에서 f가 증가인지 감소인지 확인해서 방향 규칙 적용<br>
+        ③ 꼭짓점·절편 등 핵심 x값 몇 개에서만 f(g(x))를 계산<br>
+        ④ 그 점들을 방향대로 이어서 개형 완성 — 전부 계산할 필요 없어!<br><br>
+        <b>📊 지금 f, g 기준 구간별 방향 (자동 계산)</b><br>
+        ${compMonoTableHTML()}<br><br>
+        오른쪽 그래프에 <b style="color:var(--gn)">"📐 증가·감소 구간 보기"</b>를 켜면<br>
+        이 표와 똑같은 경계선·화살표가 그래프 위에 바로 표시돼.`,
+        `사실 이 규칙은 연쇄법칙의 부호만 보는 거야:<br>
+        (f∘g)'(x) = f'(g(x)) · g'(x)<br>
+        "f'(g(x))"라는 표기 자체가 "f의 도함수를 g(x) 자리에<br>
+        대입한다"는 뜻이야 — 그러니까 애초에 f는 x가 아니라<br>
+        g(x)에서 평가하는 게 수식으로도 원래 맞는 거야.<br>
+        ③번 항목에서 본 연쇄법칙이 바로 이 규칙의 정체야!`
       )
     ];
     document.getElementById('compLawStats').innerHTML=stats[idx];
     document.getElementById('compLawDesc').innerHTML=descs[idx];
+    if(idx===4){
+      if(!SComp.tracerOn) toggleCompTracer();
+      fromCompX0('-2'); // 자동 스윕 대신 한 점을 고정해서 먼저 찬찬히 보게 함
+    }
+    if(idx===5){
+      if(!SComp.monoOn) toggleCompMono();
+    }
 
   } else {
     // ── 역함수 모드 ──
