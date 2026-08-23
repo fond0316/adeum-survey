@@ -7089,10 +7089,19 @@ function renderTr(){
       drawPulseRing(gTr, px, py, '#1A5FB4', pulseR);
       drawPulseRing(gTr, px2, py2, '#C0392B', pulseR);
     }
+    // 라벨이 캔버스 오른쪽/위쪽 끝에 너무 가까우면 화면 밖으로 잘려서
+    // P′가 "P"만 보이는 것처럼 오해될 수 있어 방향을 반대로 뒤집어줌
+    const _edge=40*devicePixelRatio, _top=26*devicePixelRatio;
+    const sxP=toSX(gTr,px), syP=toSY(gTr,py);
+    const sxP2=toSX(gTr,px2), syP2=toSY(gTr,py2);
     drawPoint(gTr, px, py, '#1A5FB4', 6);
-    drawLabel(gTr, px, py, 'P', '#1A5FB4', -16, -10);
+    drawLabel(gTr, px, py, 'P', '#1A5FB4',
+      (sxP>gTr.cv.width-_edge)?-20:-16,
+      (syP<_top)?18:-10);
     drawPoint(gTr, px2, py2, '#C0392B', 6);
-    drawLabel(gTr, px2, py2, 'P′', '#C0392B', 8, -10);
+    drawLabel(gTr, px2, py2, 'P′', '#C0392B',
+      (sxP2>gTr.cv.width-_edge)?-28:8,
+      (syP2<_top)?18:-10);
   }
 
   updateTrInfo();
@@ -7174,9 +7183,17 @@ function setTrLaw(idx){
       ${mismatchLine}<br><br>
 
       <b>② 왜 안 맞을까?</b><br>
-      P′는 원래부터 파란 그래프 위에 있던 점이 아니야.<br>
-      <b style="color:var(--bl)">파란 점 P</b>(${fmtNum(px)}, ${fmtNum(py)})를 (a, b) = (${fmtNum(dx)}, ${fmtNum(dy)})만큼<br>
-      <b>"더해서"</b> 옮겨 만든 새 점이야. 그러니까 파란 식은 P′를 알 리가 없지.<br><br>
+      먼저 <b>점의 평행이동</b>으로 다시 생각해보자.<br>
+      <b style="color:var(--bl)">파란 점 P</b>(${fmtNum(px)}, ${fmtNum(py)})를 <b>x축 방향으로 ${fmtNum(dx)}만큼, y축 방향으로 ${fmtNum(dy)}만큼</b><br>
+      평행이동한 점이 바로 <b style="color:var(--rd)">빨간 점 P′</b>(${fmtNum(px2)}, ${fmtNum(py2)})야.<br>
+      좌표로 쓰면 P에 (a, b) = (${fmtNum(dx)}, ${fmtNum(dy)})를 <b>"더해서"</b> 새로 만들어낸 점인 거지.<br><br>
+
+      즉 P′는 처음부터 <b style="color:var(--bl)">파란 그래프</b> 위에 있던 점이 아니라,<br>
+      P를 옮겨서 <b>방금 새로 만든 점</b>이야.<br>
+      그런데 <b style="color:var(--bl)">파란 식 y = f(x)</b>는 <b>"파란 그래프 위에 있는 점"</b>을 넣었을 때만<br>
+      등식이 성립하도록 만들어진 식이잖아. P′는 그 그래프 위의 점이 아니라 새로 만든 점이니까,<br>
+      파란 식은 애초에 P′가 누군지 알 수가 없어. <b>P′가 식을 어긴 게 아니라,<br>
+      파란 식이 알아들을 수 있는 점이 아예 아니었던 거야.</b><br><br>
 
       <b>③ 그럼 원래 점은 어떻게 찾을까?</b><br>
       새 점을 만들 때 (+a, +b)를 더했으니까, 거꾸로 원래 점으로<br>
