@@ -231,6 +231,19 @@
   .modal-actions .btn{flex:1;}
 
   .cal-card{padding:8px 14px;}
+  .cal-nav-row{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:6px 0 10px;border-bottom:1px solid var(--line);margin-bottom:2px;
+  }
+  .cal-nav-label{font-size:13px;font-weight:800;color:var(--text);text-align:center;flex:1;}
+  .week-nav-btn-cal{
+    background:var(--mint-light);border:none;color:var(--mint-dark);
+    min-width:36px;min-height:36px;padding:8px;border-radius:10px;font-size:14px;cursor:pointer;flex-shrink:0;
+  }
+  .week-nav-btn-cal:disabled{opacity:0.3;cursor:default;}
+  .past-week-badge-cal{
+    background:var(--strength-bg);color:var(--strength);border-radius:999px;padding:2px 8px;font-size:11px;font-weight:700;margin-left:4px;
+  }
   .dday-card{
     text-align:center;padding:18px 14px;
     background:linear-gradient(135deg, var(--mint) 0%, #B7A9E0 100%);
@@ -590,11 +603,20 @@
     return state.mainSessions.find(function(s){ return s.date === dateStr; });
   }
 
-  function renderWeekCalendar(week){
+  function renderWeekCalendar(week, navInfo){
     var start = parseDateStr(week.startDate); // Sunday
     var today = todayStr();
     var logs = week.logs || [];
     var html = '<div class="card cal-card">';
+
+    if(navInfo){
+      html += '<div class="cal-nav-row">';
+      html += '<button id="weekPrevBtn" class="week-nav-btn-cal"' + (navInfo.canPrev ? '' : ' disabled') + '>◀</button>';
+      html += '<div class="cal-nav-label">' + weekRangeLabel(week.startDate) + (navInfo.isCurrentWeek ? '' : ' <span class="past-week-badge-cal">지난 기록</span>') + '</div>';
+      html += '<button id="weekNextBtn" class="week-nav-btn-cal"' + (navInfo.canNext ? '' : ' disabled') + '>▶</button>';
+      html += '</div>';
+    }
+
     for(var i = 0; i < 7; i++){
       var d = new Date(start);
       d.setDate(d.getDate() + i);
@@ -693,11 +715,43 @@
     }
   }
 
+  var viewingWeekId = null; // null이면 항상 현재 진행 중인 주를 봄
+
+  function getSortedWeeks(){
+    var arr = state.history.slice();
+    if(state.currentWeek) arr.push(state.currentWeek);
+    arr.sort(function(a,b){ return a.startDate.localeCompare(b.startDate); });
+    return arr;
+  }
+
+  function getViewingWeek(){
+    if(!viewingWeekId) return state.currentWeek;
+    var all = getSortedWeeks();
+    return all.find(function(w){ return w.id === viewingWeekId; }) || state.currentWeek;
+  }
+
+  function navigateWeek(direction){
+    var all = getSortedWeeks();
+    if(!all.length) return;
+    var current = getViewingWeek();
+    var idx = current ? all.findIndex(function(w){ return w.id === current.id; }) : all.length - 1;
+    var newIdx = idx + direction;
+    if(newIdx < 0 || newIdx >= all.length) return;
+    viewingWeekId = all[newIdx].id;
+    renderToday();
+  }
+
   function renderToday(){
     var el = panes.today;
-    var week = state.currentWeek;
+    var week = getViewingWeek();
+    var isCurrentWeek = !!(state.currentWeek && week && week.id === state.currentWeek.id);
     var subEl = document.getElementById('headerSub');
     var ddayHtml = renderDDayCard();
+
+    var allWeeks = getSortedWeeks();
+    var curIdx = week ? allWeeks.findIndex(function(w){ return w.id === week.id; }) : -1;
+    var canPrev = curIdx > 0;
+    var canNext = curIdx >= 0 && curIdx < allWeeks.length - 1;
 
     if(!week || !week.items.length){
       subEl.textContent = "이번주 숙제를 먼저 입력해주세요";
@@ -711,27 +765,38 @@
       return;
     }
 
-    subEl.textContent = weekRangeLabel(week.startDate) + ' 숙제';
+    subEl.textContent = isCurrentWeek ? '이번주 숙제를 확인하고 기록해보세요' : '지난 기록을 살펴보는 중이에요';
 
-    var calendarHtml = renderWeekCalendar(week);
+    var calendarHtml = renderWeekCalendar(week, { canPrev: canPrev, canNext: canNext, isCurrentWeek: isCurrentWeek });
 
     var undone = week.items.filter(function(it){ return !isItemDone(it); });
     var done = week.items.filter(function(it){ return isItemDone(it); });
 
     var html = ddayHtml + calendarHtml;
-    if(undone.length === 0){
+    if(!isCurrentWeek){
+      html += '<p style="font-size:12px;color:var(--sub);text-align:center;margin:0 0 10px;">지난 기록이에요. 캘린더에서 날짜를 눌러 수정할 수 있어요.</p>';
+    }
+    if(isCurrentWeek && undone.length === 0){
       html += '<div class="empty"><div class="big">🎉</div><p>이번주 숙제를 모두 완료했어요!</p><p style="font-weight:800;color:var(--mint-dark);">오늘도 살아남았다… 다음 주도 가능? 🔥</p></div>';
     } else {
-      undone.forEach(function(it){ html += renderItemCard(it, week.id, true); });
+      undone.forEach(function(it){ html += renderItemCard(it, week.id, isCurrentWeek); });
     }
     if(done.length){
       html += '<div style="font-size:12px;color:var(--sub);font-weight:700;margin:14px 4px 8px;">완료한 항목</div>';
-      done.forEach(function(it){ html += renderItemCard(it, week.id, true); });
+      done.forEach(function(it){ html += renderItemCard(it, week.id, isCurrentWeek); });
     }
     el.innerHTML = html;
     bindDDayEvents(el);
     bindItemCardEvents(el);
     bindCalendarEvents(el, week.id);
+    bindWeekNavEvents(el);
+  }
+
+  function bindWeekNavEvents(container){
+    var prevBtn = container.querySelector('#weekPrevBtn');
+    var nextBtn = container.querySelector('#weekNextBtn');
+    if(prevBtn) prevBtn.addEventListener('click', function(){ navigateWeek(-1); });
+    if(nextBtn) nextBtn.addEventListener('click', function(){ navigateWeek(1); });
   }
   // ---------- Render: item card (shared by today & week tab) ----------
   function renderItemCard(it, weekId, showQuickAdd){
@@ -813,7 +878,7 @@
 
   function findWeekById(weekId){
     if(state.currentWeek && state.currentWeek.id === weekId) return state.currentWeek;
-    return null;
+    return state.history.find(function(w){ return w.id === weekId; }) || null;
   }
   function addProgress(weekId, itemId, val){
     var week = findWeekById(weekId);
@@ -1474,6 +1539,7 @@
       items: items,
       logs: []
     };
+    viewingWeekId = null;
     saveState();
     modalBg.classList.remove('open');
 
