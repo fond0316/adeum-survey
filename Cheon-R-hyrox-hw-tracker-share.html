@@ -209,7 +209,7 @@
   .item-row .row-name input{width:100%;box-sizing:border-box;}
   .item-row .row-grid{display:flex;gap:8px;}
   .item-row .row-grid > div{flex:1;min-width:0;}
-  .item-row .row-grid input{width:100%;box-sizing:border-box;min-width:0;}
+  .item-row .row-grid input, .item-row .row-grid select{width:100%;box-sizing:border-box;min-width:0;}
   .item-row .remove-row{
     position:absolute;top:8px;right:8px;border:none;background:transparent;color:var(--sub);
     font-size:16px;cursor:pointer;width:28px;height:28px;z-index:2;
@@ -1188,7 +1188,7 @@
     html += '<div class="field" style="margin-bottom:8px;"><label>종목명</label><input type="text" class="edit-name" value="' + (it ? escapeHtml(it.name) : '') + '" placeholder="예: 러닝"></div>';
     html += '<div style="display:flex;gap:8px;">';
     html += '<div class="field" style="flex:1;"><label>목표량</label><input type="number" inputmode="decimal" class="edit-target" value="' + (it ? it.target : '') + '" placeholder="예: 15"></div>';
-    html += '<div class="field" style="flex:1;"><label>단위</label><input type="text" class="edit-unit" value="' + (it ? it.unit : '') + '" placeholder="예: k, 회"></div>';
+    html += '<div class="field" style="flex:1;"><label>단위</label>' + unitPickerHtml('edit-unit-select', 'edit-unit-custom', it ? it.unit : '') + '</div>';
     html += '</div>';
     html += catSelectorHtml(it ? it.category : 'cardio');
     html += '<div class="modal-actions" style="margin-top:10px;">';
@@ -1206,6 +1206,7 @@
         opt.className = 'cat-opt sel-' + opt.dataset.cat;
       });
     });
+    bindUnitPicker(cardEl, 'edit-unit-select', 'edit-unit-custom');
     cardEl.querySelector('.edit-cancel').addEventListener('click', function(){
       editingItemId = null;
       addingNewItemMode = false;
@@ -1214,7 +1215,7 @@
     cardEl.querySelector('.edit-save').addEventListener('click', function(){
       var name = cardEl.querySelector('.edit-name').value.trim();
       var target = parseFloat(cardEl.querySelector('.edit-target').value);
-      var unit = cardEl.querySelector('.edit-unit').value.trim() || '회';
+      var unit = readUnitPicker(cardEl, 'edit-unit-select', 'edit-unit-custom');
       var catEl = cardEl.querySelector('.cat-opt[class*="sel-"]');
       var cat = catEl ? catEl.dataset.cat : 'cardio';
       if(!name || isNaN(target) || target <= 0){
@@ -1351,6 +1352,45 @@
   var itemRowsEl = document.getElementById('itemRows');
   var rowCount = 0;
 
+  var UNIT_PRESETS = ['km','kg','회','분'];
+
+  function unitPickerHtml(selectCls, customCls, currentUnit){
+    var isPreset = UNIT_PRESETS.indexOf(currentUnit) !== -1;
+    var selVal = currentUnit ? (isPreset ? currentUnit : '__custom__') : 'km';
+    var html = '<select class="' + selectCls + '">';
+    UNIT_PRESETS.forEach(function(u){
+      html += '<option value="' + u + '"' + (u === selVal ? ' selected' : '') + '>' + u + '</option>';
+    });
+    html += '<option value="__custom__"' + (selVal === '__custom__' ? ' selected' : '') + '>직접 작성</option>';
+    html += '</select>';
+    html += '<input type="text" class="' + customCls + '" placeholder="단위 입력" value="' + (isPreset ? '' : escapeHtml(currentUnit || '')) + '" style="margin-top:6px;' + (selVal === '__custom__' ? '' : 'display:none;') + '">';
+    return html;
+  }
+
+  function bindUnitPicker(container, selectCls, customCls){
+    container.querySelectorAll('.' + selectCls).forEach(function(sel){
+      sel.addEventListener('change', function(){
+        var custom = sel.parentElement.querySelector('.' + customCls) || sel.nextElementSibling;
+        if(sel.value === '__custom__'){
+          custom.style.display = '';
+          custom.focus();
+        } else {
+          custom.style.display = 'none';
+        }
+      });
+    });
+  }
+
+  function readUnitPicker(container, selectCls, customCls){
+    var sel = container.querySelector('.' + selectCls);
+    if(!sel) return '회';
+    if(sel.value === '__custom__'){
+      var custom = container.querySelector('.' + customCls);
+      return (custom && custom.value.trim()) || '회';
+    }
+    return sel.value;
+  }
+
   function makeRow(){
     rowCount++;
     var rid = 'row_' + rowCount;
@@ -1362,7 +1402,7 @@
       '<div class="row-name"><input type="text" placeholder="종목명 (예: 러닝)" class="f-name"></div>' +
       '<div class="row-grid">' +
         '<div><input type="number" inputmode="decimal" placeholder="목표량" class="f-target"></div>' +
-        '<div><input type="text" placeholder="단위(k,회)" class="f-unit"></div>' +
+        '<div>' + unitPickerHtml('f-unit-select', 'f-unit-custom', '') + '</div>' +
       '</div>' +
       '<div class="cat-select">' +
         '<div class="cat-opt sel-cardio" data-cat="cardio">유산소</div>' +
@@ -1380,6 +1420,7 @@
         opt.className = 'cat-opt sel-' + opt.dataset.cat;
       });
     });
+    bindUnitPicker(wrap, 'f-unit-select', 'f-unit-custom');
     itemRowsEl.appendChild(wrap);
   }
 
@@ -1410,7 +1451,7 @@
     rows.forEach(function(row){
       var name = row.querySelector('.f-name').value.trim();
       var target = parseFloat(row.querySelector('.f-target').value);
-      var unit = row.querySelector('.f-unit').value.trim() || '회';
+      var unit = readUnitPicker(row, 'f-unit-select', 'f-unit-custom');
       var catEl = row.querySelector('.cat-opt[class*="sel-"]');
       var cat = catEl ? catEl.dataset.cat : 'cardio';
       if(!name || isNaN(target) || target <= 0) return; // skip empty rows
