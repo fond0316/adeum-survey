@@ -203,15 +203,16 @@
     padding:11px 12px;font-size:15px;font-family:inherit;background:#fff;
   }
   .item-row{
-    border:1.5px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;position:relative;
+    border:1.5px solid var(--line);border-radius:12px;padding:34px 12px 12px;margin-bottom:10px;position:relative;
   }
+  .item-row .row-name{margin-bottom:8px;}
+  .item-row .row-name input{width:100%;box-sizing:border-box;}
   .item-row .row-grid{display:flex;gap:8px;}
-  .item-row .row-grid .name{flex:1.4;}
-  .item-row .row-grid .num{flex:0.8;}
-  .item-row .row-grid .unit{flex:0.8;}
+  .item-row .row-grid > div{flex:1;min-width:0;}
+  .item-row .row-grid input{width:100%;box-sizing:border-box;min-width:0;}
   .item-row .remove-row{
     position:absolute;top:8px;right:8px;border:none;background:transparent;color:var(--sub);
-    font-size:16px;cursor:pointer;width:28px;height:28px;
+    font-size:16px;cursor:pointer;width:28px;height:28px;z-index:2;
   }
   .cat-select{display:flex;gap:6px;margin-top:8px;}
   .cat-opt{
@@ -1357,10 +1358,10 @@
     wrap.dataset.rid = rid;
     wrap.innerHTML =
       '<button type="button" class="remove-row">✕</button>' +
+      '<div class="row-name"><input type="text" placeholder="종목명 (예: 러닝)" class="f-name"></div>' +
       '<div class="row-grid">' +
-        '<div class="name"><input type="text" placeholder="종목명 (예: 러닝)" class="f-name"></div>' +
-        '<div class="num"><input type="number" inputmode="decimal" placeholder="목표량" class="f-target"></div>' +
-        '<div class="unit"><input type="text" placeholder="단위(k,회)" class="f-unit"></div>' +
+        '<div><input type="number" inputmode="decimal" placeholder="목표량" class="f-target"></div>' +
+        '<div><input type="text" placeholder="단위(k,회)" class="f-unit"></div>' +
       '</div>' +
       '<div class="cat-select">' +
         '<div class="cat-opt sel-cardio" data-cat="cardio">유산소</div>' +
