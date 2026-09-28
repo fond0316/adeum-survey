@@ -129,7 +129,8 @@ details summary::-webkit-details-marker{display:none}
       <li>마지막 화면의 <b>…/exec</b>로 끝나는 웹 앱 URL 복사</li></ol></div>
     <div class="step"><div class="st">Step 4. 연결하기</div><ol>
       <li>이 화면에서 ← 돌아가기 → 복사한 URL 붙여넣기 → <b>연결하기</b></li>
-      <li>처음 비밀번호 <b>0413</b>으로 로그인</li></ol>
+      <li>처음 비밀번호 <b>0413</b>으로 로그인</li>
+      <li>처음 한 번 <b>사용자 등록</b>(이름·학교·학급)을 해요</li></ol>
       <div class="warn">⚠️ 링크를 열었는데 연결 화면 없이 <b>로그인 화면이 바로 뜬다면</b>, 이 기기에서 다른 선생님이 쓰던 연결이 남아 있는 거예요. (예: 교무실 공용 PC) 로그인 화면의 <b>[연결 주소 변경]</b>을 눌러 내 URL을 붙여넣어 주세요.</div></div>
     <div class="step"><div class="st">Step 5. 첫 설정</div><ol>
       <li>⚙️ 설정 탭에서 <b>관리자 비밀번호 변경</b></li>
@@ -142,6 +143,35 @@ details summary::-webkit-details-marker{display:none}
       <li>처음 열 때 학번 한 번 등록하면 끝</li>
       <li>상단 <b>👀 학생 화면</b> 버튼으로 학생에게 어떻게 보이는지 확인할 수 있어요.</li></ol></div>
     <div class="tip">💡 나중에 GAS 코드를 고칠 땐 <b>새 배포</b>가 아니라 <b>배포 관리 → ✏️ 수정 → 새 버전</b>으로 해야 기존 학생 링크가 유지돼요.</div>
+    <button class="gbtn" onclick="mailContact()">✉️ 궁금한 점은 메일로 문의해 주세요</button>
+  </div>
+
+  <!-- 사용자 등록 -->
+  <div id="scrReg" class="center hide">
+    <div class="box">
+      <h2>📝 사용자 등록</h2>
+      <p class="hint">처음 한 번만 등록하면 돼요. 입력한 정보는 사용 현황 파악을 위해 개발자에게 전달되며, 학생 정보는 전달되지 않아요.</p>
+      <label class="f">이름</label><input type="text" id="regName" maxlength="20" placeholder="홍길동">
+      <label class="f">학교</label><input type="text" id="regSchool" maxlength="30" placeholder="○○고등학교">
+      <label class="f">학급</label><input type="text" id="regCls" maxlength="20" placeholder="1학년 4반">
+      <div class="row" style="margin-top:12px"><button class="btn" onclick="doRegister(this)">등록하기</button><button class="btn sub" onclick="logout()">로그아웃</button></div>
+      <div class="msg" id="regMsg"></div>
+    </div>
+  </div>
+
+  <!-- 승인 대기 / 차단 -->
+  <div id="scrGate" class="center hide">
+    <div class="box" style="text-align:center">
+      <div style="font-size:44px" id="gateIc">⏳</div>
+      <h2 id="gateTitle" style="margin-top:6px"></h2>
+      <p class="hint" id="gateText"></p>
+      <div class="row" style="justify-content:center;margin-top:12px">
+        <button class="btn" onclick="recheck(this)">다시 확인</button>
+        <button class="btn sub" onclick="logout()">로그아웃</button>
+      </div>
+      <button class="gbtn" onclick="mailContact()">✉️ 개발자에게 문의하기</button>
+      <div class="msg" id="gateMsg"></div>
+    </div>
   </div>
 
   <!-- 2) 로그인 -->
@@ -176,9 +206,11 @@ details summary::-webkit-details-marker{display:none}
         <div class="link"><input type="text" id="stuLink" readonly><button class="btn" onclick="copy('stuLink')">복사</button></div>
         <label class="f">내 관리자·회장용 링크 (내 시트 연결됨)</label>
         <div class="link"><input type="text" id="admLink" readonly><button class="btn sub" onclick="copy('admLink')">복사</button></div>
+        <div id="shareBox" class="hide">
         <label class="f">🤝 다른 선생님께 공유용 링크 (시트 연결 없음)</label>
         <div class="link"><input type="text" id="shareLink" readonly><button class="btn sub" onclick="copy('shareLink')">복사</button></div>
         <p class="hint" style="margin-top:6px">다른 선생님은 이 링크로 들어가서 설치 가이드를 따라 본인 시트를 연결하면 돼요.</p>
+        </div>
         <div class="msg ok" id="copyMsg"></div>
         <button class="gbtn" onclick="openGuide()">📖 설치 가이드 보기</button>
         <details style="margin-top:10px">
@@ -208,6 +240,9 @@ details summary::-webkit-details-marker{display:none}
         <div class="msg" id="setMsg"></div>
         <label class="f" style="margin-top:18px">연결된 GAS 주소</label>
         <div class="link"><input type="text" id="gasNow" readonly><button class="btn sub" onclick="resetGas()">변경</button></div>
+        <label class="f">설치 ID</label>
+        <div class="link"><input type="text" id="instNow" readonly><button class="btn sub" onclick="copy('instNow')">복사</button></div>
+        <button class="gbtn" onclick="mailContact()">✉️ 문의하기 (개발자에게 메일)</button>
       </div>
     </section>
 
@@ -269,7 +304,10 @@ details summary::-webkit-details-marker{display:none}
 </div>
 
 <script>
-const K = { gas:'sn_gas_v1', pw:'sn_admin_pw_v1' };
+const K = { gas:'sn_gas_v1', pw:'sn_admin_pw_v1', owner:'sn_owner_v1', reg:'sn_reg_info_v1' };
+/* ===== 사용자 등록부 (아듬샘 전용 GAS) ===== */
+const REGISTRY_URL = '';           // ← 등록부 GAS 웹 앱 URL (비어 있으면 등록 기능 꺼짐)
+const CONTACT_EMAIL = 'fond0316@naver.com';
 const TYPES = { '긴급':'u', '확인':'c', '호출':'h', '일반':'g' };
 const LABEL = { '긴급':'긴급', '확인':'확인사항', '호출':'호출', '일반':'일반' };
 
@@ -280,7 +318,7 @@ function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0
 function today(){ return ymd(new Date()); }
 function prettyDate(s){ const d=new Date(s+'T00:00:00'); return (d.getMonth()+1)+'/'+d.getDate()+'('+'일월화수목금토'[d.getDay()]+')'; }
 function $(id){ return document.getElementById(id); }
-const SCREENS = ['scrConnect','scrLogin','scrMain','scrGuide'];
+const SCREENS = ['scrConnect','scrLogin','scrMain','scrGuide','scrReg','scrGate'];
 let curScreen = '', backScreen = '';
 function show(id){ curScreen = id; SCREENS.forEach(x => $(x).classList.toggle('hide', x!==id)); window.scrollTo(0,0); }
 const P = 'Cheon-R-class-board';
@@ -295,14 +333,15 @@ let curTab = 'write', listMode = 'up', fType = '일반', editId = null;
 
 /* ===== JSONP ===== */
 let seq = 0;
-function jsonp(params){
+function jsonp(params, base){
+  base = base || GAS;
   return new Promise((resolve, reject) => {
-    if (!GAS) return reject(new Error('GAS 주소가 설정되지 않았어요. 먼저 연결해 주세요.'));
+    if (!base) return reject(new Error('GAS 주소가 설정되지 않았어요. 먼저 연결해 주세요.'));
     const cb='__sa'+Date.now()+(seq++), s=document.createElement('script');
     const t=setTimeout(()=>{ done(); reject(new Error('서버 응답이 없어요. GAS 주소와 배포 권한(모든 사용자)을 확인해 주세요.')); }, 20000);
     function done(){ clearTimeout(t); delete window[cb]; s.remove(); }
     window[cb]=(r)=>{ done(); r&&r.ok ? resolve(r) : reject(new Error((r&&r.error)||'요청에 실패했어요.')); };
-    s.src = GAS + (GAS.includes('?')?'&':'?') + new URLSearchParams({ ...params, callback:cb, _:Date.now() });
+    s.src = base + (base.includes('?')?'&':'?') + new URLSearchParams({ ...params, callback:cb, _:Date.now() });
     s.onerror=()=>{ done(); reject(new Error('서버에 연결하지 못했어요. 주소를 확인해 주세요.')); };
     document.body.appendChild(s);
   });
@@ -325,10 +364,58 @@ async function login(){
     const r = await jsonp({ action:'login', pw });
     if (!r.role){ msg('loginMsg','비밀번호가 맞지 않아요.'); return; }
     PW = pw; sessionStorage.setItem(K.pw, pw); role = r.role;
-    await enterMain();
+    await afterLogin(r);
   }catch(e){ msg('loginMsg', e.message); }
 }
 function logout(){ PW=''; sessionStorage.removeItem(K.pw); $('pwIn').value=''; msg('loginMsg','',true); show('scrLogin'); }
+
+/* ===== 등록부 확인 ===== */
+let installId = '', isOwner = false, loginInfo = {};
+async function afterLogin(r){
+  loginInfo = r; installId = r.installId || '';
+  if (!REGISTRY_URL || !installId){ isOwner = !REGISTRY_URL; return enterMain(); }
+  let st;
+  try{ st = (await jsonp({ action:'check', id:installId }, REGISTRY_URL)).status; }
+  catch(e){ isOwner = lsGet(K.owner,'') === installId; return enterMain(); }  // 등록부 응답 없으면 일단 사용
+  handleStatus(st);
+}
+function handleStatus(st){
+  isOwner = (st === 'owner');
+  if (isOwner) lsSet(K.owner, installId);
+  if (st === 'owner' || st === 'ok') return enterMain();
+  if (st === 'unregistered'){
+    if (role !== 'admin') return gate('🙋', '담임선생님 등록이 필요해요', '담임선생님이 먼저 관리자 비밀번호로 로그인해서 사용자 등록을 해 주세요.');
+    const info = lsGet(K.reg, {});
+    $('regName').value = info.name || ''; $('regSchool').value = info.school || '';
+    $('regCls').value = info.cls || loginInfo.className || '';
+    msg('regMsg','',true); return show('scrReg');
+  }
+  if (st === 'pending') return gate('⏳', '승인 대기 중이에요', '개발자가 승인하면 사용할 수 있어요. 승인 후 [다시 확인]을 눌러 주세요.');
+  if (st === 'blocked') return gate('⛔', '사용이 중지되었어요', '이 학급의 CLASS BOARD 사용이 중지되었어요. 궁금한 점은 아래로 문의해 주세요.');
+  enterMain();
+}
+function gate(ic, title, text){ $('gateIc').textContent = ic; $('gateTitle').textContent = title; $('gateText').textContent = text; msg('gateMsg','',true); show('scrGate'); }
+async function recheck(btn){
+  btn.disabled = true; msg('gateMsg','확인 중…',true);
+  try{ handleStatus((await jsonp({ action:'check', id:installId }, REGISTRY_URL)).status); }
+  catch(e){ msg('gateMsg', e.message); }
+  btn.disabled = false;
+}
+async function doRegister(btn){
+  const info = { name:$('regName').value.trim(), school:$('regSchool').value.trim(), cls:$('regCls').value.trim() };
+  if (!info.name || !info.school){ msg('regMsg','이름과 학교를 입력해 주세요.'); return; }
+  btn.disabled = true; msg('regMsg','등록 중…',true);
+  try{
+    const r = await jsonp({ action:'register', id:installId, ...info }, REGISTRY_URL);
+    lsSet(K.reg, info); handleStatus(r.status);
+  }catch(e){ msg('regMsg', e.message); }
+  btn.disabled = false;
+}
+function mailContact(){
+  const info = lsGet(K.reg, {});
+  const who = [info.school, info.name].filter(Boolean).join(' ');
+  location.href = 'mailto:' + CONTACT_EMAIL + '?subject=' + encodeURIComponent('[CLASS BOARD 문의] ' + who);
+}
 
 async function enterMain(){
   await refresh();
@@ -352,6 +439,9 @@ async function refresh(){
     $('admLink').value = base + P + '-admin.html?gas=' + encodeURIComponent(GAS);
     $('shareLink').value = base + P + '-admin.html';
     $('gasNow').value = GAS;
+    if (r.installId) installId = r.installId;
+    $('instNow').value = installId;
+    $('shareBox').classList.toggle('hide', !isOwner);
   }
 }
 function goTab(k){
@@ -525,7 +615,7 @@ async function copyGas(){
 (async function start(){
   if (!GAS){ show('scrConnect'); return; }
   if (PW){
-    try{ const r = await jsonp({ action:'login', pw:PW }); if (r.role){ role=r.role; await enterMain(); return; } }catch(e){}
+    try{ const r = await jsonp({ action:'login', pw:PW }); if (r.role){ role=r.role; await afterLogin(r); return; } }catch(e){}
   }
   show('scrLogin');
 })();

@@ -36,7 +36,7 @@ function route_(p) {
     case 'load': return load_(p);
     case 'who': return who_(p);
     case 'confirm': return confirm_(p);
-    case 'login': return { ok: true, role: auth_(p.pw) };
+    case 'login': return login_(p);
     case 'adminLoad': return adminLoad_(p);
     case 'saveNotice': return saveNotice_(p);
     case 'deleteNotice': return deleteNotice_(p);
@@ -98,6 +98,17 @@ function setSetting_(key, val) {
     if (data[i][0] === key) { sh.getRange(i + 2, 2).setValue(String(val)); return; }
   }
   sh.appendRow([key, String(val)]);
+}
+/** 설치 ID — 이 시트(선생님)를 구분하는 고유값, 없으면 자동 생성 */
+function installId_() {
+  var v = getSetting_('설치ID');
+  if (!v) { v = Utilities.getUuid(); setSetting_('설치ID', v); }
+  return v;
+}
+function login_(p) {
+  var role = auth_(p.pw);
+  if (!role) return { ok: true, role: '' };
+  return { ok: true, role: role, installId: installId_(), className: getSetting_('학급명') };
 }
 function year_() { return getSetting_('학년도') || Utilities.formatDate(new Date(), TZ, 'yyyy'); }
 function auth_(pw) {
@@ -181,6 +192,7 @@ function adminLoad_(p) {
       .map(function (r) { return { sid: r[0], name: r[1] }; });
     res.confirms = rows_('confirms').map(function (r) { return { nid: r[0], sid: r[1], name: r[2], at: r[3] }; });
     res.presidentCode = getSetting_('회장코드');
+    res.installId = installId_();
   }
   return res;
 }
