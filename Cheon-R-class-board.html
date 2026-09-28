@@ -226,6 +226,17 @@ function diffDays(s){ return Math.round((new Date(s+'T00:00:00') - new Date(toda
 function prettyDate(s){ const d = new Date(s+'T00:00:00'); return (d.getMonth()+1)+'월 '+d.getDate()+'일 ('+'일월화수목금토'[d.getDay()]+')'; }
 function esc(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
+
+/* 날짜를 항상 yyyy-MM-dd 로 정리 (시트 형식이 바뀌어 와도 대응) */
+function normDate(s){
+  s = String(s ?? '').trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const m = s.match(/^(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+  if (m) return m[1] + '-' + m[2].padStart(2,'0') + '-' + m[3].padStart(2,'0');
+  const d = new Date(s);
+  return isNaN(d) ? s : d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
 /* ===== JSONP ===== */
 let jpSeq = 0;
 function jsonp(params){
@@ -249,7 +260,7 @@ async function load(manual){
   btn.classList.add('spin');
   try{
     const res = await jsonp({ action:'load', sid: me ? me.sid : '' });
-    notices = res.notices || [];
+    notices = (res.notices || []).map(n => ({ ...n, date: normDate(n.date) }));
     confirmed = new Set((res.confirmed || []).map(String));
     if (res.className){ const sub = (res.year ? res.year + '학년도 ' : '') + res.className; lsSet(K.cls, sub); setSub(sub); }
     render();

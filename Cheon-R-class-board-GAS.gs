@@ -82,9 +82,23 @@ function 헤더복구() {
 /* ---------- 공통 유틸 ---------- */
 function sh_(k) { return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS[k].name); }
 function now_() { return Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm:ss'); }
+function isDate_(v) { return Object.prototype.toString.call(v) === '[object Date]' && !isNaN(v.getTime()); }
 function str_(v) {
-  if (v instanceof Date) return Utilities.formatDate(v, TZ, 'yyyy-MM-dd');
+  if (isDate_(v)) return Utilities.formatDate(v, TZ, 'yyyy-MM-dd');
   return v === null || v === undefined ? '' : String(v).trim();
+}
+/** 날짜를 항상 yyyy-MM-dd 로 정리 (시트가 날짜 형식으로 바꿔도 대응) */
+function dateStr_(v) {
+  if (isDate_(v)) return Utilities.formatDate(v, TZ, 'yyyy-MM-dd');
+  var s = String(v === null || v === undefined ? '' : v).trim();
+  var m = s.match(/^(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+  if (m) return m[1] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[3]).slice(-2);
+  var d = new Date(s);
+  return isNaN(d.getTime()) ? s : Utilities.formatDate(d, TZ, 'yyyy-MM-dd');
+}
+/** 행을 글자 형식으로 고정해서 쓰기 (자동 날짜 변환 방지) */
+function writeRow_(sh, rowNum, row) {
+  sh.getRange(rowNum, 1, 1, row.length).setNumberFormat('@').setValues([row]);
 }
 function rows_(k) {
   var sh = sh_(k);
@@ -138,7 +152,7 @@ function lock_(fn) {
 }
 function noticeObj_(r, targetMap) {
   return {
-    id: r[0], type: r[1], date: r[2], title: r[3], body: r[4], memo: r[5],
+    id: r[0], type: r[1], date: dateStr_(r[2]), title: r[3], body: r[4], memo: r[5],
     important: r[6] === 'Y', popup: r[7] === 'Y', author: r[8], created: r[9], updated: r[10],
     targets: targetMap[r[0]] || []
   };
@@ -161,7 +175,7 @@ function load_(p) {
   var from = daysAgo_(60);
   var tm = targetMap_();
   var notices = rows_('notices')
-    .filter(function (r) { return r[0] && r[2] >= from; })
+    .filter(function (r) { return r[0] && dateStr_(r[2]) >= from; })
     .map(function (r) { return noticeObj_(r, tm); });
   var mine = sid ? rows_('confirms')
     .filter(function (r) { return r[1] === sid; })
@@ -268,8 +282,7 @@ function saveNotice_(p) {
       idx >= 0 ? data[idx][8] : author,
       idx >= 0 ? data[idx][9] : now_(),
       idx >= 0 ? now_() : ''];
-    if (idx >= 0) sh.getRange(idx + 2, 1, 1, row.length).setValues([row]);
-    else sh.appendRow(row);
+    writeRow_(sh, idx >= 0 ? idx + 2 : sh.getLastRow() + 1, row);
 
     replaceTargets_(id, n.targets || []);
     return { ok: true, id: id };

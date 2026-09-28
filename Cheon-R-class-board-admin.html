@@ -423,6 +423,17 @@ let PW = sessionStorage.getItem(K.pw) || '';
 let role = '', data = { notices:[], students:[], confirms:[] };
 let curTab = 'write', listMode = 'up', fType = '일반', editId = null;
 
+
+/* 날짜를 항상 yyyy-MM-dd 로 정리 (시트 형식이 바뀌어 와도 대응) */
+function normDate(s){
+  s = String(s ?? '').trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const m = s.match(/^(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+  if (m) return m[1] + '-' + m[2].padStart(2,'0') + '-' + m[3].padStart(2,'0');
+  const d = new Date(s);
+  return isNaN(d) ? s : d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
 /* ===== JSONP ===== */
 let seq = 0;
 function jsonp(params, base){
@@ -548,7 +559,7 @@ async function enterMain(){
 }
 async function refresh(){
   const r = await jsonp({ action:'adminLoad', pw:PW });
-  role = r.role; data = { notices:r.notices||[], students:r.students||[], confirms:r.confirms||[], requests:r.requests||[] };
+  role = r.role; data = { notices:(r.notices||[]).map(n => ({ ...n, date: normDate(n.date) })), students:r.students||[], confirms:r.confirms||[], requests:r.requests||[] };
   updateReqBadge();
   schoolYear = parseInt(r.year, 10) || new Date().getFullYear();
   $('cls').textContent = (r.className||'우리 반') + ' 공지 관리';
