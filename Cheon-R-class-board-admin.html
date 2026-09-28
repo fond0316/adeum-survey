@@ -79,6 +79,19 @@ details summary::-webkit-details-marker{display:none}
 .center{max-width:420px;margin:40px auto}
 .foot{text-align:center;font-size:12px;color:var(--tx3);margin-top:18px}
 .hide{display:none!important}
+.top .view{min-height:44px;padding:0 12px;border-radius:10px;background:#fff;color:var(--main-d);font-size:14px;font-weight:700}
+.gbtn{width:100%;min-height:48px;border-radius:12px;background:#fff;border:1.5px dashed var(--main);color:var(--main-d);font-weight:700;margin-top:10px}
+.gtop{display:flex;align-items:center;gap:10px;background:var(--main);color:#fff;border-radius:14px;padding:10px 14px;min-height:56px;position:sticky;top:0;z-index:5}
+.gtop h1{font-size:18px;flex:1}
+.step{background:#fff;border:1px solid var(--line);border-left:4px solid var(--main);border-radius:12px;padding:14px 16px;margin-top:12px}
+.step .st{font-size:14px;font-weight:800;color:var(--main-d);margin-bottom:6px}
+.step ol{font-size:14px;color:var(--tx2);line-height:1.9;padding-left:20px}
+.step b{color:var(--tx)}
+.tip{background:#FEF9C3;border-radius:12px;padding:12px 14px;font-size:13px;color:#92400E;line-height:1.8;margin-top:12px}
+.warn{background:#FCEBEB;border-radius:12px;padding:12px 14px;font-size:13px;color:#A32D2D;line-height:1.8;margin-top:8px}
+.code{margin-top:10px}
+.code pre{background:#2E2A3D;color:#E9E5F5;border-radius:10px;padding:12px;font-size:12px;line-height:1.5;max-height:260px;overflow:auto;white-space:pre}
+.code summary{font-size:13px;color:var(--tx2);cursor:pointer;min-height:36px;display:flex;align-items:center}
 </style>
 </head>
 <body>
@@ -92,7 +105,42 @@ details summary::-webkit-details-marker{display:none}
       <input type="text" id="gasIn" placeholder="https://script.google.com/macros/s/.../exec">
       <div class="row" style="margin-top:10px"><button class="btn" onclick="connect()">연결하기</button></div>
       <div class="msg" id="conMsg"></div>
+      <button class="gbtn" onclick="openGuide()">📖 처음 사용하시나요? 설치 가이드 보기</button>
     </div>
+  </div>
+
+  <!-- 설치 가이드 (화면 전환) -->
+  <div id="scrGuide" class="hide">
+    <header class="gtop"><button class="out" onclick="closeGuide()">← 돌아가기</button><h1>📖 CLASS BOARD 설치 가이드</h1></header>
+    <div class="step"><div class="st">Step 1. 구글 시트 만들기</div><ol>
+      <li>구글 계정 로그인 → 구글 스프레드시트 접속 → <b>새 스프레드시트</b> 만들기</li>
+      <li>이름은 자유롭게 (예: CLASS BOARD 2026 1-4)</li>
+      <li>시트 탭은 직접 만들 필요 없어요. 첫 연결 때 자동으로 생겨요.</li></ol></div>
+    <div class="step"><div class="st">Step 2. GAS 코드 붙여넣기</div><ol>
+      <li>시트 메뉴 <b>확장 프로그램 → Apps Script</b></li>
+      <li>편집기에 있는 기본 코드를 <b>Ctrl+A로 전부 지우기</b></li>
+      <li>아래 <b>코드 전체 복사</b> 버튼 → 붙여넣기 → 저장(💾)</li></ol>
+      <div class="row" style="margin-top:10px"><button class="btn" id="gasCopyBtn" onclick="copyGas()">📋 코드 전체 복사</button><span class="msg" id="gasCopyMsg" style="margin:0"></span></div>
+      <details class="code"><summary>코드 미리보기</summary><pre id="gasCode">불러오는 중…</pre></details></div>
+    <div class="step"><div class="st">Step 3. 웹 앱으로 배포</div><ol>
+      <li>오른쪽 위 <b>배포 → 새 배포</b> → 톱니바퀴에서 <b>웹 앱</b> 선택</li>
+      <li>실행 사용자: <b>나</b> / 액세스 권한: <b>모든 사용자</b> → 배포</li>
+      <li>권한 요청 창: 내 계정 선택 → <b>고급</b> → <b>(안전하지 않음)으로 이동</b> → 허용</li>
+      <li>마지막 화면의 <b>…/exec</b>로 끝나는 웹 앱 URL 복사</li></ol></div>
+    <div class="step"><div class="st">Step 4. 연결하기</div><ol>
+      <li>이 화면에서 ← 돌아가기 → 복사한 URL 붙여넣기 → <b>연결하기</b></li>
+      <li>처음 비밀번호 <b>0413</b>으로 로그인</li></ol></div>
+    <div class="step"><div class="st">Step 5. 첫 설정</div><ol>
+      <li>⚙️ 설정 탭에서 <b>관리자 비밀번호 변경</b></li>
+      <li>학년도·학급 이름·회장 코드 입력 → 설정 저장</li>
+      <li>👥 명단 탭에 <b>학번 이름</b> 한 줄씩 입력 (엑셀 두 칸 복사 가능) → 명단 저장</li></ol>
+      <div class="warn">⚠️ 비밀번호를 바꾸지 않으면 0413을 아는 누구나 관리자로 들어올 수 있어요.</div></div>
+    <div class="step"><div class="st">Step 6. 학생들에게 배포</div><ol>
+      <li>⚙️ 탭의 <b>학생용 링크</b>를 QR코드나 메시지로 공유</li>
+      <li>학생은 크롬 ⋮ 메뉴 → <b>홈 화면에 추가</b>로 앱처럼 설치</li>
+      <li>처음 열 때 학번 한 번 등록하면 끝</li>
+      <li>상단 <b>👀 학생 화면</b> 버튼으로 학생에게 어떻게 보이는지 확인할 수 있어요.</li></ol></div>
+    <div class="tip">💡 나중에 GAS 코드를 고칠 땐 <b>새 배포</b>가 아니라 <b>배포 관리 → ✏️ 수정 → 새 버전</b>으로 해야 기존 학생 링크가 유지돼요.</div>
   </div>
 
   <!-- 2) 로그인 -->
@@ -113,6 +161,7 @@ details summary::-webkit-details-marker{display:none}
   <div id="scrMain" class="hide">
     <header class="top">
       <h1 id="cls">학급 공지 관리</h1>
+      <button class="view" onclick="openStudentView()">👀 학생 화면</button>
       <span class="role" id="roleTag"></span>
       <button class="out" onclick="logout()">로그아웃</button>
     </header>
@@ -124,9 +173,13 @@ details summary::-webkit-details-marker{display:none}
         <h2>📱 학생용 링크</h2>
         <p class="hint">이 링크를 QR코드나 메시지로 학생들에게 보내 주세요.</p>
         <div class="link"><input type="text" id="stuLink" readonly><button class="btn" onclick="copy('stuLink')">복사</button></div>
-        <label class="f">관리자·회장용 링크</label>
+        <label class="f">내 관리자·회장용 링크 (내 시트 연결됨)</label>
         <div class="link"><input type="text" id="admLink" readonly><button class="btn sub" onclick="copy('admLink')">복사</button></div>
+        <label class="f">🤝 다른 선생님께 공유용 링크 (시트 연결 없음)</label>
+        <div class="link"><input type="text" id="shareLink" readonly><button class="btn sub" onclick="copy('shareLink')">복사</button></div>
+        <p class="hint" style="margin-top:6px">다른 선생님은 이 링크로 들어가서 설치 가이드를 따라 본인 시트를 연결하면 돼요.</p>
         <div class="msg ok" id="copyMsg"></div>
+        <button class="gbtn" onclick="openGuide()">📖 설치 가이드 보기</button>
         <details style="margin-top:10px">
           <summary>📖 학생 디벗 설치 방법</summary>
           <ol class="guide">
@@ -226,7 +279,11 @@ function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0
 function today(){ return ymd(new Date()); }
 function prettyDate(s){ const d=new Date(s+'T00:00:00'); return (d.getMonth()+1)+'/'+d.getDate()+'('+'일월화수목금토'[d.getDay()]+')'; }
 function $(id){ return document.getElementById(id); }
-function show(id){ ['scrConnect','scrLogin','scrMain'].forEach(x => $(x).classList.toggle('hide', x!==id)); }
+const SCREENS = ['scrConnect','scrLogin','scrMain','scrGuide'];
+let curScreen = '', backScreen = '';
+function show(id){ curScreen = id; SCREENS.forEach(x => $(x).classList.toggle('hide', x!==id)); window.scrollTo(0,0); }
+const P = 'Cheon-R-class-board';
+function baseUrl(){ return location.href.split('?')[0].split('#')[0].replace(/[^/]*$/, ''); }
 function msg(id, text, ok){ const el=$(id); el.textContent=text; el.className='msg '+(ok?'ok':'no'); }
 
 (function(){ const g=new URLSearchParams(location.search).get('gas'); if(g) lsSet(K.gas, g.trim()); })();
@@ -289,9 +346,10 @@ async function refresh(){
   if (role==='admin'){
     $('setYear').value = r.year||''; $('setCls').value = r.className||''; $('setPres').value = r.presidentCode||'';
     $('stuIn').value = data.students.map(s=>s.sid+' '+s.name).join('\n'); previewStu();
-    const base = location.href.split('?')[0].replace(/[^/]*$/, '');
-    $('stuLink').value = base + 'Cheon-R-class-board.html?gas=' + encodeURIComponent(GAS);
-    $('admLink').value = base + 'Cheon-R-class-board-admin.html?gas=' + encodeURIComponent(GAS);
+    const base = baseUrl();
+    $('stuLink').value = base + P + '.html?gas=' + encodeURIComponent(GAS);
+    $('admLink').value = base + P + '-admin.html?gas=' + encodeURIComponent(GAS);
+    $('shareLink').value = base + P + '-admin.html';
     $('gasNow').value = GAS;
   }
 }
@@ -432,6 +490,34 @@ function renderStat(){
       <div class="names">확인 ${done.length}명 · ${done.map(c=>esc(c.name)).join(', ')||'-'}</div>
       <div class="s" style="font-size:12px;color:var(--tx3);margin-top:4px">${prettyDate(n.date)}</div></details>`;
   }).join('') : '<p class="hint">중요 공지가 아직 없어요.</p>';
+}
+
+/* ===== 학생 화면 미리보기 ===== */
+function openStudentView(){
+  window.open(baseUrl() + P + '.html?gas=' + encodeURIComponent(GAS) + '&preview=1', '_blank');
+}
+
+/* ===== 설치 가이드 ===== */
+let gasText = '';
+async function openGuide(){
+  backScreen = curScreen || 'scrConnect';
+  show('scrGuide');
+  if (gasText) return;
+  try{
+    const r = await fetch(P + '-GAS.gs', { cache:'no-store' });
+    if (!r.ok) throw 0;
+    gasText = await r.text();
+    $('gasCode').textContent = gasText;
+  }catch(e){
+    $('gasCode').textContent = '코드 파일을 불러오지 못했어요. (깃허브에 ' + P + '-GAS.gs 파일이 함께 올라가 있는지 확인해 주세요)';
+  }
+}
+function closeGuide(){ show(backScreen || 'scrConnect'); }
+async function copyGas(){
+  if (!gasText){ msg('gasCopyMsg','코드를 아직 불러오지 못했어요.'); return; }
+  try{ await navigator.clipboard.writeText(gasText); }
+  catch(e){ const ta=document.createElement('textarea'); ta.value=gasText; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  msg('gasCopyMsg','✅ 복사했어요! Apps Script에 붙여넣으세요.',true);
 }
 
 /* ===== 시작 ===== */

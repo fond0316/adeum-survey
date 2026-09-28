@@ -198,6 +198,7 @@ function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e)
   if (g) lsSet(K.gas, g.trim());
 })();
 const GAS = lsGet(K.gas, '');
+const PREVIEW = new URLSearchParams(location.search).get('preview') === '1';
 
 let me = lsGet(K.me, null);
 let notices = [], confirmed = new Set();
@@ -260,7 +261,7 @@ function render(){
   renderMe(); renderUrgent(); renderCal(); renderTabs(); renderList();
 }
 function renderMe(){
-  document.getElementById('meBtn').textContent = me ? me.sid + ' ' + me.name : '학번 등록';
+  document.getElementById('meBtn').textContent = me ? me.sid + ' ' + me.name : (PREVIEW ? '👀 담임 미리보기' : '학번 등록');
 }
 function renderUrgent(){
   const t = today();
@@ -421,7 +422,7 @@ function checkPopups(){
   const t = today();
   const seen = new Set(lsGet(K.seen, []));
   const fresh = notices.filter(n => n.popup && n.date === t && !seen.has(String(n.id)) &&
-    (!n.targets || !n.targets.length || isMine(n)) && !popQueue.some(q => q.id === n.id));
+    (PREVIEW || !n.targets || !n.targets.length || isMine(n)) && !popQueue.some(q => q.id === n.id));
   if (!fresh.length) return;
   popQueue.push(...fresh.sort(sortN));
   alertUser();
@@ -486,7 +487,7 @@ if (!GAS){
 } else {
   load();
   setInterval(load, POLL_MS);
-  if (!me) setTimeout(openWho, 600);
+  if (!me && !PREVIEW) setTimeout(openWho, 600);
 }
 </script>
 </body>
