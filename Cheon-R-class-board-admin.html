@@ -322,6 +322,13 @@ details summary::-webkit-details-marker{display:none}
 
     <!-- 공지 -->
     <section id="tab-write" class="hide">
+      <div class="box hide" id="blobBox" style="background:var(--s-bg);border-color:var(--s-bg)">
+        <h2 style="color:var(--s-tx)">📅 날짜별로 나눌 수 있는 공지가 <span id="blobCnt"></span>개 있어요</h2>
+        <p class="hint" style="color:var(--s-tx)">한 공지 안에 날짜가 여러 개 들어 있어요. 나누면 각 날짜의 달력에 따로 들어가요.</p>
+        <div id="blobList"></div>
+        <div class="row" style="margin-top:8px"><button class="btn" id="blobAllBtn" onclick="splitAllBlobs(this)">모두 바로 정리</button></div>
+        <div class="msg" id="blobMsg"></div>
+      </div>
       <div class="box">
         <h2 id="formTitle">✏️ 새 공지</h2>
         <label class="f">유형</label>
@@ -566,6 +573,7 @@ async function refresh(){
   role = r.role; data = { notices:(r.notices||[]).map(n => ({ ...n, date: normDate(n.date) })), students:r.students||[], confirms:r.confirms||[], requests:r.requests||[] };
   updateReqBadge();
   schoolYear = parseInt(r.year, 10) || new Date().getFullYear();
+  renderBlobs();
   $('cls').textContent = (r.className||'우리 반') + ' 공지 관리';
   if (role==='admin'){
     $('setYear').value = r.year||''; $('setCls').value = r.className||''; $('setPres').value = r.presidentCode||'';
@@ -691,7 +699,49 @@ async function delNotice(id){
   catch(e){ alert(e.message); }
 }
 function canEdit(n){ return role==='admin' || n.author==='회장'; }
+/* ===== 기존 덩어리 공지 찾아서 나누기 ===== */
+function findBlobs(){
+  return data.notices.filter(n => canEdit(n) && ['확인','교과','일반'].includes(n.type) && datedCount(n.body) >= 2);
+}
+function renderBlobs(){
+  const blobs = findBlobs();
+  $('blobBox').classList.toggle('hide', !blobs.length);
+  if (!blobs.length) return;
+  $('blobCnt').textContent = blobs.length;
+  $('blobList').innerHTML = blobs.map(n => `
+    <div class="item" style="background:#fff"><div class="in">
+      <div class="t">${esc(n.title)}</div>
+      <div class="s">${prettyDate(n.date)} · 일정 ${datedCount(n.body)}개${n.author==='회장'?' · 회장':''}</div>
+    </div><div class="acts"><button onclick="previewBlob('${esc(n.id)}')">미리보기로 나누기</button></div></div>`).join('');
+}
+function previewBlob(id){ editNotice(id); splitToBulk(); }
+async function splitAllBlobs(btn){
+  const blobs = findBlobs();
+  const total = blobs.reduce((s,n)=>s+datedCount(n.body),0);
+  if (!confirm(`공지 ${blobs.length}개를 날짜별 공지 ${total}개로 나눠요.\n원래 덩어리 공지는 삭제돼요. 진행할까요?`)) return;
+  btn.disabled = true;
+  let done = 0;
+  try{
+    for (const n of blobs){
+      const list = parseDated(n.body).filter(x=>x.on && x.date).map(x=>({ type:n.type, date:x.date, title:x.title.trim().slice(0,60), author:n.author }));
+      for (let i = 0; i < list.length; i += 5){
+        msg('blobMsg', `정리 중… (${done + Math.min(i+5, list.length)}/${total})`, true);
+        await jsonp({ action:'saveNotices', pw:PW, data:JSON.stringify(list.slice(i, i+5)) });
+      }
+      await jsonp({ action:'deleteNotice', pw:PW, nid:n.id });
+      done += list.length;
+    }
+    await refresh(); renderList();
+    msg('formMsg', `✅ 날짜별 공지 ${done}개로 정리했어요!`, true);
+  }catch(e){
+    await refresh().catch(()=>{}); renderList();
+    msg('blobMsg', e.message + ' (일부만 정리됐을 수 있어요. 목록을 확인해 주세요)');
+  }
+  btn.disabled = false;
+}
+
 function renderList(){
+  renderBlobs();
   $('listTabs').innerHTML = [['up','오늘·예정'],['past','지난 공지']]
     .map(([k,l])=>`<button class="${listMode===k?'on':''}" onclick="listMode='${k}';renderList()">${l}</button>`).join('');
   const t = today();
@@ -834,8 +884,11 @@ function checkSplit(){
   el.classList.toggle('hide', n < 2);
   if (n >= 2) $('splitCnt').textContent = n;
 }
+let splitAuthor = '';
 function splitToBulk(){
   splitFrom = editId || null;
+  const src = splitFrom && data.notices.find(x=>String(x.id)===String(splitFrom));
+  splitAuthor = src ? src.author : '';
   $('bulkIn').value = $('fBody').value;
   bulkType = ['확인','교과','일반'].includes(fType) ? fType : '교과';
   renderBulkChips();
@@ -862,7 +915,7 @@ function renderBulk(){
 function bulkCount(){ $('bulkSave').textContent = `선택한 ${bulkItems.filter(x=>x.on).length}개 올리기`; }
 function clearBulk(){ $('bulkIn').value=''; bulkItems=[]; $('bulkPrev').innerHTML=''; $('bulkAct').classList.add('hide'); msg('bulkMsg','',true); }
 async function saveBulk(btn){
-  const list = bulkItems.filter(x=>x.on).map(x=>({ type:bulkType, date:x.date, title:x.title.trim() }));
+  const list = bulkItems.filter(x=>x.on).map(x=>({ type:bulkType, date:x.date, title:x.title.trim(), author:splitAuthor }));
   if (!list.length){ msg('bulkMsg','올릴 줄을 체크해 주세요.'); return; }
   if (list.some(x=>!x.date || !x.title)){ msg('bulkMsg','날짜나 제목이 빈 줄이 있어요.'); return; }
   btn.disabled = true;
@@ -876,7 +929,7 @@ async function saveBulk(btn){
       try{ await jsonp({ action:'deleteNotice', pw:PW, nid:splitFrom }); delMsg = ' 원래 공지는 삭제했어요.'; if (String(editId)===String(splitFrom)) resetForm(); }
       catch(e){ delMsg = ' (원래 공지 삭제 실패: ' + e.message + ')'; }
     }
-    splitFrom = null;
+    splitFrom = null; splitAuthor = '';
     await refresh(); renderList(); clearBulk();
     msg('bulkMsg', `${list.length}개 공지를 올렸어요! 🎉` + delMsg, true);
   }catch(e){ msg('bulkMsg', e.message + ' (일부만 올라갔을 수 있어요. 목록을 확인해 주세요)'); }

@@ -298,7 +298,8 @@ function saveNotices_(p) {
   var rows = list.map(function (n, i) {
     if (allowed.indexOf(n.type) < 0) throw new Error('올릴 수 없는 유형이 있어요.');
     if (!n.title || !n.date) throw new Error('날짜와 제목이 빠진 줄이 있어요.');
-    return ['N' + Date.now() + '_' + i, n.type, n.date, n.title, n.body || '', '', n.important ? 'Y' : '', '', author, now_(), ''];
+    var who = (role === 'admin' && n.author === '회장') ? '회장' : author;   // 담임이 회장 글을 나눌 때 작성자 유지
+    return ['N' + Date.now() + '_' + i, n.type, n.date, n.title, n.body || '', '', n.important ? 'Y' : '', '', who, now_(), ''];
   });
   if (!rows.length) return { ok: true, count: 0 };
   return lock_(function () {
