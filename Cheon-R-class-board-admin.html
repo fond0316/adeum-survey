@@ -337,7 +337,11 @@ details summary::-webkit-details-marker{display:none}
           <input type="text" id="fMemo" maxlength="40" placeholder="학급회장, 주번 등">
         </div>
         <label class="f">내용</label>
-        <textarea id="fBody" maxlength="1500" placeholder="자세한 내용 (학생이 공지를 누르면 보여요)"></textarea>
+        <textarea id="fBody" maxlength="1500" placeholder="자세한 내용 (짧으면 학생 목록에 바로 보이고, 길면 눌러서 봐요)" oninput="checkSplit()"></textarea>
+        <div id="splitHint" class="hide" style="background:var(--s-bg);color:var(--s-tx);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:14px;line-height:1.5">
+          📅 날짜가 있는 줄이 <b id="splitCnt">0</b>개 있어요. <b>날짜별로 나눠서</b> 달력에 올릴까요?
+          <div class="row" style="margin-top:8px"><button class="btn" onclick="splitToBulk()">날짜별로 나누기</button></div>
+        </div>
         <label class="chk"><input type="checkbox" id="fImp"> ⭐ 중요 — 학생 확인 받기</label>
         <label class="chk" id="popRow"><input type="checkbox" id="fPop"> 🚨 앱을 켜 둔 학생에게 팝업 알림 (날짜가 오늘일 때)</label>
         <div class="row" style="margin-top:12px">
@@ -646,6 +650,7 @@ function renderRoster(sel){
     : '<span class="hint">명단 탭에서 학생을 먼저 등록해 주세요.</span>';
 }
 function resetForm(){
+  if ($('splitHint')) $('splitHint').classList.add('hide');
   editId = null; fType = role==='admin' ? '일반' : '교과';
   $('formTitle').textContent = '✏️ 새 공지'; $('saveBtn').textContent = '공지 올리기';
   $('fDate').value = today(); $('fTitle').value=''; $('fBody').value=''; $('fMemo').value='';
@@ -657,7 +662,7 @@ function editNotice(id){
   editId = n.id; fType = n.type;
   $('formTitle').textContent = '✏️ 공지 수정'; $('saveBtn').textContent = '수정 저장';
   $('fDate').value=n.date; $('fTitle').value=n.title; $('fBody').value=n.body; $('fMemo').value=n.memo||'';
-  $('fImp').checked=n.important; $('fPop').checked=n.popup;
+  $('fImp').checked=n.important; $('fPop').checked=n.popup; checkSplit();
   renderChips(); renderRoster((n.targets||[]).map(t=>t.sid));
   window.scrollTo({ top:0, behavior:'smooth' });
 }
@@ -668,6 +673,8 @@ async function saveNotice(btn){
     targets: fType==='호출' ? [...document.querySelectorAll('#roster input:checked')].map(i=>i.value) : [] };
   if (!n.date || !n.title){ msg('formMsg','날짜와 제목을 입력해 주세요.'); return; }
   if (fType==='호출' && !n.targets.length && !n.memo){ msg('formMsg','호출 대상을 선택하거나 직접 입력해 주세요.'); return; }
+  if (!editId && fType!=='긴급' && fType!=='호출' && datedCount(n.body) >= 2 &&
+      confirm(`날짜가 있는 줄이 ${datedCount(n.body)}개 있어요.\n날짜별로 나눠서 달력에 올릴까요?\n(취소를 누르면 한 공지로 올려요)`)){ splitToBulk(); return; }
   btn.disabled = true; msg('formMsg','저장 중…',true);
   try{
     await jsonp({ action:'saveNotice', pw:PW, data:JSON.stringify(n) });
@@ -790,10 +797,11 @@ function bulkDate(m, d){
   if (dt.getMonth() !== m-1) return null;
   return ymd(dt);
 }
-function parseBulk(){
-  const lines = $('bulkIn').value.split('\n').map(l=>l.trim()).filter(Boolean);
+function parseBulk(){ bulkItems = parseDated($('bulkIn').value); renderBulk(); }
+function parseDated(text){
+  const lines = String(text||'').split('\n').map(l=>l.trim()).filter(Boolean);
   const hasBullet = lines.some(l=>/^[-•*·▪︎]/.test(l));
-  bulkItems = [];
+  const bulkItems = [];
   lines.forEach(raw=>{
     const bullet = /^[-•*·▪︎]/.test(raw);
     const line = raw.replace(/^[-•*·▪︎\s]+/, '');
@@ -814,7 +822,28 @@ function parseBulk(){
     } else return;  // 날짜 없는 줄은 건너뜀
     bulkItems.push({ date: date || '', title, warn, on: !!date && !!title && (!hasBullet || bullet) });
   });
-  renderBulk();
+  return bulkItems;
+}
+
+/* ===== 작성 칸에 붙여넣은 목록 자동 감지 ===== */
+let splitFrom = null;
+function datedCount(text){ return parseDated(text).filter(x=>x.on).length; }
+function checkSplit(){
+  const n = datedCount($('fBody').value);
+  const el = $('splitHint');
+  el.classList.toggle('hide', n < 2);
+  if (n >= 2) $('splitCnt').textContent = n;
+}
+function splitToBulk(){
+  splitFrom = editId || null;
+  $('bulkIn').value = $('fBody').value;
+  bulkType = ['확인','교과','일반'].includes(fType) ? fType : '교과';
+  renderBulkChips();
+  $('bulkBox').open = true;
+  parseBulk();
+  msg('bulkMsg', splitFrom ? '날짜별로 나눈 뒤, 원래 공지는 삭제할지 물어볼게요.' : '확인하고 [선택한 공지 올리기]를 눌러 주세요.', true);
+  if (!splitFrom) resetForm();
+  $('bulkBox').scrollIntoView({ behavior:'smooth', block:'start' });
 }
 function renderBulk(){
   if (!bulkItems.length){
@@ -842,8 +871,14 @@ async function saveBulk(btn){
       msg('bulkMsg', `올리는 중… (${Math.min(i+5, list.length)}/${list.length})`, true);
       await jsonp({ action:'saveNotices', pw:PW, data:JSON.stringify(list.slice(i, i+5)) });
     }
+    let delMsg = '';
+    if (splitFrom && confirm('날짜별로 올렸어요!\n원래 한 덩어리 공지는 삭제할까요?')){
+      try{ await jsonp({ action:'deleteNotice', pw:PW, nid:splitFrom }); delMsg = ' 원래 공지는 삭제했어요.'; if (String(editId)===String(splitFrom)) resetForm(); }
+      catch(e){ delMsg = ' (원래 공지 삭제 실패: ' + e.message + ')'; }
+    }
+    splitFrom = null;
     await refresh(); renderList(); clearBulk();
-    msg('bulkMsg', `${list.length}개 공지를 올렸어요! 🎉`, true);
+    msg('bulkMsg', `${list.length}개 공지를 올렸어요! 🎉` + delMsg, true);
   }catch(e){ msg('bulkMsg', e.message + ' (일부만 올라갔을 수 있어요. 목록을 확인해 주세요)'); }
   btn.disabled = false;
 }
