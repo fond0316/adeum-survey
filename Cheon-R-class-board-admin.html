@@ -658,10 +658,18 @@ function renderList(){
 }
 
 /* ===== 👑 사용자 관리 ===== */
-let own = { approval:false, users:[] }, uMode = 'all';
+let own = { approval:false, users:[] }, uMode = 'all', ownLoaded = false;
 async function loadOwner(){
-  try{ const r = await jsonp({ action:'ownerList', id:installId }, REGISTRY_URL); own = { approval:r.approval, users:r.users||[] }; renderOwner(); }
-  catch(e){ msg('ownMsg', e.message); $('uList').innerHTML = ''; }
+  if (!ownLoaded){ $('apTxt').textContent = '승인제 (불러오는 중…)'; $('apSub').textContent = ''; $('apSw').classList.remove('on'); }
+  try{
+    const r = await jsonp({ action:'ownerList', id:installId }, REGISTRY_URL);
+    const wasLoaded = ownLoaded;
+    own = { approval:r.approval, users:r.users||[] }; ownLoaded = true; if (!wasLoaded) msg('ownMsg','',true); renderOwner();
+  }catch(e){
+    ownLoaded = false;
+    $('apTxt').textContent = '승인제 (확인 불가)';
+    $('uList').innerHTML = `<p class="hint" style="color:#C0392B">불러오지 못했어요: ${esc(e.message)}<br>등록부 GAS를 새 코드로 <b>수정 배포</b>했는지 확인해 주세요.</p>`;
+  }
 }
 function uState(u){ return u.block ? 'blk' : (own.approval && !u.ok) ? 'wait' : 'ok'; }
 function renderOwner(){
@@ -686,16 +694,19 @@ function renderOwner(){
     </div>`).join('') : '<p class="hint">해당하는 선생님이 없어요.</p>';
 }
 async function toggleApproval(){
+  if (!ownLoaded){ msg('ownMsg','아직 등록부 정보를 불러오지 못했어요.'); return; }
   const on = !own.approval;
   if (!confirm(on ? '승인제를 켤까요?\n승인하지 않은 선생님은 다음 로그인부터 사용할 수 없어요.' : '승인제를 끌까요?\n등록한 선생님은 누구나 바로 사용할 수 있게 돼요.')) return;
-  try{ await jsonp({ action:'ownerApproval', id:installId, on: on?'1':'' }, REGISTRY_URL); await loadOwner(); msg('ownMsg', on?'승인제를 켰어요.':'승인제를 껐어요.', true); }
-  catch(e){ msg('ownMsg', e.message); }
+  own.approval = on; renderOwner(); msg('ownMsg','저장 중…',true);          // 화면 먼저 바꾸고
+  try{ await jsonp({ action:'ownerApproval', id:installId, on: on?'1':'' }, REGISTRY_URL); msg('ownMsg', on?'승인제를 켰어요.':'승인제를 껐어요.', true); loadOwner(); }
+  catch(e){ own.approval = !on; renderOwner(); msg('ownMsg', '저장하지 못해 되돌렸어요: ' + e.message); }
 }
 async function setUser(target, field, value){
   const u = own.users.find(x=>x.id===target);
   if (field==='block' && value && !confirm(`${u.name} 선생님(${u.school}) 사용을 중지할까요?`)) return;
-  try{ await jsonp({ action:'ownerUser', id:installId, target, field, value: value?'1':'' }, REGISTRY_URL); await loadOwner(); }
-  catch(e){ msg('ownMsg', e.message); }
+  u[field] = value; renderOwner(); msg('ownMsg','저장 중…',true);           // 화면 먼저 바꾸고
+  try{ await jsonp({ action:'ownerUser', id:installId, target, field, value: value?'1':'' }, REGISTRY_URL); msg('ownMsg','저장했어요.',true); loadOwner(); }
+  catch(e){ u[field] = !value; renderOwner(); msg('ownMsg', '저장하지 못해 되돌렸어요: ' + e.message); }
 }
 
 /* ===== 수정 요청·질문 ===== */
