@@ -88,6 +88,19 @@ details summary::-webkit-details-marker{display:none}
 .center{max-width:420px;margin:40px auto}
 .foot{text-align:center;font-size:12px;color:var(--tx3);margin-top:18px}
 .hide{display:none!important}
+.sw{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--bg);cursor:pointer}
+.sw .tg{width:52px;height:30px;border-radius:15px;background:#C9C6D4;position:relative;flex:none;transition:.2s}
+.sw .tg::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s}
+.sw.on .tg{background:var(--main)}.sw.on .tg::after{left:25px}
+.sw b{font-size:15px}.sw small{display:block;font-size:12px;color:var(--tx2);margin-top:2px}
+.ucard{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.ucard .nm{font-weight:800;font-size:15px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.ucard .mt{font-size:12px;color:var(--tx3);margin-top:3px}
+.ucard .ac{display:flex;gap:6px;margin-top:8px}
+.ucard .ac button{min-height:38px;padding:0 14px;border-radius:8px;font-size:13px;font-weight:700;background:var(--bg);color:var(--tx2)}
+.ucard .ac .yes{background:var(--main);color:#fff}.ucard .ac .no{background:#FCEBEB;color:#A32D2D}
+.st{font-size:11px;font-weight:700;border-radius:6px;padding:2px 8px}
+.st.ok{background:#E3F3E4;color:#2E7D32}.st.wait{background:#FAEEDA;color:#633806}.st.blk{background:#FCEBEB;color:#A32D2D}
 .rq{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
 .rq.done{opacity:.55}
 .rq .who{font-weight:800;font-size:15px}
@@ -265,6 +278,20 @@ details summary::-webkit-details-marker{display:none}
       </div>
     </section>
 
+    <!-- 👑 사용자 관리 (아듬샘 전용) -->
+    <section id="tab-own" class="hide">
+      <div class="box">
+        <h2>👑 사용자 관리</h2>
+        <div class="sw" id="apSw" onclick="toggleApproval()"><span class="tg"></span><div><b id="apTxt">승인제</b><small id="apSub"></small></div></div>
+        <div class="msg" id="ownMsg"></div>
+      </div>
+      <div class="box">
+        <h2 id="uTitle">등록된 선생님</h2>
+        <div class="sub-tabs" id="uTabs"></div>
+        <div id="uList"><p class="hint">불러오는 중…</p></div>
+      </div>
+    </section>
+
     <!-- 명단 -->
     <section id="tab-stu" class="hide">
       <div class="box">
@@ -424,7 +451,7 @@ async function afterLogin(r){
   loginInfo = r; installId = r.installId || '';
   if (!REGISTRY_URL || !installId){ isOwner = !REGISTRY_URL; return enterMain(); }
   let st;
-  try{ st = (await jsonp({ action:'check', id:installId }, REGISTRY_URL)).status; }
+  try{ const res = await jsonp({ action:'check', id:installId }, REGISTRY_URL); st = res.status; saveRegInfo(res); }
   catch(e){ isOwner = lsGet(K.owner,'') === installId; return enterMain(); }  // 등록부 응답 없으면 일단 사용
   handleStatus(st);
 }
@@ -443,10 +470,11 @@ function handleStatus(st){
   if (st === 'blocked') return gate('⛔', '사용이 중지되었어요', '이 학급의 CLASS BOARD 사용이 중지되었어요. 궁금한 점은 아래로 문의해 주세요.');
   enterMain();
 }
+function saveRegInfo(res){ if (res && res.name) lsSet(K.reg, { name:res.name, school:res.school, cls:res.cls }); }
 function gate(ic, title, text){ $('gateIc').textContent = ic; $('gateTitle').textContent = title; $('gateText').textContent = text; msg('gateMsg','',true); show('scrGate'); }
 async function recheck(btn){
   btn.disabled = true; msg('gateMsg','확인 중…',true);
-  try{ handleStatus((await jsonp({ action:'check', id:installId }, REGISTRY_URL)).status); }
+  try{ const res = await jsonp({ action:'check', id:installId }, REGISTRY_URL); saveRegInfo(res); handleStatus(res.status); }
   catch(e){ msg('gateMsg', e.message); }
   btn.disabled = false;
 }
@@ -482,6 +510,7 @@ async function enterMain(){
   const tabs = role==='admin'
     ? [['set','⚙️ 연결·설정'],['stu','👥 명단'],['write','✏️ 공지'],['stat','📊 확인현황']]
     : [['write','✏️ 공지']];
+  if (role==='admin' && isOwner && REGISTRY_URL) tabs.push(['own','👑 사용자 관리']);
   $('nav').innerHTML = tabs.map(([k,l])=>`<button data-t="${k}" onclick="goTab('${k}')">${l}</button>`).join('');
   updateReqBadge();
   resetForm(); goTab('write');
@@ -508,7 +537,8 @@ async function refresh(){
 function goTab(k){
   curTab = k;
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on', b.dataset.t===k));
-  ['set','stu','write','stat'].forEach(x=>$('tab-'+x).classList.toggle('hide', x!==k));
+  ['set','stu','write','stat','own'].forEach(x=>$('tab-'+x).classList.toggle('hide', x!==k));
+  if (k==='own') loadOwner();
   if (k==='write'){ renderRoster(); renderList(); renderBulkChips(); renderReqs(); }
   if (k==='stat'){ renderStat(); refresh().then(renderStat).catch(()=>{}); }
 }
@@ -625,6 +655,47 @@ function renderList(){
       <div class="s">${prettyDate(n.date)}${n.type==='호출'&&n.targets.length?' · '+esc(n.targets.map(x=>x.name).join(', ')):''}${n.memo?' · '+esc(n.memo):''}</div>
     </div>${canEdit(n)?`<div class="acts"><button onclick="editNotice('${esc(n.id)}')">수정</button><button onclick="delNotice('${esc(n.id)}')">삭제</button></div>`:''}</div>`).join('')
     : '<p class="hint">공지가 없어요.</p>';
+}
+
+/* ===== 👑 사용자 관리 ===== */
+let own = { approval:false, users:[] }, uMode = 'all';
+async function loadOwner(){
+  try{ const r = await jsonp({ action:'ownerList', id:installId }, REGISTRY_URL); own = { approval:r.approval, users:r.users||[] }; renderOwner(); }
+  catch(e){ msg('ownMsg', e.message); $('uList').innerHTML = ''; }
+}
+function uState(u){ return u.block ? 'blk' : (own.approval && !u.ok) ? 'wait' : 'ok'; }
+function renderOwner(){
+  $('apSw').classList.toggle('on', own.approval);
+  $('apTxt').textContent = '승인제 ' + (own.approval ? 'ON' : 'OFF');
+  $('apSub').textContent = own.approval ? '승인한 선생님만 사용할 수 있어요.' : '등록하면 누구나 바로 사용할 수 있어요.';
+  const cnt = s => own.users.filter(u=>uState(u)===s).length;
+  $('uTitle').textContent = `등록된 선생님 ${own.users.length}명`;
+  $('uTabs').innerHTML = [['all','전체'],['wait',`승인 대기 ${cnt('wait')}`],['blk',`차단 ${cnt('blk')}`]]
+    .map(([k,l])=>`<button class="${uMode===k?'on':''}" onclick="uMode='${k}';renderOwner()">${l}</button>`).join('');
+  const arr = own.users.filter(u => uMode==='all' || uState(u)===uMode).sort((a,b)=>String(b.last).localeCompare(String(a.last)));
+  const label = { ok:'<span class="st ok">사용 중</span>', wait:'<span class="st wait">승인 대기</span>', blk:'<span class="st blk">차단됨</span>' };
+  $('uList').innerHTML = arr.length ? arr.map(u=>`
+    <div class="ucard">
+      <div class="nm">${esc(u.name)} ${label[uState(u)]}</div>
+      <div class="mt">${esc(u.school)}${u.cls?' · '+esc(u.cls):''}</div>
+      <div class="mt">등록 ${esc(u.reg)} · 마지막 사용 ${esc(u.last)}</div>
+      <div class="ac">
+        ${own.approval ? `<button class="${u.ok?'':'yes'}" onclick="setUser('${esc(u.id)}','ok',${!u.ok})">${u.ok?'승인 취소':'승인'}</button>` : ''}
+        <button class="${u.block?'':'no'}" onclick="setUser('${esc(u.id)}','block',${!u.block})">${u.block?'차단 해제':'차단'}</button>
+      </div>
+    </div>`).join('') : '<p class="hint">해당하는 선생님이 없어요.</p>';
+}
+async function toggleApproval(){
+  const on = !own.approval;
+  if (!confirm(on ? '승인제를 켤까요?\n승인하지 않은 선생님은 다음 로그인부터 사용할 수 없어요.' : '승인제를 끌까요?\n등록한 선생님은 누구나 바로 사용할 수 있게 돼요.')) return;
+  try{ await jsonp({ action:'ownerApproval', id:installId, on: on?'1':'' }, REGISTRY_URL); await loadOwner(); msg('ownMsg', on?'승인제를 켰어요.':'승인제를 껐어요.', true); }
+  catch(e){ msg('ownMsg', e.message); }
+}
+async function setUser(target, field, value){
+  const u = own.users.find(x=>x.id===target);
+  if (field==='block' && value && !confirm(`${u.name} 선생님(${u.school}) 사용을 중지할까요?`)) return;
+  try{ await jsonp({ action:'ownerUser', id:installId, target, field, value: value?'1':'' }, REGISTRY_URL); await loadOwner(); }
+  catch(e){ msg('ownMsg', e.message); }
 }
 
 /* ===== 수정 요청·질문 ===== */
