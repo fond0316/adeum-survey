@@ -10,8 +10,10 @@ var SHEETS = {
   students: { name: '학생명단', headers: ['학번', '이름'] },
   notices: { name: '공지', headers: ['ID', '유형', '날짜', '제목', '내용', '대상메모', '중요', '팝업', '작성자', '작성시각', '수정시각'] },
   targets: { name: '호출대상', headers: ['공지ID', '학번', '이름'] },
-  confirms: { name: '확인기록', headers: ['공지ID', '학번', '이름', '확인시각'] }
+  confirms: { name: '확인기록', headers: ['공지ID', '학번', '이름', '확인시각'] },
+  requests: { name: '수정요청', headers: ['ID', '공지ID', '학번', '이름', '내용', '작성시각', '처리', '처리시각'] }
 };
+var PRESIDENT_TYPES = ['확인', '교과', '일반'];
 var DEFAULT_SETTINGS = [['학년도', String(new Date().getFullYear())], ['학급명', '우리 반'], ['관리자비번', '0413'], ['회장코드', '']];
 
 /* ---------- 진입점 ---------- */
@@ -36,9 +38,12 @@ function route_(p) {
     case 'load': return load_(p);
     case 'who': return who_(p);
     case 'confirm': return confirm_(p);
+    case 'request': return request_(p);
+    case 'resolveRequest': return resolveRequest_(p);
     case 'login': return login_(p);
     case 'adminLoad': return adminLoad_(p);
     case 'saveNotice': return saveNotice_(p);
+    case 'saveNotices': return saveNotices_(p);
     case 'deleteNotice': return deleteNotice_(p);
     case 'saveStudents': return saveStudents_(p);
     case 'saveSettings': return saveSettings_(p);
@@ -180,6 +185,41 @@ function confirm_(p) {
   });
 }
 
+/** 학생 수정요청·질문 — 이름은 명단에서 자동으로 붙임 (사칭 방지) */
+function request_(p) {
+  var sid = String(p.sid || ''), nid = String(p.nid || ''), text = String(p.text || '').trim();
+  if (!text) return { ok: false, error: '내용을 입력해 주세요.' };
+  if (text.length > 300) text = text.slice(0, 300);
+  var st = rows_('students').filter(function (x) { return x[0] === sid; })[0];
+  if (!st) return { ok: false, error: '명단에 없는 학번이에요. 학번 등록을 다시 해 주세요.' };
+  var exists = rows_('notices').some(function (r) { return r[0] === nid; });
+  if (!exists) return { ok: false, error: '삭제된 공지예요.' };
+  return lock_(function () {
+    sh_('requests').appendRow(['R' + Date.now(), nid, sid, st[1], text, now_(), '', '']);
+    return { ok: true, name: st[1] };
+  });
+}
+
+function resolveRequest_(p) {
+  var role = need_(p, ['admin', 'president']);
+  var rid = String(p.rid || ''), undo = p.undo === '1';
+  return lock_(function () {
+    var sh = sh_('requests');
+    var data = rows_('requests');
+    for (var i = 0; i < data.length; i++) {
+      if (data[i][0] === rid) {
+        if (role === 'president') {
+          var n = rows_('notices').filter(function (r) { return r[0] === data[i][1]; })[0];
+          if (!n || n[8] !== '회장') throw new Error('회장이 쓴 공지의 요청만 처리할 수 있어요.');
+        }
+        sh.getRange(i + 2, 7, 1, 2).setValues([[undo ? '' : 'Y', undo ? '' : now_()]]);
+        return { ok: true };
+      }
+    }
+    throw new Error('요청을 찾지 못했어요.');
+  });
+}
+
 /* ---------- 관리자·회장용 ---------- */
 function adminLoad_(p) {
   var role = need_(p, ['admin', 'president']);
@@ -187,6 +227,10 @@ function adminLoad_(p) {
   var notices = rows_('notices').filter(function (r) { return r[0]; })
     .map(function (r) { return noticeObj_(r, tm); });
   var res = { ok: true, role: role, className: getSetting_('학급명'), year: year_(), notices: notices };
+  var presNids = {};
+  notices.forEach(function (n) { if (n.author === '회장') presNids[n.id] = true; });
+  res.requests = rows_('requests').filter(function (r) { return r[0] && (role === 'admin' || presNids[r[1]]); })
+    .map(function (r) { return { id: r[0], nid: r[1], sid: r[2], name: r[3], text: r[4], at: r[5], done: r[6] === 'Y', doneAt: r[7] }; });
   if (role === 'admin') {
     res.students = rows_('students').filter(function (r) { return r[0]; })
       .map(function (r) { return { sid: r[0], name: r[1] }; });
@@ -202,7 +246,7 @@ function saveNotice_(p) {
   var n = JSON.parse(p.data || '{}');
   var author = role === 'admin' ? '담임' : '회장';
   if (role === 'president') {
-    if (['확인', '일반'].indexOf(n.type) < 0) throw new Error('회장은 일반·확인사항만 작성할 수 있어요.');
+    if (PRESIDENT_TYPES.indexOf(n.type) < 0) throw new Error('회장은 확인사항·교과공지·일반만 작성할 수 있어요.');
     n.popup = false; n.targets = [];
   }
   if (!n.title || !n.date || !n.type) throw new Error('유형, 날짜, 제목은 꼭 입력해 주세요.');
@@ -227,6 +271,25 @@ function saveNotice_(p) {
 
     replaceTargets_(id, n.targets || []);
     return { ok: true, id: id };
+  });
+}
+
+/** 목록 붙여넣기 일괄 등록 (호출 대상·팝업 없음) */
+function saveNotices_(p) {
+  var role = need_(p, ['admin', 'president']);
+  var list = JSON.parse(p.data || '[]');
+  var author = role === 'admin' ? '담임' : '회장';
+  var allowed = role === 'admin' ? ['긴급', '확인', '호출', '교과', '일반'] : PRESIDENT_TYPES;
+  var rows = list.map(function (n, i) {
+    if (allowed.indexOf(n.type) < 0) throw new Error('올릴 수 없는 유형이 있어요.');
+    if (!n.title || !n.date) throw new Error('날짜와 제목이 빠진 줄이 있어요.');
+    return ['N' + Date.now() + '_' + i, n.type, n.date, n.title, n.body || '', '', n.important ? 'Y' : '', '', author, now_(), ''];
+  });
+  if (!rows.length) return { ok: true, count: 0 };
+  return lock_(function () {
+    var sh = sh_('notices');
+    sh.getRange(sh.getLastRow() + 1, 1, rows.length, rows[0].length).setNumberFormat('@').setValues(rows);
+    return { ok: true, count: rows.length };
   });
 }
 

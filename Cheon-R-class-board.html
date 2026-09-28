@@ -17,6 +17,7 @@
   --c-bg:#FAEEDA; --c-tx:#633806; --c-dot:#EF9F27;
   --h-bg:#CECBF6; --h-tx:#3C3489; --h-dot:#7F77DD;
   --g-bg:#D3D1C7; --g-tx:#444441; --g-dot:#888780;
+  --s-bg:#CFE2F6; --s-tx:#0C447C; --s-dot:#378ADD;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -79,6 +80,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .bd{font-size:12px;font-weight:700;border-radius:6px;padding:2px 8px}
 .bd.u{background:var(--u-bg);color:var(--u-tx)}.bd.c{background:var(--c-bg);color:var(--c-tx)}
 .bd.h{background:var(--h-bg);color:var(--h-tx)}.bd.g{background:var(--g-bg);color:var(--g-tx)}
+.bd.s{background:var(--s-bg);color:var(--s-tx)}
+.dd.s{color:var(--s-tx)}
 .bd.p{background:#fff;border:1px solid var(--main);color:var(--main-d)}
 .bd.new{background:#FFE8E8;color:#C0392B}
 .dd{margin-left:auto;font-size:13px;font-weight:700;color:var(--c-tx)}
@@ -96,6 +99,12 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .bd.ok{background:#EEF7EE;color:#2E7D32}
 .det .x{float:right;width:44px;height:44px;margin:-10px -10px 0 0;font-size:22px;color:var(--tx3)}
 .det .dt{font-size:13px;color:var(--tx3);margin-top:8px}
+.req-btn{display:block;width:100%;min-height:44px;border-radius:10px;background:var(--bg);color:var(--tx2);font-size:14px;font-weight:600;margin-top:10px}
+.req{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
+.req .who{font-size:14px;font-weight:700;background:#ECE8F7;color:var(--main-d);border-radius:8px;padding:8px 10px}
+.req textarea{width:100%;min-height:90px;border:1.5px solid var(--line);border-radius:10px;padding:10px;font-family:inherit;font-size:15px;margin-top:8px;resize:vertical}
+.req textarea:focus{outline:none;border-color:var(--main)}
+.req .note{font-size:12px;color:var(--tx3);margin-top:6px}
 .det .body{font-size:16px;color:var(--tx);max-height:55vh;overflow-y:auto;margin-top:12px}
 .empty{text-align:center;color:var(--tx3);font-size:14px;padding:28px 0}
 .foot{text-align:center;font-size:12px;color:var(--tx3);margin-top:18px}
@@ -145,6 +154,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
         <span><i style="background:var(--u-dot)"></i>긴급</span>
         <span><i style="background:var(--c-dot)"></i>확인사항</span>
         <span><i style="background:var(--h-dot)"></i>호출</span>
+        <span><i style="background:var(--s-dot)"></i>교과공지</span>
         <span><i style="background:var(--g-dot)"></i>일반</span>
       </div>
     </section>
@@ -185,9 +195,9 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 <script>
 /* ===== 설정 & 저장소 ===== */
 const K = { gas:'sn_gas_v1', me:'sn_me_v1', seen:'sn_popup_seen_v1', last:'sn_lastseen_v1', cls:'sn_cls_v1' };
-const TYPES = { '긴급':{c:'u',ic:'🚨'}, '확인':{c:'c',ic:'📋'}, '호출':{c:'h',ic:'📣'}, '일반':{c:'g',ic:'📌'} };
-const ORDER = { '긴급':0, '호출':1, '확인':2, '일반':3 };
-const LABEL = { '긴급':'긴급', '확인':'확인사항', '호출':'호출', '일반':'일반' };
+const TYPES = { '긴급':{c:'u',ic:'🚨'}, '확인':{c:'c',ic:'📋'}, '호출':{c:'h',ic:'📣'}, '교과':{c:'s',ic:'📚'}, '일반':{c:'g',ic:'📌'} };
+const ORDER = { '긴급':0, '호출':1, '확인':2, '교과':3, '일반':4 };
+const LABEL = { '긴급':'긴급', '확인':'확인사항', '호출':'호출', '교과':'교과공지', '일반':'일반' };
 const POLL_MS = 60000;
 
 function lsGet(k, d){ try{ const v = localStorage.getItem(k); return v===null ? d : JSON.parse(v); }catch(e){ return d; } }
@@ -302,6 +312,9 @@ function card(n){
   if (n.type === '확인'){
     const k = diffDays(n.date);
     dd = k > 0 ? `<span class="dd">D-${k}</span>` : k === 0 ? `<span class="dd">오늘 마감</span>` : `<span class="dd late">마감</span>`;
+  } else if (n.type === '교과'){
+    const k = diffDays(n.date);
+    dd = k > 0 ? `<span class="dd s">D-${k}</span>` : k === 0 ? `<span class="dd s">오늘</span>` : '';
   }
   const tg = targetLine(n);
   let ck = '';
@@ -339,8 +352,32 @@ function openDetail(id){
     <div class="dt">${prettyDate(n.date)}${n.type==='확인'?' 마감':''}</div>
     ${targetLine(n)}${isMine(n)?'<span class="callme">나를 불렀어요</span>':''}
     ${n.body?`<div class="body">${esc(n.body)}</div>`:''}
-    ${ck}`;
+    ${ck}
+    <div id="reqArea"><button class="req-btn" onclick="openReq('${esc(n.id)}')">✏️ 수정 요청·질문</button></div>`;
   document.getElementById('detOv').classList.add('show');
+}
+
+/* ===== 수정 요청·질문 ===== */
+function openReq(id){
+  if (!me){ closeOv('detOv'); openWho(); return; }
+  document.getElementById('reqArea').innerHTML = `<div class="req">
+    <div class="who">보내는 사람: ${esc(me.sid)} ${esc(me.name)}</div>
+    <textarea id="reqText" maxlength="300" placeholder="틀린 날짜·내용이나 궁금한 점을 적어 주세요."></textarea>
+    <div class="note">담임선생님과 공지 작성자에게만 보이고, 학번·이름이 함께 전달돼요.</div>
+    <div class="err" id="reqErr"></div>
+    <div class="btns"><button class="b2" onclick="openDetail('${esc(id)}')">취소</button><button class="b1" id="reqSend" onclick="sendReq('${esc(id)}')">보내기</button></div>
+  </div>`;
+  document.getElementById('reqText').focus();
+}
+async function sendReq(id){
+  const text = document.getElementById('reqText').value.trim();
+  const err = document.getElementById('reqErr'), btn = document.getElementById('reqSend');
+  if (!text){ err.textContent = '내용을 입력해 주세요.'; return; }
+  btn.disabled = true; err.textContent = '';
+  try{
+    await jsonp({ action:'request', nid:id, sid:me.sid, text });
+    document.getElementById('reqArea').innerHTML = '<div class="req"><div class="who" style="text-align:center">✓ 보냈어요! 선생님이 확인할 거예요.</div></div>';
+  }catch(e){ err.textContent = e.message; btn.disabled = false; }
 }
 function renderList(){
   const el = document.getElementById('list');

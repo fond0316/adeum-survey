@@ -13,6 +13,7 @@
   --tx:#2E2A3D; --tx2:#6B6680; --tx3:#9A96AA;
   --u-bg:#F7C1C1; --u-tx:#791F1F; --c-bg:#FAEEDA; --c-tx:#633806;
   --h-bg:#CECBF6; --h-tx:#3C3489; --g-bg:#D3D1C7; --g-tx:#444441;
+  --s-bg:#CFE2F6; --s-tx:#0C447C;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Pretendard',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:var(--bg);color:var(--tx);
@@ -47,6 +48,14 @@ input:focus,textarea:focus{outline:none;border-color:var(--main)}
 .chip.on.c{background:var(--c-bg);color:var(--c-tx);border-color:var(--c-bg)}
 .chip.on.h{background:var(--h-bg);color:var(--h-tx);border-color:var(--h-bg)}
 .chip.on.g{background:var(--g-bg);color:var(--g-tx);border-color:var(--g-bg)}
+.chip.on.s{background:var(--s-bg);color:var(--s-tx);border-color:var(--s-bg)}
+.bd.s{background:var(--s-bg);color:var(--s-tx)}
+.bulk-row{display:grid;grid-template-columns:32px 150px 1fr;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.bulk-row input[type=checkbox]{width:20px;height:20px;accent-color:var(--main)}
+.bulk-row input[type=date],.bulk-row input[type=text]{min-height:40px;padding:6px 8px;font-size:14px}
+.bulk-row.off{opacity:.45}
+.bulk-warn{grid-column:2 / 4;font-size:12px;color:#B45309}
+@media (max-width:560px){.bulk-row{grid-template-columns:32px 1fr}.bulk-row input[type=text]{grid-column:2}}
 .chk{display:flex;align-items:center;gap:8px;min-height:44px;font-size:15px}
 .chk input{width:20px;height:20px;accent-color:var(--main)}
 .roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;max-height:240px;overflow-y:auto;border:1px solid var(--line);border-radius:10px;padding:8px}
@@ -79,6 +88,17 @@ details summary::-webkit-details-marker{display:none}
 .center{max-width:420px;margin:40px auto}
 .foot{text-align:center;font-size:12px;color:var(--tx3);margin-top:18px}
 .hide{display:none!important}
+.rq{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.rq.done{opacity:.55}
+.rq .who{font-weight:800;font-size:15px}
+.rq .nt{font-size:13px;color:var(--main-d);cursor:pointer;margin-top:2px}
+.rq .tx{font-size:14px;margin-top:6px;white-space:pre-wrap;line-height:1.5}
+.rq .ft{display:flex;align-items:center;justify-content:space-between;margin-top:8px;font-size:12px;color:var(--tx3)}
+.rq .ft button{min-height:36px;padding:0 12px;border-radius:8px;font-size:13px;font-weight:700;background:var(--main);color:#fff}
+.rq.done .ft button{background:var(--bg);color:var(--tx2)}
+.ov{position:fixed;inset:0;background:rgba(30,25,50,.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:60}
+.ov .box{width:100%;max-width:400px;margin:0}
+.cbtn{display:block;width:100%;min-height:48px;border-radius:10px;font-weight:700;margin-top:8px;text-align:center}
 .top .view{min-height:44px;padding:0 12px;border-radius:10px;background:#fff;color:var(--main-d);font-size:14px;font-weight:700}
 .gbtn{width:100%;min-height:48px;border-radius:12px;background:#fff;border:1.5px dashed var(--main);color:var(--main-d);font-weight:700;margin-top:10px}
 .gtop{display:flex;align-items:center;gap:10px;background:var(--main);color:#fff;border-radius:14px;padding:10px 14px;min-height:56px;position:sticky;top:0;z-index:5}
@@ -220,7 +240,6 @@ details summary::-webkit-details-marker{display:none}
             <li>오른쪽 위 ⋮ 메뉴 → <b>홈 화면에 추가</b> 또는 <b>앱 설치</b>를 눌러요.</li>
             <li>홈 화면에 생긴 아이콘으로 열면 앱처럼 실행돼요.</li>
             <li>처음 열 때 학번을 한 번 등록해요.</li>
-            <li>호출 알림을 잘 받으려면 수업 중에 앱을 켜 두게 안내해 주세요. (닫혀 있으면 다음에 열 때 떠요)</li>
           </ol>
         </details>
       </div>
@@ -284,6 +303,23 @@ details summary::-webkit-details-marker{display:none}
         </div>
         <div class="msg" id="formMsg"></div>
       </div>
+      <div class="box" id="reqBox">
+        <h2>✏️ 학생 수정 요청·질문</h2>
+        <div class="sub-tabs" id="reqTabs"></div>
+        <div id="reqList"></div>
+      </div>
+      <details class="box" id="bulkBox" style="padding:16px">
+        <summary style="font-size:16px">📋 목록 붙여넣기로 한 번에 올리기</summary>
+        <p class="hint" style="margin-top:10px">카톡 공지처럼 <b>"9월 22일(월): 수학 발표"</b> 형식의 목록을 통째로 붙여넣으면 날짜별 공지로 나눠서 올려요.</p>
+        <label class="f">유형</label>
+        <div class="chips" id="bulkChips"></div>
+        <label class="f">붙여넣기</label>
+        <textarea id="bulkIn" style="min-height:180px" placeholder="- 9월 22일(월): 수학 step2 발표시작&#10;- 9월 23일(화): 체육B시간 학급노트북에 태권체조 음원담기"></textarea>
+        <div class="row" style="margin-top:10px"><button class="btn" onclick="parseBulk()">읽어오기</button></div>
+        <div id="bulkPrev" style="margin-top:10px"></div>
+        <div class="row hide" id="bulkAct" style="margin-top:12px"><button class="btn" id="bulkSave" onclick="saveBulk(this)">선택한 공지 올리기</button><button class="btn sub" onclick="clearBulk()">지우기</button></div>
+        <div class="msg" id="bulkMsg"></div>
+      </details>
       <div class="box">
         <h2>📋 공지 목록</h2>
         <div class="sub-tabs" id="listTabs"></div>
@@ -303,13 +339,26 @@ details summary::-webkit-details-marker{display:none}
   <div class="foot">Made by Cheon_R</div>
 </div>
 
+<!-- 문의 창 -->
+<div class="ov hide" id="contactOv" onclick="if(event.target===this)this.classList.add('hide')">
+  <div class="box">
+    <h2>✉️ 개발자에게 문의</h2>
+    <p class="hint">편한 방법으로 메일을 보내 주세요.</p>
+    <div class="link"><input type="text" id="contactAddr" readonly><button class="btn" onclick="copy('contactAddr');msg('contactMsg','주소를 복사했어요.',true)">복사</button></div>
+    <button class="cbtn btn" onclick="openGmail()">Gmail로 쓰기</button>
+    <button class="cbtn btn sub" onclick="openMailApp()">메일 앱으로 열기</button>
+    <button class="cbtn btn sub" onclick="$('contactOv').classList.add('hide')">닫기</button>
+    <div class="msg" id="contactMsg"></div>
+  </div>
+</div>
+
 <script>
 const K = { gas:'sn_gas_v1', pw:'sn_admin_pw_v1', owner:'sn_owner_v1', reg:'sn_reg_info_v1' };
 /* ===== 사용자 등록부 (아듬샘 전용 GAS) ===== */
 const REGISTRY_URL = 'https://script.google.com/macros/s/AKfycbzrgeAlZhEGyvp7vo_j0hgesVoIoI6T_GMayKJCfvOFaV5Sb3wO1xvackSeQLc3HQxsnQ/exec';           // ← 등록부 GAS 웹 앱 URL (비어 있으면 등록 기능 꺼짐)
 const CONTACT_EMAIL = 'fond0316@naver.com';
-const TYPES = { '긴급':'u', '확인':'c', '호출':'h', '일반':'g' };
-const LABEL = { '긴급':'긴급', '확인':'확인사항', '호출':'호출', '일반':'일반' };
+const TYPES = { '긴급':'u', '확인':'c', '호출':'h', '교과':'s', '일반':'g' };
+const LABEL = { '긴급':'긴급', '확인':'확인사항', '호출':'호출', '교과':'교과공지', '일반':'일반' };
 
 function lsGet(k,d){ try{ const v=localStorage.getItem(k); return v===null?d:JSON.parse(v);}catch(e){return d;} }
 function lsSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
@@ -411,10 +460,19 @@ async function doRegister(btn){
   }catch(e){ msg('regMsg', e.message); }
   btn.disabled = false;
 }
-function mailContact(){
+function mailSubject(){
   const info = lsGet(K.reg, {});
-  const who = [info.school, info.name].filter(Boolean).join(' ');
-  location.href = 'mailto:' + CONTACT_EMAIL + '?subject=' + encodeURIComponent('[CLASS BOARD 문의] ' + who);
+  return '[CLASS BOARD 문의] ' + [info.school, info.name].filter(Boolean).join(' ');
+}
+function mailContact(){
+  $('contactAddr').value = CONTACT_EMAIL; msg('contactMsg','',true);
+  $('contactOv').classList.remove('hide');
+}
+function openGmail(){
+  window.open('https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(CONTACT_EMAIL) + '&su=' + encodeURIComponent(mailSubject()), '_blank');
+}
+function openMailApp(){
+  location.href = 'mailto:' + CONTACT_EMAIL + '?subject=' + encodeURIComponent(mailSubject());
 }
 
 async function enterMain(){
@@ -425,11 +483,14 @@ async function enterMain(){
     ? [['set','⚙️ 연결·설정'],['stu','👥 명단'],['write','✏️ 공지'],['stat','📊 확인현황']]
     : [['write','✏️ 공지']];
   $('nav').innerHTML = tabs.map(([k,l])=>`<button data-t="${k}" onclick="goTab('${k}')">${l}</button>`).join('');
+  updateReqBadge();
   resetForm(); goTab('write');
 }
 async function refresh(){
   const r = await jsonp({ action:'adminLoad', pw:PW });
-  role = r.role; data = { notices:r.notices||[], students:r.students||[], confirms:r.confirms||[] };
+  role = r.role; data = { notices:r.notices||[], students:r.students||[], confirms:r.confirms||[], requests:r.requests||[] };
+  updateReqBadge();
+  schoolYear = parseInt(r.year, 10) || new Date().getFullYear();
   $('cls').textContent = (r.className||'우리 반') + ' 공지 관리';
   if (role==='admin'){
     $('setYear').value = r.year||''; $('setCls').value = r.className||''; $('setPres').value = r.presidentCode||'';
@@ -448,7 +509,7 @@ function goTab(k){
   curTab = k;
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on', b.dataset.t===k));
   ['set','stu','write','stat'].forEach(x=>$('tab-'+x).classList.toggle('hide', x!==k));
-  if (k==='write'){ renderRoster(); renderList(); }
+  if (k==='write'){ renderRoster(); renderList(); renderBulkChips(); renderReqs(); }
   if (k==='stat'){ renderStat(); refresh().then(renderStat).catch(()=>{}); }
 }
 
@@ -493,7 +554,7 @@ async function saveStudents(btn){
 }
 
 /* ===== 공지 작성 ===== */
-function allowedTypes(){ return role==='admin' ? ['긴급','확인','호출','일반'] : ['확인','일반']; }
+function allowedTypes(){ return role==='admin' ? ['긴급','확인','호출','교과','일반'] : ['확인','교과','일반']; }
 function renderChips(){
   $('typeChips').innerHTML = allowedTypes().map(t=>`<button class="chip ${TYPES[t]} ${t===fType?'on':''}" onclick="setType('${t}')">${LABEL[t]}</button>`).join('');
   const canPop = role==='admin' && (fType==='긴급' || fType==='호출');
@@ -513,7 +574,7 @@ function renderRoster(sel){
     : '<span class="hint">명단 탭에서 학생을 먼저 등록해 주세요.</span>';
 }
 function resetForm(){
-  editId = null; fType = allowedTypes().includes('일반') ? '일반' : allowedTypes()[0];
+  editId = null; fType = role==='admin' ? '일반' : '교과';
   $('formTitle').textContent = '✏️ 새 공지'; $('saveBtn').textContent = '공지 올리기';
   $('fDate').value = today(); $('fTitle').value=''; $('fBody').value=''; $('fMemo').value='';
   $('fImp').checked=false; $('fPop').checked=false; msg('formMsg','',true);
@@ -564,6 +625,103 @@ function renderList(){
       <div class="s">${prettyDate(n.date)}${n.type==='호출'&&n.targets.length?' · '+esc(n.targets.map(x=>x.name).join(', ')):''}${n.memo?' · '+esc(n.memo):''}</div>
     </div>${canEdit(n)?`<div class="acts"><button onclick="editNotice('${esc(n.id)}')">수정</button><button onclick="delNotice('${esc(n.id)}')">삭제</button></div>`:''}</div>`).join('')
     : '<p class="hint">공지가 없어요.</p>';
+}
+
+/* ===== 수정 요청·질문 ===== */
+let reqMode = 'open';
+function updateReqBadge(){
+  const n = (data.requests||[]).filter(r=>!r.done).length;
+  const b = document.querySelector('#nav button[data-t="write"]');
+  if (b) b.textContent = '✏️ 공지' + (n ? ` (요청 ${n})` : '');
+}
+function renderReqs(){
+  const all = data.requests || [];
+  const open = all.filter(r=>!r.done).length;
+  $('reqTabs').innerHTML = [['open',`미처리 ${open}`],['done','처리 완료']]
+    .map(([k,l])=>`<button class="${reqMode===k?'on':''}" onclick="reqMode='${k}';renderReqs()">${l}</button>`).join('');
+  let arr = all.filter(r => reqMode==='open' ? !r.done : r.done).sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+  if (reqMode==='done') arr = arr.slice(0,30);
+  $('reqList').innerHTML = arr.length ? arr.map(r=>{
+    const n = data.notices.find(x=>String(x.id)===String(r.nid));
+    return `<div class="rq${r.done?' done':''}">
+      <div class="who">🙋 ${esc(r.sid)} ${esc(r.name)}</div>
+      <div class="nt" ${n?`onclick="editNotice('${esc(n.id)}')"`:''}>${n?`📌 ${esc(n.title)} (${prettyDate(n.date)}) — 눌러서 수정`:'삭제된 공지'}</div>
+      <div class="tx">${esc(r.text)}</div>
+      <div class="ft"><span>${esc(r.at)}</span><button onclick="resolveReq('${esc(r.id)}', ${r.done})">${r.done?'되돌리기':'처리 완료'}</button></div>
+    </div>`;}).join('') : `<p class="hint">${reqMode==='open'?'새 요청이 없어요 🙂':'처리한 요청이 없어요.'}</p>`;
+}
+async function resolveReq(rid, undo){
+  try{ await jsonp({ action:'resolveRequest', pw:PW, rid, undo: undo?'1':'' }); await refresh(); renderReqs(); }
+  catch(e){ alert(e.message); }
+}
+
+/* ===== 목록 붙여넣기 ===== */
+let schoolYear = new Date().getFullYear(), bulkType = '교과', bulkItems = [];
+function renderBulkChips(){
+  $('bulkChips').innerHTML = ['확인','교과','일반'].map(t=>`<button class="chip ${TYPES[t]} ${t===bulkType?'on':''}" onclick="bulkType='${t}';renderBulkChips()">${LABEL[t]}</button>`).join('');
+}
+function bulkDate(m, d){
+  const y = (m <= 2) ? schoolYear + 1 : schoolYear;   // 학년도 기준: 1·2월은 다음 해
+  const dt = new Date(y, m-1, d);
+  if (dt.getMonth() !== m-1) return null;
+  return ymd(dt);
+}
+function parseBulk(){
+  const lines = $('bulkIn').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  const hasBullet = lines.some(l=>/^[-•*·▪︎]/.test(l));
+  bulkItems = [];
+  lines.forEach(raw=>{
+    const bullet = /^[-•*·▪︎]/.test(raw);
+    const line = raw.replace(/^[-•*·▪︎\s]+/, '');
+    let m, date = null, title = '', warn = '';
+    if ((m = line.match(/^(\d{1,2})\s*월\s*~\s*(\d{1,2})\s*월/))){           // 9월~10월: …
+      date = bulkDate(+m[1], 1);
+      title = line.slice(m[0].length).replace(/^[\s:：\-–]+/, '') + ` (~${m[2]}월)`;
+      warn = '기간 일정이라 시작 달 1일에 넣었어요.';
+    } else if ((m = line.match(/(\d{1,2})\s*월\s*(\d{1,2})\s*일/)) || (m = line.match(/^(\d{1,2})\s*\/\s*(\d{1,2})(?!\d)/))){
+      date = bulkDate(+m[1], +m[2]);
+      let rest = line.slice(m.index + m[0].length);
+      const dow = rest.match(/^\s*\(\s*([월화수목금토일])\s*\)/);
+      rest = rest.replace(/^\s*\(\s*[월화수목금토일]\s*\)/, '').replace(/^[\s:：\-–]+/, '');
+      title = (line.slice(0, m.index).replace(/[\s:：\-–]+$/, '') + ' ' + rest).trim();
+      if (!date) warn = '날짜를 확인해 주세요.';
+      else if (dow && '일월화수목금토'[new Date(date+'T00:00:00').getDay()] !== dow[1])
+        warn = `적힌 요일(${dow[1]})과 실제 요일(${'일월화수목금토'[new Date(date+'T00:00:00').getDay()]})이 달라요.`;
+    } else return;  // 날짜 없는 줄은 건너뜀
+    bulkItems.push({ date: date || '', title, warn, on: !!date && !!title && (!hasBullet || bullet) });
+  });
+  renderBulk();
+}
+function renderBulk(){
+  if (!bulkItems.length){
+    $('bulkPrev').innerHTML = '<p class="hint">날짜가 있는 줄을 찾지 못했어요. "9월 22일" 형식인지 확인해 주세요.</p>';
+    $('bulkAct').classList.add('hide'); return;
+  }
+  $('bulkPrev').innerHTML = `<p class="hint">체크된 줄만 올라가요. 날짜·제목은 여기서 고칠 수 있어요.</p>` + bulkItems.map((it,i)=>`
+    <div class="bulk-row${it.on?'':' off'}">
+      <input type="checkbox" ${it.on?'checked':''} onchange="bulkItems[${i}].on=this.checked;this.parentNode.classList.toggle('off',!this.checked);bulkCount()">
+      <input type="date" value="${it.date}" onchange="bulkItems[${i}].date=this.value">
+      <input type="text" value="${esc(it.title)}" maxlength="60" oninput="bulkItems[${i}].title=this.value">
+      ${it.warn?`<div class="bulk-warn">⚠️ ${esc(it.warn)}</div>`:''}
+    </div>`).join('');
+  $('bulkAct').classList.remove('hide'); bulkCount();
+}
+function bulkCount(){ $('bulkSave').textContent = `선택한 ${bulkItems.filter(x=>x.on).length}개 올리기`; }
+function clearBulk(){ $('bulkIn').value=''; bulkItems=[]; $('bulkPrev').innerHTML=''; $('bulkAct').classList.add('hide'); msg('bulkMsg','',true); }
+async function saveBulk(btn){
+  const list = bulkItems.filter(x=>x.on).map(x=>({ type:bulkType, date:x.date, title:x.title.trim() }));
+  if (!list.length){ msg('bulkMsg','올릴 줄을 체크해 주세요.'); return; }
+  if (list.some(x=>!x.date || !x.title)){ msg('bulkMsg','날짜나 제목이 빈 줄이 있어요.'); return; }
+  btn.disabled = true;
+  try{
+    for (let i = 0; i < list.length; i += 5){                    // 주소 길이 제한 때문에 5개씩 나눠 전송
+      msg('bulkMsg', `올리는 중… (${Math.min(i+5, list.length)}/${list.length})`, true);
+      await jsonp({ action:'saveNotices', pw:PW, data:JSON.stringify(list.slice(i, i+5)) });
+    }
+    await refresh(); renderList(); clearBulk();
+    msg('bulkMsg', `${list.length}개 공지를 올렸어요! 🎉`, true);
+  }catch(e){ msg('bulkMsg', e.message + ' (일부만 올라갔을 수 있어요. 목록을 확인해 주세요)'); }
+  btn.disabled = false;
 }
 
 /* ===== 확인현황 ===== */
