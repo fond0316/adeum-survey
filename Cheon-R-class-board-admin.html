@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#9B8EC4">
+<title>학급 공지 관리</title>
+<link rel="icon" href="Cheon-R-class-board-icon-192.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --main:#9B8EC4; --main-d:#6F62A3; --bg:#F4F2FA; --line:#E4E0F0;
+  --tx:#2E2A3D; --tx2:#6B6680; --tx3:#9A96AA;
+  --u-bg:#F7C1C1; --u-tx:#791F1F; --c-bg:#FAEEDA; --c-tx:#633806;
+  --h-bg:#CECBF6; --h-tx:#3C3489; --g-bg:#D3D1C7; --g-tx:#444441;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:var(--bg);color:var(--tx);
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+button,input,textarea,select{font-family:inherit;font-size:15px}
+button{cursor:pointer;border:none;background:none;color:inherit}
+.wrap{max-width:860px;margin:0 auto;padding:12px 16px 32px}
+.top{display:flex;align-items:center;gap:10px;background:var(--main);color:#fff;border-radius:14px;padding:10px 14px;min-height:56px}
+.top h1{font-size:18px;flex:1}
+.role{background:rgba(255,255,255,.22);border-radius:20px;padding:6px 12px;font-size:13px;font-weight:600}
+.out{min-height:44px;padding:0 12px;border-radius:10px;background:rgba(255,255,255,.22);color:#fff;font-size:14px}
+.nav{display:flex;gap:6px;margin:12px 0;position:sticky;top:0;background:var(--bg);padding:6px 0;z-index:5;overflow-x:auto}
+.nav button{min-height:44px;padding:0 16px;border-radius:22px;font-weight:600;color:var(--tx2);background:#fff;border:1px solid var(--line);white-space:nowrap}
+.nav button.on{background:var(--main);color:#fff;border-color:var(--main)}
+.box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.box h2{font-size:16px;margin-bottom:10px}
+.hint{font-size:13px;color:var(--tx2);line-height:1.5;margin-bottom:8px}
+label.f{display:block;font-size:13px;font-weight:700;color:var(--tx2);margin:12px 0 6px}
+input[type=text],input[type=password],input[type=date],textarea{width:100%;min-height:44px;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;color:var(--tx)}
+textarea{min-height:110px;resize:vertical;line-height:1.5}
+input:focus,textarea:focus{outline:none;border-color:var(--main)}
+.btn{min-height:44px;padding:0 18px;border-radius:10px;font-weight:700;background:var(--main);color:#fff}
+.btn.sub{background:var(--bg);color:var(--tx2)}
+.btn.del{background:#FCEBEB;color:#A32D2D}
+.btn:disabled{opacity:.6}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.msg{font-size:13px;margin-top:8px;min-height:18px}
+.msg.ok{color:#2E7D32}.msg.no{color:#C0392B}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{min-height:44px;padding:0 16px;border-radius:22px;border:1.5px solid var(--line);font-weight:700;background:#fff;color:var(--tx2)}
+.chip.on.u{background:var(--u-bg);color:var(--u-tx);border-color:var(--u-bg)}
+.chip.on.c{background:var(--c-bg);color:var(--c-tx);border-color:var(--c-bg)}
+.chip.on.h{background:var(--h-bg);color:var(--h-tx);border-color:var(--h-bg)}
+.chip.on.g{background:var(--g-bg);color:var(--g-tx);border-color:var(--g-bg)}
+.chk{display:flex;align-items:center;gap:8px;min-height:44px;font-size:15px}
+.chk input{width:20px;height:20px;accent-color:var(--main)}
+.roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;max-height:240px;overflow-y:auto;border:1px solid var(--line);border-radius:10px;padding:8px}
+.roster label{display:flex;align-items:center;gap:6px;font-size:14px;min-height:36px;padding:0 6px;border-radius:8px}
+.roster label:has(input:checked){background:var(--h-bg);color:var(--h-tx)}
+.roster input{accent-color:var(--h-tx)}
+.item{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;display:flex;gap:10px;align-items:center}
+.item .in{flex:1;min-width:0}
+.item .t{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .s{font-size:12px;color:var(--tx3);margin-top:2px}
+.item .acts{display:flex;gap:6px}
+.item .acts button{min-height:40px;padding:0 12px;border-radius:8px;font-size:13px;font-weight:600;background:var(--bg);color:var(--tx2)}
+.bd{font-size:12px;font-weight:700;border-radius:6px;padding:2px 8px;margin-right:4px}
+.bd.u{background:var(--u-bg);color:var(--u-tx)}.bd.c{background:var(--c-bg);color:var(--c-tx)}
+.bd.h{background:var(--h-bg);color:var(--h-tx)}.bd.g{background:var(--g-bg);color:var(--g-tx)}
+.bd.p{border:1px solid var(--main);color:var(--main-d)}
+.sub-tabs{display:flex;gap:6px;margin-bottom:10px}
+.sub-tabs button{min-height:36px;padding:0 12px;border-radius:18px;font-size:13px;font-weight:600;background:var(--bg);color:var(--tx2)}
+.sub-tabs button.on{background:var(--tx);color:#fff}
+.bar{height:8px;background:var(--bg);border-radius:4px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--main)}
+details{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+details summary{cursor:pointer;font-weight:700;font-size:15px;min-height:28px;list-style:none;display:flex;gap:8px;align-items:center}
+details summary::-webkit-details-marker{display:none}
+.names{font-size:14px;line-height:1.7;margin-top:8px;color:var(--tx2)}
+.names b{color:#A32D2D}
+.guide{font-size:14px;line-height:1.7;color:var(--tx2);padding-left:18px;margin-top:8px}
+.link{display:flex;gap:6px;margin-top:6px}
+.link input{flex:1;font-size:13px;background:var(--bg)}
+.center{max-width:420px;margin:40px auto}
+.foot{text-align:center;font-size:12px;color:var(--tx3);margin-top:18px}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 1) 연결 -->
+  <div id="scrConnect" class="center hide">
+    <div class="box">
+      <h2>🔗 구글 시트 연결</h2>
+      <p class="hint">Apps Script에서 배포한 웹 앱 URL을 붙여 넣어 주세요.</p>
+      <input type="text" id="gasIn" placeholder="https://script.google.com/macros/s/.../exec">
+      <div class="row" style="margin-top:10px"><button class="btn" onclick="connect()">연결하기</button></div>
+      <div class="msg" id="conMsg"></div>
+    </div>
+  </div>
+
+  <!-- 2) 로그인 -->
+  <div id="scrLogin" class="center hide">
+    <div class="box">
+      <h2 id="loginTitle">🔒 로그인</h2>
+      <p class="hint">담임은 관리자 비밀번호, 회장은 회장 코드를 입력해 주세요.</p>
+      <input type="password" id="pwIn" placeholder="비밀번호 또는 회장 코드" onkeydown="if(event.key==='Enter')login()">
+      <div class="row" style="margin-top:10px">
+        <button class="btn" onclick="login()">로그인</button>
+        <button class="btn sub" onclick="resetGas()">연결 주소 변경</button>
+      </div>
+      <div class="msg" id="loginMsg"></div>
+    </div>
+  </div>
+
+  <!-- 3) 메인 -->
+  <div id="scrMain" class="hide">
+    <header class="top">
+      <h1 id="cls">학급 공지 관리</h1>
+      <span class="role" id="roleTag"></span>
+      <button class="out" onclick="logout()">로그아웃</button>
+    </header>
+    <nav class="nav" id="nav"></nav>
+
+    <!-- 연결·설정 -->
+    <section id="tab-set" class="hide">
+      <div class="box">
+        <h2>📱 학생용 링크</h2>
+        <p class="hint">이 링크를 QR코드나 메시지로 학생들에게 보내 주세요.</p>
+        <div class="link"><input type="text" id="stuLink" readonly><button class="btn" onclick="copy('stuLink')">복사</button></div>
+        <label class="f">관리자·회장용 링크</label>
+        <div class="link"><input type="text" id="admLink" readonly><button class="btn sub" onclick="copy('admLink')">복사</button></div>
+        <div class="msg ok" id="copyMsg"></div>
+        <details style="margin-top:10px">
+          <summary>📖 학생 디벗 설치 방법</summary>
+          <ol class="guide">
+            <li>학생용 링크를 크롬(또는 삼성 인터넷)으로 열어요.</li>
+            <li>오른쪽 위 ⋮ 메뉴 → <b>홈 화면에 추가</b> 또는 <b>앱 설치</b>를 눌러요.</li>
+            <li>홈 화면에 생긴 아이콘으로 열면 앱처럼 실행돼요.</li>
+            <li>처음 열 때 학번을 한 번 등록해요.</li>
+            <li>호출 알림을 잘 받으려면 수업 중에 앱을 켜 두게 안내해 주세요. (닫혀 있으면 다음에 열 때 떠요)</li>
+          </ol>
+        </details>
+      </div>
+      <div class="box">
+        <h2>⚙️ 학급 설정</h2>
+        <label class="f">학년도</label>
+        <input type="text" id="setYear" inputmode="numeric" maxlength="4" placeholder="2026">
+        <label class="f">학급 이름</label>
+        <input type="text" id="setCls" placeholder="1학년 4반">
+        <p class="hint" style="margin-top:6px">학생 화면 상단에 <b>2026학년도 1학년 4반</b>처럼 표시돼요.</p>
+        <label class="f">회장 코드 (비우면 회장 로그인 불가)</label>
+        <input type="text" id="setPres" placeholder="회장에게 알려줄 코드">
+        <p class="hint" style="margin-top:6px">회장이 바뀌면 코드만 바꾸면 돼요. 이전 코드는 바로 사용할 수 없어요.</p>
+        <label class="f">관리자 비밀번호 변경 (바꿀 때만 입력)</label>
+        <input type="password" id="setPw" placeholder="새 비밀번호">
+        <div class="row" style="margin-top:12px"><button class="btn" onclick="saveSettings(this)">설정 저장</button></div>
+        <div class="msg" id="setMsg"></div>
+        <label class="f" style="margin-top:18px">연결된 GAS 주소</label>
+        <div class="link"><input type="text" id="gasNow" readonly><button class="btn sub" onclick="resetGas()">변경</button></div>
+      </div>
+    </section>
+
+    <!-- 명단 -->
+    <section id="tab-stu" class="hide">
+      <div class="box">
+        <h2>👥 학생 명단</h2>
+        <p class="hint">한 줄에 한 명씩 <b>학번 이름</b>으로 입력해요. 엑셀에서 두 칸을 복사해 붙여 넣어도 돼요.</p>
+        <textarea id="stuIn" style="min-height:260px" placeholder="10301 김민수&#10;10302 이서연" oninput="previewStu()"></textarea>
+        <div class="msg" id="stuPrev"></div>
+        <div class="row"><button class="btn" onclick="saveStudents(this)">명단 저장</button></div>
+        <div class="msg" id="stuMsg"></div>
+      </div>
+    </section>
+
+    <!-- 공지 -->
+    <section id="tab-write" class="hide">
+      <div class="box">
+        <h2 id="formTitle">✏️ 새 공지</h2>
+        <label class="f">유형</label>
+        <div class="chips" id="typeChips"></div>
+        <label class="f" id="dateLabel">날짜</label>
+        <input type="date" id="fDate">
+        <label class="f">제목</label>
+        <input type="text" id="fTitle" maxlength="60" placeholder="학생 목록에 보이는 한 줄">
+        <div id="targetBox" class="hide">
+          <label class="f">호출 대상 (명단에서 선택)</label>
+          <div class="roster" id="roster"></div>
+          <label class="f">직접 입력 (선택)</label>
+          <input type="text" id="fMemo" maxlength="40" placeholder="학급회장, 주번 등">
+        </div>
+        <label class="f">내용</label>
+        <textarea id="fBody" maxlength="1500" placeholder="자세한 내용 (학생이 공지를 누르면 보여요)"></textarea>
+        <label class="chk"><input type="checkbox" id="fImp"> ⭐ 중요 — 학생 확인 받기</label>
+        <label class="chk" id="popRow"><input type="checkbox" id="fPop"> 🚨 앱을 켜 둔 학생에게 팝업 알림 (날짜가 오늘일 때)</label>
+        <div class="row" style="margin-top:12px">
+          <button class="btn" id="saveBtn" onclick="saveNotice(this)">공지 올리기</button>
+          <button class="btn sub" onclick="resetForm()">새로 작성</button>
+        </div>
+        <div class="msg" id="formMsg"></div>
+      </div>
+      <div class="box">
+        <h2>📋 공지 목록</h2>
+        <div class="sub-tabs" id="listTabs"></div>
+        <div id="nList"></div>
+      </div>
+    </section>
+
+    <!-- 확인현황 -->
+    <section id="tab-stat" class="hide">
+      <div class="box">
+        <h2>📊 확인 현황</h2>
+        <p class="hint">⭐ 중요로 올린 공지만 표시돼요. 눌러서 미확인 학생을 볼 수 있어요.</p>
+        <div id="statList"></div>
+      </div>
+    </section>
+  </div>
+  <div class="foot">Made by Cheon_R</div>
+</div>
+
+<script>
+const K = { gas:'sn_gas_v1', pw:'sn_admin_pw_v1' };
+const TYPES = { '긴급':'u', '확인':'c', '호출':'h', '일반':'g' };
+const LABEL = { '긴급':'긴급', '확인':'확인사항', '호출':'호출', '일반':'일반' };
+
+function lsGet(k,d){ try{ const v=localStorage.getItem(k); return v===null?d:JSON.parse(v);}catch(e){return d;} }
+function lsSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function today(){ return ymd(new Date()); }
+function prettyDate(s){ const d=new Date(s+'T00:00:00'); return (d.getMonth()+1)+'/'+d.getDate()+'('+'일월화수목금토'[d.getDay()]+')'; }
+function $(id){ return document.getElementById(id); }
+function show(id){ ['scrConnect','scrLogin','scrMain'].forEach(x => $(x).classList.toggle('hide', x!==id)); }
+function msg(id, text, ok){ const el=$(id); el.textContent=text; el.className='msg '+(ok?'ok':'no'); }
+
+(function(){ const g=new URLSearchParams(location.search).get('gas'); if(g) lsSet(K.gas, g.trim()); })();
+let GAS = lsGet(K.gas, '');
+let PW = sessionStorage.getItem(K.pw) || '';
+let role = '', data = { notices:[], students:[], confirms:[] };
+let curTab = 'write', listMode = 'up', fType = '일반', editId = null;
+
+/* ===== JSONP ===== */
+let seq = 0;
+function jsonp(params){
+  return new Promise((resolve, reject) => {
+    if (!GAS) return reject(new Error('GAS 주소가 설정되지 않았어요. 먼저 연결해 주세요.'));
+    const cb='__sa'+Date.now()+(seq++), s=document.createElement('script');
+    const t=setTimeout(()=>{ done(); reject(new Error('서버 응답이 없어요. GAS 주소와 배포 권한(모든 사용자)을 확인해 주세요.')); }, 20000);
+    function done(){ clearTimeout(t); delete window[cb]; s.remove(); }
+    window[cb]=(r)=>{ done(); r&&r.ok ? resolve(r) : reject(new Error((r&&r.error)||'요청에 실패했어요.')); };
+    s.src = GAS + (GAS.includes('?')?'&':'?') + new URLSearchParams({ ...params, callback:cb, _:Date.now() });
+    s.onerror=()=>{ done(); reject(new Error('서버에 연결하지 못했어요. 주소를 확인해 주세요.')); };
+    document.body.appendChild(s);
+  });
+}
+
+/* ===== 연결 & 로그인 ===== */
+async function connect(){
+  const url = $('gasIn').value.trim();
+  if (!/^https:\/\/script\.google\.com\/.+\/exec/.test(url)){ msg('conMsg','…/exec 로 끝나는 웹 앱 URL을 넣어 주세요.'); return; }
+  const old = GAS; GAS = url; msg('conMsg','연결 확인 중…',true);
+  try{ await jsonp({ action:'ping' }); lsSet(K.gas, url); msg('conMsg','연결됐어요!',true); setTimeout(()=>show('scrLogin'),400); }
+  catch(e){ GAS = old; msg('conMsg', e.message); }
+}
+function resetGas(){ $('gasIn').value = GAS; show('scrConnect'); }
+async function login(){
+  const pw = $('pwIn').value.trim();
+  if (!pw){ msg('loginMsg','비밀번호를 입력해 주세요.'); return; }
+  msg('loginMsg','확인 중…',true);
+  try{
+    const r = await jsonp({ action:'login', pw });
+    if (!r.role){ msg('loginMsg','비밀번호가 맞지 않아요.'); return; }
+    PW = pw; sessionStorage.setItem(K.pw, pw); role = r.role;
+    await enterMain();
+  }catch(e){ msg('loginMsg', e.message); }
+}
+function logout(){ PW=''; sessionStorage.removeItem(K.pw); $('pwIn').value=''; msg('loginMsg','',true); show('scrLogin'); }
+
+async function enterMain(){
+  await refresh();
+  show('scrMain');
+  $('roleTag').textContent = role==='admin' ? '담임' : '회장';
+  const tabs = role==='admin'
+    ? [['set','⚙️ 연결·설정'],['stu','👥 명단'],['write','✏️ 공지'],['stat','📊 확인현황']]
+    : [['write','✏️ 공지']];
+  $('nav').innerHTML = tabs.map(([k,l])=>`<button data-t="${k}" onclick="goTab('${k}')">${l}</button>`).join('');
+  resetForm(); goTab('write');
+}
+async function refresh(){
+  const r = await jsonp({ action:'adminLoad', pw:PW });
+  role = r.role; data = { notices:r.notices||[], students:r.students||[], confirms:r.confirms||[] };
+  $('cls').textContent = (r.className||'우리 반') + ' 공지 관리';
+  if (role==='admin'){
+    $('setYear').value = r.year||''; $('setCls').value = r.className||''; $('setPres').value = r.presidentCode||'';
+    $('stuIn').value = data.students.map(s=>s.sid+' '+s.name).join('\n'); previewStu();
+    const base = location.href.split('?')[0].replace(/[^/]*$/, '');
+    $('stuLink').value = base + 'Cheon-R-class-board.html?gas=' + encodeURIComponent(GAS);
+    $('admLink').value = base + 'Cheon-R-class-board-admin.html?gas=' + encodeURIComponent(GAS);
+    $('gasNow').value = GAS;
+  }
+}
+function goTab(k){
+  curTab = k;
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on', b.dataset.t===k));
+  ['set','stu','write','stat'].forEach(x=>$('tab-'+x).classList.toggle('hide', x!==k));
+  if (k==='write'){ renderRoster(); renderList(); }
+  if (k==='stat'){ renderStat(); refresh().then(renderStat).catch(()=>{}); }
+}
+
+/* ===== 설정 ===== */
+async function saveSettings(btn){
+  btn.disabled = true; msg('setMsg','저장 중…',true);
+  const payload = { year:$('setYear').value.trim(), className:$('setCls').value.trim(), presidentCode:$('setPres').value.trim() };
+  const np = $('setPw').value.trim(); if (np) payload.newPw = np;
+  try{
+    await jsonp({ action:'saveSettings', pw:PW, data:JSON.stringify(payload) });
+    if (np){ PW = np; sessionStorage.setItem(K.pw, np); $('setPw').value=''; }
+    await refresh(); msg('setMsg','저장했어요.',true);
+  }catch(e){ msg('setMsg', e.message); }
+  btn.disabled = false;
+}
+function copy(id){
+  const el=$(id); el.select();
+  (navigator.clipboard ? navigator.clipboard.writeText(el.value) : Promise.reject()).catch(()=>document.execCommand('copy'));
+  msg('copyMsg','복사했어요.',true);
+}
+
+/* ===== 명단 ===== */
+function parseStu(){
+  return $('stuIn').value.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
+    const m = l.split(/[\s,\t]+/); return { sid:m[0], name:m.slice(1).join(' ') };
+  }).filter(s=>s.sid && s.name);
+}
+function previewStu(){
+  const list = parseStu(); const ids = list.map(s=>s.sid);
+  const dup = ids.filter((x,i)=>ids.indexOf(x)!==i);
+  $('stuPrev').className = 'msg ' + (dup.length?'no':'ok');
+  $('stuPrev').textContent = list.length ? `${list.length}명 인식됨` + (dup.length?` · 중복 학번: ${[...new Set(dup)].join(', ')}`:'') : '';
+}
+async function saveStudents(btn){
+  const list = parseStu(); const ids = list.map(s=>s.sid);
+  if (ids.some((x,i)=>ids.indexOf(x)!==i)){ msg('stuMsg','중복 학번을 먼저 정리해 주세요.'); return; }
+  if (!confirm(`${list.length}명으로 명단을 저장할까요? (기존 명단은 교체돼요)`)) return;
+  btn.disabled = true; msg('stuMsg','저장 중…',true);
+  try{ await jsonp({ action:'saveStudents', pw:PW, data:JSON.stringify(list) }); await refresh(); msg('stuMsg',`${list.length}명 저장했어요.`,true); }
+  catch(e){ msg('stuMsg', e.message); }
+  btn.disabled = false;
+}
+
+/* ===== 공지 작성 ===== */
+function allowedTypes(){ return role==='admin' ? ['긴급','확인','호출','일반'] : ['확인','일반']; }
+function renderChips(){
+  $('typeChips').innerHTML = allowedTypes().map(t=>`<button class="chip ${TYPES[t]} ${t===fType?'on':''}" onclick="setType('${t}')">${LABEL[t]}</button>`).join('');
+  const canPop = role==='admin' && (fType==='긴급' || fType==='호출');
+  $('popRow').classList.toggle('hide', !canPop);
+  $('targetBox').classList.toggle('hide', fType!=='호출');
+  $('dateLabel').textContent = fType==='확인' ? '마감일' : '날짜';
+}
+function setType(t){
+  fType = t;
+  if (!editId) $('fPop').checked = (t==='긴급' || t==='호출');
+  renderChips();
+}
+function renderRoster(sel){
+  const set = new Set((sel||[]).map(String));
+  $('roster').innerHTML = data.students.length
+    ? data.students.map(s=>`<label><input type="checkbox" value="${esc(s.sid)}" ${set.has(String(s.sid))?'checked':''}>${esc(s.sid)} ${esc(s.name)}</label>`).join('')
+    : '<span class="hint">명단 탭에서 학생을 먼저 등록해 주세요.</span>';
+}
+function resetForm(){
+  editId = null; fType = allowedTypes().includes('일반') ? '일반' : allowedTypes()[0];
+  $('formTitle').textContent = '✏️ 새 공지'; $('saveBtn').textContent = '공지 올리기';
+  $('fDate').value = today(); $('fTitle').value=''; $('fBody').value=''; $('fMemo').value='';
+  $('fImp').checked=false; $('fPop').checked=false; msg('formMsg','',true);
+  renderChips(); renderRoster();
+}
+function editNotice(id){
+  const n = data.notices.find(x=>String(x.id)===String(id)); if (!n) return;
+  editId = n.id; fType = n.type;
+  $('formTitle').textContent = '✏️ 공지 수정'; $('saveBtn').textContent = '수정 저장';
+  $('fDate').value=n.date; $('fTitle').value=n.title; $('fBody').value=n.body; $('fMemo').value=n.memo||'';
+  $('fImp').checked=n.important; $('fPop').checked=n.popup;
+  renderChips(); renderRoster((n.targets||[]).map(t=>t.sid));
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+async function saveNotice(btn){
+  const n = { id:editId||'', type:fType, date:$('fDate').value, title:$('fTitle').value.trim(), body:$('fBody').value.trim(),
+    memo: fType==='호출' ? $('fMemo').value.trim() : '', important:$('fImp').checked,
+    popup: role==='admin' && (fType==='긴급'||fType==='호출') && $('fPop').checked,
+    targets: fType==='호출' ? [...document.querySelectorAll('#roster input:checked')].map(i=>i.value) : [] };
+  if (!n.date || !n.title){ msg('formMsg','날짜와 제목을 입력해 주세요.'); return; }
+  if (fType==='호출' && !n.targets.length && !n.memo){ msg('formMsg','호출 대상을 선택하거나 직접 입력해 주세요.'); return; }
+  btn.disabled = true; msg('formMsg','저장 중…',true);
+  try{
+    await jsonp({ action:'saveNotice', pw:PW, data:JSON.stringify(n) });
+    const wasEdit = !!editId;
+    await refresh(); resetForm(); renderList();
+    msg('formMsg', wasEdit ? '수정했어요.' : '공지를 올렸어요.', true);
+  }catch(e){ msg('formMsg', e.message); }
+  btn.disabled = false;
+}
+async function delNotice(id){
+  const n = data.notices.find(x=>String(x.id)===String(id));
+  if (!n || !confirm(`"${n.title}" 공지를 삭제할까요?`)) return;
+  try{ await jsonp({ action:'deleteNotice', pw:PW, nid:id }); if (String(editId)===String(id)) resetForm(); await refresh(); renderList(); }
+  catch(e){ alert(e.message); }
+}
+function canEdit(n){ return role==='admin' || n.author==='회장'; }
+function renderList(){
+  $('listTabs').innerHTML = [['up','오늘·예정'],['past','지난 공지']]
+    .map(([k,l])=>`<button class="${listMode===k?'on':''}" onclick="listMode='${k}';renderList()">${l}</button>`).join('');
+  const t = today();
+  let arr = data.notices.filter(n => listMode==='up' ? n.date>=t : n.date<t);
+  arr.sort((a,b)=> listMode==='up' ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date));
+  if (listMode==='past') arr = arr.slice(0,50);
+  $('nList').innerHTML = arr.length ? arr.map(n=>`
+    <div class="item"><div class="in">
+      <div class="t"><span class="bd ${TYPES[n.type]}">${LABEL[n.type]}</span>${n.author==='회장'?'<span class="bd p">회장</span>':''}${n.important?'⭐ ':''}${n.popup?'🚨 ':''}${esc(n.title)}</div>
+      <div class="s">${prettyDate(n.date)}${n.type==='호출'&&n.targets.length?' · '+esc(n.targets.map(x=>x.name).join(', ')):''}${n.memo?' · '+esc(n.memo):''}</div>
+    </div>${canEdit(n)?`<div class="acts"><button onclick="editNotice('${esc(n.id)}')">수정</button><button onclick="delNotice('${esc(n.id)}')">삭제</button></div>`:''}</div>`).join('')
+    : '<p class="hint">공지가 없어요.</p>';
+}
+
+/* ===== 확인현황 ===== */
+function renderStat(){
+  const imp = data.notices.filter(n=>n.important).sort((a,b)=>b.date.localeCompare(a.date));
+  const total = data.students.length;
+  $('statList').innerHTML = imp.length ? imp.map(n=>{
+    const done = data.confirms.filter(c=>String(c.nid)===String(n.id));
+    const doneIds = new Set(done.map(c=>String(c.sid)));
+    const miss = data.students.filter(s=>!doneIds.has(String(s.sid)));
+    const pct = total ? Math.round(done.length/total*100) : 0;
+    return `<details><summary><span class="bd ${TYPES[n.type]}">${LABEL[n.type]}</span><span style="flex:1">${esc(n.title)}</span><span>${done.length}/${total}</span></summary>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <div class="names"><b>미확인 ${miss.length}명</b> ${miss.map(s=>esc(s.sid+' '+s.name)).join(', ')||'없음 🎉'}</div>
+      <div class="names">확인 ${done.length}명 · ${done.map(c=>esc(c.name)).join(', ')||'-'}</div>
+      <div class="s" style="font-size:12px;color:var(--tx3);margin-top:4px">${prettyDate(n.date)}</div></details>`;
+  }).join('') : '<p class="hint">중요 공지가 아직 없어요.</p>';
+}
+
+/* ===== 시작 ===== */
+(async function start(){
+  if (!GAS){ show('scrConnect'); return; }
+  if (PW){
+    try{ const r = await jsonp({ action:'login', pw:PW }); if (r.role){ role=r.role; await enterMain(); return; } }catch(e){}
+  }
+  show('scrLogin');
+})();
+</script>
+</body>
+</html>

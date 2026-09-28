@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#9B8EC4">
+<title>CLASS BOARD</title>
+<link rel="manifest" href="Cheon-R-class-board-manifest.json">
+<link rel="icon" href="Cheon-R-class-board-icon-192.png">
+<link rel="apple-touch-icon" href="Cheon-R-class-board-icon-192.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --main:#9B8EC4; --main-d:#6F62A3; --bg:#F4F2FA; --card:#fff; --line:#E4E0F0;
+  --tx:#2E2A3D; --tx2:#6B6680; --tx3:#9A96AA;
+  --u-bg:#F7C1C1; --u-tx:#791F1F; --u-dot:#E24B4A;
+  --c-bg:#FAEEDA; --c-tx:#633806; --c-dot:#EF9F27;
+  --h-bg:#CECBF6; --h-tx:#3C3489; --h-dot:#7F77DD;
+  --g-bg:#D3D1C7; --g-tx:#444441; --g-dot:#888780;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Pretendard',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:var(--bg);color:var(--tx);
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+.wrap{max-width:1200px;margin:0 auto;padding:12px 16px 24px}
+
+/* 상단 */
+.top{display:flex;align-items:center;gap:10px;background:var(--main);color:#fff;border-radius:14px;padding:10px 14px;min-height:56px}
+.logo{font-size:22px}
+.ttlw{flex:1;min-width:0}
+.top h1{font-size:19px;font-weight:800;letter-spacing:.5px;line-height:1.2}
+.sub{font-size:12px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.me{background:rgba(255,255,255,.22);border-radius:20px;padding:0 14px;font-size:14px;font-weight:600;min-height:44px}
+.ref{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.22);font-size:18px;color:#fff}
+.ref.spin{animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* 긴급 배너 */
+#urgent{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.ub{background:var(--u-bg);color:var(--u-tx);border-radius:12px;padding:10px 14px;font-size:15px;font-weight:600;display:flex;gap:8px;align-items:flex-start}
+.ub small{display:block;font-weight:400;font-size:13px;margin-top:2px;white-space:pre-wrap}
+
+/* 본문 레이아웃 (가로: 좌 달력 / 우 공지) */
+.main{display:grid;grid-template-columns:minmax(260px,34%) 1fr;gap:14px;margin-top:12px;align-items:start}
+.panel{background:var(--card);border-radius:16px;padding:14px;border:1px solid var(--line)}
+@media (orientation:portrait),(max-width:720px){
+  .main{grid-template-columns:1fr}
+  .cal-panel{order:2}
+}
+
+/* 달력 */
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cal-head b{font-size:16px}
+.cal-head button{width:44px;height:44px;border-radius:10px;font-size:18px;color:var(--tx2)}
+.cal-head button:active{background:var(--bg)}
+.dow,.days{display:grid;grid-template-columns:repeat(7,1fr);text-align:center}
+.dow span{font-size:12px;color:var(--tx3);padding:4px 0}
+.dow span:first-child{color:#D0706E}.dow span:last-child{color:#6D8CC4}
+.day{min-height:44px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:14px;position:relative}
+.day.out{color:#C9C6D4}
+.day.today .n{background:var(--main);color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.day.sel{background:#ECE8F7}
+.dots{display:flex;gap:2px;height:6px}
+.dots i{width:6px;height:6px;border-radius:50%}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:12px;color:var(--tx2)}
+.legend span{display:flex;align-items:center;gap:4px}
+.legend i{width:8px;height:8px;border-radius:50%}
+
+/* 탭 & 카드 */
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.tabs button{min-height:40px;padding:0 16px;border-radius:20px;font-size:15px;font-weight:600;color:var(--tx2);background:var(--bg)}
+.tabs button.on{background:var(--main);color:#fff}
+.sec{font-size:13px;font-weight:700;color:var(--tx2);margin:14px 0 8px}
+.sec:first-child{margin-top:0}
+.card{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px;background:#fff}
+.card.mine{border:2px solid var(--h-dot);background:#F6F5FE}
+.row1{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.bd{font-size:12px;font-weight:700;border-radius:6px;padding:2px 8px}
+.bd.u{background:var(--u-bg);color:var(--u-tx)}.bd.c{background:var(--c-bg);color:var(--c-tx)}
+.bd.h{background:var(--h-bg);color:var(--h-tx)}.bd.g{background:var(--g-bg);color:var(--g-tx)}
+.bd.p{background:#fff;border:1px solid var(--main);color:var(--main-d)}
+.bd.new{background:#FFE8E8;color:#C0392B}
+.dd{margin-left:auto;font-size:13px;font-weight:700;color:var(--c-tx)}
+.dd.late{color:var(--tx3)}
+.ttl{font-size:16px;font-weight:700;margin-top:6px;line-height:1.4}
+.body{font-size:14px;color:var(--tx2);margin-top:4px;white-space:pre-wrap;line-height:1.55}
+.tg{font-size:14px;margin-top:6px;color:var(--h-tx);font-weight:600}
+.callme{display:inline-block;margin-top:6px;background:var(--h-dot);color:#fff;font-size:13px;font-weight:700;border-radius:6px;padding:3px 10px}
+.ck{margin-top:10px;min-height:44px;width:100%;border-radius:10px;background:var(--main);color:#fff;font-size:15px;font-weight:700}
+.ck.done{background:#EEF7EE;color:#2E7D32}
+.card{cursor:pointer;width:100%;text-align:left;display:block;font:inherit;color:inherit}
+.card:active{background:#FAF9FD}
+.prev{font-size:14px;color:var(--tx2);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bd.need{background:var(--main);color:#fff}
+.bd.ok{background:#EEF7EE;color:#2E7D32}
+.det .x{float:right;width:44px;height:44px;margin:-10px -10px 0 0;font-size:22px;color:var(--tx3)}
+.det .dt{font-size:13px;color:var(--tx3);margin-top:8px}
+.det .body{font-size:16px;color:var(--tx);max-height:55vh;overflow-y:auto;margin-top:12px}
+.empty{text-align:center;color:var(--tx3);font-size:14px;padding:28px 0}
+.foot{text-align:center;font-size:12px;color:var(--tx3);margin-top:18px}
+.upd{font-size:12px;color:var(--tx3);text-align:right;margin-top:6px}
+
+/* 모달 */
+.ov{position:fixed;inset:0;background:rgba(30,25,50,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+.ov.show{display:flex}
+.modal{background:#fff;border-radius:18px;padding:22px;width:100%;max-width:420px}
+.modal h2{font-size:19px;margin-bottom:6px}
+.modal p{font-size:14px;color:var(--tx2);line-height:1.5}
+.modal input{width:100%;min-height:48px;border:1.5px solid var(--line);border-radius:10px;padding:0 14px;font-size:18px;font-family:inherit;margin-top:12px}
+.modal input:focus{outline:none;border-color:var(--main)}
+.btns{display:flex;gap:8px;margin-top:14px}
+.btns button{flex:1;min-height:48px;border-radius:10px;font-size:16px;font-weight:700}
+.b1{background:var(--main);color:#fff}.b2{background:var(--bg);color:var(--tx2)}
+.err{color:#C0392B;font-size:13px;margin-top:8px;min-height:18px}
+.pop{border-top:8px solid var(--u-dot);text-align:center;padding-top:26px}
+.pop.h{border-top-color:var(--h-dot)}
+.pop .ic{font-size:44px}
+.pop .ttl{font-size:21px}
+.pop .body{font-size:16px;text-align:left;margin-top:10px}
+.pop .tg{text-align:left}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <span class="logo">📋</span>
+    <div class="ttlw"><h1>CLASS BOARD</h1><div class="sub" id="cls"></div></div>
+    <button class="me" id="meBtn" onclick="openWho()">학번 등록</button>
+    <button class="ref" id="refBtn" onclick="load(true)" aria-label="새로고침">↻</button>
+  </header>
+
+  <div id="urgent"></div>
+
+  <div class="main">
+    <section class="panel cal-panel">
+      <div class="cal-head">
+        <button onclick="moveMonth(-1)" aria-label="이전 달">‹</button>
+        <b id="ym"></b>
+        <button onclick="moveMonth(1)" aria-label="다음 달">›</button>
+      </div>
+      <div class="dow"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+      <div class="days" id="days"></div>
+      <div class="legend">
+        <span><i style="background:var(--u-dot)"></i>긴급</span>
+        <span><i style="background:var(--c-dot)"></i>확인사항</span>
+        <span><i style="background:var(--h-dot)"></i>호출</span>
+        <span><i style="background:var(--g-dot)"></i>일반</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="tabs" id="tabs"></div>
+      <div id="list"><div class="empty">불러오는 중…</div></div>
+      <div class="upd" id="upd"></div>
+    </section>
+  </div>
+  <div class="foot">Made by Cheon_R</div>
+</div>
+
+<!-- 학번 등록 -->
+<div class="ov" id="whoOv">
+  <div class="modal">
+    <h2>학번 등록</h2>
+    <p>확인 버튼과 호출 알림을 받으려면 학번을 등록해 주세요. 이 기기에만 저장돼요.</p>
+    <input id="sidIn" type="tel" inputmode="numeric" placeholder="예: 10301" maxlength="10">
+    <div class="err" id="whoErr"></div>
+    <div class="btns" id="whoBtns">
+      <button class="b2" onclick="closeOv('whoOv')">나중에</button>
+      <button class="b1" onclick="lookup()">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- 공지 상세 -->
+<div class="ov" id="detOv" onclick="if(event.target===this)closeOv('detOv')">
+  <div class="modal det" id="detBox"></div>
+</div>
+
+<!-- 긴급/호출 팝업 -->
+<div class="ov" id="popOv">
+  <div class="modal pop" id="popBox"></div>
+</div>
+
+<script>
+/* ===== 설정 & 저장소 ===== */
+const K = { gas:'sn_gas_v1', me:'sn_me_v1', seen:'sn_popup_seen_v1', last:'sn_lastseen_v1', cls:'sn_cls_v1' };
+const TYPES = { '긴급':{c:'u',ic:'🚨'}, '확인':{c:'c',ic:'📋'}, '호출':{c:'h',ic:'📣'}, '일반':{c:'g',ic:'📌'} };
+const ORDER = { '긴급':0, '호출':1, '확인':2, '일반':3 };
+const LABEL = { '긴급':'긴급', '확인':'확인사항', '호출':'호출', '일반':'일반' };
+const POLL_MS = 60000;
+
+function lsGet(k, d){ try{ const v = localStorage.getItem(k); return v===null ? d : JSON.parse(v); }catch(e){ return d; } }
+function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+(function initGas(){
+  const g = new URLSearchParams(location.search).get('gas');
+  if (g) lsSet(K.gas, g.trim());
+})();
+const GAS = lsGet(K.gas, '');
+
+let me = lsGet(K.me, null);
+let notices = [], confirmed = new Set();
+let tab = 'today', selDate = null;
+let view = new Date(); view.setDate(1);
+let prevSeen = lsGet(K.last, '');
+let popQueue = [], popShowing = false, blinkTimer = null;
+let baseTitle = document.title;
+
+/* ===== 날짜 유틸 ===== */
+function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function today(){ return ymd(new Date()); }
+function addDays(s, n){ const d = new Date(s+'T00:00:00'); d.setDate(d.getDate()+n); return ymd(d); }
+function diffDays(s){ return Math.round((new Date(s+'T00:00:00') - new Date(today()+'T00:00:00'))/86400000); }
+function prettyDate(s){ const d = new Date(s+'T00:00:00'); return (d.getMonth()+1)+'월 '+d.getDate()+'일 ('+'일월화수목금토'[d.getDay()]+')'; }
+function esc(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ===== JSONP ===== */
+let jpSeq = 0;
+function jsonp(params){
+  return new Promise((resolve, reject) => {
+    if (!GAS) return reject(new Error('연결 주소가 없어요. 선생님이 알려준 링크로 다시 열어 주세요.'));
+    const cb = '__sn' + Date.now() + (jpSeq++);
+    const s = document.createElement('script');
+    const t = setTimeout(() => { cleanup(); reject(new Error('서버 응답이 없어요. 잠시 후 다시 시도해 주세요.')); }, 15000);
+    function cleanup(){ clearTimeout(t); delete window[cb]; s.remove(); }
+    window[cb] = (res) => { cleanup(); res && res.ok ? resolve(res) : reject(new Error((res && res.error) || '요청에 실패했어요.')); };
+    const q = new URLSearchParams({ ...params, callback: cb, _: Date.now() });
+    s.src = GAS + (GAS.includes('?') ? '&' : '?') + q.toString();
+    s.onerror = () => { cleanup(); reject(new Error('서버에 연결하지 못했어요.')); };
+    document.body.appendChild(s);
+  });
+}
+
+/* ===== 불러오기 ===== */
+async function load(manual){
+  const btn = document.getElementById('refBtn');
+  btn.classList.add('spin');
+  try{
+    const res = await jsonp({ action:'load', sid: me ? me.sid : '' });
+    notices = res.notices || [];
+    confirmed = new Set((res.confirmed || []).map(String));
+    if (res.className){ const sub = (res.year ? res.year + '학년도 ' : '') + res.className; lsSet(K.cls, sub); setSub(sub); }
+    render();
+    checkPopups();
+    document.getElementById('upd').textContent = '마지막 업데이트 ' + new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+    lsSet(K.last, res.serverTime || '');
+  }catch(e){
+    document.getElementById('list').innerHTML = '<div class="empty">'+esc(e.message)+'</div>';
+  }finally{
+    btn.classList.remove('spin');
+  }
+}
+
+/* ===== 렌더 ===== */
+function sortN(a, b){ return a.date.localeCompare(b.date) || ORDER[a.type]-ORDER[b.type] || String(a.created).localeCompare(String(b.created)); }
+function isMine(n){ return !!(me && n.targets && n.targets.some(t => String(t.sid) === String(me.sid))); }
+
+function render(){
+  renderMe(); renderUrgent(); renderCal(); renderTabs(); renderList();
+}
+function renderMe(){
+  document.getElementById('meBtn').textContent = me ? me.sid + ' ' + me.name : '학번 등록';
+}
+function renderUrgent(){
+  const t = today();
+  const u = notices.filter(n => n.type === '긴급' && n.date === t).sort(sortN);
+  document.getElementById('urgent').innerHTML = u.map(n =>
+    `<div class="ub"><span>🚨</span><div>${esc(n.title)}${n.body?`<small>${esc(n.body)}</small>`:''}</div></div>`).join('');
+}
+function renderCal(){
+  const y = view.getFullYear(), m = view.getMonth();
+  document.getElementById('ym').textContent = y + '년 ' + (m+1) + '월';
+  const start = new Date(y, m, 1); start.setDate(1 - start.getDay());
+  const byDate = {};
+  notices.forEach(n => { (byDate[n.date] = byDate[n.date] || new Set()).add(n.type); });
+  const t = today();
+  let html = '';
+  for (let i = 0; i < 42; i++){
+    const d = new Date(start); d.setDate(start.getDate()+i);
+    if (i >= 35 && d.getMonth() !== m) break;
+    const s = ymd(d);
+    const types = [...(byDate[s] || [])].sort((a,b)=>ORDER[a]-ORDER[b]);
+    const cls = ['day', d.getMonth()!==m?'out':'', s===t?'today':'', s===selDate?'sel':''].join(' ');
+    html += `<button class="${cls}" onclick="pickDate('${s}')"><span class="n">${d.getDate()}</span><span class="dots">${
+      types.map(tp=>`<i style="background:var(--${TYPES[tp].c}-dot)"></i>`).join('')}</span></button>`;
+  }
+  document.getElementById('days').innerHTML = html;
+}
+function renderTabs(){
+  let h = `<button class="${tab==='today'?'on':''}" onclick="setTab('today')">오늘</button>
+           <button class="${tab==='week'?'on':''}" onclick="setTab('week')">이번주</button>`;
+  if (tab === 'date' && selDate) h += `<button class="on">${prettyDate(selDate)}</button>`;
+  document.getElementById('tabs').innerHTML = h;
+}
+function card(n){
+  const T = TYPES[n.type] || TYPES['일반'];
+  const mine = isMine(n);
+  const isNew = prevSeen && n.created && n.created > prevSeen;
+  let dd = '';
+  if (n.type === '확인'){
+    const k = diffDays(n.date);
+    dd = k > 0 ? `<span class="dd">D-${k}</span>` : k === 0 ? `<span class="dd">오늘 마감</span>` : `<span class="dd late">마감</span>`;
+  }
+  const tg = targetLine(n);
+  let ck = '';
+  if (n.important) ck = confirmed.has(String(n.id)) ? '<span class="bd ok">✓ 확인</span>' : '<span class="bd need">확인 필요</span>';
+  const prev = (n.body || '').split('\n').find(l => l.trim()) || '';
+  return `<button class="card${mine?' mine':''}" onclick="openDetail('${esc(n.id)}')">
+    <div class="row1"><span class="bd ${T.c}">${LABEL[n.type]||n.type}</span>${n.author==='회장'?'<span class="bd p">회장</span>':''}${isNew?'<span class="bd new">NEW</span>':''}${ck}${dd}</div>
+    <div class="ttl">${esc(n.title)}</div>
+    ${prev?`<div class="prev">${esc(prev)}</div>`:''}
+    ${tg}${mine?'<span class="callme">나를 불렀어요</span>':''}
+  </button>`;
+}
+function targetLine(n){
+  if (n.type !== '호출') return '';
+  const names = (n.targets||[]).map(t => esc(t.sid+' '+t.name));
+  if (n.memo) names.push(esc(n.memo));
+  return names.length ? `<div class="tg">📣 ${names.join(', ')}</div>` : '';
+}
+
+/* ===== 공지 상세 팝업 ===== */
+function openDetail(id){
+  const n = notices.find(x => String(x.id) === String(id));
+  if (!n) return;
+  const T = TYPES[n.type] || TYPES['일반'];
+  let ck = '';
+  if (n.important){
+    ck = confirmed.has(String(n.id))
+      ? '<div class="btns"><button class="b1 ck done" disabled>✓ 확인 완료</button></div>'
+      : `<div class="btns"><button class="b1" onclick="doConfirm('${esc(n.id)}', this)">확인했어요</button></div>`;
+  }
+  document.getElementById('detBox').innerHTML = `
+    <button class="x" onclick="closeOv('detOv')" aria-label="닫기">✕</button>
+    <div class="row1"><span class="bd ${T.c}">${LABEL[n.type]||n.type}</span>${n.author==='회장'?'<span class="bd p">회장</span>':''}</div>
+    <div class="ttl" style="font-size:20px">${esc(n.title)}</div>
+    <div class="dt">${prettyDate(n.date)}${n.type==='확인'?' 마감':''}</div>
+    ${targetLine(n)}${isMine(n)?'<span class="callme">나를 불렀어요</span>':''}
+    ${n.body?`<div class="body">${esc(n.body)}</div>`:''}
+    ${ck}`;
+  document.getElementById('detOv').classList.add('show');
+}
+function renderList(){
+  const el = document.getElementById('list');
+  const t = today();
+  let html = '';
+  if (tab === 'today'){
+    const td = notices.filter(n => n.date === t).sort(sortN);
+    const pend = notices.filter(n => n.type === '확인' && n.date > t).sort(sortN);
+    html += `<div class="sec">${prettyDate(t)}</div>` + (td.length ? td.map(card).join('') : '<div class="empty">오늘은 공지가 없어요 🙂</div>');
+    if (pend.length) html += `<div class="sec">마감 전 확인사항</div>` + pend.map(card).join('');
+  } else if (tab === 'week'){
+    for (let i = 0; i < 7; i++){
+      const d = addDays(t, i);
+      const arr = notices.filter(n => n.date === d).sort(sortN);
+      if (arr.length) html += `<div class="sec">${prettyDate(d)}</div>` + arr.map(card).join('');
+    }
+    if (!html) html = '<div class="empty">이번주 공지가 없어요</div>';
+  } else {
+    const arr = notices.filter(n => n.date === selDate).sort(sortN);
+    html = arr.length ? arr.map(card).join('') : '<div class="empty">이 날은 공지가 없어요</div>';
+  }
+  el.innerHTML = html;
+}
+
+function setSub(sub){
+  document.getElementById('cls').textContent = sub;
+  baseTitle = 'CLASS BOARD · ' + sub;
+  if (!blinkTimer) document.title = baseTitle;
+}
+
+/* ===== 조작 ===== */
+function setTab(t){ tab = t; selDate = null; render(); }
+function pickDate(s){ selDate = s; tab = (s === today()) ? 'today' : 'date'; if (tab==='today') selDate = s; render(); }
+function moveMonth(k){ view.setMonth(view.getMonth()+k); renderCal(); }
+
+async function doConfirm(id, btn){
+  if (!me){ openWho(); return; }
+  btn.disabled = true; btn.textContent = '저장 중…';
+  try{
+    await jsonp({ action:'confirm', nid:id, sid:me.sid });
+    confirmed.add(String(id));
+    renderList();
+    openDetail(id);
+  }catch(e){
+    btn.disabled = false; btn.textContent = '확인했어요';
+    alert(e.message);
+  }
+}
+
+/* ===== 학번 등록 ===== */
+function openWho(){
+  document.getElementById('sidIn').value = me ? me.sid : '';
+  document.getElementById('whoErr').textContent = '';
+  document.getElementById('whoBtns').innerHTML = `<button class="b2" onclick="closeOv('whoOv')">나중에</button><button class="b1" onclick="lookup()">확인</button>`;
+  document.getElementById('whoOv').classList.add('show');
+}
+function closeOv(id){ document.getElementById(id).classList.remove('show'); }
+async function lookup(){
+  const sid = document.getElementById('sidIn').value.trim();
+  const err = document.getElementById('whoErr');
+  if (!sid){ err.textContent = '학번을 입력해 주세요.'; return; }
+  err.textContent = '확인 중…';
+  try{
+    const r = await jsonp({ action:'who', sid });
+    err.textContent = '';
+    document.getElementById('whoBtns').innerHTML =
+      `<button class="b2" onclick="openWho()">아니에요</button><button class="b1" id="okMe">${esc(r.name)} 맞아요</button>`;
+    document.getElementById('okMe').onclick = () => {
+      me = { sid: String(r.sid), name: r.name };
+      lsSet(K.me, me);
+      closeOv('whoOv');
+      load();
+    };
+  }catch(e){ err.textContent = e.message; }
+}
+
+/* ===== 긴급·호출 팝업 ===== */
+function checkPopups(){
+  const t = today();
+  const seen = new Set(lsGet(K.seen, []));
+  const fresh = notices.filter(n => n.popup && n.date === t && !seen.has(String(n.id)) &&
+    (!n.targets || !n.targets.length || isMine(n)) && !popQueue.some(q => q.id === n.id));
+  if (!fresh.length) return;
+  popQueue.push(...fresh.sort(sortN));
+  alertUser();
+  if (!popShowing) showNextPop();
+}
+function showNextPop(){
+  const n = popQueue.shift();
+  if (!n){ popShowing = false; closeOv('popOv'); return; }
+  popShowing = true;
+  const T = TYPES[n.type] || TYPES['긴급'];
+  let tg = '';
+  if (n.type === '호출'){
+    const names = (n.targets||[]).map(t => esc(t.sid+' '+t.name));
+    if (n.memo) names.push(esc(n.memo));
+    if (names.length) tg = `<div class="tg">📣 ${names.join(', ')}</div>`;
+  }
+  const box = document.getElementById('popBox');
+  box.className = 'modal pop' + (n.type === '호출' ? ' h' : '');
+  box.innerHTML = `<div class="ic">${T.ic}</div><div class="ttl">${esc(n.title)}</div>${tg}
+    ${n.body?`<div class="body">${esc(n.body)}</div>`:''}
+    <div class="btns"><button class="b1" id="popOk">확인했어요</button></div>`;
+  document.getElementById('popOk').onclick = async () => {
+    const seen = lsGet(K.seen, []);
+    seen.push(String(n.id)); lsSet(K.seen, seen.slice(-200));
+    if (n.important && me && !confirmed.has(String(n.id))){
+      try{ await jsonp({ action:'confirm', nid:n.id, sid:me.sid }); confirmed.add(String(n.id)); }catch(e){}
+    }
+    stopBlink(); renderList(); showNextPop();
+  };
+  document.getElementById('popOv').classList.add('show');
+}
+function alertUser(){
+  beep();
+  if (document.hidden && !blinkTimer){
+    let on = false;
+    blinkTimer = setInterval(() => { document.title = (on = !on) ? '🔴 새 알림!' : baseTitle; }, 1000);
+  }
+}
+function stopBlink(){ if (blinkTimer){ clearInterval(blinkTimer); blinkTimer = null; } document.title = baseTitle; }
+let actx = null;
+function beep(){
+  try{
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    [0, 0.25].forEach(t0 => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.frequency.value = 880; o.connect(g); g.connect(actx.destination);
+      g.gain.setValueAtTime(0.25, actx.currentTime + t0);
+      g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + t0 + 0.2);
+      o.start(actx.currentTime + t0); o.stop(actx.currentTime + t0 + 0.2);
+    });
+  }catch(e){}
+}
+document.addEventListener('pointerdown', () => { try{ actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); }catch(e){} }, { once:true });
+
+/* ===== 시작 ===== */
+document.addEventListener('visibilitychange', () => { if (!document.hidden){ load(); if (!popShowing) stopBlink(); } });
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('Cheon-R-class-board-sw.js', { scope:'./Cheon-R-class-board' }).catch(()=>{});
+if (lsGet(K.cls, '')) setSub(lsGet(K.cls, ''));
+render();
+if (!GAS){
+  document.getElementById('list').innerHTML = '<div class="empty">연결 주소가 없어요.<br>선생님이 알려준 링크로 다시 열어 주세요.</div>';
+} else {
+  load();
+  setInterval(load, POLL_MS);
+  if (!me) setTimeout(openWho, 600);
+}
+</script>
+</body>
+</html>
