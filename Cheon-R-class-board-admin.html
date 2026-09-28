@@ -162,14 +162,14 @@ details summary::-webkit-details-marker{display:none}
       <li>마지막 화면의 <b>…/exec</b>로 끝나는 웹 앱 URL 복사</li></ol></div>
     <div class="step"><div class="st">Step 4. 연결하기</div><ol>
       <li>이 화면에서 ← 돌아가기 → 복사한 URL 붙여넣기 → <b>연결하기</b></li>
-      <li>처음 비밀번호 <b>0413</b>으로 로그인</li>
+      <li>처음 비밀번호 <b>classboard</b>로 로그인</li>
+      <li>바로 <b>새 비밀번호로 바꾸는 화면</b>이 떠요 (꼭 바꿔야 다음으로 넘어가요)</li>
       <li>처음 한 번 <b>사용자 등록</b>(이름·학교·학급)을 해요</li></ol>
       <div class="warn">⚠️ 링크를 열었는데 연결 화면 없이 <b>로그인 화면이 바로 뜬다면</b>, 이 기기에서 다른 선생님이 쓰던 연결이 남아 있는 거예요. (예: 교무실 공용 PC) 로그인 화면의 <b>[연결 주소 변경]</b>을 눌러 내 URL을 붙여넣어 주세요.</div></div>
     <div class="step"><div class="st">Step 5. 첫 설정</div><ol>
-      <li>⚙️ 설정 탭에서 <b>관리자 비밀번호 변경</b></li>
       <li>학년도·학급 이름·회장 코드 입력 → 설정 저장</li>
       <li>👥 명단 탭에 <b>학번 이름</b> 한 줄씩 입력 (엑셀 두 칸 복사 가능) → 명단 저장</li></ol>
-      <div class="warn">⚠️ 비밀번호를 바꾸지 않으면 0413을 아는 누구나 관리자로 들어올 수 있어요.</div></div>
+      <div class="tip">💡 비밀번호는 내 구글 시트 '설정' 탭에 저장돼요. 잊어버리면 시트를 열어 <b>관리자비번</b> 칸을 확인하세요.</div></div>
     <div class="step"><div class="st">Step 6. 학생들에게 배포</div><ol>
       <li>⚙️ 탭의 <b>학생용 링크</b>를 QR코드나 메시지로 공유</li>
       <li>학생은 크롬 ⋮ 메뉴 → <b>홈 화면에 추가</b>로 앱처럼 설치</li>
@@ -177,6 +177,18 @@ details summary::-webkit-details-marker{display:none}
       <li>상단 <b>👀 학생 화면</b> 버튼으로 학생에게 어떻게 보이는지 확인할 수 있어요.</li></ol></div>
     <div class="tip">💡 나중에 GAS 코드를 고칠 땐 <b>새 배포</b>가 아니라 <b>배포 관리 → ✏️ 수정 → 새 버전</b>으로 해야 기존 학생 링크가 유지돼요.</div>
     <button class="gbtn" onclick="mailContact()">✉️ 궁금한 점은 메일로 문의해 주세요</button>
+  </div>
+
+  <!-- 첫 로그인 비밀번호 변경 -->
+  <div id="scrPw" class="center hide">
+    <div class="box">
+      <h2>🔑 비밀번호를 먼저 바꿔 주세요</h2>
+      <p class="hint">초기 비밀번호(classboard)는 모든 선생님이 알고 있어서, 처음 한 번 꼭 바꿔야 해요.</p>
+      <label class="f">새 비밀번호 (4자 이상)</label><input type="password" id="npw1">
+      <label class="f">새 비밀번호 확인</label><input type="password" id="npw2" onkeydown="if(event.key==='Enter')changeFirstPw(document.getElementById('npwBtn'))">
+      <div class="row" style="margin-top:12px"><button class="btn" id="npwBtn" onclick="changeFirstPw(this)">변경하고 시작하기</button><button class="btn sub" onclick="logout()">로그아웃</button></div>
+      <div class="msg" id="npwMsg"></div>
+    </div>
   </div>
 
   <!-- 사용자 등록 -->
@@ -394,7 +406,7 @@ function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0
 function today(){ return ymd(new Date()); }
 function prettyDate(s){ const d=new Date(s+'T00:00:00'); return (d.getMonth()+1)+'/'+d.getDate()+'('+'일월화수목금토'[d.getDay()]+')'; }
 function $(id){ return document.getElementById(id); }
-const SCREENS = ['scrConnect','scrLogin','scrMain','scrGuide','scrReg','scrGate'];
+const SCREENS = ['scrConnect','scrLogin','scrMain','scrGuide','scrReg','scrGate','scrPw'];
 let curScreen = '', backScreen = '';
 function show(id){ curScreen = id; SCREENS.forEach(x => $(x).classList.toggle('hide', x!==id)); window.scrollTo(0,0); }
 const P = 'Cheon-R-class-board';
@@ -449,6 +461,7 @@ function logout(){ PW=''; sessionStorage.removeItem(K.pw); $('pwIn').value=''; m
 let installId = '', isOwner = false, loginInfo = {};
 async function afterLogin(r){
   loginInfo = r; installId = r.installId || '';
+  if (r.mustChange){ $('npw1').value=''; $('npw2').value=''; msg('npwMsg','',true); return show('scrPw'); }
   if (!REGISTRY_URL || !installId){ isOwner = !REGISTRY_URL; return enterMain(); }
   let st;
   try{ const res = await jsonp({ action:'check', id:installId }, REGISTRY_URL); st = res.status; saveRegInfo(res); }
@@ -469,6 +482,19 @@ function handleStatus(st){
   if (st === 'pending') return gate('⏳', '승인 대기 중이에요', '개발자가 승인하면 사용할 수 있어요. 승인 후 [다시 확인]을 눌러 주세요.');
   if (st === 'blocked') return gate('⛔', '사용이 중지되었어요', '이 학급의 CLASS BOARD 사용이 중지되었어요. 궁금한 점은 아래로 문의해 주세요.');
   enterMain();
+}
+async function changeFirstPw(btn){
+  const a = $('npw1').value.trim(), b = $('npw2').value.trim();
+  if (a.length < 4){ msg('npwMsg','4자 이상으로 정해 주세요.'); return; }
+  if (a === 'classboard'){ msg('npwMsg','초기 비밀번호와 다른 비밀번호로 정해 주세요.'); return; }
+  if (a !== b){ msg('npwMsg','두 비밀번호가 달라요.'); return; }
+  btn.disabled = true; msg('npwMsg','변경 중…',true);
+  try{
+    await jsonp({ action:'saveSettings', pw:PW, data:JSON.stringify({ newPw:a }) });
+    PW = a; sessionStorage.setItem(K.pw, a);
+    await afterLogin({ ...loginInfo, mustChange:false });
+  }catch(e){ msg('npwMsg', e.message); }
+  btn.disabled = false;
 }
 function saveRegInfo(res){ if (res && res.name) lsSet(K.reg, { name:res.name, school:res.school, cls:res.cls }); }
 function gate(ic, title, text){ $('gateIc').textContent = ic; $('gateTitle').textContent = title; $('gateText').textContent = text; msg('gateMsg','',true); show('scrGate'); }

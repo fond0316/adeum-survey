@@ -14,7 +14,8 @@ var SHEETS = {
   requests: { name: '수정요청', headers: ['ID', '공지ID', '학번', '이름', '내용', '작성시각', '처리', '처리시각'] }
 };
 var PRESIDENT_TYPES = ['확인', '교과', '일반'];
-var DEFAULT_SETTINGS = [['학년도', String(new Date().getFullYear())], ['학급명', '우리 반'], ['관리자비번', '0413'], ['회장코드', '']];
+var DEFAULT_PW = 'classboard';   // 초기 비밀번호 — 첫 로그인 때 변경 강제
+var DEFAULT_SETTINGS = [['학년도', String(new Date().getFullYear())], ['학급명', '우리 반'], ['관리자비번', DEFAULT_PW], ['회장코드', '']];
 
 /* ---------- 진입점 ---------- */
 function doGet(e) {
@@ -113,7 +114,8 @@ function installId_() {
 function login_(p) {
   var role = auth_(p.pw);
   if (!role) return { ok: true, role: '' };
-  return { ok: true, role: role, installId: installId_(), className: getSetting_('학급명') };
+  return { ok: true, role: role, installId: installId_(), className: getSetting_('학급명'),
+    mustChange: role === 'admin' && String(p.pw) === DEFAULT_PW };
 }
 function year_() { return getSetting_('학년도') || Utilities.formatDate(new Date(), TZ, 'yyyy'); }
 function auth_(pw) {
@@ -345,7 +347,11 @@ function saveSettings_(p) {
     if (s.year !== undefined) setSetting_('학년도', s.year);
     if (s.className !== undefined) setSetting_('학급명', s.className);
     if (s.presidentCode !== undefined) setSetting_('회장코드', s.presidentCode);
-    if (s.newPw) setSetting_('관리자비번', s.newPw);
+    if (s.newPw) {
+      if (String(s.newPw) === DEFAULT_PW) throw new Error('초기 비밀번호와 다른 비밀번호로 정해 주세요.');
+      if (String(s.newPw).length < 4) throw new Error('비밀번호는 4자 이상으로 정해 주세요.');
+      setSetting_('관리자비번', s.newPw);
+    }
     return { ok: true };
   });
 }
