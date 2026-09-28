@@ -224,6 +224,7 @@ details summary::-webkit-details-marker{display:none}
     <div class="box">
       <h2 id="loginTitle">🔒 로그인</h2>
       <p class="hint">담임은 관리자 비밀번호, 회장은 회장 코드를 입력해 주세요.</p>
+      <p class="hint" style="background:var(--bg);border-radius:8px;padding:8px 10px">🆕 처음 설치하셨다면 초기 비밀번호 <b>classboard</b>를 입력하세요. 로그인하면 바로 새 비밀번호로 바꾸게 돼요.</p>
       <input type="password" id="pwIn" placeholder="비밀번호 또는 회장 코드" onkeydown="if(event.key==='Enter')login()">
       <div class="row" style="margin-top:10px">
         <button class="btn" onclick="login()">로그인</button>
@@ -539,7 +540,8 @@ async function enterMain(){
   if (role==='admin' && isOwner && REGISTRY_URL) tabs.push(['own','👑 사용자 관리']);
   $('nav').innerHTML = tabs.map(([k,l])=>`<button data-t="${k}" onclick="goTab('${k}')">${l}</button>`).join('');
   updateReqBadge();
-  resetForm(); goTab('write');
+  resetForm();
+  goTab(role==='admin' && !data.students.length ? 'set' : 'write');   // 처음(명단 없음)엔 설정 탭부터
 }
 async function refresh(){
   const r = await jsonp({ action:'adminLoad', pw:PW });
