@@ -380,7 +380,13 @@ details summary::-webkit-details-marker{display:none}
         <label class="f">유형</label>
         <div class="chips" id="typeChips"></div>
         <label class="f" id="dateLabel">날짜</label>
-        <input type="date" id="fDate">
+        <input type="date" id="fDate" onchange="checkPeriod()">
+        <label class="chk" id="perRow"><input type="checkbox" id="fPer" onchange="togglePeriod()"> 📅 기간으로 올리기 (시작일 ~ 종료일, 최대 90일)</label>
+        <div id="endBox" class="hide">
+          <label class="f">종료일</label>
+          <input type="date" id="fEnd" onchange="checkPeriod()">
+          <div class="msg" id="perMsg" style="margin-top:4px"></div>
+        </div>
         <label class="f">제목</label>
         <input type="text" id="fTitle" maxlength="60" placeholder="학생 목록에 보이는 한 줄">
         <div id="targetBox" class="hide">
@@ -642,7 +648,7 @@ async function refresh(usePre){
   let r = null;
   if (usePre && usePre.p && Date.now() - usePre.t < 30000){ try{ r = await usePre.p; }catch(e){} }
   if (!r) r = await jsonp({ action:'adminLoad', pw:PW });
-  role = r.role; data = { notices:(r.notices||[]).map(n => ({ ...n, date: normDate(n.date) })), students:r.students||[], confirms:r.confirms||[], requests:r.requests||[], callDone:r.callDone||{} };
+  role = r.role; data = { notices:(r.notices||[]).map(n => ({ ...n, date: normDate(n.date), end: n.end ? normDate(n.end) : '' })), students:r.students||[], confirms:r.confirms||[], requests:r.requests||[], callDone:r.callDone||{} };
   updateReqBadge();
   schoolYear = parseInt(r.year, 10) || new Date().getFullYear();
   renderBlobs();
@@ -718,8 +724,33 @@ function renderChips(){
   const canPop = role==='admin' && (fType==='긴급' || fType==='호출');
   $('popRow').classList.toggle('hide', !canPop);
   $('targetBox').classList.toggle('hide', fType!=='호출');
-  $('dateLabel').textContent = fType==='확인' ? '마감일' : '날짜';
+  const canPer = fType !== '호출';
+  $('perRow').classList.toggle('hide', !canPer);
+  if (!canPer){ $('fPer').checked = false; }
+  const per = canPer && $('fPer').checked;
+  $('endBox').classList.toggle('hide', !per);
+  $('dateLabel').textContent = per ? '시작일' : (fType==='확인' ? '마감일' : '날짜');
+  if (per) checkPeriod();
 }
+/* ===== 📅 기간 공지 ===== */
+function dayDiff(a, b){ return Math.round((new Date(b+'T00:00:00') - new Date(a+'T00:00:00')) / 86400000); }
+function togglePeriod(){
+  if ($('fPer').checked && !$('fEnd').value && $('fDate').value){   // 처음 켜면 기본 일주일
+    const d = new Date($('fDate').value+'T00:00:00'); d.setDate(d.getDate()+6); $('fEnd').value = ymd(d);
+  }
+  renderChips();
+}
+function checkPeriod(){
+  if (!$('fPer').checked) return true;
+  const s = $('fDate').value, e = $('fEnd').value;
+  if (!s || !e){ msg('perMsg','시작일과 종료일을 모두 골라 주세요.'); return false; }
+  const k = dayDiff(s, e);
+  if (k < 0){ msg('perMsg','종료일이 시작일보다 빨라요.'); return false; }
+  if (k > 90){ msg('perMsg','기간은 최대 90일까지예요.'); return false; }
+  msg('perMsg', k === 0 ? '시작일과 종료일이 같아서 하루짜리로 올라가요.' : `${prettyDate(s)} ~ ${prettyDate(e)} · ${k+1}일 동안 보여요.`, true);
+  return true;
+}
+function endOf(n){ return n.end && n.end > n.date ? n.end : n.date; }
 function setType(t){
   fType = t;
   if (!editId) $('fPop').checked = (t==='긴급' || t==='호출');
@@ -736,6 +767,7 @@ function resetForm(){
   editId = null; fType = role==='admin' ? '일반' : '교과';
   $('formTitle').textContent = '✏️ 새 공지'; $('saveBtn').textContent = '공지 올리기';
   $('fDate').value = today(); $('fTitle').value=''; $('fBody').value=''; $('fMemo').value='';
+  $('fPer').checked = false; $('fEnd').value = ''; msg('perMsg','',true);
   $('fImp').checked=false; $('fPop').checked=false; msg('formMsg','',true);
   atts = []; renderAtts();
   renderChips(); renderRoster();
@@ -745,6 +777,7 @@ function editNotice(id){
   editId = n.id; fType = n.type;
   $('formTitle').textContent = '✏️ 공지 수정'; $('saveBtn').textContent = '수정 저장';
   $('fDate').value=n.date; $('fTitle').value=n.title; $('fBody').value=n.body; $('fMemo').value=n.memo||'';
+  $('fPer').checked = !!(n.end && n.end > n.date); $('fEnd').value = n.end || ''; msg('perMsg','',true);
   $('fImp').checked=n.important; $('fPop').checked=n.popup; checkSplit();
   atts = (n.attachments||[]).map(a => ({ kind:a.kind, name:a.name||'', url:a.url, manual:true, status:'done', local:'' })); renderAtts();
   renderChips(); renderRoster((n.targets||[]).map(t=>t.sid));
@@ -947,11 +980,11 @@ function appendLines(title, body, base){
   return '· ' + t + (body ? '\n' + String(body).trim() : '');
 }
 function buildMod(target, ops){
-  let type = target.type, title = target.title, body = target.body || '', imp = !!target.important;
+  let type = target.type, title = target.title, body = target.body || '', imp = !!target.important, end = target.end || '';
   let files = (target.attachments || []).map(a => ({ kind:a.kind, name:a.name, url:a.url }));
   ops.forEach(op => {
     const add = (op.attachments || []).map(a => ({ kind:a.kind, name:a.name, url:a.url }));
-    if (op.act === 'edit'){ type = op.type; title = op.title; body = op.body || ''; if (add.length) files = add; }   // 새 첨부가 없으면 기존 첨부는 그대로
+    if (op.act === 'edit'){ type = op.type; title = op.title; body = op.body || ''; if (add.length) files = add; if (op.end !== undefined) end = op.end; }   // 새 첨부가 없으면 기존 첨부는 그대로
     else { body = (body ? body.replace(/\s+$/,'') + '\n' : '') + appendLines(op.title, op.body, { title }); files = files.concat(add); }
     imp = imp || !!op.important;
   });
@@ -959,7 +992,7 @@ function buildMod(target, ops){
   if (files.length > 5) throw new Error('첨부가 5개를 넘어서 더 추가할 수 없어요.');
   if (files.filter(a => a.kind === 'photo').length > 3) throw new Error('사진은 공지당 3장까지예요.');
   return { id:target.id, type, date:target.date, title, body, memo:target.memo||'', important:imp,
-    popup:!!target.popup, targets:(target.targets||[]).map(x=>x.sid), attachments:files };
+    popup:!!target.popup, targets:(target.targets||[]).map(x=>x.sid), attachments:files, end };
 }
 let dupCtx = null;
 function showDup(n, d){
@@ -985,7 +1018,7 @@ async function dupChoose(act){
   if (act === 'skip'){ $('dupOv').classList.add('hide'); msg('formMsg','올리지 않았어요. (작성한 내용은 그대로 남겨뒀어요)', true); return; }
   if (act === 'new'){ $('dupOv').classList.add('hide'); return saveNotice(btn, true); }
   let payload;
-  try{ payload = buildMod(d.target, [{ act, type:n.type, title:n.title, body:n.body, important:n.important, attachments:n.attachments }]); }
+  try{ payload = buildMod(d.target, [{ act, type:n.type, title:n.title, body:n.body, important:n.important, attachments:n.attachments, end:n.end }]); }
   catch(e){ $('dupErr').textContent = e.message; $('dupNewBtn').classList.remove('hide'); return; }
   $('dupOv').classList.add('hide'); btn.disabled = true; msg('formMsg','저장 중…',true);
   try{
@@ -1000,7 +1033,9 @@ async function saveNotice(btn, skipDup){
   const n = { id:editId||'', type:fType, date:$('fDate').value, title:$('fTitle').value.trim(), body:$('fBody').value.trim(),
     memo: fType==='호출' ? $('fMemo').value.trim() : '', important:$('fImp').checked,
     popup: role==='admin' && (fType==='긴급'||fType==='호출') && $('fPop').checked,
-    targets: fType==='호출' ? [...document.querySelectorAll('#roster input:checked')].map(i=>i.value) : [] };
+    targets: fType==='호출' ? [...document.querySelectorAll('#roster input:checked')].map(i=>i.value) : [],
+    end: (fType!=='호출' && $('fPer').checked) ? $('fEnd').value : '' };
+  if (fType!=='호출' && $('fPer').checked && !checkPeriod()){ msg('formMsg', $('perMsg').textContent); return; }
   const ac = collectAtts(); if (ac.error){ msg('formMsg', ac.error); return; }
   n.attachments = ac.list;
   if (!n.date || !n.title){ msg('formMsg','날짜와 제목을 입력해 주세요.'); return; }
@@ -1079,13 +1114,13 @@ function renderList(){
   $('listTabs').innerHTML = [['up','오늘·예정'],['past','지난 공지']]
     .map(([k,l])=>`<button class="${listMode===k?'on':''}" onclick="listMode='${k}';renderList()">${l}</button>`).join('');
   const t = today();
-  let arr = data.notices.filter(n => listMode==='up' ? n.date>=t : n.date<t);
+  let arr = data.notices.filter(n => listMode==='up' ? endOf(n)>=t : endOf(n)<t);
   arr.sort((a,b)=> listMode==='up' ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date));
   if (listMode==='past') arr = arr.slice(0,50);
   $('nList').innerHTML = arr.length ? arr.map(n=>`
     <div class="item"><div class="in">
       <div class="t"><span class="bd ${TYPES[n.type]}">${LABEL[n.type]}</span>${n.author==='회장'?'<span class="bd p">회장</span>':''}${n.important?'⭐ ':''}${n.popup?'🚨 ':''}${(n.attachments||[]).length?'📎 ':''}${esc(n.title)}</div>
-      <div class="s">${prettyDate(n.date)}${n.type==='호출'&&n.targets.length?' · '+esc(n.targets.map(x=>x.name).join(', ')):''}${n.memo?' · '+esc(n.memo):''}${n.type==='호출'?' · '+callStat(n):''}</div>
+      <div class="s">${n.end && n.end>n.date ? '📅 '+prettyDate(n.date)+' ~ '+prettyDate(n.end) : prettyDate(n.date)}${n.type==='호출'&&n.targets.length?' · '+esc(n.targets.map(x=>x.name).join(', ')):''}${n.memo?' · '+esc(n.memo):''}${n.type==='호출'?' · '+callStat(n):''}</div>
     </div>${canEdit(n)?`<div class="acts"><button onclick="editNotice('${esc(n.id)}')">수정</button><button onclick="delNotice('${esc(n.id)}')">삭제</button></div>`:''}</div>`).join('')
     : '<p class="hint">공지가 없어요.</p>';
 }

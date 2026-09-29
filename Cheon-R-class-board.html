@@ -88,6 +88,14 @@ body.board .adm{display:inline-flex;align-items:center}
 .tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
 .tabs button{min-height:40px;padding:0 16px;border-radius:20px;font-size:15px;font-weight:600;color:var(--tx2);background:var(--bg)}
 .tabs button.on{background:var(--main);color:#fff}
+.tabs .sbtn{margin-left:auto;min-width:44px;padding:0 12px}
+.sbox{display:flex;gap:6px;margin-bottom:12px}
+.sbox input{flex:1;min-height:44px;border:1.5px solid var(--line);border-radius:12px;padding:0 14px;font-size:16px;font-family:inherit;background:#fff;color:var(--tx)}
+.sbox input:focus{outline:none;border-color:var(--main)}
+.sbox button{min-height:44px;padding:0 14px;border-radius:12px;background:var(--bg);color:var(--tx2);font-weight:700;font-size:14px}
+.sinfo{font-size:13px;color:var(--tx3);margin:0 0 8px}
+.dd.p{color:var(--main-d)}
+mark{background:#FEF3C7;color:inherit;border-radius:3px;padding:0 1px}
 .sec{font-size:13px;font-weight:700;color:var(--tx2);margin:14px 0 8px}
 .sec:first-child{margin-top:0}
 .card{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px;background:#fff}
@@ -212,6 +220,7 @@ body.board .adm{display:inline-flex;align-items:center}
 
     <section class="panel">
       <div class="tabs" id="tabs"></div>
+      <div class="sbox" id="sbox" style="display:none"><input id="sInput" type="search" placeholder="공지 검색 (예: 수행평가)" maxlength="40" enterkeyhint="search" oninput="onSearchInput(this.value)" onkeydown="if(event.key==='Enter'){clearTimeout(sTimer);runSearch(this.value)}"><button onclick="closeSearch()">닫기</button></div>
       <div id="list"><div class="empty">불러오는 중…</div></div>
       <div class="upd" id="upd"></div>
     </section>
@@ -326,7 +335,7 @@ async function load(manual){
   btn.classList.add('spin');
   try{
     const res = await jsonp({ action:'load', sid: me ? me.sid : '' });
-    notices = (res.notices || []).map(n => ({ ...n, date: normDate(n.date) }));
+    notices = (res.notices || []).map(n => ({ ...n, date: normDate(n.date), end: n.end ? normDate(n.end) : '' }));
     confirmed = new Set((res.confirmed || []).map(String));
     callDone = res.callDone || {};
     links = res.links || [];
@@ -343,6 +352,12 @@ async function load(manual){
 }
 
 /* ===== 렌더 ===== */
+/* ===== 기간 공지 ===== */
+function endOf(n){ return n.end && n.end > n.date ? n.end : n.date; }   // 끝나는 날
+function isPeriod(n){ return !!(n.end && n.end > n.date); }
+function covers(n, d){ return n.date <= d && d <= endOf(n); }            // 그날 보여야 하는 공지인지
+function shortDate(s){ const d = new Date(s+'T00:00:00'); return (d.getMonth()+1)+'/'+d.getDate(); }
+function periodText(n){ return prettyDate(n.date) + ' ~ ' + prettyDate(endOf(n)); }
 function sortN(a, b){ return a.date.localeCompare(b.date) || ORDER[a.type]-ORDER[b.type] || String(a.created).localeCompare(String(b.created)); }
 function isMine(n){ return !!(me && n.targets && n.targets.some(t => String(t.sid) === String(me.sid))); }
 
@@ -405,7 +420,7 @@ function renderMe(){
 }
 function renderUrgent(){
   const t = today();
-  const u = notices.filter(n => n.type === '긴급' && n.date === t).sort(sortN);
+  const u = notices.filter(n => n.type === '긴급' && covers(n, t)).sort(sortN);
   let html = u.map(n =>
     `<div class="ub"><span>🚨</span><div>${esc(n.title)}${n.body?`<small>${esc(n.body)}</small>`:''}</div></div>`).join('');
   if (BOARD){   // 교실 화면: 오늘 호출은 한 줄에 나란히 (안 다녀온 호출이 앞, 다녀온 호출은 작은 회색)
@@ -422,7 +437,10 @@ function renderCal(){
   document.getElementById('ym').textContent = y + '년 ' + (m+1) + '월';
   const start = new Date(y, m, 1); start.setDate(1 - start.getDay());
   const byDate = {};
-  notices.forEach(n => { (byDate[n.date] = byDate[n.date] || new Set()).add(n.type); });
+  notices.forEach(n => {
+    const last = endOf(n);
+    for (let d = n.date, k = 0; d <= last && k < 100; d = addDays(d, 1), k++) (byDate[d] = byDate[d] || new Set()).add(n.type);
+  });
   const t = today();
   let html = '';
   for (let i = 0; i < 42; i++){
@@ -440,14 +458,74 @@ function renderTabs(){
   let h = `<button class="${tab==='today'?'on':''}" onclick="setTab('today')">오늘</button>
            <button class="${tab==='week'?'on':''}" onclick="setTab('week')">이번주</button>`;
   if (tab === 'date' && selDate) h += `<button class="on">${prettyDate(selDate)}</button>`;
+  h += `<button class="sbtn ${tab==='search'?'on':''}" onclick="openSearch()" aria-label="공지 검색">🔍</button>`;
   document.getElementById('tabs').innerHTML = h;
+  const sb = document.getElementById('sbox');
+  sb.style.display = tab === 'search' ? '' : 'none';
 }
-function card(n){
+
+/* ===== 🔍 검색 (서버에서 전체 기간, 호출 제외) ===== */
+let searchQ = '', searchRes = [], searchMore = false, searchState = '', sTimer = null, sSeq = 0;
+function openSearch(){
+  tab = 'search'; selDate = null; render();
+  const inp = document.getElementById('sInput'); inp.focus();
+}
+function closeSearch(){ document.getElementById('sInput').value = ''; searchQ = ''; searchRes = []; searchState = ''; setTab('today'); }
+function onSearchInput(v){
+  clearTimeout(sTimer);
+  sTimer = setTimeout(() => runSearch(v), 450);   // 입력을 잠깐 멈추면 검색
+}
+async function runSearch(v){
+  const q = String(v || '').trim().slice(0, 40);
+  searchQ = q;
+  if (!q){ searchRes = []; searchState = ''; renderList(); return; }
+  const my = ++sSeq;
+  searchState = 'loading'; renderList();
+  try{
+    const r = await jsonp({ action:'search', q });
+    if (my !== sSeq) return;                         // 더 최근 검색이 있으면 무시
+    searchRes = (r.results || []).map(n => ({ ...n, date: normDate(n.date), end: n.end ? normDate(n.end) : '' }));
+    searchMore = !!r.more; searchState = 'done';
+  }catch(e){ if (my !== sSeq) return; searchState = 'error:' + e.message; }
+  renderList();
+}
+function hl(text){   // 검색어 표시 (띄어쓰기가 달라도 표시: "수행평가" → "수행 평가")
+  const words = searchQ.split(/\s+/).filter(Boolean);
+  const src = String(text || '');
+  if (!words.length) return esc(src);
+  const pat = words.map(w => [...w].map(ch => ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s*')).join('|');
+  let out = '', last = 0;
+  src.replace(new RegExp(pat, 'gi'), (m, ...rest) => {
+    const i = rest[rest.length - 2];
+    out += esc(src.slice(last, i)) + '<mark>' + esc(m) + '</mark>'; last = i + m.length; return m;
+  });
+  return out + esc(src.slice(last));
+}
+function renderSearch(){
+  if (!searchQ) return '<div class="empty">찾고 싶은 단어를 입력해 주세요.<br><small>예: 수행평가, 체육복, 가정통신문</small></div>';
+  if (searchState === 'loading') return '<div class="empty">찾는 중…</div>';
+  if (searchState.startsWith('error:')) return `<div class="empty">검색하지 못했어요. ${esc(searchState.slice(6))}<br><button class="alink" style="margin-top:8px" onclick="runSearch(searchQ)">다시 시도</button></div>`;
+  if (!searchRes.length) return `<div class="empty">"${esc(searchQ)}" 공지를 찾지 못했어요.</div>`;
+  let html = `<p class="sinfo">"${esc(searchQ)}" 검색 결과 ${searchRes.length}개${searchMore ? ' (최근 50개만 보여요. 단어를 더 넣어 좁혀 보세요)' : ''}</p>`;
+  let lastMonth = '';
+  searchRes.forEach(n => {
+    const m = n.date.slice(0, 7);
+    if (m !== lastMonth){ lastMonth = m; html += `<div class="sec">${Number(m.slice(0,4))}년 ${Number(m.slice(5))}월</div>`; }
+    html += card(n, true);
+  });
+  return html;
+}
+function card(n, inSearch){
   const T = TYPES[n.type] || TYPES['일반'];
   const mine = isMine(n);
   const isNew = prevSeen && n.created && n.created > prevSeen;
   let dd = '';
-  if (n.type === '확인'){
+  if (isPeriod(n)){
+    const t0 = today(), ks = diffDays(n.date), ke = diffDays(endOf(n));
+    dd = ks > 0 ? `<span class="dd p">D-${ks} · ${shortDate(n.date)}~${shortDate(endOf(n))}</span>`
+       : ke > 0 ? `<span class="dd p">~${shortDate(endOf(n))}까지</span>`
+       : ke === 0 ? `<span class="dd p">오늘까지</span>` : `<span class="dd late">종료</span>`;
+  } else if (n.type === '확인'){
     const k = diffDays(n.date);
     dd = k > 0 ? `<span class="dd">D-${k}</span>` : k === 0 ? `<span class="dd">오늘 마감</span>` : `<span class="dd late">마감</span>`;
   } else if (n.type === '교과'){
@@ -461,8 +539,9 @@ function card(n){
   const isShort = body.length <= 80 && body.split('\n').length <= 3;   // 짧은 내용은 카드에 전부
   return `<button class="card${mine?' mine':''}" onclick="openDetail('${esc(n.id)}')">
     <div class="row1"><span class="bd ${T.c}">${LABEL[n.type]||n.type}</span>${n.author==='회장'?'<span class="bd p">회장</span>':''}${isNew?'<span class="bd new">NEW</span>':''}${(n.attachments||[]).length?`<span class="bd att">📎 ${n.attachments.length}</span>`:''}${ck}${dd}</div>
-    <div class="ttl">${esc(n.title)}</div>
-    ${body ? (isShort ? `<div class="full">${esc(body)}</div>` : `<div class="prev">${esc(body)}</div><div class="more">눌러서 전체 보기 ›</div>`) : ''}
+    <div class="ttl">${inSearch ? hl(n.title) : esc(n.title)}</div>
+    ${inSearch ? `<div class="sinfo" style="margin:4px 0 0">${isPeriod(n) ? '📅 ' + periodText(n) : prettyDate(n.date)}</div>` : ''}
+    ${body ? (isShort ? `<div class="full">${inSearch ? hl(body) : esc(body)}</div>` : `<div class="prev">${inSearch ? hl(body) : esc(body)}</div><div class="more">눌러서 전체 보기 ›</div>`) : ''}
     ${tg}${mine && !isDone(n, me.sid)?'<span class="callme">나를 불렀어요</span>':''}${n.type==='호출' && allDone(n)?'<span class="gone">✅ 다녀왔어요</span>':''}
   </button>`;
 }
@@ -529,8 +608,9 @@ function targetLine(n){
 }
 
 /* ===== 공지 상세 팝업 ===== */
+function findN(id){ return notices.find(x => String(x.id) === String(id)) || searchRes.find(x => String(x.id) === String(id)); }
 function openDetail(id){
-  const n = notices.find(x => String(x.id) === String(id));
+  const n = findN(id);
   if (!n) return;
   const T = TYPES[n.type] || TYPES['일반'];
   let ck = '';
@@ -543,7 +623,7 @@ function openDetail(id){
     <button class="x" onclick="closeOv('detOv')" aria-label="닫기">✕</button>
     <div class="row1"><span class="bd ${T.c}">${LABEL[n.type]||n.type}</span>${n.author==='회장'?'<span class="bd p">회장</span>':''}</div>
     <div class="ttl" style="font-size:20px">${esc(n.title)}</div>
-    <div class="dt">${prettyDate(n.date)}${n.type==='확인'?' 마감':''}</div>
+    <div class="dt">${isPeriod(n) ? '📅 ' + periodText(n) : prettyDate(n.date) + (n.type==='확인'?' 마감':'')}</div>
     ${targetLine(n)}${isMine(n) && !isDone(n, me.sid)?'<span class="callme">나를 불렀어요</span>':''}
     ${n.type==='호출' ? `<div class="btns"><button class="b1" onclick="openCall('${esc(n.id)}')">${allDone(n)?'✅ 다녀왔어요 (보기)':'✅ 다녀왔어요 체크하기'}</button></div>` : ''}
     ${n.body?`<div class="body">${esc(n.body)}</div>`:''}
@@ -581,21 +661,25 @@ function renderList(){
   const t = today();
   const shown = n => !(BOARD && n.type === '호출');   // 교실 화면에선 호출이 위쪽 줄에 이미 있어요
   let html = '';
+  if (tab === 'search'){ el.innerHTML = renderSearch(); return; }
   if (tab === 'today'){
-    const td = notices.filter(n => n.date === t && shown(n)).sort(sortN);
+    const td = notices.filter(n => covers(n, t) && shown(n)).sort(sortN);
     const pend = notices.filter(n => n.type === '확인' && n.date > t).sort(sortN);
-    html += `<div class="sec">${prettyDate(t)}</div>` + (td.length ? td.map(card).join('') : '<div class="empty">오늘은 공지가 없어요 🙂</div>');
-    if (pend.length) html += `<div class="sec">마감 전 학급공지</div>` + pend.map(card).join('');
+    html += `<div class="sec">${prettyDate(t)}</div>` + (td.length ? td.map(n => card(n)).join('') : '<div class="empty">오늘은 공지가 없어요 🙂</div>');
+    if (pend.length) html += `<div class="sec">마감 전 학급공지</div>` + pend.map(n => card(n)).join('');
   } else if (tab === 'week'){
+    const wEnd = addDays(t, 6);
+    const per = notices.filter(n => isPeriod(n) && n.date <= wEnd && endOf(n) >= t && shown(n)).sort(sortN);
+    if (per.length) html += `<div class="sec">📅 진행 중인 기간 공지</div>` + per.map(n => card(n)).join('');   // 날짜마다 반복하지 않고 한 번만
     for (let i = 0; i < 7; i++){
       const d = addDays(t, i);
-      const arr = notices.filter(n => n.date === d && shown(n)).sort(sortN);
-      if (arr.length) html += `<div class="sec">${prettyDate(d)}</div>` + arr.map(card).join('');
+      const arr = notices.filter(n => !isPeriod(n) && n.date === d && shown(n)).sort(sortN);
+      if (arr.length) html += `<div class="sec">${prettyDate(d)}</div>` + arr.map(n => card(n)).join('');
     }
     if (!html) html = '<div class="empty">이번주 공지가 없어요</div>';
   } else {
-    const arr = notices.filter(n => n.date === selDate && shown(n)).sort(sortN);
-    html = arr.length ? arr.map(card).join('') : '<div class="empty">이 날은 공지가 없어요</div>';
+    const arr = notices.filter(n => covers(n, selDate) && shown(n)).sort(sortN);
+    html = arr.length ? arr.map(n => card(n)).join('') : '<div class="empty">이 날은 공지가 없어요</div>';
   }
   el.innerHTML = html;
 }
@@ -656,7 +740,7 @@ async function lookup(){
 function checkPopups(){
   const t = today();
   const seen = new Set(lsGet(K.seen, []));
-  const fresh = notices.filter(n => n.popup && n.date === t && !seen.has(String(n.id)) && !allDone(n) &&
+  const fresh = notices.filter(n => n.popup && covers(n, t) && !seen.has(String(n.id)) && !allDone(n) &&
     (PREVIEW || BOARD || !n.targets || !n.targets.length || isMine(n)) && !popQueue.some(q => q.id === n.id));
   if (!fresh.length) return;
   popQueue.push(...fresh.sort(sortN));

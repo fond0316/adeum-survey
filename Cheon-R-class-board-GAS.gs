@@ -8,7 +8,7 @@ var TZ = 'Asia/Seoul';
 var SHEETS = {
   settings: { name: '설정', headers: ['항목', '값'] },
   students: { name: '학생명단', headers: ['학번', '이름'] },
-  notices: { name: '공지', headers: ['ID', '유형', '날짜', '제목', '내용', '대상메모', '중요', '팝업', '작성자', '작성시각', '수정시각'] },
+  notices: { name: '공지', headers: ['ID', '유형', '날짜', '제목', '내용', '대상메모', '중요', '팝업', '작성자', '작성시각', '수정시각', '종료일'] },
   targets: { name: '호출대상', headers: ['공지ID', '학번', '이름'] },
   confirms: { name: '확인기록', headers: ['공지ID', '학번', '이름', '확인시각'] },
   requests: { name: '수정요청', headers: ['ID', '공지ID', '학번', '이름', '내용', '작성시각', '처리', '처리시각'] },
@@ -42,6 +42,7 @@ function route_(p) {
   switch (p.action) {
     case 'ping': return { ok: true, className: getSetting_('학급명'), year: year_() };
     case 'load': return load_(p);
+    case 'search': return search_(p);
     case 'who': return who_(p);
     case 'confirm': return confirm_(p);
     case 'request': return request_(p);
@@ -90,6 +91,9 @@ function setup_() {
       sh.setFrozenRows(1);
       if (k === 'settings') sh.getRange(2, 1, DEFAULT_SETTINGS.length, 2).setValues(DEFAULT_SETTINGS);
       if (k === 'photos') { try { sh.hideSheet(); } catch (e) {} }   // 긴 글자로 가득한 탭이라 숨겨 둠
+    } else if (k === 'notices') {
+      var hc = sh.getRange(1, 12);   // 예전에 만든 시트: '종료일' 열 머리글 자동 추가
+      if (String(hc.getValue()) !== '종료일') { hc.setValue('종료일').setFontWeight('bold'); sh.getRange(2, 12, Math.max(1, sh.getMaxRows() - 1), 1).setNumberFormat('@'); }
     }
   });
 }
@@ -186,6 +190,7 @@ function noticeObj_(r, targetMap, attMap) {
   return {
     id: r[0], type: r[1], date: dateStr_(r[2]), title: r[3], body: r[4], memo: r[5],
     important: r[6] === 'Y', popup: r[7] === 'Y', author: r[8], created: r[9], updated: r[10],
+    end: r[11] ? dateStr_(r[11]) : '',
     targets: targetMap[r[0]] || [], attachments: (attMap && attMap[r[0]]) || []
   };
 }
@@ -310,7 +315,7 @@ function photoCleanup_(p) {
     var old = 0, orphan = 0, cutoff = daysAgo_(90);
     var recent = Utilities.formatDate(new Date(Date.now() - 86400000), TZ, 'yyyy-MM-dd HH:mm:ss');
     var nd = {};
-    rows_('notices').forEach(function (r) { if (r[0]) nd[r[0]] = dateStr_(r[2]); });
+    rows_('notices').forEach(function (r) { if (r[0]) nd[r[0]] = lastDay_(r); });
     var fsh = sh_('files'), fd = rows_('files');
     for (var i = fd.length - 1; i >= 0; i--) {
       if (fd[i][2] === 'photo' && nd[fd[i][0]] !== undefined && nd[fd[i][0]] < cutoff) {
@@ -367,12 +372,40 @@ function daysAgo_(n) {
 }
 
 /* ---------- 학생용 ---------- */
+/** 공지가 끝나는 날 (기간 공지는 종료일, 아니면 날짜) */
+function lastDay_(r) { var s = dateStr_(r[2]), e = r[11] ? dateStr_(r[11]) : ''; return e > s ? e : s; }
+var MAX_PERIOD = 90;
+function checkEnd_(n) {
+  var e = String(n.end || '').trim();
+  if (!e) return '';
+  if (n.type === '호출') throw new Error('호출은 기간으로 올릴 수 없어요.');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(e) || !/^\d{4}-\d{2}-\d{2}$/.test(String(n.date))) throw new Error('날짜 형식이 올바르지 않아요.');
+  if (e < n.date) throw new Error('종료일이 시작일보다 빨라요.');
+  if (e === n.date) return '';   // 같은 날이면 하루짜리
+  var days = Math.round((new Date(e + 'T00:00:00') - new Date(n.date + 'T00:00:00')) / 86400000);
+  if (days > MAX_PERIOD) throw new Error('기간은 최대 ' + MAX_PERIOD + '일까지예요.');
+  return e;
+}
+/** 🔍 검색 — 전체 기간, 제목·내용, 띄어쓰기 무시, 여러 단어는 모두 포함 (호출 제외, 최신순 50개) */
+function search_(p) {
+  var q = String(p.q || '').trim().slice(0, 40);
+  var norm = function (s) { return String(s || '').toLowerCase().replace(/\s+/g, ''); };
+  var words = q.split(/\s+/).map(norm).filter(function (w) { return w; });
+  if (!words.length) return { ok: true, q: q, results: [], more: false };
+  var tm = targetMap_(), am = attMap_();
+  var hits = rows_('notices').filter(function (r) {
+    if (!r[0] || r[1] === '호출') return false;
+    var text = norm(r[3] + ' ' + r[4]);
+    return words.every(function (w) { return text.indexOf(w) >= 0; });
+  }).sort(function (a, b) { return dateStr_(b[2]) < dateStr_(a[2]) ? -1 : dateStr_(b[2]) > dateStr_(a[2]) ? 1 : 0; });
+  return { ok: true, q: q, results: hits.slice(0, 50).map(function (r) { return noticeObj_(r, tm, am); }), more: hits.length > 50 };
+}
 function load_(p) {
   var sid = String(p.sid || '');
   var from = daysAgo_(60);
   var tm = targetMap_(), am = attMap_();
   var notices = rows_('notices')
-    .filter(function (r) { return r[0] && dateStr_(r[2]) >= from; })
+    .filter(function (r) { return r[0] && lastDay_(r) >= from; })
     .map(function (r) { return noticeObj_(r, tm, am); });
   var mine = sid ? rows_('confirms')
     .filter(function (r) { return r[1] === sid; })
@@ -492,6 +525,7 @@ function saveNotice_(p) {
   }
   if (!n.title || !n.date || !n.type) throw new Error('유형, 날짜, 제목은 꼭 입력해 주세요.');
   var atts = (n.attachments === undefined) ? null : cleanAtts_(n.attachments);   // 저장 전에 미리 검사
+  var endDate = checkEnd_(n);
 
   return lock_(function () {
     var sh = sh_('notices');
@@ -507,7 +541,8 @@ function saveNotice_(p) {
       n.important ? 'Y' : '', n.popup ? 'Y' : '',
       idx >= 0 ? data[idx][8] : author,
       idx >= 0 ? data[idx][9] : now_(),
-      idx >= 0 ? now_() : ''];
+      idx >= 0 ? now_() : '',
+      (idx >= 0 && n.end === undefined) ? data[idx][11] : endDate];   // 종료일 항목을 안 보내면 기존 값 유지
     writeRow_(sh, idx >= 0 ? idx + 2 : sh.getLastRow() + 1, row);
 
     replaceTargets_(id, n.targets || []);
@@ -526,7 +561,7 @@ function saveNotices_(p) {
     if (allowed.indexOf(n.type) < 0) throw new Error('올릴 수 없는 유형이 있어요.');
     if (!n.title || !n.date) throw new Error('날짜와 제목이 빠진 줄이 있어요.');
     var who = (role === 'admin' && n.author === '회장') ? '회장' : author;   // 담임이 회장 글을 나눌 때 작성자 유지
-    return ['N' + Date.now() + '_' + i, n.type, n.date, n.title, n.body || '', '', n.important ? 'Y' : '', '', who, now_(), ''];
+    return ['N' + Date.now() + '_' + i, n.type, n.date, n.title, n.body || '', '', n.important ? 'Y' : '', '', who, now_(), '', ''];
   });
   if (!rows.length) return { ok: true, count: 0 };
   return lock_(function () {
