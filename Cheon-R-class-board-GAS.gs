@@ -111,6 +111,8 @@ function 헤더복구() {
 
 /* ---------- 공통 유틸 ---------- */
 function sh_(k) { return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS[k].name); }
+/** 수정 버전 — 1/1000초까지 (담임·회장이 같은 초에 고쳐도 구분) */
+function verNow_() { return now_() + '.' + ('00' + (Date.now() % 1000)).slice(-3); }
 function now_() { return Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm:ss'); }
 function isDate_(v) { return Object.prototype.toString.call(v) === '[object Date]' && !isNaN(v.getTime()); }
 function str_(v) {
@@ -465,8 +467,10 @@ function request_(p) {
   if (!st) return { ok: false, error: '명단에 없는 학번이에요. 학번 등록을 다시 해 주세요.' };
   var exists = rows_('notices').some(function (r) { return r[0] === nid; });
   if (!exists) return { ok: false, error: '삭제된 공지예요.' };
+  var rid = /^R[a-z0-9]{10,30}$/.test(String(p.rid || '')) ? String(p.rid) : '';
   return lock_(function () {
-    sh_('requests').appendRow(['R' + Date.now(), nid, sid, st[1], text, now_(), '', '']);
+    if (rid && rows_('requests').some(function (r) { return r[0] === rid; })) return { ok: true, name: st[1], already: true };   // 응답이 늦어 다시 보낸 같은 요청
+    sh_('requests').appendRow([rid || ('R' + Date.now()), nid, sid, st[1], text, now_(), '', '']);
     return { ok: true, name: st[1] };
   });
 }
@@ -535,13 +539,23 @@ function saveNotice_(p) {
       for (var i = 0; i < data.length; i++) if (data[i][0] === String(n.id)) { idx = i; break; }
       if (idx < 0) throw new Error('수정할 공지를 찾지 못했어요.');
       if (role === 'president' && data[idx][8] !== '회장') throw new Error('본인이 쓴 공지만 수정할 수 있어요.');
+      if (n.ifVer !== undefined) {                                   // 내가 보고 고친 버전이 지금도 그대로인지
+        var cur = data[idx][10] || data[idx][9];
+        if (String(n.ifVer) !== String(cur)) {
+          var sameNow = data[idx][1] === n.type && dateStr_(data[idx][2]) === n.date && data[idx][3] === n.title && String(data[idx][4]) === String(n.body || '');
+          if (sameNow) return { ok: true, id: String(n.id), already: true };   // 응답이 늦어 다시 보낸 같은 수정
+          throw new Error('그사이 이 공지가 바뀌었어요. 목록을 새로 불러온 뒤 다시 해 주세요.');
+        }
+      }
+    } else if (okCid_(n.cid)) {
+      for (var j = 0; j < data.length; j++) if (data[j][0] === n.cid) return { ok: true, id: n.cid, already: true };   // 이미 저장된 새 공지
     }
-    var id = n.id ? String(n.id) : 'N' + Date.now();
+    var id = n.id ? String(n.id) : (okCid_(n.cid) ? n.cid : 'N' + Date.now());
     var row = [id, n.type, n.date, n.title, n.body || '', n.memo || '',
       n.important ? 'Y' : '', n.popup ? 'Y' : '',
       idx >= 0 ? data[idx][8] : author,
       idx >= 0 ? data[idx][9] : now_(),
-      idx >= 0 ? now_() : '',
+      idx >= 0 ? verNow_() : '',
       (idx >= 0 && n.end === undefined) ? data[idx][11] : endDate];   // 종료일 항목을 안 보내면 기존 값 유지
     writeRow_(sh, idx >= 0 ? idx + 2 : sh.getLastRow() + 1, row);
 
@@ -557,20 +571,38 @@ function saveNotices_(p) {
   var list = JSON.parse(p.data || '[]');
   var author = role === 'admin' ? '담임' : '회장';
   var allowed = role === 'admin' ? ['긴급', '확인', '호출', '교과', '일반'] : PRESIDENT_TYPES;
-  var rows = list.map(function (n, i) {
+  list.forEach(function (n) {
     if (allowed.indexOf(n.type) < 0) throw new Error('올릴 수 없는 유형이 있어요.');
     if (!n.title || !n.date) throw new Error('날짜와 제목이 빠진 줄이 있어요.');
-    var who = (role === 'admin' && n.author === '회장') ? '회장' : author;   // 담임이 회장 글을 나눌 때 작성자 유지
-    return ['N' + Date.now() + '_' + i, n.type, n.date, n.title, n.body || '', '', n.important ? 'Y' : '', '', who, now_(), '', ''];
   });
-  if (!rows.length) return { ok: true, count: 0 };
+  if (!list.length) return { ok: true, count: 0, skipped: 0 };
   return lock_(function () {
-    var sh = sh_('notices');
-    ensureRows_(sh, sh.getLastRow() + rows.length);
-    sh.getRange(sh.getLastRow() + 1, 1, rows.length, rows[0].length).setNumberFormat('@').setValues(rows);
-    return { ok: true, count: rows.length };
+    var sh = sh_('notices'), data = rows_('notices'), have = {}, recent = {}, skipped = 0;
+    var since = Utilities.formatDate(new Date(Date.now() - 10 * 60000), TZ, 'yyyy-MM-dd HH:mm:ss');
+    data.forEach(function (r) {
+      if (!r[0]) return;
+      have[r[0]] = true;
+      if (r[9] >= since) recent[[r[1], dateStr_(r[2]), r[3], r[8]].join('|')] = true;
+    });
+    var rows = [];
+    list.forEach(function (n, i) {
+      var who = (role === 'admin' && n.author === '회장') ? '회장' : author;   // 담임이 회장 글을 나눌 때 작성자 유지
+      var cid = okCid_(n.cid) ? n.cid : '';
+      if (cid && have[cid]) { skipped++; return; }                              // 이미 저장된 요청 (응답이 늦어 다시 누른 경우)
+      var key = [n.type, n.date, n.title, who].join('|');
+      if (!cid && recent[key]) { skipped++; return; }                           // 옛 화면: 10분 안에 똑같은 공지
+      have[cid] = true; recent[key] = true;
+      rows.push([cid || ('N' + Date.now() + '_' + i), n.type, n.date, n.title, n.body || '', '', n.important ? 'Y' : '', '', who, now_(), '', '']);
+    });
+    if (rows.length) {
+      ensureRows_(sh, sh.getLastRow() + rows.length);
+      sh.getRange(sh.getLastRow() + 1, 1, rows.length, rows[0].length).setNumberFormat('@').setValues(rows);
+    }
+    return { ok: true, count: rows.length, skipped: skipped };
   });
 }
+/** 앱이 만든 공지 번호 — 같은 요청을 두 번 받아도 한 번만 저장하기 위해 */
+function okCid_(s) { return typeof s === 'string' && /^N[a-z0-9]{10,30}$/.test(s); }
 
 function replaceTargets_(nid, targets) {
   var sh = sh_('targets');

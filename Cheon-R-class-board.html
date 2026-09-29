@@ -319,7 +319,7 @@ function jsonp(params){
     if (!GAS) return reject(new Error('연결 주소가 없어요. 선생님이 알려준 링크로 다시 열어 주세요.'));
     const cb = '__sn' + Date.now() + (jpSeq++);
     const s = document.createElement('script');
-    const t = setTimeout(() => { cleanup(); reject(new Error('서버 응답이 없어요. 잠시 후 다시 시도해 주세요.')); }, 15000);
+    const t = setTimeout(() => { cleanup(); reject(new Error('서버 응답이 없어요. 화면 위 ↻를 누른 뒤 다시 시도해 주세요.')); }, 15000);
     function cleanup(){ clearTimeout(t); delete window[cb]; s.remove(); }
     window[cb] = (res) => { cleanup(); res && res.ok ? resolve(res) : reject(new Error((res && res.error) || '요청에 실패했어요.')); };
     const q = new URLSearchParams({ ...params, callback: cb, _: Date.now() });
@@ -330,12 +330,28 @@ function jsonp(params){
 }
 
 /* ===== 불러오기 ===== */
+/* ===== 기다리는 안내 — 오래 걸리면 몇 초째인지 알려줘요 (다른 문구로 바뀌면 저절로 멈춤) ===== */
+function waitOn(el, base){
+  if (!el) return;
+  const t0 = Date.now(); let last = base; el.textContent = base;
+  const iv = setInterval(() => {
+    if (!el.isConnected || el.textContent !== last) return clearInterval(iv);
+    const s = Math.floor((Date.now() - t0) / 1000);
+    last = s >= 20 ? `${base} 너무 오래 걸려요 (${s}초). 화면 위 ↻를 누른 뒤 다시 확인해 주세요.`
+         : s >= 10 ? `${base} 아직 기다리는 중이에요 (${s}초). 곧 결과를 알려드릴게요.`
+         : s >= 5  ? `${base} 구글 서버가 조금 느려요 (${s}초)` : base;
+    el.textContent = last;
+  }, 1000);
+}
+
+let loaded = false;   // 처음 불러오기가 끝났는지
 async function load(manual){
   const btn = document.getElementById('refBtn');
   btn.classList.add('spin');
   try{
     const res = await jsonp({ action:'load', sid: me ? me.sid : '' });
     notices = (res.notices || []).map(n => ({ ...n, date: normDate(n.date), end: n.end ? normDate(n.end) : '' }));
+    loaded = true;
     confirmed = new Set((res.confirmed || []).map(String));
     callDone = res.callDone || {};
     links = res.links || [];
@@ -345,7 +361,7 @@ async function load(manual){
     document.getElementById('upd').textContent = '마지막 업데이트 ' + new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
     lsSet(K.last, res.serverTime || '');
   }catch(e){
-    document.getElementById('list').innerHTML = '<div class="empty">'+esc(e.message)+'</div>';
+    document.getElementById('list').innerHTML = '<div class="empty">'+esc(e.message)+'<br><button class="alink" style="margin-top:8px" onclick="load(true)">다시 시도</button></div>';
   }finally{
     btn.classList.remove('spin');
   }
@@ -591,7 +607,7 @@ async function markCall(sid){
   if (!sid){ err.textContent = '학번을 입력해 주세요.'; return; }
   const undo = isDone(n, sid);
   if (undo && !confirm(`${sid} 다녀왔어요 체크를 취소할까요?`)) return;
-  err.textContent = '저장 중…';
+  waitOn(err, '저장 중…');
   try{
     const r = await jsonp({ action:'callDone', nid:n.id, sid, undo: undo ? '1' : '' });
     const list = (callDone[n.id] = doneList(n).filter(d => String(d.sid) !== String(sid)));
@@ -635,7 +651,9 @@ function openDetail(id){
 }
 
 /* ===== 수정 요청·질문 ===== */
+let reqRid = '';
 function openReq(id){
+  reqRid = 'R' + Array.from({ length:16 }, () => Math.floor(Math.random() * 36).toString(36)).join('');   // 다시 보내도 한 번만 저장되게
   if (!me){ closeOv('detOv'); openWho(); return; }
   document.getElementById('reqArea').innerHTML = `<div class="req">
     <div class="who">보내는 사람: ${esc(me.sid)} ${esc(me.name)}</div>
@@ -650,9 +668,9 @@ async function sendReq(id){
   const text = document.getElementById('reqText').value.trim();
   const err = document.getElementById('reqErr'), btn = document.getElementById('reqSend');
   if (!text){ err.textContent = '내용을 입력해 주세요.'; return; }
-  btn.disabled = true; err.textContent = '';
+  btn.disabled = true; waitOn(err, '보내는 중…');
   try{
-    await jsonp({ action:'request', nid:id, sid:me.sid, text });
+    await jsonp({ action:'request', nid:id, sid:me.sid, text, rid:reqRid });
     document.getElementById('reqArea').innerHTML = '<div class="req"><div class="who" style="text-align:center">✓ 보냈어요! 선생님이 확인할 거예요.</div></div>';
   }catch(e){ err.textContent = e.message; btn.disabled = false; }
 }
@@ -662,6 +680,11 @@ function renderList(){
   const shown = n => !(BOARD && n.type === '호출');   // 교실 화면에선 호출이 위쪽 줄에 이미 있어요
   let html = '';
   if (tab === 'search'){ el.innerHTML = renderSearch(); return; }
+  if (!loaded && GAS){   // 아직 못 불러왔는데 "공지가 없어요"라고 하면 안 되니까
+    const cur = el.querySelector('.empty.loading');
+    if (!cur){ el.innerHTML = '<div class="empty loading">불러오는 중…</div>'; waitOn(el.firstChild, '불러오는 중…'); }
+    return;
+  }
   if (tab === 'today'){
     const td = notices.filter(n => covers(n, t) && shown(n)).sort(sortN);
     const pend = notices.filter(n => n.type === '확인' && n.date > t).sort(sortN);
@@ -697,7 +720,7 @@ function moveMonth(k){ view.setMonth(view.getMonth()+k); renderCal(); }
 
 async function doConfirm(id, btn){
   if (!me){ openWho(); return; }
-  btn.disabled = true; btn.textContent = '저장 중…';
+  btn.disabled = true; waitOn(btn, '저장 중…');
   try{
     await jsonp({ action:'confirm', nid:id, sid:me.sid });
     confirmed.add(String(id));
@@ -721,7 +744,7 @@ async function lookup(){
   const sid = document.getElementById('sidIn').value.trim();
   const err = document.getElementById('whoErr');
   if (!sid){ err.textContent = '학번을 입력해 주세요.'; return; }
-  err.textContent = '확인 중…';
+  waitOn(err, '확인 중…');
   try{
     const r = await jsonp({ action:'who', sid });
     err.textContent = '';
@@ -818,7 +841,7 @@ function openBoard(mode){
 async function toggleBoard(){
   const pw = document.getElementById('bdPw').value.trim(), err = document.getElementById('bdErr');
   if (!pw){ err.textContent = '비밀번호를 입력해 주세요.'; return; }
-  err.textContent = '확인 중…';
+  waitOn(err, '확인 중…');
   try{
     const r = await jsonp({ action:'login', pw });
     if (!r.role){ err.textContent = '비밀번호가 맞지 않아요.'; return; }
