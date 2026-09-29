@@ -213,6 +213,15 @@ details summary::-webkit-details-marker{display:none}
     </div>
   </div>
 
+  <!-- 관리 화면 여는 중 -->
+  <div id="scrLoading" class="center hide">
+    <div class="box" style="text-align:center">
+      <div style="font-size:44px">🔄</div>
+      <h2 style="margin-top:6px">관리 화면 여는 중…</h2>
+      <p class="hint">잠시만 기다려 주세요. (몇 초 걸릴 수 있어요)</p>
+    </div>
+  </div>
+
   <!-- 승인 대기 / 차단 -->
   <div id="scrGate" class="center hide">
     <div class="box" style="text-align:center">
@@ -443,7 +452,7 @@ function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0
 function today(){ return ymd(new Date()); }
 function prettyDate(s){ const d=new Date(s+'T00:00:00'); return (d.getMonth()+1)+'/'+d.getDate()+'('+'일월화수목금토'[d.getDay()]+')'; }
 function $(id){ return document.getElementById(id); }
-const SCREENS = ['scrConnect','scrLogin','scrMain','scrGuide','scrReg','scrGate','scrPw'];
+const SCREENS = ['scrConnect','scrLogin','scrMain','scrGuide','scrReg','scrGate','scrPw','scrLoading'];
 let curScreen = '', backScreen = '';
 function show(id){ curScreen = id; SCREENS.forEach(x => $(x).classList.toggle('hide', x!==id)); window.scrollTo(0,0); }
 const P = 'Cheon-R-class-board';
@@ -507,14 +516,17 @@ function logout(){ if (FROM_BOARD) return backToBoard(); PW=''; sessionStorage.r
 
 /* ===== 등록부 확인 ===== */
 let installId = '', isOwner = false, loginInfo = {};
+let pre = null;   // { p: 미리 불러오는 중인 공지 데이터, t: 시작 시각 }
+function startPrefetch(){ const p = jsonp({ action:'adminLoad', pw:PW }); p.catch(()=>{}); pre = { p, t:Date.now() }; }
 async function afterLogin(r){
   loginInfo = r; installId = r.installId || '';
   if (r.mustChange){ $('npw1').value=''; $('npw2').value=''; msg('npwMsg','',true); return show('scrPw'); }
-  if (!REGISTRY_URL || !installId){ isOwner = !REGISTRY_URL; return enterMain(); }
+  if (!REGISTRY_URL || !installId){ isOwner = !REGISTRY_URL; startPrefetch(); return enterMain(); }
+  startPrefetch();   // 공지 불러오기를 등록부 확인과 동시에 시작
   let st;
   try{ const res = await jsonp({ action:'check', id:installId }, REGISTRY_URL); st = res.status; saveRegInfo(res); }
   catch(e){ isOwner = lsGet(K.owner,'') === installId; return enterMain(); }  // 등록부 응답 없으면 일단 사용
-  handleStatus(st);
+  return handleStatus(st);   // 실패하면 위쪽(로그인·자동 로그인)에서 잡아서 안내
 }
 function handleStatus(st){
   isOwner = (st === 'owner');
@@ -548,7 +560,7 @@ function saveRegInfo(res){ if (res && res.name) lsSet(K.reg, { name:res.name, sc
 function gate(ic, title, text){ $('gateIc').textContent = ic; $('gateTitle').textContent = title; $('gateText').textContent = text; msg('gateMsg','',true); show('scrGate'); }
 async function recheck(btn){
   btn.disabled = true; msg('gateMsg','확인 중…',true);
-  try{ const res = await jsonp({ action:'check', id:installId }, REGISTRY_URL); saveRegInfo(res); handleStatus(res.status); }
+  try{ const res = await jsonp({ action:'check', id:installId }, REGISTRY_URL); saveRegInfo(res); await handleStatus(res.status); }
   catch(e){ msg('gateMsg', e.message); }
   btn.disabled = false;
 }
@@ -558,7 +570,7 @@ async function doRegister(btn){
   btn.disabled = true; msg('regMsg','등록 중…',true);
   try{
     const r = await jsonp({ action:'register', id:installId, ...info }, REGISTRY_URL);
-    lsSet(K.reg, info); handleStatus(r.status);
+    lsSet(K.reg, info); await handleStatus(r.status);
   }catch(e){ msg('regMsg', e.message); }
   btn.disabled = false;
 }
@@ -578,7 +590,8 @@ function openMailApp(){
 }
 
 async function enterMain(){
-  await refresh();
+  const usePre = pre; pre = null;
+  await refresh(usePre);
   show('scrMain');
   $('roleTag').textContent = role==='admin' ? '담임' : '회장';
   $('backBoard').classList.toggle('hide', !FROM_BOARD); $('viewBtn').classList.toggle('hide', FROM_BOARD);
@@ -591,8 +604,10 @@ async function enterMain(){
   resetForm();
   goTab(role==='admin' && !data.students.length ? 'set' : 'write');   // 처음(명단 없음)엔 설정 탭부터
 }
-async function refresh(){
-  const r = await jsonp({ action:'adminLoad', pw:PW });
+async function refresh(usePre){
+  let r = null;
+  if (usePre && usePre.p && Date.now() - usePre.t < 30000){ try{ r = await usePre.p; }catch(e){} }
+  if (!r) r = await jsonp({ action:'adminLoad', pw:PW });
   role = r.role; data = { notices:(r.notices||[]).map(n => ({ ...n, date: normDate(n.date) })), students:r.students||[], confirms:r.confirms||[], requests:r.requests||[], callDone:r.callDone||{} };
   updateReqBadge();
   schoolYear = parseInt(r.year, 10) || new Date().getFullYear();
@@ -1148,7 +1163,19 @@ async function copyGas(){
 (async function start(){
   if (!GAS){ show('scrConnect'); return; }
   if (PW){
-    try{ const r = await jsonp({ action:'login', pw:PW }); if (r.role){ role=r.role; await afterLogin(r); return; } }catch(e){}
+    show('scrLoading');
+    let cached = null;   // 교실 화면에서 이미 확인한 로그인 정보 (통신 1번 절약)
+    if (FROM_BOARD){
+      try{ cached = JSON.parse(sessionStorage.getItem('sn_board_login') || 'null'); }catch(e){}
+      try{ sessionStorage.removeItem('sn_board_login'); }catch(e){}
+    }
+    try{
+      const r = (cached && cached.role) ? cached : await jsonp({ action:'login', pw:PW });
+      if (r.role){ role = r.role; await afterLogin(r); return; }
+      msg('loginMsg','저장된 비밀번호가 맞지 않아요. 다시 입력해 주세요.');
+    }catch(e){ msg('loginMsg','자동 로그인에 실패했어요: ' + e.message + ' 비밀번호를 다시 입력해 주세요.'); }
+  } else if (FROM_BOARD){
+    msg('loginMsg','비밀번호를 한 번 더 입력해 주세요.', true);
   }
   show('scrLogin');
 })();

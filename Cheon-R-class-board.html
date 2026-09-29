@@ -647,6 +647,7 @@ function openBoard(mode){
     : '전자칠판처럼 반 전체가 보는 화면용이에요. 모든 호출이 크게 뜨고 30초마다 새로고침돼요. 담임 비밀번호나 회장 코드를 입력해 주세요.';
   document.getElementById('bdOk').textContent = bdMode === 'admin' ? '전환' : BOARD ? '끄기' : '켜기';
   document.getElementById('bdPw').value = ''; document.getElementById('bdErr').textContent = '';
+  document.getElementById('bdErr').style.color = ''; document.getElementById('bdOk').disabled = false;
   document.getElementById('boardOv').classList.add('show');
   setTimeout(() => document.getElementById('bdPw').focus(), 50);
 }
@@ -658,7 +659,12 @@ async function toggleBoard(){
     const r = await jsonp({ action:'login', pw });
     if (!r.role){ err.textContent = '비밀번호가 맞지 않아요.'; return; }
     if (bdMode === 'admin'){   // 관리 화면으로 (이 탭에서만 로그인 유지)
-      try{ sessionStorage.setItem('sn_admin_pw_v1', pw); }catch(e){}
+      try{
+        sessionStorage.setItem('sn_admin_pw_v1', pw);
+        sessionStorage.setItem('sn_board_login', JSON.stringify({ role:r.role, installId:r.installId||'', className:r.className||'', mustChange:!!r.mustChange }));
+      }catch(e){}
+      err.style.color = '#2E7D32'; err.textContent = '✅ 확인됐어요. 관리 화면을 여는 중이에요… (몇 초 걸릴 수 있어요)';
+      document.getElementById('bdOk').disabled = true;
       go('Cheon-R-class-board-admin.html?from=board'); return;
     }
     BOARD = !BOARD; lsSet(K.board, BOARD);
