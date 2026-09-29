@@ -9,6 +9,7 @@
 <link rel="icon" href="Cheon-R-class-board-icon-192.png">
 <link rel="apple-touch-icon" href="Cheon-R-class-board-icon-192.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
 <style>
 :root{
   --main:#9B8EC4; --main-d:#6F62A3; --bg:#F4F2FA; --card:#fff; --line:#E4E0F0;
@@ -30,7 +31,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .top{display:flex;align-items:center;gap:10px;background:var(--main);color:#fff;border-radius:14px;padding:10px 14px;min-height:56px}
 .logo{font-size:22px}
 .ttlw{flex:1;min-width:0}
-.top h1{font-size:19px;font-weight:800;letter-spacing:.5px;line-height:1.2}
+.top h1{font-size:21px;font-weight:400;letter-spacing:.5px;line-height:1.2}
+
 .sub{font-size:12px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .me{background:rgba(255,255,255,.22);border-radius:20px;padding:0 14px;font-size:14px;font-weight:600;min-height:44px}
 .ref{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.22);font-size:18px;color:#fff}
@@ -100,7 +102,7 @@ body.board .adm{display:inline-flex;align-items:center}
 .bd.new{background:#FFE8E8;color:#C0392B}
 .dd{margin-left:auto;font-size:13px;font-weight:700;color:var(--c-tx)}
 .dd.late{color:var(--tx3)}
-.ttl{font-size:16px;font-weight:700;margin-top:6px;line-height:1.4}
+.ttl{font-size:17px;margin-top:6px;line-height:1.4}
 .body{font-size:14px;color:var(--tx2);margin-top:4px;white-space:pre-wrap;line-height:1.55}
 .tg{font-size:14px;margin-top:6px;color:var(--h-tx);font-weight:600}
 .callme{display:inline-block;margin-top:6px;background:var(--h-dot);color:#fff;font-size:13px;font-weight:700;border-radius:6px;padding:3px 10px}
@@ -130,7 +132,15 @@ body.board .adm{display:inline-flex;align-items:center}
 .ov{position:fixed;inset:0;background:rgba(30,25,50,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
 .ov.show{display:flex}
 .modal{background:#fff;border-radius:18px;padding:22px;width:100%;max-width:420px}
-.modal h2{font-size:19px;margin-bottom:6px}
+.modal h2{font-size:21px;margin-bottom:6px}
+.ub.h{cursor:pointer}
+.ub.done{background:#E8E6EE;color:#8B879A}
+.chip{display:inline-block;background:rgba(255,255,255,.65);border-radius:12px;padding:1px 8px;margin:2px 4px 0 0;font-size:.85em}
+.chip.ok{background:#E3F3E4;color:#2E7D32}
+.gone{display:inline-block;margin-top:6px;background:#E3F3E4;color:#2E7D32;font-size:13px;font-weight:700;border-radius:6px;padding:3px 10px}
+.cbtns{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:12px}
+.cbtns button{min-height:56px;border-radius:12px;font-size:17px;font-weight:700;background:var(--h-bg);color:var(--h-tx)}
+.cbtns button.ok{background:#E3F3E4;color:#2E7D32}
 .modal p{font-size:14px;color:var(--tx2);line-height:1.5}
 .modal input{width:100%;min-height:48px;border:1.5px solid var(--line);border-radius:10px;padding:0 14px;font-size:18px;font-family:inherit;margin-top:12px}
 .modal input:focus{outline:none;border-color:var(--main)}
@@ -144,6 +154,9 @@ body.board .adm{display:inline-flex;align-items:center}
 .pop .ttl{font-size:21px}
 .pop .body{font-size:16px;text-align:left;margin-top:10px}
 .pop .tg{text-align:left}
+/* 제목용 폰트: 주아 (본문은 Pretendard) — 뒤에 둬서 굵기 설정을 덮어씀 */
+.top h1,.ub,.ttl,.modal h2,.cal-head b{font-family:'Jua','Pretendard',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-weight:400}
+.ub small,.ub .chip{font-family:'Pretendard',-apple-system,sans-serif}
 </style>
 </head>
 <body>
@@ -240,7 +253,7 @@ const PREVIEW = new URLSearchParams(location.search).get('preview') === '1';
 let BOARD = lsGet(K.board, false) === true;   // 🖥️ 교실 화면 모드 (이 기기에 기억)
 
 let me = lsGet(K.me, null);
-let notices = [], confirmed = new Set();
+let notices = [], confirmed = new Set(), callDone = {};
 let tab = 'today', selDate = null;
 let view = new Date(); view.setDate(1);
 let prevSeen = lsGet(K.last, '');
@@ -291,6 +304,7 @@ async function load(manual){
     const res = await jsonp({ action:'load', sid: me ? me.sid : '' });
     notices = (res.notices || []).map(n => ({ ...n, date: normDate(n.date) }));
     confirmed = new Set((res.confirmed || []).map(String));
+    callDone = res.callDone || {};
     if (res.className){ const sub = (res.year ? res.year + '학년도 ' : '') + res.className; lsSet(K.cls, sub); setSub(sub); }
     render();
     checkPopups();
@@ -320,8 +334,8 @@ function renderUrgent(){
     `<div class="ub"><span>🚨</span><div>${esc(n.title)}${n.body?`<small>${esc(n.body)}</small>`:''}</div></div>`).join('');
   if (BOARD){   // 교실 화면: 오늘 호출은 배너로 계속 표시
     html += notices.filter(n => n.type === '호출' && n.date === t).sort(sortN).map(n => {
-      const who = (n.targets||[]).map(x => esc(x.sid+' '+x.name)); if (n.memo) who.push(esc(n.memo));
-      return `<div class="ub h"><span>📣</span><div>${who.join(', ')}${who.length?' → ':''}${esc(n.title)}${n.body?`<small>${esc(n.body)}</small>`:''}</div></div>`;
+      const fin = allDone(n);
+      return `<div class="ub h${fin?' done':''}" onclick="openCall('${esc(n.id)}')"><span>${fin?'✅':'📣'}</span><div>${fin?'다녀왔어요 · ':''}${esc(n.title)}${n.body&&!fin?`<small>${esc(n.body)}</small>`:''}<div>${callChips(n)}</div></div></div>`;
     }).join('');
   }
   document.getElementById('urgent').innerHTML = html;
@@ -372,12 +386,67 @@ function card(n){
     <div class="row1"><span class="bd ${T.c}">${LABEL[n.type]||n.type}</span>${n.author==='회장'?'<span class="bd p">회장</span>':''}${isNew?'<span class="bd new">NEW</span>':''}${ck}${dd}</div>
     <div class="ttl">${esc(n.title)}</div>
     ${body ? (isShort ? `<div class="full">${esc(body)}</div>` : `<div class="prev">${esc(body)}</div><div class="more">눌러서 전체 보기 ›</div>`) : ''}
-    ${tg}${mine?'<span class="callme">나를 불렀어요</span>':''}
+    ${tg}${mine && !isDone(n, me.sid)?'<span class="callme">나를 불렀어요</span>':''}${n.type==='호출' && allDone(n)?'<span class="gone">✅ 다녀왔어요</span>':''}
   </button>`;
 }
+/* ===== 호출 '다녀왔어요' ===== */
+function doneList(n){ return callDone[n.id] || []; }
+function isDone(n, sid){ return doneList(n).some(d => String(d.sid) === String(sid)); }
+function allDone(n){
+  if (n.type !== '호출') return false;
+  const tg = n.targets || [];
+  return tg.length ? tg.every(t => isDone(n, t.sid)) : doneList(n).length > 0;
+}
+function callChips(n){
+  const tg = n.targets || [];
+  let h = tg.map(x => `<span class="chip${isDone(n,x.sid)?' ok':''}">${isDone(n,x.sid)?'✅ ':''}${esc(x.sid+' '+x.name)}</span>`).join('');
+  if (n.memo){
+    const extra = doneList(n).filter(d => !tg.some(x => String(x.sid) === String(d.sid)));
+    h += extra.length ? extra.map(d => `<span class="chip ok">✅ ${esc(n.memo)} ${esc(d.sid+' '+d.name)}</span>`).join('') : `<span class="chip">${esc(n.memo)}</span>`;
+  }
+  return h;
+}
+let callNid = null;
+function openCall(id){
+  const n = notices.find(x => String(x.id) === String(id)); if (!n) return;
+  callNid = n.id;
+  const tg = n.targets || [];
+  const btns = tg.map(x => `<button class="${isDone(n,x.sid)?'ok':''}" onclick="markCall('${esc(x.sid)}')">${isDone(n,x.sid)?'✅ ':''}${esc(x.sid)} ${esc(x.name)}</button>`).join('');
+  const memoPart = (n.memo || !tg.length) ? `
+    <p style="margin-top:12px">${n.memo ? esc(n.memo)+'(으)로 불린 학생은 ' : ''}학번을 입력해 주세요.</p>
+    <input id="callSid" type="tel" inputmode="numeric" placeholder="학번" maxlength="10" onkeydown="if(event.key==='Enter')markCall(this.value.trim())">
+    <div class="btns"><button class="b1" onclick="markCall(document.getElementById('callSid').value.trim())">다녀왔어요</button></div>` : '';
+  const extra = doneList(n).filter(d => !tg.some(x => String(x.sid) === String(d.sid)));
+  document.getElementById('detBox').innerHTML = `
+    <button class="x" onclick="closeOv('detOv')" aria-label="닫기">✕</button>
+    <div class="row1"><span class="bd h">호출</span></div>
+    <div class="ttl" style="font-size:22px">${esc(n.title)}</div>
+    ${n.body?`<div class="body">${esc(n.body)}</div>`:''}
+    <p style="margin-top:12px;font-weight:700">✅ 다녀왔으면 내 이름을 눌러 주세요 <span style="font-weight:400;color:var(--tx3)">(잘못 눌렀으면 한 번 더)</span></p>
+    ${btns?`<div class="cbtns">${btns}</div>`:''}
+    ${extra.length?`<div class="cbtns">${extra.map(d=>`<button class="ok" onclick="markCall('${esc(d.sid)}')">✅ ${esc(d.sid)} ${esc(d.name)}</button>`).join('')}</div>`:''}
+    ${memoPart}
+    <div class="err" id="callErr"></div>`;
+  document.getElementById('detOv').classList.add('show');
+}
+async function markCall(sid){
+  const n = notices.find(x => String(x.id) === String(callNid)); if (!n) return;
+  const err = document.getElementById('callErr');
+  if (!sid){ err.textContent = '학번을 입력해 주세요.'; return; }
+  const undo = isDone(n, sid);
+  if (undo && !confirm(`${sid} 다녀왔어요 체크를 취소할까요?`)) return;
+  err.textContent = '저장 중…';
+  try{
+    const r = await jsonp({ action:'callDone', nid:n.id, sid, undo: undo ? '1' : '' });
+    const list = (callDone[n.id] = doneList(n).filter(d => String(d.sid) !== String(sid)));
+    if (!undo) list.push({ sid, name:r.name });
+    render(); openCall(n.id);
+  }catch(e){ err.textContent = e.message; }
+}
+
 function targetLine(n){
   if (n.type !== '호출') return '';
-  const names = (n.targets||[]).map(t => esc(t.sid+' '+t.name));
+  const names = (n.targets||[]).map(t => (isDone(n,t.sid)?'✅ ':'') + esc(t.sid+' '+t.name));
   if (n.memo) names.push(esc(n.memo));
   return names.length ? `<div class="tg">📣 ${names.join(', ')}</div>` : '';
 }
@@ -398,7 +467,8 @@ function openDetail(id){
     <div class="row1"><span class="bd ${T.c}">${LABEL[n.type]||n.type}</span>${n.author==='회장'?'<span class="bd p">회장</span>':''}</div>
     <div class="ttl" style="font-size:20px">${esc(n.title)}</div>
     <div class="dt">${prettyDate(n.date)}${n.type==='확인'?' 마감':''}</div>
-    ${targetLine(n)}${isMine(n)?'<span class="callme">나를 불렀어요</span>':''}
+    ${targetLine(n)}${isMine(n) && !isDone(n, me.sid)?'<span class="callme">나를 불렀어요</span>':''}
+    ${n.type==='호출' ? `<div class="btns"><button class="b1" onclick="openCall('${esc(n.id)}')">${allDone(n)?'✅ 다녀왔어요 (보기)':'✅ 다녀왔어요 체크하기'}</button></div>` : ''}
     ${n.body?`<div class="body">${esc(n.body)}</div>`:''}
     ${ck}
     <div id="reqArea"><button class="req-btn" onclick="openReq('${esc(n.id)}')">✏️ 수정 요청·질문</button></div>`;
@@ -506,7 +576,7 @@ async function lookup(){
 function checkPopups(){
   const t = today();
   const seen = new Set(lsGet(K.seen, []));
-  const fresh = notices.filter(n => n.popup && n.date === t && !seen.has(String(n.id)) &&
+  const fresh = notices.filter(n => n.popup && n.date === t && !seen.has(String(n.id)) && !allDone(n) &&
     (PREVIEW || BOARD || !n.targets || !n.targets.length || isMine(n)) && !popQueue.some(q => q.id === n.id));
   if (!fresh.length) return;
   popQueue.push(...fresh.sort(sortN));

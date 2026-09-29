@@ -11,7 +11,8 @@ var SHEETS = {
   notices: { name: '공지', headers: ['ID', '유형', '날짜', '제목', '내용', '대상메모', '중요', '팝업', '작성자', '작성시각', '수정시각'] },
   targets: { name: '호출대상', headers: ['공지ID', '학번', '이름'] },
   confirms: { name: '확인기록', headers: ['공지ID', '학번', '이름', '확인시각'] },
-  requests: { name: '수정요청', headers: ['ID', '공지ID', '학번', '이름', '내용', '작성시각', '처리', '처리시각'] }
+  requests: { name: '수정요청', headers: ['ID', '공지ID', '학번', '이름', '내용', '작성시각', '처리', '처리시각'] },
+  calldone: { name: '호출완료', headers: ['공지ID', '학번', '이름', '시각'] }
 };
 var PRESIDENT_TYPES = ['확인', '교과', '일반'];
 var DEFAULT_PW = 'classboard';   // 초기 비밀번호 — 첫 로그인 때 변경 강제
@@ -40,6 +41,7 @@ function route_(p) {
     case 'who': return who_(p);
     case 'confirm': return confirm_(p);
     case 'request': return request_(p);
+    case 'callDone': return callDone_(p);
     case 'resolveRequest': return resolveRequest_(p);
     case 'login': return login_(p);
     case 'adminLoad': return adminLoad_(p);
@@ -180,7 +182,7 @@ function load_(p) {
   var mine = sid ? rows_('confirms')
     .filter(function (r) { return r[1] === sid; })
     .map(function (r) { return r[0]; }) : [];
-  return { ok: true, className: getSetting_('학급명'), year: year_(), notices: notices, confirmed: mine, serverTime: now_() };
+  return { ok: true, className: getSetting_('학급명'), year: year_(), notices: notices, confirmed: mine, callDone: callDoneMap_(), serverTime: now_() };
 }
 
 function who_(p) {
@@ -202,6 +204,31 @@ function confirm_(p) {
 }
 
 /** 학생 수정요청·질문 — 이름은 명단에서 자동으로 붙임 (사칭 방지) */
+/** 호출 '다녀왔어요' — { 공지ID: [{sid, name, at}] } */
+function callDoneMap_() {
+  var m = {};
+  rows_('calldone').forEach(function (r) { if (r[0]) (m[r[0]] = m[r[0]] || []).push({ sid: r[1], name: r[2], at: r[3] }); });
+  return m;
+}
+function callDone_(p) {
+  var sid = String(p.sid || '').trim(), nid = String(p.nid || ''), undo = p.undo === '1';
+  var st = rows_('students').filter(function (x) { return x[0] === sid; })[0];
+  if (!st) return { ok: false, error: '명단에 없는 학번이에요.' };
+  var n = rows_('notices').filter(function (r) { return r[0] === nid; })[0];
+  if (!n || n[1] !== '호출') return { ok: false, error: '호출 공지를 찾지 못했어요.' };
+  return lock_(function () {
+    var sh = sh_('calldone'), data = rows_('calldone');
+    for (var i = data.length - 1; i >= 0; i--) {
+      if (data[i][0] === nid && data[i][1] === sid) {
+        if (undo) sh.deleteRow(i + 2);
+        return { ok: true, name: st[1] };
+      }
+    }
+    if (!undo) sh.getRange(sh.getLastRow() + 1, 1, 1, 4).setNumberFormat('@').setValues([[nid, sid, st[1], now_()]]);
+    return { ok: true, name: st[1] };
+  });
+}
+
 function request_(p) {
   var sid = String(p.sid || ''), nid = String(p.nid || ''), text = String(p.text || '').trim();
   if (!text) return { ok: false, error: '내용을 입력해 주세요.' };
@@ -245,6 +272,7 @@ function adminLoad_(p) {
   var res = { ok: true, role: role, className: getSetting_('학급명'), year: year_(), notices: notices };
   var presNids = {};
   notices.forEach(function (n) { if (n.author === '회장') presNids[n.id] = true; });
+  res.callDone = callDoneMap_();
   res.requests = rows_('requests').filter(function (r) { return r[0] && (role === 'admin' || presNids[r[1]]); })
     .map(function (r) { return { id: r[0], nid: r[1], sid: r[2], name: r[3], text: r[4], at: r[5], done: r[6] === 'Y', doneAt: r[7] }; });
   if (role === 'admin') {

@@ -7,6 +7,7 @@
 <title>학급 공지 관리</title>
 <link rel="icon" href="Cheon-R-class-board-icon-192.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
 <style>
 :root{
   --main:#9B8EC4; --main-d:#6F62A3; --bg:#F4F2FA; --line:#E4E0F0;
@@ -125,6 +126,9 @@ details summary::-webkit-details-marker{display:none}
 .code{margin-top:10px}
 .code pre{background:#2E2A3D;color:#E9E5F5;border-radius:10px;padding:12px;font-size:12px;line-height:1.5;max-height:260px;overflow:auto;white-space:pre}
 .code summary{font-size:13px;color:var(--tx2);cursor:pointer;min-height:36px;display:flex;align-items:center}
+/* 제목용 폰트: 주아 */
+.top h1,.gtop h1,.box h2{font-family:'Jua','Pretendard',-apple-system,sans-serif;font-weight:400}
+.top h1,.gtop h1{font-size:20px}
 </style>
 </head>
 <body>
@@ -574,7 +578,7 @@ async function enterMain(){
 }
 async function refresh(){
   const r = await jsonp({ action:'adminLoad', pw:PW });
-  role = r.role; data = { notices:(r.notices||[]).map(n => ({ ...n, date: normDate(n.date) })), students:r.students||[], confirms:r.confirms||[], requests:r.requests||[] };
+  role = r.role; data = { notices:(r.notices||[]).map(n => ({ ...n, date: normDate(n.date) })), students:r.students||[], confirms:r.confirms||[], requests:r.requests||[], callDone:r.callDone||{} };
   updateReqBadge();
   schoolYear = parseInt(r.year, 10) || new Date().getFullYear();
   renderBlobs();
@@ -744,6 +748,12 @@ async function splitAllBlobs(btn){
   btn.disabled = false;
 }
 
+function callStat(n){
+  const d = (data.callDone||{})[n.id] || [];
+  const tg = n.targets || [];
+  if (tg.length){ const k = tg.filter(x => d.some(y => String(y.sid)===String(x.sid))).length; return (k===tg.length?'✅ ':'') + `다녀옴 ${k}/${tg.length}`; }
+  return d.length ? '✅ 다녀옴 ' + esc(d.map(y=>y.name).join(', ')) : '다녀옴 전';
+}
 function renderList(){
   renderBlobs();
   $('listTabs').innerHTML = [['up','오늘·예정'],['past','지난 공지']]
@@ -755,7 +765,7 @@ function renderList(){
   $('nList').innerHTML = arr.length ? arr.map(n=>`
     <div class="item"><div class="in">
       <div class="t"><span class="bd ${TYPES[n.type]}">${LABEL[n.type]}</span>${n.author==='회장'?'<span class="bd p">회장</span>':''}${n.important?'⭐ ':''}${n.popup?'🚨 ':''}${esc(n.title)}</div>
-      <div class="s">${prettyDate(n.date)}${n.type==='호출'&&n.targets.length?' · '+esc(n.targets.map(x=>x.name).join(', ')):''}${n.memo?' · '+esc(n.memo):''}</div>
+      <div class="s">${prettyDate(n.date)}${n.type==='호출'&&n.targets.length?' · '+esc(n.targets.map(x=>x.name).join(', ')):''}${n.memo?' · '+esc(n.memo):''}${n.type==='호출'?' · '+callStat(n):''}</div>
     </div>${canEdit(n)?`<div class="acts"><button onclick="editNotice('${esc(n.id)}')">수정</button><button onclick="delNotice('${esc(n.id)}')">삭제</button></div>`:''}</div>`).join('')
     : '<p class="hint">공지가 없어요.</p>';
 }
