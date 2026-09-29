@@ -157,6 +157,25 @@ body.board .adm{display:inline-flex;align-items:center}
 /* 제목용 폰트: 주아 (본문은 Pretendard) — 뒤에 둬서 굵기 설정을 덮어씀 */
 .top h1,.ub,.ttl,.modal h2,.cal-head b{font-family:'Jua','Pretendard',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-weight:400}
 .ub small,.ub .chip{font-family:'Pretendard',-apple-system,sans-serif}
+.cstrip{display:flex;flex-wrap:wrap;gap:8px;margin:0}
+.cstrip .ub,body.board .cstrip .ub{flex:none;margin:0;align-items:center;gap:6px;border-radius:18px;padding:6px 14px;font-size:16px;white-space:nowrap}
+.cstrip .ub>div{display:flex;align-items:center;gap:8px}
+.cstrip .ub small{display:inline-block;max-width:14em;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom;font-size:.8em;margin:0;white-space:nowrap;font-family:'Pretendard',-apple-system,sans-serif}
+.cstrip .ub.done,body.board .cstrip .ub.done{font-size:13px;padding:4px 12px}
+.cstrip .chip{margin:0}
+.bd.att{background:#fff;border:1px solid var(--line);color:var(--tx2)}
+.atts{margin-top:12px;display:flex;flex-direction:column;gap:10px}
+.atts figure{margin:0}
+.atts img{display:block;max-width:100%;max-height:50vh;border-radius:10px;border:1px solid var(--line);background:#fff;cursor:zoom-in}
+.atts figcaption{font-size:12px;color:var(--tx3);margin-top:3px}
+.alink{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:22px;background:var(--bg);color:var(--main-d);font-weight:700;font-size:14px;text-decoration:none;border:1px solid var(--line);margin-right:8px}
+.lk{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+.lk b{font-size:13px;color:var(--tx2)}
+.lk .lkb{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.lk .lkb .alink{margin:0}
+#imgOv{background:rgba(20,16,36,.88);cursor:zoom-out;flex-direction:column;gap:8px}
+#imgOv img{max-width:96vw;max-height:88vh;border-radius:10px;background:#fff}
+#imgOv span{color:#fff;font-size:13px}
 </style>
 </head>
 <body>
@@ -187,6 +206,7 @@ body.board .adm{display:inline-flex;align-items:center}
         <span><i style="background:var(--s-dot)"></i>교과공지</span>
         <span><i style="background:var(--g-dot)"></i>일반</span>
       </div>
+      <div class="lk" id="linksBox" style="display:none"></div>
     </section>
 
     <section class="panel">
@@ -223,6 +243,9 @@ body.board .adm{display:inline-flex;align-items:center}
   </div>
 </div>
 
+<!-- 사진 크게 보기 -->
+<div class="ov" id="imgOv" onclick="closeOv('imgOv')"><img id="imgBig" alt="첨부 사진"><span>화면을 누르면 닫혀요</span></div>
+
 <!-- 공지 상세 -->
 <div class="ov" id="detOv" onclick="if(event.target===this)closeOv('detOv')">
   <div class="modal det" id="detBox"></div>
@@ -253,7 +276,7 @@ const PREVIEW = new URLSearchParams(location.search).get('preview') === '1';
 let BOARD = lsGet(K.board, false) === true;   // 🖥️ 교실 화면 모드 (이 기기에 기억)
 
 let me = lsGet(K.me, null);
-let notices = [], confirmed = new Set(), callDone = {};
+let notices = [], confirmed = new Set(), callDone = {}, links = [];
 let tab = 'today', selDate = null;
 let view = new Date(); view.setDate(1);
 let prevSeen = lsGet(K.last, '');
@@ -305,6 +328,7 @@ async function load(manual){
     notices = (res.notices || []).map(n => ({ ...n, date: normDate(n.date) }));
     confirmed = new Set((res.confirmed || []).map(String));
     callDone = res.callDone || {};
+    links = res.links || [];
     if (res.className){ const sub = (res.year ? res.year + '학년도 ' : '') + res.className; lsSet(K.cls, sub); setSub(sub); }
     render();
     checkPopups();
@@ -321,8 +345,42 @@ async function load(manual){
 function sortN(a, b){ return a.date.localeCompare(b.date) || ORDER[a.type]-ORDER[b.type] || String(a.created).localeCompare(String(b.created)); }
 function isMine(n){ return !!(me && n.targets && n.targets.some(t => String(t.sid) === String(me.sid))); }
 
+/* ===== 첨부(사진·링크) · 앱 바로가기 ===== */
+function safeUrl(u){ u = String(u||'').trim(); return /^https?:\/\/\S+$/i.test(u) ? u : ''; }
+function imgSrc(url){
+  const u = safeUrl(url); if (!u) return '';
+  const m = u.match(/drive\.google\.com\/file\/d\/([\w-]+)/) || u.match(/drive\.google\.com\/(?:open|uc)\?[^#]*\bid=([\w-]+)/);
+  if (m) return 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w1600';
+  if (/^https?:\/\/lh\d\.googleusercontent\.com\//i.test(u)) return u;
+  if (/\.(jpe?g|png|gif|webp|bmp|avif)(\?|#|$)/i.test(u)) return u;
+  return u;   // 종류가 '사진'으로 지정된 주소는 그대로 시도
+}
+function hostOf(u){ try{ return new URL(u).hostname.replace(/^www\./,''); }catch(e){ return '링크'; } }
+function attsHtml(n){
+  const list = (n.attachments || []).filter(a => safeUrl(a.url));
+  if (!list.length) return '';
+  const imgs = list.filter(a => a.kind === 'img'), lks = list.filter(a => a.kind !== 'img');
+  return `<div class="atts">
+    ${imgs.map(a => `<figure><img src="${esc(imgSrc(a.url))}" alt="${esc(a.name || '첨부 사진')}" data-url="${esc(safeUrl(a.url))}" loading="lazy" onclick="viewImg(this)" onerror="imgFail(this)">${a.name?`<figcaption>${esc(a.name)}</figcaption>`:''}</figure>`).join('')}
+    ${lks.length ? `<div>${lks.map(a => `<a class="alink" href="${esc(safeUrl(a.url))}" target="_blank" rel="noopener noreferrer">🔗 ${esc(a.name || hostOf(a.url))}</a>`).join('')}</div>` : ''}
+  </div>`;
+}
+function imgFail(el){   // 사진이 안 열리면(공유 설정 등) 링크 버튼으로
+  const a = document.createElement('a');
+  a.className = 'alink'; a.href = el.dataset.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+  a.textContent = '🖼️ ' + (el.alt && el.alt !== '첨부 사진' ? el.alt : '사진 열기');
+  const box = el.closest('figure') || el; box.replaceWith(a);
+}
+function viewImg(el){ document.getElementById('imgBig').src = el.src; document.getElementById('imgOv').classList.add('show'); }
+function renderLinks(){
+  const box = document.getElementById('linksBox');
+  const list = (links || []).filter(l => safeUrl(l.url));
+  box.style.display = list.length ? '' : 'none';
+  box.innerHTML = list.length ? `<b>🔗 우리 반 앱</b><div class="lkb">${list.map(l => `<a class="alink" href="${esc(safeUrl(l.url))}" target="_blank" rel="noopener noreferrer">${esc(l.name)}</a>`).join('')}</div>` : '';
+}
+
 function render(){
-  renderMe(); renderUrgent(); renderCal(); renderTabs(); renderList();
+  renderMe(); renderUrgent(); renderCal(); renderTabs(); renderList(); renderLinks();
 }
 function renderMe(){
   document.getElementById('meBtn').textContent = BOARD ? '🖥️ 교실 화면 모드' : me ? me.sid + ' ' + me.name : (PREVIEW ? '👀 담임 미리보기' : '학번 등록');
@@ -332,11 +390,12 @@ function renderUrgent(){
   const u = notices.filter(n => n.type === '긴급' && n.date === t).sort(sortN);
   let html = u.map(n =>
     `<div class="ub"><span>🚨</span><div>${esc(n.title)}${n.body?`<small>${esc(n.body)}</small>`:''}</div></div>`).join('');
-  if (BOARD){   // 교실 화면: 오늘 호출은 배너로 계속 표시
-    html += notices.filter(n => n.type === '호출' && n.date === t).sort(sortN).map(n => {
+  if (BOARD){   // 교실 화면: 오늘 호출은 한 줄에 나란히 (안 다녀온 호출이 앞, 다녀온 호출은 작은 회색)
+    const calls = notices.filter(n => n.type === '호출' && n.date === t).sort((a, b) => (allDone(a) - allDone(b)) || sortN(a, b));
+    if (calls.length) html += '<div class="cstrip">' + calls.map(n => {
       const fin = allDone(n);
       return `<div class="ub h${fin?' done':''}" onclick="openCall('${esc(n.id)}')"><span>${fin?'✅':'📣'}</span><div>${fin?'다녀왔어요 · ':''}${esc(n.title)}${n.body&&!fin?`<small>${esc(n.body)}</small>`:''}<div>${callChips(n)}</div></div></div>`;
-    }).join('');
+    }).join('') + '</div>';
   }
   document.getElementById('urgent').innerHTML = html;
 }
@@ -383,7 +442,7 @@ function card(n){
   const body = (n.body || '').trim();
   const isShort = body.length <= 80 && body.split('\n').length <= 3;   // 짧은 내용은 카드에 전부
   return `<button class="card${mine?' mine':''}" onclick="openDetail('${esc(n.id)}')">
-    <div class="row1"><span class="bd ${T.c}">${LABEL[n.type]||n.type}</span>${n.author==='회장'?'<span class="bd p">회장</span>':''}${isNew?'<span class="bd new">NEW</span>':''}${ck}${dd}</div>
+    <div class="row1"><span class="bd ${T.c}">${LABEL[n.type]||n.type}</span>${n.author==='회장'?'<span class="bd p">회장</span>':''}${isNew?'<span class="bd new">NEW</span>':''}${(n.attachments||[]).length?`<span class="bd att">📎 ${n.attachments.length}</span>`:''}${ck}${dd}</div>
     <div class="ttl">${esc(n.title)}</div>
     ${body ? (isShort ? `<div class="full">${esc(body)}</div>` : `<div class="prev">${esc(body)}</div><div class="more">눌러서 전체 보기 ›</div>`) : ''}
     ${tg}${mine && !isDone(n, me.sid)?'<span class="callme">나를 불렀어요</span>':''}${n.type==='호출' && allDone(n)?'<span class="gone">✅ 다녀왔어요</span>':''}
@@ -470,6 +529,7 @@ function openDetail(id){
     ${targetLine(n)}${isMine(n) && !isDone(n, me.sid)?'<span class="callme">나를 불렀어요</span>':''}
     ${n.type==='호출' ? `<div class="btns"><button class="b1" onclick="openCall('${esc(n.id)}')">${allDone(n)?'✅ 다녀왔어요 (보기)':'✅ 다녀왔어요 체크하기'}</button></div>` : ''}
     ${n.body?`<div class="body">${esc(n.body)}</div>`:''}
+    ${attsHtml(n)}
     ${ck}
     <div id="reqArea"><button class="req-btn" onclick="openReq('${esc(n.id)}')">✏️ 수정 요청·질문</button></div>`;
   document.getElementById('detOv').classList.add('show');
@@ -500,21 +560,22 @@ async function sendReq(id){
 function renderList(){
   const el = document.getElementById('list');
   const t = today();
+  const shown = n => !(BOARD && n.type === '호출');   // 교실 화면에선 호출이 위쪽 줄에 이미 있어요
   let html = '';
   if (tab === 'today'){
-    const td = notices.filter(n => n.date === t).sort(sortN);
+    const td = notices.filter(n => n.date === t && shown(n)).sort(sortN);
     const pend = notices.filter(n => n.type === '확인' && n.date > t).sort(sortN);
     html += `<div class="sec">${prettyDate(t)}</div>` + (td.length ? td.map(card).join('') : '<div class="empty">오늘은 공지가 없어요 🙂</div>');
     if (pend.length) html += `<div class="sec">마감 전 학급공지</div>` + pend.map(card).join('');
   } else if (tab === 'week'){
     for (let i = 0; i < 7; i++){
       const d = addDays(t, i);
-      const arr = notices.filter(n => n.date === d).sort(sortN);
+      const arr = notices.filter(n => n.date === d && shown(n)).sort(sortN);
       if (arr.length) html += `<div class="sec">${prettyDate(d)}</div>` + arr.map(card).join('');
     }
     if (!html) html = '<div class="empty">이번주 공지가 없어요</div>';
   } else {
-    const arr = notices.filter(n => n.date === selDate).sort(sortN);
+    const arr = notices.filter(n => n.date === selDate && shown(n)).sort(sortN);
     html = arr.length ? arr.map(card).join('') : '<div class="empty">이 날은 공지가 없어요</div>';
   }
   el.innerHTML = html;

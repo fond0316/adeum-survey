@@ -12,7 +12,9 @@ var SHEETS = {
   targets: { name: '호출대상', headers: ['공지ID', '학번', '이름'] },
   confirms: { name: '확인기록', headers: ['공지ID', '학번', '이름', '확인시각'] },
   requests: { name: '수정요청', headers: ['ID', '공지ID', '학번', '이름', '내용', '작성시각', '처리', '처리시각'] },
-  calldone: { name: '호출완료', headers: ['공지ID', '학번', '이름', '시각'] }
+  calldone: { name: '호출완료', headers: ['공지ID', '학번', '이름', '시각'] },
+  files: { name: '첨부', headers: ['공지ID', '순서', '종류', '이름', '주소'] },
+  links: { name: '바로가기', headers: ['이름', '주소'] }
 };
 var PRESIDENT_TYPES = ['확인', '교과', '일반'];
 var DEFAULT_PW = 'classboard';   // 초기 비밀번호 — 첫 로그인 때 변경 강제
@@ -50,6 +52,7 @@ function route_(p) {
     case 'deleteNotice': return deleteNotice_(p);
     case 'saveStudents': return saveStudents_(p);
     case 'saveSettings': return saveSettings_(p);
+    case 'saveLinks': return saveLinks_(p);
     default: return { ok: false, error: '알 수 없는 요청이에요.' };
   }
 }
@@ -152,12 +155,59 @@ function lock_(fn) {
   lock.waitLock(10000);
   try { return fn(); } finally { lock.releaseLock(); }
 }
-function noticeObj_(r, targetMap) {
+function noticeObj_(r, targetMap, attMap) {
   return {
     id: r[0], type: r[1], date: dateStr_(r[2]), title: r[3], body: r[4], memo: r[5],
     important: r[6] === 'Y', popup: r[7] === 'Y', author: r[8], created: r[9], updated: r[10],
-    targets: targetMap[r[0]] || []
+    targets: targetMap[r[0]] || [], attachments: (attMap && attMap[r[0]]) || []
   };
+}
+/** 첨부(사진·링크) — { 공지ID: [{kind, name, url}] } */
+function attMap_() {
+  var m = {};
+  rows_('files').filter(function (r) { return r[0]; })
+    .sort(function (a, b) { return Number(a[1]) - Number(b[1]); })
+    .forEach(function (r) { (m[r[0]] = m[r[0]] || []).push({ kind: r[2] === 'img' ? 'img' : 'link', name: r[3], url: r[4] }); });
+  return m;
+}
+var MAX_ATT = 5, MAX_URL = 500;
+function okUrl_(u) { return /^https?:\/\/\S+$/i.test(u) && u.length <= MAX_URL; }
+function cleanAtts_(list) {
+  if (!Array.isArray(list)) throw new Error('첨부 형식이 올바르지 않아요.');
+  if (list.length > MAX_ATT) throw new Error('첨부는 최대 ' + MAX_ATT + '개까지예요.');
+  return list.map(function (a) {
+    var url = String(a && a.url || '').trim();
+    if (!okUrl_(url)) throw new Error('첨부 주소는 http:// 또는 https://로 시작하는 ' + MAX_URL + '자 이내 주소여야 해요.');
+    return { kind: a.kind === 'img' ? 'img' : 'link', name: String(a.name || '').trim().slice(0, 40), url: url };
+  });
+}
+function replaceAttachments_(nid, list) {
+  var sh = sh_('files'), data = rows_('files');
+  for (var i = data.length - 1; i >= 0; i--) if (data[i][0] === nid) sh.deleteRow(i + 2);
+  if (!list.length) return;
+  var rows = list.map(function (a, i) { return [nid, i + 1, a.kind, a.name, a.url]; });
+  sh.getRange(sh.getLastRow() + 1, 1, rows.length, 5).setNumberFormat('@').setValues(rows);
+}
+/** 우리 반 앱 바로가기 */
+function linksList_() {
+  return rows_('links').filter(function (r) { return r[0] && r[1]; }).map(function (r) { return { name: r[0], url: r[1] }; });
+}
+function saveLinks_(p) {
+  need_(p, ['admin']);
+  var list = JSON.parse(p.data || '[]');
+  if (!Array.isArray(list) || list.length > 10) throw new Error('바로가기는 최대 10개까지예요.');
+  var rows = list.map(function (a) {
+    var name = String(a && a.name || '').trim().slice(0, 20), url = String(a && a.url || '').trim();
+    if (!name) throw new Error('이름이 빠진 바로가기가 있어요.');
+    if (!okUrl_(url)) throw new Error('"' + name + '" 주소는 http:// 또는 https://로 시작해야 해요.');
+    return [name, url];
+  });
+  return lock_(function () {
+    var sh = sh_('links'), last = sh.getLastRow();
+    if (last >= 2) sh.getRange(2, 1, last - 1, 2).clearContent();
+    if (rows.length) sh.getRange(2, 1, rows.length, 2).setNumberFormat('@').setValues(rows);
+    return { ok: true, count: rows.length };
+  });
 }
 function targetMap_() {
   var m = {};
@@ -175,14 +225,14 @@ function daysAgo_(n) {
 function load_(p) {
   var sid = String(p.sid || '');
   var from = daysAgo_(60);
-  var tm = targetMap_();
+  var tm = targetMap_(), am = attMap_();
   var notices = rows_('notices')
     .filter(function (r) { return r[0] && dateStr_(r[2]) >= from; })
-    .map(function (r) { return noticeObj_(r, tm); });
+    .map(function (r) { return noticeObj_(r, tm, am); });
   var mine = sid ? rows_('confirms')
     .filter(function (r) { return r[1] === sid; })
     .map(function (r) { return r[0]; }) : [];
-  return { ok: true, className: getSetting_('학급명'), year: year_(), notices: notices, confirmed: mine, callDone: callDoneMap_(), serverTime: now_() };
+  return { ok: true, className: getSetting_('학급명'), year: year_(), notices: notices, confirmed: mine, callDone: callDoneMap_(), links: linksList_(), serverTime: now_() };
 }
 
 function who_(p) {
@@ -266,9 +316,9 @@ function resolveRequest_(p) {
 /* ---------- 관리자·회장용 ---------- */
 function adminLoad_(p) {
   var role = need_(p, ['admin', 'president']);
-  var tm = targetMap_();
+  var tm = targetMap_(), am = attMap_();
   var notices = rows_('notices').filter(function (r) { return r[0]; })
-    .map(function (r) { return noticeObj_(r, tm); });
+    .map(function (r) { return noticeObj_(r, tm, am); });
   var res = { ok: true, role: role, className: getSetting_('학급명'), year: year_(), notices: notices };
   var presNids = {};
   notices.forEach(function (n) { if (n.author === '회장') presNids[n.id] = true; });
@@ -280,6 +330,7 @@ function adminLoad_(p) {
       .map(function (r) { return { sid: r[0], name: r[1] }; });
     res.confirms = rows_('confirms').map(function (r) { return { nid: r[0], sid: r[1], name: r[2], at: r[3] }; });
     res.presidentCode = getSetting_('회장코드');
+    res.links = linksList_();
     res.installId = installId_();
   }
   return res;
@@ -294,6 +345,7 @@ function saveNotice_(p) {
     n.popup = false; n.targets = [];
   }
   if (!n.title || !n.date || !n.type) throw new Error('유형, 날짜, 제목은 꼭 입력해 주세요.');
+  var atts = (n.attachments === undefined) ? null : cleanAtts_(n.attachments);   // 저장 전에 미리 검사
 
   return lock_(function () {
     var sh = sh_('notices');
@@ -313,6 +365,7 @@ function saveNotice_(p) {
     writeRow_(sh, idx >= 0 ? idx + 2 : sh.getLastRow() + 1, row);
 
     replaceTargets_(id, n.targets || []);
+    if (atts) replaceAttachments_(id, atts);   // 첨부 항목을 보내지 않으면 기존 첨부는 그대로 둠
     return { ok: true, id: id };
   });
 }
@@ -360,6 +413,7 @@ function deleteNotice_(p) {
         if (role === 'president' && data[i][8] !== '회장') throw new Error('본인이 쓴 공지만 삭제할 수 있어요.');
         sh.deleteRow(i + 2);
         replaceTargets_(nid, []);
+        replaceAttachments_(nid, []);
         return { ok: true };
       }
     }
