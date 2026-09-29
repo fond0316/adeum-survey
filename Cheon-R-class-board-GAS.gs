@@ -14,7 +14,9 @@ var SHEETS = {
   requests: { name: '수정요청', headers: ['ID', '공지ID', '학번', '이름', '내용', '작성시각', '처리', '처리시각'] },
   calldone: { name: '호출완료', headers: ['공지ID', '학번', '이름', '시각'] },
   files: { name: '첨부', headers: ['공지ID', '순서', '종류', '이름', '주소'] },
-  links: { name: '바로가기', headers: ['이름', '주소'] }
+  links: { name: '바로가기', headers: ['이름', '주소'] },
+  photos: { name: '사진', headers: ['사진ID', '순서', '조각'] },
+  photoIdx: { name: '사진목록', headers: ['사진ID', '조각수', '글자수', '저장시각'] }
 };
 var PRESIDENT_TYPES = ['확인', '교과', '일반'];
 var DEFAULT_PW = 'classboard';   // 초기 비밀번호 — 첫 로그인 때 변경 강제
@@ -53,11 +55,29 @@ function route_(p) {
     case 'saveStudents': return saveStudents_(p);
     case 'saveSettings': return saveSettings_(p);
     case 'saveLinks': return saveLinks_(p);
+    case 'photo': return photo_(p);
+    case 'photoStatus': return photoStatus_(p);
+    case 'photoDrop': return photoDrop_(p);
+    case 'photoCleanup': return photoCleanup_(p);
     default: return { ok: false, error: '알 수 없는 요청이에요.' };
   }
 }
 
 /* ---------- 시트 준비 (탭이 없으면 헤더 포함 자동 생성) ---------- */
+/** 사진 올리기 — 용량이 커서 GET(주소)으로는 못 보내고 POST로 받아요 */
+function doPost(e) {
+  var p = {}, out;
+  try {
+    setup_();
+    p = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+    if (p.action === 'uploadPhoto') out = uploadPhoto_(p);
+    else out = { ok: false, error: '알 수 없는 요청이에요.' };
+  } catch (err) {
+    out = { ok: false, error: String(err && err.message || err) };
+    try { if (okPhotoId_(String(p.id || ''))) CacheService.getScriptCache().put('photoerr_' + p.id, out.error, 600); } catch (e2) {}
+  }
+  return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
+}
 function setup_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   Object.keys(SHEETS).forEach(function (k) {
@@ -69,6 +89,7 @@ function setup_() {
       sh.getRange(1, 1, 1000, def.headers.length).setNumberFormat('@'); // 날짜·학번 자동변환 방지
       sh.setFrozenRows(1);
       if (k === 'settings') sh.getRange(2, 1, DEFAULT_SETTINGS.length, 2).setValues(DEFAULT_SETTINGS);
+      if (k === 'photos') { try { sh.hideSheet(); } catch (e) {} }   // 긴 글자로 가득한 탭이라 숨겨 둠
     }
   });
 }
@@ -102,7 +123,13 @@ function dateStr_(v) {
   return isNaN(d.getTime()) ? s : Utilities.formatDate(d, TZ, 'yyyy-MM-dd');
 }
 /** 행을 글자 형식으로 고정해서 쓰기 (자동 날짜 변환 방지) */
+/** 시트 행이 모자라면 늘림 (기본 1000행) */
+function ensureRows_(sh, upTo) {
+  var max = sh.getMaxRows();
+  if (upTo > max) sh.insertRowsAfter(max, upTo - max + 100);
+}
 function writeRow_(sh, rowNum, row) {
+  ensureRows_(sh, rowNum);
   sh.getRange(rowNum, 1, 1, row.length).setNumberFormat('@').setValues([row]);
 }
 function rows_(k) {
@@ -167,26 +194,144 @@ function attMap_() {
   var m = {};
   rows_('files').filter(function (r) { return r[0]; })
     .sort(function (a, b) { return Number(a[1]) - Number(b[1]); })
-    .forEach(function (r) { (m[r[0]] = m[r[0]] || []).push({ kind: r[2] === 'img' ? 'img' : 'link', name: r[3], url: r[4] }); });
+    .forEach(function (r) { (m[r[0]] = m[r[0]] || []).push({ kind: r[2] === 'img' ? 'img' : (r[2] === 'photo' ? 'photo' : 'link'), name: r[3], url: r[4] }); });
   return m;
 }
-var MAX_ATT = 5, MAX_URL = 500;
+var MAX_ATT = 5, MAX_URL = 500, MAX_PHOTOS = 3;
 function okUrl_(u) { return /^https?:\/\/\S+$/i.test(u) && u.length <= MAX_URL; }
 function cleanAtts_(list) {
   if (!Array.isArray(list)) throw new Error('첨부 형식이 올바르지 않아요.');
   if (list.length > MAX_ATT) throw new Error('첨부는 최대 ' + MAX_ATT + '개까지예요.');
-  return list.map(function (a) {
+  var photos = 0;
+  var out = list.map(function (a) {
     var url = String(a && a.url || '').trim();
-    if (!okUrl_(url)) throw new Error('첨부 주소는 http:// 또는 https://로 시작하는 ' + MAX_URL + '자 이내 주소여야 해요.');
-    return { kind: a.kind === 'img' ? 'img' : 'link', name: String(a.name || '').trim().slice(0, 40), url: url };
+    var kind = a && a.kind === 'photo' ? 'photo' : (a && a.kind === 'img' ? 'img' : 'link');
+    if (kind === 'photo') {
+      if (!/^photo:P[a-z0-9]{12,24}$/.test(url)) throw new Error('사진 정보가 올바르지 않아요.');
+      if (!photoMeta_(url.slice(6))) throw new Error('사진 업로드가 아직 끝나지 않았어요. 잠시 뒤에 다시 올려 주세요.');
+      photos++;
+    } else if (!okUrl_(url)) throw new Error('첨부 주소는 http:// 또는 https://로 시작하는 ' + MAX_URL + '자 이내 주소여야 해요.');
+    return { kind: kind, name: String(a.name || '').trim().slice(0, 40), url: url };
   });
+  if (photos > MAX_PHOTOS) throw new Error('사진은 공지당 ' + MAX_PHOTOS + '장까지예요.');
+  return out;
 }
 function replaceAttachments_(nid, list) {
-  var sh = sh_('files'), data = rows_('files');
-  for (var i = data.length - 1; i >= 0; i--) if (data[i][0] === nid) sh.deleteRow(i + 2);
-  if (!list.length) return;
-  var rows = list.map(function (a, i) { return [nid, i + 1, a.kind, a.name, a.url]; });
-  sh.getRange(sh.getLastRow() + 1, 1, rows.length, 5).setNumberFormat('@').setValues(rows);
+  var sh = sh_('files'), data = rows_('files'), keep = {}, drop = [];
+  list.forEach(function (a) { if (a.kind === 'photo') keep[a.url.slice(6)] = true; });
+  for (var i = data.length - 1; i >= 0; i--) if (data[i][0] === nid) {
+    if (data[i][2] === 'photo' && !keep[String(data[i][4]).slice(6)]) drop.push(String(data[i][4]).slice(6));
+    sh.deleteRow(i + 2);
+  }
+  if (list.length) {
+    var rows = list.map(function (a, i) { return [nid, i + 1, a.kind, a.name, a.url]; });
+    ensureRows_(sh, sh.getLastRow() + rows.length);
+    sh.getRange(sh.getLastRow() + 1, 1, rows.length, 5).setNumberFormat('@').setValues(rows);
+  }
+  drop.forEach(deletePhoto_);   // 공지에서 빠진 사진은 시트에서도 지움
+}
+
+/* ---------- 사진 (폰에서 올린 사진을 시트에 글자로 저장) ---------- */
+var PHOTO_CHUNK = 40000, PHOTO_MAX_B64 = 850000, PHOTO_MAX_COUNT = 400;
+function okPhotoId_(id) { return /^P[a-z0-9]{12,24}$/.test(id); }
+function photoMeta_(id) {
+  var r = rows_('photoIdx');
+  for (var i = 0; i < r.length; i++) if (r[i][0] === id) return { row: i + 2, chunks: Number(r[i][1]), len: Number(r[i][2]), at: r[i][3] };
+  return null;
+}
+/** '사진' 탭에서 이 사진의 조각이 시작하는 줄과 개수 (조각은 항상 연속) */
+function photoSpan_(id) {
+  var sh = sh_('photos'), last = sh.getLastRow();
+  if (last < 2) return null;
+  var ids = sh.getRange(2, 1, last - 1, 1).getValues(), st = -1, n = 0;
+  for (var i = 0; i < ids.length; i++) {
+    if (String(ids[i][0]) === id) { if (st < 0) st = i + 2; n++; } else if (st >= 0) break;
+  }
+  return st < 0 ? null : { start: st, count: n };
+}
+function deletePhoto_(id) {
+  var sp = photoSpan_(id);
+  if (sp) sh_('photos').deleteRows(sp.start, sp.count);
+  var m = photoMeta_(id);
+  if (m) sh_('photoIdx').deleteRow(m.row);
+}
+function uploadPhoto_(p) {
+  need_(p, ['admin', 'president']);
+  var id = String(p.id || ''), data = String(p.data || '');
+  if (!okPhotoId_(id)) throw new Error('사진 번호가 올바르지 않아요.');
+  if (!data || data.length > PHOTO_MAX_B64) throw new Error('사진이 너무 커요. 더 작게 줄여서 올려 주세요.');
+  if (data.indexOf('/9j/') !== 0 || !/^[A-Za-z0-9+\/=]+$/.test(data)) throw new Error('JPG 사진만 올릴 수 있어요.');
+  return lock_(function () {
+    if (photoMeta_(id)) throw new Error('이미 저장된 사진 번호예요.');
+    if (rows_('photoIdx').filter(function (r) { return r[0]; }).length >= PHOTO_MAX_COUNT) throw new Error('저장된 사진이 너무 많아요. ⚙️ 탭에서 사진을 정리해 주세요.');
+    var rows = [];
+    for (var i = 0; i < data.length; i += PHOTO_CHUNK) rows.push([id, rows.length + 1, data.substr(i, PHOTO_CHUNK)]);
+    var sh = sh_('photos');
+    ensureRows_(sh, sh.getLastRow() + rows.length);
+    sh.getRange(sh.getLastRow() + 1, 1, rows.length, 3).setNumberFormat('@').setValues(rows);
+    sh_('photoIdx').appendRow([id, rows.length, data.length, now_()]);   // 마지막에 기록 = 저장 완료 표시
+    return { ok: true };
+  });
+}
+function photoStatus_(p) {
+  var id = String(p.id || '');
+  if (!okPhotoId_(id)) return { ok: false, error: '사진 번호가 올바르지 않아요.' };
+  if (photoMeta_(id)) return { ok: true, ready: true };
+  var err = '';
+  try { err = CacheService.getScriptCache().get('photoerr_' + id) || ''; } catch (e) {}
+  return { ok: true, ready: false, error: err };
+}
+function photo_(p) {
+  var id = String(p.id || ''), m = okPhotoId_(id) ? photoMeta_(id) : null, sp = m ? photoSpan_(id) : null;
+  if (!m || !sp) return { ok: false, error: '사진을 찾지 못했어요.' };
+  var v = sh_('photos').getRange(sp.start, 3, sp.count, 1).getValues();
+  return { ok: true, data: 'data:image/jpeg;base64,' + v.map(function (r) { return r[0]; }).join('') };
+}
+/** 올렸다가 공지에 안 쓰게 된 사진 한 장 지우기 (공지에 연결된 사진은 지우지 않음) */
+function photoDrop_(p) {
+  need_(p, ['admin', 'president']);
+  var id = String(p.id || '');
+  if (!okPhotoId_(id)) return { ok: false, error: '사진 번호가 올바르지 않아요.' };
+  return lock_(function () {
+    var used = rows_('files').some(function (r) { return r[2] === 'photo' && String(r[4]) === 'photo:' + id; });
+    if (!used) deletePhoto_(id);
+    return { ok: true };
+  });
+}
+function photoStats_() {
+  var r = rows_('photoIdx').filter(function (x) { return x[0]; }), len = 0;
+  r.forEach(function (x) { len += Number(x[2]) || 0; });
+  return { count: r.length, kb: Math.round(len * 0.75 / 1024) };
+}
+/** 90일 지난 공지의 사진 + 어디에도 안 쓰는 사진 정리 (최근 24시간 안에 올린 사진은 작성 중일 수 있어 건드리지 않음) */
+function photoCleanup_(p) {
+  need_(p, ['admin']);
+  return lock_(function () {
+    var old = 0, orphan = 0, cutoff = daysAgo_(90);
+    var recent = Utilities.formatDate(new Date(Date.now() - 86400000), TZ, 'yyyy-MM-dd HH:mm:ss');
+    var nd = {};
+    rows_('notices').forEach(function (r) { if (r[0]) nd[r[0]] = dateStr_(r[2]); });
+    var fsh = sh_('files'), fd = rows_('files');
+    for (var i = fd.length - 1; i >= 0; i--) {
+      if (fd[i][2] === 'photo' && nd[fd[i][0]] !== undefined && nd[fd[i][0]] < cutoff) {
+        deletePhoto_(String(fd[i][4]).slice(6)); fsh.deleteRow(i + 2); old++;
+      }
+    }
+    var used = {};
+    rows_('files').forEach(function (r) { if (r[2] === 'photo') used[String(r[4]).slice(6)] = true; });
+    var metaAt = {};
+    rows_('photoIdx').forEach(function (r) { if (r[0]) metaAt[r[0]] = r[3]; });
+    Object.keys(metaAt).forEach(function (id) {
+      if (!used[id] && String(metaAt[id]) < recent) { deletePhoto_(id); orphan++; }
+    });
+    var sh = sh_('photos'), last = sh.getLastRow();      // 저장이 중간에 끊겨 조각만 남은 사진
+    if (last >= 2) {
+      var seen = {};
+      sh.getRange(2, 1, last - 1, 1).getValues().forEach(function (r) { var id = String(r[0]); if (id && !metaAt[id]) seen[id] = true; });
+      Object.keys(seen).forEach(function (id) { deletePhoto_(id); orphan++; });
+    }
+    return { ok: true, old: old, orphan: orphan };
+  });
 }
 /** 우리 반 앱 바로가기 */
 function linksList_() {
@@ -274,7 +419,7 @@ function callDone_(p) {
         return { ok: true, name: st[1] };
       }
     }
-    if (!undo) sh.getRange(sh.getLastRow() + 1, 1, 1, 4).setNumberFormat('@').setValues([[nid, sid, st[1], now_()]]);
+    if (!undo) { ensureRows_(sh, sh.getLastRow() + 1); sh.getRange(sh.getLastRow() + 1, 1, 1, 4).setNumberFormat('@').setValues([[nid, sid, st[1], now_()]]); }
     return { ok: true, name: st[1] };
   });
 }
@@ -331,6 +476,7 @@ function adminLoad_(p) {
     res.confirms = rows_('confirms').map(function (r) { return { nid: r[0], sid: r[1], name: r[2], at: r[3] }; });
     res.presidentCode = getSetting_('회장코드');
     res.links = linksList_();
+    res.photos = photoStats_();
     res.installId = installId_();
   }
   return res;
@@ -385,6 +531,7 @@ function saveNotices_(p) {
   if (!rows.length) return { ok: true, count: 0 };
   return lock_(function () {
     var sh = sh_('notices');
+    ensureRows_(sh, sh.getLastRow() + rows.length);
     sh.getRange(sh.getLastRow() + 1, 1, rows.length, rows[0].length).setNumberFormat('@').setValues(rows);
     return { ok: true, count: rows.length };
   });

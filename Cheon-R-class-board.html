@@ -131,7 +131,7 @@ body.board .adm{display:inline-flex;align-items:center}
 /* 모달 */
 .ov{position:fixed;inset:0;background:rgba(30,25,50,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
 .ov.show{display:flex}
-.modal{background:#fff;border-radius:18px;padding:22px;width:100%;max-width:420px}
+.modal{background:#fff;border-radius:18px;padding:22px;width:100%;max-width:420px;max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);overflow-y:auto;-webkit-overflow-scrolling:touch}
 .modal h2{font-size:21px;margin-bottom:6px}
 .ub.h{cursor:pointer}
 .ub.done{background:#E8E6EE;color:#8B879A}
@@ -168,6 +168,7 @@ body.board .adm{display:inline-flex;align-items:center}
 .atts figure{margin:0}
 .atts img{display:block;max-width:100%;max-height:50vh;border-radius:10px;border:1px solid var(--line);background:#fff;cursor:zoom-in}
 .atts figcaption{font-size:12px;color:var(--tx3);margin-top:3px}
+.phload{padding:22px 12px;border:1px dashed var(--line);border-radius:10px;text-align:center;color:var(--tx3);font-size:13px}
 .alink{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:22px;background:var(--bg);color:var(--main-d);font-weight:700;font-size:14px;text-decoration:none;border:1px solid var(--line);margin-right:8px}
 .lk{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
 .lk b{font-size:13px;color:var(--tx2)}
@@ -356,11 +357,14 @@ function imgSrc(url){
   return u;   // 종류가 '사진'으로 지정된 주소는 그대로 시도
 }
 function hostOf(u){ try{ return new URL(u).hostname.replace(/^www\./,''); }catch(e){ return '링크'; } }
+const photoCache = {};
+function isPhoto(a){ return !!a && a.kind === 'photo' && /^photo:P[a-z0-9]{12,24}$/.test(a.url || ''); }
 function attsHtml(n){
-  const list = (n.attachments || []).filter(a => safeUrl(a.url));
+  const list = (n.attachments || []).filter(a => isPhoto(a) || safeUrl(a.url));
   if (!list.length) return '';
-  const imgs = list.filter(a => a.kind === 'img'), lks = list.filter(a => a.kind !== 'img');
+  const photos = list.filter(isPhoto), imgs = list.filter(a => a.kind === 'img'), lks = list.filter(a => a.kind !== 'img' && a.kind !== 'photo');
   return `<div class="atts">
+    ${photos.map(a => `<figure><div class="phload" data-photo="${esc(a.url.slice(6))}" data-name="${esc(a.name || '')}">📷 사진 불러오는 중…</div>${a.name?`<figcaption>${esc(a.name)}</figcaption>`:''}</figure>`).join('')}
     ${imgs.map(a => `<figure><img src="${esc(imgSrc(a.url))}" alt="${esc(a.name || '첨부 사진')}" data-url="${esc(safeUrl(a.url))}" loading="lazy" onclick="viewImg(this)" onerror="imgFail(this)">${a.name?`<figcaption>${esc(a.name)}</figcaption>`:''}</figure>`).join('')}
     ${lks.length ? `<div>${lks.map(a => `<a class="alink" href="${esc(safeUrl(a.url))}" target="_blank" rel="noopener noreferrer">🔗 ${esc(a.name || hostOf(a.url))}</a>`).join('')}</div>` : ''}
   </div>`;
@@ -371,6 +375,20 @@ function imgFail(el){   // 사진이 안 열리면(공유 설정 등) 링크 버
   a.textContent = '🖼️ ' + (el.alt && el.alt !== '첨부 사진' ? el.alt : '사진 열기');
   const box = el.closest('figure') || el; box.replaceWith(a);
 }
+async function loadPhotos(root){   // 폰에서 올린 사진은 시트에서 따로 불러와요
+  for (const box of root.querySelectorAll('.phload')){
+    const id = box.dataset.photo;
+    try{
+      if (!photoCache[id]) photoCache[id] = (await jsonp({ action:'photo', id })).data;
+      const im = document.createElement('img');
+      im.src = photoCache[id]; im.alt = box.dataset.name || '첨부 사진'; im.onclick = () => viewImg(im);
+      box.replaceWith(im);
+    }catch(e){
+      box.innerHTML = '📷 사진을 불러오지 못했어요<br><button class="alink" style="margin:8px 0 0" onclick="retryPhotos(this)">다시 시도</button>';
+    }
+  }
+}
+function retryPhotos(btn){ const box = btn.closest('.phload'); box.textContent = '📷 사진 불러오는 중…'; loadPhotos(box.parentElement); }
 function viewImg(el){ document.getElementById('imgBig').src = el.src; document.getElementById('imgOv').classList.add('show'); }
 function renderLinks(){
   const box = document.getElementById('linksBox');
@@ -533,6 +551,7 @@ function openDetail(id){
     ${ck}
     <div id="reqArea"><button class="req-btn" onclick="openReq('${esc(n.id)}')">✏️ 수정 요청·질문</button></div>`;
   document.getElementById('detOv').classList.add('show');
+  loadPhotos(document.getElementById('detBox'));
 }
 
 /* ===== 수정 요청·질문 ===== */
