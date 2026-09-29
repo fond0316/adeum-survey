@@ -290,7 +290,7 @@ function saveNotice_(p) {
   var n = JSON.parse(p.data || '{}');
   var author = role === 'admin' ? '담임' : '회장';
   if (role === 'president') {
-    if (PRESIDENT_TYPES.indexOf(n.type) < 0) throw new Error('회장은 확인사항·교과공지·일반만 작성할 수 있어요.');
+    if (PRESIDENT_TYPES.indexOf(n.type) < 0) throw new Error('회장은 학급공지·교과공지·일반만 작성할 수 있어요.');
     n.popup = false; n.targets = [];
   }
   if (!n.title || !n.date || !n.type) throw new Error('유형, 날짜, 제목은 꼭 입력해 주세요.');

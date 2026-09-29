@@ -55,8 +55,12 @@ input:focus,textarea:focus{outline:none;border-color:var(--main)}
 .bulk-row input[type=checkbox]{width:20px;height:20px;accent-color:var(--main)}
 .bulk-row input[type=date],.bulk-row input[type=text]{min-height:40px;padding:6px 8px;font-size:14px}
 .bulk-row.off{opacity:.45}
+.bulk-dup{grid-column:2 / 4;background:#FEF3C7;color:#92400E;border-radius:8px;padding:8px 10px;font-size:13px;line-height:1.6}
+.bulk-dup select{width:100%;min-height:40px;margin-top:6px;border:1.5px solid #F5D98B;border-radius:8px;background:#fff;color:var(--tx);padding:0 8px;font-size:14px}
+.dcard{background:var(--bg);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:14px;line-height:1.5;white-space:pre-wrap}
+.dcard small{display:block;font-size:12px;color:var(--tx3);margin-bottom:2px}
 .bulk-warn{grid-column:2 / 4;font-size:12px;color:#B45309}
-@media (max-width:560px){.bulk-row{grid-template-columns:32px 1fr}.bulk-row input[type=text]{grid-column:2}}
+@media (max-width:560px){.bulk-row{grid-template-columns:32px 1fr}.bulk-row input[type=text]{grid-column:2}.bulk-dup{grid-column:2}}
 .chk{display:flex;align-items:center;gap:8px;min-height:44px;font-size:15px}
 .chk input{width:20px;height:20px;accent-color:var(--main)}
 .roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;max-height:240px;overflow-y:auto;border:1px solid var(--line);border-radius:10px;padding:8px}
@@ -400,6 +404,17 @@ details summary::-webkit-details-marker{display:none}
   <div class="foot">Made by Cheon_R</div>
 </div>
 
+<!-- 같은 날짜·과목 공지 확인 창 -->
+<div class="ov hide" id="dupOv">
+  <div class="box">
+    <h2>⚠️ 같은 날짜·과목 공지가 있어요</h2>
+    <div id="dupBody"></div>
+    <div id="dupBtns"></div>
+    <button class="cbtn btn sub hide" id="dupNewBtn" onclick="dupChoose('new')">따로 올리기</button>
+    <div class="msg no" id="dupErr"></div>
+  </div>
+</div>
+
 <!-- 문의 창 -->
 <div class="ov hide" id="contactOv" onclick="if(event.target===this)this.classList.add('hide')">
   <div class="box">
@@ -419,7 +434,7 @@ const K = { gas:'sn_gas_v1', pw:'sn_admin_pw_v1', owner:'sn_owner_v1', reg:'sn_r
 const REGISTRY_URL = 'https://script.google.com/macros/s/AKfycbzrgeAlZhEGyvp7vo_j0hgesVoIoI6T_GMayKJCfvOFaV5Sb3wO1xvackSeQLc3HQxsnQ/exec';           // ← 등록부 GAS 웹 앱 URL (비어 있으면 등록 기능 꺼짐)
 const CONTACT_EMAIL = 'fond0316@naver.com';
 const TYPES = { '긴급':'u', '확인':'c', '호출':'h', '교과':'s', '일반':'g' };
-const LABEL = { '긴급':'긴급', '확인':'확인사항', '호출':'호출', '교과':'교과공지', '일반':'일반' };
+const LABEL = { '긴급':'긴급', '호출':'호출', '확인':'학급공지', '교과':'교과공지', '일반':'일반' };
 
 function lsGet(k,d){ try{ const v=localStorage.getItem(k); return v===null?d:JSON.parse(v);}catch(e){return d;} }
 function lsSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
@@ -646,7 +661,7 @@ async function saveStudents(btn){
 }
 
 /* ===== 공지 작성 ===== */
-function allowedTypes(){ return role==='admin' ? ['긴급','확인','호출','교과','일반'] : ['확인','교과','일반']; }
+function allowedTypes(){ return role==='admin' ? ['긴급','호출','확인','교과','일반'] : ['확인','교과','일반']; }
 function renderChips(){
   $('typeChips').innerHTML = allowedTypes().map(t=>`<button class="chip ${TYPES[t]} ${t===fType?'on':''}" onclick="setType('${t}')">${LABEL[t]}</button>`).join('');
   const canPop = role==='admin' && (fType==='긴급' || fType==='호출');
@@ -682,15 +697,92 @@ function editNotice(id){
   renderChips(); renderRoster((n.targets||[]).map(t=>t.sid));
   window.scrollTo({ top:0, behavior:'smooth' });
 }
-async function saveNotice(btn){
+/* ===== 같은 날짜·과목 공지 확인 ===== */
+const DUP_TYPES = ['확인','교과','일반'], MAX_BODY = 800;
+function normT(s){ return String(s||'').replace(/[^0-9A-Za-z가-힣]/g,'').toLowerCase(); }
+function subjLabel(title){
+  const t = String(title||'').replace(/^[\s☆★※·•*\-\[\]()【】「」]+/, '');
+  return (t.split(/\s+/)[0] || '').replace(/[\]\)】」]+$/, '');
+}
+function subjectOf(title){ return normT(subjLabel(title)); }
+function sameSubj(a, b){
+  if (!a || !b) return false;
+  if (a === b) return true;
+  return Math.min(a.length, b.length) >= 2 && (a.startsWith(b) || b.startsWith(a));   // 체육 ↔ 체육B시간
+}
+function findDup(date, title, skipId){
+  const subj = subjectOf(title); if (!subj || !date) return null;
+  const hits = data.notices.filter(n => DUP_TYPES.includes(n.type) && n.date === date &&
+    String(n.id) !== String(skipId||'') && sameSubj(subjectOf(n.title), subj));
+  if (!hits.length) return null;
+  const nt = normT(title), exact = hits.find(n => normT(n.title) === nt), tg = exact || hits[0];
+  return { target:tg, exact:!!exact, canEdit:canEdit(tg), count:hits.length };
+}
+function appendLines(title, body, base){
+  let t = String(title||'').trim();
+  const m = t.match(/^(\S+)\s+([\s\S]+)$/);
+  if (m && normT(m[1]) && normT(m[1]) === subjectOf(base.title)) t = m[2].trim();   // 과목명이 같으면 내용만
+  return '· ' + t + (body ? '\n' + String(body).trim() : '');
+}
+function buildMod(target, ops){
+  let type = target.type, title = target.title, body = target.body || '', imp = !!target.important;
+  ops.forEach(op => {
+    if (op.act === 'edit'){ type = op.type; title = op.title; body = op.body || ''; }
+    else body = (body ? body.replace(/\s+$/,'') + '\n' : '') + appendLines(op.title, op.body, { title });
+    imp = imp || !!op.important;
+  });
+  if (body.length > MAX_BODY) throw new Error('내용이 너무 길어져서 더 추가할 수 없어요. 새 카드로 올리거나 내용을 줄여 주세요.');
+  return { id:target.id, type, date:target.date, title, body, memo:target.memo||'', important:imp,
+    popup:!!target.popup, targets:(target.targets||[]).map(x=>x.sid) };
+}
+let dupCtx = null;
+function showDup(n, d){
+  dupCtx = { n, d };
+  const t = d.target, prev = String(t.body||'').split('\n').slice(0,2).join('\n');
+  $('dupBody').innerHTML = `
+    <p class="hint" style="margin:0">📅 <b>${prettyDate(n.date)}</b>에 <b>${esc(subjLabel(n.title))}</b> 공지가 이미 있어요${d.count>1?` (외 ${d.count-1}개)`:''}.</p>
+    <div class="dcard"><small>이미 올라간 공지</small><b>${esc(t.title)}</b>${prev?'\n'+esc(prev):''}</div>
+    <div class="dcard" style="background:#EFEAFB"><small>지금 올리려는 내용</small><b>${esc(n.title)}</b>${n.body?'\n'+esc(n.body.split('\n').slice(0,2).join('\n')):''}</div>
+    ${d.exact?'<p class="hint" style="margin-top:8px"><b>제목까지 똑같아요.</b> 이미 올라간 공지일 수 있어요.</p>':''}
+    ${d.canEdit?'':'<p class="hint" style="margin-top:8px">담임 공지라 회장은 고칠 수 없어요.</p>'}`;
+  $('dupBtns').innerHTML = d.canEdit
+    ? `<button class="cbtn btn ${d.exact?'sub':''}" onclick="dupChoose('add')">기존 공지에 내용 추가</button>
+       <button class="cbtn btn sub" onclick="dupChoose('edit')">기존 공지를 이 내용으로 바꾸기</button>
+       <button class="cbtn btn ${d.exact?'':'sub'}" onclick="dupChoose('skip')">올리지 않기</button>`
+    : `<button class="cbtn btn" onclick="dupChoose('new')">따로 올리기</button>
+       <button class="cbtn btn sub" onclick="dupChoose('skip')">올리지 않기</button>`;
+  $('dupNewBtn').classList.add('hide'); $('dupErr').textContent = '';
+  $('dupOv').classList.remove('hide');
+}
+async function dupChoose(act){
+  const { n, d } = dupCtx, btn = $('saveBtn');
+  if (act === 'skip'){ $('dupOv').classList.add('hide'); msg('formMsg','올리지 않았어요. (작성한 내용은 그대로 남겨뒀어요)', true); return; }
+  if (act === 'new'){ $('dupOv').classList.add('hide'); return saveNotice(btn, true); }
+  let payload;
+  try{ payload = buildMod(d.target, [{ act, type:n.type, title:n.title, body:n.body, important:n.important }]); }
+  catch(e){ $('dupErr').textContent = e.message; $('dupNewBtn').classList.remove('hide'); return; }
+  $('dupOv').classList.add('hide'); btn.disabled = true; msg('formMsg','저장 중…',true);
+  try{
+    await jsonp({ action:'saveNotice', pw:PW, data:JSON.stringify(payload) });
+    await refresh(); resetForm(); renderList();
+    msg('formMsg', act==='add' ? '기존 공지에 내용을 추가했어요.' : '기존 공지를 이 내용으로 바꿨어요.', true);
+  }catch(e){ msg('formMsg', e.message); }
+  btn.disabled = false;
+}
+
+async function saveNotice(btn, skipDup){
   const n = { id:editId||'', type:fType, date:$('fDate').value, title:$('fTitle').value.trim(), body:$('fBody').value.trim(),
     memo: fType==='호출' ? $('fMemo').value.trim() : '', important:$('fImp').checked,
     popup: role==='admin' && (fType==='긴급'||fType==='호출') && $('fPop').checked,
     targets: fType==='호출' ? [...document.querySelectorAll('#roster input:checked')].map(i=>i.value) : [] };
   if (!n.date || !n.title){ msg('formMsg','날짜와 제목을 입력해 주세요.'); return; }
   if (fType==='호출' && !n.targets.length && !n.memo){ msg('formMsg','호출 대상을 선택하거나 직접 입력해 주세요.'); return; }
-  if (!editId && fType!=='긴급' && fType!=='호출' && datedCount(n.body) >= 2 &&
+  if (!skipDup && !editId && fType!=='긴급' && fType!=='호출' && datedCount(n.body) >= 2 &&
       confirm(`날짜가 있는 줄이 ${datedCount(n.body)}개 있어요.\n날짜별로 나눠서 달력에 올릴까요?\n(취소를 누르면 한 공지로 올려요)`)){ splitToBulk(); return; }
+  if (!skipDup && !editId && DUP_TYPES.includes(fType)){
+    const d = findDup(n.date, n.title);
+    if (d){ showDup(n, d); return; }
+  }
   btn.disabled = true; msg('formMsg','저장 중…',true);
   try{
     await jsonp({ action:'saveNotice', pw:PW, data:JSON.stringify(n) });
@@ -861,7 +953,21 @@ function bulkDate(m, d){
   if (dt.getMonth() !== m-1) return null;
   return ymd(dt);
 }
-function parseBulk(){ bulkItems = parseDated($('bulkIn').value); renderBulk(); }
+function parseBulk(){ bulkItems = parseDated($('bulkIn').value); bulkItems.forEach(it => bulkDup(it, true)); renderBulk(); }
+function bulkDup(it, initial){
+  const prev = it.act, d = (it.date && it.title.trim()) ? findDup(it.date, it.title, splitFrom) : null;
+  it.dup = d;
+  if (!d){ it.act = ''; if (prev === 'skip' && !initial) it.on = true; return; }
+  it.act = d.exact ? 'skip' : (d.canEdit ? 'add' : 'new');
+  if (it.act === 'skip') it.on = false; else if (prev === 'skip' && !initial) it.on = true;
+}
+function bulkChanged(i){ bulkDup(bulkItems[i]); renderBulk(); }
+function setAct(i, v){ const it = bulkItems[i]; it.act = v; it.on = v !== 'skip'; renderBulk(); }
+function toggleRow(i, on){
+  const it = bulkItems[i]; it.on = on;
+  if (on && it.act === 'skip') it.act = it.dup ? (it.dup.canEdit ? 'add' : 'new') : '';
+  renderBulk();
+}
 function parseDated(text){
   const lines = String(text||'').split('\n').map(l=>l.trim()).filter(Boolean);
   const hasBullet = lines.some(l=>/^[-•*·▪︎]/.test(l));
@@ -919,24 +1025,47 @@ function renderBulk(){
   }
   $('bulkPrev').innerHTML = `<p class="hint">체크된 줄만 올라가요. 날짜·제목은 여기서 고칠 수 있어요.</p>` + bulkItems.map((it,i)=>`
     <div class="bulk-row${it.on?'':' off'}">
-      <input type="checkbox" ${it.on?'checked':''} onchange="bulkItems[${i}].on=this.checked;this.parentNode.classList.toggle('off',!this.checked);bulkCount()">
-      <input type="date" value="${it.date}" onchange="bulkItems[${i}].date=this.value">
-      <input type="text" value="${esc(it.title)}" maxlength="60" oninput="bulkItems[${i}].title=this.value">
+      <input type="checkbox" ${it.on?'checked':''} onchange="toggleRow(${i},this.checked)">
+      <input type="date" value="${it.date}" onchange="bulkItems[${i}].date=this.value;bulkChanged(${i})">
+      <input type="text" value="${esc(it.title)}" maxlength="60" oninput="bulkItems[${i}].title=this.value" onchange="bulkChanged(${i})">
       ${it.warn?`<div class="bulk-warn">⚠️ ${esc(it.warn)}</div>`:''}
+      ${it.dup?`<div class="bulk-dup">📅 ${prettyDate(it.date)}에 <b>${esc(subjLabel(it.title))}</b> 공지가 이미 있어요: "${esc(it.dup.target.title)}"${it.dup.exact?' — <b>제목까지 똑같아요</b>':''}${it.dup.canEdit?'':'<br>담임 공지라 회장은 고칠 수 없어요.'}
+        <select onchange="setAct(${i},this.value)">${it.dup.canEdit
+          ? `<option value="add" ${it.act==='add'?'selected':''}>기존 공지에 내용 추가</option><option value="edit" ${it.act==='edit'?'selected':''}>기존 공지를 이 내용으로 바꾸기</option><option value="skip" ${it.act==='skip'?'selected':''}>올리지 않기</option>`
+          : `<option value="new" ${it.act==='new'?'selected':''}>따로 올리기</option><option value="skip" ${it.act==='skip'?'selected':''}>올리지 않기</option>`}</select></div>`:''}
     </div>`).join('');
   $('bulkAct').classList.remove('hide'); bulkCount();
 }
-function bulkCount(){ $('bulkSave').textContent = `선택한 ${bulkItems.filter(x=>x.on).length}개 올리기`; }
+function bulkCount(){
+  const on = bulkItems.filter(x=>x.on), mod = on.filter(x=>x.dup && (x.act==='add'||x.act==='edit')).length;
+  $('bulkSave').textContent = `선택한 ${on.length}개 올리기` + (mod ? ` (기존 공지 추가·수정 ${mod}개 포함)` : '');
+}
 function clearBulk(){ $('bulkIn').value=''; bulkItems=[]; $('bulkPrev').innerHTML=''; $('bulkAct').classList.add('hide'); msg('bulkMsg','',true); }
 async function saveBulk(btn){
-  const list = bulkItems.filter(x=>x.on).map(x=>({ type:bulkType, date:x.date, title:x.title.trim(), author:splitAuthor }));
-  if (!list.length){ msg('bulkMsg','올릴 줄을 체크해 주세요.'); return; }
-  if (list.some(x=>!x.date || !x.title)){ msg('bulkMsg','날짜나 제목이 빈 줄이 있어요.'); return; }
+  const rows = bulkItems.filter(x=>x.on);
+  if (!rows.length){ msg('bulkMsg','올릴 줄을 체크해 주세요.'); return; }
+  if (rows.some(x=>!x.date || !x.title.trim())){ msg('bulkMsg','날짜나 제목이 빈 줄이 있어요.'); return; }
+  const isMod = x => x.dup && (x.act==='add' || x.act==='edit');
+  const list = rows.filter(x=>!isMod(x)).map(x=>({ type:bulkType, date:x.date, title:x.title.trim(), author:splitAuthor }));
+  const groups = new Map();
+  rows.filter(isMod).forEach(x=>{
+    const g = groups.get(x.dup.target.id) || { target:x.dup.target, ops:[] }; groups.set(x.dup.target.id, g);
+    g.ops.push({ act:x.act, type:bulkType, title:x.title.trim(), body:'', important:false });
+  });
+  let payloads;
+  try{ payloads = [...groups.values()].map(g => buildMod(g.target, g.ops)); }   // 올리기 전에 미리 검사
+  catch(e){ msg('bulkMsg', e.message); return; }
+  const addN = rows.filter(x=>isMod(x)&&x.act==='add').length, editN = rows.filter(x=>isMod(x)&&x.act==='edit').length;
+  const skipN = bulkItems.filter(x=>x.act==='skip').length;
   btn.disabled = true;
   try{
     for (let i = 0; i < list.length; i += 5){                    // 주소 길이 제한 때문에 5개씩 나눠 전송
       msg('bulkMsg', `올리는 중… (${Math.min(i+5, list.length)}/${list.length})`, true);
       await jsonp({ action:'saveNotices', pw:PW, data:JSON.stringify(list.slice(i, i+5)) });
+    }
+    for (let i = 0; i < payloads.length; i++){
+      msg('bulkMsg', `기존 공지에 반영 중… (${i+1}/${payloads.length})`, true);
+      await jsonp({ action:'saveNotice', pw:PW, data:JSON.stringify(payloads[i]) });
     }
     let delMsg = '';
     if (splitFrom && confirm('날짜별로 올렸어요!\n원래 한 덩어리 공지는 삭제할까요?')){
@@ -945,7 +1074,12 @@ async function saveBulk(btn){
     }
     splitFrom = null; splitAuthor = '';
     await refresh(); renderList(); clearBulk();
-    msg('bulkMsg', `${list.length}개 공지를 올렸어요! 🎉` + delMsg, true);
+    const parts = [];
+    if (list.length) parts.push(`${list.length}개 새로 올림`);
+    if (addN) parts.push(`기존 공지에 ${addN}줄 추가`);
+    if (editN) parts.push(`${editN}개 수정`);
+    if (skipN) parts.push(`${skipN}개 건너뜀`);
+    msg('bulkMsg', parts.join(' · ') + ' 🎉' + delMsg, true);
   }catch(e){ msg('bulkMsg', e.message + ' (일부만 올라갔을 수 있어요. 목록을 확인해 주세요)'); }
   btn.disabled = false;
 }

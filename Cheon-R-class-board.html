@@ -182,8 +182,8 @@ body.board .adm{display:inline-flex;align-items:center}
       <div class="days" id="days"></div>
       <div class="legend">
         <span><i style="background:var(--u-dot)"></i>긴급</span>
-        <span><i style="background:var(--c-dot)"></i>확인사항</span>
         <span><i style="background:var(--h-dot)"></i>호출</span>
+        <span><i style="background:var(--c-dot)"></i>학급공지</span>
         <span><i style="background:var(--s-dot)"></i>교과공지</span>
         <span><i style="background:var(--g-dot)"></i>일반</span>
       </div>
@@ -238,7 +238,7 @@ body.board .adm{display:inline-flex;align-items:center}
 const K = { gas:'sn_gas_v1', me:'sn_me_v1', seen:'sn_popup_seen_v1', last:'sn_lastseen_v1', cls:'sn_cls_v1', board:'sn_board_v1' };
 const TYPES = { '긴급':{c:'u',ic:'🚨'}, '확인':{c:'c',ic:'📋'}, '호출':{c:'h',ic:'📣'}, '교과':{c:'s',ic:'📚'}, '일반':{c:'g',ic:'📌'} };
 const ORDER = { '긴급':0, '호출':1, '확인':2, '교과':3, '일반':4 };
-const LABEL = { '긴급':'긴급', '확인':'확인사항', '호출':'호출', '교과':'교과공지', '일반':'일반' };
+const LABEL = { '긴급':'긴급', '호출':'호출', '확인':'학급공지', '교과':'교과공지', '일반':'일반' };
 const POLL_MS = 60000;
 
 function lsGet(k, d){ try{ const v = localStorage.getItem(k); return v===null ? d : JSON.parse(v); }catch(e){ return d; } }
@@ -505,7 +505,7 @@ function renderList(){
     const td = notices.filter(n => n.date === t).sort(sortN);
     const pend = notices.filter(n => n.type === '확인' && n.date > t).sort(sortN);
     html += `<div class="sec">${prettyDate(t)}</div>` + (td.length ? td.map(card).join('') : '<div class="empty">오늘은 공지가 없어요 🙂</div>');
-    if (pend.length) html += `<div class="sec">마감 전 확인사항</div>` + pend.map(card).join('');
+    if (pend.length) html += `<div class="sec">마감 전 학급공지</div>` + pend.map(card).join('');
   } else if (tab === 'week'){
     for (let i = 0; i < 7; i++){
       const d = addDays(t, i);
