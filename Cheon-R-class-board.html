@@ -41,6 +41,20 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 #urgent{display:flex;flex-direction:column;gap:6px;margin-top:10px}
 .ub{background:var(--u-bg);color:var(--u-tx);border-radius:12px;padding:10px 14px;font-size:15px;font-weight:600;display:flex;gap:8px;align-items:flex-start}
 .ub small{display:block;font-weight:400;font-size:13px;margin-top:2px;white-space:pre-wrap}
+.ub.h{background:var(--h-bg);color:var(--h-tx)}
+.boardBtn{display:inline-block;margin-top:8px;min-height:36px;padding:0 12px;border-radius:18px;font-size:12px;color:var(--tx3);background:transparent;border:1px solid var(--line)}
+/* 🖥️ 교실 화면 모드 — 멀리서도 보이게 크게 */
+body.board{zoom:1.25}
+body.board .wrap{max-width:1500px}
+body.board .ub{font-size:20px;padding:14px 18px}
+body.board .ub small{font-size:16px}
+body.board .ttl{font-size:19px}
+body.board .card .full,body.board .prev{font-size:16px}
+body.board .pop .ttl{font-size:28px}
+body.board .pop .body,body.board .pop .tg{font-size:20px}
+body.board .me{background:#fff;color:var(--main-d)}
+.adm{display:none}
+body.board .adm{display:inline-flex;align-items:center}
 
 /* 본문 레이아웃 (가로: 좌 달력 / 우 공지) */
 .main{display:grid;grid-template-columns:minmax(260px,34%) 1fr;gap:14px;margin-top:12px;align-items:start}
@@ -137,7 +151,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   <header class="top">
     <span class="logo">📋</span>
     <div class="ttlw"><h1>CLASS BOARD</h1><div class="sub" id="cls"></div></div>
-    <button class="me" id="meBtn" onclick="openWho()">학번 등록</button>
+    <button class="me adm" onclick="openBoard('admin')">✏️ 관리</button>
+    <button class="me" id="meBtn" onclick="BOARD ? openBoard() : openWho()">학번 등록</button>
     <button class="ref" id="refBtn" onclick="load(true)" aria-label="새로고침">↻</button>
   </header>
 
@@ -167,7 +182,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
       <div class="upd" id="upd"></div>
     </section>
   </div>
-  <div class="foot">Made by Cheon_R</div>
+  <div class="foot">Made by Cheon_R<br><button class="boardBtn" onclick="openBoard()">🖥️ 교실 화면 모드</button></div>
 </div>
 
 <!-- 학번 등록 -->
@@ -184,6 +199,17 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   </div>
 </div>
 
+<!-- 교실 화면 모드 -->
+<div class="ov" id="boardOv">
+  <div class="modal">
+    <h2 id="bdTitle">🖥️ 교실 화면 모드</h2>
+    <p id="bdText"></p>
+    <input id="bdPw" type="password" placeholder="담임 비밀번호 또는 회장 코드" onkeydown="if(event.key==='Enter')toggleBoard()">
+    <div class="err" id="bdErr"></div>
+    <div class="btns"><button class="b2" onclick="closeOv('boardOv')">취소</button><button class="b1" id="bdOk" onclick="toggleBoard()">켜기</button></div>
+  </div>
+</div>
+
 <!-- 공지 상세 -->
 <div class="ov" id="detOv" onclick="if(event.target===this)closeOv('detOv')">
   <div class="modal det" id="detBox"></div>
@@ -196,7 +222,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 
 <script>
 /* ===== 설정 & 저장소 ===== */
-const K = { gas:'sn_gas_v1', me:'sn_me_v1', seen:'sn_popup_seen_v1', last:'sn_lastseen_v1', cls:'sn_cls_v1' };
+const K = { gas:'sn_gas_v1', me:'sn_me_v1', seen:'sn_popup_seen_v1', last:'sn_lastseen_v1', cls:'sn_cls_v1', board:'sn_board_v1' };
 const TYPES = { '긴급':{c:'u',ic:'🚨'}, '확인':{c:'c',ic:'📋'}, '호출':{c:'h',ic:'📣'}, '교과':{c:'s',ic:'📚'}, '일반':{c:'g',ic:'📌'} };
 const ORDER = { '긴급':0, '호출':1, '확인':2, '교과':3, '일반':4 };
 const LABEL = { '긴급':'긴급', '확인':'확인사항', '호출':'호출', '교과':'교과공지', '일반':'일반' };
@@ -211,6 +237,7 @@ function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e)
 })();
 const GAS = lsGet(K.gas, '');
 const PREVIEW = new URLSearchParams(location.search).get('preview') === '1';
+let BOARD = lsGet(K.board, false) === true;   // 🖥️ 교실 화면 모드 (이 기기에 기억)
 
 let me = lsGet(K.me, null);
 let notices = [], confirmed = new Set();
@@ -284,13 +311,20 @@ function render(){
   renderMe(); renderUrgent(); renderCal(); renderTabs(); renderList();
 }
 function renderMe(){
-  document.getElementById('meBtn').textContent = me ? me.sid + ' ' + me.name : (PREVIEW ? '👀 담임 미리보기' : '학번 등록');
+  document.getElementById('meBtn').textContent = BOARD ? '🖥️ 교실 화면 모드' : me ? me.sid + ' ' + me.name : (PREVIEW ? '👀 담임 미리보기' : '학번 등록');
 }
 function renderUrgent(){
   const t = today();
   const u = notices.filter(n => n.type === '긴급' && n.date === t).sort(sortN);
-  document.getElementById('urgent').innerHTML = u.map(n =>
+  let html = u.map(n =>
     `<div class="ub"><span>🚨</span><div>${esc(n.title)}${n.body?`<small>${esc(n.body)}</small>`:''}</div></div>`).join('');
+  if (BOARD){   // 교실 화면: 오늘 호출은 배너로 계속 표시
+    html += notices.filter(n => n.type === '호출' && n.date === t).sort(sortN).map(n => {
+      const who = (n.targets||[]).map(x => esc(x.sid+' '+x.name)); if (n.memo) who.push(esc(n.memo));
+      return `<div class="ub h"><span>📣</span><div>${who.join(', ')}${who.length?' → ':''}${esc(n.title)}${n.body?`<small>${esc(n.body)}</small>`:''}</div></div>`;
+    }).join('');
+  }
+  document.getElementById('urgent').innerHTML = html;
 }
 function renderCal(){
   const y = view.getFullYear(), m = view.getMonth();
@@ -473,7 +507,7 @@ function checkPopups(){
   const t = today();
   const seen = new Set(lsGet(K.seen, []));
   const fresh = notices.filter(n => n.popup && n.date === t && !seen.has(String(n.id)) &&
-    (PREVIEW || !n.targets || !n.targets.length || isMine(n)) && !popQueue.some(q => q.id === n.id));
+    (PREVIEW || BOARD || !n.targets || !n.targets.length || isMine(n)) && !popQueue.some(q => q.id === n.id));
   if (!fresh.length) return;
   popQueue.push(...fresh.sort(sortN));
   alertUser();
@@ -528,17 +562,52 @@ function beep(){
 }
 document.addEventListener('pointerdown', () => { try{ actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); }catch(e){} }, { once:true });
 
+/* ===== 🖥️ 교실 화면 모드 ===== */
+let pollTimer = null;
+function startPoll(){ clearInterval(pollTimer); pollTimer = setInterval(load, BOARD ? 30000 : POLL_MS); }
+function applyBoard(){ document.body.classList.toggle('board', BOARD); }
+let bdMode = 'toggle';
+function go(url){ location.href = url; }
+function openBoard(mode){
+  bdMode = mode === 'admin' ? 'admin' : 'toggle';
+  document.getElementById('bdTitle').textContent = bdMode === 'admin' ? '✏️ 관리 화면으로 전환' : BOARD ? '🖥️ 교실 화면 모드 끄기' : '🖥️ 교실 화면 모드';
+  document.getElementById('bdText').textContent = bdMode === 'admin'
+    ? '담임 비밀번호나 회장 코드를 입력해 주세요. 다 쓰면 [🖥️ 교실 화면 모드]를 눌러 돌아와요. (5분 동안 조작이 없으면 자동으로 돌아와요)'
+    : BOARD ? '끄려면 담임 비밀번호나 회장 코드를 입력해 주세요.'
+    : '전자칠판처럼 반 전체가 보는 화면용이에요. 모든 호출이 크게 뜨고 30초마다 새로고침돼요. 담임 비밀번호나 회장 코드를 입력해 주세요.';
+  document.getElementById('bdOk').textContent = bdMode === 'admin' ? '전환' : BOARD ? '끄기' : '켜기';
+  document.getElementById('bdPw').value = ''; document.getElementById('bdErr').textContent = '';
+  document.getElementById('boardOv').classList.add('show');
+  setTimeout(() => document.getElementById('bdPw').focus(), 50);
+}
+async function toggleBoard(){
+  const pw = document.getElementById('bdPw').value.trim(), err = document.getElementById('bdErr');
+  if (!pw){ err.textContent = '비밀번호를 입력해 주세요.'; return; }
+  err.textContent = '확인 중…';
+  try{
+    const r = await jsonp({ action:'login', pw });
+    if (!r.role){ err.textContent = '비밀번호가 맞지 않아요.'; return; }
+    if (bdMode === 'admin'){   // 관리 화면으로 (이 탭에서만 로그인 유지)
+      try{ sessionStorage.setItem('sn_admin_pw_v1', pw); }catch(e){}
+      go('Cheon-R-class-board-admin.html?from=board'); return;
+    }
+    BOARD = !BOARD; lsSet(K.board, BOARD);
+    closeOv('boardOv'); closeOv('whoOv'); applyBoard(); startPoll(); render(); checkPopups();
+  }catch(e){ err.textContent = e.message; }
+}
+
 /* ===== 시작 ===== */
 document.addEventListener('visibilitychange', () => { if (!document.hidden){ load(); if (!popShowing) stopBlink(); } });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('Cheon-R-class-board-sw.js', { scope:'./Cheon-R-class-board' }).catch(()=>{});
+applyBoard();
 if (lsGet(K.cls, '')) setSub(lsGet(K.cls, ''));
 render();
 if (!GAS){
   document.getElementById('list').innerHTML = '<div class="empty">연결 주소가 없어요.<br>선생님이 알려준 링크로 다시 열어 주세요.</div>';
 } else {
   load();
-  setInterval(load, POLL_MS);
-  if (!me && !PREVIEW) setTimeout(openWho, 600);
+  startPoll();
+  if (!me && !PREVIEW && !BOARD) setTimeout(openWho, 600);
 }
 </script>
 </body>

@@ -174,7 +174,8 @@ details summary::-webkit-details-marker{display:none}
       <li>⚙️ 탭의 <b>학생용 링크</b>를 QR코드나 메시지로 공유</li>
       <li>학생은 디벗·핸드폰에서 <b>홈 화면에 추가</b>로 앱처럼 설치 (⚙️ 탭 '학생 설치 방법' 참고)</li>
       <li>처음 열 때 학번 한 번 등록하면 끝</li>
-      <li>상단 <b>👀 학생 화면</b> 버튼으로 학생에게 어떻게 보이는지 확인할 수 있어요.</li></ol></div>
+      <li>상단 <b>👀 학생 화면</b> 버튼으로 학생에게 어떻게 보이는지 확인할 수 있어요.</li>
+      <li>교실 <b>전자칠판</b>엔 학생용 링크를 열고 맨 아래 <b>🖥️ 교실 화면 모드</b>를 켜 두세요.</li></ol></div>
     <div class="tip">💡 나중에 GAS 코드를 고칠 땐 <b>새 배포</b>가 아니라 <b>배포 관리 → ✏️ 수정 → 새 버전</b>으로 해야 기존 학생 링크가 유지돼요.</div>
     <button class="gbtn" onclick="mailContact()">✉️ 궁금한 점은 메일로 문의해 주세요</button>
   </div>
@@ -238,7 +239,8 @@ details summary::-webkit-details-marker{display:none}
   <div id="scrMain" class="hide">
     <header class="top">
       <h1 id="cls">학급 공지 관리</h1>
-      <button class="view" onclick="openStudentView()">👀 학생 화면</button>
+      <button class="view hide" id="backBoard" onclick="backToBoard()">🖥️ 교실 화면 모드</button>
+      <button class="view" id="viewBtn" onclick="openStudentView()">👀 학생 화면</button>
       <span class="role" id="roleTag"></span>
       <button class="out" onclick="logout()">로그아웃</button>
     </header>
@@ -270,6 +272,7 @@ details summary::-webkit-details-marker{display:none}
             <li>처음 열 때 학번을 한 번 등록해요. 디벗과 폰에 <b>각각 한 번씩</b> 등록하면 돼요.</li>
           </ol>
           <p class="hint" style="margin-top:8px">💡 [확인했어요] 기록은 학번 기준이라 디벗·폰 어디서 눌러도 똑같이 반영돼요.<br>⚠️ 링크만 있으면 공지가 보이니, 학생들에게 <b>링크는 우리 반끼리만</b> 공유하도록 안내해 주세요.</p>
+          <p class="hint" style="margin-top:8px;background:var(--bg);border-radius:8px;padding:8px 10px">🖥️ <b>전자칠판</b>: 학생용 링크를 열고 맨 아래 <b>[🖥️ 교실 화면 모드]</b> → 담임 비밀번호나 회장 코드 입력. 모든 호출이 크게 뜨고 오늘 호출은 상단에 계속 남아요. 처음 한 번 화면을 터치해야 알림음이 나요.</p>
         </details>
       </div>
       <div class="box">
@@ -481,7 +484,7 @@ async function login(){
     await afterLogin(r);
   }catch(e){ msg('loginMsg', e.message); }
 }
-function logout(){ PW=''; sessionStorage.removeItem(K.pw); $('pwIn').value=''; msg('loginMsg','',true); show('scrLogin'); }
+function logout(){ if (FROM_BOARD) return backToBoard(); PW=''; sessionStorage.removeItem(K.pw); $('pwIn').value=''; msg('loginMsg','',true); show('scrLogin'); }
 
 /* ===== 등록부 확인 ===== */
 let installId = '', isOwner = false, loginInfo = {};
@@ -559,6 +562,7 @@ async function enterMain(){
   await refresh();
   show('scrMain');
   $('roleTag').textContent = role==='admin' ? '담임' : '회장';
+  $('backBoard').classList.toggle('hide', !FROM_BOARD); $('viewBtn').classList.toggle('hide', FROM_BOARD);
   const tabs = role==='admin'
     ? [['set','⚙️ 연결·설정'],['stu','👥 명단'],['write','✏️ 공지'],['stat','📊 확인현황']]
     : [['write','✏️ 공지']];
@@ -951,6 +955,21 @@ function renderStat(){
       <div class="names">확인 ${done.length}명 · ${done.map(c=>esc(c.name)).join(', ')||'-'}</div>
       <div class="s" style="font-size:12px;color:var(--tx3);margin-top:4px">${prettyDate(n.date)}</div></details>`;
   }).join('') : '<p class="hint">중요 공지가 아직 없어요.</p>';
+}
+
+/* ===== 🖥️ 교실 화면(전자칠판)에서 들어온 경우 ===== */
+const FROM_BOARD = new URLSearchParams(location.search).get('from') === 'board';
+function go(url){ location.href = url; }
+function backToBoard(){
+  PW = ''; try{ sessionStorage.removeItem(K.pw); }catch(e){}
+  go(P + '.html');
+}
+if (FROM_BOARD){
+  const IDLE_MS = 5 * 60 * 1000;
+  let idleT = null;
+  const resetIdle = () => { clearTimeout(idleT); idleT = setTimeout(backToBoard, IDLE_MS); };
+  ['pointerdown','keydown','scroll','touchstart'].forEach(ev => document.addEventListener(ev, resetIdle, { passive:true }));
+  resetIdle();
 }
 
 /* ===== 학생 화면 미리보기 ===== */
