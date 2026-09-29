@@ -4,6 +4,9 @@
  * 재배포 시 반드시 [배포 관리] → [수정] → 새 버전 (새 배포 금지)
  */
 
+/** GAS 코드 버전 — 코드를 고칠 때마다 1씩 올려요. 관리 화면이 이 번호로 업데이트가 필요한지 알려줘요. */
+var GAS_VER = 1;
+
 var TZ = 'Asia/Seoul';
 var SHEETS = {
   settings: { name: '설정', headers: ['항목', '값'] },
@@ -40,7 +43,7 @@ function doGet(e) {
 
 function route_(p) {
   switch (p.action) {
-    case 'ping': return { ok: true, className: getSetting_('학급명'), year: year_() };
+    case 'ping': return { ok: true, className: getSetting_('학급명'), year: year_(), gasVer: GAS_VER };
     case 'load': return load_(p);
     case 'search': return search_(p);
     case 'who': return who_(p);
@@ -166,7 +169,7 @@ function installId_() {
 function login_(p) {
   var role = auth_(p.pw);
   if (!role) return { ok: true, role: '' };
-  return { ok: true, role: role, installId: installId_(), className: getSetting_('학급명'),
+  return { ok: true, role: role, gasVer: GAS_VER, installId: installId_(), className: getSetting_('학급명'),
     mustChange: role === 'admin' && String(p.pw) === DEFAULT_PW };
 }
 function year_() { return getSetting_('학년도') || Utilities.formatDate(new Date(), TZ, 'yyyy'); }
@@ -412,7 +415,7 @@ function load_(p) {
   var mine = sid ? rows_('confirms')
     .filter(function (r) { return r[1] === sid; })
     .map(function (r) { return r[0]; }) : [];
-  return { ok: true, className: getSetting_('학급명'), year: year_(), notices: notices, confirmed: mine, callDone: callDoneMap_(), links: linksList_(), serverTime: now_() };
+  return { ok: true, className: getSetting_('학급명'), year: year_(), notices: notices, confirmed: mine, callDone: callDoneMap_(), links: linksList_(), gasVer: GAS_VER, serverTime: now_() };
 }
 
 function who_(p) {
@@ -501,7 +504,7 @@ function adminLoad_(p) {
   var tm = targetMap_(), am = attMap_();
   var notices = rows_('notices').filter(function (r) { return r[0]; })
     .map(function (r) { return noticeObj_(r, tm, am); });
-  var res = { ok: true, role: role, className: getSetting_('학급명'), year: year_(), notices: notices };
+  var res = { ok: true, role: role, gasVer: GAS_VER, className: getSetting_('학급명'), year: year_(), notices: notices };
   var presNids = {};
   notices.forEach(function (n) { if (n.author === '회장') presNids[n.id] = true; });
   res.callDone = callDoneMap_();

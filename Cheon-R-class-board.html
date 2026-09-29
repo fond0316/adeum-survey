@@ -352,6 +352,7 @@ async function load(manual){
     const res = await jsonp({ action:'load', sid: me ? me.sid : '' });
     notices = (res.notices || []).map(n => ({ ...n, date: normDate(n.date), end: n.end ? normDate(n.end) : '' }));
     loaded = true;
+    gasVer = Number(res.gasVer) || 0;
     confirmed = new Set((res.confirmed || []).map(String));
     callDone = res.callDone || {};
     links = res.links || [];
@@ -491,10 +492,12 @@ function onSearchInput(v){
   clearTimeout(sTimer);
   sTimer = setTimeout(() => runSearch(v), 450);   // 입력을 잠깐 멈추면 검색
 }
+let gasVer = null;
 async function runSearch(v){
   const q = String(v || '').trim().slice(0, 40);
   searchQ = q;
   if (!q){ searchRes = []; searchState = ''; renderList(); return; }
+  if (gasVer !== null && gasVer < 1){ searchState = 'error:아직 쓸 수 없어요. 선생님이 앱 코드를 업데이트하면 검색할 수 있어요.'; renderList(); return; }
   const my = ++sSeq;
   searchState = 'loading'; renderList();
   try{
