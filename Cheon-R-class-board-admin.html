@@ -176,10 +176,24 @@ input[type=date]{min-width:0;max-width:100%}
 <body>
 <div class="wrap">
 
+  <!-- 0) 사용자 사전 등록 (처음 접속 시 가장 먼저) -->
+  <div id="scrPre" class="center hide">
+    <div class="box">
+      <h2>📝 사용자 등록</h2>
+      <p class="hint">처음 한 번만 입력하면 돼요. 입력한 정보는 사용 현황 파악을 위해 개발자에게 전달되며, 학생 정보는 전달되지 않아요. (다음 단계에서 구글 시트를 연결하면 등록이 자동으로 완료돼요)</p>
+      <label class="f">이름</label><input type="text" id="preName" maxlength="20" placeholder="홍길동">
+      <label class="f">학교</label><input type="text" id="preSchool" maxlength="30" placeholder="○○고등학교">
+      <label class="f">학급</label><input type="text" id="preCls" maxlength="20" placeholder="1학년 4반" onkeydown="if(event.key==='Enter')savePre()">
+      <div class="row" style="margin-top:12px"><button class="btn" onclick="savePre()">다음 → 구글 시트 연결</button></div>
+      <div class="msg" id="preMsg"></div>
+    </div>
+  </div>
+
   <!-- 1) 연결 -->
   <div id="scrConnect" class="center hide">
     <div class="box">
       <h2>🔗 구글 시트 연결</h2>
+      <p class="hint" id="preInfoLine" style="margin:0 0 8px"></p>
       <p class="hint">Apps Script에서 배포한 웹 앱 URL을 붙여 넣어 주세요.</p>
       <input type="text" id="gasIn" placeholder="https://script.google.com/macros/s/.../exec">
       <div class="row" style="margin-top:10px"><button class="btn" onclick="connect()">연결하기</button></div>
@@ -208,10 +222,11 @@ input[type=date]{min-width:0;max-width:100%}
       <li>권한 요청 창: 내 계정 선택 → <b>고급</b> → <b>(안전하지 않음)으로 이동</b> → 허용</li>
       <li>마지막 화면의 <b>…/exec</b>로 끝나는 웹 앱 URL 복사</li></ol></div>
     <div class="step"><div class="st">Step 4. 연결하기</div><ol>
-      <li>이 화면에서 ← 돌아가기 → 복사한 URL 붙여넣기 → <b>연결하기</b></li>
+      <li>링크를 처음 열면 <b>사용자 등록(이름·학교·학급)</b>부터 입력해요</li>
+      <li>다음 화면에서 ← 돌아가기 → 복사한 URL 붙여넣기 → <b>연결하기</b></li>
       <li>처음 비밀번호 <b>classboard</b>로 로그인</li>
       <li>바로 <b>새 비밀번호로 바꾸는 화면</b>이 떠요 (꼭 바꿔야 다음으로 넘어가요)</li>
-      <li>처음 한 번 <b>사용자 등록</b>(이름·학교·학급)을 해요</li></ol>
+      <li>사용자 등록(이름·학교·학급)은 <b>링크를 처음 열 때 이미 입력</b>했기 때문에 여기서 자동으로 완료돼요</li></ol>
       <div class="warn">⚠️ 링크를 열었는데 연결 화면 없이 <b>로그인 화면이 바로 뜬다면</b>, 이 기기에서 다른 선생님이 쓰던 연결이 남아 있는 거예요. (예: 교무실 공용 PC) 로그인 화면의 <b>[연결 주소 변경]</b>을 눌러 내 URL을 붙여넣어 주세요.</div></div>
     <div class="step"><div class="st">Step 5. 첫 설정</div><ol>
       <li>학년도·학급 이름·회장 코드 입력 → 설정 저장</li>
@@ -329,6 +344,8 @@ input[type=date]{min-width:0;max-width:100%}
         <div id="shareBox" class="hide">
         <label class="f">🤝 다른 선생님께 공유용 링크 (시트 연결 없음)</label>
         <div class="link"><input type="text" id="shareLink" readonly><button class="btn sub" onclick="copy('shareLink')">복사</button></div>
+        <div class="row" style="margin-top:8px"><button class="btn" onclick="copyRich('shareLink','CLASS BOARD_made by Cheon R')">🔗 글자 링크로 복사 (CLASS BOARD_made by Cheon R)</button></div>
+        <p class="hint" style="margin-top:6px">메일·구글 문서·한글·워드에 붙여넣으면 주소 대신 <b>CLASS BOARD_made by Cheon R</b> 글자에 링크가 걸려요. (카톡은 글자 링크를 지원하지 않아 주소가 같이 보여요)</p>
         <p class="hint" style="margin-top:6px">다른 선생님은 이 링크로 들어가서 설치 가이드를 따라 본인 시트를 연결하면 돼요.</p>
         </div>
         <div class="msg ok" id="copyMsg"></div>
@@ -666,7 +683,7 @@ input[type=date]{min-width:0;max-width:100%}
 </div>
 
 <script>
-const K = { gas:'sn_gas_v1', pw:'sn_admin_pw_v1', owner:'sn_owner_v1', reg:'sn_reg_info_v1' };
+const K = { gas:'sn_gas_v1', pw:'sn_admin_pw_v1', owner:'sn_owner_v1', reg:'sn_reg_info_v1', pre:'sn_prereg_v1', preId:'sn_preid_v1' };
 /* ===== 사용자 등록부 (아듬샘 전용 GAS) ===== */
 const REGISTRY_URL = 'https://script.google.com/macros/s/AKfycbzrgeAlZhEGyvp7vo_j0hgesVoIoI6T_GMayKJCfvOFaV5Sb3wO1xvackSeQLc3HQxsnQ/exec';           // ← 등록부 GAS 웹 앱 URL (비어 있으면 등록 기능 꺼짐)
 const CONTACT_EMAIL = 'fond0316@naver.com';
@@ -680,7 +697,7 @@ function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0
 function today(){ return ymd(new Date()); }
 function prettyDate(s){ const d=new Date(s+'T00:00:00'); return (d.getMonth()+1)+'/'+d.getDate()+'('+'일월화수목금토'[d.getDay()]+')'; }
 function $(id){ return document.getElementById(id); }
-const SCREENS = ['scrConnect','scrLogin','scrMain','scrGuide','scrReg','scrGate','scrPw','scrLoading'];
+const SCREENS = ['scrPre','scrConnect','scrLogin','scrMain','scrGuide','scrReg','scrGate','scrPw','scrLoading'];
 let curScreen = '', backScreen = '';
 function show(id){
   curScreen = id; SCREENS.forEach(x => $(x).classList.toggle('hide', x!==id)); window.scrollTo(0,0);
@@ -774,6 +791,30 @@ async function login(){
 }
 function logout(){ if (FROM_BOARD) return backToBoard(); PW=''; sessionStorage.removeItem(K.pw); $('pwIn').value=''; msg('loginMsg','',true); show('scrLogin'); }
 
+/* ===== 사용자 사전 등록 (시트 연결 전에 이름·학교·학급만 먼저 받아 둠) ===== */
+function showPre(){
+  const i = lsGet(K.pre, null) || lsGet(K.reg, {});
+  $('preName').value = i.name || ''; $('preSchool').value = i.school || ''; $('preCls').value = i.cls || '';
+  msg('preMsg','',true); show('scrPre');
+}
+function savePre(){
+  const info = { name:$('preName').value.trim(), school:$('preSchool').value.trim(), cls:$('preCls').value.trim() };
+  if (!info.name || !info.school){ msg('preMsg','이름과 학교를 입력해 주세요.'); return; }
+  lsSet(K.pre, info);
+  if (REGISTRY_URL){   // 시트 연결 전이라도 이름·학교를 등록부에 바로 남겨 둠 (임시 ID, 실패해도 다음 단계로 진행)
+    let pid = lsGet(K.preId, '');
+    if (!pid){ pid = 'pre-' + (window.crypto && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 10)); lsSet(K.preId, pid); }
+    jsonp({ action:'register', id:pid, ...info }, REGISTRY_URL).catch(()=>{});
+  }
+  showConnect();
+}
+function showConnect(){
+  const i = lsGet(K.pre, null);
+  $('preInfoLine').innerHTML = i ? '👤 ' + esc([i.name, i.school, i.cls].filter(Boolean).join(' · ')) + ' <a href="#" onclick="showPre();return false" style="color:var(--main-d)">수정</a>' : '';
+  show('scrConnect');
+}
+function clearPre(){ try{ localStorage.removeItem(K.pre); localStorage.removeItem(K.preId); }catch(e){} }
+
 /* ===== 등록부 확인 ===== */
 let installId = '', isOwner = false, loginInfo = {};
 let pre = null;   // { p: 미리 불러오는 중인 공지 데이터, t: 시작 시각 }
@@ -784,9 +825,21 @@ async function afterLogin(r){
   if (!REGISTRY_URL || !installId){ isOwner = !REGISTRY_URL; startPrefetch(); return enterMain(); }
   startPrefetch();   // 공지 불러오기를 등록부 확인과 동시에 시작
   let st;
-  try{ const res = await jsonp({ action:'check', id:installId }, REGISTRY_URL); st = res.status; saveRegInfo(res); }
+  try{ const res = await jsonp({ action:'check', id:installId, old:lsGet(K.preId,'') }, REGISTRY_URL); st = res.status; saveRegInfo(res); if (st !== 'unregistered') clearPre(); }
   catch(e){ isOwner = lsGet(K.owner,'') === installId; return enterMain(); }  // 등록부 응답 없으면 일단 사용
   return handleStatus(st);   // 실패하면 위쪽(로그인·자동 로그인)에서 잡아서 안내
+}
+let autoRegTried = false;
+async function autoRegister(pre){
+  show('scrLoading'); msg('loadMsg','사용자 등록 중…',true);
+  try{
+    const r = await jsonp({ action:'register', id:installId, old:lsGet(K.preId,''), ...pre }, REGISTRY_URL);
+    lsSet(K.reg, pre); clearPre(); return handleStatus(r.status);
+  }catch(e){
+    // 자동 등록이 안 되면 직접 등록 화면으로
+    $('regName').value = pre.name; $('regSchool').value = pre.school; $('regCls').value = pre.cls || loginInfo.className || '';
+    msg('regMsg','자동 등록에 실패했어요. 아래 [등록하기]를 눌러 주세요. (' + e.message + ')'); show('scrReg');
+  }
 }
 function handleStatus(st){
   isOwner = (st === 'owner');
@@ -794,6 +847,11 @@ function handleStatus(st){
   if (st === 'owner' || st === 'ok') return enterMain();
   if (st === 'unregistered'){
     if (role !== 'admin') return gate('🙋', '담임선생님 등록이 필요해요', '담임선생님이 먼저 관리자 비밀번호로 로그인해서 사용자 등록을 해 주세요.');
+    const pre = lsGet(K.pre, null);
+    if (pre && pre.name && pre.school && !autoRegTried){   // 처음 화면에서 받아 둔 정보로 자동 등록
+      autoRegTried = true;
+      return autoRegister(pre);
+    }
     const info = lsGet(K.reg, {});
     $('regName').value = info.name || ''; $('regSchool').value = info.school || '';
     $('regCls').value = info.cls || loginInfo.className || '';
@@ -829,8 +887,8 @@ async function doRegister(btn){
   if (!info.name || !info.school){ msg('regMsg','이름과 학교를 입력해 주세요.'); return; }
   btn.disabled = true; msg('regMsg','등록 중…',true);
   try{
-    const r = await jsonp({ action:'register', id:installId, ...info }, REGISTRY_URL);
-    lsSet(K.reg, info); await handleStatus(r.status);
+    const r = await jsonp({ action:'register', id:installId, old:lsGet(K.preId,''), ...info }, REGISTRY_URL);
+    lsSet(K.reg, info); clearPre(); await handleStatus(r.status);
   }catch(e){ msg('regMsg', e.message); }
   btn.disabled = false;
 }
@@ -912,6 +970,17 @@ async function saveSettings(btn){
     await refresh(); msg('setMsg','저장했어요.',true);
   }catch(e){ msg('setMsg', e.message); }
   btn.disabled = false;
+}
+async function copyRich(id, label){
+  const url = $(id).value, html = '<a href="' + esc(url) + '">' + esc(label) + '</a>', plain = label + ' 👉 ' + url;
+  try{
+    await navigator.clipboard.write([ new ClipboardItem({ 'text/html': new Blob([html], {type:'text/html'}), 'text/plain': new Blob([plain], {type:'text/plain'}) }) ]);
+  }catch(e){
+    const d = document.createElement('div'); d.contentEditable = 'true'; d.innerHTML = html; d.style.cssText = 'position:fixed;left:-9999px;top:0';
+    document.body.appendChild(d); const r = document.createRange(); r.selectNodeContents(d); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    try{ document.execCommand('copy'); }catch(_){} sel.removeAllRanges(); d.remove();
+  }
+  msg('copyMsg','✅ "' + label + '" 글자 링크로 복사했어요! 메일·문서에 붙여넣어 보세요.',true);
 }
 function copy(id){
   const el=$(id); el.select();
@@ -1408,7 +1477,7 @@ function renderOwner(){
   const label = { ok:'<span class="st ok">사용 중</span>', wait:'<span class="st wait">승인 대기</span>', blk:'<span class="st blk">차단됨</span>' };
   $('uList').innerHTML = arr.length ? arr.map(u=>`
     <div class="ucard">
-      <div class="nm">${esc(u.name)} ${label[uState(u)]}</div>
+      <div class="nm">${esc(u.name)} ${label[uState(u)]}${u.conn===false?' <span class="st wait">시트 미연결</span>':''}</div>
       <div class="mt">${esc(u.school)}${u.cls?' · '+esc(u.cls):''}</div>
       <div class="mt">등록 ${esc(u.reg)} · 마지막 사용 ${esc(u.last)}</div>
       <div class="ac">
@@ -1747,7 +1816,7 @@ async function recheckGas(btn){
 
 /* ===== 시작 ===== */
 (async function start(){
-  if (!GAS){ show('scrConnect'); return; }
+  if (!GAS){ if (lsGet(K.pre, null)) showConnect(); else showPre(); return; }
   if (PW){
     show('scrLoading');
     let cached = null;   // 교실 화면에서 이미 확인한 로그인 정보 (통신 1번 절약)
