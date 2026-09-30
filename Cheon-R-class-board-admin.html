@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#9B8EC4">
 <title>학급 공지 관리</title>
+<!-- 링크 미리보기(카톡 등) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="CLASS BOARD · 담임용 관리">
+<meta property="og:description" content="우리 반 공지·호출·확인을 한 곳에서">
+<meta property="og:image" content="https://fond0316.github.io/adeum-survey/Cheon-R-og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="Cheon-R-class-board-icon-192.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
@@ -137,21 +145,6 @@ details summary::-webkit-details-marker{display:none}
 .step .st{font-size:14px;font-weight:800;color:var(--main-d);margin-bottom:6px}
 .step ol{font-size:14px;color:var(--tx2);line-height:1.9;padding-left:20px}
 .step b{color:var(--tx)}
-.hdet{border:1px solid var(--line);border-radius:12px;padding:0;margin-bottom:8px;background:#fff}
-.hdet>summary{padding:14px 16px;font-size:16px;min-height:52px}
-.hdet[open]>summary{border-bottom:1px solid var(--line)}
-.hdet .hb{padding:4px 16px 14px}
-.hdet .hb .step{margin-top:10px}
-.hdet .hb p{font-size:14px;color:var(--tx2);line-height:1.7;margin-top:8px}
-.hdet .hb ol,.hdet .hb ul{font-size:14px;color:var(--tx2);line-height:1.9;padding-left:20px;margin-top:6px}
-.hdet .hb b{color:var(--tx)}
-.gt{overflow-x:auto;margin-top:10px}
-.gt table{border-collapse:collapse;min-width:560px;width:100%;font-size:13px}
-.gt th,.gt td{border:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top;line-height:1.5}
-.gt th{background:var(--bg);color:var(--tx2);font-weight:700;white-space:nowrap}
-.gt td:first-child,.gt td:last-child{white-space:nowrap}
-.ck-list label{display:flex;gap:8px;align-items:flex-start;min-height:40px;font-size:14px;color:var(--tx2);line-height:1.6;padding:4px 0}
-.ck-list input{width:20px;height:20px;margin-top:2px;accent-color:var(--main);flex:none}
 .tip{background:#FEF9C3;border-radius:12px;padding:12px 14px;font-size:13px;color:#92400E;line-height:1.8;margin-top:12px}
 .warn{background:#FCEBEB;border-radius:12px;padding:12px 14px;font-size:13px;color:#A32D2D;line-height:1.8;margin-top:8px}
 .code{margin-top:10px}
@@ -189,7 +182,6 @@ details summary::-webkit-details-marker{display:none}
       <li>편집기에 있는 기본 코드를 <b>Ctrl+A로 전부 지우기</b></li>
       <li>아래 <b>코드 전체 복사</b> 버튼 → 붙여넣기 → 저장(💾)</li></ol>
       <div class="row" style="margin-top:10px"><button class="btn" id="gasCopyBtn" onclick="copyGas()">📋 코드 전체 복사</button><span class="msg" id="gasCopyMsg" style="margin:0"></span></div>
-      <p class="hint" style="margin-top:8px">🔄 이미 쓰고 계신다면: 앱이 업데이트되면 관리 화면 맨 위에 🔔 알림이 떠요. 그때도 여기서 새 코드를 복사해서 붙여넣고 <b>수정 배포</b>하면 돼요.</p>
       <details class="code"><summary>코드 미리보기</summary><pre id="gasCode">불러오는 중…</pre></details></div>
     <div class="step"><div class="st">Step 3. 웹 앱으로 배포</div><ol>
       <li>오른쪽 위 <b>배포 → 새 배포</b> → 톱니바퀴에서 <b>웹 앱</b> 선택</li>
@@ -213,7 +205,6 @@ details summary::-webkit-details-marker{display:none}
       <li>상단 <b>👀 학생 화면</b> 버튼으로 학생에게 어떻게 보이는지 확인할 수 있어요.</li>
       <li>교실 <b>전자칠판</b>엔 학생용 링크를 열고 맨 아래 <b>🖥️ 교실 화면 모드</b>를 켜 두세요.</li></ol></div>
     <div class="tip">💡 나중에 GAS 코드를 고칠 땐 <b>새 배포</b>가 아니라 <b>배포 관리 → ✏️ 수정 → 새 버전</b>으로 해야 기존 학생 링크가 유지돼요.</div>
-    <div class="tip" style="background:var(--bg);color:var(--tx2)">📘 설치가 끝나고 로그인하면, 관리 화면의 <b>📘 가이드</b> 탭에서 사용법을 볼 수 있어요.</div>
     <button class="gbtn" onclick="mailContact()">✉️ 궁금한 점은 메일로 문의해 주세요</button>
   </div>
 
@@ -291,24 +282,10 @@ details summary::-webkit-details-marker{display:none}
       <span class="role" id="roleTag"></span>
       <button class="out" onclick="logout()">로그아웃</button>
     </header>
-    <div class="box hide" id="gasBanner" style="background:#FEF3C7;border-color:#F5D98B;margin-top:12px;margin-bottom:0">
-      <h2 style="color:#92400E">🔔 GAS 코드 업데이트가 필요해요</h2>
-      <p class="hint" style="color:#92400E;margin-bottom:0" id="gasBannerText"></p>
-      <div class="row" id="gasBannerBtns" style="margin-top:10px">
-        <button class="btn" onclick="openGasUpdate()">업데이트 방법 보기</button>
-        <button class="btn sub" onclick="recheckGas(this)">다시 확인</button>
-      </div>
-      <div class="msg" id="gasBannerMsg"></div>
-    </div>
     <nav class="nav" id="nav"></nav>
 
     <!-- 연결·설정 -->
     <section id="tab-set" class="hide">
-      <div class="box hide" id="firstHint" style="background:var(--bg);border-color:var(--bg)">
-        <h2>👋 처음이신가요?</h2>
-        <p class="hint" style="margin:0">위쪽 <b>📘 가이드</b> 탭의 <b>"처음 할 일"</b>을 순서대로 따라 하면 5분이면 준비가 끝나요.</p>
-        <div class="row" style="margin-top:10px"><button class="btn" onclick="goTab('help'); $('h-first').open=true">📘 처음 할 일 보기</button></div>
-      </div>
       <div class="box">
         <h2>📱 학생용 링크</h2>
         <p class="hint">이 링크를 QR코드나 메시지로 학생들에게 보내 주세요.</p>
@@ -366,8 +343,6 @@ details summary::-webkit-details-marker{display:none}
         <div class="msg" id="setMsg"></div>
         <label class="f" style="margin-top:18px">연결된 GAS 주소</label>
         <div class="link"><input type="text" id="gasNow" readonly><button class="btn sub" onclick="resetGas()">변경</button></div>
-        <label class="f">GAS 코드 버전</label>
-        <p class="hint" id="gasVerNow" style="margin:0 0 4px">확인 중…</p>
         <label class="f">설치 ID</label>
         <div class="link"><input type="text" id="instNow" readonly><button class="btn sub" onclick="copy('instNow')">복사</button></div>
         <button class="gbtn" onclick="mailContact()">✉️ 문의하기 (개발자에게 메일)</button>
@@ -476,126 +451,6 @@ details summary::-webkit-details-marker{display:none}
     </section>
 
     <!-- 확인현황 -->
-
-    <!-- 📘 사용 가이드 -->
-    <section id="tab-help" class="hide">
-      <div class="box">
-        <h2>📘 CLASS BOARD 사용 가이드</h2>
-        <p class="hint" id="helpIntro" style="margin:0">궁금한 항목을 눌러서 펼쳐 보세요.</p>
-      </div>
-
-      <details class="hdet adm-only" id="h-first"><summary>✅ 처음 할 일 (체크리스트)</summary><div class="hb">
-        <p>한 번만 해 두면 돼요. 체크 표시는 이 기기에만 저장돼요.</p>
-        <div class="ck-list" id="firstList">
-          <label><input type="checkbox" data-k="set"> <span><b>⚙️ 연결·설정</b> 탭 → 학년도·학급 이름 입력 → 설정 저장</span></label>
-          <label><input type="checkbox" data-k="stu"> <span><b>👥 명단</b> 탭 → "학번 이름"을 한 줄씩 붙여넣기 → 명단 저장 (엑셀 두 칸 복사 가능)</span></label>
-          <label><input type="checkbox" data-k="pres"> <span><b>⚙️ 학급 설정</b>의 <b>회장 코드</b> 정하기 → 회장에게 <b>관리자 링크</b>와 함께 알려 주기</span></label>
-          <label><input type="checkbox" data-k="link"> <span><b>⚙️ 학생용 링크</b> 복사 → 학급 단톡방·QR로 공유 → 학생들이 학번 등록</span></label>
-          <label><input type="checkbox" data-k="board"> <span>(전자칠판이 있다면) 칠판에서 학생용 링크 열기 → 맨 아래 <b>🖥️ 교실 화면 모드</b> 켜기</span></label>
-          <label><input type="checkbox" data-k="test"> <span>상단 <b>👀 학생 화면</b>으로 학생에게 어떻게 보이는지 확인하기</span></label>
-        </div>
-      </div></details>
-
-      <details class="hdet adm-only"><summary>🏷️ 공지 유형 5가지, 뭐가 달라요?</summary><div class="hb">
-        <div class="gt"><table>
-          <tr><th>유형</th><th>이럴 때</th><th>학생 화면에서</th><th>회장</th></tr>
-          <tr><td>🚨 <b>긴급</b></td><td>오늘 꼭 알아야 할 것 (교실 변경, 일정 급변경)</td><td>맨 위 빨간 배너. "팝업 알림"을 켜면 앱을 켜 둔 학생에게 팝업</td><td>❌</td></tr>
-          <tr><td>📣 <b>호출</b></td><td>학생을 부를 때</td><td>불린 학생 기기에만 팝업 + "나를 불렀어요". 다녀오면 ✅ 체크</td><td>❌</td></tr>
-          <tr><td>📋 <b>학급공지</b></td><td>제출물·회신처럼 마감이 있는 것</td><td>날짜 = <b>마감일</b>. 마감 전까지 "마감 전 학급공지"에 보이고 D-day 표시</td><td>⭕</td></tr>
-          <tr><td>📚 <b>교과공지</b></td><td>수행평가·준비물·발표 순서</td><td>파란색 + D-day 표시</td><td>⭕</td></tr>
-          <tr><td>📌 <b>일반</b></td><td>그 밖의 안내</td><td>그날 목록에 표시</td><td>⭕</td></tr>
-        </table></div>
-        <div class="tip">💡 모든 유형(호출 제외)은 <b>기간</b>으로 올릴 수 있고, <b>⭐ 중요</b>를 켜면 학생에게 확인을 받을 수 있어요.</div>
-      </div></details>
-
-      <details class="hdet"><summary>✏️ 공지 올리기 (기간 · 중요 · 사진·링크)</summary><div class="hb">
-        <div class="step"><div class="st">기본</div><ol>
-          <li><b>✏️ 공지</b> 탭 → 유형 고르기 → 날짜 → 제목 → 내용 → <b>공지 올리기</b></li>
-          <li>제목은 학생 목록에 보이는 한 줄이에요. 짧은 내용(3줄·80자 이내)은 목록에 바로 보이고, 길면 눌러서 봐요.</li></ol></div>
-        <div class="step"><div class="st">📅 기간으로 올리기</div><ol>
-          <li>날짜 아래 <b>☑ 기간으로 올리기</b> → 종료일 선택 (처음엔 일주일로 잡혀요, 최대 90일)</li>
-          <li>기간 동안 매일 학생 "오늘" 탭에 보이고, 카드에 "~10/5까지"가 붙어요. (호출은 기간 불가)</li></ol></div>
-        <div class="step"><div class="st">⭐ 중요 — 학생 확인 받기</div><ol>
-          <li>체크하면 학생 공지 안에 <b>[확인했어요]</b> 버튼이 생겨요.</li>
-          <li><span class="adm-only"><b>📊 확인현황</b> 탭에서 누가 안 봤는지 명단으로 볼 수 있어요.</span><span class="pres-only">누가 확인했는지는 담임선생님이 볼 수 있어요.</span></li></ol></div>
-        <div class="step"><div class="st">📎 사진·링크 첨부 (최대 5개, 사진 3장)</div><ol>
-          <li><b>📷 사진 선택</b>: 폰 갤러리·카메라에서 골라요. 자동으로 줄여서 올라가요.</li>
-          <li><b>+ 링크·사진 주소</b>: 설문지·문서 링크나 드라이브 사진 주소를 붙여넣어요. 드라이브 사진은 <b>"링크가 있는 모든 사용자"</b>로 공유해야 보여요.</li>
-          <li>글씨가 아주 많은 문서는 사진보다 <b>PDF·문서 링크</b>가 더 선명해요.</li></ol></div>
-        <div class="step"><div class="st">🔔 같은 날짜·과목 알림</div><ol>
-          <li>같은 날짜에 같은 과목 공지가 이미 있으면 올리기 전에 물어봐요.</li>
-          <li><b>기존 공지에 내용 추가</b> / <b>이 내용으로 바꾸기</b> / <b>올리지 않기</b> 중에서 골라요.</li></ol></div>
-        <div class="step"><div class="st">수정·삭제</div><ol>
-          <li>공지 목록에서 <b>[수정] [삭제]</b>. <span class="pres-only">회장은 <b>본인이 쓴 공지만</b> 고칠 수 있어요.</span><span class="adm-only">회장은 본인이 쓴 공지만 고칠 수 있어요.</span></li></ol></div>
-      </div></details>
-
-      <details class="hdet"><summary>📋 카톡 목록을 한 번에 올리기</summary><div class="hb">
-        <p>"9월 22일(월): 수학 발표" 같은 목록을 통째로 붙여넣으면 <b>날짜별 공지로 나눠서</b> 달력에 올려 줘요.</p>
-        <div class="step"><div class="st">방법</div><ol>
-          <li>공지 탭 아래 <b>📋 목록 붙여넣기로 한 번에 올리기</b> → 유형 고르기 → 붙여넣기 → <b>읽어오기</b></li>
-          <li>미리보기에서 날짜·제목을 확인하고 → <b>선택한 공지 올리기</b></li>
-          <li>공지 작성 칸에 붙여넣어도 "날짜별로 나눌까요?"라고 알아서 물어봐요.</li></ol></div>
-        <ul>
-          <li>"○월 ○일 공지" 같은 머리말 줄, 날짜 없는 줄은 자동으로 빠져요.</li>
-          <li>"9월~10월: 탐구 진행"처럼 기간인 줄은 시작 달 1일에 들어가요.</li>
-          <li>적힌 요일이 실제 요일과 다르면 ⚠️ 경고가 떠요. 날짜를 한 번 더 확인해 주세요.</li>
-          <li>이미 올라간 공지와 겹치면 줄마다 <b>추가 / 바꾸기 / 올리지 않기</b>를 고를 수 있어요.</li>
-        </ul>
-      </div></details>
-
-      <details class="hdet adm-only"><summary>📣 호출 · 🖥️ 전자칠판</summary><div class="hb">
-        <div class="step"><div class="st">호출하기</div><ol>
-          <li>유형 <b>호출</b> → 명단에서 학생 체크 (또는 "학급회장"처럼 직접 입력) → 내용 → 올리기</li>
-          <li>날짜가 오늘이고 <b>팝업 알림</b>이 켜져 있으면(호출은 기본으로 켜져요), 앱을 켜 둔 그 학생 기기에 팝업이 떠요.</li></ol></div>
-        <div class="step"><div class="st">✅ 다녀왔어요</div><ol>
-          <li>다녀온 학생이 칠판의 호출 칸이나 자기 기기에서 <b>자기 이름을 눌러</b> 체크해요. 잘못 눌렀으면 한 번 더.</li>
-          <li>공지 목록에 "다녀옴 1/2"처럼 표시돼요.</li></ol></div>
-        <div class="step"><div class="st">🖥️ 교실 화면 모드 (전자칠판)</div><ol>
-          <li>칠판에서 <b>학생용 링크</b> 열기 → 맨 아래 <b>🖥️ 교실 화면 모드</b> → 담임 비번 또는 회장 코드</li>
-          <li>모든 호출이 크게 뜨고, 오늘 호출은 맨 위 한 줄에 남아요. 30초마다 새로고침돼요.</li>
-          <li><b>처음 한 번 화면을 터치</b>해야 알림음이 나요.</li>
-          <li>칠판에서 공지를 쓰려면 위쪽 <b>✏️ 관리</b> → 비번. 다 쓰면 <b>🖥️ 교실 화면 모드</b>로 돌아와요. 5분 동안 조작이 없으면 자동으로 돌아와요.</li></ol></div>
-      </div></details>
-
-      <details class="hdet adm-only"><summary>📊 확인현황 · 학생 수정 요청</summary><div class="hb">
-        <ul>
-          <li><b>📊 확인현황</b>: ⭐ 중요로 올린 공지마다 확인한 학생 수와 <b>미확인 명단</b>이 보여요.</li>
-          <li><b>학생 수정 요청·질문</b>: 학생이 공지 안에서 보낸 질문이 공지 탭 위쪽에 모여요. 학번·이름이 함께 와요. 공지 제목을 누르면 바로 수정 화면으로 가고, 다 하면 <b>[처리 완료]</b>.</li>
-          <li>회장은 <b>회장이 쓴 공지</b>에 온 요청만 보고 처리할 수 있어요.</li>
-        </ul>
-      </div></details>
-
-      <details class="hdet adm-only"><summary>🙋 회장에게 알려 줄 것</summary><div class="hb">
-        <ul>
-          <li>회장은 <b>관리자 링크 + 회장 코드</b>로 들어와요. 회장이 바뀌면 ⚙️에서 <b>회장 코드만 바꾸면</b> 이전 회장은 못 들어와요.</li>
-          <li>할 수 있는 것: <b>학급공지·교과공지·일반</b> 올리기, 기간·사진·링크, 목록 한 번에 올리기, 본인 글 수정·삭제</li>
-          <li>못 하는 것: 긴급·호출, 명단·설정, 확인현황</li>
-          <li>회장이 로그인하면 이 가이드에서 <b>회장에게 필요한 부분만</b> 보여요.</li>
-        </ul>
-      </div></details>
-
-      <details class="hdet adm-only"><summary>⚙️ 그 밖의 설정</summary><div class="hb">
-        <ul>
-          <li><b>🔗 우리 반 앱 바로가기</b>: 내가 쓰는 학급 앱 주소를 넣으면 학생 화면·칠판에 버튼으로 떠요.</li>
-          <li><b>📷 사진 저장 현황</b>: 사진은 내 구글 시트에 저장돼요. 가끔 <b>사진 정리하기</b>로 90일 지난 공지 사진을 지워 주세요.</li>
-          <li><b>관리자 비밀번호</b>는 ⚙️ 학급 설정에서 바꿀 수 있어요.</li>
-        </ul>
-      </div></details>
-
-      <details class="hdet"><summary>🛠️ 이럴 땐 이렇게 (문제 해결)</summary><div class="hb">
-        <ul>
-          <li><b>"저장 중…"이 오래 걸려요</b> → 구글 서버가 느릴 때가 있어요. 몇 초째인지 표시되고, <b>1분 안에 결과</b>를 알려 줘요. 실패로 나와도 <b>다시 눌러도 두 번 올라가지 않아요.</b></li>
-          <li class="adm-only"><b>맨 위에 🔔 "GAS 코드 업데이트가 필요해요"</b> → 앱이 업그레이드된 거예요. [업데이트 방법 보기]를 따라 3분이면 끝나요.</li>
-          <li class="pres-only"><b>🔔 업데이트 알림이 보여요</b> → 담임선생님께 알려 주세요.</li>
-          <li class="adm-only"><b>비밀번호를 잊었어요</b> → 내 구글 시트의 <b>'설정' 탭 → 관리자비번</b> 칸에서 확인할 수 있어요.</li>
-          <li class="adm-only"><b>로그인 화면이 바로 떠요 (공용 PC)</b> → 다른 선생님 연결이 남아 있는 거예요. <b>[연결 주소 변경]</b>에 내 GAS 주소를 넣어 주세요.</li>
-          <li><b>사진이 안 보여요</b> → 드라이브 사진은 공유 설정을 "링크가 있는 모든 사용자"로. 앱에서 올린 사진은 [다시 시도]를 눌러 주세요.</li>
-          <li class="adm-only"><b>학생이 "서버에 연결하지 못했어요"</b> → 학교 와이파이가 막는 경우가 있어요. 데이터로 바꾸거나 크롬으로 열어 보게 해 주세요.</li>
-          <li><b>화면이 예전 그대로예요</b> → Ctrl + F5 (폰은 새로고침)</li>
-        </ul>
-        <div class="row adm-only" style="margin-top:10px"><button class="btn sub" onclick="mailContact()">✉️ 그래도 안 되면 개발자에게 문의</button></div>
-      </div></details>
-    </section>
     <section id="tab-stat" class="hide">
       <div class="box">
         <h2>📊 확인 현황</h2>
@@ -615,29 +470,6 @@ details summary::-webkit-details-marker{display:none}
     <div id="dupBtns"></div>
     <button class="cbtn btn sub hide" id="dupNewBtn" onclick="dupChoose('new')">따로 올리기</button>
     <div class="msg no" id="dupErr"></div>
-  </div>
-</div>
-
-<!-- GAS 코드 업데이트 방법 -->
-<div class="ov hide" id="gasUpOv" onclick="if(event.target===this)this.classList.add('hide')">
-  <div class="box">
-    <h2>🔔 GAS 코드 업데이트</h2>
-    <p class="hint">새 기능이 제대로 동작하도록, 내 구글 시트의 코드를 최신으로 바꿔요. 공지·명단 등 기존 데이터는 그대로예요.</p>
-    <div class="step" style="margin-top:8px"><div class="st">1. 새 코드 복사</div>
-      <button class="btn" type="button" onclick="copyGas('gasUpMsg')">📋 새 코드 복사</button>
-      <div class="msg" id="gasUpMsg"></div></div>
-    <div class="step"><div class="st">2. 붙여넣기 → 저장</div><ol>
-      <li>내 구글 시트 → <b>확장 프로그램 → Apps Script</b></li>
-      <li>편집기의 코드를 <b>Ctrl+A로 전부 지우고</b> 붙여넣기 → 저장(💾)</li></ol></div>
-    <div class="step"><div class="st">3. 수정 배포 (꼭!)</div><ol>
-      <li>오른쪽 위 <b>배포 → 배포 관리</b></li>
-      <li><b>✏️ 수정</b> → 버전: <b>새 버전</b> → <b>배포</b></li></ol>
-      <div class="warn">⚠️ <b>새 배포</b>를 누르면 주소가 바뀌어서 학생 링크가 끊겨요. 꼭 <b>수정</b>으로 해 주세요.</div></div>
-    <div class="row" style="margin-top:12px">
-      <button class="btn" onclick="recheckGas(this)">다 했어요, 다시 확인</button>
-      <button class="btn sub" onclick="$('gasUpOv').classList.add('hide')">닫기</button>
-    </div>
-    <div class="msg" id="gasUpCheck"></div>
   </div>
 </div>
 
@@ -848,7 +680,6 @@ async function enterMain(){
     ? [['set','⚙️ 연결·설정'],['stu','👥 명단'],['write','✏️ 공지'],['stat','📊 확인현황']]
     : [['write','✏️ 공지']];
   if (role==='admin' && isOwner && REGISTRY_URL) tabs.push(['own','👑 사용자 관리']);
-  tabs.push(['help','📘 가이드']);
   $('nav').innerHTML = tabs.map(([k,l])=>`<button data-t="${k}" onclick="goTab('${k}')">${l}</button>`).join('');
   updateReqBadge();
   resetForm();
@@ -861,7 +692,6 @@ async function refresh(usePre){
   role = r.role; data = { notices:(r.notices||[]).map(n => ({ ...n, date: normDate(n.date), end: n.end ? normDate(n.end) : '' })), students:r.students||[], confirms:r.confirms||[], requests:r.requests||[], callDone:r.callDone||{} };
   updateReqBadge();
   schoolYear = parseInt(r.year, 10) || new Date().getFullYear();
-  gasVer = Number(r.gasVer) || 0; renderGasBanner();
   renderBlobs();
   $('cls').textContent = (r.className||'우리 반') + ' 공지 관리';
   if (role==='admin'){
@@ -882,9 +712,7 @@ async function refresh(usePre){
 function goTab(k){
   curTab = k;
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on', b.dataset.t===k));
-  ['set','stu','write','stat','own','help'].forEach(x=>$('tab-'+x).classList.toggle('hide', x!==k));
-  if (k==='help') renderHelp();
-  if (k==='set') $('firstHint').classList.toggle('hide', !!data.students.length);
+  ['set','stu','write','stat','own'].forEach(x=>$('tab-'+x).classList.toggle('hide', x!==k));
   if (k==='own') loadOwner();
   if (k==='write'){ renderRoster(); renderList(); renderBulkChips(); renderReqs(); }
   if (k==='stat'){ renderStat(); refresh().then(renderStat).catch(()=>{}); }
@@ -1114,7 +942,6 @@ async function sendPhoto(a){
 async function onPhotos(input){
   const files = [...input.files]; input.value = '';
   msg('formMsg', '', true);
-  if (gasOld()){ msg('formMsg', role==='admin' ? '사진 올리기는 GAS 코드를 업데이트해야 쓸 수 있어요. 맨 위 🔔 알림을 확인해 주세요.' : '사진 올리기는 담임선생님이 코드를 업데이트해야 쓸 수 있어요.'); return; }
   for (const f of files){
     if (atts.length >= 5 || nPhotos() >= 3){ msg('formMsg', '사진은 3장, 첨부는 5개까지예요.'); break; }
     const a = { kind:'photo', name:'', url:'photo:' + newPhotoId(), local:'', status:'preparing', err:'' };
@@ -1272,7 +1099,6 @@ async function saveNotice(btn, skipDup){
     targets: fType==='호출' ? [...document.querySelectorAll('#roster input:checked')].map(i=>i.value) : [],
     end: (fType!=='호출' && $('fPer').checked) ? $('fEnd').value : '' };
   if (fType!=='호출' && $('fPer').checked && !checkPeriod()){ msg('formMsg', $('perMsg').textContent); return; }
-  if (n.end && gasOld()){ msg('formMsg', role==='admin' ? '기간 공지는 GAS 코드를 업데이트해야 쓸 수 있어요. 맨 위 🔔 알림을 확인해 주세요.' : '기간 공지는 담임선생님이 코드를 업데이트해야 쓸 수 있어요.'); return; }
   const ac = collectAtts(); if (ac.error){ msg('formMsg', ac.error); return; }
   n.attachments = ac.list;
   if (!n.date || !n.title){ msg('formMsg','날짜와 제목을 입력해 주세요.'); return; }
@@ -1658,80 +1484,25 @@ function openStudentView(){
 
 /* ===== 설치 가이드 ===== */
 let gasText = '';
-/** 깃허브에 올라간 최신 GAS 코드 불러오기 (가이드·업데이트 창 공용) */
-async function ensureGasText(){
-  if (gasText) return true;
+async function openGuide(){
+  backScreen = curScreen || 'scrConnect';
+  show('scrGuide');
+  if (gasText) return;
   try{
     const r = await fetch(P + '-GAS.gs', { cache:'no-store' });
     if (!r.ok) throw 0;
     gasText = await r.text();
     $('gasCode').textContent = gasText;
-    return true;
   }catch(e){
     $('gasCode').textContent = '코드 파일을 불러오지 못했어요. (깃허브에 ' + P + '-GAS.gs 파일이 함께 올라가 있는지 확인해 주세요)';
-    return false;
   }
-}
-function fileVer(){ const m = String(gasText).match(/var GAS_VER = (\d+);/); return m ? Number(m[1]) : 0; }
-async function openGuide(){
-  backScreen = curScreen || 'scrConnect';
-  show('scrGuide');
-  await ensureGasText();
 }
 function closeGuide(){ show(backScreen || 'scrConnect'); }
-async function copyGas(where){
-  const box = typeof where === 'string' ? where : 'gasCopyMsg';
-  if (!(await ensureGasText())){ msg(box,'코드를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.'); return; }
-  if (fileVer() < NEED_GAS){ msg(box,'⚠️ 깃허브에 올라간 코드가 아직 옛 버전이에요. (앱을 만든 선생님이 새 코드를 올려야 해요)'); return; }
+async function copyGas(){
+  if (!gasText){ msg('gasCopyMsg','코드를 아직 불러오지 못했어요.'); return; }
   try{ await navigator.clipboard.writeText(gasText); }
   catch(e){ const ta=document.createElement('textarea'); ta.value=gasText; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
-  msg(box,'✅ 복사했어요! Apps Script에 붙여넣으세요.',true);
-}
-
-/* ===== 📘 사용 가이드 ===== */
-function renderHelp(){
-  const pres = role !== 'admin';
-  document.querySelectorAll('#tab-help .adm-only').forEach(el => el.classList.toggle('hide', pres));
-  document.querySelectorAll('#tab-help .pres-only').forEach(el => el.classList.toggle('hide', !pres));
-  $('helpIntro').textContent = pres ? '회장에게 필요한 사용법만 모았어요. 궁금한 항목을 눌러서 펼쳐 보세요.' : '궁금한 항목을 눌러서 펼쳐 보세요.';
-  const done = lsGet('sn_first_v1', {});
-  document.querySelectorAll('#firstList input').forEach(cb => {
-    cb.checked = !!done[cb.dataset.k];
-    cb.onchange = () => { const d = lsGet('sn_first_v1', {}); d[cb.dataset.k] = cb.checked; lsSet('sn_first_v1', d); };
-  });
-}
-
-/* ===== 🔔 GAS 코드 버전 확인 ===== */
-const NEED_GAS = 1;        // 이 화면이 필요로 하는 GAS 코드 버전 (GAS를 고칠 때 같이 올려요)
-let gasVer = null;
-const gasOld = () => gasVer !== null && gasVer < NEED_GAS;
-function renderGasBanner(){
-  const old = gasOld();
-  $('gasBanner').classList.toggle('hide', !old);
-  if ($('gasVerNow')) $('gasVerNow').textContent = gasVer === null ? '확인 중…' : old ? `버전 ${gasVer || '(옛 버전)'} → 최신 버전 ${NEED_GAS}로 업데이트가 필요해요` : `버전 ${gasVer} · 최신이에요 ✅`;
-  if (!old) return;
-  if (role === 'admin'){
-    $('gasBannerText').textContent = '새 기능(검색·기간 공지·사진 올리기)을 쓰려면 내 구글 시트의 코드를 바꿔야 해요. 기존 공지·명단은 그대로예요. (3분이면 끝나요)';
-    $('gasBannerBtns').classList.remove('hide');
-  } else {
-    $('gasBannerText').textContent = '담임선생님이 코드를 업데이트해야 기간 공지·사진 올리기를 쓸 수 있어요. 담임선생님께 알려 주세요.';
-    $('gasBannerBtns').classList.add('hide');
-  }
-}
-async function openGasUpdate(){
-  msg('gasUpMsg','',true); msg('gasUpCheck','',true);
-  $('gasUpOv').classList.remove('hide');
-  await ensureGasText();
-}
-async function recheckGas(btn){
-  const box = $('gasUpOv').classList.contains('hide') ? 'gasBannerMsg' : 'gasUpCheck';
-  btn.disabled = true; msg(box,'확인 중…',true);
-  try{
-    await refresh();
-    if (gasOld()) msg(box, '아직 옛 코드예요. 붙여넣은 뒤 저장하고 "배포 관리 → ✏️ 수정 → 새 버전 → 배포"까지 했는지 확인해 주세요. (배포 후 1분쯤 걸릴 수 있어요)');
-    else { msg(box,'',true); $('gasUpOv').classList.add('hide'); msg('formMsg','✅ GAS 코드가 최신이 됐어요. 새 기능을 쓸 수 있어요!',true); }
-  }catch(e){ msg(box, e.message); }
-  btn.disabled = false;
+  msg('gasCopyMsg','✅ 복사했어요! Apps Script에 붙여넣으세요.',true);
 }
 
 /* ===== 시작 ===== */
