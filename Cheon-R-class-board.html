@@ -52,6 +52,11 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .ub{background:var(--u-bg);color:var(--u-tx);border-radius:12px;padding:10px 14px;font-size:15px;font-weight:600;display:flex;gap:8px;align-items:flex-start}
 .ub small{display:block;font-weight:400;font-size:13px;margin-top:2px;white-space:pre-wrap}
 .ub.h{background:var(--h-bg);color:var(--h-tx)}
+.help h2{margin-bottom:10px}
+.help .hl{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px;line-height:1.6;color:var(--tx2)}
+.help .hl:last-of-type{border-bottom:none}
+.help .hl .ic{font-size:20px;flex:none;width:28px;text-align:center}
+.help .hl b{color:var(--tx)}
 .boardBtn{display:inline-block;margin-top:8px;min-height:36px;padding:0 12px;border-radius:18px;font-size:12px;color:var(--tx3);background:transparent;border:1px solid var(--line)}
 /* 🖥️ 교실 화면 모드 — 멀리서도 보이게 크게 */
 body.board{zoom:1.25}
@@ -63,6 +68,10 @@ body.board .card .full,body.board .prev{font-size:16px}
 body.board .pop .ttl{font-size:28px}
 body.board .pop .body,body.board .pop .tg{font-size:20px}
 body.board .me{background:#fff;color:var(--main-d)}
+body.board #meBtn{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;padding:4px 16px}
+body.pv:not(.board) #meBtn{pointer-events:none}
+#meBtn small{display:block;font-size:10.5px;font-weight:400;opacity:.8}
+.bdDot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2E9E5B;margin-right:6px;vertical-align:middle}
 .adm{display:none}
 body.board .adm{display:inline-flex;align-items:center}
 
@@ -201,7 +210,7 @@ mark{background:#FEF3C7;color:inherit;border-radius:3px;padding:0 1px}
     <span class="logo">📋</span>
     <div class="ttlw"><h1>CLASS BOARD</h1><div class="sub" id="cls"></div></div>
     <button class="me adm" onclick="openBoard('admin')">✏️ 관리</button>
-    <button class="me" id="meBtn" onclick="BOARD ? openBoard() : openWho()">학번 등록</button>
+    <button class="me" id="meBtn" onclick="if(BOARD)openBoard();else if(!PREVIEW)openWho();">학번 등록</button>
     <button class="ref" id="refBtn" onclick="load(true)" aria-label="새로고침">↻</button>
   </header>
 
@@ -233,7 +242,7 @@ mark{background:#FEF3C7;color:inherit;border-radius:3px;padding:0 1px}
       <div class="upd" id="upd"></div>
     </section>
   </div>
-  <div class="foot">Made by Cheon_R<br><button class="boardBtn" onclick="openBoard()">🖥️ 교실 화면 모드</button></div>
+  <div class="foot">Made by Cheon_R<br><button class="boardBtn" onclick="openHelp()">❓ 사용법</button> <button class="boardBtn" onclick="openBoard()">🖥️ 교실 화면 모드</button></div>
 </div>
 
 <!-- 학번 등록 -->
@@ -247,6 +256,23 @@ mark{background:#FEF3C7;color:inherit;border-radius:3px;padding:0 1px}
       <button class="b2" onclick="closeOv('whoOv')">나중에</button>
       <button class="b1" onclick="lookup()">확인</button>
     </div>
+  </div>
+</div>
+
+<!-- ❓ 학생 사용법 -->
+<div class="ov" id="helpOv" onclick="if(event.target===this)closeOv('helpOv')">
+  <div class="modal help">
+    <button class="x" onclick="closeOv('helpOv')" aria-label="닫기" style="float:right;width:44px;height:44px;margin:-10px -10px 0 0;font-size:22px;color:var(--tx3)">✕</button>
+    <h2>❓ CLASS BOARD 사용법</h2>
+    <div class="hl"><span class="ic">🙋</span><div><b>처음 한 번 학번 등록</b><br>위쪽 <b>학번 등록</b> → 학번 입력 → 내 이름 확인. 디벗과 핸드폰에 <b>각각 한 번씩</b> 해요.</div></div>
+    <div class="hl"><span class="ic">📱</span><div><b>홈 화면에 추가하면 앱처럼</b><br>안드로이드·디벗: 크롬 ⋮ → <b>홈 화면에 추가</b><br>아이폰: 사파리 공유 버튼(□↑) → <b>홈 화면에 추가</b></div></div>
+    <div class="hl"><span class="ic">📅</span><div><b>공지 보기</b><br><b>오늘</b>·<b>이번주</b> 탭이나 달력 날짜를 눌러요. 달력의 색 점은 그날 공지가 있다는 뜻이에요. 공지를 누르면 자세한 내용과 사진·링크가 보여요.</div></div>
+    <div class="hl"><span class="ic">✅</span><div><b>"확인 필요"가 붙은 공지</b><br>공지를 열어서 <b>[확인했어요]</b>를 눌러 주세요. 선생님이 누가 봤는지 확인해요.</div></div>
+    <div class="hl"><span class="ic">📣</span><div><b>"나를 불렀어요"</b><br>선생님이 부른 거예요. 다녀온 뒤 공지를 열어 <b>[다녀왔어요 체크하기]</b> → 내 이름을 눌러 주세요.</div></div>
+    <div class="hl"><span class="ic">✏️</span><div><b>틀린 내용·궁금한 점</b><br>공지 안의 <b>[수정 요청·질문]</b>으로 보내요. 선생님(또는 회장)에게만 가고, 학번·이름이 함께 전달돼요.</div></div>
+    <div class="hl"><span class="ic">🔍</span><div><b>지난 공지 찾기</b><br>공지 위쪽 🔍를 누르고 단어를 입력해요. (예: 수행평가, 체육복)</div></div>
+    <div class="hl"><span class="ic">↻</span><div><b>안 보이거나 느릴 때</b><br>위쪽 <b>↻</b>를 눌러 새로고침해요. 학교 와이파이에서 안 되면 데이터로 바꿔 보세요.</div></div>
+    <div class="hl"><span class="ic">🔒</span><div><b>링크는 우리 반끼리만</b><br>이 링크는 다른 반이나 밖으로 보내지 말아 주세요.</div></div>
   </div>
 </div>
 
@@ -360,6 +386,7 @@ async function load(manual){
     const res = await jsonp({ action:'load', sid: me ? me.sid : '' });
     notices = (res.notices || []).map(n => ({ ...n, date: normDate(n.date), end: n.end ? normDate(n.end) : '' }));
     loaded = true;
+    gasVer = Number(res.gasVer) || 0;
     confirmed = new Set((res.confirmed || []).map(String));
     callDone = res.callDone || {};
     links = res.links || [];
@@ -440,7 +467,9 @@ function render(){
   renderMe(); renderUrgent(); renderCal(); renderTabs(); renderList(); renderLinks();
 }
 function renderMe(){
-  document.getElementById('meBtn').textContent = BOARD ? '🖥️ 교실 화면 모드' : me ? me.sid + ' ' + me.name : (PREVIEW ? '👀 담임 미리보기' : '학번 등록');
+  const meB = document.getElementById('meBtn');
+  if (BOARD) meB.innerHTML = '<span><i class="bdDot"></i>🖥️ 교실 화면 모드 중</span><small>해제하려면 클릭하세요</small>';
+  else meB.textContent = me ? me.sid + ' ' + me.name : (PREVIEW ? '👀 담임 미리보기' : '학번 등록');
 }
 function renderUrgent(){
   const t = today();
@@ -499,10 +528,12 @@ function onSearchInput(v){
   clearTimeout(sTimer);
   sTimer = setTimeout(() => runSearch(v), 450);   // 입력을 잠깐 멈추면 검색
 }
+let gasVer = null;
 async function runSearch(v){
   const q = String(v || '').trim().slice(0, 40);
   searchQ = q;
   if (!q){ searchRes = []; searchState = ''; renderList(); return; }
+  if (gasVer !== null && gasVer < 1){ searchState = 'error:아직 쓸 수 없어요. 선생님이 앱 코드를 업데이트하면 검색할 수 있어요.'; renderList(); return; }
   const my = ++sSeq;
   searchState = 'loading'; renderList();
   try{
@@ -661,6 +692,7 @@ function openDetail(id){
 /* ===== 수정 요청·질문 ===== */
 let reqRid = '';
 function openReq(id){
+  if (PREVIEW){ alert('👀 담임 미리보기에서는 저장되지 않아요. 학생 화면에서만 쓸 수 있어요.'); return; }
   reqRid = 'R' + Array.from({ length:16 }, () => Math.floor(Math.random() * 36).toString(36)).join('');   // 다시 보내도 한 번만 저장되게
   if (!me){ closeOv('detOv'); openWho(); return; }
   document.getElementById('reqArea').innerHTML = `<div class="req">
@@ -727,6 +759,7 @@ function pickDate(s){ selDate = s; tab = (s === today()) ? 'today' : 'date'; if 
 function moveMonth(k){ view.setMonth(view.getMonth()+k); renderCal(); }
 
 async function doConfirm(id, btn){
+  if (PREVIEW){ alert('👀 담임 미리보기에서는 저장되지 않아요. 학생 화면에서만 쓸 수 있어요.'); return; }
   if (!me){ openWho(); return; }
   btn.disabled = true; waitOn(btn, '저장 중…');
   try{
@@ -827,6 +860,9 @@ function beep(){
 }
 document.addEventListener('pointerdown', () => { try{ actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); }catch(e){} }, { once:true });
 
+/* ===== ❓ 학생 사용법 ===== */
+function openHelp(){ document.getElementById('helpOv').classList.add('show'); }
+
 /* ===== 🖥️ 교실 화면 모드 ===== */
 let pollTimer = null;
 function startPoll(){ clearInterval(pollTimer); pollTimer = setInterval(load, BOARD ? 30000 : POLL_MS); }
@@ -835,12 +871,12 @@ let bdMode = 'toggle';
 function go(url){ location.href = url; }
 function openBoard(mode){
   bdMode = mode === 'admin' ? 'admin' : 'toggle';
-  document.getElementById('bdTitle').textContent = bdMode === 'admin' ? '✏️ 관리 화면으로 전환' : BOARD ? '🖥️ 교실 화면 모드 끄기' : '🖥️ 교실 화면 모드';
+  document.getElementById('bdTitle').textContent = bdMode === 'admin' ? '✏️ 관리 화면으로 전환' : BOARD ? '🖥️ 교실 화면 모드 중지' : '🖥️ 교실 화면 모드';
   document.getElementById('bdText').textContent = bdMode === 'admin'
     ? '담임 비밀번호나 회장 코드를 입력해 주세요. 다 쓰면 [🖥️ 교실 화면 모드]를 눌러 돌아와요. (5분 동안 조작이 없으면 자동으로 돌아와요)'
-    : BOARD ? '끄려면 담임 비밀번호나 회장 코드를 입력해 주세요.'
+    : BOARD ? '중지하려면 담임 비밀번호나 회장 코드를 입력해 주세요.'
     : '전자칠판처럼 반 전체가 보는 화면용이에요. 모든 호출이 크게 뜨고 30초마다 새로고침돼요. 담임 비밀번호나 회장 코드를 입력해 주세요.';
-  document.getElementById('bdOk').textContent = bdMode === 'admin' ? '전환' : BOARD ? '끄기' : '켜기';
+  document.getElementById('bdOk').textContent = bdMode === 'admin' ? '전환' : BOARD ? '중지' : '켜기';
   document.getElementById('bdPw').value = ''; document.getElementById('bdErr').textContent = '';
   document.getElementById('bdErr').style.color = ''; document.getElementById('bdOk').disabled = false;
   document.getElementById('boardOv').classList.add('show');
@@ -870,6 +906,7 @@ async function toggleBoard(){
 /* ===== 시작 ===== */
 document.addEventListener('visibilitychange', () => { if (!document.hidden){ load(); if (!popShowing) stopBlink(); } });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('Cheon-R-class-board-sw.js', { scope:'./Cheon-R-class-board' }).catch(()=>{});
+if (PREVIEW) document.body.classList.add('pv');
 applyBoard();
 if (lsGet(K.cls, '')) setSub(lsGet(K.cls, ''));
 render();
