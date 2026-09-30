@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#9B8EC4">
 <title>학급 공지 관리</title>
+<!-- 링크 미리보기(카톡 등) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="CLASS BOARD · 담임용 관리">
+<meta property="og:description" content="우리 반 공지·호출·확인을 한 곳에서">
+<meta property="og:image" content="https://fond0316.github.io/adeum-survey/Cheon-R-og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="Cheon-R-class-board-icon-192.png">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
@@ -174,7 +182,6 @@ details summary::-webkit-details-marker{display:none}
       <li>편집기에 있는 기본 코드를 <b>Ctrl+A로 전부 지우기</b></li>
       <li>아래 <b>코드 전체 복사</b> 버튼 → 붙여넣기 → 저장(💾)</li></ol>
       <div class="row" style="margin-top:10px"><button class="btn" id="gasCopyBtn" onclick="copyGas()">📋 코드 전체 복사</button><span class="msg" id="gasCopyMsg" style="margin:0"></span></div>
-      <p class="hint" style="margin-top:8px">🔄 이미 쓰고 계신다면: 앱이 업데이트되면 관리 화면 맨 위에 🔔 알림이 떠요. 그때도 여기서 새 코드를 복사해서 붙여넣고 <b>수정 배포</b>하면 돼요.</p>
       <details class="code"><summary>코드 미리보기</summary><pre id="gasCode">불러오는 중…</pre></details></div>
     <div class="step"><div class="st">Step 3. 웹 앱으로 배포</div><ol>
       <li>오른쪽 위 <b>배포 → 새 배포</b> → 톱니바퀴에서 <b>웹 앱</b> 선택</li>
@@ -275,15 +282,6 @@ details summary::-webkit-details-marker{display:none}
       <span class="role" id="roleTag"></span>
       <button class="out" onclick="logout()">로그아웃</button>
     </header>
-    <div class="box hide" id="gasBanner" style="background:#FEF3C7;border-color:#F5D98B;margin-top:12px;margin-bottom:0">
-      <h2 style="color:#92400E">🔔 GAS 코드 업데이트가 필요해요</h2>
-      <p class="hint" style="color:#92400E;margin-bottom:0" id="gasBannerText"></p>
-      <div class="row" id="gasBannerBtns" style="margin-top:10px">
-        <button class="btn" onclick="openGasUpdate()">업데이트 방법 보기</button>
-        <button class="btn sub" onclick="recheckGas(this)">다시 확인</button>
-      </div>
-      <div class="msg" id="gasBannerMsg"></div>
-    </div>
     <nav class="nav" id="nav"></nav>
 
     <!-- 연결·설정 -->
@@ -345,8 +343,6 @@ details summary::-webkit-details-marker{display:none}
         <div class="msg" id="setMsg"></div>
         <label class="f" style="margin-top:18px">연결된 GAS 주소</label>
         <div class="link"><input type="text" id="gasNow" readonly><button class="btn sub" onclick="resetGas()">변경</button></div>
-        <label class="f">GAS 코드 버전</label>
-        <p class="hint" id="gasVerNow" style="margin:0 0 4px">확인 중…</p>
         <label class="f">설치 ID</label>
         <div class="link"><input type="text" id="instNow" readonly><button class="btn sub" onclick="copy('instNow')">복사</button></div>
         <button class="gbtn" onclick="mailContact()">✉️ 문의하기 (개발자에게 메일)</button>
@@ -474,29 +470,6 @@ details summary::-webkit-details-marker{display:none}
     <div id="dupBtns"></div>
     <button class="cbtn btn sub hide" id="dupNewBtn" onclick="dupChoose('new')">따로 올리기</button>
     <div class="msg no" id="dupErr"></div>
-  </div>
-</div>
-
-<!-- GAS 코드 업데이트 방법 -->
-<div class="ov hide" id="gasUpOv" onclick="if(event.target===this)this.classList.add('hide')">
-  <div class="box">
-    <h2>🔔 GAS 코드 업데이트</h2>
-    <p class="hint">새 기능이 제대로 동작하도록, 내 구글 시트의 코드를 최신으로 바꿔요. 공지·명단 등 기존 데이터는 그대로예요.</p>
-    <div class="step" style="margin-top:8px"><div class="st">1. 새 코드 복사</div>
-      <button class="btn" type="button" onclick="copyGas('gasUpMsg')">📋 새 코드 복사</button>
-      <div class="msg" id="gasUpMsg"></div></div>
-    <div class="step"><div class="st">2. 붙여넣기 → 저장</div><ol>
-      <li>내 구글 시트 → <b>확장 프로그램 → Apps Script</b></li>
-      <li>편집기의 코드를 <b>Ctrl+A로 전부 지우고</b> 붙여넣기 → 저장(💾)</li></ol></div>
-    <div class="step"><div class="st">3. 수정 배포 (꼭!)</div><ol>
-      <li>오른쪽 위 <b>배포 → 배포 관리</b></li>
-      <li><b>✏️ 수정</b> → 버전: <b>새 버전</b> → <b>배포</b></li></ol>
-      <div class="warn">⚠️ <b>새 배포</b>를 누르면 주소가 바뀌어서 학생 링크가 끊겨요. 꼭 <b>수정</b>으로 해 주세요.</div></div>
-    <div class="row" style="margin-top:12px">
-      <button class="btn" onclick="recheckGas(this)">다 했어요, 다시 확인</button>
-      <button class="btn sub" onclick="$('gasUpOv').classList.add('hide')">닫기</button>
-    </div>
-    <div class="msg" id="gasUpCheck"></div>
   </div>
 </div>
 
@@ -719,7 +692,6 @@ async function refresh(usePre){
   role = r.role; data = { notices:(r.notices||[]).map(n => ({ ...n, date: normDate(n.date), end: n.end ? normDate(n.end) : '' })), students:r.students||[], confirms:r.confirms||[], requests:r.requests||[], callDone:r.callDone||{} };
   updateReqBadge();
   schoolYear = parseInt(r.year, 10) || new Date().getFullYear();
-  gasVer = Number(r.gasVer) || 0; renderGasBanner();
   renderBlobs();
   $('cls').textContent = (r.className||'우리 반') + ' 공지 관리';
   if (role==='admin'){
@@ -970,7 +942,6 @@ async function sendPhoto(a){
 async function onPhotos(input){
   const files = [...input.files]; input.value = '';
   msg('formMsg', '', true);
-  if (gasOld()){ msg('formMsg', role==='admin' ? '사진 올리기는 GAS 코드를 업데이트해야 쓸 수 있어요. 맨 위 🔔 알림을 확인해 주세요.' : '사진 올리기는 담임선생님이 코드를 업데이트해야 쓸 수 있어요.'); return; }
   for (const f of files){
     if (atts.length >= 5 || nPhotos() >= 3){ msg('formMsg', '사진은 3장, 첨부는 5개까지예요.'); break; }
     const a = { kind:'photo', name:'', url:'photo:' + newPhotoId(), local:'', status:'preparing', err:'' };
@@ -1128,7 +1099,6 @@ async function saveNotice(btn, skipDup){
     targets: fType==='호출' ? [...document.querySelectorAll('#roster input:checked')].map(i=>i.value) : [],
     end: (fType!=='호출' && $('fPer').checked) ? $('fEnd').value : '' };
   if (fType!=='호출' && $('fPer').checked && !checkPeriod()){ msg('formMsg', $('perMsg').textContent); return; }
-  if (n.end && gasOld()){ msg('formMsg', role==='admin' ? '기간 공지는 GAS 코드를 업데이트해야 쓸 수 있어요. 맨 위 🔔 알림을 확인해 주세요.' : '기간 공지는 담임선생님이 코드를 업데이트해야 쓸 수 있어요.'); return; }
   const ac = collectAtts(); if (ac.error){ msg('formMsg', ac.error); return; }
   n.attachments = ac.list;
   if (!n.date || !n.title){ msg('formMsg','날짜와 제목을 입력해 주세요.'); return; }
@@ -1514,67 +1484,25 @@ function openStudentView(){
 
 /* ===== 설치 가이드 ===== */
 let gasText = '';
-/** 깃허브에 올라간 최신 GAS 코드 불러오기 (가이드·업데이트 창 공용) */
-async function ensureGasText(){
-  if (gasText) return true;
+async function openGuide(){
+  backScreen = curScreen || 'scrConnect';
+  show('scrGuide');
+  if (gasText) return;
   try{
     const r = await fetch(P + '-GAS.gs', { cache:'no-store' });
     if (!r.ok) throw 0;
     gasText = await r.text();
     $('gasCode').textContent = gasText;
-    return true;
   }catch(e){
     $('gasCode').textContent = '코드 파일을 불러오지 못했어요. (깃허브에 ' + P + '-GAS.gs 파일이 함께 올라가 있는지 확인해 주세요)';
-    return false;
   }
-}
-function fileVer(){ const m = String(gasText).match(/var GAS_VER = (\d+);/); return m ? Number(m[1]) : 0; }
-async function openGuide(){
-  backScreen = curScreen || 'scrConnect';
-  show('scrGuide');
-  await ensureGasText();
 }
 function closeGuide(){ show(backScreen || 'scrConnect'); }
-async function copyGas(where){
-  const box = typeof where === 'string' ? where : 'gasCopyMsg';
-  if (!(await ensureGasText())){ msg(box,'코드를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.'); return; }
-  if (fileVer() < NEED_GAS){ msg(box,'⚠️ 깃허브에 올라간 코드가 아직 옛 버전이에요. (앱을 만든 선생님이 새 코드를 올려야 해요)'); return; }
+async function copyGas(){
+  if (!gasText){ msg('gasCopyMsg','코드를 아직 불러오지 못했어요.'); return; }
   try{ await navigator.clipboard.writeText(gasText); }
   catch(e){ const ta=document.createElement('textarea'); ta.value=gasText; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
-  msg(box,'✅ 복사했어요! Apps Script에 붙여넣으세요.',true);
-}
-
-/* ===== 🔔 GAS 코드 버전 확인 ===== */
-const NEED_GAS = 1;        // 이 화면이 필요로 하는 GAS 코드 버전 (GAS를 고칠 때 같이 올려요)
-let gasVer = null;
-const gasOld = () => gasVer !== null && gasVer < NEED_GAS;
-function renderGasBanner(){
-  const old = gasOld();
-  $('gasBanner').classList.toggle('hide', !old);
-  if ($('gasVerNow')) $('gasVerNow').textContent = gasVer === null ? '확인 중…' : old ? `버전 ${gasVer || '(옛 버전)'} → 최신 버전 ${NEED_GAS}로 업데이트가 필요해요` : `버전 ${gasVer} · 최신이에요 ✅`;
-  if (!old) return;
-  if (role === 'admin'){
-    $('gasBannerText').textContent = '새 기능(검색·기간 공지·사진 올리기)을 쓰려면 내 구글 시트의 코드를 바꿔야 해요. 기존 공지·명단은 그대로예요. (3분이면 끝나요)';
-    $('gasBannerBtns').classList.remove('hide');
-  } else {
-    $('gasBannerText').textContent = '담임선생님이 코드를 업데이트해야 기간 공지·사진 올리기를 쓸 수 있어요. 담임선생님께 알려 주세요.';
-    $('gasBannerBtns').classList.add('hide');
-  }
-}
-async function openGasUpdate(){
-  msg('gasUpMsg','',true); msg('gasUpCheck','',true);
-  $('gasUpOv').classList.remove('hide');
-  await ensureGasText();
-}
-async function recheckGas(btn){
-  const box = $('gasUpOv').classList.contains('hide') ? 'gasBannerMsg' : 'gasUpCheck';
-  btn.disabled = true; msg(box,'확인 중…',true);
-  try{
-    await refresh();
-    if (gasOld()) msg(box, '아직 옛 코드예요. 붙여넣은 뒤 저장하고 "배포 관리 → ✏️ 수정 → 새 버전 → 배포"까지 했는지 확인해 주세요. (배포 후 1분쯤 걸릴 수 있어요)');
-    else { msg(box,'',true); $('gasUpOv').classList.add('hide'); msg('formMsg','✅ GAS 코드가 최신이 됐어요. 새 기능을 쓸 수 있어요!',true); }
-  }catch(e){ msg(box, e.message); }
-  btn.disabled = false;
+  msg('gasCopyMsg','✅ 복사했어요! Apps Script에 붙여넣으세요.',true);
 }
 
 /* ===== 시작 ===== */

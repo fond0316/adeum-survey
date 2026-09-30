@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#9B8EC4">
 <title>CLASS BOARD</title>
+<!-- 링크 미리보기(카톡 등) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="CLASS BOARD · 우리 반 공지">
+<meta property="og:description" content="여기를 눌러 오늘의 공지를 확인하세요.">
+<meta property="og:image" content="https://fond0316.github.io/adeum-survey/Cheon-R-og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="manifest" href="Cheon-R-class-board-manifest.json">
 <link rel="icon" href="Cheon-R-class-board-icon-192.png">
 <link rel="apple-touch-icon" href="Cheon-R-class-board-icon-192.png">
@@ -352,7 +360,6 @@ async function load(manual){
     const res = await jsonp({ action:'load', sid: me ? me.sid : '' });
     notices = (res.notices || []).map(n => ({ ...n, date: normDate(n.date), end: n.end ? normDate(n.end) : '' }));
     loaded = true;
-    gasVer = Number(res.gasVer) || 0;
     confirmed = new Set((res.confirmed || []).map(String));
     callDone = res.callDone || {};
     links = res.links || [];
@@ -492,12 +499,10 @@ function onSearchInput(v){
   clearTimeout(sTimer);
   sTimer = setTimeout(() => runSearch(v), 450);   // 입력을 잠깐 멈추면 검색
 }
-let gasVer = null;
 async function runSearch(v){
   const q = String(v || '').trim().slice(0, 40);
   searchQ = q;
   if (!q){ searchRes = []; searchState = ''; renderList(); return; }
-  if (gasVer !== null && gasVer < 1){ searchState = 'error:아직 쓸 수 없어요. 선생님이 앱 코드를 업데이트하면 검색할 수 있어요.'; renderList(); return; }
   const my = ++sSeq;
   searchState = 'loading'; renderList();
   try{
