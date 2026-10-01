@@ -250,6 +250,33 @@ input[type=file]{display:none;}
 .plan-time-label:has(input:checked){border-color:var(--primary);background:var(--primary-light);color:var(--primary);font-weight:700;}
 .plan-time-label input{display:none;}
 .plan-member-row{display:flex;align-items:center;justify-content:space-between;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-sm);padding:8px 12px;font-size:13px;}
+
+/* ── 학급자율활동 홈(hub) ── */
+.hub-sec{font-size:12px;font-weight:700;color:var(--gray-500);margin:22px 4px 8px;}
+.hub-card{width:100%;min-height:64px;padding:12px 14px;background:white;border-radius:14px;border:1.5px solid #e5e7eb;cursor:pointer;display:flex;align-items:center;gap:12px;text-align:left;margin-bottom:8px;transition:all .18s;font-family:inherit;color:inherit;}
+.hub-card:hover{border-color:var(--primary);box-shadow:0 4px 14px rgba(155,142,196,.18);}
+.hub-ic{width:44px;height:44px;border-radius:12px;background:#EDE9F8;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.hub-tx{flex:1;min-width:0;}
+.hub-nm{font-size:15px;font-weight:700;color:#111;line-height:1.35;word-break:keep-all;}
+.hub-ds{font-size:12px;color:#9ca3af;line-height:1.5;margin-top:2px;}
+.hub-badge{flex-shrink:0;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;}
+.hub-badge.info{background:#EDE9F8;color:#7B6BA8;}
+.hub-badge.submit{background:#FEF3C7;color:#92400E;}
+.hub-badge.study{background:#DCFCE7;color:#166534;}
+.hub-empty{text-align:center;padding:40px 16px;font-size:13px;color:var(--gray-400);}
+.hub-back{display:inline-flex;align-items:center;min-height:44px;padding:0 4px;margin-bottom:6px;background:none;border:none;font-family:inherit;font-size:13px;font-weight:700;color:var(--primary-dark);cursor:pointer;}
+.hub-body{white-space:pre-wrap;word-break:break-word;font-size:14px;line-height:1.8;color:var(--gray-700);}
+.hub-body.muted{color:var(--gray-400);font-size:13px;}
+.hub-linkbtn{display:flex;align-items:center;justify-content:center;gap:6px;min-height:48px;margin-top:16px;padding:12px 16px;border-radius:var(--radius-sm);background:rgba(155,142,196,0.18);border:2px solid rgba(155,142,196,0.5);color:var(--primary-dark);font-size:15px;font-weight:700;text-decoration:none;text-align:center;}
+.hub-note{margin-top:14px;padding:12px 14px;border-radius:var(--radius-sm);background:#FFFBEB;border:1.5px solid #FDE68A;font-size:12px;color:#92400E;line-height:1.7;}
+.hub-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;align-items:center;justify-content:center;padding:16px;}
+.hub-modal.show{display:flex;}
+.hub-modal-box{background:white;border-radius:16px;padding:20px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;}
+.hub-arow{border:1.5px solid var(--gray-200);border-radius:12px;padding:10px 12px;margin-bottom:8px;background:white;}
+.hub-arow.off{opacity:.55;}
+.hub-ib{min-width:44px;min-height:44px;border-radius:10px;border:1.5px solid var(--gray-200);background:var(--gray-50);font-size:15px;cursor:pointer;font-family:inherit;}
+.hub-emo{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.hub-emo button{min-width:40px;min-height:40px;border-radius:8px;border:1.5px solid var(--gray-200);background:white;font-size:18px;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -491,7 +518,7 @@ input[type=file]{display:none;}
 ════════════════════════════════════════ -->
 <div class="app-header">
   <div class="header-top">
-    <h1 id="mainTitle" onclick="goStep('home')" style="cursor:pointer;">🌟 아듬's 학급활동기록 <span id="yearDisplay">2026</span> <span style="font-size:11px;color:#9ca3af;font-weight:400;margin-left:4px;">· Made by Cheon_R</span></h1>
+    <h1 id="mainTitle" onclick="goHub()" style="cursor:pointer;">🌟 아듬's 학급활동기록 <span id="yearDisplay">2026</span> <span style="font-size:11px;color:#9ca3af;font-weight:400;margin-left:4px;">· Made by Cheon_R</span></h1>
     <button class="admin-btn" onclick="openAdminModal()" style="margin-left:10px;flex-shrink:0;">⚙️ 관리</button>
   </div>
 </div>
@@ -511,8 +538,36 @@ input[type=file]{display:none;}
   <!-- ▶ 자율스터디 탭 -->
   <div id="tab-content-study">
 
-    <!-- HOME: 메뉴 -->
-    <div class="screen active" id="screen-home">
+    <!-- HUB: 학급자율활동 홈 -->
+    <div class="screen active" id="screen-hub">
+      <div class="home-hero">
+        <div class="year-badge" id="hubYearBadge">2026학년도</div>
+        <h2>🌟 아듬's 학급자율활동</h2>
+        <p>참여할 활동을 골라주세요</p>
+        <p style="font-size:11px;color:#9ca3af;margin-top:6px;">Made by Cheon_R</p>
+      </div>
+      <div id="hubList"></div>
+    </div>
+
+    <!-- HUB 상세: 안내형/제출형 항목 -->
+    <div class="screen" id="screen-hubitem">
+      <div class="card">
+        <button class="hub-back" onclick="goHub()">← 학급자율활동 홈</button>
+        <div style="display:flex;align-items:center;gap:12px;margin:4px 0 16px;">
+          <div class="hub-ic" id="hubItemIcon"></div>
+          <div style="flex:1;min-width:0;">
+            <div id="hubItemName" style="font-size:18px;font-weight:800;color:#111;line-height:1.35;word-break:keep-all;"></div>
+            <div id="hubItemDesc" style="font-size:12px;color:#9ca3af;margin-top:2px;"></div>
+          </div>
+        </div>
+        <div class="hub-body" id="hubItemBody"></div>
+        <div id="hubItemExtra"></div>
+      </div>
+    </div>
+
+    <!-- HOME: 메뉴 (자율스터디) -->
+    <div class="screen" id="screen-home">
+      <button class="hub-back" onclick="goHub()">← 학급자율활동 홈</button>
       <div class="home-hero">
         <div class="year-badge" id="yearBadge">2026학년도</div>
         <h2>🌟 아듬's 학급활동기록</h2>
@@ -525,7 +580,7 @@ input[type=file]{display:none;}
         <div class="cb-text">현재 제출이 마감되었어요<br><span style="font-weight:400;font-size:12px;color:#B91C1C">선생님이 마감을 해제하면 다시 제출할 수 있어요</span></div>
       </div>
       <div class="menu-grid">
-        <div class="menu-card" onclick="openPlan()">
+        <div class="menu-card" data-menu="plan" onclick="openPlan()">
           <div class="icon">📋</div>
           <div class="card-text">
             <div class="name" style="margin-bottom:3px;">스터디 계획표</div>
@@ -533,7 +588,7 @@ input[type=file]{display:none;}
           </div>
           <div class="badge badge-blue" style="white-space:nowrap;flex-shrink:0;">작성하기</div>
         </div>
-        <div class="menu-card" onclick="startStudy()">
+        <div class="menu-card" data-menu="team" onclick="startStudy()">
           <div class="icon">📚</div>
           <div class="card-text">
             <div class="name" style="margin-bottom:3px;">팀스터디</div>
@@ -541,7 +596,7 @@ input[type=file]{display:none;}
           </div>
           <div class="badge badge-blue" style="white-space:nowrap;flex-shrink:0;">기록하기</div>
         </div>
-        <div class="menu-card" onclick="startKing()">
+        <div class="menu-card" data-menu="king" onclick="startKing()">
           <div class="icon">👑</div>
           <div class="card-text">
             <div class="name" style="margin-bottom:3px;">왕멘토</div>
@@ -549,7 +604,7 @@ input[type=file]{display:none;}
           </div>
           <div class="badge badge-blue" style="white-space:nowrap;flex-shrink:0;">기록하기</div>
         </div>
-        <div class="menu-card" onclick="openMyRecords()">
+        <div class="menu-card" data-menu="my" onclick="openMyRecords()">
           <div class="icon">🗂️</div>
           <div class="card-text">
             <div class="name" style="margin-bottom:3px;">내 기록 보기</div>
@@ -1056,6 +1111,21 @@ input[type=file]{display:none;}
 
         </div>
       </div>
+    </div>
+
+    <!-- 학급자율활동 항목 관리 -->
+    <div class="card" style="margin-bottom:16px;border:2px solid var(--primary-mid);">
+      <div class="card-title">🏫 학급자율활동 항목 관리</div>
+      <div class="info-box">학생 첫 화면에 보이는 항목이에요. 유형에 따라 섹션이 자동으로 나뉘어요.<br>· 제출형 → "내가 제출해요" · 기존 연결 → "기록해요" · 안내형 → "확인해요"<br>· 수정 후 <b>저장하기</b>를 눌러야 시트와 학생 화면에 반영돼요.</div>
+      <div id="hubAdminList"></div>
+      <div style="display:flex;gap:8px;margin:10px 0 4px;">
+        <button class="btn btn-secondary" style="flex:1" onclick="hubOpenEdit('hub',-1)">＋ 항목 추가</button>
+        <button class="btn btn-primary" style="flex:1" id="hubSaveBtn" onclick="hubSave()">💾 저장하기</button>
+      </div>
+      <div id="hubAdminMsg" style="font-size:12px;line-height:1.6;margin-top:8px;display:none;"></div>
+      <div class="card-title" style="margin-top:22px;">📚 학급자율스터디 안 메뉴</div>
+      <div style="font-size:11px;color:var(--gray-400);margin-bottom:10px;line-height:1.6;">이름·설명·순서·표시 여부를 바꿀 수 있어요. (기능은 그대로예요)</div>
+      <div id="hubStudyAdminList"></div>
     </div>
 
     <!-- 학년도 설정 -->
@@ -1747,7 +1817,7 @@ window.onload = async function() {
   const savedYear = localStorage.getItem('app_year') || '2026';
   applyYear(savedYear);
   updateQuarterLabels();
-  showScreen('home');
+  showScreen('hub');
   updateStepBar(0);
   // ★ GAS 연결 확인 (URL 포함)
   await checkGasConnection();
@@ -1792,7 +1862,7 @@ function showScreen(name) {
   const el = document.getElementById('screen-'+name);
   if(el) el.classList.add('active');
   const stepBar = document.getElementById('stepBar');
-  stepBar.style.display = name==='home' ? 'none' : 'flex';
+  stepBar.style.display = (name==='home'||name==='hub'||name==='hubitem') ? 'none' : 'flex';
 }
 
 function updateStepBar(step) {
@@ -2540,6 +2610,7 @@ function checkPw(){
     if (GAS_URL) showStudentLinkCard(GAS_URL);
     loadQuarterDates();
     loadAdminData();
+    hubAdminInit();
     // ★ 마감 상태도 관리자 화면에 반영
     if (GAS_URL) {
       fetchGAS(GAS_URL + '?action=getStatus').then(data => {
@@ -2804,6 +2875,393 @@ function loadStudentInfoToForm() {
     if (el) el.classList.add('selected');
   }
 }
+</script>
+
+<!-- 학급자율활동 항목 편집 모달 -->
+<div class="hub-modal" id="hubEditModal">
+  <div class="hub-modal-box">
+    <div id="hubEditTitle" style="font-size:16px;font-weight:800;color:#1F2937;margin-bottom:14px;">항목 편집</div>
+    <div class="form-group" id="hubGType">
+      <label>유형</label>
+      <select id="hubFType" onchange="hubTypeChange()">
+        <option value="info">안내형 — 설명·링크만 보여줘요</option>
+        <option value="submit">제출형 — 요약본 제출 + 파일 링크</option>
+        <option value="study">기존 연결 — 자율스터디 화면 열기</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>아이콘 (이모지)</label>
+      <input type="text" id="hubFIcon" maxlength="4" placeholder="📌"/>
+      <div class="hub-emo" id="hubEmoji"></div>
+    </div>
+    <div class="form-group">
+      <label>이름</label>
+      <input type="text" id="hubFName" maxlength="30" placeholder="진로탐색 프로젝트"/>
+    </div>
+    <div class="form-group">
+      <label>한 줄 설명</label>
+      <input type="text" id="hubFDesc" maxlength="40" placeholder="카드 아래에 작게 보여요"/>
+    </div>
+    <div class="form-group" id="hubGBody">
+      <label>안내 내용</label>
+      <textarea id="hubFBody" rows="5" placeholder="항목을 눌렀을 때 보이는 안내문이에요. 줄바꿈이 그대로 보여요."></textarea>
+    </div>
+    <div class="form-group" id="hubGLink">
+      <label>링크 (리로스쿨 게시판 등)</label>
+      <input type="text" id="hubFLink" inputmode="url" placeholder="https://..."/>
+      <input type="text" id="hubFLinkLabel" maxlength="30" placeholder="버튼 이름 (비우면 기본 문구)" style="margin-top:6px;"/>
+    </div>
+    <div class="form-group" style="display:flex;align-items:center;gap:8px;min-height:44px;">
+      <input type="checkbox" id="hubFVisible" style="width:20px;height:20px;"/>
+      <label for="hubFVisible" style="margin:0;">학생 화면에 표시</label>
+    </div>
+    <div id="hubFErr" style="font-size:12px;color:var(--danger);margin-bottom:10px;display:none;"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-secondary" style="flex:1" onclick="hubCloseEdit()">취소</button>
+      <button class="btn btn-primary" style="flex:1" onclick="hubApplyEdit()">확인</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════
+// 학급자율활동 홈 (hub) — 기존 자율스터디 코드와 독립된 추가 블록
+// ════════════════════════════════════════
+const HUB_KEY = 'class_hub_v1';
+const HUB_TYPES = { info:'안내형', submit:'제출형', study:'기존 연결' };
+const HUB_BADGE = { info:'안내', submit:'제출', study:'기록' };
+const HUB_EMOJI = ['📌','✍️','📚','🧭','📖','💡','🚀','🙋','🔄','📝','📊','🎯','👑','🏫','🗂️','⭐'];
+
+const HUB_DEFAULT_ITEMS = [
+  { id:'d1', type:'info',   icon:'🙋', name:'1인 1역',                 desc:'내 역할과 맡은 일을 확인해요' },
+  { id:'d2', type:'info',   icon:'🔄', name:'가치관 릴레이 로테이션',   desc:'순서와 주제를 확인해요' },
+  { id:'d3', type:'info',   icon:'📝', name:'시험대비 플래닝 (정기고사)', desc:'정기고사 전 학습 계획을 확인해요' },
+  { id:'d4', type:'info',   icon:'📊', name:'시험 자기평가 (정기고사 후)', desc:'정기고사 후 자기평가를 확인해요' },
+  { id:'d5', type:'info',   icon:'🧭', name:'진로',                   desc:'진로 관련 활동 안내를 확인해요' },
+  { id:'d6', type:'info',   icon:'📖', name:'교과 관련 독서 및 독후활동', desc:'독서 안내와 독후활동을 확인해요' },
+  { id:'d7', type:'submit', icon:'🚀', name:'진로탐색 프로젝트',        desc:'활동 요약본을 쓰고 파일은 리로스쿨로 제출해요' },
+  { id:'d8', type:'submit', icon:'💡', name:'자율 주제 탐구 활동',      desc:'활동 요약본을 쓰고 파일은 리로스쿨로 제출해요' },
+  { id:'d9', type:'study',  icon:'📚', name:'학급자율스터디',          desc:'팀스터디 · 왕멘토 · 스터디 계획표' }
+];
+const HUB_DEFAULT_STUDY = [
+  { id:'plan', icon:'📋', name:'스터디 계획표', desc:'팀스터디 멘토가 분기 시작 전 대표로 작성해요' },
+  { id:'team', icon:'📚', name:'팀스터디',     desc:'멘토·멘티가 매 회차 활동 일지를 기록해요' },
+  { id:'king', icon:'👑', name:'왕멘토',       desc:'1인 1역, 개인 활동 일지를 기록해요' },
+  { id:'my',   icon:'🗂️', name:'내 기록 보기', desc:'이전 회차 확인 및 수정 가능' }
+];
+
+let hubItems = [], hubStudy = [];
+let hubDraft = null, hubDirty = false;
+let hubEditCtx = { kind:'hub', idx:-1 };
+
+function hubClone(o){ return JSON.parse(JSON.stringify(o)); }
+function hubEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function hubSafeUrl(u){ return /^https?:\/\/\S+$/i.test(String(u||'').trim()); }
+function hubNewId(){ return 'h' + Date.now().toString(36) + Math.floor(Math.random()*1296).toString(36); }
+
+function hubNormItem(x, isMenu){
+  x = x || {};
+  return {
+    id: String(x.id==null || x.id==='' ? hubNewId() : x.id),
+    type: isMenu ? 'menu' : (HUB_TYPES[x.type] ? x.type : 'info'),
+    icon: String(x.icon || '📌').slice(0,8),
+    name: String(x.name || '').slice(0,60),
+    desc: String(x.desc || '').slice(0,80),
+    body: String(x.body || ''),
+    link: String(x.link || ''),
+    linkLabel: String(x.linkLabel || '').slice(0,40),
+    visible: !(x.visible === false || String(x.visible) === 'false')
+  };
+}
+function hubApply(d){
+  const items = ((d && d.items) || []).map(x=>hubNormItem(x,false)).filter(x=>x.name);
+  hubItems = items.length ? items : HUB_DEFAULT_ITEMS.map(x=>hubNormItem(x,false));
+  const saved = ((d && d.study) || []).map(x=>hubNormItem(x,true)).filter(x=>x.name && HUB_DEFAULT_STUDY.some(s=>s.id===x.id));
+  const merged = [];
+  saved.forEach(x=>{ if(!merged.some(m=>m.id===x.id)) merged.push(x); });
+  HUB_DEFAULT_STUDY.forEach(s=>{ if(!merged.some(m=>m.id===s.id)) merged.push(hubNormItem(s,true)); });
+  hubStudy = merged;
+}
+function hubCache(){ try{ localStorage.setItem(HUB_KEY, JSON.stringify({ items:hubItems, study:hubStudy })); }catch(e){} }
+function hubLoadLocal(){
+  let d = null;
+  try{ d = JSON.parse(localStorage.getItem(HUB_KEY) || 'null'); }catch(e){}
+  hubApply(d);
+}
+
+// ── GAS 통신 (JSONP: 응답 확인용 / POST: 응답을 읽어 성공·실패 판별) ──
+function jsonpGAS(params, timeoutMs){
+  return new Promise((resolve, reject)=>{
+    if(!GAS_URL){ reject(new Error('NO_GAS_URL')); return; }
+    const cb = '__hubcb_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
+    const s = document.createElement('script');
+    let done = false, t = null;
+    const clean = ()=>{ done = true; clearTimeout(t); try{ delete window[cb]; }catch(e){ window[cb]=undefined; } if(s.parentNode) s.parentNode.removeChild(s); };
+    t = setTimeout(()=>{ if(!done){ clean(); reject(new Error('TIMEOUT')); } }, timeoutMs || 10000);
+    window[cb] = (data)=>{ if(!done){ clean(); resolve(data); } };
+    s.onerror = ()=>{ if(!done){ clean(); reject(new Error('NETWORK')); } };
+    const q = new URLSearchParams(Object.assign({}, params, { callback: cb }));
+    s.src = GAS_URL + (GAS_URL.indexOf('?')>=0 ? '&' : '?') + q.toString();
+    document.head.appendChild(s);
+  });
+}
+async function postGASRead(payload){
+  const res = await fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(payload) });
+  const txt = await res.text();
+  return JSON.parse(txt);
+}
+async function hubSyncFromGAS(){
+  if(!GAS_URL) return;
+  try{
+    const d = await jsonpGAS({ action:'getHubItems' });
+    if(d && Array.isArray(d.items) && d.items.length){
+      hubApply(d); hubCache(); renderHub(); applyStudyMenu();
+    }
+  }catch(e){}
+}
+
+// ── 학생 화면 ──
+function renderHub(){
+  const wrap = document.getElementById('hubList');
+  if(!wrap) return;
+  const yb = document.getElementById('hubYearBadge');
+  if(yb) yb.textContent = (localStorage.getItem('app_year') || '2026') + '학년도';
+  const secs = [
+    { type:'submit', label:'✍️ 내가 제출해요' },
+    { type:'study',  label:'📚 기록해요' },
+    { type:'info',   label:'📌 확인해요' }
+  ];
+  let html = '';
+  secs.forEach(s=>{
+    const list = hubItems.filter(x=>x.visible && x.type===s.type);
+    if(!list.length) return;
+    html += '<div class="hub-sec">' + s.label + '</div>';
+    list.forEach(it=>{
+      html += '<button class="hub-card" data-id="' + hubEsc(it.id) + '">'
+        + '<div class="hub-ic">' + hubEsc(it.icon) + '</div>'
+        + '<div class="hub-tx"><div class="hub-nm">' + hubEsc(it.name) + '</div>'
+        + (it.desc ? '<div class="hub-ds">' + hubEsc(it.desc) + '</div>' : '') + '</div>'
+        + '<span class="hub-badge ' + it.type + '">' + HUB_BADGE[it.type] + '</span></button>';
+    });
+  });
+  wrap.innerHTML = html || '<div class="hub-empty">아직 등록된 활동이 없어요.</div>';
+}
+function goHub(){
+  showScreen('hub'); updateStepBar(0); renderHub();
+  window.scrollTo(0,0);
+}
+function openHubItem(id){
+  const it = hubItems.find(x=>String(x.id)===String(id));
+  if(!it) return;
+  if(it.type === 'study'){ showScreen('home'); updateStepBar(0); window.scrollTo(0,0); return; }
+  document.getElementById('hubItemIcon').textContent = it.icon;
+  document.getElementById('hubItemName').textContent = it.name;
+  document.getElementById('hubItemDesc').textContent = it.desc;
+  const body = document.getElementById('hubItemBody');
+  if(it.body.trim()){ body.className = 'hub-body'; body.textContent = it.body; }
+  else { body.className = 'hub-body muted'; body.textContent = '아직 등록된 안내가 없어요. 선생님이 곧 올려주실 거예요.'; }
+  const extra = document.getElementById('hubItemExtra');
+  extra.innerHTML = '';
+  if(hubSafeUrl(it.link)){
+    const a = document.createElement('a');
+    a.className = 'hub-linkbtn';
+    a.href = it.link.trim(); a.target = '_blank'; a.rel = 'noopener noreferrer';
+    a.textContent = it.linkLabel || (it.type==='submit' ? '📎 파일 제출하러 가기 (리로스쿨)' : '🔗 바로가기');
+    extra.appendChild(a);
+  }
+  if(it.type === 'submit'){
+    const n = document.createElement('div');
+    n.className = 'hub-note';
+    n.textContent = '✍️ 요약본 작성 칸은 곧 열릴 예정이에요. 그때까지는 위 버튼에서 파일을 먼저 제출해 주세요.';
+    extra.appendChild(n);
+  }
+  showScreen('hubitem'); updateStepBar(0);
+  window.scrollTo(0,0);
+}
+document.getElementById('hubList').addEventListener('click', function(e){
+  const b = e.target.closest('[data-id]');
+  if(b) openHubItem(b.getAttribute('data-id'));
+});
+
+// 자율스터디 안 메뉴 (이름·설명·순서·표시 반영 — 클릭 기능은 기존 그대로)
+function applyStudyMenu(){
+  const grid = document.querySelector('#screen-home .menu-grid');
+  if(!grid) return;
+  hubStudy.forEach(m=>{
+    const card = grid.querySelector('[data-menu="' + m.id + '"]');
+    if(!card) return;
+    const ic = card.querySelector('.icon'), nm = card.querySelector('.name'), ds = card.querySelector('.desc');
+    if(ic) ic.textContent = m.icon;
+    if(nm) nm.textContent = m.name;
+    if(ds) ds.textContent = m.desc;
+    card.style.display = m.visible ? '' : 'none';
+    grid.appendChild(card);
+  });
+}
+
+// ── 관리자: 항목 편집 ──
+function hubMsg(text, kind){
+  const el = document.getElementById('hubAdminMsg');
+  if(!el) return;
+  if(!text){ el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  el.style.color = kind==='ok' ? '#166534' : kind==='warn' ? '#92400E' : '#B91C1C';
+  el.textContent = text;
+}
+function hubAdminInit(){
+  hubDraft = { items: hubClone(hubItems), study: hubClone(hubStudy) };
+  hubDirty = false; hubMsg(''); hubAdminRender();
+  if(GAS_URL){
+    jsonpGAS({ action:'getHubItems' }).then(d=>{
+      if(!hubDirty && d && Array.isArray(d.items) && d.items.length){
+        hubApply(d); hubCache(); renderHub(); applyStudyMenu();
+        hubDraft = { items: hubClone(hubItems), study: hubClone(hubStudy) };
+        hubAdminRender();
+      }
+    }).catch(()=>{});
+  }
+}
+function hubRowHtml(it, kind, i, n){
+  const badge = kind==='hub' ? '<span class="hub-badge ' + it.type + '">' + HUB_TYPES[it.type] + '</span>' : '';
+  return '<div class="hub-arow' + (it.visible ? '' : ' off') + '">'
+    + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">'
+    + '<span style="font-size:22px;">' + hubEsc(it.icon) + '</span>'
+    + '<div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:700;color:#111;">' + hubEsc(it.name) + '</div>'
+    + (it.desc ? '<div style="font-size:11px;color:var(--gray-400);margin-top:1px;">' + hubEsc(it.desc) + '</div>' : '') + '</div>'
+    + badge + '</div>'
+    + '<div style="display:flex;gap:6px;flex-wrap:wrap;">'
+    + '<button class="hub-ib" aria-label="위로" onclick="hubMove(\'' + kind + '\',' + i + ',-1)">↑</button>'
+    + '<button class="hub-ib" aria-label="아래로" onclick="hubMove(\'' + kind + '\',' + i + ',1)">↓</button>'
+    + '<button class="hub-ib" aria-label="수정" onclick="hubOpenEdit(\'' + kind + '\',' + i + ')">✏️</button>'
+    + '<button class="hub-ib" aria-label="표시 전환" onclick="hubToggle(\'' + kind + '\',' + i + ')">' + (it.visible ? '👁' : '🙈') + '</button>'
+    + (kind==='hub' ? '<button class="hub-ib" aria-label="삭제" onclick="hubDelete(' + i + ')">🗑️</button>' : '')
+    + '</div></div>';
+}
+function hubAdminRender(){
+  const a = document.getElementById('hubAdminList'), b = document.getElementById('hubStudyAdminList');
+  if(!a || !b || !hubDraft) return;
+  a.innerHTML = hubDraft.items.map((it,i)=>hubRowHtml(it,'hub',i,hubDraft.items.length)).join('')
+    || '<div class="hub-empty">항목이 없어요. 아래 ＋ 항목 추가를 눌러주세요.</div>';
+  b.innerHTML = hubDraft.study.map((it,i)=>hubRowHtml(it,'study',i,hubDraft.study.length)).join('');
+  const btn = document.getElementById('hubSaveBtn');
+  if(btn) btn.textContent = hubDirty ? '💾 저장하기 (변경됨)' : '💾 저장하기';
+}
+function hubArr(kind){ return kind==='study' ? hubDraft.study : hubDraft.items; }
+function hubMove(kind, i, d){
+  const arr = hubArr(kind), j = i + d;
+  if(j < 0 || j >= arr.length) return;
+  const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  hubDirty = true; hubAdminRender();
+}
+function hubToggle(kind, i){ const it = hubArr(kind)[i]; if(!it) return; it.visible = !it.visible; hubDirty = true; hubAdminRender(); }
+function hubDelete(i){
+  const it = hubDraft.items[i]; if(!it) return;
+  if(!confirm("'" + it.name + "' 항목을 삭제할까요?\n(저장하기를 눌러야 실제로 반영돼요)")) return;
+  hubDraft.items.splice(i,1); hubDirty = true; hubAdminRender();
+}
+
+function hubOpenEdit(kind, idx){
+  if(!hubDraft) hubAdminInit();
+  hubEditCtx = { kind: kind, idx: idx };
+  const it = idx >= 0 ? hubArr(kind)[idx] : { type:'info', icon:'📌', name:'', desc:'', body:'', link:'', linkLabel:'', visible:true };
+  document.getElementById('hubEditTitle').textContent = idx >= 0 ? '항목 수정' : '새 항목 추가';
+  document.getElementById('hubFType').value = kind==='study' ? 'info' : it.type;
+  document.getElementById('hubFIcon').value = it.icon;
+  document.getElementById('hubFName').value = it.name;
+  document.getElementById('hubFDesc').value = it.desc;
+  document.getElementById('hubFBody').value = it.body;
+  document.getElementById('hubFLink').value = it.link;
+  document.getElementById('hubFLinkLabel').value = it.linkLabel;
+  document.getElementById('hubFVisible').checked = !!it.visible;
+  document.getElementById('hubFErr').style.display = 'none';
+  hubTypeChange();
+  document.getElementById('hubEditModal').classList.add('show');
+}
+function hubTypeChange(){
+  const isMenu = hubEditCtx.kind === 'study';
+  const type = document.getElementById('hubFType').value;
+  document.getElementById('hubGType').style.display = isMenu ? 'none' : '';
+  const showExtra = !isMenu && type !== 'study';
+  document.getElementById('hubGBody').style.display = showExtra ? '' : 'none';
+  document.getElementById('hubGLink').style.display = showExtra ? '' : 'none';
+  document.getElementById('hubFLinkLabel').placeholder = type==='submit' ? '버튼 이름 (비우면 "파일 제출하러 가기")' : '버튼 이름 (비우면 "바로가기")';
+}
+function hubCloseEdit(){ document.getElementById('hubEditModal').classList.remove('show'); }
+function hubApplyEdit(){
+  const err = document.getElementById('hubFErr');
+  const name = document.getElementById('hubFName').value.trim();
+  const link = document.getElementById('hubFLink').value.trim();
+  const isMenu = hubEditCtx.kind === 'study';
+  const type = isMenu ? 'menu' : document.getElementById('hubFType').value;
+  if(!name){ err.textContent = '이름을 입력해 주세요.'; err.style.display = 'block'; return; }
+  if(!isMenu && type !== 'study' && link && !hubSafeUrl(link)){ err.textContent = '링크는 https:// 로 시작하는 주소만 쓸 수 있어요.'; err.style.display = 'block'; return; }
+  const arr = hubArr(hubEditCtx.kind);
+  const old = hubEditCtx.idx >= 0 ? arr[hubEditCtx.idx] : null;
+  const obj = hubNormItem({
+    id: old ? old.id : hubNewId(),
+    type: type,
+    icon: document.getElementById('hubFIcon').value.trim() || '📌',
+    name: name,
+    desc: document.getElementById('hubFDesc').value.trim(),
+    body: (isMenu || type==='study') ? '' : document.getElementById('hubFBody').value,
+    link: (isMenu || type==='study') ? '' : link,
+    linkLabel: (isMenu || type==='study') ? '' : document.getElementById('hubFLinkLabel').value.trim(),
+    visible: document.getElementById('hubFVisible').checked
+  }, isMenu);
+  if(old) arr[hubEditCtx.idx] = obj; else arr.push(obj);
+  hubDirty = true; hubCloseEdit(); hubAdminRender();
+}
+
+function hubToRow(x){ return { id:x.id, type:x.type, icon:x.icon, name:x.name, desc:x.desc, body:x.body, link:x.link, linkLabel:x.linkLabel, visible:!!x.visible }; }
+async function hubSave(){
+  if(!hubDraft) return;
+  const items = hubDraft.items.map(x=>hubNormItem(x,false));
+  if(!items.length){ hubMsg('⚠️ 항목이 1개 이상 있어야 저장할 수 있어요.','warn'); return; }
+  hubItems = items;
+  hubStudy = hubDraft.study.map(x=>hubNormItem(x,true));
+  hubCache(); renderHub(); applyStudyMenu();
+  hubDraft = { items: hubClone(hubItems), study: hubClone(hubStudy) };
+  hubDirty = false; hubAdminRender();
+  if(!GAS_URL){ hubMsg('⚠️ GAS URL이 설정되지 않아 이 기기에만 저장됐어요. 위쪽에서 GAS를 연결한 뒤 다시 저장해 주세요.','warn'); return; }
+  const btn = document.getElementById('hubSaveBtn');
+  const label = btn.textContent;
+  btn.textContent = '저장 중…';
+  try{
+    // 1) 시트 쪽 GAS가 새 버전인지 먼저 확인 (옛 버전이면 엉뚱한 시트에 기록될 수 있어서 저장 중단)
+    const probe = await jsonpGAS({ action:'getHubItems' });
+    if(!probe || !Array.isArray(probe.items)){
+      hubMsg('⚠️ GAS가 아직 새 버전이 아니에요. .gs 코드를 교체하고 "수정 배포"한 뒤 다시 저장해 주세요. (이 기기에는 저장됨)','warn');
+      return;
+    }
+    // 2) 저장: 응답을 읽어 확인, 응답을 못 읽으면 저장번호로 재확인
+    const saveId = 's' + Date.now();
+    const payload = { type:'saveHubItems', saveId: saveId, items: hubItems.map(hubToRow), study: hubStudy.map(hubToRow) };
+    let ok = false;
+    try{
+      const res = await postGASRead(payload);
+      ok = !!(res && res.status === 'ok');
+      if(!ok) throw new Error((res && res.message) || 'ERR');
+    }catch(e1){
+      const v = await jsonpGAS({ action:'getHubItems' });
+      if(v && v.version === saveId) ok = true; else throw e1;
+    }
+    if(ok){ hubMsg('✅ 시트에 저장됐어요. 학생 화면에 바로 반영돼요.','ok'); showToast('✅ 저장 완료'); }
+  }catch(e){
+    hubMsg('❌ 시트 저장에 실패했어요. (이 기기에는 저장됨) 인터넷 연결과 GAS 수정 배포 상태를 확인해 주세요.','err');
+  }finally{
+    btn.textContent = label.replace(' (변경됨)','');
+  }
+}
+
+// ── 초기화 ──
+(function(){
+  const emo = document.getElementById('hubEmoji');
+  if(emo) emo.innerHTML = HUB_EMOJI.map(e=>'<button type="button" onclick="document.getElementById(\'hubFIcon\').value=this.textContent">' + e + '</button>').join('');
+  hubLoadLocal();
+  renderHub();
+  applyStudyMenu();
+  hubSyncFromGAS();
+})();
 </script>
 
 <!-- 구글 아이디 없음 안내 모달 -->
