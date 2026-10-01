@@ -255,9 +255,192 @@ canvas{width:100%;height:440px;display:block}
 .logo-link:hover{background:var(--bg);}
 .logo-hint{font-size:11px;color:var(--tx3);margin-left:2px;opacity:.7;}
 
+
+/* ════════ 사용자 등록 (Made by Cheon_R) ════════ */
+#mx-reg{position:fixed;inset:0;z-index:1000;background:linear-gradient(135deg,#f0f4ff 0%,#f3f4f6 100%);display:flex;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));}
+#mx-reg.mx-hide{display:none;}
+.mx-card{margin:auto;width:100%;max-width:440px;background:#fff;border:2px solid #e5e7eb;border-radius:20px;padding:28px 24px 20px;box-shadow:0 2px 16px rgba(0,0,0,.07);}
+.mx-eyebrow{font-size:12px;font-weight:700;color:#9ca3af;letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:8px;}
+.mx-title{font-size:24px;font-weight:800;color:#111;text-align:center;letter-spacing:-.5px;margin-bottom:6px;}
+.mx-sub{font-size:13.5px;color:#6b7280;text-align:center;margin-bottom:4px;}
+.mx-lbl{font-size:12px;font-weight:700;color:#6b7280;margin:18px 0 8px;}
+.mx-lbl-main{font-size:16px;font-weight:800;color:#111;text-align:center;margin:20px 0 12px;}
+.mx-roles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.mx-role{min-height:68px;border:2px solid #e5e7eb;border-radius:14px;background:#fff;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:#374151;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all .15s;}
+.mx-role .mx-ic{font-size:22px;line-height:1;}
+.mx-role.on{border-color:#1A5FB4;background:#EBF3FF;color:#1A5FB4;}
+.mx-in{width:100%;min-height:46px;border:1.5px solid #d1d5db;border-radius:10px;padding:0 14px;font-size:16px;font-family:inherit;color:#111;background:#fff;}
+.mx-in:focus{outline:none;border-color:#1A5FB4;box-shadow:0 0 0 3px #B8D4F8;}
+.mx-chips{display:flex;flex-wrap:wrap;gap:8px;}
+.mx-chip{min-height:44px;padding:0 16px;border:1.5px solid #d1d5db;border-radius:999px;background:#fff;color:#374151;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;}
+.mx-chip.on{background:#1A5FB4;border-color:#1A5FB4;color:#fff;}
+.mx-cls{display:flex;align-items:center;gap:8px;}
+.mx-cls .mx-in{width:90px;text-align:center;}
+.mx-cls span{font-size:14px;color:#6b7280;font-weight:600;}
+.mx-go{width:100%;min-height:50px;margin-top:22px;border:none;border-radius:12px;background:#1A5FB4;color:#fff;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;transition:background .15s;}
+.mx-go:disabled{background:#cbd5e1;cursor:not-allowed;}
+.mx-msg{min-height:18px;font-size:12.5px;color:#C0392B;margin-top:10px;text-align:center;}
+.mx-priv{font-size:11.5px;color:#9ca3af;text-align:center;margin-top:10px;line-height:1.55;}
+.mx-cancel{display:block;margin:10px auto 0;min-height:44px;padding:0 14px;border:none;background:none;color:#6b7280;font-family:inherit;font-size:13px;cursor:pointer;text-decoration:underline;}
+.mx-user{position:absolute;top:max(12px,env(safe-area-inset-top));right:14px;display:flex;align-items:center;gap:4px;background:#fff;border:1px solid #e5e7eb;border-radius:999px;padding:0 6px 0 14px;min-height:44px;font-size:13px;color:#374151;font-weight:600;box-shadow:0 1px 6px rgba(0,0,0,.05);}
+.mx-user button{min-height:44px;padding:0 10px;border:none;background:none;color:#1A5FB4;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;}
+.mx-toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:1100;max-width:90vw;background:#1f2937;color:#fff;font-size:13px;line-height:1.5;padding:11px 18px;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.2);text-align:center;}
+
+/* ════════ 후기 받기 ════════ */
+.mx-rvbtn{position:absolute;left:14px;top:max(12px,env(safe-area-inset-top));white-space:nowrap;min-height:44px;padding:0 20px;border:1.5px solid #B8D4F8;border-radius:999px;background:#fff;color:#1A5FB4;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.05);}
+.mx-rvbtn:active{background:#EBF3FF;}
+.mx-rvbtn{z-index:2;}
+#mx-rv{position:fixed;inset:0;z-index:1050;background:rgba(17,24,39,.5);display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));}
+#mx-rv.mx-open{display:flex;}
+.mx-rvcard{margin:auto;width:100%;max-width:460px;background:#fff;border-radius:20px;padding:24px 22px 18px;box-shadow:0 8px 32px rgba(0,0,0,.25);}
+.mx-rvtitle{font-size:20px;font-weight:800;color:#111;text-align:center;}
+.mx-rvsub{font-size:13px;color:#6b7280;text-align:center;margin-top:4px;}
+.mx-stars{display:flex;justify-content:center;gap:2px;margin-top:6px;}
+.mx-star{width:48px;height:48px;border:none;background:none;font-size:34px;line-height:1;color:#d1d5db;cursor:pointer;padding:0;}
+.mx-star.on{color:#F5B301;}
+.mx-rvta{width:100%;min-height:76px;border:1.5px solid #d1d5db;border-radius:10px;padding:10px 14px;font-size:16px;font-family:inherit;color:#111;resize:none;}
+.mx-rvta:focus{outline:none;border-color:#1A5FB4;box-shadow:0 0 0 3px #B8D4F8;}
+.mx-rvrow{display:flex;gap:8px;margin-top:18px;}
+.mx-rvrow button{flex:1;min-height:50px;border-radius:12px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;}
+.mx-rvrow .mx-ghost{border:1.5px solid #d1d5db;background:#fff;color:#6b7280;}
+.mx-rvrow .mx-main{border:none;background:#1A5FB4;color:#fff;}
+.mx-rvrow .mx-main:disabled{background:#cbd5e1;cursor:not-allowed;}
+.mx-ask{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:1040;width:min(92vw,420px);background:#fff;border:2px solid #B8D4F8;border-radius:16px;padding:14px 16px;box-shadow:0 6px 24px rgba(0,0,0,.18);}
+.mx-ask p{font-size:13.5px;color:#374151;line-height:1.55;margin-bottom:8px;}
+.mx-ask .mx-rvrow{margin-top:0;}
+.mx-ask .mx-rvrow button{min-height:44px;font-size:14px;}
+
+/* ════════ 관리자 (학생용 주소/QR) ════════ */
+.mx-admbtn{position:absolute;left:14px;top:calc(max(12px,env(safe-area-inset-top)) + 52px);width:44px;height:44px;border:1px solid #e5e7eb;border-radius:50%;background:#fff;font-size:17px;cursor:pointer;opacity:.55;box-shadow:0 1px 6px rgba(0,0,0,.05);z-index:2;}
+.mx-admbtn:hover,.mx-admbtn:active{opacity:1;}
+.mx-adm-link{display:block;margin:2px auto 0;min-height:44px;padding:0 14px;border:none;background:none;color:#b0b5bd;font-family:inherit;font-size:11.5px;cursor:pointer;}
+#mx-adm{position:fixed;inset:0;z-index:1060;background:rgba(17,24,39,.55);display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));}
+#mx-adm.mx-open{display:flex;}
+.mx-admcard{margin:auto;width:100%;max-width:440px;background:#fff;border-radius:20px;padding:24px 22px 18px;box-shadow:0 8px 32px rgba(0,0,0,.25);}
+.mx-admtitle{font-size:19px;font-weight:800;color:#111;text-align:center;}
+.mx-admsub{font-size:12.5px;color:#6b7280;text-align:center;margin-top:4px;}
+.mx-qrbox{display:flex;flex-direction:column;align-items:center;margin-top:16px;}
+.mx-qrbox canvas{width:220px;height:220px;border:1px solid #e5e7eb;border-radius:12px;image-rendering:pixelated;}
+.mx-admtxt{width:100%;min-height:62px;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;color:#374151;background:#f9fafb;resize:none;line-height:1.5;}
+.mx-admrow{display:flex;gap:8px;margin-top:10px;}
+.mx-admrow button{flex:1;min-height:46px;border-radius:12px;border:1.5px solid #B8D4F8;background:#EBF3FF;color:#1A5FB4;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
+.mx-admrow .mx-main{background:#1A5FB4;border-color:#1A5FB4;color:#fff;}
+.mx-admclose{display:block;width:100%;min-height:46px;margin-top:14px;border:1.5px solid #d1d5db;border-radius:12px;background:#fff;color:#6b7280;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
 </style>
 </head>
 <body>
+
+<!-- ════════════════════════════════
+     사용자 등록 화면 (허브 앞)
+════════════════════════════════ -->
+<div id="mx-reg">
+  <div class="mx-card">
+    <div class="mx-eyebrow">Math Explorer</div>
+    <div class="mx-title">🌟 아듬's 수학탐구실</div>
+    <div class="mx-sub">처음이시네요! 간단히 등록하고 시작해요</div>
+
+    <div class="mx-lbl mx-lbl-main">반가워요! 어떤 분이세요? 😊</div>
+    <div class="mx-roles" id="mx-roles">
+      <button type="button" class="mx-role" data-role="교사"><span class="mx-ic">👩‍🏫</span>교사</button>
+      <button type="button" class="mx-role" data-role="학생"><span class="mx-ic">🧑‍🎓</span>학생</button>
+      <button type="button" class="mx-role" data-role="기타"><span class="mx-ic">🙂</span>기타</button>
+    </div>
+
+    <div id="mx-fields" style="display:none">
+      <div class="mx-lbl">이름</div>
+      <input class="mx-in" id="mx-name" type="text" maxlength="20" placeholder="이름을 입력하세요" autocomplete="off">
+
+      <div id="mx-f-school" style="display:none">
+        <div class="mx-lbl">학교</div>
+        <input class="mx-in" id="mx-school" type="text" maxlength="30" placeholder="예: ○○고등학교" autocomplete="off">
+      </div>
+
+      <div id="mx-f-gc" style="display:none">
+        <div class="mx-lbl">학년 · 반</div>
+        <div class="mx-chips" id="mx-grades">
+          <button type="button" class="mx-chip" data-g="1">1학년</button>
+          <button type="button" class="mx-chip" data-g="2">2학년</button>
+          <button type="button" class="mx-chip" data-g="3">3학년</button>
+        </div>
+        <div class="mx-cls" style="margin-top:8px">
+          <input class="mx-in" id="mx-cls" type="number" inputmode="numeric" min="1" max="30" placeholder="반" autocomplete="off">
+          <span>반</span>
+        </div>
+      </div>
+
+      <div class="mx-lbl">사용 목적</div>
+      <div class="mx-chips" id="mx-purposes"></div>
+    </div>
+
+    <button type="button" class="mx-go" id="mx-go" disabled>시작하기</button>
+    <div class="mx-msg" id="mx-msg"></div>
+    <button type="button" class="mx-cancel" id="mx-cancel" style="display:none">← 돌아가기</button>
+    <div class="mx-priv">수업 개선과 사용 현황 기록을 위해<br>입력한 정보가 저장됩니다 · Made by Cheon_R</div>
+    <button type="button" class="mx-adm-link" id="mx-adm-link">관리자</button>
+  </div>
+</div>
+<script>
+/* 이미 등록된 기기는 깜빡임 없이 바로 통과 */
+try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg').classList.add('mx-hide'); }catch(e){}
+</script>
+
+
+<!-- 후기 작성 창 -->
+<div id="mx-rv">
+  <div class="mx-rvcard">
+    <div class="mx-rvtitle">💬 후기 남기기</div>
+    <div class="mx-rvsub" id="mx-rv-q">도움이 됐나요?</div>
+    <div class="mx-stars" id="mx-stars">
+      <button type="button" class="mx-star" data-s="1" aria-label="1점">★</button>
+      <button type="button" class="mx-star" data-s="2" aria-label="2점">★</button>
+      <button type="button" class="mx-star" data-s="3" aria-label="3점">★</button>
+      <button type="button" class="mx-star" data-s="4" aria-label="4점">★</button>
+      <button type="button" class="mx-star" data-s="5" aria-label="5점">★</button>
+    </div>
+
+    <div class="mx-lbl">좋았던 점 <span style="font-weight:500;color:#9ca3af">(여러 개 선택 가능)</span></div>
+    <div class="mx-chips" id="mx-rv-chips"></div>
+    <input class="mx-in" id="mx-rv-etc" type="text" maxlength="30" placeholder="직접 적어주세요 (30자)" style="display:none;margin-top:8px" autocomplete="off">
+
+    <div class="mx-lbl">한줄 후기 <span style="font-weight:500;color:#9ca3af">(선택)</span></div>
+    <textarea class="mx-rvta" id="mx-rv-one" maxlength="80" placeholder="자유롭게 남겨주세요 (80자)"></textarea>
+
+    <div class="mx-lbl">이 후기를 소개 자료에 써도 될까요?</div>
+    <div class="mx-chips" id="mx-rv-consent"></div>
+
+    <div class="mx-msg" id="mx-rv-msg"></div>
+    <div class="mx-rvrow">
+      <button type="button" class="mx-ghost" id="mx-rv-close">닫기</button>
+      <button type="button" class="mx-main" id="mx-rv-send" disabled>보내기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 관리자: 비밀번호 → 학생용 주소/QR -->
+<div id="mx-adm">
+  <div class="mx-admcard">
+    <div id="mx-adm-pw">
+      <div class="mx-admtitle">🔧 관리자</div>
+      <div class="mx-admsub">비밀번호를 입력하세요</div>
+      <input class="mx-in" id="mx-adm-pwin" type="password" inputmode="numeric" maxlength="12" autocomplete="off" placeholder="비밀번호" style="margin-top:14px;text-align:center">
+      <div class="mx-msg" id="mx-adm-pwmsg"></div>
+      <div class="mx-admrow"><button type="button" id="mx-adm-pwno">취소</button><button type="button" class="mx-main" id="mx-adm-pwok">확인</button></div>
+    </div>
+    <div id="mx-adm-panel" style="display:none">
+      <div class="mx-admtitle">🔧 학생용 주소 · QR</div>
+      <div class="mx-admsub">학생들에게 이 주소나 QR을 주세요</div>
+      <div class="mx-lbl">학생용 주소 <span style="font-weight:500;color:#9ca3af">(직접 고칠 수 있어요)</span></div>
+      <input class="mx-in" id="mx-adm-url" type="url" autocomplete="off" spellcheck="false" style="font-size:14px">
+      <div class="mx-qrbox"><canvas id="mx-adm-qr" width="260" height="260"></canvas></div>
+      <div class="mx-lbl">안내 문구</div>
+      <textarea class="mx-admtxt" id="mx-adm-msgtxt" readonly></textarea>
+      <div class="mx-admrow"><button type="button" id="mx-adm-cpurl">주소 복사</button><button type="button" id="mx-adm-cpmsg">안내 문구 복사</button></div>
+      <div class="mx-admrow"><button type="button" class="mx-main" id="mx-adm-save">QR 이미지 저장</button></div>
+      <div class="mx-msg" id="mx-adm-msg" style="color:#2D7D46"></div>
+      <button type="button" class="mx-admclose" id="mx-adm-close">닫기</button>
+    </div>
+  </div>
+</div>
 
 <!-- ════════════════════════════════
      허브 화면 (런처)
@@ -1213,6 +1396,22 @@ canvas{width:100%;height:440px;display:block}
             <button class="db" onclick="setCompDeg('f',2)">2차</button>
           </div>
           <div id="comp-f-sliders"></div>
+          <div id="inv-domain-section" style="display:none">
+            <div class="sdiv"></div>
+            <div class="ctit">정의역 제한 (일대일 만들기)</div>
+            <div class="deg-row" id="inv-side-row">
+              <button class="db on" id="inv-side-right-btn" onclick="setInvSide('right')">오른쪽 (x ≥ k)</button>
+              <button class="db" id="inv-side-left-btn" onclick="setInvSide('left')">왼쪽 (x ≤ k)</button>
+            </div>
+            <div class="cw">
+              <div class="cw-top"><span class="cw-name">k</span>
+                <input class="cw-num" type="number" id="inv-kn" value="0" step="1"
+                  onchange="fromInvBoundary(this.value)" onkeydown="if(event.key==='Enter')fromInvBoundary(this.value)">
+              </div>
+              <input type="range" id="inv-kr" min="-10" max="10" step="1" value="0" oninput="fromInvBoundary(this.value)">
+            </div>
+            <div id="inv-warning" style="display:none;margin-top:8px"></div>
+          </div>
           <div class="sdiv"></div>
           <div id="comp-g-section">
             <div class="ctit">g(x) 설정</div>
@@ -1252,6 +1451,23 @@ canvas{width:100%;height:440px;display:block}
             <div id="comp-tracer-info" style="display:none;font-size:12px;color:var(--tx3);line-height:1.8;padding:7px 10px;background:var(--sur);border-radius:8px;margin-top:8px"></div>
           </div>
 
+          <!-- 📏 수평선 테스트 — 역함수 모드 전용, 일대일 판별 -->
+          <div id="ht-block" style="display:none;margin-top:10px;padding:12px 14px;background:var(--am-bg);border:1px solid var(--am-lt);border-radius:10px">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+              <div style="font-size:13px;font-weight:700;color:var(--am)">📏 수평선 테스트 (일대일 판별)</div>
+              <button class="db" id="ht-toggle" onclick="toggleHT()">테스트 켜기</button>
+            </div>
+            <div style="font-size:11.5px;color:var(--tx3);margin-bottom:8px;line-height:1.6">수평선을 위아래로 옮기면서 <b>정의역 제한 전의 원래 f(x)</b>와 몇 번 만나는지 확인해봐!</div>
+            <div class="cw" id="ht-y-wrap" style="display:none;margin-bottom:0">
+              <div class="cw-top"><span class="cw-name">y</span>
+                <input class="cw-num" type="number" id="ht-yn" value="0" step="0.1"
+                  onchange="fromHTY(this.value)" onkeydown="if(event.key==='Enter')fromHTY(this.value)">
+              </div>
+              <input type="range" id="ht-yr" min="-15" max="15" step="0.1" value="0" oninput="fromHTY(this.value)">
+            </div>
+            <div id="ht-verdict" style="display:none;font-size:13px;font-weight:700;padding:7px 10px;background:var(--sur);border-radius:8px;margin-top:8px"></div>
+          </div>
+
           <!-- 식 표시 박스 -->
           <div id="comp-formula-box" style="margin-top:10px;padding:10px 14px;background:var(--bg);border:1px solid var(--bor);border-radius:10px;font-size:13px;line-height:2;min-height:44px"></div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
@@ -1261,9 +1477,57 @@ canvas{width:100%;height:440px;display:block}
               <span style="display:inline-block;width:10px;height:3px;background:#2D7D46;margin-right:4px;margin-left:10px;vertical-align:middle"></span>f(g(x))
             </div>
             <button id="comp-mono-toggle" onclick="toggleCompMono()" style="display:flex;align-items:center;gap:6px;background:var(--gn-bg);border:1px solid var(--gn-lt);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--gn);font-weight:600;cursor:pointer;font-family:inherit;">📐 증가·감소 구간 보기</button>
+            <button onclick="openQuizBlock()" style="display:flex;align-items:center;gap:6px;background:var(--tl-bg);border:1px solid var(--tl-lt);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--tl);font-weight:600;cursor:pointer;font-family:inherit;">🎯 그래프로 값 맞히기</button>
             <button onclick="openCompLawModal()" style="display:flex;align-items:center;gap:6px;background:var(--pu-bg);border:1px solid var(--pu-lt);border-radius:20px;padding:5px 14px;font-size:12px;color:var(--pu);font-weight:600;cursor:pointer;font-family:inherit;">🔗 법칙 &amp; 개념 탐구</button>
             <div style="font-size:11px;color:var(--tx3)">🖱️ 휠 줌 · 드래그 · 더블클릭 초기화</div>
           </div>
+
+          <!-- 🎯 그래프로 값 맞히기 -->
+          <div id="quiz-block" style="display:none;margin-top:10px;padding:12px 14px;background:var(--tl-bg);border:1px solid var(--tl-lt);border-radius:10px">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+              <div style="font-size:13px;font-weight:700;color:var(--tl)">🎯 그래프로 값 맞히기</div>
+              <button class="db" onclick="closeQuizBlock()">닫기</button>
+            </div>
+            <div id="quiz-prompt" style="font-size:14px;font-weight:600;margin-bottom:8px;color:var(--tx)"></div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <input type="number" id="quiz-input" class="cw-num" style="width:100px" placeholder="답 입력" onkeydown="if(event.key==='Enter')checkQuizAnswer()">
+              <button class="db on" onclick="checkQuizAnswer()">정답 확인</button>
+              <button class="db" onclick="startQuiz()">🔄 다른 문제</button>
+            </div>
+            <div id="quiz-feedback" style="margin-top:8px;font-size:13px;font-weight:700"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📋 합성함수·역함수 핵심 개념 정리 -->
+    <div class="card">
+      <div class="ctit">📋 합성함수·역함수 핵심 정리</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
+        <div style="flex:1;min-width:260px">
+          <div class="tip" style="margin-bottom:10px"><strong>합성함수:</strong> <span class="fml">(f∘g)(x) = f(g(x))</span> &nbsp;— 오른쪽부터 읽기 (g 먼저, f 나중)</div>
+          <table class="ct">
+            <thead><tr><th>항목</th><th>내용</th><th style="color:var(--rd)">⚠️ 함정</th></tr></thead>
+            <tbody>
+              <tr><td><strong>교환법칙</strong></td><td>f∘g ≠ g∘f (일반적으로)</td><td class="trap">계수만 보고 같다고 착각 금지</td></tr>
+              <tr><td><strong>결합법칙</strong></td><td>(f∘g)∘h = f∘(g∘h) — 항상 성립</td><td class="trap">순서(∘)는 안 바뀌어야 함</td></tr>
+              <tr><td><strong>정의역 조건</strong></td><td>g의 치역 ⊆ f의 정의역이어야 합성 가능</td><td class="trap">정의역 확인 안 하면 함정 문제에서 오답</td></tr>
+              <tr><td><strong>차수(다항함수)</strong></td><td>f가 m차, g가 n차 → f∘g는 mn차</td><td class="trap">m+n이 아니라 <strong>m×n</strong>!</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="flex:1;min-width:260px">
+          <div class="tip" style="margin-bottom:10px"><strong>역함수:</strong> <span class="fml">f가 일대일함수</span>일 때만 존재 — 그래프는 <span class="fml">y=x</span> 대칭</div>
+          <table class="ct">
+            <thead><tr><th>항목</th><th>내용</th><th style="color:var(--rd)">⚠️ 함정</th></tr></thead>
+            <tbody>
+              <tr><td><strong>존재 조건</strong></td><td>일대일함수(단조증가 또는 단조감소)</td><td class="trap">2차 이상은 정의역을 제한해야 성립</td></tr>
+              <tr><td><strong>정의역·치역</strong></td><td>f의 정의역 ↔ f⁻¹의 치역, f의 치역 ↔ f⁻¹의 정의역</td><td class="trap">서로 뒤바뀜 — 안 외우면 문제 못 풀어짐</td></tr>
+              <tr><td><strong>합성</strong></td><td>f∘f⁻¹ = f⁻¹∘f = 항등함수</td><td class="trap">정의역 제한 있으면 그 범위 안에서만 성립</td></tr>
+              <tr><td><strong>미분</strong></td><td>f(a)=b일 때 (f⁻¹)′(b) = 1/f′(a)</td><td class="trap">a부터 못 찾으면 시작 불가</td></tr>
+              <tr><td><strong>f, f⁻¹의 교점</strong></td><td>f(x)=x의 해 = f, f⁻¹의 교점 (1차·2차 범위에선 이 교점이 유일하며 항상 y=x 위)</td><td class="trap">3차 이상 감소함수부터는 y=x 밖에도 교점이 생길 수 있음 (내년 심화 주제)</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -1277,42 +1541,42 @@ canvas{width:100%;height:440px;display:block}
           <div class="ctit">원본 1차함수 y = mx + n</div>
           <div class="cw">
             <div class="cw-top"><span class="cw-name">m (기울기)</span>
-              <input class="cw-num" type="number" id="tr-mn" value="1" step="0.1"
+              <input class="cw-num" type="number" id="tr-mn" value="1" step="1"
                 onchange="fromTrNum('m',this.value)" onkeydown="if(event.key==='Enter')fromTrNum('m',this.value)">
             </div>
-            <input type="range" id="tr-mr" min="-5" max="5" step="0.1" value="1" oninput="fromTrSlider('m',this.value)">
+            <input type="range" id="tr-mr" min="-5" max="5" step="1" value="1" oninput="fromTrSlider('m',this.value)">
           </div>
           <div class="cw">
             <div class="cw-top"><span class="cw-name">n (y절편)</span>
-              <input class="cw-num" type="number" id="tr-nn" value="-1" step="0.1"
+              <input class="cw-num" type="number" id="tr-nn" value="-1" step="1"
                 onchange="fromTrNum('n',this.value)" onkeydown="if(event.key==='Enter')fromTrNum('n',this.value)">
             </div>
-            <input type="range" id="tr-nr" min="-8" max="8" step="0.1" value="-1" oninput="fromTrSlider('n',this.value)">
+            <input type="range" id="tr-nr" min="-8" max="8" step="1" value="-1" oninput="fromTrSlider('n',this.value)">
           </div>
           <div class="sdiv"></div>
           <div class="ctit">점 P의 위치 (그래프 위)</div>
           <div class="cw">
             <div class="cw-top"><span class="cw-name">P의 x좌표</span>
-              <input class="cw-num" type="number" id="tr-pxn" value="-2" step="0.5"
+              <input class="cw-num" type="number" id="tr-pxn" value="-2" step="1"
                 onchange="fromTrNum('px',this.value)" onkeydown="if(event.key==='Enter')fromTrNum('px',this.value)">
             </div>
-            <input type="range" id="tr-pxr" min="-6" max="6" step="0.5" value="-2" oninput="fromTrSlider('px',this.value)">
+            <input type="range" id="tr-pxr" min="-6" max="6" step="1" value="-2" oninput="fromTrSlider('px',this.value)">
           </div>
           <div class="sdiv"></div>
           <div class="ctit">평행이동량 (a, b)</div>
           <div class="cw">
             <div class="cw-top"><span class="cw-name">a (x축 방향)</span>
-              <input class="cw-num" type="number" id="tr-dxn" value="3" step="0.5"
+              <input class="cw-num" type="number" id="tr-dxn" value="3" step="1"
                 onchange="fromTrNum('dx',this.value)" onkeydown="if(event.key==='Enter')fromTrNum('dx',this.value)">
             </div>
-            <input type="range" id="tr-dxr" min="-6" max="6" step="0.5" value="3" oninput="fromTrSlider('dx',this.value)">
+            <input type="range" id="tr-dxr" min="-6" max="6" step="1" value="3" oninput="fromTrSlider('dx',this.value)">
           </div>
           <div class="cw">
             <div class="cw-top"><span class="cw-name">b (y축 방향)</span>
-              <input class="cw-num" type="number" id="tr-dyn" value="2" step="0.5"
+              <input class="cw-num" type="number" id="tr-dyn" value="2" step="1"
                 onchange="fromTrNum('dy',this.value)" onkeydown="if(event.key==='Enter')fromTrNum('dy',this.value)">
             </div>
-            <input type="range" id="tr-dyr" min="-6" max="6" step="0.5" value="2" oninput="fromTrSlider('dy',this.value)">
+            <input type="range" id="tr-dyr" min="-6" max="6" step="1" value="2" oninput="fromTrSlider('dy',this.value)">
           </div>
           <div class="sdiv"></div>
           <div class="ctit">표시 모드</div>
@@ -6569,16 +6833,76 @@ const SComp={
   mode:'comp',
   f:{deg:1,c:[2,1,0,0,0]},
   g:{deg:1,c:[1,-1,0,0,0]},
+  fDisp:{deg:1,c:[2,1,0,0,0]},  // 화면에 실제로 그려지는 값(부드러운 전환용) — f와 별도 보관
+  gDisp:{deg:1,c:[1,-1,0,0,0]}, // 화면에 실제로 그려지는 값(부드러운 전환용) — g와 별도 보관
   tracerOn:false,   // 4상한 대응 트레이서 on/off
   x0:-1,             // 트레이서 기준점
   tracerAnimating:false,
   trail:[],          // 지나간 점들의 흔적 [{x0,fgy}, ...]
   _trailKeys:new Set(),
-  monoOn:false        // 증가·감소 구간(단조성) 표시 on/off
+  monoOn:false,       // 증가·감소 구간(단조성) 표시 on/off — 합성 모드 전용
+  invSide:'right',   // 역함수 2차: 정의역 제한 방향 'right'(x≥k) | 'left'(x≤k)
+  invBoundary:0,      // 역함수 2차: 정의역 경계값 k
+  invBoundaryDisp:0,  // 화면에 실제로 그려지는 k값(부드러운 전환용)
+  htOn:false,         // 📏 수평선 테스트 on/off — 역함수 모드 전용
+  htY:0,              // 수평선 테스트의 y값
+  quizOn:false,       // 🎯 그래프로 값 맞히기 on/off
+  quizX:null,         // 그래프에 표시할 안내선 x좌표
+  quizAnswer:null     // 현재 문제의 정답
 };
 let gComp=null,rafComp=null,tracerRaf=null;
 
-function resetCompTrail(){ SComp.trail=[]; SComp._trailKeys=new Set(); }
+// 정수 슬라이더로 값이 바뀔 때 그래프가 "팍" 순간이동하지 않고 부드럽게 이어지도록 하는 보간 유틸
+// (정보박스·수식 텍스트는 항상 최종값을 즉시 보여주고, 곡선 모양만 살짝 따라옴)
+function evalPolyC(c,deg,x){ return deg===1?c[0]*x+c[1]:c[0]*x*x+c[1]*x+c[2]; }
+function invVertexXOfC(c){ return -c[1]/(2*c[0]); }
+function invBranchInverseOfC(c,side,k,y){
+  const vx=invVertexXOfC(c);
+  const yv=evalPolyC(c,2,vx);
+  const t=(y-yv)/c[0];
+  if(t<-1e-9) return NaN;
+  const s=Math.sqrt(Math.max(0,t));
+  const xVal=side==='right'?vx+s:vx-s;
+  if(side==='right'){ if(xVal<k-1e-6) return NaN; }
+  else { if(xVal>k+1e-6) return NaN; }
+  return xVal;
+}
+function tweenCompDisp(fn){
+  const target=SComp[fn], disp=SComp[fn+'Disp'];
+  if(disp.raf) cancelAnimationFrame(disp.raf);
+  const from=disp.c.slice(), to=target.c.slice();
+  disp.deg=target.deg;
+  const t0=performance.now(), dur=180;
+  function step(now){
+    const p=Math.min(1,(now-t0)/dur);
+    const e=1-Math.pow(1-p,3); // ease-out
+    disp.c=from.map((v,i)=>v+(to[i]-v)*e);
+    scheduleRenderComp();
+    if(p<1){ disp.raf=requestAnimationFrame(step); }
+    else { disp.raf=null; disp.c=to.slice(); scheduleRenderComp(); }
+  }
+  disp.raf=requestAnimationFrame(step);
+}
+function tweenInvBoundary(){
+  if(SComp._kRaf) cancelAnimationFrame(SComp._kRaf);
+  const from=SComp.invBoundaryDisp, to=SComp.invBoundary;
+  const t0=performance.now(), dur=180;
+  function step(now){
+    const p=Math.min(1,(now-t0)/dur);
+    const e=1-Math.pow(1-p,3);
+    SComp.invBoundaryDisp=from+(to-from)*e;
+    scheduleRenderComp();
+    if(p<1){ SComp._kRaf=requestAnimationFrame(step); }
+    else { SComp._kRaf=null; SComp.invBoundaryDisp=to; scheduleRenderComp(); }
+  }
+  SComp._kRaf=requestAnimationFrame(step);
+}
+
+function resetCompTrail(){
+  SComp.trail=[]; SComp._trailKeys=new Set();
+  // 함수가 바뀌면 진행 중이던 퀴즈의 정답이 안 맞게 되니 같이 닫아준다
+  if(SComp.quizOn) closeQuizBlock();
+}
 
 // f∘g의 구간별 증가/감소를 연쇄법칙 부호(g'(x)·f'(g(x)))로 판정
 function getCompMonoIntervals(){
@@ -6654,32 +6978,129 @@ function compFG(x){return compF(compG(x));}
 function buildCompSliders(){
   ['f','g'].forEach(fn=>{
     const seg=SComp[fn];
-    const defs=[{l:'a',mn:-5,mx:5,idx:0},{l:'b',mn:-10,mx:10,idx:1},...(seg.deg===2?[{l:'c',mn:-10,mx:10,idx:2}]:[])];
+    const aMax=5; // 화면 밖으로 나가면 휠 줌아웃으로 대응 가능하니 1차·2차 동일하게 넓힘
+    const defs=[{l:'a',mn:-aMax,mx:aMax,idx:0},{l:'b',mn:-10,mx:10,idx:1},...(seg.deg===2?[{l:'c',mn:-10,mx:10,idx:2}]:[])];
     document.getElementById('comp-'+fn+'-sliders').innerHTML=
       defs.map(d=>`
         <div class="cw">
           <div class="cw-top"><span class="cw-name">${d.l}</span>
-            <input class="cw-num" type="number" id="comp-${fn}n${d.idx}" value="${seg.c[d.idx]}" step="0.1"
+            <input class="cw-num" type="number" id="comp-${fn}n${d.idx}" value="${seg.c[d.idx]}" step="1"
               onchange="fromCompNum('${fn}',${d.idx},this.value)" onkeydown="if(event.key==='Enter')fromCompNum('${fn}',${d.idx},this.value)">
           </div>
-          <input type="range" id="comp-${fn}r${d.idx}" min="${d.mn}" max="${d.mx}" step="any" value="${seg.c[d.idx]}"
+          <input type="range" id="comp-${fn}r${d.idx}" min="${d.mn}" max="${d.mx}" step="1" value="${seg.c[d.idx]}"
             oninput="fromCompSlider('${fn}',${d.idx},this.value)">
         </div>`).join('');
   });
 }
 function setCompDeg(fn,deg){
   SComp[fn].deg=deg;SComp[fn].c=[1,0,0,0,0];buildCompSliders();resetCompTrail();
+  // 차수(1차↔2차)가 바뀌는 건 그래프의 의미 자체가 바뀌는 거라 부드러운 전환 없이 바로 스냅
+  const disp=SComp[fn+'Disp'];
+  if(disp.raf) cancelAnimationFrame(disp.raf);
+  disp.deg=deg; disp.c=SComp[fn].c.slice();
   const row=document.getElementById('comp-'+fn+'-deg');
   if(row) row.querySelectorAll('.db').forEach(b=>b.classList.toggle('on', b.getAttribute('onclick')===`setCompDeg('${fn}',${deg})`));
+  if(fn==='f'){
+    // f를 2차로 바꾸면 정의역 경계 k를 꼭짓점(=0, 기본계수 a=1,b=0 기준)으로 초기화 → 항상 유효한 상태로 시작
+    SComp.invSide='right'; SComp.invBoundary=0;
+    if(SComp._kRaf) cancelAnimationFrame(SComp._kRaf);
+    SComp.invBoundaryDisp=0;
+    const r=document.getElementById('inv-kr'), n=document.getElementById('inv-kn');
+    if(r)r.value=0; if(n)n.value=0;
+    document.querySelectorAll('#inv-side-row .db').forEach(b=>b.classList.toggle('on', b.id==='inv-side-right-btn'));
+    updateInvDomainUI();
+  }
   scheduleRenderComp();
 }
-function fromCompSlider(fn,idx,val){const v=parseFloat(val);SComp[fn].c[idx]=v;const n=document.getElementById('comp-'+fn+'n'+idx);if(n)n.value=v.toFixed(2);resetCompTrail();scheduleRenderComp();}
-function fromCompNum(fn,idx,val){let v=parseFloat(val);if(isNaN(v))return;SComp[fn].c[idx]=v;resetCompTrail();scheduleRenderComp();}
+
+// ── 역함수(2차) 정의역 제한 ──────────────────────────────
+function updateInvDomainUI(){
+  const el=document.getElementById('inv-domain-section');
+  if(el) el.style.display=(SComp.mode==='inv' && SComp.f.deg===2)?'':'none';
+}
+function setInvSide(side){
+  SComp.invSide=side;
+  document.querySelectorAll('#inv-side-row .db').forEach(b=>b.classList.toggle('on', b.id==='inv-side-'+side+'-btn'));
+  if(SComp.quizOn) closeQuizBlock();
+  scheduleRenderComp();
+}
+function fromInvBoundary(val){
+  const v=parseFloat(val); if(isNaN(v))return;
+  SComp.invBoundary=v;
+  const r=document.getElementById('inv-kr'), n=document.getElementById('inv-kn');
+  if(r)r.value=v; if(n)n.value=v;
+  tweenInvBoundary();
+  if(SComp.quizOn) closeQuizBlock();
+  scheduleRenderComp();
+}
+function invVertexX(){ const[a,b]=SComp.f.c; return -b/(2*a); }
+// 정의역 제한이 f를 일대일로 만드는지 (2차 전용)
+function invDomainValid(){
+  const[a]=SComp.f.c;
+  if(Math.abs(a)<1e-9) return false;
+  const vx=invVertexX(), k=SComp.invBoundary;
+  return SComp.invSide==='right' ? k>=vx-1e-9 : k<=vx+1e-9;
+}
+// 2차 f를 제한된 정의역에서 뒤집은 값 (y=x 대칭 방식 — a부호 상관없이 동일 공식)
+function invBranchInverse(y){
+  const[a]=SComp.f.c;
+  const vx=invVertexX(), yv=compF(vx);
+  const t=(y-yv)/a;
+  if(t<-1e-9) return NaN;
+  const s=Math.sqrt(Math.max(0,t));
+  const xVal=SComp.invSide==='right'?vx+s:vx-s;
+  const k=SComp.invBoundary;
+  if(SComp.invSide==='right'){ if(xVal<k-1e-6) return NaN; }
+  else { if(xVal>k+1e-6) return NaN; }
+  return xVal;
+}
+function showInvWarning(vx,side,k){
+  const el=document.getElementById('inv-warning');
+  if(!el) return;
+  el.style.display='';
+  el.innerHTML=`<div style="border-radius:8px;padding:9px 12px;border:1px solid var(--rd-lt);background:var(--rd-bg);color:var(--rd);font-size:12px;line-height:1.6">`+
+    `⚠️ <b>역함수가 존재하지 않아요</b><br>`+
+    `꼭짓점 x = ${fmtNum(vx)}이(가) ${side==='right'?`x ≥ ${fmtNum(k)}`:`x ≤ ${fmtNum(k)}`} 범위 안에 포함돼서 일대일함수가 아니에요.<br>`+
+    `k를 ${side==='right'?'꼭짓점보다 크거나 같게':'꼭짓점보다 작거나 같게'} 옮겨보세요.`+
+    `</div>`;
+}
+function hideInvWarning(){
+  const el=document.getElementById('inv-warning');
+  if(el) el.style.display='none';
+}
+function fromCompSlider(fn,idx,val){
+  let v=parseFloat(val);
+  if(idx===0 && v===0) v=SComp[fn].c[0]>=0?1:-1; // a=0 제외 (일차항 계수가 0이면 차수가 깨짐)
+  SComp[fn].c[idx]=v;
+  const n=document.getElementById('comp-'+fn+'n'+idx); if(n)n.value=v;
+  const r=document.getElementById('comp-'+fn+'r'+idx); if(r)r.value=v;
+  resetCompTrail();tweenCompDisp(fn);scheduleRenderComp();
+}
+function fromCompNum(fn,idx,val){
+  let v=parseFloat(val); if(isNaN(v))return;
+  v=Math.round(v);
+  if(idx===0 && v===0) v=SComp[fn].c[0]>=0?1:-1;
+  SComp[fn].c[idx]=v;
+  const r=document.getElementById('comp-'+fn+'r'+idx); if(r)r.value=v;
+  const n=document.getElementById('comp-'+fn+'n'+idx); if(n)n.value=v;
+  resetCompTrail();tweenCompDisp(fn);scheduleRenderComp();
+}
 function setCompMode(mode){
   SComp.mode=mode;
+  if(SComp.quizOn) closeQuizBlock(); // 모드 바뀌면 이전 퀴즈는 무효니까 닫기
   document.querySelectorAll('#comp-mode-row .db').forEach(b=>b.classList.toggle('on',b.getAttribute('onclick').includes("'"+mode+"'")));
   document.getElementById('comp-g-section').style.display=mode==='inv'?'none':'';
   document.getElementById('comp-tracer-block').style.display=mode==='inv'?'none':'';
+  const htBlock=document.getElementById('ht-block');
+  if(htBlock) htBlock.style.display=mode==='inv'?'':'none';
+  if(mode!=='inv'){
+    // 합성 모드로 돌아가면 수평선 테스트도 꺼두기 (역함수 전용 기능)
+    SComp.htOn=false;
+    const htb=document.getElementById('ht-toggle');
+    if(htb){htb.classList.remove('on');htb.textContent='테스트 켜기';}
+    const hyw=document.getElementById('ht-y-wrap'); if(hyw)hyw.style.display='none';
+    const hv=document.getElementById('ht-verdict'); if(hv)hv.style.display='none';
+  }
   if(mode==='inv'){
     SComp.tracerOn=false; SComp.tracerAnimating=false;
     if(tracerRaf){cancelAnimationFrame(tracerRaf);tracerRaf=null;}
@@ -6688,16 +7109,11 @@ function setCompMode(mode){
     const xw=document.getElementById('comp-x0-wrap'); if(xw)xw.style.display='none';
     const ti=document.getElementById('comp-tracer-info'); if(ti)ti.style.display='none';
   }
-  // 역함수 모드: f를 1차로 강제 (일대일 보장), 2차 버튼 비활성화
-  const fDegRow=document.getElementById('comp-f-deg');
-  if(fDegRow){
-    if(mode==='inv'){
-      fDegRow.querySelectorAll('.db').forEach(b=>b.style.display=b.getAttribute('onclick').includes(',2)')?'none':'');
-      if(SComp.f.deg===2){SComp.f.deg=1;SComp.f.c=[2,1,0,0,0];buildCompSliders();}
-    } else {
-      fDegRow.querySelectorAll('.db').forEach(b=>b.style.display='');
-    }
-  }
+  // 📐 증가·감소 구간 버튼: 합성 모드 전용 기능이라 역함수 모드에선 숨김
+  // (역함수는 정의상 항상 일대일=단조라 "구간별 증가/감소"라는 개념 자체가 성립하지 않음)
+  const monoBtn=document.getElementById('comp-mono-toggle');
+  if(monoBtn) monoBtn.style.display=mode==='inv'?'none':'';
+  updateInvDomainUI();
   const leg=document.getElementById('comp-legend');
   if(mode==='inv'){
     leg.innerHTML=`<span style="display:inline-block;width:10px;height:3px;background:#1A5FB4;margin-right:4px;vertical-align:middle"></span>f(x) &nbsp;<span style="display:inline-block;width:10px;height:3px;background:#2D7D46;margin-right:4px;margin-left:10px;vertical-align:middle"></span>f⁻¹(x) &nbsp;<span style="display:inline-block;width:10px;height:3px;background:rgba(139,94,0,0.4);margin-right:4px;margin-left:10px;vertical-align:middle"></span>y=x`;
@@ -6716,6 +7132,88 @@ function toggleCompTracer(){
   document.getElementById('comp-x0-wrap').style.display=SComp.tracerOn?'':'none';
   document.getElementById('comp-tracer-info').style.display=SComp.tracerOn?'':'none';
   scheduleRenderComp();
+}
+// 📏 수평선 테스트 — 정의역 제한 전의 원래 f(x)가 일대일인지 눈으로 확인
+function toggleHT(){
+  SComp.htOn=!SComp.htOn;
+  const b=document.getElementById('ht-toggle');
+  if(b){b.classList.toggle('on',SComp.htOn);b.textContent=SComp.htOn?'테스트 끄기':'테스트 켜기';}
+  const yw=document.getElementById('ht-y-wrap'); if(yw)yw.style.display=SComp.htOn?'':'none';
+  const vd=document.getElementById('ht-verdict'); if(vd)vd.style.display=SComp.htOn?'':'none';
+  scheduleRenderComp();
+}
+function fromHTY(val){
+  const v=parseFloat(val); if(isNaN(v))return;
+  SComp.htY=v;
+  const r=document.getElementById('ht-yr'), n=document.getElementById('ht-yn');
+  if(r)r.value=v; if(n)n.value=v;
+  scheduleRenderComp();
+}
+// y=htY 수평선과 f(x)(정의역 제한 전 원본)의 교점들을 구함 — [] | [x] | [x1,x2]
+function htIntersections(){
+  const y=SComp.htY;
+  if(SComp.f.deg===1){
+    const[a,b]=SComp.f.c;
+    return [(y-b)/a];
+  }
+  const[a,b,c]=SComp.f.c;
+  const D=b*b-4*a*(c-y);
+  if(D>1e-9){ const s=Math.sqrt(D); return [(-b+s)/(2*a),(-b-s)/(2*a)]; }
+  if(D>-1e-9) return [-b/(2*a)];
+  return [];
+}
+// 🎯 그래프로 값 맞히기 — 지금 설정된 f,g로 정수 답이 나오는 문제를 즉석에서 생성
+function startQuiz(){
+  const block=document.getElementById('quiz-block'); if(block) block.style.display='';
+  if(SComp.mode==='inv' && SComp.f.deg===2 && !invDomainValid()){
+    // 정의역 설정이 잘못돼서 역함수 자체가 없는 상태 — 퀴즈를 낼 수 없음
+    SComp.quizOn=false; SComp.quizX=null;
+    const pr=document.getElementById('quiz-prompt'); if(pr)pr.innerHTML='⚠ 지금은 정의역 설정이 잘못돼서 역함수가 없어요. 먼저 왼쪽에서 정의역(k, 방향)을 올바르게 맞춰줘!';
+    const fb=document.getElementById('quiz-feedback'); if(fb){fb.textContent='';fb.style.color='';}
+    scheduleRenderComp();
+    return;
+  }
+  let x0, answer, prompt;
+  if(SComp.mode==='comp'){
+    const n=Math.floor(Math.random()*9)-4; // -4..4
+    x0=n;
+    answer=compFG(n);
+    prompt=`x = ${fmtNum(n)} 일 때, <b>f(g(x))</b>의 값은? &nbsp;<span style="font-size:11px;color:var(--tx3)">(점선 위치를 따라가봐)</span>`;
+  } else if(SComp.f.deg===1){
+    const n=Math.floor(Math.random()*11)-5; // -5..5
+    x0=compF(n);
+    answer=n;
+    prompt=`f⁻¹(${fmtNum(x0)}) 의 값은?`;
+  } else {
+    const k=SComp.invBoundary, side=SComp.invSide;
+    const n = side==='right' ? (k+Math.floor(Math.random()*6)) : (k-Math.floor(Math.random()*6));
+    x0=compF(n);
+    answer=n;
+    const domainStr=side==='right'?`x ≥ ${fmtNum(k)}`:`x ≤ ${fmtNum(k)}`;
+    prompt=`f⁻¹(${fmtNum(x0)}) 의 값은? &nbsp;<span style="font-size:11px;color:var(--tx3)">(정의역: ${domainStr})</span>`;
+  }
+  SComp.quizOn=true; SComp.quizX=x0; SComp.quizAnswer=answer;
+  const pr=document.getElementById('quiz-prompt'); if(pr)pr.innerHTML=prompt;
+  const fb=document.getElementById('quiz-feedback'); if(fb){fb.textContent='';fb.style.color='';}
+  const inp=document.getElementById('quiz-input'); if(inp){inp.value='';inp.focus();}
+  scheduleRenderComp();
+}
+function openQuizBlock(){ startQuiz(); }
+function closeQuizBlock(){
+  SComp.quizOn=false;
+  const block=document.getElementById('quiz-block'); if(block) block.style.display='none';
+  scheduleRenderComp();
+}
+function checkQuizAnswer(){
+  const inp=document.getElementById('quiz-input');
+  const fb=document.getElementById('quiz-feedback');
+  const v=parseFloat(inp.value);
+  if(isNaN(v)){ fb.style.color='var(--rd)'; fb.textContent='숫자를 입력해줘!'; return; }
+  if(Math.abs(v-SComp.quizAnswer)<1e-6){
+    fb.style.color='var(--gn)'; fb.textContent=`✓ 정답이에요! (${fmtNum(SComp.quizAnswer)})`;
+  } else {
+    fb.style.color='var(--rd)'; fb.textContent=`✗ 아쉬워요. 정답은 ${fmtNum(SComp.quizAnswer)}이에요.`;
+  }
 }
 function fromCompX0(val){
   const v=parseFloat(val);
@@ -6762,14 +7260,19 @@ function renderComp(){
   ctx.clearRect(0,0,cv.width,cv.height);
   drawAxes(gComp);
 
+  // 🎯 그래프로 값 맞히기: 안내 세로선 (다른 그림들보다 먼저 그려서 위에 덮이지 않게)
+  if(SComp.quizOn && SComp.quizX!=null && isFinite(SComp.quizX)){
+    drawVLine(gComp, SComp.quizX, 'rgba(15,110,86,0.55)', [4,3]);
+  }
+
   if(SComp.mode==='comp'){
-    // f, g 원본 점선
+    // f, g 원본 점선 (부드러운 전환용 fDisp/gDisp 사용 — 실제 값은 SComp.f/g에 그대로 있음)
     ctx.setLineDash([4*devicePixelRatio,3*devicePixelRatio]);
-    drawCurve(gComp,x=>compF(x),'rgba(26,95,180,0.5)',1.5);
-    drawCurve(gComp,x=>compG(x),'rgba(192,57,43,0.5)',1.5);
+    drawCurve(gComp,x=>evalPolyC(SComp.fDisp.c,SComp.fDisp.deg,x),'rgba(26,95,180,0.5)',1.5);
+    drawCurve(gComp,x=>evalPolyC(SComp.gDisp.c,SComp.gDisp.deg,x),'rgba(192,57,43,0.5)',1.5);
     ctx.setLineDash([]);
     // f(g(x)) 실선
-    drawCurve(gComp,x=>compFG(x),'#2D7D46',2.5);
+    drawCurve(gComp,x=>evalPolyC(SComp.fDisp.c,SComp.fDisp.deg,evalPolyC(SComp.gDisp.c,SComp.gDisp.deg,x)),'#2D7D46',2.5);
     // 수식
     const fStr=polyStr(SComp.f.deg===1?[SComp.f.c[0],SComp.f.c[1],0,0,0]:[SComp.f.c[0],SComp.f.c[1],SComp.f.c[2],0,0],SComp.f.deg);
     const gStr=polyStr(SComp.g.deg===1?[SComp.g.c[0],SComp.g.c[1],0,0,0]:[SComp.g.c[0],SComp.g.c[1],SComp.g.c[2],0,0],SComp.g.deg);
@@ -6848,21 +7351,23 @@ function renderComp(){
         drawLabel(gComp, labelX, labelY, arrow, color, -14, iv.dir>0?-16:18);
       });
     }
-  } else {
-    // 역함수 모드 — 1차만 (일대일 보장)
+  } else if(SComp.f.deg===1){
+    // 역함수 모드 — 1차 (일대일 자동 보장)
     const[a,b]=SComp.f.c;
+    hideInvWarning();
     // y=x 대칭선
     ctx.strokeStyle='rgba(139,94,0,0.35)';ctx.lineWidth=1.5*devicePixelRatio;ctx.setLineDash([4*devicePixelRatio,4*devicePixelRatio]);
     drawCurve(gComp,x=>x,'rgba(139,94,0,0.35)',1.5);
     ctx.setLineDash([]);
     // f(x)
-    drawCurve(gComp,x=>compF(x),'#1A5FB4',2.5);
+    drawCurve(gComp,x=>evalPolyC(SComp.fDisp.c,1,x),'#1A5FB4',2.5);
     // f⁻¹(x) — 1차: y=ax+b → x=(y-b)/a
     if(Math.abs(a)>0.01){
-      drawCurve(gComp,x=>(x-b)/a,'#2D7D46',2.5);
+      const[da,db]=SComp.fDisp.c;
+      drawCurve(gComp,x=>(x-db)/da,'#2D7D46',2.5);
       document.getElementById('comp-eq').textContent=`f(x) = ${a}x + ${b} → f⁻¹(x) = (x − ${b}) / ${a}`;
       const bSign=b>=0?` + ${b}`:` − ${Math.abs(b)}`;
-      const invStr=`(x${b!==0?(b>0?` − ${b}`:` + ${Math.abs(b)}`):''}) / ${a}`;
+      const invStr=`(x${b!==0?(b>0?` − ${b}`:` + ${Math.abs(b)}`):''}) / ${a}`;
       document.getElementById('comp-formula-box').innerHTML=
         `<span style="color:var(--bl);font-weight:700">f(x)</span> <span style="color:var(--tx3)">= ${a===1?'':(a===-1?'−':a)}x${bSign}</span><br>`+
         `<span style="color:var(--gn);font-weight:700">f⁻¹(x)</span> <span style="color:var(--tx3)">= ${invStr}</span><br>`+
@@ -6874,6 +7379,62 @@ function renderComp(){
     document.getElementById('comp-info').innerHTML=
       `<div class="ib"><div class="ibl">기울기 a</div><div class="ibv" style="color:var(--bl)">${a.toFixed(2)}</div></div>`+
       `<div class="ib"><div class="ibl">역함수 기울기</div><div class="ibv" style="color:var(--gn)">${Math.abs(a)>0.01?(1/a).toFixed(3):'∞'}</div></div>`;
+  } else {
+    // 역함수 모드 — 2차 (정의역 제한 필요)
+    const[a,b,c]=SComp.f.c;
+    const vx=invVertexX(), yv=compF(vx);
+    const k=SComp.invBoundary, side=SComp.invSide;
+    const valid=invDomainValid();
+    const fStr=polyStr([a,b,c,0,0],2);
+    const domainStr=side==='right'?`x ≥ ${fmtNum(k)}`:`x ≤ ${fmtNum(k)}`;
+
+    // y=x 대칭선
+    ctx.setLineDash([4*devicePixelRatio,4*devicePixelRatio]);
+    drawCurve(gComp,x=>x,'rgba(139,94,0,0.35)',1.5);
+    ctx.setLineDash([]);
+    // f(x) 전체 — 문맥용으로 흐리게 점선
+    ctx.setLineDash([4*devicePixelRatio,3*devicePixelRatio]);
+    drawCurve(gComp,x=>evalPolyC(SComp.fDisp.c,2,x),'rgba(26,95,180,0.35)',1.5);
+    ctx.setLineDash([]);
+    // f(x) 제한된 정의역 — 굵은 실선 (경계선도 부드럽게 이동)
+    const kDisp=SComp.invBoundaryDisp;
+    drawCurve(gComp,x=>{ if(side==='right'){if(x<kDisp)return NaN;} else {if(x>kDisp)return NaN;} return evalPolyC(SComp.fDisp.c,2,x); },'#1A5FB4',2.5);
+    // 정의역 경계선 x=k
+    drawVLine(gComp,kDisp,'rgba(192,57,43,0.5)',[3,3]);
+
+    if(valid){
+      drawCurve(gComp,x=>invBranchInverseOfC(SComp.fDisp.c,side,kDisp,x),'#2D7D46',2.5);
+      document.getElementById('comp-eq').textContent=`f(x) = ${fStr} (${domainStr}) → 역함수 존재`;
+      document.getElementById('comp-formula-box').innerHTML=
+        `<span style="color:var(--bl);font-weight:700">f(x)</span> <span style="color:var(--tx3)">= ${fStr} &nbsp;(${domainStr})</span><br>`+
+        `<span style="color:var(--gn);font-weight:700">f⁻¹(x)</span> <span style="color:var(--tx3)">= ${fmtNum(vx)} ${side==='right'?'+':'−'} √((x − ${fmtNum(yv)}) / ${fmtNum(a)})</span><br>`+
+        `<span style="color:rgba(139,94,0,0.7);font-weight:700">y = x</span> <span style="color:var(--tx3)">대칭축</span>`;
+      hideInvWarning();
+    } else {
+      document.getElementById('comp-eq').textContent='이 정의역에서는 일대일이 아니에요 → 역함수 없음';
+      document.getElementById('comp-formula-box').innerHTML=`<span style="color:var(--rd)">⚠ 꼭짓점(x = ${fmtNum(vx)})이 정의역 안에 포함돼서 일대일함수가 아니에요</span>`;
+      showInvWarning(vx,side,k);
+    }
+    document.getElementById('comp-info').innerHTML=
+      `<div class="ib"><div class="ibl">꼭짓점</div><div class="ibv" style="color:var(--bl)">(${fmtNum(vx)}, ${fmtNum(yv)})</div></div>`+
+      `<div class="ib"><div class="ibl">제한된 정의역</div><div class="ibv" style="color:var(--pu)">${domainStr}</div></div>`+
+      `<div class="ib"><div class="ibl">일대일 여부</div><div class="ibv" style="color:${valid?'var(--gn)':'var(--rd)'}">${valid?'✓ 성립':'✗ 불성립'}</div></div>`;
+  }
+
+  // 📏 수평선 테스트 — 정의역 제한 전의 원본 f(x) 기준으로 일대일 여부를 직접 확인
+  if(SComp.mode==='inv' && SComp.htOn){
+    const xs=htIntersections();
+    drawHLine(gComp, SComp.htY, 'rgba(139,94,0,0.6)', [5,4]);
+    xs.forEach(xi=>{ drawPoint(gComp, xi, SComp.htY, '#8B5E00', 6); });
+    const vd=document.getElementById('ht-verdict');
+    if(vd){
+      let msg, color;
+      if(xs.length>=2){ msg=`⚠ ${xs.length}개 교점 → 일대일 아님 (이 y값에서는 역함수가 안 돼요 — 그래서 정의역을 제한하는 거예요!)`; color='var(--rd)'; }
+      else if(xs.length===1){ msg=SComp.f.deg===2?`1개 교점(꼭짓점에 접함) — 경계 상황이에요`:`1개 교점 → 일대일 ✓ (1차함수는 어떤 y값을 넣어도 항상 이래요)`; color='var(--gn)'; }
+      else { msg=`0개 교점 → 이 y값은 f(x)의 값으로 나오지 않아요`; color='var(--tx3)'; }
+      vd.style.color=color;
+      vd.innerHTML=`y = ${fmtNum(SComp.htY)} 에서: ${msg}`;
+    }
   }
 
   // 캔버스 좌상단 수식 레이블
@@ -6885,13 +7446,22 @@ function renderComp(){
       {text:`g(x) = ${gStr2}`,bold:false,color:'#C0392B'},
       {text:`f(g(x))`,bold:false,color:'#2D7D46'},
     ]);
-  } else {
+  } else if(SComp.f.deg===1){
     const[a,b]=SComp.f.c;
     const fStr2=`${a}x + ${b}`;
     const invStr2=Math.abs(a)>0.01?`(x − ${b}) / ${a}`:'역함수 없음';
     drawEqLabel(gComp,[
       {text:`f(x) = ${fStr2}`,bold:true,color:'#1A5FB4'},
       {text:`f⁻¹(x) = ${invStr2}`,bold:false,color:'#2D7D46'},
+      {text:`y = x  (대칭축)`,bold:false,color:'rgba(139,94,0,0.8)'},
+    ]);
+  } else {
+    const fStr2=polyStr([SComp.f.c[0],SComp.f.c[1],SComp.f.c[2],0,0],2);
+    const valid=invDomainValid();
+    const domainStr2=SComp.invSide==='right'?`x≥${fmtNum(SComp.invBoundary)}`:`x≤${fmtNum(SComp.invBoundary)}`;
+    drawEqLabel(gComp,[
+      {text:`f(x) = ${fStr2}`,bold:true,color:'#1A5FB4'},
+      {text: valid?`f⁻¹(x) 존재 (${domainStr2})`:'f⁻¹(x) 없음',bold:false,color: valid?'#2D7D46':'#C0392B'},
       {text:`y = x  (대칭축)`,bold:false,color:'rgba(139,94,0,0.8)'},
     ]);
   }
@@ -6964,17 +7534,19 @@ function buildTrSliders(){
 }
 
 function fromTrSlider(key,val){
-  const v=parseFloat(val);
+  let v=parseFloat(val);
   if(isNaN(v))return;
+  v=Math.round(v);
   STr[key]=v; STr.animT=1; STr.animating=false;
   if(animTrRaf){cancelAnimationFrame(animTrRaf);animTrRaf=null;}
   const n=document.getElementById('tr-'+key+'n');
-  if(n)n.value=fmtNum(v);
+  if(n)n.value=v;
   scheduleRenderTr();
 }
 function fromTrNum(key,val){
-  const v=parseFloat(val);
+  let v=parseFloat(val);
   if(isNaN(v))return;
+  v=Math.round(v);
   STr[key]=v; STr.animT=1; STr.animating=false;
   if(animTrRaf){cancelAnimationFrame(animTrRaf);animTrRaf=null;}
   const r=document.getElementById('tr-'+key+'r');
@@ -7649,8 +8221,8 @@ function setCompLaw(idx){
       if(!SComp.monoOn) toggleCompMono();
     }
 
-  } else {
-    // ── 역함수 모드 ──
+  } else if(fDeg===1){
+    // ── 역함수 모드 (1차) ──
     const a=fa,b=fb;
     const invOK=Math.abs(a)>0.01;
     const fStr=polyStr([a,b,0,0,0],1);
@@ -7678,8 +8250,11 @@ function setCompLaw(idx){
         `역함수는 f의 x와 y를 뒤바꾼 함수야.<br>
         y=f(x)의 점 (a, b)가 있으면 → y=f⁻¹(x)의 점 (b, a)<br>
         이 두 점은 정확히 y=x 직선에 대해 대칭!<br>
-        <b>교점의 위치:</b> f(x)=x를 만족하는 점 → f와 f⁻¹의 교점은 반드시 y=x 위에 있어.<br>
-        지금 그래프에서 파란선(f)과 초록선(f⁻¹), 점선(y=x)을 확인해봐.`,
+        <b>교점의 위치:</b> f(x)=x를 만족하는 점 → f와 f⁻¹의 교점이야.<br>
+        1차함수(그리고 지금처럼 정의역을 제한한 2차함수)는<br>
+        기울기가 양수든 음수든 상관없이 이 교점이 <b>항상 유일하고 y=x 위에</b> 있어.<br>
+        (참고: 3차 이상의 감소함수부터는 이 성질이 깨져서 y=x 밖에도<br>
+        교점이 생길 수 있는데, 그건 나중에 배우게 될 거야.)`,
         `y=x 대칭 이용 면적 문제:<br>
         y=f(x)와 y=f⁻¹(x) 사이 넓이 = y=f(x)와 y=x 사이 넓이 × 2<br>
         교점은 f(x)=x 방정식으로 구해.`
@@ -7707,6 +8282,71 @@ function setCompLaw(idx){
         ① f(3)=5, f'(3)=2 → (f⁻¹)'(5) = 1/2<br>
         ② 역함수 그래프의 접선 기울기 구하기<br>
         ③ (f⁻¹∘g)'(a) = (f⁻¹)'(g(a))·g'(a) = g'(a)/f'(f⁻¹(g(a))) 형태`
+      )
+    ];
+    document.getElementById('compLawStats').innerHTML=stats[idx];
+    document.getElementById('compLawDesc').innerHTML=descs[idx];
+  } else {
+    // ── 역함수 모드 (2차, 정의역 제한) ──
+    const vx=invVertexX(), yv=compF(vx);
+    const k=SComp.invBoundary, side=SComp.invSide;
+    const valid=invDomainValid();
+    const domainStr=side==='right'?`x ≥ ${fmtNum(k)}`:`x ≤ ${fmtNum(k)}`;
+    const fStr=polyStr([fa,fb,SComp.f.c[2],0,0],2);
+    const invValAt=(y)=>{ const r=invBranchInverse(y); return isFinite(r)?fmtNum(r):'정의 안됨'; };
+    const stats=[
+      `f(x) = ${fStr}<br>꼭짓점: <strong style="color:var(--bl)">(${fmtNum(vx)}, ${fmtNum(yv)})</strong>, 제한된 정의역: <strong style="color:var(--pu)">${domainStr}</strong><br>일대일 여부: <strong style="color:${valid?'var(--gn)':'var(--rd)'}">${valid?'✓ 일대일 (역함수 존재)':'✗ 꼭짓점 포함 (역함수 없음)'}</strong>`,
+      `f(x)와 f⁻¹(x)는 y=x에 대해 대칭<br>f의 정의역: <strong style="color:var(--bl)">${domainStr}</strong> → f⁻¹의 치역도 같은 범위<br>f의 치역 → f⁻¹의 정의역으로 그대로 뒤바뀜`,
+      `f⁻¹(f(2)) 계산: 먼저 f(2) = <strong style="color:var(--bl)">${fmtNum(compF(2))}</strong><br>→ f⁻¹(${fmtNum(compF(2))}) = <strong style="color:var(--gn)">${invValAt(compF(2))}</strong> (2와 같아야 정상)<br>${(side==='right'?2>=k-1e-9:2<=k+1e-9)?'':'⚠ x=2가 지금 정의역 밖이라 위 계산이 의미 없을 수 있어요'}`,
+      `현재 f(x) = ${fStr} (${domainStr})<br>f⁻¹(x) = ${valid?`${fmtNum(vx)} ${side==='right'?'+':'−'} √((x − ${fmtNum(yv)})/${fmtNum(fa)})`:'정의 안됨'}<br>y=x 교점: 항상 정의역 안에서 f(x)=x인 점`
+    ];
+    const descs=[
+      lawDesc(
+        `2차함수는 정의역을 제한해야 역함수가 존재해`,
+        `2차함수 그래프는 꼭짓점을 기준으로 좌우가 대칭이라,<br>
+        꼭짓점 양쪽에서 같은 y값이 두 번 나와 — 그래서 일대일이 아니야.<br>
+        <b>해결법:</b> 꼭짓점을 기준으로 한쪽만 정의역으로 잘라내면<br>
+        그 반쪽에서는 완전히 일대일이 돼.<br>
+        지금 왼쪽 슬라이더에서 k(경계)를 꼭짓점보다 더 안쪽으로 옮겨보면<br>
+        "역함수 없음" 경고가 뜨는 걸 확인할 수 있어 — 그게 바로 이 조건이야.`,
+        `"f(x)=x² (x≥0)의 역함수를 구하라" 같은 문제:<br>
+        ① 먼저 정의역 제한 확인 → 어느 쪽 반이 정의역인지 파악<br>
+        ② y=x²에서 x=√y (양수 쪽 선택)<br>
+        ③ 문자를 바꿔서 f⁻¹(x)=√x`
+      ),
+      lawDesc(
+        `f와 f⁻¹의 그래프는 y=x에 대해 대칭 (정의역·치역도 서로 바뀜)`,
+        `1차함수 때와 원리는 같아 — x,y를 서로 바꾸는 거야.<br>
+        다만 2차는 <b>제한된 정의역 안에서만</b> 이 대칭이 성립해.<br>
+        f의 정의역(${domainStr})이 f⁻¹의 <b>치역</b>이 되고,<br>
+        f의 치역이 f⁻¹의 <b>정의역</b>이 돼 — 서로 맞바뀌는 거지.<br>
+        그래프에서 파란 실선(제한된 f)과 초록 실선(f⁻¹)이 y=x 기준으로<br>
+        정확히 거울처럼 겹치는지 확인해봐.`,
+        `제한된 정의역에서 정의역·치역이 서로 뒤바뀌는 걸 이용하는 문제:<br>
+        f의 치역을 먼저 구하면 → 그게 f⁻¹의 정의역 조건이 됨.`
+      ),
+      lawDesc(
+        `(f∘f⁻¹)(x) = x &nbsp; (f⁻¹∘f)(x) = x &nbsp; (제한된 정의역 안에서만)`,
+        `1차함수처럼 여기서도 f와 f⁻¹를 합성하면 항등함수가 나와.<br>
+        <b>단, 이건 제한된 정의역 안에서 계산할 때만 성립해!</b><br>
+        정의역 밖의 x를 넣으면 애초에 f(x) 값 자체가 대응이 안 되니까<br>
+        이 관계도 의미가 없어져.<br>
+        위 통계에서 f⁻¹(f(2))를 계산해봤는데, 2가 지금 정의역 안에 있는지<br>
+        먼저 확인하는 습관을 들이는 게 중요해.`,
+        `f(g(x))=x 이면 g=f⁻¹ 유형은 2차에서도 똑같이 적용되지만,<br>
+        반드시 "어느 쪽 정의역이냐"를 먼저 확인해야 계산이 맞아.`
+      ),
+      lawDesc(
+        `(f⁻¹)'(b) = 1 / f'(a) &nbsp; (단, f(a)=b, 제한된 정의역 위의 a)`,
+        `2차함수도 미분공식 자체는 1차 때와 똑같아.<br>
+        차이는 f'(x)=2ax+b로 <b>x마다 접선 기울기가 달라진다</b>는 것.<br>
+        그래서 (f⁻¹)'(b)를 구하려면 먼저 f(a)=b가 되는 a를<br>
+        "제한된 정의역" 안에서 정확히 찾아야 해 (양쪽 다 있을 수 있으니까!).<br>
+        지금 그래프에서 꼭짓점과 정의역 경계를 참고해서 a 위치를 가늠해봐.`,
+        `역함수 미분 수능 출제 패턴 (2차 버전):<br>
+        ① f(a)=b, f'(a)=2a·(기울기) 계산<br>
+        ② (f⁻¹)'(b) = 1/f'(a)<br>
+        ③ a가 제한된 정의역 안에 있는지 반드시 확인 — 안 그러면 함정!`
       )
     ];
     document.getElementById('compLawStats').innerHTML=stats[idx];
@@ -7780,6 +8420,2680 @@ window.addEventListener('DOMContentLoaded', ()=>{
   // 허브만 보임, v1은 클릭 시 초기화
 });
 
+</script>
+<script>
+/* qrcode-generator 1.4.4 (MIT) — Kazuhiko Arase */
+//---------------------------------------------------------------------
+//
+// QR Code Generator for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//  http://www.opensource.org/licenses/mit-license.php
+//
+// The word 'QR Code' is registered trademark of
+// DENSO WAVE INCORPORATED
+//  http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+
+var qrcode = function() {
+
+  //---------------------------------------------------------------------
+  // qrcode
+  //---------------------------------------------------------------------
+
+  /**
+   * qrcode
+   * @param typeNumber 1 to 40
+   * @param errorCorrectionLevel 'L','M','Q','H'
+   */
+  var qrcode = function(typeNumber, errorCorrectionLevel) {
+
+    var PAD0 = 0xEC;
+    var PAD1 = 0x11;
+
+    var _typeNumber = typeNumber;
+    var _errorCorrectionLevel = QRErrorCorrectionLevel[errorCorrectionLevel];
+    var _modules = null;
+    var _moduleCount = 0;
+    var _dataCache = null;
+    var _dataList = [];
+
+    var _this = {};
+
+    var makeImpl = function(test, maskPattern) {
+
+      _moduleCount = _typeNumber * 4 + 17;
+      _modules = function(moduleCount) {
+        var modules = new Array(moduleCount);
+        for (var row = 0; row < moduleCount; row += 1) {
+          modules[row] = new Array(moduleCount);
+          for (var col = 0; col < moduleCount; col += 1) {
+            modules[row][col] = null;
+          }
+        }
+        return modules;
+      }(_moduleCount);
+
+      setupPositionProbePattern(0, 0);
+      setupPositionProbePattern(_moduleCount - 7, 0);
+      setupPositionProbePattern(0, _moduleCount - 7);
+      setupPositionAdjustPattern();
+      setupTimingPattern();
+      setupTypeInfo(test, maskPattern);
+
+      if (_typeNumber >= 7) {
+        setupTypeNumber(test);
+      }
+
+      if (_dataCache == null) {
+        _dataCache = createData(_typeNumber, _errorCorrectionLevel, _dataList);
+      }
+
+      mapData(_dataCache, maskPattern);
+    };
+
+    var setupPositionProbePattern = function(row, col) {
+
+      for (var r = -1; r <= 7; r += 1) {
+
+        if (row + r <= -1 || _moduleCount <= row + r) continue;
+
+        for (var c = -1; c <= 7; c += 1) {
+
+          if (col + c <= -1 || _moduleCount <= col + c) continue;
+
+          if ( (0 <= r && r <= 6 && (c == 0 || c == 6) )
+              || (0 <= c && c <= 6 && (r == 0 || r == 6) )
+              || (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+            _modules[row + r][col + c] = true;
+          } else {
+            _modules[row + r][col + c] = false;
+          }
+        }
+      }
+    };
+
+    var getBestMaskPattern = function() {
+
+      var minLostPoint = 0;
+      var pattern = 0;
+
+      for (var i = 0; i < 8; i += 1) {
+
+        makeImpl(true, i);
+
+        var lostPoint = QRUtil.getLostPoint(_this);
+
+        if (i == 0 || minLostPoint > lostPoint) {
+          minLostPoint = lostPoint;
+          pattern = i;
+        }
+      }
+
+      return pattern;
+    };
+
+    var setupTimingPattern = function() {
+
+      for (var r = 8; r < _moduleCount - 8; r += 1) {
+        if (_modules[r][6] != null) {
+          continue;
+        }
+        _modules[r][6] = (r % 2 == 0);
+      }
+
+      for (var c = 8; c < _moduleCount - 8; c += 1) {
+        if (_modules[6][c] != null) {
+          continue;
+        }
+        _modules[6][c] = (c % 2 == 0);
+      }
+    };
+
+    var setupPositionAdjustPattern = function() {
+
+      var pos = QRUtil.getPatternPosition(_typeNumber);
+
+      for (var i = 0; i < pos.length; i += 1) {
+
+        for (var j = 0; j < pos.length; j += 1) {
+
+          var row = pos[i];
+          var col = pos[j];
+
+          if (_modules[row][col] != null) {
+            continue;
+          }
+
+          for (var r = -2; r <= 2; r += 1) {
+
+            for (var c = -2; c <= 2; c += 1) {
+
+              if (r == -2 || r == 2 || c == -2 || c == 2
+                  || (r == 0 && c == 0) ) {
+                _modules[row + r][col + c] = true;
+              } else {
+                _modules[row + r][col + c] = false;
+              }
+            }
+          }
+        }
+      }
+    };
+
+    var setupTypeNumber = function(test) {
+
+      var bits = QRUtil.getBCHTypeNumber(_typeNumber);
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[Math.floor(i / 3)][i % 3 + _moduleCount - 8 - 3] = mod;
+      }
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[i % 3 + _moduleCount - 8 - 3][Math.floor(i / 3)] = mod;
+      }
+    };
+
+    var setupTypeInfo = function(test, maskPattern) {
+
+      var data = (_errorCorrectionLevel << 3) | maskPattern;
+      var bits = QRUtil.getBCHTypeInfo(data);
+
+      // vertical
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 6) {
+          _modules[i][8] = mod;
+        } else if (i < 8) {
+          _modules[i + 1][8] = mod;
+        } else {
+          _modules[_moduleCount - 15 + i][8] = mod;
+        }
+      }
+
+      // horizontal
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 8) {
+          _modules[8][_moduleCount - i - 1] = mod;
+        } else if (i < 9) {
+          _modules[8][15 - i - 1 + 1] = mod;
+        } else {
+          _modules[8][15 - i - 1] = mod;
+        }
+      }
+
+      // fixed module
+      _modules[_moduleCount - 8][8] = (!test);
+    };
+
+    var mapData = function(data, maskPattern) {
+
+      var inc = -1;
+      var row = _moduleCount - 1;
+      var bitIndex = 7;
+      var byteIndex = 0;
+      var maskFunc = QRUtil.getMaskFunction(maskPattern);
+
+      for (var col = _moduleCount - 1; col > 0; col -= 2) {
+
+        if (col == 6) col -= 1;
+
+        while (true) {
+
+          for (var c = 0; c < 2; c += 1) {
+
+            if (_modules[row][col - c] == null) {
+
+              var dark = false;
+
+              if (byteIndex < data.length) {
+                dark = ( ( (data[byteIndex] >>> bitIndex) & 1) == 1);
+              }
+
+              var mask = maskFunc(row, col - c);
+
+              if (mask) {
+                dark = !dark;
+              }
+
+              _modules[row][col - c] = dark;
+              bitIndex -= 1;
+
+              if (bitIndex == -1) {
+                byteIndex += 1;
+                bitIndex = 7;
+              }
+            }
+          }
+
+          row += inc;
+
+          if (row < 0 || _moduleCount <= row) {
+            row -= inc;
+            inc = -inc;
+            break;
+          }
+        }
+      }
+    };
+
+    var createBytes = function(buffer, rsBlocks) {
+
+      var offset = 0;
+
+      var maxDcCount = 0;
+      var maxEcCount = 0;
+
+      var dcdata = new Array(rsBlocks.length);
+      var ecdata = new Array(rsBlocks.length);
+
+      for (var r = 0; r < rsBlocks.length; r += 1) {
+
+        var dcCount = rsBlocks[r].dataCount;
+        var ecCount = rsBlocks[r].totalCount - dcCount;
+
+        maxDcCount = Math.max(maxDcCount, dcCount);
+        maxEcCount = Math.max(maxEcCount, ecCount);
+
+        dcdata[r] = new Array(dcCount);
+
+        for (var i = 0; i < dcdata[r].length; i += 1) {
+          dcdata[r][i] = 0xff & buffer.getBuffer()[i + offset];
+        }
+        offset += dcCount;
+
+        var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+        var rawPoly = qrPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+        var modPoly = rawPoly.mod(rsPoly);
+        ecdata[r] = new Array(rsPoly.getLength() - 1);
+        for (var i = 0; i < ecdata[r].length; i += 1) {
+          var modIndex = i + modPoly.getLength() - ecdata[r].length;
+          ecdata[r][i] = (modIndex >= 0)? modPoly.getAt(modIndex) : 0;
+        }
+      }
+
+      var totalCodeCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalCodeCount += rsBlocks[i].totalCount;
+      }
+
+      var data = new Array(totalCodeCount);
+      var index = 0;
+
+      for (var i = 0; i < maxDcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < dcdata[r].length) {
+            data[index] = dcdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      for (var i = 0; i < maxEcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < ecdata[r].length) {
+            data[index] = ecdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      return data;
+    };
+
+    var createData = function(typeNumber, errorCorrectionLevel, dataList) {
+
+      var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectionLevel);
+
+      var buffer = qrBitBuffer();
+
+      for (var i = 0; i < dataList.length; i += 1) {
+        var data = dataList[i];
+        buffer.put(data.getMode(), 4);
+        buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+        data.write(buffer);
+      }
+
+      // calc num max data.
+      var totalDataCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalDataCount += rsBlocks[i].dataCount;
+      }
+
+      if (buffer.getLengthInBits() > totalDataCount * 8) {
+        throw 'code length overflow. ('
+          + buffer.getLengthInBits()
+          + '>'
+          + totalDataCount * 8
+          + ')';
+      }
+
+      // end code
+      if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+        buffer.put(0, 4);
+      }
+
+      // padding
+      while (buffer.getLengthInBits() % 8 != 0) {
+        buffer.putBit(false);
+      }
+
+      // padding
+      while (true) {
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD0, 8);
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD1, 8);
+      }
+
+      return createBytes(buffer, rsBlocks);
+    };
+
+    _this.addData = function(data, mode) {
+
+      mode = mode || 'Byte';
+
+      var newData = null;
+
+      switch(mode) {
+      case 'Numeric' :
+        newData = qrNumber(data);
+        break;
+      case 'Alphanumeric' :
+        newData = qrAlphaNum(data);
+        break;
+      case 'Byte' :
+        newData = qr8BitByte(data);
+        break;
+      case 'Kanji' :
+        newData = qrKanji(data);
+        break;
+      default :
+        throw 'mode:' + mode;
+      }
+
+      _dataList.push(newData);
+      _dataCache = null;
+    };
+
+    _this.isDark = function(row, col) {
+      if (row < 0 || _moduleCount <= row || col < 0 || _moduleCount <= col) {
+        throw row + ',' + col;
+      }
+      return _modules[row][col];
+    };
+
+    _this.getModuleCount = function() {
+      return _moduleCount;
+    };
+
+    _this.make = function() {
+      if (_typeNumber < 1) {
+        var typeNumber = 1;
+
+        for (; typeNumber < 40; typeNumber++) {
+          var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, _errorCorrectionLevel);
+          var buffer = qrBitBuffer();
+
+          for (var i = 0; i < _dataList.length; i++) {
+            var data = _dataList[i];
+            buffer.put(data.getMode(), 4);
+            buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+            data.write(buffer);
+          }
+
+          var totalDataCount = 0;
+          for (var i = 0; i < rsBlocks.length; i++) {
+            totalDataCount += rsBlocks[i].dataCount;
+          }
+
+          if (buffer.getLengthInBits() <= totalDataCount * 8) {
+            break;
+          }
+        }
+
+        _typeNumber = typeNumber;
+      }
+
+      makeImpl(false, getBestMaskPattern() );
+    };
+
+    _this.createTableTag = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var qrHtml = '';
+
+      qrHtml += '<table style="';
+      qrHtml += ' border-width: 0px; border-style: none;';
+      qrHtml += ' border-collapse: collapse;';
+      qrHtml += ' padding: 0px; margin: ' + margin + 'px;';
+      qrHtml += '">';
+      qrHtml += '<tbody>';
+
+      for (var r = 0; r < _this.getModuleCount(); r += 1) {
+
+        qrHtml += '<tr>';
+
+        for (var c = 0; c < _this.getModuleCount(); c += 1) {
+          qrHtml += '<td style="';
+          qrHtml += ' border-width: 0px; border-style: none;';
+          qrHtml += ' border-collapse: collapse;';
+          qrHtml += ' padding: 0px; margin: 0px;';
+          qrHtml += ' width: ' + cellSize + 'px;';
+          qrHtml += ' height: ' + cellSize + 'px;';
+          qrHtml += ' background-color: ';
+          qrHtml += _this.isDark(r, c)? '#000000' : '#ffffff';
+          qrHtml += ';';
+          qrHtml += '"/>';
+        }
+
+        qrHtml += '</tr>';
+      }
+
+      qrHtml += '</tbody>';
+      qrHtml += '</table>';
+
+      return qrHtml;
+    };
+
+    _this.createSvgTag = function(cellSize, margin, alt, title) {
+
+      var opts = {};
+      if (typeof arguments[0] == 'object') {
+        // Called by options.
+        opts = arguments[0];
+        // overwrite cellSize and margin.
+        cellSize = opts.cellSize;
+        margin = opts.margin;
+        alt = opts.alt;
+        title = opts.title;
+      }
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      // Compose alt property surrogate
+      alt = (typeof alt === 'string') ? {text: alt} : alt || {};
+      alt.text = alt.text || null;
+      alt.id = (alt.text) ? alt.id || 'qrcode-description' : null;
+
+      // Compose title property surrogate
+      title = (typeof title === 'string') ? {text: title} : title || {};
+      title.text = title.text || null;
+      title.id = (title.text) ? title.id || 'qrcode-title' : null;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var c, mc, r, mr, qrSvg='', rect;
+
+      rect = 'l' + cellSize + ',0 0,' + cellSize +
+        ' -' + cellSize + ',0 0,-' + cellSize + 'z ';
+
+      qrSvg += '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"';
+      qrSvg += !opts.scalable ? ' width="' + size + 'px" height="' + size + 'px"' : '';
+      qrSvg += ' viewBox="0 0 ' + size + ' ' + size + '" ';
+      qrSvg += ' preserveAspectRatio="xMinYMin meet"';
+      qrSvg += (title.text || alt.text) ? ' role="img" aria-labelledby="' +
+          escapeXml([title.id, alt.id].join(' ').trim() ) + '"' : '';
+      qrSvg += '>';
+      qrSvg += (title.text) ? '<title id="' + escapeXml(title.id) + '">' +
+          escapeXml(title.text) + '</title>' : '';
+      qrSvg += (alt.text) ? '<description id="' + escapeXml(alt.id) + '">' +
+          escapeXml(alt.text) + '</description>' : '';
+      qrSvg += '<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>';
+      qrSvg += '<path d="';
+
+      for (r = 0; r < _this.getModuleCount(); r += 1) {
+        mr = r * cellSize + margin;
+        for (c = 0; c < _this.getModuleCount(); c += 1) {
+          if (_this.isDark(r, c) ) {
+            mc = c*cellSize+margin;
+            qrSvg += 'M' + mc + ',' + mr + rect;
+          }
+        }
+      }
+
+      qrSvg += '" stroke="transparent" fill="black"/>';
+      qrSvg += '</svg>';
+
+      return qrSvg;
+    };
+
+    _this.createDataURL = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      return createDataURL(size, size, function(x, y) {
+        if (min <= x && x < max && min <= y && y < max) {
+          var c = Math.floor( (x - min) / cellSize);
+          var r = Math.floor( (y - min) / cellSize);
+          return _this.isDark(r, c)? 0 : 1;
+        } else {
+          return 1;
+        }
+      } );
+    };
+
+    _this.createImgTag = function(cellSize, margin, alt) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+
+      var img = '';
+      img += '<img';
+      img += '\u0020src="';
+      img += _this.createDataURL(cellSize, margin);
+      img += '"';
+      img += '\u0020width="';
+      img += size;
+      img += '"';
+      img += '\u0020height="';
+      img += size;
+      img += '"';
+      if (alt) {
+        img += '\u0020alt="';
+        img += escapeXml(alt);
+        img += '"';
+      }
+      img += '/>';
+
+      return img;
+    };
+
+    var escapeXml = function(s) {
+      var escaped = '';
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charAt(i);
+        switch(c) {
+        case '<': escaped += '&lt;'; break;
+        case '>': escaped += '&gt;'; break;
+        case '&': escaped += '&amp;'; break;
+        case '"': escaped += '&quot;'; break;
+        default : escaped += c; break;
+        }
+      }
+      return escaped;
+    };
+
+    var _createHalfASCII = function(margin) {
+      var cellSize = 1;
+      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      var y, x, r1, r2, p;
+
+      var blocks = {
+        '██': '█',
+        '█ ': '▀',
+        ' █': '▄',
+        '  ': ' '
+      };
+
+      var blocksLastLineNoMargin = {
+        '██': '▀',
+        '█ ': '▀',
+        ' █': ' ',
+        '  ': ' '
+      };
+
+      var ascii = '';
+      for (y = 0; y < size; y += 2) {
+        r1 = Math.floor((y - min) / cellSize);
+        r2 = Math.floor((y + 1 - min) / cellSize);
+        for (x = 0; x < size; x += 1) {
+          p = '█';
+
+          if (min <= x && x < max && min <= y && y < max && _this.isDark(r1, Math.floor((x - min) / cellSize))) {
+            p = ' ';
+          }
+
+          if (min <= x && x < max && min <= y+1 && y+1 < max && _this.isDark(r2, Math.floor((x - min) / cellSize))) {
+            p += ' ';
+          }
+          else {
+            p += '█';
+          }
+
+          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
+          ascii += (margin < 1 && y+1 >= max) ? blocksLastLineNoMargin[p] : blocks[p];
+        }
+
+        ascii += '\n';
+      }
+
+      if (size % 2 && margin > 0) {
+        return ascii.substring(0, ascii.length - size - 1) + Array(size+1).join('▀');
+      }
+
+      return ascii.substring(0, ascii.length-1);
+    };
+
+    _this.createASCII = function(cellSize, margin) {
+      cellSize = cellSize || 1;
+
+      if (cellSize < 2) {
+        return _createHalfASCII(margin);
+      }
+
+      cellSize -= 1;
+      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      var y, x, r, p;
+
+      var white = Array(cellSize+1).join('██');
+      var black = Array(cellSize+1).join('  ');
+
+      var ascii = '';
+      var line = '';
+      for (y = 0; y < size; y += 1) {
+        r = Math.floor( (y - min) / cellSize);
+        line = '';
+        for (x = 0; x < size; x += 1) {
+          p = 1;
+
+          if (min <= x && x < max && min <= y && y < max && _this.isDark(r, Math.floor((x - min) / cellSize))) {
+            p = 0;
+          }
+
+          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
+          line += p ? white : black;
+        }
+
+        for (r = 0; r < cellSize; r += 1) {
+          ascii += line + '\n';
+        }
+      }
+
+      return ascii.substring(0, ascii.length-1);
+    };
+
+    _this.renderTo2dContext = function(context, cellSize) {
+      cellSize = cellSize || 2;
+      var length = _this.getModuleCount();
+      for (var row = 0; row < length; row++) {
+        for (var col = 0; col < length; col++) {
+          context.fillStyle = _this.isDark(row, col) ? 'black' : 'white';
+          context.fillRect(row * cellSize, col * cellSize, cellSize, cellSize);
+        }
+      }
+    }
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrcode.stringToBytes
+  //---------------------------------------------------------------------
+
+  qrcode.stringToBytesFuncs = {
+    'default' : function(s) {
+      var bytes = [];
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        bytes.push(c & 0xff);
+      }
+      return bytes;
+    }
+  };
+
+  qrcode.stringToBytes = qrcode.stringToBytesFuncs['default'];
+
+  //---------------------------------------------------------------------
+  // qrcode.createStringToBytes
+  //---------------------------------------------------------------------
+
+  /**
+   * @param unicodeData base64 string of byte array.
+   * [16bit Unicode],[16bit Bytes], ...
+   * @param numChars
+   */
+  qrcode.createStringToBytes = function(unicodeData, numChars) {
+
+    // create conversion map.
+
+    var unicodeMap = function() {
+
+      var bin = base64DecodeInputStream(unicodeData);
+      var read = function() {
+        var b = bin.read();
+        if (b == -1) throw 'eof';
+        return b;
+      };
+
+      var count = 0;
+      var unicodeMap = {};
+      while (true) {
+        var b0 = bin.read();
+        if (b0 == -1) break;
+        var b1 = read();
+        var b2 = read();
+        var b3 = read();
+        var k = String.fromCharCode( (b0 << 8) | b1);
+        var v = (b2 << 8) | b3;
+        unicodeMap[k] = v;
+        count += 1;
+      }
+      if (count != numChars) {
+        throw count + ' != ' + numChars;
+      }
+
+      return unicodeMap;
+    }();
+
+    var unknownChar = '?'.charCodeAt(0);
+
+    return function(s) {
+      var bytes = [];
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        if (c < 128) {
+          bytes.push(c);
+        } else {
+          var b = unicodeMap[s.charAt(i)];
+          if (typeof b == 'number') {
+            if ( (b & 0xff) == b) {
+              // 1byte
+              bytes.push(b);
+            } else {
+              // 2bytes
+              bytes.push(b >>> 8);
+              bytes.push(b & 0xff);
+            }
+          } else {
+            bytes.push(unknownChar);
+          }
+        }
+      }
+      return bytes;
+    };
+  };
+
+  //---------------------------------------------------------------------
+  // QRMode
+  //---------------------------------------------------------------------
+
+  var QRMode = {
+    MODE_NUMBER :    1 << 0,
+    MODE_ALPHA_NUM : 1 << 1,
+    MODE_8BIT_BYTE : 1 << 2,
+    MODE_KANJI :     1 << 3
+  };
+
+  //---------------------------------------------------------------------
+  // QRErrorCorrectionLevel
+  //---------------------------------------------------------------------
+
+  var QRErrorCorrectionLevel = {
+    L : 1,
+    M : 0,
+    Q : 3,
+    H : 2
+  };
+
+  //---------------------------------------------------------------------
+  // QRMaskPattern
+  //---------------------------------------------------------------------
+
+  var QRMaskPattern = {
+    PATTERN000 : 0,
+    PATTERN001 : 1,
+    PATTERN010 : 2,
+    PATTERN011 : 3,
+    PATTERN100 : 4,
+    PATTERN101 : 5,
+    PATTERN110 : 6,
+    PATTERN111 : 7
+  };
+
+  //---------------------------------------------------------------------
+  // QRUtil
+  //---------------------------------------------------------------------
+
+  var QRUtil = function() {
+
+    var PATTERN_POSITION_TABLE = [
+      [],
+      [6, 18],
+      [6, 22],
+      [6, 26],
+      [6, 30],
+      [6, 34],
+      [6, 22, 38],
+      [6, 24, 42],
+      [6, 26, 46],
+      [6, 28, 50],
+      [6, 30, 54],
+      [6, 32, 58],
+      [6, 34, 62],
+      [6, 26, 46, 66],
+      [6, 26, 48, 70],
+      [6, 26, 50, 74],
+      [6, 30, 54, 78],
+      [6, 30, 56, 82],
+      [6, 30, 58, 86],
+      [6, 34, 62, 90],
+      [6, 28, 50, 72, 94],
+      [6, 26, 50, 74, 98],
+      [6, 30, 54, 78, 102],
+      [6, 28, 54, 80, 106],
+      [6, 32, 58, 84, 110],
+      [6, 30, 58, 86, 114],
+      [6, 34, 62, 90, 118],
+      [6, 26, 50, 74, 98, 122],
+      [6, 30, 54, 78, 102, 126],
+      [6, 26, 52, 78, 104, 130],
+      [6, 30, 56, 82, 108, 134],
+      [6, 34, 60, 86, 112, 138],
+      [6, 30, 58, 86, 114, 142],
+      [6, 34, 62, 90, 118, 146],
+      [6, 30, 54, 78, 102, 126, 150],
+      [6, 24, 50, 76, 102, 128, 154],
+      [6, 28, 54, 80, 106, 132, 158],
+      [6, 32, 58, 84, 110, 136, 162],
+      [6, 26, 54, 82, 110, 138, 166],
+      [6, 30, 58, 86, 114, 142, 170]
+    ];
+    var G15 = (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0);
+    var G18 = (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0);
+    var G15_MASK = (1 << 14) | (1 << 12) | (1 << 10) | (1 << 4) | (1 << 1);
+
+    var _this = {};
+
+    var getBCHDigit = function(data) {
+      var digit = 0;
+      while (data != 0) {
+        digit += 1;
+        data >>>= 1;
+      }
+      return digit;
+    };
+
+    _this.getBCHTypeInfo = function(data) {
+      var d = data << 10;
+      while (getBCHDigit(d) - getBCHDigit(G15) >= 0) {
+        d ^= (G15 << (getBCHDigit(d) - getBCHDigit(G15) ) );
+      }
+      return ( (data << 10) | d) ^ G15_MASK;
+    };
+
+    _this.getBCHTypeNumber = function(data) {
+      var d = data << 12;
+      while (getBCHDigit(d) - getBCHDigit(G18) >= 0) {
+        d ^= (G18 << (getBCHDigit(d) - getBCHDigit(G18) ) );
+      }
+      return (data << 12) | d;
+    };
+
+    _this.getPatternPosition = function(typeNumber) {
+      return PATTERN_POSITION_TABLE[typeNumber - 1];
+    };
+
+    _this.getMaskFunction = function(maskPattern) {
+
+      switch (maskPattern) {
+
+      case QRMaskPattern.PATTERN000 :
+        return function(i, j) { return (i + j) % 2 == 0; };
+      case QRMaskPattern.PATTERN001 :
+        return function(i, j) { return i % 2 == 0; };
+      case QRMaskPattern.PATTERN010 :
+        return function(i, j) { return j % 3 == 0; };
+      case QRMaskPattern.PATTERN011 :
+        return function(i, j) { return (i + j) % 3 == 0; };
+      case QRMaskPattern.PATTERN100 :
+        return function(i, j) { return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 == 0; };
+      case QRMaskPattern.PATTERN101 :
+        return function(i, j) { return (i * j) % 2 + (i * j) % 3 == 0; };
+      case QRMaskPattern.PATTERN110 :
+        return function(i, j) { return ( (i * j) % 2 + (i * j) % 3) % 2 == 0; };
+      case QRMaskPattern.PATTERN111 :
+        return function(i, j) { return ( (i * j) % 3 + (i + j) % 2) % 2 == 0; };
+
+      default :
+        throw 'bad maskPattern:' + maskPattern;
+      }
+    };
+
+    _this.getErrorCorrectPolynomial = function(errorCorrectLength) {
+      var a = qrPolynomial([1], 0);
+      for (var i = 0; i < errorCorrectLength; i += 1) {
+        a = a.multiply(qrPolynomial([1, QRMath.gexp(i)], 0) );
+      }
+      return a;
+    };
+
+    _this.getLengthInBits = function(mode, type) {
+
+      if (1 <= type && type < 10) {
+
+        // 1 - 9
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 10;
+        case QRMode.MODE_ALPHA_NUM : return 9;
+        case QRMode.MODE_8BIT_BYTE : return 8;
+        case QRMode.MODE_KANJI     : return 8;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else if (type < 27) {
+
+        // 10 - 26
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 12;
+        case QRMode.MODE_ALPHA_NUM : return 11;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 10;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else if (type < 41) {
+
+        // 27 - 40
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 14;
+        case QRMode.MODE_ALPHA_NUM : return 13;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 12;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else {
+        throw 'type:' + type;
+      }
+    };
+
+    _this.getLostPoint = function(qrcode) {
+
+      var moduleCount = qrcode.getModuleCount();
+
+      var lostPoint = 0;
+
+      // LEVEL1
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount; col += 1) {
+
+          var sameCount = 0;
+          var dark = qrcode.isDark(row, col);
+
+          for (var r = -1; r <= 1; r += 1) {
+
+            if (row + r < 0 || moduleCount <= row + r) {
+              continue;
+            }
+
+            for (var c = -1; c <= 1; c += 1) {
+
+              if (col + c < 0 || moduleCount <= col + c) {
+                continue;
+              }
+
+              if (r == 0 && c == 0) {
+                continue;
+              }
+
+              if (dark == qrcode.isDark(row + r, col + c) ) {
+                sameCount += 1;
+              }
+            }
+          }
+
+          if (sameCount > 5) {
+            lostPoint += (3 + sameCount - 5);
+          }
+        }
+      };
+
+      // LEVEL2
+
+      for (var row = 0; row < moduleCount - 1; row += 1) {
+        for (var col = 0; col < moduleCount - 1; col += 1) {
+          var count = 0;
+          if (qrcode.isDark(row, col) ) count += 1;
+          if (qrcode.isDark(row + 1, col) ) count += 1;
+          if (qrcode.isDark(row, col + 1) ) count += 1;
+          if (qrcode.isDark(row + 1, col + 1) ) count += 1;
+          if (count == 0 || count == 4) {
+            lostPoint += 3;
+          }
+        }
+      }
+
+      // LEVEL3
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount - 6; col += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row, col + 1)
+              &&  qrcode.isDark(row, col + 2)
+              &&  qrcode.isDark(row, col + 3)
+              &&  qrcode.isDark(row, col + 4)
+              && !qrcode.isDark(row, col + 5)
+              &&  qrcode.isDark(row, col + 6) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount - 6; row += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row + 1, col)
+              &&  qrcode.isDark(row + 2, col)
+              &&  qrcode.isDark(row + 3, col)
+              &&  qrcode.isDark(row + 4, col)
+              && !qrcode.isDark(row + 5, col)
+              &&  qrcode.isDark(row + 6, col) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      // LEVEL4
+
+      var darkCount = 0;
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount; row += 1) {
+          if (qrcode.isDark(row, col) ) {
+            darkCount += 1;
+          }
+        }
+      }
+
+      var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+      lostPoint += ratio * 10;
+
+      return lostPoint;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // QRMath
+  //---------------------------------------------------------------------
+
+  var QRMath = function() {
+
+    var EXP_TABLE = new Array(256);
+    var LOG_TABLE = new Array(256);
+
+    // initialize tables
+    for (var i = 0; i < 8; i += 1) {
+      EXP_TABLE[i] = 1 << i;
+    }
+    for (var i = 8; i < 256; i += 1) {
+      EXP_TABLE[i] = EXP_TABLE[i - 4]
+        ^ EXP_TABLE[i - 5]
+        ^ EXP_TABLE[i - 6]
+        ^ EXP_TABLE[i - 8];
+    }
+    for (var i = 0; i < 255; i += 1) {
+      LOG_TABLE[EXP_TABLE[i] ] = i;
+    }
+
+    var _this = {};
+
+    _this.glog = function(n) {
+
+      if (n < 1) {
+        throw 'glog(' + n + ')';
+      }
+
+      return LOG_TABLE[n];
+    };
+
+    _this.gexp = function(n) {
+
+      while (n < 0) {
+        n += 255;
+      }
+
+      while (n >= 256) {
+        n -= 255;
+      }
+
+      return EXP_TABLE[n];
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrPolynomial
+  //---------------------------------------------------------------------
+
+  function qrPolynomial(num, shift) {
+
+    if (typeof num.length == 'undefined') {
+      throw num.length + '/' + shift;
+    }
+
+    var _num = function() {
+      var offset = 0;
+      while (offset < num.length && num[offset] == 0) {
+        offset += 1;
+      }
+      var _num = new Array(num.length - offset + shift);
+      for (var i = 0; i < num.length - offset; i += 1) {
+        _num[i] = num[i + offset];
+      }
+      return _num;
+    }();
+
+    var _this = {};
+
+    _this.getAt = function(index) {
+      return _num[index];
+    };
+
+    _this.getLength = function() {
+      return _num.length;
+    };
+
+    _this.multiply = function(e) {
+
+      var num = new Array(_this.getLength() + e.getLength() - 1);
+
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        for (var j = 0; j < e.getLength(); j += 1) {
+          num[i + j] ^= QRMath.gexp(QRMath.glog(_this.getAt(i) ) + QRMath.glog(e.getAt(j) ) );
+        }
+      }
+
+      return qrPolynomial(num, 0);
+    };
+
+    _this.mod = function(e) {
+
+      if (_this.getLength() - e.getLength() < 0) {
+        return _this;
+      }
+
+      var ratio = QRMath.glog(_this.getAt(0) ) - QRMath.glog(e.getAt(0) );
+
+      var num = new Array(_this.getLength() );
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        num[i] = _this.getAt(i);
+      }
+
+      for (var i = 0; i < e.getLength(); i += 1) {
+        num[i] ^= QRMath.gexp(QRMath.glog(e.getAt(i) ) + ratio);
+      }
+
+      // recursive call
+      return qrPolynomial(num, 0).mod(e);
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // QRRSBlock
+  //---------------------------------------------------------------------
+
+  var QRRSBlock = function() {
+
+    var RS_BLOCK_TABLE = [
+
+      // L
+      // M
+      // Q
+      // H
+
+      // 1
+      [1, 26, 19],
+      [1, 26, 16],
+      [1, 26, 13],
+      [1, 26, 9],
+
+      // 2
+      [1, 44, 34],
+      [1, 44, 28],
+      [1, 44, 22],
+      [1, 44, 16],
+
+      // 3
+      [1, 70, 55],
+      [1, 70, 44],
+      [2, 35, 17],
+      [2, 35, 13],
+
+      // 4
+      [1, 100, 80],
+      [2, 50, 32],
+      [2, 50, 24],
+      [4, 25, 9],
+
+      // 5
+      [1, 134, 108],
+      [2, 67, 43],
+      [2, 33, 15, 2, 34, 16],
+      [2, 33, 11, 2, 34, 12],
+
+      // 6
+      [2, 86, 68],
+      [4, 43, 27],
+      [4, 43, 19],
+      [4, 43, 15],
+
+      // 7
+      [2, 98, 78],
+      [4, 49, 31],
+      [2, 32, 14, 4, 33, 15],
+      [4, 39, 13, 1, 40, 14],
+
+      // 8
+      [2, 121, 97],
+      [2, 60, 38, 2, 61, 39],
+      [4, 40, 18, 2, 41, 19],
+      [4, 40, 14, 2, 41, 15],
+
+      // 9
+      [2, 146, 116],
+      [3, 58, 36, 2, 59, 37],
+      [4, 36, 16, 4, 37, 17],
+      [4, 36, 12, 4, 37, 13],
+
+      // 10
+      [2, 86, 68, 2, 87, 69],
+      [4, 69, 43, 1, 70, 44],
+      [6, 43, 19, 2, 44, 20],
+      [6, 43, 15, 2, 44, 16],
+
+      // 11
+      [4, 101, 81],
+      [1, 80, 50, 4, 81, 51],
+      [4, 50, 22, 4, 51, 23],
+      [3, 36, 12, 8, 37, 13],
+
+      // 12
+      [2, 116, 92, 2, 117, 93],
+      [6, 58, 36, 2, 59, 37],
+      [4, 46, 20, 6, 47, 21],
+      [7, 42, 14, 4, 43, 15],
+
+      // 13
+      [4, 133, 107],
+      [8, 59, 37, 1, 60, 38],
+      [8, 44, 20, 4, 45, 21],
+      [12, 33, 11, 4, 34, 12],
+
+      // 14
+      [3, 145, 115, 1, 146, 116],
+      [4, 64, 40, 5, 65, 41],
+      [11, 36, 16, 5, 37, 17],
+      [11, 36, 12, 5, 37, 13],
+
+      // 15
+      [5, 109, 87, 1, 110, 88],
+      [5, 65, 41, 5, 66, 42],
+      [5, 54, 24, 7, 55, 25],
+      [11, 36, 12, 7, 37, 13],
+
+      // 16
+      [5, 122, 98, 1, 123, 99],
+      [7, 73, 45, 3, 74, 46],
+      [15, 43, 19, 2, 44, 20],
+      [3, 45, 15, 13, 46, 16],
+
+      // 17
+      [1, 135, 107, 5, 136, 108],
+      [10, 74, 46, 1, 75, 47],
+      [1, 50, 22, 15, 51, 23],
+      [2, 42, 14, 17, 43, 15],
+
+      // 18
+      [5, 150, 120, 1, 151, 121],
+      [9, 69, 43, 4, 70, 44],
+      [17, 50, 22, 1, 51, 23],
+      [2, 42, 14, 19, 43, 15],
+
+      // 19
+      [3, 141, 113, 4, 142, 114],
+      [3, 70, 44, 11, 71, 45],
+      [17, 47, 21, 4, 48, 22],
+      [9, 39, 13, 16, 40, 14],
+
+      // 20
+      [3, 135, 107, 5, 136, 108],
+      [3, 67, 41, 13, 68, 42],
+      [15, 54, 24, 5, 55, 25],
+      [15, 43, 15, 10, 44, 16],
+
+      // 21
+      [4, 144, 116, 4, 145, 117],
+      [17, 68, 42],
+      [17, 50, 22, 6, 51, 23],
+      [19, 46, 16, 6, 47, 17],
+
+      // 22
+      [2, 139, 111, 7, 140, 112],
+      [17, 74, 46],
+      [7, 54, 24, 16, 55, 25],
+      [34, 37, 13],
+
+      // 23
+      [4, 151, 121, 5, 152, 122],
+      [4, 75, 47, 14, 76, 48],
+      [11, 54, 24, 14, 55, 25],
+      [16, 45, 15, 14, 46, 16],
+
+      // 24
+      [6, 147, 117, 4, 148, 118],
+      [6, 73, 45, 14, 74, 46],
+      [11, 54, 24, 16, 55, 25],
+      [30, 46, 16, 2, 47, 17],
+
+      // 25
+      [8, 132, 106, 4, 133, 107],
+      [8, 75, 47, 13, 76, 48],
+      [7, 54, 24, 22, 55, 25],
+      [22, 45, 15, 13, 46, 16],
+
+      // 26
+      [10, 142, 114, 2, 143, 115],
+      [19, 74, 46, 4, 75, 47],
+      [28, 50, 22, 6, 51, 23],
+      [33, 46, 16, 4, 47, 17],
+
+      // 27
+      [8, 152, 122, 4, 153, 123],
+      [22, 73, 45, 3, 74, 46],
+      [8, 53, 23, 26, 54, 24],
+      [12, 45, 15, 28, 46, 16],
+
+      // 28
+      [3, 147, 117, 10, 148, 118],
+      [3, 73, 45, 23, 74, 46],
+      [4, 54, 24, 31, 55, 25],
+      [11, 45, 15, 31, 46, 16],
+
+      // 29
+      [7, 146, 116, 7, 147, 117],
+      [21, 73, 45, 7, 74, 46],
+      [1, 53, 23, 37, 54, 24],
+      [19, 45, 15, 26, 46, 16],
+
+      // 30
+      [5, 145, 115, 10, 146, 116],
+      [19, 75, 47, 10, 76, 48],
+      [15, 54, 24, 25, 55, 25],
+      [23, 45, 15, 25, 46, 16],
+
+      // 31
+      [13, 145, 115, 3, 146, 116],
+      [2, 74, 46, 29, 75, 47],
+      [42, 54, 24, 1, 55, 25],
+      [23, 45, 15, 28, 46, 16],
+
+      // 32
+      [17, 145, 115],
+      [10, 74, 46, 23, 75, 47],
+      [10, 54, 24, 35, 55, 25],
+      [19, 45, 15, 35, 46, 16],
+
+      // 33
+      [17, 145, 115, 1, 146, 116],
+      [14, 74, 46, 21, 75, 47],
+      [29, 54, 24, 19, 55, 25],
+      [11, 45, 15, 46, 46, 16],
+
+      // 34
+      [13, 145, 115, 6, 146, 116],
+      [14, 74, 46, 23, 75, 47],
+      [44, 54, 24, 7, 55, 25],
+      [59, 46, 16, 1, 47, 17],
+
+      // 35
+      [12, 151, 121, 7, 152, 122],
+      [12, 75, 47, 26, 76, 48],
+      [39, 54, 24, 14, 55, 25],
+      [22, 45, 15, 41, 46, 16],
+
+      // 36
+      [6, 151, 121, 14, 152, 122],
+      [6, 75, 47, 34, 76, 48],
+      [46, 54, 24, 10, 55, 25],
+      [2, 45, 15, 64, 46, 16],
+
+      // 37
+      [17, 152, 122, 4, 153, 123],
+      [29, 74, 46, 14, 75, 47],
+      [49, 54, 24, 10, 55, 25],
+      [24, 45, 15, 46, 46, 16],
+
+      // 38
+      [4, 152, 122, 18, 153, 123],
+      [13, 74, 46, 32, 75, 47],
+      [48, 54, 24, 14, 55, 25],
+      [42, 45, 15, 32, 46, 16],
+
+      // 39
+      [20, 147, 117, 4, 148, 118],
+      [40, 75, 47, 7, 76, 48],
+      [43, 54, 24, 22, 55, 25],
+      [10, 45, 15, 67, 46, 16],
+
+      // 40
+      [19, 148, 118, 6, 149, 119],
+      [18, 75, 47, 31, 76, 48],
+      [34, 54, 24, 34, 55, 25],
+      [20, 45, 15, 61, 46, 16]
+    ];
+
+    var qrRSBlock = function(totalCount, dataCount) {
+      var _this = {};
+      _this.totalCount = totalCount;
+      _this.dataCount = dataCount;
+      return _this;
+    };
+
+    var _this = {};
+
+    var getRsBlockTable = function(typeNumber, errorCorrectionLevel) {
+
+      switch(errorCorrectionLevel) {
+      case QRErrorCorrectionLevel.L :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+      case QRErrorCorrectionLevel.M :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+      case QRErrorCorrectionLevel.Q :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+      case QRErrorCorrectionLevel.H :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+      default :
+        return undefined;
+      }
+    };
+
+    _this.getRSBlocks = function(typeNumber, errorCorrectionLevel) {
+
+      var rsBlock = getRsBlockTable(typeNumber, errorCorrectionLevel);
+
+      if (typeof rsBlock == 'undefined') {
+        throw 'bad rs block @ typeNumber:' + typeNumber +
+            '/errorCorrectionLevel:' + errorCorrectionLevel;
+      }
+
+      var length = rsBlock.length / 3;
+
+      var list = [];
+
+      for (var i = 0; i < length; i += 1) {
+
+        var count = rsBlock[i * 3 + 0];
+        var totalCount = rsBlock[i * 3 + 1];
+        var dataCount = rsBlock[i * 3 + 2];
+
+        for (var j = 0; j < count; j += 1) {
+          list.push(qrRSBlock(totalCount, dataCount) );
+        }
+      }
+
+      return list;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrBitBuffer
+  //---------------------------------------------------------------------
+
+  var qrBitBuffer = function() {
+
+    var _buffer = [];
+    var _length = 0;
+
+    var _this = {};
+
+    _this.getBuffer = function() {
+      return _buffer;
+    };
+
+    _this.getAt = function(index) {
+      var bufIndex = Math.floor(index / 8);
+      return ( (_buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+    };
+
+    _this.put = function(num, length) {
+      for (var i = 0; i < length; i += 1) {
+        _this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+      }
+    };
+
+    _this.getLengthInBits = function() {
+      return _length;
+    };
+
+    _this.putBit = function(bit) {
+
+      var bufIndex = Math.floor(_length / 8);
+      if (_buffer.length <= bufIndex) {
+        _buffer.push(0);
+      }
+
+      if (bit) {
+        _buffer[bufIndex] |= (0x80 >>> (_length % 8) );
+      }
+
+      _length += 1;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrNumber
+  //---------------------------------------------------------------------
+
+  var qrNumber = function(data) {
+
+    var _mode = QRMode.MODE_NUMBER;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _data;
+
+      var i = 0;
+
+      while (i + 2 < data.length) {
+        buffer.put(strToNum(data.substring(i, i + 3) ), 10);
+        i += 3;
+      }
+
+      if (i < data.length) {
+        if (data.length - i == 1) {
+          buffer.put(strToNum(data.substring(i, i + 1) ), 4);
+        } else if (data.length - i == 2) {
+          buffer.put(strToNum(data.substring(i, i + 2) ), 7);
+        }
+      }
+    };
+
+    var strToNum = function(s) {
+      var num = 0;
+      for (var i = 0; i < s.length; i += 1) {
+        num = num * 10 + chatToNum(s.charAt(i) );
+      }
+      return num;
+    };
+
+    var chatToNum = function(c) {
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      }
+      throw 'illegal char :' + c;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrAlphaNum
+  //---------------------------------------------------------------------
+
+  var qrAlphaNum = function(data) {
+
+    var _mode = QRMode.MODE_ALPHA_NUM;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var s = _data;
+
+      var i = 0;
+
+      while (i + 1 < s.length) {
+        buffer.put(
+          getCode(s.charAt(i) ) * 45 +
+          getCode(s.charAt(i + 1) ), 11);
+        i += 2;
+      }
+
+      if (i < s.length) {
+        buffer.put(getCode(s.charAt(i) ), 6);
+      }
+    };
+
+    var getCode = function(c) {
+
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      } else if ('A' <= c && c <= 'Z') {
+        return c.charCodeAt(0) - 'A'.charCodeAt(0) + 10;
+      } else {
+        switch (c) {
+        case ' ' : return 36;
+        case '$' : return 37;
+        case '%' : return 38;
+        case '*' : return 39;
+        case '+' : return 40;
+        case '-' : return 41;
+        case '.' : return 42;
+        case '/' : return 43;
+        case ':' : return 44;
+        default :
+          throw 'illegal char :' + c;
+        }
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qr8BitByte
+  //---------------------------------------------------------------------
+
+  var qr8BitByte = function(data) {
+
+    var _mode = QRMode.MODE_8BIT_BYTE;
+    var _data = data;
+    var _bytes = qrcode.stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _bytes.length;
+    };
+
+    _this.write = function(buffer) {
+      for (var i = 0; i < _bytes.length; i += 1) {
+        buffer.put(_bytes[i], 8);
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrKanji
+  //---------------------------------------------------------------------
+
+  var qrKanji = function(data) {
+
+    var _mode = QRMode.MODE_KANJI;
+    var _data = data;
+
+    var stringToBytes = qrcode.stringToBytesFuncs['SJIS'];
+    if (!stringToBytes) {
+      throw 'sjis not supported.';
+    }
+    !function(c, code) {
+      // self test for sjis support.
+      var test = stringToBytes(c);
+      if (test.length != 2 || ( (test[0] << 8) | test[1]) != code) {
+        throw 'sjis not supported.';
+      }
+    }('\u53cb', 0x9746);
+
+    var _bytes = stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return ~~(_bytes.length / 2);
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _bytes;
+
+      var i = 0;
+
+      while (i + 1 < data.length) {
+
+        var c = ( (0xff & data[i]) << 8) | (0xff & data[i + 1]);
+
+        if (0x8140 <= c && c <= 0x9FFC) {
+          c -= 0x8140;
+        } else if (0xE040 <= c && c <= 0xEBBF) {
+          c -= 0xC140;
+        } else {
+          throw 'illegal char at ' + (i + 1) + '/' + c;
+        }
+
+        c = ( (c >>> 8) & 0xff) * 0xC0 + (c & 0xff);
+
+        buffer.put(c, 13);
+
+        i += 2;
+      }
+
+      if (i < data.length) {
+        throw 'illegal char at ' + (i + 1);
+      }
+    };
+
+    return _this;
+  };
+
+  //=====================================================================
+  // GIF Support etc.
+  //
+
+  //---------------------------------------------------------------------
+  // byteArrayOutputStream
+  //---------------------------------------------------------------------
+
+  var byteArrayOutputStream = function() {
+
+    var _bytes = [];
+
+    var _this = {};
+
+    _this.writeByte = function(b) {
+      _bytes.push(b & 0xff);
+    };
+
+    _this.writeShort = function(i) {
+      _this.writeByte(i);
+      _this.writeByte(i >>> 8);
+    };
+
+    _this.writeBytes = function(b, off, len) {
+      off = off || 0;
+      len = len || b.length;
+      for (var i = 0; i < len; i += 1) {
+        _this.writeByte(b[i + off]);
+      }
+    };
+
+    _this.writeString = function(s) {
+      for (var i = 0; i < s.length; i += 1) {
+        _this.writeByte(s.charCodeAt(i) );
+      }
+    };
+
+    _this.toByteArray = function() {
+      return _bytes;
+    };
+
+    _this.toString = function() {
+      var s = '';
+      s += '[';
+      for (var i = 0; i < _bytes.length; i += 1) {
+        if (i > 0) {
+          s += ',';
+        }
+        s += _bytes[i];
+      }
+      s += ']';
+      return s;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // base64EncodeOutputStream
+  //---------------------------------------------------------------------
+
+  var base64EncodeOutputStream = function() {
+
+    var _buffer = 0;
+    var _buflen = 0;
+    var _length = 0;
+    var _base64 = '';
+
+    var _this = {};
+
+    var writeEncoded = function(b) {
+      _base64 += String.fromCharCode(encode(b & 0x3f) );
+    };
+
+    var encode = function(n) {
+      if (n < 0) {
+        // error.
+      } else if (n < 26) {
+        return 0x41 + n;
+      } else if (n < 52) {
+        return 0x61 + (n - 26);
+      } else if (n < 62) {
+        return 0x30 + (n - 52);
+      } else if (n == 62) {
+        return 0x2b;
+      } else if (n == 63) {
+        return 0x2f;
+      }
+      throw 'n:' + n;
+    };
+
+    _this.writeByte = function(n) {
+
+      _buffer = (_buffer << 8) | (n & 0xff);
+      _buflen += 8;
+      _length += 1;
+
+      while (_buflen >= 6) {
+        writeEncoded(_buffer >>> (_buflen - 6) );
+        _buflen -= 6;
+      }
+    };
+
+    _this.flush = function() {
+
+      if (_buflen > 0) {
+        writeEncoded(_buffer << (6 - _buflen) );
+        _buffer = 0;
+        _buflen = 0;
+      }
+
+      if (_length % 3 != 0) {
+        // padding
+        var padlen = 3 - _length % 3;
+        for (var i = 0; i < padlen; i += 1) {
+          _base64 += '=';
+        }
+      }
+    };
+
+    _this.toString = function() {
+      return _base64;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // base64DecodeInputStream
+  //---------------------------------------------------------------------
+
+  var base64DecodeInputStream = function(str) {
+
+    var _str = str;
+    var _pos = 0;
+    var _buffer = 0;
+    var _buflen = 0;
+
+    var _this = {};
+
+    _this.read = function() {
+
+      while (_buflen < 8) {
+
+        if (_pos >= _str.length) {
+          if (_buflen == 0) {
+            return -1;
+          }
+          throw 'unexpected end of file./' + _buflen;
+        }
+
+        var c = _str.charAt(_pos);
+        _pos += 1;
+
+        if (c == '=') {
+          _buflen = 0;
+          return -1;
+        } else if (c.match(/^\s$/) ) {
+          // ignore if whitespace.
+          continue;
+        }
+
+        _buffer = (_buffer << 6) | decode(c.charCodeAt(0) );
+        _buflen += 6;
+      }
+
+      var n = (_buffer >>> (_buflen - 8) ) & 0xff;
+      _buflen -= 8;
+      return n;
+    };
+
+    var decode = function(c) {
+      if (0x41 <= c && c <= 0x5a) {
+        return c - 0x41;
+      } else if (0x61 <= c && c <= 0x7a) {
+        return c - 0x61 + 26;
+      } else if (0x30 <= c && c <= 0x39) {
+        return c - 0x30 + 52;
+      } else if (c == 0x2b) {
+        return 62;
+      } else if (c == 0x2f) {
+        return 63;
+      } else {
+        throw 'c:' + c;
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // gifImage (B/W)
+  //---------------------------------------------------------------------
+
+  var gifImage = function(width, height) {
+
+    var _width = width;
+    var _height = height;
+    var _data = new Array(width * height);
+
+    var _this = {};
+
+    _this.setPixel = function(x, y, pixel) {
+      _data[y * _width + x] = pixel;
+    };
+
+    _this.write = function(out) {
+
+      //---------------------------------
+      // GIF Signature
+
+      out.writeString('GIF87a');
+
+      //---------------------------------
+      // Screen Descriptor
+
+      out.writeShort(_width);
+      out.writeShort(_height);
+
+      out.writeByte(0x80); // 2bit
+      out.writeByte(0);
+      out.writeByte(0);
+
+      //---------------------------------
+      // Global Color Map
+
+      // black
+      out.writeByte(0x00);
+      out.writeByte(0x00);
+      out.writeByte(0x00);
+
+      // white
+      out.writeByte(0xff);
+      out.writeByte(0xff);
+      out.writeByte(0xff);
+
+      //---------------------------------
+      // Image Descriptor
+
+      out.writeString(',');
+      out.writeShort(0);
+      out.writeShort(0);
+      out.writeShort(_width);
+      out.writeShort(_height);
+      out.writeByte(0);
+
+      //---------------------------------
+      // Local Color Map
+
+      //---------------------------------
+      // Raster Data
+
+      var lzwMinCodeSize = 2;
+      var raster = getLZWRaster(lzwMinCodeSize);
+
+      out.writeByte(lzwMinCodeSize);
+
+      var offset = 0;
+
+      while (raster.length - offset > 255) {
+        out.writeByte(255);
+        out.writeBytes(raster, offset, 255);
+        offset += 255;
+      }
+
+      out.writeByte(raster.length - offset);
+      out.writeBytes(raster, offset, raster.length - offset);
+      out.writeByte(0x00);
+
+      //---------------------------------
+      // GIF Terminator
+      out.writeString(';');
+    };
+
+    var bitOutputStream = function(out) {
+
+      var _out = out;
+      var _bitLength = 0;
+      var _bitBuffer = 0;
+
+      var _this = {};
+
+      _this.write = function(data, length) {
+
+        if ( (data >>> length) != 0) {
+          throw 'length over';
+        }
+
+        while (_bitLength + length >= 8) {
+          _out.writeByte(0xff & ( (data << _bitLength) | _bitBuffer) );
+          length -= (8 - _bitLength);
+          data >>>= (8 - _bitLength);
+          _bitBuffer = 0;
+          _bitLength = 0;
+        }
+
+        _bitBuffer = (data << _bitLength) | _bitBuffer;
+        _bitLength = _bitLength + length;
+      };
+
+      _this.flush = function() {
+        if (_bitLength > 0) {
+          _out.writeByte(_bitBuffer);
+        }
+      };
+
+      return _this;
+    };
+
+    var getLZWRaster = function(lzwMinCodeSize) {
+
+      var clearCode = 1 << lzwMinCodeSize;
+      var endCode = (1 << lzwMinCodeSize) + 1;
+      var bitLength = lzwMinCodeSize + 1;
+
+      // Setup LZWTable
+      var table = lzwTable();
+
+      for (var i = 0; i < clearCode; i += 1) {
+        table.add(String.fromCharCode(i) );
+      }
+      table.add(String.fromCharCode(clearCode) );
+      table.add(String.fromCharCode(endCode) );
+
+      var byteOut = byteArrayOutputStream();
+      var bitOut = bitOutputStream(byteOut);
+
+      // clear code
+      bitOut.write(clearCode, bitLength);
+
+      var dataIndex = 0;
+
+      var s = String.fromCharCode(_data[dataIndex]);
+      dataIndex += 1;
+
+      while (dataIndex < _data.length) {
+
+        var c = String.fromCharCode(_data[dataIndex]);
+        dataIndex += 1;
+
+        if (table.contains(s + c) ) {
+
+          s = s + c;
+
+        } else {
+
+          bitOut.write(table.indexOf(s), bitLength);
+
+          if (table.size() < 0xfff) {
+
+            if (table.size() == (1 << bitLength) ) {
+              bitLength += 1;
+            }
+
+            table.add(s + c);
+          }
+
+          s = c;
+        }
+      }
+
+      bitOut.write(table.indexOf(s), bitLength);
+
+      // end code
+      bitOut.write(endCode, bitLength);
+
+      bitOut.flush();
+
+      return byteOut.toByteArray();
+    };
+
+    var lzwTable = function() {
+
+      var _map = {};
+      var _size = 0;
+
+      var _this = {};
+
+      _this.add = function(key) {
+        if (_this.contains(key) ) {
+          throw 'dup key:' + key;
+        }
+        _map[key] = _size;
+        _size += 1;
+      };
+
+      _this.size = function() {
+        return _size;
+      };
+
+      _this.indexOf = function(key) {
+        return _map[key];
+      };
+
+      _this.contains = function(key) {
+        return typeof _map[key] != 'undefined';
+      };
+
+      return _this;
+    };
+
+    return _this;
+  };
+
+  var createDataURL = function(width, height, getPixel) {
+    var gif = gifImage(width, height);
+    for (var y = 0; y < height; y += 1) {
+      for (var x = 0; x < width; x += 1) {
+        gif.setPixel(x, y, getPixel(x, y) );
+      }
+    }
+
+    var b = byteArrayOutputStream();
+    gif.write(b);
+
+    var base64 = base64EncodeOutputStream();
+    var bytes = b.toByteArray();
+    for (var i = 0; i < bytes.length; i += 1) {
+      base64.writeByte(bytes[i]);
+    }
+    base64.flush();
+
+    return 'data:image/gif;base64,' + base64;
+  };
+
+  //---------------------------------------------------------------------
+  // returns qrcode function.
+
+  return qrcode;
+}();
+
+// multibyte support
+!function() {
+
+  qrcode.stringToBytesFuncs['UTF-8'] = function(s) {
+    // http://stackoverflow.com/questions/18729405/how-to-convert-utf8-string-to-byte-array
+    function toUTF8Array(str) {
+      var utf8 = [];
+      for (var i=0; i < str.length; i++) {
+        var charcode = str.charCodeAt(i);
+        if (charcode < 0x80) utf8.push(charcode);
+        else if (charcode < 0x800) {
+          utf8.push(0xc0 | (charcode >> 6),
+              0x80 | (charcode & 0x3f));
+        }
+        else if (charcode < 0xd800 || charcode >= 0xe000) {
+          utf8.push(0xe0 | (charcode >> 12),
+              0x80 | ((charcode>>6) & 0x3f),
+              0x80 | (charcode & 0x3f));
+        }
+        // surrogate pair
+        else {
+          i++;
+          // UTF-16 encodes 0x10000-0x10FFFF by
+          // subtracting 0x10000 and splitting the
+          // 20 bits of 0x0-0xFFFFF into two halves
+          charcode = 0x10000 + (((charcode & 0x3ff)<<10)
+            | (str.charCodeAt(i) & 0x3ff));
+          utf8.push(0xf0 | (charcode >>18),
+              0x80 | ((charcode>>12) & 0x3f),
+              0x80 | ((charcode>>6) & 0x3f),
+              0x80 | (charcode & 0x3f));
+        }
+      }
+      return utf8;
+    }
+    return toUTF8Array(s);
+  };
+
+}();
+
+(function (factory) {
+  if (typeof define === 'function' && define.amd) {
+      define([], factory);
+  } else if (typeof exports === 'object') {
+      module.exports = factory();
+  }
+}(function () {
+    return qrcode;
+}));
+
+</script>
+<script>
+// ═══════════════════════════════
+// 사용자 등록 (허브 앞 진입 화면) — 기존 허브/단원 로직과 독립
+// ═══════════════════════════════
+const MX_GAS_URL = 'https://script.google.com/macros/s/AKfycbzo2139RdycLV2myB6aeliiQdQWrPn5f-i_l1rWtHiJI4JCKGciAU2L3gR706F7RI6c7w/exec';   // ← 사용자시트 GAS 웹앱 URL(…/exec)을 여기에 붙여넣기
+const MX_KEY = 'mathexp_user_v1';
+const MX_PURPOSES = {
+  '학생': ['수업 시간 활동','복습·자습','과제','그냥 둘러보기'],
+  '교사': ['수업 진행용','수업 준비·자료 확인','연수·공유','그냥 둘러보기'],
+  '기타': ['학습용','참고·구경']
+};
+const mx = { role:'', grade:'', purpose:'', cur:null };
+const $mx = id => document.getElementById(id);
+
+function mxLoad(){ try{ return JSON.parse(localStorage.getItem(MX_KEY)||'null'); }catch(e){ return null; } }
+function mxSave(u){ try{ localStorage.setItem(MX_KEY, JSON.stringify(u)); return true; }catch(e){ return false; } }
+
+function mxToast(msg, ms){
+  const old = document.querySelector('.mx-toast'); if(old) old.remove();
+  const t = document.createElement('div'); t.className = 'mx-toast'; t.textContent = msg;
+  document.body.appendChild(t); setTimeout(()=>t.remove(), ms||4500);
+}
+
+/* ── JSONP (no-cors 금지: 응답 성공/실패를 정확히 확인) ── */
+function mxJsonp(params, timeoutMs){
+  return new Promise((resolve, reject)=>{
+    const cb = 'mxcb_' + Date.now() + '_' + Math.floor(Math.random()*1e4);
+    const s = document.createElement('script');
+    let done = false, timer = null;
+    const finish = fn => v => { if(done) return; done = true; clearTimeout(timer); delete window[cb]; s.remove(); fn(v); };
+    window[cb] = finish(resolve);
+    s.onerror = finish(()=>reject(new Error('network')));
+    timer = setTimeout(finish(()=>reject(new Error('timeout'))), timeoutMs||8000);
+    const qs = Object.keys(params).map(k=>encodeURIComponent(k)+'='+encodeURIComponent(params[k])).join('&');
+    s.src = MX_GAS_URL + (MX_GAS_URL.indexOf('?')>=0?'&':'?') + qs + '&callback=' + cb;
+    document.head.appendChild(s);
+  });
+}
+function mxParams(u){
+  return { action:'upsert', name:u.name, role:u.role, school:u.school||'', grade:u.grade||'', cls:u.cls||'', purpose:u.purpose||'' };
+}
+
+/* ── 폼 ── */
+function mxRenderPurposes(){
+  const box = $mx('mx-purposes'); box.innerHTML = '';
+  (MX_PURPOSES[mx.role]||[]).forEach(p=>{
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'mx-chip'; b.textContent = p;
+    b.onclick = ()=>{ mx.purpose = p; [...box.children].forEach(c=>c.classList.toggle('on', c===b)); mxCheck(); };
+    box.appendChild(b);
+  });
+}
+function mxSetRole(role){
+  mx.role = role; mx.purpose = ''; mx.grade = '';
+  document.querySelectorAll('.mx-role').forEach(b=>b.classList.toggle('on', b.dataset.role===role));
+  $mx('mx-fields').style.display = '';
+  $mx('mx-f-school').style.display = (role==='기타') ? 'none' : '';
+  $mx('mx-f-gc').style.display = (role==='학생') ? '' : 'none';
+  document.querySelectorAll('#mx-grades .mx-chip').forEach(c=>c.classList.remove('on'));
+  mxRenderPurposes(); mxCheck();
+}
+function mxRead(){
+  const cls = parseInt($mx('mx-cls').value, 10);
+  return {
+    role: mx.role,
+    name: $mx('mx-name').value.trim(),
+    school: mx.role==='기타' ? '' : $mx('mx-school').value.trim(),
+    grade: mx.role==='학생' ? mx.grade : '',
+    cls: (mx.role==='학생' && cls>=1 && cls<=30) ? String(cls) : '',
+    purpose: mx.purpose
+  };
+}
+function mxValid(){
+  const u = mxRead();
+  if(!u.role || !u.name || !u.purpose) return false;
+  if(u.role!=='기타' && !u.school) return false;
+  if(u.role==='학생' && (!u.grade || !u.cls)) return false;
+  return true;
+}
+function mxCheck(){ $mx('mx-go').disabled = !mxValid(); $mx('mx-msg').textContent = ''; }
+
+function mxEnter(u){
+  mx.cur = u;
+  $mx('mx-reg').classList.add('mx-hide');
+  mxRenderUserChip();
+  mxrOnEnter();
+}
+function mxRenderUserChip(){
+  const hub = $mx('hub-screen'); if(!hub || !mx.cur) return;
+  let chip = $mx('mx-user');
+  if(!chip){
+    chip = document.createElement('div'); chip.id = 'mx-user'; chip.className = 'mx-user';
+    const nm = document.createElement('span'); nm.id = 'mx-user-nm';
+    const bt = document.createElement('button'); bt.type = 'button'; bt.textContent = '사용자 변경';
+    bt.onclick = mxChangeUser;
+    chip.appendChild(nm); chip.appendChild(bt); hub.appendChild(chip);
+  }
+  $mx('mx-user-nm').textContent = '👤 ' + mx.cur.name + ' (' + mx.cur.role + ')';
+}
+function mxChangeUser(){
+  if(!confirm('사용자를 변경할까요?\n등록 화면이 다시 나와요.')) return;
+  $mx('mx-reg').classList.remove('mx-hide');
+  $mx('mx-cancel').style.display = '';
+}
+
+async function mxSubmit(){
+  if(!mxValid()) return;
+  const u = mxRead(); const btn = $mx('mx-go');
+  btn.disabled = true; btn.textContent = '등록 중...';
+  let synced = false, note = '';
+  if(!MX_GAS_URL){
+    note = '⚠ 기록 서버(GAS)가 아직 연결되지 않아 이 기기에만 저장됐어요';
+  } else {
+    try{
+      const r = await mxJsonp(mxParams(u), 8000);
+      if(r && r.ok){ synced = true; try{ sessionStorage.setItem('mx_visit','1'); }catch(e){} }
+      else note = '⚠ 기록 저장에 실패했어요(' + ((r&&r.error)||'알 수 없는 오류') + '). 다음 접속 때 다시 보낼게요';
+    }catch(e){
+      note = '⚠ 인터넷이 불안정해 기록 전송에 실패했어요. 다음 접속 때 다시 보낼게요';
+    }
+  }
+  u.synced = synced;
+  mxSave(u);
+  btn.textContent = '시작하기';
+  mxEnter(u);
+  if(note) mxToast(note, 6000);
+}
+
+/* ── 접속 기록: 세션당 1회 (등록 실패분도 이때 재전송) ── */
+function mxVisit(){
+  const u = mx.cur; if(!u || !MX_GAS_URL) return;
+  try{ if(sessionStorage.getItem('mx_visit')) return; }catch(e){}
+  mxJsonp(mxParams(u), 8000).then(r=>{
+    if(r && r.ok){
+      try{ sessionStorage.setItem('mx_visit','1'); }catch(e){}
+      if(!u.synced){ u.synced = true; mxSave(u); }
+    }
+  }).catch(()=>{});
+}
+
+window.addEventListener('DOMContentLoaded', ()=>{
+  document.querySelectorAll('.mx-role').forEach(b=>b.onclick = ()=>mxSetRole(b.dataset.role));
+  document.querySelectorAll('#mx-grades .mx-chip').forEach(c=>c.onclick = ()=>{
+    mx.grade = c.dataset.g;
+    document.querySelectorAll('#mx-grades .mx-chip').forEach(x=>x.classList.toggle('on', x===c)); mxCheck();
+  });
+  ['mx-name','mx-school','mx-cls'].forEach(id=>{
+    const el = $mx(id);
+    el.addEventListener('input', mxCheck);
+    el.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); mxSubmit(); } });
+  });
+  $mx('mx-go').onclick = mxSubmit;
+  $mx('mx-cancel').onclick = ()=>$mx('mx-reg').classList.add('mx-hide');
+
+  const saved = mxLoad();
+  if(saved && saved.name && saved.role){ mx.cur = saved; mxRenderUserChip(); mxVisit(); mxrOnEnter(); }
+  else { $mx('mx-reg').classList.remove('mx-hide'); }   // 저장값이 없거나 손상됐으면 등록 화면
+});
+
+// ═══════════════════════════════
+// 후기 받기 — 허브 상시 버튼 + 접속 3회째 1회 안내 (등록 코드와 같은 파일 내 별도 블록)
+// ═══════════════════════════════
+const MXR_KEY = 'mathexp_review_v1';           // {visits:n, asked:bool, done:bool}
+const MXR_CHIPS = [
+  {k:'c_understand', t:'이해에 도움'},
+  {k:'c_hands',      t:'직접 조작이 재밌음'},
+  {k:'c_easy',       t:'수업 활용하기 편함'}
+];
+const MXR_Q = { '교사':'수업에 쓰기 도움이 됐나요?', '학생':'이해에 도움이 됐나요?', '기타':'도움이 됐나요?' };
+const MXR_CONSENT = {                            // v = 시트에 저장되는 값, t = 화면 문구 (학생은 이름 공개 선택지 없음)
+  '교사':[{v:'이름 공개 가능',t:'이름 공개해도 돼요'},{v:'이름 없이 가능',t:'이름 없이 써도 돼요'},{v:'사용 불가',t:'쓰지 말아주세요'}],
+  '기타':[{v:'이름 공개 가능',t:'이름 공개해도 돼요'},{v:'이름 없이 가능',t:'이름 없이 써도 돼요'},{v:'사용 불가',t:'쓰지 말아주세요'}],
+  '학생':[{v:'이름 없이 가능',t:'써도 돼요 (이름은 안 나가요)'},{v:'사용 불가',t:'쓰지 말아주세요'}]
+};
+const mxr = { stars:0, chips:{}, etc:false, consent:'사용 불가', sending:false };
+
+function mxrLoad(){ try{ return JSON.parse(localStorage.getItem(MXR_KEY)||'null') || {visits:0,asked:false,done:false}; }catch(e){ return {visits:0,asked:false,done:false}; } }
+function mxrSave(s){ try{ localStorage.setItem(MXR_KEY, JSON.stringify(s)); }catch(e){} }
+
+/* 등록/재방문 때 호출: 세션당 1회 방문 카운트 + 3회째면 안내 */
+function mxrOnEnter(){
+  mxrEnsureButton();
+  let counted = false;
+  try{ counted = !!sessionStorage.getItem('mx_cnt'); }catch(e){}
+  if(counted) return;
+  try{ sessionStorage.setItem('mx_cnt','1'); }catch(e){}
+  const s = mxrLoad(); s.visits = (s.visits||0) + 1; mxrSave(s);
+  if(s.visits >= 3 && !s.asked && !s.done) setTimeout(mxrAsk, 1800);
+}
+
+function mxrEnsureButton(){
+  const hub = $mx('hub-screen'); if(!hub || $mx('mx-rvbtn')) return;
+  const b = document.createElement('button');
+  b.type = 'button'; b.id = 'mx-rvbtn'; b.className = 'mx-rvbtn'; b.textContent = '💬 후기 남기기';
+  b.onclick = mxrOpen; hub.appendChild(b);
+}
+
+function mxrAsk(){
+  if(!mx.cur || $mx('mx-ask') || $mx('mx-rv').classList.contains('mx-open')) return;
+  if(!$mx('mx-reg').classList.contains('mx-hide')) return;       // 등록 화면이 떠 있으면 안 띄움
+  const d = document.createElement('div'); d.id = 'mx-ask'; d.className = 'mx-ask';
+  d.innerHTML = '<p>🙌 벌써 세 번째 방문이네요! 써보신 느낌을 짧게 남겨주실래요?</p>'
+              + '<div class="mx-rvrow"><button type="button" class="mx-ghost" id="mx-ask-no">다음에</button>'
+              + '<button type="button" class="mx-main" id="mx-ask-yes">후기 남기기</button></div>';
+  document.body.appendChild(d);
+  const s = mxrLoad(); s.asked = true; mxrSave(s);               // 한 번만 띄움
+  $mx('mx-ask-no').onclick = ()=>d.remove();
+  $mx('mx-ask-yes').onclick = ()=>{ d.remove(); mxrOpen(); };
+}
+
+function mxrBuild(){
+  mxr.stars = 0; mxr.chips = {}; mxr.etc = false; mxr.consent = '사용 불가';
+  const role = mx.cur ? mx.cur.role : '기타';
+  $mx('mx-rv-q').textContent = MXR_Q[role] || MXR_Q['기타'];
+  document.querySelectorAll('.mx-star').forEach(s=>s.classList.remove('on'));
+  $mx('mx-rv-etc').style.display = 'none'; $mx('mx-rv-etc').value = '';
+  $mx('mx-rv-one').value = ''; $mx('mx-rv-msg').textContent = '';
+  const box = $mx('mx-rv-chips'); box.innerHTML = '';
+  MXR_CHIPS.forEach(c=>{
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'mx-chip'; b.textContent = c.t;
+    b.onclick = ()=>{ mxr.chips[c.k] = !mxr.chips[c.k]; b.classList.toggle('on', !!mxr.chips[c.k]); };
+    box.appendChild(b);
+  });
+  const etc = document.createElement('button'); etc.type = 'button'; etc.className = 'mx-chip'; etc.textContent = '기타';
+  etc.onclick = ()=>{
+    mxr.etc = !mxr.etc; etc.classList.toggle('on', mxr.etc);
+    $mx('mx-rv-etc').style.display = mxr.etc ? '' : 'none';
+    if(mxr.etc) $mx('mx-rv-etc').focus();
+  };
+  box.appendChild(etc);
+  const cb = $mx('mx-rv-consent'); cb.innerHTML = '';
+  (MXR_CONSENT[role] || MXR_CONSENT['기타']).forEach(o=>{
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'mx-chip' + (o.v==='사용 불가' ? ' on' : ''); b.textContent = o.t;
+    b.onclick = ()=>{ mxr.consent = o.v; [...cb.children].forEach(x=>x.classList.toggle('on', x===b)); };
+    cb.appendChild(b);
+  });
+  mxrCheck();
+}
+function mxrCheck(){ $mx('mx-rv-send').disabled = !(mxr.stars>=1 && !mxr.sending); }
+function mxrOpen(){
+  if(!mx.cur) return;
+  mxrBuild(); $mx('mx-rv').classList.add('mx-open');
+}
+function mxrClose(){ $mx('mx-rv').classList.remove('mx-open'); }
+
+async function mxrSend(){
+  if(mxr.stars<1 || mxr.sending) return;
+  const msg = $mx('mx-rv-msg'); msg.textContent = '';
+  if(!MX_GAS_URL){ msg.textContent = '기록 서버(GAS)가 아직 연결되지 않아 후기를 보낼 수 없어요'; return; }
+  const u = mx.cur;
+  const p = {
+    action:'review', name:u.name, role:u.role, school:u.school||'', grade:u.grade||'', cls:u.cls||'',
+    stars:String(mxr.stars),
+    c_understand: mxr.chips.c_understand ? '1' : '',
+    c_hands:      mxr.chips.c_hands ? '1' : '',
+    c_easy:       mxr.chips.c_easy ? '1' : '',
+    etc:     mxr.etc ? $mx('mx-rv-etc').value.trim().slice(0,30) : '',
+    oneline: $mx('mx-rv-one').value.trim().slice(0,80),
+    consent: mxr.consent
+  };
+  mxr.sending = true; const btn = $mx('mx-rv-send'); btn.disabled = true; btn.textContent = '보내는 중...';
+  try{
+    const r = await mxJsonp(p, 10000);
+    if(r && r.ok){
+      const s = mxrLoad(); s.done = true; mxrSave(s);
+      mxrClose(); mxToast('후기 감사합니다 🙏 큰 힘이 돼요!', 4000);
+    } else {
+      msg.textContent = '저장에 실패했어요(' + ((r&&r.error)||'알 수 없는 오류') + '). 다시 시도해 주세요';
+    }
+  }catch(e){
+    msg.textContent = '인터넷이 불안정해 전송에 실패했어요. 내용은 그대로니 다시 눌러 주세요';
+  }
+  mxr.sending = false; btn.textContent = '보내기'; mxrCheck();
+}
+
+window.addEventListener('DOMContentLoaded', ()=>{
+  document.querySelectorAll('.mx-star').forEach(b=>b.onclick = ()=>{
+    mxr.stars = parseInt(b.dataset.s, 10);
+    document.querySelectorAll('.mx-star').forEach(x=>x.classList.toggle('on', parseInt(x.dataset.s,10) <= mxr.stars));
+    mxrCheck();
+  });
+  $mx('mx-rv-close').onclick = mxrClose;
+  $mx('mx-rv-send').onclick = mxrSend;
+});
+
+// ═══════════════════════════════
+// 관리자: 비밀번호 → 학생용 주소 · QR · 안내 문구 복사 (학생 앱 안에 포함)
+// ═══════════════════════════════
+const MX_ADMIN_PW = '0413';
+const MX_APP_NAME = "아듬's 수학탐구실";
+
+function mxaDefaultUrl(){
+  try{ return location.origin + location.pathname; }catch(e){ return ''; }   // ?쿼리·#해시 제거한 이 앱 주소
+}
+function mxaMsgText(url){ return MX_APP_NAME + ' 👉 ' + url; }
+
+function mxaDrawQr(){
+  const url = $mx('mx-adm-url').value.trim();
+  const cv = $mx('mx-adm-qr'), ctx = cv.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
+  $mx('mx-adm-msgtxt').value = mxaMsgText(url);
+  if(!url) return;
+  try{
+    qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
+    const qr = qrcode(0, 'M'); qr.addData(url); qr.make();
+    const n = qr.getModuleCount(), quiet = 4, cell = Math.floor(cv.width / (n + quiet*2));
+    const off = Math.floor((cv.width - cell*n) / 2);
+    ctx.fillStyle = '#000';
+    for(let r=0; r<n; r++) for(let c=0; c<n; c++) if(qr.isDark(r,c)) ctx.fillRect(off + c*cell, off + r*cell, cell, cell);
+  }catch(e){
+    ctx.fillStyle = '#9ca3af'; ctx.font = '14px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('주소가 너무 길어요', cv.width/2, cv.height/2);
+  }
+}
+
+function mxaFlash(t){
+  const m = $mx('mx-adm-msg'); m.textContent = t;
+  clearTimeout(mxaFlash._t); mxaFlash._t = setTimeout(()=>{ m.textContent = ''; }, 2500);
+}
+function mxaCopy(text, okMsg){
+  const fallback = ()=>{
+    const ta = document.createElement('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    let ok = false; try{ ok = document.execCommand('copy'); }catch(e){}
+    ta.remove(); mxaFlash(ok ? okMsg : '복사에 실패했어요. 직접 선택해서 복사해 주세요');
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>mxaFlash(okMsg)).catch(fallback);
+  } else fallback();
+}
+
+function mxaOpen(){
+  $mx('mx-adm-pw').style.display = ''; $mx('mx-adm-panel').style.display = 'none';
+  $mx('mx-adm-pwin').value = ''; $mx('mx-adm-pwmsg').textContent = '';
+  $mx('mx-adm').classList.add('mx-open');
+  setTimeout(()=>{ try{ $mx('mx-adm-pwin').focus(); }catch(e){} }, 50);
+}
+function mxaClose(){ $mx('mx-adm').classList.remove('mx-open'); $mx('mx-adm-pwin').value = ''; }
+function mxaCheckPw(){
+  if($mx('mx-adm-pwin').value === MX_ADMIN_PW){
+    $mx('mx-adm-pw').style.display = 'none'; $mx('mx-adm-panel').style.display = '';
+    $mx('mx-adm-pwin').value = ''; $mx('mx-adm-url').value = mxaDefaultUrl(); mxaDrawQr();
+  } else {
+    $mx('mx-adm-pwmsg').textContent = '비밀번호가 맞지 않아요'; $mx('mx-adm-pwin').select();
+  }
+}
+
+window.addEventListener('DOMContentLoaded', ()=>{
+  const hub = $mx('hub-screen');
+  if(hub){
+    const b = document.createElement('button');
+    b.type = 'button'; b.id = 'mx-admbtn'; b.className = 'mx-admbtn'; b.textContent = '🔧'; b.title = '관리자'; b.setAttribute('aria-label','관리자');
+    b.onclick = mxaOpen; hub.appendChild(b);
+  }
+  const lk = $mx('mx-adm-link'); if(lk) lk.onclick = mxaOpen;
+  $mx('mx-adm-pwok').onclick = mxaCheckPw;
+  $mx('mx-adm-pwno').onclick = mxaClose;
+  $mx('mx-adm-close').onclick = mxaClose;
+  $mx('mx-adm-pwin').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); mxaCheckPw(); } });
+  $mx('mx-adm-url').addEventListener('input', mxaDrawQr);
+  $mx('mx-adm-cpurl').onclick = ()=>mxaCopy($mx('mx-adm-url').value.trim(), '주소를 복사했어요 ✅');
+  $mx('mx-adm-cpmsg').onclick = ()=>mxaCopy($mx('mx-adm-msgtxt').value, '안내 문구를 복사했어요 ✅');
+  $mx('mx-adm-save').onclick = ()=>{
+    $mx('mx-adm-qr').toBlob(blob=>{
+      if(!blob){ mxaFlash('이미지 저장에 실패했어요'); return; }
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'math-explorer-qr.png';
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+      mxaFlash('QR 이미지를 저장했어요 ✅');
+    }, 'image/png');
+  };
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape' && $mx('mx-adm').classList.contains('mx-open')) mxaClose(); });
+});
 </script>
 </body>
 </html>
