@@ -282,14 +282,25 @@ canvas{width:100%;height:440px;display:block}
 .mx-msg{min-height:18px;font-size:12.5px;color:#C0392B;margin-top:10px;text-align:center;}
 .mx-priv{font-size:11.5px;color:#9ca3af;text-align:center;margin-top:10px;line-height:1.55;}
 .mx-cancel{display:block;margin:10px auto 0;min-height:44px;padding:0 14px;border:none;background:none;color:#6b7280;font-family:inherit;font-size:13px;cursor:pointer;text-decoration:underline;}
-.mx-user{position:absolute;top:max(12px,env(safe-area-inset-top));right:14px;display:flex;align-items:center;gap:4px;background:#fff;border:1px solid #e5e7eb;border-radius:999px;padding:0 6px 0 14px;min-height:44px;font-size:13px;color:#374151;font-weight:600;box-shadow:0 1px 6px rgba(0,0,0,.05);}
+.mx-user{display:flex;align-items:center;gap:4px;background:#fff;border:1px solid #e5e7eb;border-radius:999px;padding:0 6px 0 14px;min-height:44px;font-size:13px;color:#374151;font-weight:600;box-shadow:0 1px 6px rgba(0,0,0,.05);}
 .mx-user button{min-height:44px;padding:0 10px;border:none;background:none;color:#1A5FB4;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;}
 .mx-toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:1100;max-width:90vw;background:#1f2937;color:#fff;font-size:13px;line-height:1.5;padding:11px 18px;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.2);text-align:center;}
 
+/* ── 허브: 도구 한 줄(bar) + 화면이 낮아도 카드가 안 잘리게 ── */
+.mx-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin:6px 0 4px;}
+.mx-bar .mx-rvbtn{order:1;margin:0;}
+.mx-bar .mx-admbtn{order:2;}
+.mx-bar .mx-user{order:3;}
+#hub-screen{justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 0;}   /* 넘치면 스크롤 (예전엔 위아래가 잘렸음) */
+#hub-screen > :first-child{margin-top:auto;}
+#hub-screen > :last-child{margin-bottom:auto;}                                                          /* 여유 있으면 가운데 정렬 */
+@media (max-height:860px){ #hub-screen .lc-card{padding:20px 16px 14px;} #hub-screen .lc-grid{gap:12px;} }
+@media (max-height:780px){ #hub-screen .lc-card{padding:14px 14px 10px;} #hub-screen .lc-grid{gap:10px;} }
+
 /* ════════ 후기 받기 ════════ */
-.mx-rvbtn{position:absolute;left:14px;top:max(12px,env(safe-area-inset-top));white-space:nowrap;min-height:44px;padding:0 20px;border:1.5px solid #B8D4F8;border-radius:999px;background:#fff;color:#1A5FB4;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.05);}
+
+.mx-rvbtn{white-space:nowrap;min-height:44px;padding:0 20px;border:1.5px solid #B8D4F8;border-radius:999px;background:#fff;color:#1A5FB4;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.05);}
 .mx-rvbtn:active{background:#EBF3FF;}
-.mx-rvbtn{z-index:2;}
 #mx-rv{position:fixed;inset:0;z-index:1050;background:rgba(17,24,39,.5);display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));}
 #mx-rv.mx-open{display:flex;}
 .mx-rvcard{margin:auto;width:100%;max-width:460px;background:#fff;border-radius:20px;padding:24px 22px 18px;box-shadow:0 8px 32px rgba(0,0,0,.25);}
@@ -313,7 +324,7 @@ canvas{width:100%;height:440px;display:block}
 .mx-hint{font-size:11.5px;color:#9ca3af;margin-top:6px;line-height:1.5;}
 
 /* ════════ 관리자 (학생용 주소/QR) ════════ */
-.mx-admbtn{position:absolute;left:14px;top:calc(max(12px,env(safe-area-inset-top)) + 52px);width:44px;height:44px;border:1px solid #e5e7eb;border-radius:50%;background:#fff;font-size:17px;cursor:pointer;opacity:.55;box-shadow:0 1px 6px rgba(0,0,0,.05);z-index:2;}
+.mx-admbtn{width:44px;height:44px;border:1px solid #e5e7eb;border-radius:50%;background:#fff;font-size:17px;cursor:pointer;opacity:.7;box-shadow:0 1px 6px rgba(0,0,0,.05);}
 .mx-admbtn:hover,.mx-admbtn:active{opacity:1;}
 .mx-adm-link{display:block;margin:2px auto 0;min-height:44px;padding:0 14px;border:none;background:none;color:#b0b5bd;font-family:inherit;font-size:11.5px;cursor:pointer;}
 #mx-adm{position:fixed;inset:0;z-index:1060;background:rgba(17,24,39,.55);display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));}
@@ -445,6 +456,10 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
       <div class="mx-admprev" id="mx-adm-prev"><span class="mx-admprevlb">붙여넣으면 이렇게 보여요</span><a id="mx-adm-prevA" href="#" target="_blank" rel="noopener"></a></div>
       <div class="mx-admrow"><button type="button" id="mx-adm-cpurl">주소 복사</button><button type="button" class="mx-main" id="mx-adm-cplink">🔗 링크로 복사</button></div>
       <div class="mx-admrow"><button type="button" id="mx-adm-save">QR 이미지 저장</button></div>
+      <div class="mx-lbl">후기 안내 점검 <span style="font-weight:500;color:#9ca3af">(이 기기 기준)</span></div>
+      <div class="mx-admprev" id="mx-adm-rvstat" style="min-height:0;font-size:12.5px;color:#374151"></div>
+      <div class="mx-hint">새 탭으로 열거나 날짜가 바뀌면 방문 +1이에요. 같은 탭에서 F5는 같은 접속이에요.</div>
+      <div class="mx-admrow"><button type="button" id="mx-adm-askdemo">안내 띄워보기</button><button type="button" id="mx-adm-askreset">횟수 초기화</button></div>
       <div class="mx-msg" id="mx-adm-msg" style="color:#2D7D46"></div>
       <button type="button" class="mx-admclose" id="mx-adm-close">닫기</button>
     </div>
@@ -10818,6 +10833,18 @@ function mxEnter(u){
   mxRenderUserChip();
   mxrOnEnter();
 }
+/* 허브의 안내문 아래, 카드 위에 놓이는 도구 한 줄 (후기 · 관리자 · 사용자) */
+function mxBar(){
+  const hub = $mx('hub-screen'); if(!hub) return null;
+  let bar = $mx('mx-bar');
+  if(!bar){
+    bar = document.createElement('div'); bar.id = 'mx-bar'; bar.className = 'mx-bar';
+    const grid = hub.querySelector('.lc-grid');
+    if(grid) hub.insertBefore(bar, grid); else hub.appendChild(bar);
+  }
+  return bar;
+}
+
 function mxRenderUserChip(){
   const hub = $mx('hub-screen'); if(!hub || !mx.cur) return;
   let chip = $mx('mx-user');
@@ -10826,7 +10853,7 @@ function mxRenderUserChip(){
     const nm = document.createElement('span'); nm.id = 'mx-user-nm';
     const bt = document.createElement('button'); bt.type = 'button'; bt.textContent = '사용자 변경';
     bt.onclick = mxChangeUser;
-    chip.appendChild(nm); chip.appendChild(bt); hub.appendChild(chip);
+    chip.appendChild(nm); chip.appendChild(bt); (mxBar()||hub).appendChild(chip);
   }
   $mx('mx-user-nm').textContent = '👤 ' + mx.cur.name + ' (' + mx.cur.role + ')';
 }
@@ -10911,32 +10938,36 @@ function mxrLoad(){ try{ return JSON.parse(localStorage.getItem(MXR_KEY)||'null'
 function mxrSave(s){ try{ localStorage.setItem(MXR_KEY, JSON.stringify(s)); }catch(e){} }
 
 /* 등록/재방문 때 호출: 세션당 1회 방문 카운트 + 3회째면 안내 */
+function mxrToday(){ const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+/* 접속 1회 = 새 탭/새 창으로 연 접속, 또는 날짜가 바뀐 뒤의 접속. (같은 탭에서 F5 새로고침은 같은 접속) */
 function mxrOnEnter(){
   mxrEnsureButton();
-  let counted = false;
-  try{ counted = !!sessionStorage.getItem('mx_cnt'); }catch(e){}
-  if(counted) return;
+  let sessionCounted = false;
+  try{ sessionCounted = !!sessionStorage.getItem('mx_cnt'); }catch(e){}
+  const s = mxrLoad(), today = mxrToday();
+  if(sessionCounted && s.lastDay === today) return;
   try{ sessionStorage.setItem('mx_cnt','1'); }catch(e){}
-  const s = mxrLoad(); s.visits = (s.visits||0) + 1; mxrSave(s);
-  if(s.visits >= 3 && !s.asked && !s.done) setTimeout(mxrAsk, 1800);
+  s.visits = (s.visits||0) + 1; s.lastDay = today; mxrSave(s);
+  if(s.visits >= 3 && !s.asked && !s.done) setTimeout(()=>mxrAsk(false), 1800);
 }
 
 function mxrEnsureButton(){
   const hub = $mx('hub-screen'); if(!hub || $mx('mx-rvbtn')) return;
   const b = document.createElement('button');
   b.type = 'button'; b.id = 'mx-rvbtn'; b.className = 'mx-rvbtn'; b.textContent = '💬 후기 남기기';
-  b.onclick = mxrOpen; hub.appendChild(b);
+  b.onclick = mxrOpen; (mxBar()||hub).appendChild(b);
 }
 
-function mxrAsk(){
+function mxrAsk(force){
   if(!mx.cur || $mx('mx-ask') || $mx('mx-rv').classList.contains('mx-open')) return;
   if(!$mx('mx-reg').classList.contains('mx-hide')) return;       // 등록 화면이 떠 있으면 안 띄움
+  if(!force && $mx('hub-screen').classList.contains('hidden')) return;   // 단원 화면 안에서는 안 띄움
   const d = document.createElement('div'); d.id = 'mx-ask'; d.className = 'mx-ask';
   d.innerHTML = '<p>🙌 벌써 세 번째 방문이네요! 써보신 느낌을 짧게 남겨주실래요?</p>'
               + '<div class="mx-rvrow"><button type="button" class="mx-ghost" id="mx-ask-no">다음에</button>'
               + '<button type="button" class="mx-main" id="mx-ask-yes">후기 남기기</button></div>';
   document.body.appendChild(d);
-  const s = mxrLoad(); s.asked = true; mxrSave(s);               // 한 번만 띄움
+  if(!force){ const s = mxrLoad(); s.asked = true; mxrSave(s); }   // 한 번만 띄움 (관리자 점검용 강제 표시는 기록 안 함)
   $mx('mx-ask-no').onclick = ()=>d.remove();
   $mx('mx-ask-yes').onclick = ()=>{ d.remove(); mxrOpen(); };
 }
@@ -11100,6 +11131,11 @@ function mxaCopyLink(){
   } else fallback();
 }
 
+
+function mxaRvStat(){
+  const s = mxrLoad();
+  $mx('mx-adm-rvstat').textContent = '이 기기 방문 ' + (s.visits||0) + '회 · 3회째 안내 ' + (s.asked ? '이미 띄움' : '아직') + ' · 후기 ' + (s.done ? '작성함' : '없음');
+}
 function mxaOpen(){
   $mx('mx-adm-pw').style.display = ''; $mx('mx-adm-panel').style.display = 'none';
   $mx('mx-adm-pwin').value = ''; $mx('mx-adm-pwmsg').textContent = '';
@@ -11112,7 +11148,7 @@ function mxaCheckPw(){
     $mx('mx-adm-pw').style.display = 'none'; $mx('mx-adm-panel').style.display = '';
     $mx('mx-adm-pwin').value = ''; $mx('mx-adm-url').value = mxaDefaultUrl();
     let lt = MX_APP_NAME; try{ lt = (JSON.parse(localStorage.getItem(MXA_KEY)||'null')||{}).linktxt || MX_APP_NAME; }catch(e){}
-    $mx('mx-adm-linktxt').value = lt; mxaDrawQr();
+    $mx('mx-adm-linktxt').value = lt; mxaDrawQr(); mxaRvStat();
   } else {
     $mx('mx-adm-pwmsg').textContent = '비밀번호가 맞지 않아요'; $mx('mx-adm-pwin').select();
   }
@@ -11123,7 +11159,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   if(hub){
     const b = document.createElement('button');
     b.type = 'button'; b.id = 'mx-admbtn'; b.className = 'mx-admbtn'; b.textContent = '🔧'; b.title = '관리자'; b.setAttribute('aria-label','관리자');
-    b.onclick = mxaOpen; hub.appendChild(b);
+    b.onclick = mxaOpen; (mxBar()||hub).appendChild(b);
   }
   const lk = $mx('mx-adm-link'); if(lk) lk.onclick = mxaOpen;
   $mx('mx-adm-pwok').onclick = mxaCheckPw;
@@ -11132,6 +11168,11 @@ window.addEventListener('DOMContentLoaded', ()=>{
   $mx('mx-adm-pwin').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); mxaCheckPw(); } });
   $mx('mx-adm-url').addEventListener('input', mxaDrawQr);
   $mx('mx-adm-cpurl').onclick = ()=>mxaCopy($mx('mx-adm-url').value.trim(), '주소를 복사했어요 ✅');
+  $mx('mx-adm-askdemo').onclick = ()=>{ mxaClose(); setTimeout(()=>mxrAsk(true), 150); };
+  $mx('mx-adm-askreset').onclick = ()=>{
+    try{ localStorage.removeItem(MXR_KEY); sessionStorage.removeItem('mx_cnt'); }catch(e){}
+    mxaRvStat(); mxaFlash('이 기기의 방문 횟수를 0으로 되돌렸어요 ✅');
+  };
   $mx('mx-adm-cplink').onclick = mxaCopyLink;
   $mx('mx-adm-linktxt').addEventListener('input', ()=>{
     mxaUpdatePrev(); try{ localStorage.setItem(MXA_KEY, JSON.stringify({linktxt: $mx('mx-adm-linktxt').value.trim()})); }catch(e){}
