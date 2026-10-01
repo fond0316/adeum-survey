@@ -69,7 +69,7 @@ body.board .pop .ttl{font-size:28px}
 body.board .pop .body,body.board .pop .tg{font-size:20px}
 body.board .me{background:#fff;color:var(--main-d)}
 body.board #meBtn{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;padding:4px 16px}
-body.pv:not(.board) #meBtn{pointer-events:none}
+body.pv:not(.board) #meBtn{pointer-events:none;background:transparent;border:1.5px solid rgba(255,255,255,.55);min-height:36px;font-weight:500}
 #meBtn small{display:block;font-size:10.5px;font-weight:400;opacity:.8}
 .bdDot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2E9E5B;margin-right:6px;vertical-align:middle}
 .adm{display:none}
@@ -469,7 +469,7 @@ function render(){
 function renderMe(){
   const meB = document.getElementById('meBtn');
   if (BOARD) meB.innerHTML = '<span><i class="bdDot"></i>🖥️ 교실 화면 모드 중</span><small>해제하려면 클릭하세요</small>';
-  else meB.textContent = me ? me.sid + ' ' + me.name : (PREVIEW ? '👀 담임 미리보기' : '학번 등록');
+  else meB.textContent = PREVIEW ? '👀 담임 미리보기 중' : me ? me.sid + ' ' + me.name : '학번 등록';
 }
 function renderUrgent(){
   const t = today();
