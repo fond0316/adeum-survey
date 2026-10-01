@@ -310,6 +310,8 @@ canvas{width:100%;height:440px;display:block}
 .mx-ask .mx-rvrow{margin-top:0;}
 .mx-ask .mx-rvrow button{min-height:44px;font-size:14px;}
 
+.mx-hint{font-size:11.5px;color:#9ca3af;margin-top:6px;line-height:1.5;}
+
 /* ════════ 관리자 (학생용 주소/QR) ════════ */
 .mx-admbtn{position:absolute;left:14px;top:calc(max(12px,env(safe-area-inset-top)) + 52px);width:44px;height:44px;border:1px solid #e5e7eb;border-radius:50%;background:#fff;font-size:17px;cursor:pointer;opacity:.55;box-shadow:0 1px 6px rgba(0,0,0,.05);z-index:2;}
 .mx-admbtn:hover,.mx-admbtn:active{opacity:1;}
@@ -321,7 +323,9 @@ canvas{width:100%;height:440px;display:block}
 .mx-admsub{font-size:12.5px;color:#6b7280;text-align:center;margin-top:4px;}
 .mx-qrbox{display:flex;flex-direction:column;align-items:center;margin-top:16px;}
 .mx-qrbox canvas{width:220px;height:220px;border:1px solid #e5e7eb;border-radius:12px;image-rendering:pixelated;}
-.mx-admtxt{width:100%;min-height:62px;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;color:#374151;background:#f9fafb;resize:none;line-height:1.5;}
+.mx-admprev{margin-top:10px;border:1.5px dashed #d1d5db;border-radius:10px;padding:10px 14px;background:#f9fafb;min-height:62px;}
+.mx-admprevlb{display:block;font-size:11px;color:#9ca3af;margin-bottom:4px;}
+.mx-admprev a{color:#1a0dab;text-decoration:underline;font-size:15px;word-break:break-all;cursor:default;}
 .mx-admrow{display:flex;gap:8px;margin-top:10px;}
 .mx-admrow button{flex:1;min-height:46px;border-radius:12px;border:1.5px solid #B8D4F8;background:#EBF3FF;color:#1A5FB4;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;}
 .mx-admrow .mx-main{background:#1A5FB4;border-color:#1A5FB4;color:#fff;}
@@ -405,7 +409,11 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
     <div class="mx-lbl">한줄 후기 <span style="font-weight:500;color:#9ca3af">(선택)</span></div>
     <textarea class="mx-rvta" id="mx-rv-one" maxlength="80" placeholder="자유롭게 남겨주세요 (80자)"></textarea>
 
-    <div class="mx-lbl">이 후기를 소개 자료에 써도 될까요?</div>
+    <div class="mx-lbl">💡 이런 점이 바뀌면 좋겠어요 <span style="font-weight:500;color:#9ca3af">(선택)</span></div>
+    <textarea class="mx-rvta" id="mx-rv-imp" maxlength="100" placeholder="불편했던 점, 있었으면 하는 기능을 적어주세요 (100자)" style="min-height:64px"></textarea>
+    <div class="mx-hint">개발자에게만 전달돼요. 소개 자료에는 쓰지 않아요.</div>
+
+    <div class="mx-lbl">한줄 후기를 소개 자료에 써도 될까요? <span style="font-weight:500;color:#9ca3af">(개선사항은 쓰지 않아요)</span></div>
     <div class="mx-chips" id="mx-rv-consent"></div>
 
     <div class="mx-msg" id="mx-rv-msg"></div>
@@ -432,10 +440,11 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
       <div class="mx-lbl">학생용 주소 <span style="font-weight:500;color:#9ca3af">(직접 고칠 수 있어요)</span></div>
       <input class="mx-in" id="mx-adm-url" type="url" autocomplete="off" spellcheck="false" style="font-size:14px">
       <div class="mx-qrbox"><canvas id="mx-adm-qr" width="260" height="260"></canvas></div>
-      <div class="mx-lbl">안내 문구</div>
-      <textarea class="mx-admtxt" id="mx-adm-msgtxt" readonly></textarea>
-      <div class="mx-admrow"><button type="button" id="mx-adm-cpurl">주소 복사</button><button type="button" id="mx-adm-cpmsg">안내 문구 복사</button></div>
-      <div class="mx-admrow"><button type="button" class="mx-main" id="mx-adm-save">QR 이미지 저장</button></div>
+      <div class="mx-lbl">링크에 보일 글자 <span style="font-weight:500;color:#9ca3af">(고칠 수 있어요)</span></div>
+      <input class="mx-in" id="mx-adm-linktxt" type="text" maxlength="40" autocomplete="off" style="font-size:14px">
+      <div class="mx-admprev" id="mx-adm-prev"><span class="mx-admprevlb">붙여넣으면 이렇게 보여요</span><a id="mx-adm-prevA" href="#" target="_blank" rel="noopener"></a></div>
+      <div class="mx-admrow"><button type="button" id="mx-adm-cpurl">주소 복사</button><button type="button" class="mx-main" id="mx-adm-cplink">🔗 링크로 복사</button></div>
+      <div class="mx-admrow"><button type="button" id="mx-adm-save">QR 이미지 저장</button></div>
       <div class="mx-msg" id="mx-adm-msg" style="color:#2D7D46"></div>
       <button type="button" class="mx-admclose" id="mx-adm-close">닫기</button>
     </div>
@@ -10938,7 +10947,7 @@ function mxrBuild(){
   $mx('mx-rv-q').textContent = MXR_Q[role] || MXR_Q['기타'];
   document.querySelectorAll('.mx-star').forEach(s=>s.classList.remove('on'));
   $mx('mx-rv-etc').style.display = 'none'; $mx('mx-rv-etc').value = '';
-  $mx('mx-rv-one').value = ''; $mx('mx-rv-msg').textContent = '';
+  $mx('mx-rv-one').value = ''; $mx('mx-rv-imp').value = ''; $mx('mx-rv-msg').textContent = '';
   const box = $mx('mx-rv-chips'); box.innerHTML = '';
   MXR_CHIPS.forEach(c=>{
     const b = document.createElement('button'); b.type = 'button'; b.className = 'mx-chip'; b.textContent = c.t;
@@ -10967,21 +10976,34 @@ function mxrOpen(){
 }
 function mxrClose(){ $mx('mx-rv').classList.remove('mx-open'); }
 
+/* 문자열(UTF-8) → base64 */
+function mxB64u(str){
+  const bytes = new TextEncoder().encode(str); let bin = '';
+  for(let i=0;i<bytes.length;i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_');     // 주소에 안전한 문자만 (padding '='은 유지)
+}
+
 async function mxrSend(){
   if(mxr.stars<1 || mxr.sending) return;
   const msg = $mx('mx-rv-msg'); msg.textContent = '';
   if(!MX_GAS_URL){ msg.textContent = '기록 서버(GAS)가 아직 연결되지 않아 후기를 보낼 수 없어요'; return; }
   const u = mx.cur;
-  const p = {
-    action:'review', name:u.name, role:u.role, school:u.school||'', grade:u.grade||'', cls:u.cls||'',
+  const fields = {
+    name:u.name, role:u.role, school:u.school||'', grade:u.grade||'', cls:u.cls||'',
     stars:String(mxr.stars),
     c_understand: mxr.chips.c_understand ? '1' : '',
     c_hands:      mxr.chips.c_hands ? '1' : '',
     c_easy:       mxr.chips.c_easy ? '1' : '',
     etc:     mxr.etc ? $mx('mx-rv-etc').value.trim().slice(0,30) : '',
     oneline: $mx('mx-rv-one').value.trim().slice(0,80),
+    improve: $mx('mx-rv-imp').value.trim().slice(0,100),
     consent: mxr.consent
   };
+  // 한글은 주소에 그대로 실으면 글자당 9자로 늘어남 → UTF-8 base64 한 덩어리(d)로 보내 길이를 절반 이하로 줄임
+  const p = { action:'review', d: mxB64u(JSON.stringify(fields)) };
+  // 그래도 너무 길면 미리 안내 (주소에 실어 보내는 방식이라 한도가 있음)
+  const qsLen = Object.keys(p).map(k=>encodeURIComponent(k)+'='+encodeURIComponent(p[k])).join('&').length;
+  if(MX_GAS_URL.length + qsLen + 48 > 2000){ msg.textContent = '글이 조금 길어요. 한줄 후기나 개선사항을 조금만 줄여 주세요'; return; }
   mxr.sending = true; const btn = $mx('mx-rv-send'); btn.disabled = true; btn.textContent = '보내는 중...';
   try{
     const r = await mxJsonp(p, 10000);
@@ -11011,18 +11033,24 @@ window.addEventListener('DOMContentLoaded', ()=>{
 // 관리자: 비밀번호 → 학생용 주소 · QR · 안내 문구 복사 (학생 앱 안에 포함)
 // ═══════════════════════════════
 const MX_ADMIN_PW = '0413';
-const MX_APP_NAME = "아듬's 수학탐구실";
+const MX_APP_NAME = "아듬's 수학탐구실";   // 링크에 보일 글자 기본값
+const MXA_KEY = 'mathexp_admin_v1';           // {linktxt}
 
 function mxaDefaultUrl(){
   try{ return location.origin + location.pathname; }catch(e){ return ''; }   // ?쿼리·#해시 제거한 이 앱 주소
 }
-function mxaMsgText(url){ return MX_APP_NAME + ' 👉 ' + url; }
+function mxaLinkTxt(){ return ($mx('mx-adm-linktxt').value.trim()) || MX_APP_NAME; }
+function mxaEsc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function mxaUpdatePrev(){
+  const a = $mx('mx-adm-prevA'); a.textContent = mxaLinkTxt(); a.href = $mx('mx-adm-url').value.trim() || '#';
+  a.onclick = e=>e.preventDefault();                 // 미리보기는 눌러도 이동하지 않게
+}
 
 function mxaDrawQr(){
   const url = $mx('mx-adm-url').value.trim();
   const cv = $mx('mx-adm-qr'), ctx = cv.getContext('2d');
   ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
-  $mx('mx-adm-msgtxt').value = mxaMsgText(url);
+  mxaUpdatePrev();
   if(!url) return;
   try{
     qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
@@ -11053,6 +11081,25 @@ function mxaCopy(text, okMsg){
   } else fallback();
 }
 
+/* 하이퍼링크로 복사: 서식 있는 곳(구글문서·클래스룸·메일 등)엔 클릭 링크로, 글자만 되는 곳(카톡 등)엔 "글자 👉 주소"로 붙음 */
+function mxaCopyLink(){
+  const url = $mx('mx-adm-url').value.trim(); if(!url){ mxaFlash('주소가 비어 있어요'); return; }
+  const txt = mxaLinkTxt(), html = '<a href="' + mxaEsc(url) + '">' + mxaEsc(txt) + '</a>', plain = txt + ' 👉 ' + url;
+  const ok = ()=>mxaFlash('링크로 복사했어요 ✅ 붙여넣기 해보세요');
+  const fallback = ()=>{                                  // 선택 영역 복사(서식 포함)
+    const a = $mx('mx-adm-prevA'), sel = window.getSelection(), rg = document.createRange();
+    rg.selectNodeContents(a); sel.removeAllRanges(); sel.addRange(rg);
+    let done = false; try{ done = document.execCommand('copy'); }catch(e){}
+    sel.removeAllRanges(); done ? ok() : mxaFlash('복사에 실패했어요. 주소 복사를 이용해 주세요');
+  };
+  if(window.ClipboardItem && navigator.clipboard && navigator.clipboard.write){
+    navigator.clipboard.write([new ClipboardItem({
+      'text/html': new Blob([html], {type:'text/html'}),
+      'text/plain': new Blob([plain], {type:'text/plain'})
+    })]).then(ok).catch(fallback);
+  } else fallback();
+}
+
 function mxaOpen(){
   $mx('mx-adm-pw').style.display = ''; $mx('mx-adm-panel').style.display = 'none';
   $mx('mx-adm-pwin').value = ''; $mx('mx-adm-pwmsg').textContent = '';
@@ -11063,7 +11110,9 @@ function mxaClose(){ $mx('mx-adm').classList.remove('mx-open'); $mx('mx-adm-pwin
 function mxaCheckPw(){
   if($mx('mx-adm-pwin').value === MX_ADMIN_PW){
     $mx('mx-adm-pw').style.display = 'none'; $mx('mx-adm-panel').style.display = '';
-    $mx('mx-adm-pwin').value = ''; $mx('mx-adm-url').value = mxaDefaultUrl(); mxaDrawQr();
+    $mx('mx-adm-pwin').value = ''; $mx('mx-adm-url').value = mxaDefaultUrl();
+    let lt = MX_APP_NAME; try{ lt = (JSON.parse(localStorage.getItem(MXA_KEY)||'null')||{}).linktxt || MX_APP_NAME; }catch(e){}
+    $mx('mx-adm-linktxt').value = lt; mxaDrawQr();
   } else {
     $mx('mx-adm-pwmsg').textContent = '비밀번호가 맞지 않아요'; $mx('mx-adm-pwin').select();
   }
@@ -11083,7 +11132,10 @@ window.addEventListener('DOMContentLoaded', ()=>{
   $mx('mx-adm-pwin').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); mxaCheckPw(); } });
   $mx('mx-adm-url').addEventListener('input', mxaDrawQr);
   $mx('mx-adm-cpurl').onclick = ()=>mxaCopy($mx('mx-adm-url').value.trim(), '주소를 복사했어요 ✅');
-  $mx('mx-adm-cpmsg').onclick = ()=>mxaCopy($mx('mx-adm-msgtxt').value, '안내 문구를 복사했어요 ✅');
+  $mx('mx-adm-cplink').onclick = mxaCopyLink;
+  $mx('mx-adm-linktxt').addEventListener('input', ()=>{
+    mxaUpdatePrev(); try{ localStorage.setItem(MXA_KEY, JSON.stringify({linktxt: $mx('mx-adm-linktxt').value.trim()})); }catch(e){}
+  });
   $mx('mx-adm-save').onclick = ()=>{
     $mx('mx-adm-qr').toBlob(blob=>{
       if(!blob){ mxaFlash('이미지 저장에 실패했어요'); return; }
