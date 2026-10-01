@@ -134,6 +134,19 @@ details summary::-webkit-details-marker{display:none}
 .rq .ft{display:flex;align-items:center;justify-content:space-between;margin-top:8px;font-size:12px;color:var(--tx3)}
 .rq .ft button{min-height:36px;padding:0 12px;border-radius:8px;font-size:13px;font-weight:700;background:var(--main);color:#fff}
 .rq.done .ft button{background:var(--bg);color:var(--tx2)}
+.useline{text-align:right;font-size:12.5px;color:var(--tx2);margin:6px 6px 0}
+.useline b{color:var(--main-d)}
+.stg{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.stc{background:var(--bg);border-radius:12px;padding:12px 4px;text-align:center}
+.stc b{display:block;font-size:26px;line-height:1.1;color:var(--main-d)}
+.stc small{display:block;font-size:12.5px;color:var(--tx2);margin-top:4px;font-weight:700}
+.stc em{display:block;font-style:normal;font-size:11px;color:var(--tx3);margin-top:2px}
+.stbars .c span{height:14px;line-height:14px;white-space:nowrap}
+.stbars{display:flex;align-items:flex-end;gap:3px;height:92px;margin-top:6px}
+.stbars .c{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:11px;color:var(--tx3)}
+.stbars .c i{display:block;width:100%;max-width:26px;border-radius:6px 6px 2px 2px;background:#D8D2EE;min-height:3px}
+.stbars .c.t i{background:var(--main)}
+.stbars .c em{font-style:normal;font-weight:700;color:var(--tx2);margin-bottom:2px}
 .chip.on.rv{background:var(--main);color:#fff;border-color:var(--main)}
 .rv-stars{display:flex;justify-content:center;gap:2px;margin:2px 0 4px}
 .rv-star{width:48px;height:48px;font-size:34px;line-height:1;color:#D9D6E3;background:none;padding:0}
@@ -322,6 +335,7 @@ input[type=date]{min-width:0;max-width:100%}
       <span class="role" id="roleTag"></span>
       <button class="out" onclick="logout()">로그아웃</button>
     </header>
+    <div class="useline hide" id="useLine"></div>
     <div class="box hide" id="gasBanner" style="background:#FEF3C7;border-color:#F5D98B;margin-top:12px;margin-bottom:0">
       <h2 style="color:#92400E">🔔 GAS 코드 업데이트가 필요해요</h2>
       <p class="hint" style="color:#92400E;margin-bottom:0" id="gasBannerText"></p>
@@ -417,6 +431,19 @@ input[type=date]{min-width:0;max-width:100%}
 
     <!-- 👑 사용자 관리 (아듬샘 전용) -->
     <section id="tab-own" class="hide">
+      <div class="box hide" id="stBox">
+        <h2>📈 이용 현황</h2>
+        <div class="stg">
+          <div class="stc"><b id="stToday">0</b><small>오늘 접속자</small><em id="stNew"></em></div>
+          <div class="stc"><b id="stUsers">0</b><small>누적 사용자</small><em>접속한 선생님 수</em></div>
+          <div class="stc"><b id="stVisits">0</b><small>누적 접속</small><em>들어온 횟수 합계</em></div>
+          <div class="stc"><b id="stWeek">0</b><small>이번 주 접속자</small><em>월~오늘, 중복 제외</em></div>
+        </div>
+        <label class="f" style="margin-top:14px">최근 14일 접속자 (명)</label>
+        <div class="stbars" id="stBars"></div>
+        <div class="row" style="margin-top:12px"><button class="btn sub" onclick="saveStatImg()">🖼️ 화면 이미지로 저장</button></div>
+        <p class="hint" style="margin:10px 0 0">하루에 한 번만 세요 (같은 선생님이 하루에 여러 번 들어와도 1회). 아듬샘 본인·사용 중지된 분은 빼고 세요. 기록은 접속일지 탭에 쌓여요. 모든 선생님 화면 위에도 "오늘·누적" 숫자가 보여요(누적 10명 미만이면 숨김, 아듬샘 화면에는 항상 보임).</p>
+      </div>
       <div class="box">
         <h2>👑 사용자 관리</h2>
         <div class="sw" id="apSw" onclick="toggleApproval()"><span class="tg"></span><div><b id="apTxt">승인제</b><small id="apSub"></small></div></div>
@@ -438,6 +465,11 @@ input[type=date]{min-width:0;max-width:100%}
         <p class="hint">써 주신 의견은 CLASS BOARD를 더 좋게 만드는 데 쓰여요. 1분이면 충분해요 🙂</p>
         <label class="f">사용해 보니 어떠셨나요? <small>(별점)</small></label>
         <div class="rv-stars" id="rvStars"></div>
+        <div id="rvLowBox" class="hide">
+          <label class="f">아쉬웠던 점은 무엇인가요? <small>(여러 개 선택 가능)</small></label>
+          <div class="chips" id="rvLows"></div>
+          <input type="text" id="rvLowOther" class="hide" maxlength="30" placeholder="아쉬웠던 점을 직접 적어 주세요" style="margin-top:8px">
+        </div>
         <label class="f">좋았던 점 <small>(여러 개 선택 가능)</small></label>
         <div class="chips" id="rvChips"></div>
         <input type="text" id="rvOther" class="hide" maxlength="30" placeholder="좋았던 점을 직접 적어 주세요" style="margin-top:8px">
@@ -854,10 +886,18 @@ function showConnect(){
 function clearPre(){ try{ localStorage.removeItem(K.pre); localStorage.removeItem(K.preId); }catch(e){} }
 
 /* ===== 후기·개선점 (등록부 GAS의 '후기' 탭으로 전송) ===== */
-const RV_CHIPS = ['공지 올리기가 편해요','학생 확인·호출이 유용해요','설치·연결이 쉬웠어요','학생 화면이 보기 좋아요'];   // 등록부 GAS의 REVIEW.chips 와 순서 동일
+const RV_CHIPS = ['공지 올리기가 편해요','학생 확인·호출이 유용해요','확인현황을 한눈에 볼 수 있어요','교실 화면 모드가 좋아요','설치·연결이 쉬웠어요','학생 화면이 보기 좋아요'];   // 등록부 GAS의 REVIEW.chips 와 순서 동일
+const RV_LOWS = ['사용법이 어려웠어요','설치·연결이 어려웠어요','기능이 부족해요','오류가 있었어요','학생들이 잘 안 봐요'];   // 별점 3점 이하일 때만 보여요 (GAS의 REVIEW.lows 와 순서 동일)
 const RV_KINDS = ['기능 요청','오류','디자인','기타'];
 const RV_OK = [['name','이름 공개해도 돼요'],['anon','이름 없이 써도 돼요'],['no','쓰지 말아주세요']];
-let reviewOn = false, rvRate = 0, rvPick = [], rvOtherOn = false, rvKind = '', rvOk = 'no', rvSending = false;
+let usePub = null;
+function renderUseLine(){
+  const el = $('useLine'), u = usePub;
+  const show = u && typeof u.users === 'number' && (isOwner || u.users >= 10);
+  el.classList.toggle('hide', !show);
+  if (show) el.innerHTML = '<b>● 오늘 ' + u.today + '명</b> / 누적 ' + u.users + '명 사용 중';
+}
+let reviewOn = false, rvRate = 0, rvPick = [], rvLow = [], rvLowOtherOn = false, rvOtherOn = false, rvKind = '', rvOk = 'no', rvSending = false;
 function applyReviewUi(){
   const b = document.querySelector('#nav button[data-t="rv"]'); if (b) b.classList.toggle('hide', !reviewOn);
   if (!reviewOn && curTab === 'rv' && $('nav').children.length) goTab('write');   // 후기 받기가 끝나면 탭에서 내보냄
@@ -866,26 +906,32 @@ function renderRv(){
   $('rvStars').innerHTML = [1,2,3,4,5].map(i => `<button type="button" class="rv-star ${i<=rvRate?'on':''}" aria-label="${i}점" onclick="rvSet(${i})">★</button>`).join('');
   $('rvChips').innerHTML = RV_CHIPS.map((t,i) => `<button type="button" class="chip rv ${rvPick.includes(i)?'on':''}" onclick="rvTog(${i})">${esc(t)}</button>`).join('')
     + `<button type="button" class="chip rv ${rvOtherOn?'on':''}" onclick="rvTog(-1)">기타</button>`;
+  const lowOn = rvRate >= 1 && rvRate <= 3;
+  $('rvLowBox').classList.toggle('hide', !lowOn);
+  $('rvLows').innerHTML = RV_LOWS.map((t,i) => `<button type="button" class="chip rv ${rvLow.includes(i)?'on':''}" onclick="rvLowTog(${i})">${esc(t)}</button>`).join('')
+    + `<button type="button" class="chip rv ${rvLowOtherOn?'on':''}" onclick="rvLowTog(-1)">기타</button>`;
+  $('rvLowOther').classList.toggle('hide', !(lowOn && rvLowOtherOn));
   $('rvOther').classList.toggle('hide', !rvOtherOn);
   $('rvKinds').innerHTML = RV_KINDS.map(t => `<button type="button" class="chip rv ${rvKind===t?'on':''}" onclick="rvKindSet('${t}')">${t}</button>`).join('');
   $('rvOk').innerHTML = RV_OK.map(([k,t]) => `<button type="button" class="chip rv ${rvOk===k?'on':''}" onclick="rvOkSet('${k}')">${t}</button>`).join('');
 }
-function rvSet(i){ rvRate = i; renderRv(); }
+function rvSet(i){ rvRate = i; if (i > 3){ rvLow = []; rvLowOtherOn = false; } renderRv(); }
+function rvLowTog(i){ if (i < 0) rvLowOtherOn = !rvLowOtherOn; else rvLow = rvLow.includes(i) ? rvLow.filter(x=>x!==i) : [...rvLow, i].sort(); renderRv(); if (i < 0 && rvLowOtherOn) $('rvLowOther').focus(); }
 function rvTog(i){ if (i < 0) rvOtherOn = !rvOtherOn; else rvPick = rvPick.includes(i) ? rvPick.filter(x=>x!==i) : [...rvPick, i].sort(); renderRv(); if (i < 0 && rvOtherOn) $('rvOther').focus(); }
 function rvKindSet(t){ rvKind = rvKind === t ? '' : t; renderRv(); }
 function rvOkSet(k){ rvOk = k; renderRv(); }
 function openReview(){ goTab('rv'); window.scrollTo(0,0); }
 async function sendReview(){
   if (rvSending) return;
-  const imp = $('rvImp').value.trim();
+  const imp = $('rvImp').value.trim(), lowOn = rvRate >= 1 && rvRate <= 3;
   if (!rvRate && !imp){ msg('rvMsg','별점을 누르거나 개선점을 적어 주세요.'); return; }
   rvSending = true; $('rvSend').disabled = true; msg('rvMsg','보내는 중…',true);
   try{
-    await jsonp({ action:'review', id:installId, rate:rvRate, c:rvPick.join(','), other: rvOtherOn ? $('rvOther').value.trim() : '', one:$('rvOne').value.trim(), ik:rvKind, imp, ok:rvOk }, REGISTRY_URL);
+    await jsonp({ action:'review', id:installId, rate:rvRate, c:rvPick.join(','), lc: lowOn ? rvLow.join(',') : '', lo: lowOn && rvLowOtherOn ? $('rvLowOther').value.trim() : '', other: rvOtherOn ? $('rvOther').value.trim() : '', one:$('rvOne').value.trim(), ik:rvKind, imp, ok:rvOk }, REGISTRY_URL);
     const st = lsGet(K.rv, { n:0, shown:false, done:false }); st.done = true; lsSet(K.rv, st);
     $('rvBanner').classList.add('hide');
-    rvRate = 0; rvPick = []; rvOtherOn = false; rvKind = ''; rvOk = 'no';
-    $('rvOther').value = ''; $('rvOne').value = ''; $('rvImp').value = '';
+    rvRate = 0; rvPick = []; rvLow = []; rvLowOtherOn = false; rvOtherOn = false; rvKind = ''; rvOk = 'no';
+    $('rvOther').value = ''; $('rvLowOther').value = ''; $('rvOne').value = ''; $('rvImp').value = '';
     renderRv(); msg('rvMsg','💜 소중한 의견 감사합니다! 다음에 또 의견이 생기면 언제든 남겨 주세요.',true);
   }catch(e){ msg('rvMsg','보내지 못했어요. 입력한 내용은 그대로 있어요. (' + e.message + ')'); }
   rvSending = false; $('rvSend').disabled = false;
@@ -959,7 +1005,7 @@ async function changeFirstPw(btn){
   }catch(e){ msg('npwMsg', e.message); }
   btn.disabled = false;
 }
-function saveRegInfo(res){ if (res && res.name) lsSet(K.reg, { name:res.name, school:res.school, cls:res.cls }); reviewOn = !!(res && res.review === true); applyReviewUi(); }
+function saveRegInfo(res){ if (res && res.name) lsSet(K.reg, { name:res.name, school:res.school, cls:res.cls }); reviewOn = !!(res && res.review === true); usePub = (res && res.pub) || null; applyReviewUi(); }
 function gate(ic, title, text){ $('gateIc').textContent = ic; $('gateTitle').textContent = title; $('gateText').textContent = text; msg('gateMsg','',true); show('scrGate'); }
 async function recheck(btn){
   btn.disabled = true; msg('gateMsg','확인 중…',true);
@@ -1008,7 +1054,7 @@ async function enterMain(){
   updateReqBadge();
   resetForm();
   goTab(role==='admin' && !data.students.length ? 'set' : 'write');   // 처음(명단 없음)엔 설정 탭부터
-  applyReviewUi(); rvVisit();
+  applyReviewUi(); renderUseLine(); rvVisit();
 }
 async function refresh(usePre){
   let r = null;
@@ -1545,7 +1591,7 @@ async function loadOwner(){
   try{
     const r = await jsonp({ action:'ownerList', id:installId }, REGISTRY_URL);
     const wasLoaded = ownLoaded;
-    own = { approval:r.approval, users:r.users||[], review:r.review||null }; ownLoaded = true; if (!wasLoaded) msg('ownMsg','',true); renderOwner();
+    own = { approval:r.approval, users:r.users||[], review:r.review||null, stats:r.stats||null }; ownLoaded = true; if (!wasLoaded) msg('ownMsg','',true); renderOwner();
   }catch(e){
     ownLoaded = false;
     $('apTxt').textContent = '승인제 (확인 불가)';
@@ -1557,6 +1603,15 @@ function renderOwner(){
   $('apSw').classList.toggle('on', own.approval);
   $('apTxt').textContent = '승인제 ' + (own.approval ? 'ON' : 'OFF');
   $('apSub').textContent = own.approval ? '승인한 선생님만 사용할 수 있어요.' : '등록하면 누구나 바로 사용할 수 있어요.';
+  const stt = own.stats;
+  $('stBox').classList.toggle('hide', !stt);
+  if (stt){
+    $('stToday').textContent = stt.today; $('stUsers').textContent = stt.users; $('stVisits').textContent = stt.visits;
+    $('stWeek').textContent = stt.week == null ? '-' : stt.week;
+    $('stNew').textContent = stt.newToday == null ? '' : '오늘 처음 온 분 ' + stt.newToday + '명';
+    const mx = Math.max(1, ...stt.days.map(d=>d.n)), L = stt.days.length;
+    $('stBars').innerHTML = stt.days.map((d,i) => `<div class="c ${i===L-1?'t':''}"><em>${d.n||''}</em><i style="height:${Math.round(d.n/mx*52)+3}px"></i><span>${i===0?esc(L+'일 전'):i===L-1?'오늘':''}</span></div>`).join('');
+  }
   const rv = own.review;
   $('rvSw').classList.toggle('hide', !rv); $('rvOld').classList.toggle('hide', !!rv);
   if (rv){
@@ -1588,6 +1643,46 @@ async function toggleApproval(){
   own.approval = on; renderOwner(); msg('ownMsg','저장 중…',true);          // 화면 먼저 바꾸고
   try{ await jsonp({ action:'ownerApproval', id:installId, on: on?'1':'' }, REGISTRY_URL); msg('ownMsg', on?'승인제를 켰어요.':'승인제를 껐어요.', true); loadOwner(); }
   catch(e){ own.approval = !on; renderOwner(); msg('ownMsg', '저장하지 못해 되돌렸어요: ' + e.message); }
+}
+async function saveStatImg(){
+  const t = own.stats; if (!t){ msg('ownMsg','현황을 아직 못 불러왔어요.'); return; }
+  try{ await document.fonts.ready; }catch(e){}
+  const S = 2, W = 760, H = 800, c = document.createElement('canvas'); c.width = W*S; c.height = H*S;
+  const x = c.getContext('2d'); x.scale(S,S);
+  const F = (w,px) => w + ' ' + px + "px Pretendard, 'Noto Sans KR', sans-serif";
+  const rr = (X,Y,w,h,r) => { x.beginPath(); x.moveTo(X+r,Y); x.arcTo(X+w,Y,X+w,Y+h,r); x.arcTo(X+w,Y+h,X,Y+h,r); x.arcTo(X,Y+h,X,Y,r); x.arcTo(X,Y,X+w,Y,r); x.closePath(); };
+  x.fillStyle = '#F4F2FA'; x.fillRect(0,0,W,H);
+  x.fillStyle = '#fff'; rr(24,24,W-48,H-48,24); x.fill();
+  x.textBaseline = 'alphabetic'; x.textAlign = 'left';
+  x.fillStyle = '#3B3358'; x.font = F('800',30); x.fillText('CLASS BOARD 이용 현황', 56, 84);
+  const now = new Date(), ds = now.getFullYear() + '.' + String(now.getMonth()+1).padStart(2,'0') + '.' + String(now.getDate()).padStart(2,'0');
+  x.fillStyle = '#8A84A0'; x.font = F('500',17); x.fillText(ds + ' 기준 · 하루 1번 기준 집계', 56, 112);
+  const tiles = [[t.today,'오늘 접속자', t.newToday==null?'':'오늘 처음 온 분 ' + t.newToday + '명'],[t.users,'누적 사용자','접속한 선생님 수'],[t.visits,'누적 접속','들어온 횟수 합계'],[t.week==null?'-':t.week,'이번 주 접속자','월~오늘, 중복 제외']];
+  const tw = (W-48-64-16)/2, th = 130;
+  tiles.forEach((v,i) => {
+    const X = 56 + (i%2)*(tw+16), Y = 140 + Math.floor(i/2)*(th+16);
+    x.fillStyle = '#F4F2FA'; rr(X,Y,tw,th,18); x.fill();
+    x.textAlign = 'center'; const cx = X + tw/2;
+    x.fillStyle = '#6F62A8'; x.font = F('800',44); x.fillText(String(v[0]), cx, Y+60);
+    x.fillStyle = '#4A4466'; x.font = F('700',17); x.fillText(v[1], cx, Y+88);
+    x.fillStyle = '#8A84A0'; x.font = F('500',14); x.fillText(v[2], cx, Y+111);
+  });
+  x.textAlign = 'left'; x.fillStyle = '#4A4466'; x.font = F('700',17); x.fillText('최근 ' + t.days.length + '일 접속자 (명)', 56, 468);
+  const L = t.days.length, mx = Math.max(1, ...t.days.map(d=>d.n)), areaW = W-48-64, gap = 6, bw = (areaW - gap*(L-1))/L, base = 700, maxH = 180;
+  t.days.forEach((d,i) => {
+    const h = Math.round(d.n/mx*maxH) + 4, X = 56 + i*(bw+gap);
+    x.fillStyle = i===L-1 ? '#9B8EC4' : '#D8D2EE'; rr(X, base-h, bw, h, Math.min(6, h/2)); x.fill();
+    if (d.n){ x.fillStyle = '#4A4466'; x.font = F('700',14); x.textAlign = 'center'; x.fillText(String(d.n), X+bw/2, base-h-6); }
+  });
+  x.textAlign = 'left'; x.fillStyle = '#8A84A0'; x.font = F('500',14); x.fillText(L + '일 전', 56, base+26);
+  x.textAlign = 'right'; x.fillText('오늘', W-56, base+26);
+  x.fillStyle = '#B5B0C8'; x.font = F('600',14); x.fillText('Made by Cheon_R', W-56, H-44);
+  c.toBlob(b => {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(b);
+    a.download = 'CLASS-BOARD_이용현황_' + ds.replace(/\./g,'-') + '.png'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+    msg('ownMsg','이미지를 저장했어요. (다운로드/사진 폴더를 확인해 주세요)',true);
+  }, 'image/png');
 }
 async function toggleReview(){
   if (!ownLoaded || !own.review){ msg('ownMsg','아직 등록부 정보를 불러오지 못했어요.'); return; }
