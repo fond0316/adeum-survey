@@ -411,7 +411,6 @@ input[type=date]{min-width:0;max-width:100%}
         <p class="hint" id="gasVerNow" style="margin:0 0 4px">확인 중…</p>
         <label class="f">설치 ID</label>
         <div class="link"><input type="text" id="instNow" readonly><button class="btn sub" onclick="copy('instNow')">복사</button></div>
-        <button class="gbtn hide" id="rvBtn" onclick="openReview()">💬 후기·개선점 남기기</button>
         <button class="gbtn" onclick="mailContact()">✉️ 문의하기 (개발자에게 메일)</button>
       </div>
     </section>
@@ -429,6 +428,29 @@ input[type=date]{min-width:0;max-width:100%}
         <h2 id="uTitle">등록된 선생님</h2>
         <div class="sub-tabs" id="uTabs"></div>
         <div id="uList"><p class="hint">불러오는 중…</p></div>
+      </div>
+    </section>
+
+    <!-- 💬 후기·개선점 (교사 전용) -->
+    <section id="tab-rv" class="hide">
+      <div class="box">
+        <h2>💬 후기·개선점 남기기</h2>
+        <p class="hint">써 주신 의견은 CLASS BOARD를 더 좋게 만드는 데 쓰여요. 1분이면 충분해요 🙂</p>
+        <label class="f">사용해 보니 어떠셨나요? <small>(별점)</small></label>
+        <div class="rv-stars" id="rvStars"></div>
+        <label class="f">좋았던 점 <small>(여러 개 선택 가능)</small></label>
+        <div class="chips" id="rvChips"></div>
+        <input type="text" id="rvOther" class="hide" maxlength="30" placeholder="좋았던 점을 직접 적어 주세요" style="margin-top:8px">
+        <label class="f">한줄 후기 <small>(선택 · 80자)</small></label>
+        <textarea id="rvOne" maxlength="80" style="min-height:64px" placeholder="한 줄로 소감을 남겨 주세요"></textarea>
+        <label class="f">이런 점이 개선되면 좋겠어요 <small>(선택 · 200자)</small></label>
+        <div class="chips" id="rvKinds"></div>
+        <textarea id="rvImp" maxlength="200" style="min-height:84px;margin-top:8px" placeholder="불편했던 점, 있었으면 하는 기능 등을 편하게 적어 주세요"></textarea>
+        <label class="f">소개 자료에 써도 될까요?</label>
+        <div class="chips" id="rvOk"></div>
+        <p class="hint" style="margin:6px 0 0">기본은 <b>쓰지 말아주세요</b>예요. 허락해 주신 경우에만 포트폴리오·소개 자료에 인용해요.</p>
+        <div class="row" style="margin-top:12px"><button class="btn" id="rvSend" onclick="sendReview()">보내기</button></div>
+        <div class="msg" id="rvMsg"></div>
       </div>
     </section>
 
@@ -685,32 +707,6 @@ input[type=date]{min-width:0;max-width:100%}
   </div>
 </div>
 
-<!-- 후기·개선점 창 -->
-<div class="ov hide" id="rvOv" onclick="if(event.target===this)closeReview()">
-  <div class="box">
-    <h2>💬 후기·개선점 남기기</h2>
-    <p class="hint">써 주신 의견은 CLASS BOARD를 더 좋게 만드는 데 쓰여요. 1분이면 충분해요 🙂</p>
-    <label class="f">사용해 보니 어떠셨나요? <small>(별점)</small></label>
-    <div class="rv-stars" id="rvStars"></div>
-    <label class="f">좋았던 점 <small>(여러 개 선택 가능)</small></label>
-    <div class="chips" id="rvChips"></div>
-    <input type="text" id="rvOther" class="hide" maxlength="30" placeholder="좋았던 점을 직접 적어 주세요" style="margin-top:8px">
-    <label class="f">한줄 후기 <small>(선택 · 80자)</small></label>
-    <textarea id="rvOne" maxlength="80" style="min-height:64px" placeholder="한 줄로 소감을 남겨 주세요"></textarea>
-    <label class="f">이런 점이 개선되면 좋겠어요 <small>(선택 · 200자)</small></label>
-    <div class="chips" id="rvKinds"></div>
-    <textarea id="rvImp" maxlength="200" style="min-height:84px;margin-top:8px" placeholder="불편했던 점, 있었으면 하는 기능 등을 편하게 적어 주세요"></textarea>
-    <label class="f">소개 자료에 써도 될까요?</label>
-    <div class="chips" id="rvOk"></div>
-    <p class="hint" style="margin:6px 0 0">기본은 <b>쓰지 말아주세요</b>예요. 허락해 주신 경우에만 포트폴리오·소개 자료에 인용해요.</p>
-    <div class="row" style="margin-top:12px">
-      <button class="btn" id="rvSend" onclick="sendReview()">보내기</button>
-      <button class="btn sub" onclick="closeReview()">닫기</button>
-    </div>
-    <div class="msg" id="rvMsg"></div>
-  </div>
-</div>
-
 <!-- 문의 창 -->
 <div class="ov hide" id="contactOv" onclick="if(event.target===this)this.classList.add('hide')">
   <div class="box">
@@ -862,7 +858,10 @@ const RV_CHIPS = ['공지 올리기가 편해요','학생 확인·호출이 유�
 const RV_KINDS = ['기능 요청','오류','디자인','기타'];
 const RV_OK = [['name','이름 공개해도 돼요'],['anon','이름 없이 써도 돼요'],['no','쓰지 말아주세요']];
 let reviewOn = false, rvRate = 0, rvPick = [], rvOtherOn = false, rvKind = '', rvOk = 'no', rvSending = false;
-function applyReviewUi(){ $('rvBtn').classList.toggle('hide', !reviewOn); }
+function applyReviewUi(){
+  const b = document.querySelector('#nav button[data-t="rv"]'); if (b) b.classList.toggle('hide', !reviewOn);
+  if (!reviewOn && curTab === 'rv' && $('nav').children.length) goTab('write');   // 후기 받기가 끝나면 탭에서 내보냄
+}
 function renderRv(){
   $('rvStars').innerHTML = [1,2,3,4,5].map(i => `<button type="button" class="rv-star ${i<=rvRate?'on':''}" aria-label="${i}점" onclick="rvSet(${i})">★</button>`).join('');
   $('rvChips').innerHTML = RV_CHIPS.map((t,i) => `<button type="button" class="chip rv ${rvPick.includes(i)?'on':''}" onclick="rvTog(${i})">${esc(t)}</button>`).join('')
@@ -875,8 +874,7 @@ function rvSet(i){ rvRate = i; renderRv(); }
 function rvTog(i){ if (i < 0) rvOtherOn = !rvOtherOn; else rvPick = rvPick.includes(i) ? rvPick.filter(x=>x!==i) : [...rvPick, i].sort(); renderRv(); if (i < 0 && rvOtherOn) $('rvOther').focus(); }
 function rvKindSet(t){ rvKind = rvKind === t ? '' : t; renderRv(); }
 function rvOkSet(k){ rvOk = k; renderRv(); }
-function openReview(){ renderRv(); msg('rvMsg','',true); $('rvOv').classList.remove('hide'); }
-function closeReview(){ $('rvOv').classList.add('hide'); }
+function openReview(){ goTab('rv'); window.scrollTo(0,0); }
 async function sendReview(){
   if (rvSending) return;
   const imp = $('rvImp').value.trim();
@@ -888,8 +886,7 @@ async function sendReview(){
     $('rvBanner').classList.add('hide');
     rvRate = 0; rvPick = []; rvOtherOn = false; rvKind = ''; rvOk = 'no';
     $('rvOther').value = ''; $('rvOne').value = ''; $('rvImp').value = '';
-    msg('rvMsg','💜 소중한 의견 감사합니다!',true);
-    setTimeout(closeReview, 1400);
+    renderRv(); msg('rvMsg','💜 소중한 의견 감사합니다! 다음에 또 의견이 생기면 언제든 남겨 주세요.',true);
   }catch(e){ msg('rvMsg','보내지 못했어요. 입력한 내용은 그대로 있어요. (' + e.message + ')'); }
   rvSending = false; $('rvSend').disabled = false;
 }
@@ -1006,6 +1003,7 @@ async function enterMain(){
     : [['write','✏️ 공지']];
   if (role==='admin' && isOwner && REGISTRY_URL) tabs.push(['own','👑 사용자 관리']);
   tabs.push(['help','📘 가이드']);
+  if (role==='admin') tabs.push(['rv','💬 후기']);
   $('nav').innerHTML = tabs.map(([k,l])=>`<button data-t="${k}" onclick="goTab('${k}')">${l}</button>`).join('');
   updateReqBadge();
   resetForm();
@@ -1040,10 +1038,11 @@ async function refresh(usePre){
 function goTab(k){
   curTab = k;
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on', b.dataset.t===k));
-  ['set','stu','write','stat','own','help'].forEach(x=>$('tab-'+x).classList.toggle('hide', x!==k));
+  ['set','stu','write','stat','own','help','rv'].forEach(x=>$('tab-'+x).classList.toggle('hide', x!==k));
   if (k==='help') renderHelp();
   if (k==='set') $('firstHint').classList.toggle('hide', !!data.students.length);
   if (k==='own') loadOwner();
+  if (k==='rv'){ renderRv(); }
   if (k==='write'){ renderRoster(); renderList(); renderBulkChips(); renderReqs(); }
   if (k==='stat'){ renderStat(); refresh().then(renderStat).catch(()=>{}); }
 }
