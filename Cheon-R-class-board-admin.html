@@ -214,7 +214,7 @@ input[type=date]{min-width:0;max-width:100%}
         <li><b>이용 목적</b>: 이용 현황 파악, 문의 응대, 앱 개선, 개발자의 활동 기록 정리. 소개 자료에는 <b>숫자 통계로만</b> 쓰고, 이름·학교가 드러나게 쓰지 않아요. (후기 인용은 후기를 쓰실 때 따로 허락하신 경우에만)</li>
         <li><b>보유 기간</b>: 앱을 운영하는 동안. 삭제를 요청하시면 지체 없이 삭제해요.</li>
         <li><b>삭제·문의</b>: ⚙️ 설정 탭의 [✉️ 문의하기]로 요청해 주세요.</li>
-        <li><b>학생 정보</b>: 학생의 이름·학번·공지 내용은 개발자에게 전달되지 않아요. (선생님 본인의 구글 시트에만 저장돼요)</li>
+        <li><b>학생 정보</b>: 학생의 이름·학번·공지 내용은 개발자에게 전달되지 않아요. (선생님 본인의 구글 시트에만 저장돼요) 학생이 앱에서 직접 남기는 후기·개선점만 <b>이름 없이</b> 전달되고, 선생님이 💬 후기 탭에서 언제든 끌 수 있어요.</li>
       </ul><p style="margin:6px 0 0">필수 동의예요. 동의하지 않으시면 사용자 등록을 할 수 없어서 앱을 쓸 수 없어요.</p></div></details>
       <div class="row" style="margin-top:12px"><button class="btn" onclick="savePre()">다음 → 구글 시트 연결</button></div>
       <div class="msg" id="preMsg"></div>
@@ -301,7 +301,7 @@ input[type=date]{min-width:0;max-width:100%}
         <li><b>이용 목적</b>: 이용 현황 파악, 문의 응대, 앱 개선, 개발자의 활동 기록 정리. 소개 자료에는 <b>숫자 통계로만</b> 쓰고, 이름·학교가 드러나게 쓰지 않아요. (후기 인용은 후기를 쓰실 때 따로 허락하신 경우에만)</li>
         <li><b>보유 기간</b>: 앱을 운영하는 동안. 삭제를 요청하시면 지체 없이 삭제해요.</li>
         <li><b>삭제·문의</b>: ⚙️ 설정 탭의 [✉️ 문의하기]로 요청해 주세요.</li>
-        <li><b>학생 정보</b>: 학생의 이름·학번·공지 내용은 개발자에게 전달되지 않아요. (선생님 본인의 구글 시트에만 저장돼요)</li>
+        <li><b>학생 정보</b>: 학생의 이름·학번·공지 내용은 개발자에게 전달되지 않아요. (선생님 본인의 구글 시트에만 저장돼요) 학생이 앱에서 직접 남기는 후기·개선점만 <b>이름 없이</b> 전달되고, 선생님이 💬 후기 탭에서 언제든 끌 수 있어요.</li>
       </ul><p style="margin:6px 0 0">필수 동의예요. 동의하지 않으시면 사용자 등록을 할 수 없어서 앱을 쓸 수 없어요.</p></div></details>
       <div class="row" style="margin-top:12px"><button class="btn" onclick="doRegister(this)">등록하기</button><button class="btn sub" onclick="logout()">로그아웃</button></div>
       <div class="msg" id="regMsg"></div>
@@ -482,6 +482,12 @@ input[type=date]{min-width:0;max-width:100%}
 
     <!-- 💬 후기·개선점 (교사 전용) -->
     <section id="tab-rv" class="hide">
+      <div class="box hide" id="srBox">
+        <h2>🧑‍🎓 우리 반 학생 후기</h2>
+        <div class="sw" id="srSw" onclick="toggleSr()"><span class="tg"></span><div><b id="srTxt">학생 후기 받기</b><small id="srSub"></small></div></div>
+        <p class="hint" style="margin:8px 0 0">학생 앱 맨 아래에 <b>💬 후기 남기기</b> 버튼이 보여요. 학생이 남긴 후기는 <b>이름·학번 없이</b>(학급 코드만) 앱 개발자에게 전달돼요. 선생님 시트에는 저장되지 않아요. 원하지 않으면 꺼 두세요.</p>
+        <div class="msg" id="srMsg"></div>
+      </div>
       <div class="box">
         <h2>💬 후기·개선점 남기기</h2>
         <p class="hint">써 주신 의견은 CLASS BOARD를 더 좋게 만드는 데 쓰여요. 1분이면 충분해요 🙂</p>
@@ -909,11 +915,33 @@ function showConnect(){
 }
 function clearPre(){ try{ localStorage.removeItem(K.pre); localStorage.removeItem(K.preId); }catch(e){} }
 
+function classCode(url){   // 선생님 GAS 주소 → 짧은 반 코드 (관리자 앱·학생 앱이 똑같은 식을 써야 해요. 주소 자체는 전달되지 않아요)
+  url = String(url || '').trim(); let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0, c; i < url.length; i++){ c = url.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+}
+
 /* ===== 후기·개선점 (등록부 GAS의 '후기' 탭으로 전송) ===== */
 const RV_CHIPS = ['공지 올리기가 편해요','학생 확인·호출이 유용해요','확인현황을 한눈에 볼 수 있어요','교실 화면 모드가 좋아요','설치·연결이 쉬웠어요','학생 화면이 보기 좋아요'];   // 등록부 GAS의 REVIEW.chips 와 순서 동일
 const RV_LOWS = ['사용법이 어려웠어요','설치·연결이 어려웠어요','기능이 부족해요','오류가 있었어요','학생들이 잘 안 봐요'];   // 별점 3점 이하일 때만 보여요 (GAS의 REVIEW.lows 와 순서 동일)
 const RV_KINDS = ['기능 요청','오류','디자인','기타'];
 const RV_OK = [['name','이름 공개해도 돼요'],['anon','이름 없이 써도 돼요'],['no','쓰지 말아주세요']];
+let srOn = null;   // 우리 반 학생 후기 받기 (null = 등록부가 아직 모름/옛 버전)
+function renderSr(){
+  $('srBox').classList.toggle('hide', !(reviewOn && srOn !== null));
+  if (srOn === null) return;
+  $('srSw').classList.toggle('on', srOn);
+  $('srTxt').textContent = '학생 후기 받기 ' + (srOn ? 'ON' : 'OFF');
+  $('srSub').textContent = srOn ? '학생 앱에 💬 후기 남기기 버튼이 보여요' : '지금은 학생 앱에 후기 버튼이 안 보여요';
+}
+async function toggleSr(){
+  if (srOn === null) return;
+  const on = !srOn; srOn = on; renderSr(); msg('srMsg','저장 중…',true);
+  try{ await jsonp({ action:'srSwitch', id:installId, on: on?'1':'' }, REGISTRY_URL); msg('srMsg', on ? '학생 후기 받기를 켰어요.' : '학생 후기 받기를 껐어요.', true); }
+  catch(e){ srOn = !on; renderSr(); msg('srMsg','저장하지 못해 되돌렸어요: ' + e.message); }
+}
 let usePub = null;
 function renderUseLine(){
   const el = $('useLine'), u = usePub;
@@ -924,6 +952,7 @@ function renderUseLine(){
 let reviewOn = false, rvRate = 0, rvPick = [], rvLow = [], rvLowOtherOn = false, rvOtherOn = false, rvKind = '', rvOk = 'no', rvSending = false;
 function applyReviewUi(){
   const b = document.querySelector('#nav button[data-t="rv"]'); if (b) b.classList.toggle('hide', !reviewOn);
+  renderSr();
   if (!reviewOn && curTab === 'rv' && $('nav').children.length) goTab('write');   // 후기 받기가 끝나면 탭에서 내보냄
 }
 function renderRv(){
@@ -980,7 +1009,7 @@ async function afterLogin(r){
   if (!REGISTRY_URL || !installId){ isOwner = !REGISTRY_URL; startPrefetch(); return enterMain(); }
   startPrefetch();   // 공지 불러오기를 등록부 확인과 동시에 시작
   let st;
-  try{ const res = await jsonp({ action:'check', id:installId, old:lsGet(K.preId,'') }, REGISTRY_URL); st = res.status; saveRegInfo(res); if (st !== 'unregistered') clearPre(); }
+  try{ const res = await jsonp({ action:'check', id:installId, old:lsGet(K.preId,''), cb:classCode(GAS) }, REGISTRY_URL); st = res.status; saveRegInfo(res); if (st !== 'unregistered') clearPre(); }
   catch(e){ isOwner = lsGet(K.owner,'') === installId; return enterMain(); }  // 등록부 응답 없으면 일단 사용
   return handleStatus(st);   // 실패하면 위쪽(로그인·자동 로그인)에서 잡아서 안내
 }
@@ -988,7 +1017,7 @@ let autoRegTried = false;
 async function autoRegister(pre){
   show('scrLoading'); msg('loadMsg','사용자 등록 중…',true);
   try{
-    const r = await jsonp({ action:'register', id:installId, old:lsGet(K.preId,''), name:pre.name, school:pre.school, cls:pre.cls, agree: pre.agree ? '1' : '' }, REGISTRY_URL);
+    const r = await jsonp({ action:'register', id:installId, old:lsGet(K.preId,''), name:pre.name, school:pre.school, cls:pre.cls, agree: pre.agree ? '1' : '', cb:classCode(GAS) }, REGISTRY_URL);
     lsSet(K.reg, { name:pre.name, school:pre.school, cls:pre.cls }); clearPre(); return handleStatus(r.status);
   }catch(e){
     // 자동 등록이 안 되면 직접 등록 화면으로
@@ -1030,11 +1059,11 @@ async function changeFirstPw(btn){
   }catch(e){ msg('npwMsg', e.message); }
   btn.disabled = false;
 }
-function saveRegInfo(res){ if (res && res.name) lsSet(K.reg, { name:res.name, school:res.school, cls:res.cls }); reviewOn = !!(res && res.review === true); usePub = (res && res.pub) || null; applyReviewUi(); }
+function saveRegInfo(res){ if (res && res.name) lsSet(K.reg, { name:res.name, school:res.school, cls:res.cls }); reviewOn = !!(res && res.review === true); usePub = (res && res.pub) || null; srOn = (res && typeof res.sr === 'boolean') ? res.sr : null; applyReviewUi(); }
 function gate(ic, title, text){ $('gateIc').textContent = ic; $('gateTitle').textContent = title; $('gateText').textContent = text; msg('gateMsg','',true); show('scrGate'); }
 async function recheck(btn){
   btn.disabled = true; msg('gateMsg','확인 중…',true);
-  try{ const res = await jsonp({ action:'check', id:installId }, REGISTRY_URL); saveRegInfo(res); await handleStatus(res.status); }
+  try{ const res = await jsonp({ action:'check', id:installId, cb:classCode(GAS) }, REGISTRY_URL); saveRegInfo(res); await handleStatus(res.status); }
   catch(e){ msg('gateMsg', e.message); }
   btn.disabled = false;
 }
@@ -1044,7 +1073,7 @@ async function doRegister(btn){
   if (!$('regAgree').checked){ msg('regMsg','개인정보 수집·이용에 동의해 주세요. (필수)'); return; }
   btn.disabled = true; msg('regMsg','등록 중…',true);
   try{
-    const r = await jsonp({ action:'register', id:installId, old:lsGet(K.preId,''), ...info, agree:'1' }, REGISTRY_URL);
+    const r = await jsonp({ action:'register', id:installId, old:lsGet(K.preId,''), ...info, agree:'1', cb:classCode(GAS) }, REGISTRY_URL);
     lsSet(K.reg, info); clearPre(); await handleStatus(r.status);
   }catch(e){ msg('regMsg', e.message); }
   btn.disabled = false;
@@ -1643,7 +1672,8 @@ function renderOwner(){
   if (rv){
     $('rvSw').classList.toggle('on', rv.on);
     $('rvTxt').textContent = '후기 받기 ' + (rv.on ? 'ON' : 'OFF');
-    $('rvSub').textContent = `받은 응답 ${rv.reviews}건 · 개선점 ${rv.improves}건` + (rv.on ? ' (끄면 후기 버튼이 사라져요)' : ' · 지금은 받지 않아요');
+    const stu = rv.sreviews == null ? '' : ` · 학생 ${rv.sreviews}건`, imps = rv.improves + (rv.simproves || 0);
+    $('rvSub').textContent = `받은 후기 교사 ${rv.reviews}건${stu} · 개선점 ${imps}건` + (rv.on ? ' (끄면 선생님·학생 후기 버튼이 모두 사라져요)' : ' · 지금은 받지 않아요');
   }
   const cnt = s => own.users.filter(u=>uState(u)===s).length;
   $('uTitle').textContent = `등록된 선생님 ${own.users.length}명`;

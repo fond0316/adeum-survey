@@ -9,7 +9,7 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="CLASS BOARD · 우리 반 공지">
 <meta property="og:description" content="여기를 눌러 오늘의 공지를 확인하세요.">
-<meta property="og:image" content="https://fond0316.github.io/adeum-survey/Cheon-R-og2.png">
+<meta property="og:image" content="https://fond0316.github.io/adeum-survey/Cheon-R-og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -57,6 +57,19 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .help .hl:last-of-type{border-bottom:none}
 .help .hl .ic{font-size:20px;flex:none;width:28px;text-align:center}
 .help .hl b{color:var(--tx)}
+.rvm .rvl{font-size:14px;font-weight:700;color:var(--tx);margin-top:16px}
+.rvm .rvl small{font-weight:400;color:var(--tx3)}
+.rvm .rvs{display:flex;justify-content:center;gap:2px;margin-top:4px}
+.rvm .rvs button{width:48px;height:48px;font-size:34px;line-height:1;color:#D9D6E3}
+.rvm .rvs button.on{color:#F5B301}
+.rvm .rvcw{margin-top:8px}
+.rvc{min-height:44px;padding:0 14px;border-radius:22px;border:1.5px solid var(--line);background:#fff;color:var(--tx2);font-size:14px;font-weight:600;margin:0 6px 8px 0}
+.rvc.on{background:var(--main);color:#fff;border-color:var(--main)}
+.rvm textarea{width:100%;min-height:76px;border:1.5px solid var(--line);border-radius:10px;padding:10px;font-family:inherit;font-size:15px;margin-top:6px;resize:vertical}
+.rvm textarea:focus{outline:none;border-color:var(--main)}
+.rvm input.rvo{font-size:15px;min-height:44px;margin-top:0}
+.rvm .rvn{font-size:12px;color:var(--tx3);margin-top:6px;line-height:1.5}
+body.pv #stuRvBtn{display:none}
 .boardBtn{display:inline-block;margin-top:8px;min-height:36px;padding:0 12px;border-radius:18px;font-size:12px;color:var(--tx3);background:transparent;border:1px solid var(--line)}
 /* 🖥️ 교실 화면 모드 — 멀리서도 보이게 크게 */
 body.board{zoom:1.25}
@@ -69,7 +82,7 @@ body.board .pop .ttl{font-size:28px}
 body.board .pop .body,body.board .pop .tg{font-size:20px}
 body.board .me{background:#fff;color:var(--main-d)}
 body.board #meBtn{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;padding:4px 16px}
-body.pv:not(.board) #meBtn{pointer-events:none;background:transparent;border:1.5px solid rgba(255,255,255,.55);min-height:36px;font-weight:500}
+body.pv:not(.board) #meBtn{pointer-events:none}
 #meBtn small{display:block;font-size:10.5px;font-weight:400;opacity:.8}
 .bdDot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2E9E5B;margin-right:6px;vertical-align:middle}
 .adm{display:none}
@@ -242,7 +255,7 @@ mark{background:#FEF3C7;color:inherit;border-radius:3px;padding:0 1px}
       <div class="upd" id="upd"></div>
     </section>
   </div>
-  <div class="foot">Made by Cheon_R<br><button class="boardBtn" onclick="openHelp()">❓ 사용법</button> <button class="boardBtn" onclick="openBoard()">🖥️ 교실 화면 모드</button></div>
+  <div class="foot">Made by Cheon_R<br><button class="boardBtn" onclick="openHelp()">❓ 사용법</button> <button class="boardBtn" onclick="openBoard()">🖥️ 교실 화면 모드</button> <button class="boardBtn" id="stuRvBtn" onclick="openStuReview()">💬 후기 남기기</button></div>
 </div>
 
 <!-- 학번 등록 -->
@@ -272,7 +285,38 @@ mark{background:#FEF3C7;color:inherit;border-radius:3px;padding:0 1px}
     <div class="hl"><span class="ic">✏️</span><div><b>틀린 내용·궁금한 점</b><br>공지 안의 <b>[수정 요청·질문]</b>으로 보내요. 선생님(또는 회장)에게만 가고, 학번·이름이 함께 전달돼요.</div></div>
     <div class="hl"><span class="ic">🔍</span><div><b>지난 공지 찾기</b><br>공지 위쪽 🔍를 누르고 단어를 입력해요. (예: 수행평가, 체육복)</div></div>
     <div class="hl"><span class="ic">↻</span><div><b>안 보이거나 느릴 때</b><br>위쪽 <b>↻</b>를 눌러 새로고침해요. 학교 와이파이에서 안 되면 데이터로 바꿔 보세요.</div></div>
+    <div class="hl"><span class="ic">💬</span><div><b>후기·바라는 점</b><br>맨 아래 <b>[💬 후기 남기기]</b>로 보내요. 이름 없이 앱을 만든 선생님께만 전달돼요.</div></div>
     <div class="hl"><span class="ic">🔒</span><div><b>링크는 우리 반끼리만</b><br>이 링크는 다른 반이나 밖으로 보내지 말아 주세요.</div></div>
+  </div>
+</div>
+
+<!-- 💬 후기·개선점 (이름 없이 앱 개발자에게 전달) -->
+<div class="ov" id="rvOv" onclick="if(event.target===this)closeOv('rvOv')">
+  <div class="modal rvm">
+    <h2>💬 후기·바라는 점</h2>
+    <p>써 본 느낌을 알려 주세요. <b>이름 없이</b> 앱을 만든 선생님께 전달돼요.</p>
+    <div id="rvForm">
+      <div class="rvl">써 보니 어땠어요? <small>(별점)</small></div>
+      <div class="rvs" id="rvStars"></div>
+      <div id="rvLowBox" style="display:none">
+        <div class="rvl">아쉬웠던 점이 있나요? <small>(여러 개 골라도 돼요)</small></div>
+        <div class="rvcw" id="rvLows"></div>
+        <input id="rvLowOther" class="rvo" type="text" maxlength="30" placeholder="아쉬운 점을 직접 적어 주세요" style="display:none">
+      </div>
+      <div class="rvl">좋았던 점 <small>(여러 개 골라도 돼요)</small></div>
+      <div class="rvcw" id="rvChips"></div>
+      <input id="rvOther" class="rvo" type="text" maxlength="30" placeholder="좋았던 점을 직접 적어 주세요" style="display:none">
+      <div class="rvl">한줄 후기 <small>(안 써도 돼요)</small></div>
+      <textarea id="rvOne" maxlength="80" placeholder="한 줄로 알려 주세요"></textarea>
+      <div class="rvl">이런 게 바뀌면 좋겠어요 <small>(안 써도 돼요)</small></div>
+      <div class="rvcw" id="rvKinds"></div>
+      <textarea id="rvImp" maxlength="200" placeholder="불편했던 점, 있었으면 하는 기능을 편하게 적어 주세요"></textarea>
+      <div class="rvl">소개 자료에 써도 될까요? <small>(이름은 안 나와요)</small></div>
+      <div class="rvcw" id="rvOk"></div>
+      <div class="rvn">기본은 <b>쓰지 말아주세요</b>예요. 학번·이름·공지 내용은 전달되지 않아요.</div>
+    </div>
+    <div class="err" id="rvErr"></div>
+    <div class="btns"><button class="b2" onclick="closeOv('rvOv')">닫기</button><button class="b1" id="rvSend" onclick="sendStuReview()">보내기</button></div>
   </div>
 </div>
 
@@ -348,16 +392,17 @@ function normDate(s){
 
 /* ===== JSONP ===== */
 let jpSeq = 0;
-function jsonp(params){
+function jsonp(params, base){
   return new Promise((resolve, reject) => {
-    if (!GAS) return reject(new Error('연결 주소가 없어요. 선생님이 알려준 링크로 다시 열어 주세요.'));
+    const B = base || GAS;
+    if (!B) return reject(new Error('연결 주소가 없어요. 선생님이 알려준 링크로 다시 열어 주세요.'));
     const cb = '__sn' + Date.now() + (jpSeq++);
     const s = document.createElement('script');
     const t = setTimeout(() => { cleanup(); reject(new Error('서버 응답이 없어요. 화면 위 ↻를 누른 뒤 다시 시도해 주세요.')); }, 15000);
     function cleanup(){ clearTimeout(t); delete window[cb]; s.remove(); }
     window[cb] = (res) => { cleanup(); res && res.ok ? resolve(res) : reject(new Error((res && res.error) || '요청에 실패했어요.')); };
     const q = new URLSearchParams({ ...params, callback: cb, _: Date.now() });
-    s.src = GAS + (GAS.includes('?') ? '&' : '?') + q.toString();
+    s.src = B + (B.includes('?') ? '&' : '?') + q.toString();
     s.onerror = () => { cleanup(); reject(new Error('서버에 연결하지 못했어요.')); };
     document.body.appendChild(s);
   });
@@ -469,7 +514,7 @@ function render(){
 function renderMe(){
   const meB = document.getElementById('meBtn');
   if (BOARD) meB.innerHTML = '<span><i class="bdDot"></i>🖥️ 교실 화면 모드 중</span><small>해제하려면 클릭하세요</small>';
-  else meB.textContent = PREVIEW ? '👀 담임 미리보기 중' : me ? me.sid + ' ' + me.name : '학번 등록';
+  else meB.textContent = me ? me.sid + ' ' + me.name : (PREVIEW ? '👀 담임 미리보기' : '학번 등록');
 }
 function renderUrgent(){
   const t = today();
@@ -772,6 +817,77 @@ async function doConfirm(id, btn){
     alert(e.message);
   }
 }
+
+/* ===== 💬 후기·바라는 점 (선생님 시트가 아니라 앱 개발자의 등록부로 바로 전송 · 이름·학번 없음) ===== */
+const REGISTRY_URL = 'https://script.google.com/macros/s/AKfycbzrgeAlZhEGyvp7vo_j0hgesVoIoI6T_GMayKJCfvOFaV5Sb3wO1xvackSeQLc3HQxsnQ/exec';   // 앱 개발자 등록부 (비어 있으면 후기 버튼이 숨겨져요)
+function classCode(url){   // 선생님 GAS 주소 → 짧은 반 코드 (관리자 앱·학생 앱이 똑같은 식을 써야 해요. 주소 자체는 전달되지 않아요)
+  url = String(url || '').trim(); let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0, c; i < url.length; i++){ c = url.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+}
+function devId(){   // 이 기기에만 저장되는 랜덤 번호 (하루 한 번만 후기를 받으려는 용도, 개인 식별 정보 아님)
+  let d = lsGet('sn_dev_v1', '');
+  if (!d){
+    try{ const a = new Uint32Array(3); crypto.getRandomValues(a); d = Array.from(a).map(x => x.toString(36)).join('').slice(0, 14); }
+    catch(e){ d = (Date.now().toString(36) + Math.random().toString(36).slice(2)).slice(0, 14); }
+    lsSet('sn_dev_v1', d);
+  }
+  return d;
+}
+const RVS_CHIPS = ['공지를 한눈에 볼 수 있어요','확인 버튼이 편해요','호출 알림이 도움돼요','지난 공지를 찾기 쉬워요','디벗·폰에서 잘 열려요','화면이 보기 좋아요'];   // 등록부 GAS의 SREVIEW.chips 와 순서 동일
+const RVS_LOWS = ['공지가 눈에 잘 안 띄어요','글자·화면이 보기 불편해요','열리는 게 느리거나 잘 안 열려요','확인·호출 기능이 어려워요','필요한 공지를 찾기 힘들어요'];   // 별점 3점 이하일 때만 (SREVIEW.lows 와 순서 동일)
+const RVS_KINDS = ['기능 요청','오류','디자인','기타'];
+const RVS_OK = [['yes','써도 돼요 (이름 없이)'],['no','쓰지 말아주세요']];
+let rvRate = 0, rvPick = [], rvLow = [], rvOtherOn = false, rvLowOtherOn = false, rvKind = '', rvOk = 'no', rvSending = false, rvOn = null;
+function rvBtns(id, arr, on, fn){ document.getElementById(id).innerHTML = arr.map((t,i) => `<button type="button" class="rvc${on(i)?' on':''}" onclick="${fn}(${i})">${esc(t)}</button>`).join(''); }
+function renderRv(){
+  const low = rvRate >= 1 && rvRate <= 3, $ = id => document.getElementById(id);
+  $('rvStars').innerHTML = [1,2,3,4,5].map(i => `<button type="button" class="${i<=rvRate?'on':''}" aria-label="${i}점" onclick="rvSet(${i})">★</button>`).join('');
+  $('rvLowBox').style.display = low ? '' : 'none';
+  rvBtns('rvLows', RVS_LOWS.concat(['기타']), i => i < RVS_LOWS.length ? rvLow.includes(i) : rvLowOtherOn, 'rvLowTog');
+  $('rvLowOther').style.display = (low && rvLowOtherOn) ? '' : 'none';
+  rvBtns('rvChips', RVS_CHIPS.concat(['기타']), i => i < RVS_CHIPS.length ? rvPick.includes(i) : rvOtherOn, 'rvTog');
+  $('rvOther').style.display = rvOtherOn ? '' : 'none';
+  rvBtns('rvKinds', RVS_KINDS, i => rvKind === RVS_KINDS[i], 'rvKindSet');
+  rvBtns('rvOk', RVS_OK.map(x => x[1]), i => rvOk === RVS_OK[i][0], 'rvOkSet');
+}
+function rvSet(i){ rvRate = i; if (i > 3){ rvLow = []; rvLowOtherOn = false; } renderRv(); }
+function rvTog(i){ if (i >= RVS_CHIPS.length) rvOtherOn = !rvOtherOn; else rvPick = rvPick.includes(i) ? rvPick.filter(x => x !== i) : [...rvPick, i].sort(); renderRv(); if (i >= RVS_CHIPS.length && rvOtherOn) document.getElementById('rvOther').focus(); }
+function rvLowTog(i){ if (i >= RVS_LOWS.length) rvLowOtherOn = !rvLowOtherOn; else rvLow = rvLow.includes(i) ? rvLow.filter(x => x !== i) : [...rvLow, i].sort(); renderRv(); if (i >= RVS_LOWS.length && rvLowOtherOn) document.getElementById('rvLowOther').focus(); }
+function rvKindSet(i){ rvKind = rvKind === RVS_KINDS[i] ? '' : RVS_KINDS[i]; renderRv(); }
+function rvOkSet(i){ rvOk = RVS_OK[i][0]; renderRv(); }
+function rvErr(t){ document.getElementById('rvErr').textContent = t || ''; }
+function openStuReview(){
+  if (PREVIEW){ alert('👀 담임 미리보기에서는 쓸 수 없어요. 학생 화면에서만 쓸 수 있어요.'); return; }
+  if (BOARD){ alert('교실 화면 모드에서는 쓸 수 없어요. 내 디벗이나 핸드폰에서 남겨 주세요.'); return; }
+  renderRv(); rvErr(''); rvOn = null;
+  document.getElementById('rvForm').style.display = ''; document.getElementById('rvSend').disabled = false;
+  document.getElementById('rvOv').classList.add('show');
+  // 지금 후기를 받는 중인지 확인 (응답이 늦거나 없어도 일단 쓸 수 있게 두고, 보낼 때 서버가 한 번 더 확인해요)
+  jsonp({ action:'reviewConf', cb:classCode(GAS) }, REGISTRY_URL).then(r => {
+    rvOn = !!r.on;
+    if (!rvOn){ document.getElementById('rvForm').style.display = 'none'; document.getElementById('rvSend').disabled = true; rvErr('지금은 후기를 받지 않아요. 궁금한 점은 선생님께 물어봐 주세요.'); }
+  }).catch(() => {});
+}
+async function sendStuReview(){
+  if (rvSending || rvOn === false) return;
+  const $ = id => document.getElementById(id), imp = $('rvImp').value.trim(), low = rvRate >= 1 && rvRate <= 3;
+  if (!rvRate && !imp){ rvErr('별점을 누르거나 바라는 점을 적어 주세요.'); return; }
+  rvSending = true; $('rvSend').disabled = true; rvErr('');
+  const note = $('rvErr'); note.style.color = 'var(--tx2)'; note.textContent = '보내는 중…';
+  try{
+    await jsonp({ action:'sreview', cb:classCode(GAS), dv:devId(), rate:rvRate, c:rvPick.join(','), other: rvOtherOn ? $('rvOther').value.trim() : '',
+      lc: low ? rvLow.join(',') : '', lo: low && rvLowOtherOn ? $('rvLowOther').value.trim() : '', one:$('rvOne').value.trim(), ik:rvKind, imp, ok:rvOk }, REGISTRY_URL);
+    rvRate = 0; rvPick = []; rvLow = []; rvOtherOn = false; rvLowOtherOn = false; rvKind = ''; rvOk = 'no';
+    ['rvOther','rvLowOther','rvOne','rvImp'].forEach(id => $(id).value = '');
+    note.style.color = '#2E7D32'; note.textContent = '💜 고마워요! 소중한 의견 잘 받았어요.'; renderRv();
+    setTimeout(() => { closeOv('rvOv'); note.style.color = ''; note.textContent = ''; }, 1600);
+  }catch(e){ note.style.color = ''; note.textContent = '보내지 못했어요. 쓴 내용은 그대로 있어요. (' + e.message + ')'; }
+  rvSending = false; $('rvSend').disabled = false;
+}
+(function(){ if (!REGISTRY_URL){ const b = document.getElementById('stuRvBtn'); if (b) b.style.display = 'none'; } })();
 
 /* ===== 학번 등록 ===== */
 function openWho(){
