@@ -30,6 +30,18 @@ h1,h2,h3{font-family:'Jua','Pretendard',-apple-system,'Apple SD Gothic Neo','Mal
 .adm{flex:none;min-width:44px;min-height:44px;border-radius:12px;background:rgba(255,255,255,.2);color:#fff;font-size:20px}
 .adm.on{background:#fff;color:var(--main-d)}
 
+.admbar{display:flex;flex-direction:column;gap:6px;margin-top:10px;background:var(--soft);border-radius:14px;padding:10px 10px 8px 14px}
+.admbar span{flex:none;font-size:13px;font-weight:600;color:var(--main-d)}
+.abtns{display:flex;flex-wrap:wrap;gap:6px}
+.app .main{display:flex;align-items:center;gap:12px;flex:1;min-width:0;min-height:52px;color:inherit}
+.app .main:active{opacity:.7}
+.more{flex:none;min-width:44px;min-height:44px;border-radius:12px;font-size:22px;color:var(--main-d);font-weight:700}
+.more:active{background:var(--soft)}
+.srch{margin-top:10px}
+.dm{font-size:13.5px;color:var(--tx2);margin:2px 0 6px}
+.dh{font-size:12.5px;color:var(--tx3);margin-top:10px;line-height:1.6}
+#dBody a.btn{color:#fff}
+.admbar button{flex:none;min-height:44px;padding:0 14px;border-radius:12px;background:#fff;border:1px solid var(--line);font-size:13.5px;font-weight:700;color:var(--main-d)}
 .tabs{display:flex;gap:8px;margin-top:14px}
 .tab{flex:1;min-height:44px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-weight:600;font-size:14px;color:var(--tx2)}
 .tab.on{background:var(--main);border-color:var(--main);color:#fff}
@@ -89,7 +101,7 @@ a.app:active{background:#FAF9FE}
 <div class="wrap">
   <header class="hero">
     <img class="av" src="Cheon-R-avatar.png" alt="" onerror="this.style.display='none'">
-    <div class="tt"><h1>Cheon_R 런처</h1><p>내가 만든 앱을 한곳에서</p></div>
+    <div class="tt"><h1 id="hTitle">Cheon_R 런처</h1><p id="hSub">내가 만든 앱을 한곳에서</p></div>
     <button class="adm hide" id="admBtn" aria-label="관리 모드">🔒</button>
   </header>
 
@@ -113,7 +125,11 @@ a.app:active{background:#FAF9FE}
 
   <!-- 메인 목록 -->
   <section id="viewMain" class="hide">
+    <div class="admbar hide" id="admBar"><span>🔓 관리 모드 · 앱 추가·수정·삭제·순서 변경</span>
+      <div class="abtns"><button id="titleBtn">제목 수정</button><button id="pwBtn">비밀번호 변경</button><button id="expBtn">백업 저장</button><button id="impBtn">백업 불러오기</button></div>
+      <input type="file" id="impFile" accept="application/json,.json" class="hide"></div>
     <div class="tabs" id="tabs"></div>
+    <input class="inp srch" id="q" type="search" placeholder="🔍 앱 이름·메모 검색" autocomplete="off">
     <div class="list" id="list"></div>
     <button class="addbtn hide" id="addBtn">+ 앱 추가</button>
     <div class="stat" id="stat"></div>
@@ -137,6 +153,43 @@ a.app:active{background:#FAF9FE}
   </div>
 </div>
 
+<!-- 앱 상세 (연결 링크 + 링크 복사) -->
+<div class="ov hide" id="ovDetail">
+  <div class="sheet">
+    <h3 id="dTitle"></h3>
+    <div class="dm" id="dMemo"></div>
+    <div id="dBody"></div>
+    <button class="btn sub" id="dClose">닫기</button>
+  </div>
+</div>
+
+<!-- 비밀번호 변경 -->
+<div class="ov hide" id="ovNp">
+  <div class="sheet">
+    <h3>비밀번호 변경</h3>
+    <p style="font-size:13.5px;color:var(--tx2)">공백 없이 4~30자예요. 바꾸면 다른 기기에서도 새 비밀번호로 들어가요.</p>
+    <input class="inp" id="npInp" type="password" placeholder="새 비밀번호" autocomplete="off">
+    <input class="inp" id="np2Inp" type="password" placeholder="새 비밀번호 한 번 더" autocomplete="off">
+    <div class="err" id="npErr"></div>
+    <button class="btn" id="npSave">바꾸기</button>
+    <button class="btn sub" id="npCancel">취소</button>
+  </div>
+</div>
+
+<!-- 제목 수정 -->
+<div class="ov hide" id="ovTitle">
+  <div class="sheet">
+    <h3>제목 수정</h3>
+    <div class="lb">제목</div>
+    <input class="inp" id="tTitle" maxlength="20" autocomplete="off">
+    <div class="lb">소개 문구 (선택)</div>
+    <input class="inp" id="tSub" maxlength="40" autocomplete="off">
+    <div class="err" id="tErr"></div>
+    <button class="btn" id="tSave">저장</button>
+    <button class="btn sub" id="tCancel">취소</button>
+  </div>
+</div>
+
 <!-- 앱 등록/수정 -->
 <div class="ov hide" id="ovForm">
   <div class="sheet">
@@ -152,6 +205,12 @@ a.app:active{background:#FAF9FE}
     <input class="inp" id="fIcon" maxlength="4" placeholder="직접 입력도 돼요 (이모지 1개)" autocomplete="off">
     <div class="lb">메모 (선택)</div>
     <input class="inp" id="fMemo" maxlength="100" placeholder="한 줄 메모" autocomplete="off">
+    <div class="lb">연결된 링크 (선택)</div>
+    <input class="inp" id="fSheet" type="url" inputmode="url" placeholder="📊 구글 시트 링크" autocomplete="off">
+    <input class="inp" id="fGas" type="url" inputmode="url" placeholder="⚙️ Apps Script(GAS) 편집기 링크" autocomplete="off">
+    <input class="inp" id="fRepo" type="url" inputmode="url" placeholder="💻 코드 파일 링크 (GitHub 파일 주소)" autocomplete="off">
+    <div class="lb">상단 고정</div>
+    <div class="seg" id="fPin"><button data-v="0">고정 안 함</button><button data-v="1">📌 맨 위에 고정</button></div>
     <div class="err" id="fErr"></div>
     <button class="btn" id="fSave">저장</button>
     <button class="btn sub" id="fCancel">취소</button>
@@ -159,12 +218,14 @@ a.app:active{background:#FAF9FE}
 </div>
 
 <script>
-const LS_GAS = 'launcher_gas_v1', LS_CACHE = 'launcher_cache_v1', SS_PW = 'launcher_pw_v1';
+const LS_GAS = 'launcher_gas_v1', LS_CACHE = 'launcher_cache_v1', LS_SET = 'launcher_settings_v1', SS_PW = 'launcher_pw_v1';
+const DEF_SET = { title: 'Cheon_R 런처', subtitle: '내가 만든 앱을 한곳에서' };
+let settings = Object.assign({}, DEF_SET);
 const EMOJIS = ['📱','📚','🧮','📋','📝','📊','🎓','🧪','📅','🔔','🛠️','⭐','🏫','🎬','💬','🗂️'];
 const $ = id => document.getElementById(id);
 function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
-let GAS = '', apps = [], tab = 'all', admin = false, pw = '', editId = null, fType = '개인용', busy = false;
+let GAS = '', apps = [], tab = 'all', q = '', fPin = '0', admin = false, pw = '', editId = null, fType = '개인용', busy = false;
 const GAS_RE = /^https:\/\/script\.google\.com\/.+\/exec$/;
 
 /* ?gas= 파라미터로 한 번에 연결 */
@@ -207,7 +268,7 @@ function toast(msg){
 /* ===== 화면 ===== */
 function showSetup(){
   $('viewSetup').classList.remove('hide'); $('viewMain').classList.add('hide');
-  $('admBtn').classList.add('hide'); $('resetGas').classList.add('hide');
+  $('admBtn').classList.add('hide'); $('resetGas').classList.add('hide'); $('admBar').classList.add('hide');
 }
 function showMain(){
   $('viewSetup').classList.add('hide'); $('viewMain').classList.remove('hide');
@@ -229,43 +290,58 @@ function render(){
   $('admBtn').textContent = admin ? '🔓' : '🔒';
   $('admBtn').classList.toggle('on', admin);
   $('addBtn').classList.toggle('hide', !admin);
+  $('admBar').classList.toggle('hide', !admin);
 
   const list = $('list'); list.innerHTML = '';
-  const shown = apps.filter(a => tab === 'all' || a.type === tab);
+  let shown = apps.filter(a => (tab === 'all' || a.type === tab) &&
+    (!q || (a.name + ' ' + (a.memo || '')).toLowerCase().indexOf(q) >= 0));
+  shown = shown.filter(a => a.pin).concat(shown.filter(a => !a.pin));
   if (!shown.length) {
-    list.appendChild(el('div', 'empty', admin
-      ? '아직 등록된 앱이 없어요.\n아래 “+ 앱 추가”로 첫 앱을 등록해 보세요.'
-      : '아직 등록된 앱이 없어요.\n오른쪽 위 🔒 로 관리 모드에 들어가서 앱을 추가해 보세요.'));
-    list.lastChild.style.whiteSpace = 'pre-line';
+    const msg = q ? '검색 결과가 없어요.'
+      : (admin ? '아직 등록된 앱이 없어요.\n아래 “+ 앱 추가”로 첫 앱을 등록해 보세요.'
+               : '아직 등록된 앱이 없어요.\n오른쪽 위 🔒 로 관리 모드에 들어가서 앱을 추가해 보세요.');
+    const em = el('div', 'empty', msg); em.style.whiteSpace = 'pre-line'; list.appendChild(em);
     return;
   }
   shown.forEach((a, i) => {
-    const card = admin ? el('div', 'app') : el('a', 'app');
-    if (!admin) card.href = a.url;
-    card.appendChild(el('div', 'ic', a.icon || '📱'));
+    const card = el('div', 'app');
+    const main = admin ? el('div', 'main') : el('a', 'main');
+    if (!admin) { main.href = a.url; main.target = '_blank'; main.rel = 'noopener noreferrer'; }
+    main.appendChild(el('div', 'ic', a.icon || '📱'));
     const inn = el('div', 'in');
     const nm = el('div', 'nm', a.name);
+    if (a.pin) nm.appendChild(el('span', '', '📌'));
     nm.appendChild(el('span', 'chip ' + (a.type === '개인용' ? 'p' : 'd'), a.type));
     inn.appendChild(nm);
     if (a.memo) inn.appendChild(el('div', 'mm', a.memo));
-    card.appendChild(inn);
+    main.appendChild(inn);
+    card.appendChild(main);
     if (admin) {
       const ctl = el('div', 'ctl');
       const r1 = el('div', 'row'), r2 = el('div', 'row');
-      const up = el('button', 'ib', '▲'); up.disabled = i === 0; up.onclick = () => move(shown, i, -1);
-      const dn = el('button', 'ib', '▼'); dn.disabled = i === shown.length - 1; dn.onclick = () => move(shown, i, 1);
+      const up = el('button', 'ib', '▲'); up.disabled = i === 0 || !!shown[i - 1].pin !== !!a.pin; up.onclick = () => move(shown, i, -1);
+      const dn = el('button', 'ib', '▼'); dn.disabled = i === shown.length - 1 || !!shown[i + 1].pin !== !!a.pin; dn.onclick = () => move(shown, i, 1);
       const ed = el('button', 'ib', '✏️'); ed.onclick = () => openForm(a);
       const rm = el('button', 'ib del', '🗑️'); rm.onclick = () => removeApp(a);
       r1.appendChild(up); r1.appendChild(dn); r2.appendChild(ed); r2.appendChild(rm);
       ctl.appendChild(r1); ctl.appendChild(r2); card.appendChild(ctl);
     } else {
-      card.appendChild(el('span', 'ar', '›'));
+      const mb = el('button', 'more', '⋯'); mb.setAttribute('aria-label', a.name + ' 연결 링크'); mb.onclick = () => openDetail(a);
+      card.appendChild(mb);
     }
     list.appendChild(card);
   });
 }
 
 /* ===== 데이터 ===== */
+function applySettings(s){
+  if (!s || typeof s !== 'object') return;
+  settings = { title: String(s.title || DEF_SET.title), subtitle: String(s.subtitle == null ? '' : s.subtitle) };
+  lsSet(LS_SET, JSON.stringify(settings));
+  $('hTitle').textContent = settings.title;
+  $('hSub').textContent = settings.subtitle; $('hSub').style.display = settings.subtitle ? '' : 'none';
+  document.title = settings.title;
+}
 function setApps(list){ apps = Array.isArray(list) ? list : []; lsSet(LS_CACHE, JSON.stringify(apps)); }
 
 async function load(){
@@ -273,7 +349,7 @@ async function load(){
   try{
     const r = await call({ action: 'list' });
     if (!r || !r.ok) throw new Error((r && r.error) || '불러오기에 실패했어요.');
-    setApps(r.apps); $('stat').textContent = '';
+    setApps(r.apps); applySettings(r.settings); $('stat').textContent = '';
   }catch(e){
     $('stat').textContent = '⚠️ ' + e.message + (apps.length ? ' (저장된 목록을 보여드려요)' : '');
   }
@@ -290,7 +366,8 @@ async function write(params){
       if (r && (r.code === 'pw' || r.code === 'locked')) { admin = false; pw = ''; try{ sessionStorage.removeItem(SS_PW); }catch(e){} render(); }
       throw new Error((r && r.error) || '저장에 실패했어요.');
     }
-    setApps(r.apps); render();
+    if (Array.isArray(r.apps)) setApps(r.apps);
+    applySettings(r.settings); render();
     return r;
   } finally { busy = false; }
 }
@@ -344,6 +421,8 @@ function markEmoji(){ [...$('fEmo').children].forEach(b => b.classList.toggle('o
 function setType(v){ fType = v; [...$('fType').children].forEach(b => b.classList.toggle('on', b.dataset.v === v)); }
 [...$('fType').children].forEach(b => b.onclick = () => setType(b.dataset.v));
 $('fIcon').addEventListener('input', markEmoji);
+function setPin(v){ fPin = v; [...$('fPin').children].forEach(b => b.classList.toggle('on', b.dataset.v === v)); }
+[...$('fPin').children].forEach(b => b.onclick = () => setPin(b.dataset.v));
 
 function openForm(a){
   editId = a ? a.id : null;
@@ -352,6 +431,8 @@ function openForm(a){
   $('fUrl').value = a ? a.url : '';
   $('fIcon').value = a ? a.icon : '📱';
   $('fMemo').value = a ? a.memo : '';
+  $('fSheet').value = a ? (a.sheet || '') : ''; $('fRepo').value = a ? (a.repo || '') : ''; $('fGas').value = a ? (a.gas || '') : '';
+  setPin(a && a.pin ? '1' : '0');
   $('fErr').textContent = '';
   setType(a ? a.type : (tab === '배포용' ? '배포용' : '개인용'));
   markEmoji();
@@ -364,12 +445,109 @@ $('fSave').onclick = async () => {
   const name = $('fName').value.trim(), url = $('fUrl').value.trim();
   if (!name) { $('fErr').textContent = '앱 이름을 입력해 주세요.'; return; }
   if (!/^https?:\/\/\S+$/i.test(url)) { $('fErr').textContent = '링크는 http:// 또는 https:// 로 시작해야 해요.'; return; }
-  const params = { action: editId ? 'update' : 'add', name, url, type: fType, icon: $('fIcon').value.trim() || '📱', memo: $('fMemo').value.trim() };
+  const ex = { sheet: $('fSheet').value.trim(), repo: $('fRepo').value.trim(), gas: $('fGas').value.trim() };
+  if ([ex.sheet, ex.repo, ex.gas].some(v => v && !/^https?:\/\/\S+$/i.test(v))) { $('fErr').textContent = '시트·GAS·코드 파일 링크는 http:// 또는 https:// 로 시작해야 해요.'; return; }
+  const params = { action: editId ? 'update' : 'add', name, url, type: fType, icon: $('fIcon').value.trim() || '📱', memo: $('fMemo').value.trim(), sheet: ex.sheet, repo: ex.repo, gas: ex.gas, pin: fPin };
   if (editId) params.id = editId;
   $('fSave').disabled = true; $('fErr').textContent = '';
   try{ await write(params); closeForm(); toast(editId ? '수정했어요' : '등록했어요'); }
   catch(e){ $('fErr').textContent = e.message; if (!admin) closeForm(); }
   $('fSave').disabled = false;
+};
+
+/* ===== 검색 ===== */
+$('q').addEventListener('input', () => { q = $('q').value.trim().toLowerCase(); render(); });
+
+/* ===== 앱 상세(연결 링크) + 링크 복사 ===== */
+function esc(t){ return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function openDetail(a){
+  $('dTitle').textContent = (a.icon || '📱') + ' ' + a.name;
+  $('dMemo').textContent = a.memo || ''; $('dMemo').style.display = a.memo ? '' : 'none';
+  const body = $('dBody'); body.innerHTML = '';
+  const link = (label, url) => { const x = el('a', 'btn', label); x.href = url; x.target = '_blank'; x.rel = 'noopener noreferrer'; body.appendChild(x); };
+  link('🚀 앱 열기', a.url);
+  if (a.sheet) link('📊 구글 시트 열기', a.sheet);
+  if (a.gas) link('⚙️ GAS 편집기 열기', a.gas);
+  if (a.repo) link('💻 코드 파일 열기', a.repo);
+  const cp = el('button', 'btn sub', '🔗 앱 링크 복사'); cp.onclick = () => copyLink(a); body.appendChild(cp);
+  if (!a.sheet && !a.repo && !a.gas) body.appendChild(el('div', 'dh', '연결된 시트·GAS·코드 파일 링크는 관리 모드의 ✏️ 수정에서 등록할 수 있어요.'));
+  $('ovDetail').classList.remove('hide');
+}
+$('dClose').onclick = () => $('ovDetail').classList.add('hide');
+async function copyLink(a){
+  const label = a.name + '_made by Cheon R';
+  try{
+    if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+      const html = '<a href="' + esc(a.url) + '">' + esc(label) + '</a>';
+      await navigator.clipboard.write([new ClipboardItem({
+        'text/html': new Blob([html], { type: 'text/html' }),
+        'text/plain': new Blob([label + ' ' + a.url], { type: 'text/plain' })
+      })]);
+      toast('글자 링크로 복사했어요');
+      return;
+    }
+    await navigator.clipboard.writeText(a.url); toast('주소를 복사했어요');
+  }catch(e){ toast('복사하지 못했어요. 주소를 직접 복사해 주세요.'); }
+}
+
+/* ===== 비밀번호 변경 ===== */
+$('pwBtn').onclick = () => { $('npInp').value = ''; $('np2Inp').value = ''; $('npErr').textContent = ''; $('ovNp').classList.remove('hide'); };
+$('npCancel').onclick = () => $('ovNp').classList.add('hide');
+$('npSave').onclick = async () => {
+  const a = $('npInp').value.trim(), b = $('np2Inp').value.trim();
+  if (a.length < 4 || a.length > 30 || /\s/.test(a)) { $('npErr').textContent = '공백 없이 4~30자로 입력해 주세요.'; return; }
+  if (a !== b) { $('npErr').textContent = '두 비밀번호가 달라요.'; return; }
+  $('npSave').disabled = true; $('npErr').textContent = '';
+  try{
+    await write({ action: 'setpw', newpw: a });
+    pw = a; try{ sessionStorage.setItem(SS_PW, a); }catch(e){}
+    $('ovNp').classList.add('hide'); toast('비밀번호를 바꿨어요');
+  }catch(e){ $('npErr').textContent = e.message; if (!admin) $('ovNp').classList.add('hide'); }
+  $('npSave').disabled = false;
+};
+
+/* ===== 백업 저장 / 불러오기 ===== */
+$('expBtn').onclick = () => {
+  const data = { app: 'Cheon-R-launcher', version: 1, exportedAt: new Date().toISOString(), settings: settings, apps: apps };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const u = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = u; a.download = 'Cheon-R-launcher-backup.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 1500);
+  toast('백업 파일을 저장했어요 (' + apps.length + '개)');
+};
+$('impBtn').onclick = () => $('impFile').click();
+$('impFile').onchange = async e => {
+  const f = e.target.files && e.target.files[0]; e.target.value = ''; if (!f) return;
+  let d; try{ d = JSON.parse(await f.text()); }catch(err){ toast('백업 파일을 읽지 못했어요.'); return; }
+  const list = Array.isArray(d) ? d : (d && d.apps);
+  if (!Array.isArray(list) || !list.length) { toast('가져올 앱이 없어요.'); return; }
+  const have = new Set(apps.map(a => a.name + '|' + a.url));
+  const todo = list.filter(a => a && a.name && /^https?:\/\//i.test(a.url || '') && !have.has(a.name + '|' + a.url));
+  if (!todo.length) { toast('새로 추가할 앱이 없어요. (이미 있는 앱은 건너뛰어요)'); return; }
+  if (!confirm('백업에서 ' + todo.length + '개 앱을 추가할까요? (이미 있는 앱은 건너뛰고, 기존 앱은 바뀌지 않아요)')) return;
+  let n = 0;
+  for (const a of todo) {
+    try{
+      const r = await write({ action: 'add', name: a.name, url: a.url, type: a.type === '배포용' ? '배포용' : '개인용', icon: a.icon || '📱', memo: a.memo || '',
+        sheet: a.sheet || '', repo: a.repo || '', gas: a.gas || '', pin: a.pin ? '1' : '0' });
+      if (!r) throw new Error('잠시 후 다시 시도해 주세요.');
+      n++; $('stat').textContent = '가져오는 중… ' + n + '/' + todo.length;
+    }catch(err){ toast(err.message); break; }
+  }
+  $('stat').textContent = ''; toast(n + '개 추가했어요');
+};
+
+/* ===== 제목 수정 ===== */
+$('titleBtn').onclick = () => { $('tTitle').value = settings.title; $('tSub').value = settings.subtitle; $('tErr').textContent = ''; $('ovTitle').classList.remove('hide'); };
+$('tCancel').onclick = () => $('ovTitle').classList.add('hide');
+$('tSave').onclick = async () => {
+  const title = $('tTitle').value.trim();
+  if (!title) { $('tErr').textContent = '제목을 입력해 주세요.'; return; }
+  $('tSave').disabled = true; $('tErr').textContent = '';
+  try{ await write({ action: 'settings', title, subtitle: $('tSub').value.trim() }); $('ovTitle').classList.add('hide'); toast('제목을 바꿨어요'); }
+  catch(e){ $('tErr').textContent = e.message; if (!admin) $('ovTitle').classList.add('hide'); }
+  $('tSave').disabled = false;
 };
 
 /* ===== 연결 ===== */
@@ -381,7 +559,7 @@ $('gasBtn').onclick = async () => {
   try{
     const r = await call({ action: 'list' });
     if (!r || !r.ok) throw new Error((r && r.error) || '연결에 실패했어요.');
-    lsSet(LS_GAS, v); setApps(r.apps); $('setupErr').textContent = '';
+    lsSet(LS_GAS, v); setApps(r.apps); applySettings(r.settings); $('setupErr').textContent = '';
     showMain(); toast('연결했어요');
   }catch(e){ GAS = prev; $('setupErr').textContent = e.message; }
   $('gasBtn').disabled = false;
@@ -399,6 +577,7 @@ GAS = lsGet(LS_GAS);
 if (!GAS) { showSetup(); }
 else {
   try{ apps = JSON.parse(lsGet(LS_CACHE) || '[]'); if (!Array.isArray(apps)) apps = []; }catch(e){ apps = []; }
+  try{ applySettings(JSON.parse(lsGet(LS_SET) || 'null')); }catch(e){}
   try{ pw = sessionStorage.getItem(SS_PW) || ''; }catch(e){ pw = ''; }
   admin = !!pw;
   showMain();
