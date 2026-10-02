@@ -150,8 +150,15 @@ details summary::-webkit-details-marker{display:none}
 .stbars .c span{height:14px;line-height:14px;white-space:nowrap}
 .stbars{display:flex;align-items:flex-end;gap:3px;height:92px;margin-top:6px}
 .stbars .c{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:11px;color:var(--tx3)}
-.stbars .c i{display:block;width:100%;max-width:26px;border-radius:6px 6px 2px 2px;background:#D8D2EE;min-height:3px}
-.stbars .c.t i{background:var(--main)}
+.stbars .c .stk{display:flex;flex-direction:column;justify-content:flex-end;width:100%;max-width:26px;border-radius:6px 6px 2px 2px;overflow:hidden;min-height:3px;background:#E9E5F5}
+.stbars .c .stk i{display:block;width:100%}
+.stbars .c .stk .ss{background:#CFC7EA}
+.stbars .c .stk .tt{background:var(--main)}
+.stgrp{font-size:13px;font-weight:700;color:var(--tx2);margin:14px 0 6px}
+.stleg{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--tx2);margin-top:6px}
+.stleg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.stsplit{display:flex;height:12px;border-radius:6px;overflow:hidden;background:#E9E5F5;margin-top:6px}
+.stsplit b{display:block;height:100%}
 .stbars .c em{font-style:normal;font-weight:700;color:var(--tx2);margin-bottom:2px}
 .chip.on.rv{background:var(--main);color:#fff;border-color:var(--main)}
 .rv-stars{display:flex;justify-content:center;gap:2px;margin:2px 0 4px}
@@ -214,7 +221,7 @@ input[type=date]{min-width:0;max-width:100%}
         <li><b>이용 목적</b>: 이용 현황 파악, 문의 응대, 앱 개선, 개발자의 활동 기록 정리. 소개 자료에는 <b>숫자 통계로만</b> 쓰고, 이름·학교가 드러나게 쓰지 않아요. (후기 인용은 후기를 쓰실 때 따로 허락하신 경우에만)</li>
         <li><b>보유 기간</b>: 앱을 운영하는 동안. 삭제를 요청하시면 지체 없이 삭제해요.</li>
         <li><b>삭제·문의</b>: ⚙️ 설정 탭의 [✉️ 문의하기]로 요청해 주세요.</li>
-        <li><b>학생 정보</b>: 학생의 이름·학번·공지 내용은 개발자에게 전달되지 않아요. (선생님 본인의 구글 시트에만 저장돼요) 학생이 앱에서 직접 남기는 후기·개선점만 <b>이름 없이</b> 전달되고, 선생님이 💬 후기 탭에서 언제든 끌 수 있어요.</li>
+        <li><b>학생 정보</b>: 학생의 이름·학번·공지 내용은 개발자에게 전달되지 않아요. (선생님 본인의 구글 시트에만 저장돼요) 학생이 직접 남기는 후기·개선점, 그리고 학생 앱이 열린 기기 수(하루 1번, 숫자로만)만 <b>이름 없이</b> 전달되고, 선생님이 💬 후기 탭에서 언제든 끌 수 있어요.</li>
       </ul><p style="margin:6px 0 0">필수 동의예요. 동의하지 않으시면 사용자 등록을 할 수 없어서 앱을 쓸 수 없어요.</p></div></details>
       <div class="row" style="margin-top:12px"><button class="btn" onclick="savePre()">다음 → 구글 시트 연결</button></div>
       <div class="msg" id="preMsg"></div>
@@ -301,7 +308,7 @@ input[type=date]{min-width:0;max-width:100%}
         <li><b>이용 목적</b>: 이용 현황 파악, 문의 응대, 앱 개선, 개발자의 활동 기록 정리. 소개 자료에는 <b>숫자 통계로만</b> 쓰고, 이름·학교가 드러나게 쓰지 않아요. (후기 인용은 후기를 쓰실 때 따로 허락하신 경우에만)</li>
         <li><b>보유 기간</b>: 앱을 운영하는 동안. 삭제를 요청하시면 지체 없이 삭제해요.</li>
         <li><b>삭제·문의</b>: ⚙️ 설정 탭의 [✉️ 문의하기]로 요청해 주세요.</li>
-        <li><b>학생 정보</b>: 학생의 이름·학번·공지 내용은 개발자에게 전달되지 않아요. (선생님 본인의 구글 시트에만 저장돼요) 학생이 앱에서 직접 남기는 후기·개선점만 <b>이름 없이</b> 전달되고, 선생님이 💬 후기 탭에서 언제든 끌 수 있어요.</li>
+        <li><b>학생 정보</b>: 학생의 이름·학번·공지 내용은 개발자에게 전달되지 않아요. (선생님 본인의 구글 시트에만 저장돼요) 학생이 직접 남기는 후기·개선점, 그리고 학생 앱이 열린 기기 수(하루 1번, 숫자로만)만 <b>이름 없이</b> 전달되고, 선생님이 💬 후기 탭에서 언제든 끌 수 있어요.</li>
       </ul><p style="margin:6px 0 0">필수 동의예요. 동의하지 않으시면 사용자 등록을 할 수 없어서 앱을 쓸 수 없어요.</p></div></details>
       <div class="row" style="margin-top:12px"><button class="btn" onclick="doRegister(this)">등록하기</button><button class="btn sub" onclick="logout()">로그아웃</button></div>
       <div class="msg" id="regMsg"></div>
@@ -455,16 +462,26 @@ input[type=date]{min-width:0;max-width:100%}
     <section id="tab-own" class="hide">
       <div class="box hide" id="stBox">
         <h2>📈 이용 현황</h2>
+        <div class="stgrp" style="margin-top:4px">👩‍🏫 선생님</div>
         <div class="stg">
           <div class="stc"><b id="stToday">0</b><small>오늘 접속자</small><em id="stNew"></em></div>
           <div class="stc"><b id="stUsers">0</b><small>누적 사용자</small><em>접속한 선생님 수</em></div>
           <div class="stc"><b id="stVisits">0</b><small>누적 접속</small><em>들어온 횟수 합계</em></div>
           <div class="stc"><b id="stWeek">0</b><small>이번 주 접속자</small><em>월~오늘, 중복 제외</em></div>
         </div>
-        <label class="f" style="margin-top:14px">최근 14일 접속자 (명)</label>
+        <div class="stgrp">🧑‍🎓 학생 <span style="font-weight:400;color:var(--tx3)">(기기 기준 · 이름 없이)</span></div>
+        <div class="stg">
+          <div class="stc"><b id="stStuToday">0</b><small>오늘 접속 기기</small><em>기기당 하루 1번</em></div>
+          <div class="stc"><b id="stStuDev">0</b><small>누적 학생 기기</small><em>어제까지 · 중복 제외</em></div>
+        </div>
+        <div class="stgrp">최근 14일 접속 (선생님 + 학생 기기)</div>
         <div class="stbars" id="stBars"></div>
+        <div class="stleg"><span><i style="background:var(--main)"></i>선생님</span><span><i style="background:#CFC7EA"></i>학생 기기</span></div>
+        <div class="stgrp">구분별 누적</div>
+        <div class="stsplit" id="stSplit"></div>
+        <div class="stleg" id="stSplitLeg"></div>
         <div class="row" style="margin-top:12px"><button class="btn sub" onclick="saveStatImg()">🖼️ 화면 이미지로 저장</button></div>
-        <p class="hint" style="margin:10px 0 0">하루에 한 번만 세요 (같은 선생님이 하루에 여러 번 들어와도 1회). 아듬샘 본인·사용 중지된 분은 빼고 세요. 기록은 일별·접속일지 탭에 쌓여요. 모든 선생님 화면 위에도 "오늘·누적" 숫자가 보여요(누적 10명 미만이면 숨김, 아듬샘 화면에는 항상 보임).</p>
+        <p class="hint" style="margin:10px 0 0">하루에 한 번만 세요 (같은 선생님·같은 기기가 하루에 여러 번 열어도 1회). 학생은 <b>이름·학번 없이 기기 기준</b>이라 학생 수와 정확히 같지는 않아요(한 학생이 디벗·폰 두 대면 2). 아듬샘 본인·사용 중지된 분·학생 전송을 끈 반은 빼고 세요. 모든 선생님 화면 위에는 <b>선생님 숫자만</b> 보여요(누적 10명 미만이면 숨김, 아듬샘 화면에는 항상 보임).</p>
       </div>
       <div class="box">
         <h2>👑 사용자 관리</h2>
@@ -484,8 +501,8 @@ input[type=date]{min-width:0;max-width:100%}
     <section id="tab-rv" class="hide">
       <div class="box hide" id="srBox">
         <h2>🧑‍🎓 우리 반 학생 후기</h2>
-        <div class="sw" id="srSw" onclick="toggleSr()"><span class="tg"></span><div><b id="srTxt">학생 후기 받기</b><small id="srSub"></small></div></div>
-        <p class="hint" style="margin:8px 0 0">학생 앱 맨 아래에 <b>💬 후기 남기기</b> 버튼이 보여요. 학생이 남긴 후기는 <b>이름·학번 없이</b>(학급 코드만) 앱 개발자에게 전달돼요. 선생님 시트에는 저장되지 않아요. 원하지 않으면 꺼 두세요.</p>
+        <div class="sw" id="srSw" onclick="toggleSr()"><span class="tg"></span><div><b id="srTxt">학생 후기·이용 수</b><small id="srSub"></small></div></div>
+        <p class="hint" style="margin:8px 0 0">켜 두면 두 가지가 앱 개발자에게 <b>이름·학번 없이</b>(학급 코드만) 전달돼요. ① 학생 앱 맨 아래 <b>💬 후기 남기기</b>로 학생이 직접 쓴 후기, ② 학생 앱을 연 기기 수(<b>하루 1번</b>, 숫자로만). 선생님 시트에는 저장되지 않아요. 원하지 않으면 꺼 두세요.</p>
         <div class="msg" id="srMsg"></div>
       </div>
       <div class="box">
@@ -933,13 +950,13 @@ function renderSr(){
   $('srBox').classList.toggle('hide', !(reviewOn && srOn !== null));
   if (srOn === null) return;
   $('srSw').classList.toggle('on', srOn);
-  $('srTxt').textContent = '학생 후기 받기 ' + (srOn ? 'ON' : 'OFF');
-  $('srSub').textContent = srOn ? '학생 앱에 💬 후기 남기기 버튼이 보여요' : '지금은 학생 앱에 후기 버튼이 안 보여요';
+  $('srTxt').textContent = '학생 후기·이용 수 ' + (srOn ? 'ON' : 'OFF');
+  $('srSub').textContent = srOn ? '후기 버튼이 보이고, 앱 이용 수가 이름 없이 집계돼요' : '후기 버튼이 숨겨지고 이용 수도 집계되지 않아요';
 }
 async function toggleSr(){
   if (srOn === null) return;
   const on = !srOn; srOn = on; renderSr(); msg('srMsg','저장 중…',true);
-  try{ await jsonp({ action:'srSwitch', id:installId, on: on?'1':'' }, REGISTRY_URL); msg('srMsg', on ? '학생 후기 받기를 켰어요.' : '학생 후기 받기를 껐어요.', true); }
+  try{ await jsonp({ action:'srSwitch', id:installId, on: on?'1':'' }, REGISTRY_URL); msg('srMsg', on ? '학생 후기·이용 수 집계를 켰어요.' : '학생 후기·이용 수 집계를 껐어요.', true); }
   catch(e){ srOn = !on; renderSr(); msg('srMsg','저장하지 못해 되돌렸어요: ' + e.message); }
 }
 let usePub = null;
@@ -1664,8 +1681,13 @@ function renderOwner(){
     $('stToday').textContent = stt.today; $('stUsers').textContent = stt.users; $('stVisits').textContent = stt.visits;
     $('stWeek').textContent = stt.week == null ? '-' : stt.week;
     $('stNew').textContent = stt.newToday == null ? '' : '오늘 처음 온 분 ' + stt.newToday + '명';
-    const mx = Math.max(1, ...stt.days.map(d=>d.n)), L = stt.days.length;
-    $('stBars').innerHTML = stt.days.map((d,i) => `<div class="c ${i===L-1?'t':''}"><em>${d.n||''}</em><i style="height:${Math.round(d.n/mx*52)+3}px"></i><span>${i===0?esc(L+'일 전'):i===L-1?'오늘':''}</span></div>`).join('');
+    const st2 = stt.stu || { today:0, devices:0, visits:0 };
+    $('stStuToday').textContent = st2.today; $('stStuDev').textContent = st2.devices;
+    const tot = d => d.n + (d.s || 0), mx = Math.max(1, ...stt.days.map(tot)), L = stt.days.length, H = 56;
+    $('stBars').innerHTML = stt.days.map((d,i) => `<div class="c"><em>${tot(d)||''}</em><div class="stk" style="height:${tot(d) ? Math.max(3, Math.round(tot(d)/mx*H)) : 3}px"><i class="ss" style="flex:${d.s||0} 0 0"></i><i class="tt" style="flex:${d.n} 0 0"></i></div><span>${i===0?esc(L+'일 전'):i===L-1?'오늘':''}</span></div>`).join('');
+    const sumT = stt.users, sumS = st2.devices, sumA = Math.max(1, sumT + sumS);
+    $('stSplit').innerHTML = `<b style="width:${sumT/sumA*100}%;background:var(--main)"></b><b style="width:${sumS/sumA*100}%;background:#CFC7EA"></b>`;
+    $('stSplitLeg').innerHTML = `<span><i style="background:var(--main)"></i>선생님 ${sumT}명</span><span><i style="background:#CFC7EA"></i>학생 기기 ${sumS}대</span>`;
   }
   const rv = own.review;
   $('rvSw').classList.toggle('hide', !rv); $('rvOld').classList.toggle('hide', !!rv);
@@ -1702,8 +1724,9 @@ async function toggleApproval(){
 }
 async function saveStatImg(){
   const t = own.stats; if (!t){ msg('ownMsg','현황을 아직 못 불러왔어요.'); return; }
+  const u = t.stu || { today:0, devices:0, visits:0 };
   try{ await document.fonts.ready; }catch(e){}
-  const S = 2, W = 760, H = 800, c = document.createElement('canvas'); c.width = W*S; c.height = H*S;
+  const S = 2, W = 760, H = 1160, c = document.createElement('canvas'); c.width = W*S; c.height = H*S;
   const x = c.getContext('2d'); x.scale(S,S);
   const F = (w,px) => w + ' ' + px + "px Pretendard, 'Noto Sans KR', sans-serif";
   const rr = (X,Y,w,h,r) => { x.beginPath(); x.moveTo(X+r,Y); x.arcTo(X+w,Y,X+w,Y+h,r); x.arcTo(X+w,Y+h,X,Y+h,r); x.arcTo(X,Y+h,X,Y,r); x.arcTo(X,Y,X+w,Y,r); x.closePath(); };
@@ -1712,27 +1735,34 @@ async function saveStatImg(){
   x.textBaseline = 'alphabetic'; x.textAlign = 'left';
   x.fillStyle = '#3B3358'; x.font = F('800',30); x.fillText('CLASS BOARD 이용 현황', 56, 84);
   const now = new Date(), ds = now.getFullYear() + '.' + String(now.getMonth()+1).padStart(2,'0') + '.' + String(now.getDate()).padStart(2,'0');
-  x.fillStyle = '#8A84A0'; x.font = F('500',17); x.fillText(ds + ' 기준 · 하루 1번 기준 집계', 56, 112);
-  const tiles = [[t.today,'오늘 접속자', t.newToday==null?'':'오늘 처음 온 분 ' + t.newToday + '명'],[t.users,'누적 사용자','접속한 선생님 수'],[t.visits,'누적 접속','들어온 횟수 합계'],[t.week==null?'-':t.week,'이번 주 접속자','월~오늘, 중복 제외']];
-  const tw = (W-48-64-16)/2, th = 130;
-  tiles.forEach((v,i) => {
-    const X = 56 + (i%2)*(tw+16), Y = 140 + Math.floor(i/2)*(th+16);
-    x.fillStyle = '#F4F2FA'; rr(X,Y,tw,th,18); x.fill();
-    x.textAlign = 'center'; const cx = X + tw/2;
-    x.fillStyle = '#6F62A8'; x.font = F('800',44); x.fillText(String(v[0]), cx, Y+60);
-    x.fillStyle = '#4A4466'; x.font = F('700',17); x.fillText(v[1], cx, Y+88);
-    x.fillStyle = '#8A84A0'; x.font = F('500',14); x.fillText(v[2], cx, Y+111);
-  });
-  x.textAlign = 'left'; x.fillStyle = '#4A4466'; x.font = F('700',17); x.fillText('최근 ' + t.days.length + '일 접속자 (명)', 56, 468);
-  const L = t.days.length, mx = Math.max(1, ...t.days.map(d=>d.n)), areaW = W-48-64, gap = 6, bw = (areaW - gap*(L-1))/L, base = 700, maxH = 180;
+  x.fillStyle = '#8A84A0'; x.font = F('500',17); x.fillText(ds + ' 기준 · 하루 1번 기준 집계 · 학생은 이름 없이 기기 기준', 56, 112);
+  const tw = (W-48-64-16)/2, th = 124;
+  const tile = (i, y0, v) => {
+    const X = 56 + (i%2)*(tw+16), Y = y0 + Math.floor(i/2)*(th+14);
+    x.fillStyle = '#F4F2FA'; rr(X,Y,tw,th,18); x.fill(); x.textAlign = 'center'; const cx = X + tw/2;
+    x.fillStyle = '#6F62A8'; x.font = F('800',42); x.fillText(String(v[0]), cx, Y+56);
+    x.fillStyle = '#4A4466'; x.font = F('700',16); x.fillText(v[1], cx, Y+82); x.fillStyle = '#8A84A0'; x.font = F('500',13); x.fillText(v[2], cx, Y+104);
+  };
+  x.textAlign = 'left'; x.fillStyle = '#4A4466'; x.font = F('700',18); x.fillText('선생님', 56, 156);
+  [[t.today,'오늘 접속자', t.newToday==null?'':'오늘 처음 온 분 ' + t.newToday + '명'],[t.users,'누적 사용자','접속한 선생님 수'],[t.visits,'누적 접속','들어온 횟수 합계'],[t.week==null?'-':t.week,'이번 주 접속자','월~오늘, 중복 제외']].forEach((v,i) => tile(i,168,v));
+  x.textAlign = 'left'; x.fillStyle = '#4A4466'; x.font = F('700',18); x.fillText('학생 (기기 기준)', 56, 464);
+  [[u.today,'오늘 접속 기기','기기당 하루 1번'],[u.devices,'누적 학생 기기','어제까지 · 중복 제외']].forEach((v,i) => tile(i,476,v));
+  x.textAlign = 'left'; x.fillStyle = '#4A4466'; x.font = F('700',18); x.fillText('최근 ' + t.days.length + '일 접속 (선생님 + 학생 기기)', 56, 650);
+  const L = t.days.length, tot = d => d.n + (d.s||0), mx = Math.max(1, ...t.days.map(tot)), areaW = W-48-64, gap = 6, bw = (areaW - gap*(L-1))/L, base = 900, maxH = 190;
   t.days.forEach((d,i) => {
-    const h = Math.round(d.n/mx*maxH) + 4, X = 56 + i*(bw+gap);
-    x.fillStyle = i===L-1 ? '#9B8EC4' : '#D8D2EE'; rr(X, base-h, bw, h, Math.min(6, h/2)); x.fill();
-    if (d.n){ x.fillStyle = '#4A4466'; x.font = F('700',14); x.textAlign = 'center'; x.fillText(String(d.n), X+bw/2, base-h-6); }
+    const X = 56 + i*(bw+gap), hT = Math.round(d.n/mx*maxH), hS = Math.round((d.s||0)/mx*maxH), h = Math.max(4, hT + hS);
+    x.save(); rr(X, base-h, bw, h, Math.min(6, h/2)); x.clip(); x.fillStyle = '#E9E5F5'; x.fillRect(X, base-h, bw, h);
+    x.fillStyle = '#CFC7EA'; x.fillRect(X, base-hS-hT, bw, hS); x.fillStyle = '#9B8EC4'; x.fillRect(X, base-hT, bw, hT); x.restore();
+    if (tot(d)){ x.fillStyle = '#4A4466'; x.font = F('700',13); x.textAlign = 'center'; x.fillText(String(tot(d)), X+bw/2, base-h-6); }
   });
-  x.textAlign = 'left'; x.fillStyle = '#8A84A0'; x.font = F('500',14); x.fillText(L + '일 전', 56, base+26);
-  x.textAlign = 'right'; x.fillText('오늘', W-56, base+26);
-  x.fillStyle = '#B5B0C8'; x.font = F('600',14); x.fillText('Made by Cheon_R', W-56, H-44);
+  x.textAlign = 'left'; x.fillStyle = '#8A84A0'; x.font = F('500',14); x.fillText(L + '일 전', 56, base+24); x.textAlign = 'right'; x.fillText('오늘', W-56, base+24);
+  x.textAlign = 'left'; x.fillStyle = '#9B8EC4'; rr(56, base+42, 12, 12, 3); x.fill(); x.fillStyle = '#6B6680'; x.font = F('500',14); x.fillText('선생님', 74, base+53);
+  x.fillStyle = '#CFC7EA'; rr(140, base+42, 12, 12, 3); x.fill(); x.fillStyle = '#6B6680'; x.fillText('학생 기기', 158, base+53);
+  const sumT = t.users, sumS = u.devices, sumA = Math.max(1, sumT + sumS), bx = 56, bwid = W-48-64, by = base+100;
+  x.fillStyle = '#4A4466'; x.font = F('700',16); x.fillText('구분별 누적', 56, by);
+  x.save(); rr(bx, by+10, bwid, 14, 7); x.clip(); x.fillStyle = '#E9E5F5'; x.fillRect(bx, by+10, bwid, 14); x.fillStyle = '#9B8EC4'; x.fillRect(bx, by+10, bwid*sumT/sumA, 14); x.fillStyle = '#CFC7EA'; x.fillRect(bx+bwid*sumT/sumA, by+10, bwid*sumS/sumA, 14); x.restore();
+  x.fillStyle = '#6B6680'; x.font = F('500',14); x.fillText('선생님 ' + sumT + '명 · 학생 기기 ' + sumS + '대', 56, by+46);
+  x.textAlign = 'right'; x.fillStyle = '#B5B0C8'; x.font = F('600',14); x.fillText('Made by Cheon_R', W-56, H-44);
   c.toBlob(b => {
     const a = document.createElement('a'); a.href = URL.createObjectURL(b);
     a.download = 'CLASS-BOARD_이용현황_' + ds.replace(/\./g,'-') + '.png'; document.body.appendChild(a); a.click(); a.remove();

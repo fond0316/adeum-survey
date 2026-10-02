@@ -285,7 +285,7 @@ mark{background:#FEF3C7;color:inherit;border-radius:3px;padding:0 1px}
     <div class="hl"><span class="ic">✏️</span><div><b>틀린 내용·궁금한 점</b><br>공지 안의 <b>[수정 요청·질문]</b>으로 보내요. 선생님(또는 회장)에게만 가고, 학번·이름이 함께 전달돼요.</div></div>
     <div class="hl"><span class="ic">🔍</span><div><b>지난 공지 찾기</b><br>공지 위쪽 🔍를 누르고 단어를 입력해요. (예: 수행평가, 체육복)</div></div>
     <div class="hl"><span class="ic">↻</span><div><b>안 보이거나 느릴 때</b><br>위쪽 <b>↻</b>를 눌러 새로고침해요. 학교 와이파이에서 안 되면 데이터로 바꿔 보세요.</div></div>
-    <div class="hl"><span class="ic">💬</span><div><b>후기·바라는 점</b><br>맨 아래 <b>[💬 후기 남기기]</b>로 보내요. 이름 없이 앱을 만든 선생님께만 전달돼요.</div></div>
+    <div class="hl"><span class="ic">💬</span><div><b>후기·바라는 점</b><br>맨 아래 <b>[💬 후기 남기기]</b>로 보내요. 이름 없이 앱을 만든 선생님께만 전달돼요. 또 앱이 얼마나 쓰이는지 알 수 있게, 앱을 연 기기 수만 하루 한 번 숫자로 세요.</div></div>
     <div class="hl"><span class="ic">🔒</span><div><b>링크는 우리 반끼리만</b><br>이 링크는 다른 반이나 밖으로 보내지 말아 주세요.</div></div>
   </div>
 </div>
@@ -889,6 +889,21 @@ async function sendStuReview(){
 }
 (function(){ if (!REGISTRY_URL){ const b = document.getElementById('stuRvBtn'); if (b) b.style.display = 'none'; } })();
 
+/* ===== 이용 수 집계: 앱을 연 기기를 '하루에 한 번만', 이름·학번 없이 숫자로만 알려요 =====
+   - 화면·속도에는 아무 영향 없이 뒤에서 조용히 보내요 (실패해도 아무 표시 없음, 다음에 다시 시도)
+   - 담임 미리보기·교실 화면 모드(전자칠판)는 세지 않아요 */
+let pingSched = false;
+function schedulePing(){
+  if (pingSched || !REGISTRY_URL || !GAS || PREVIEW || BOARD) return;
+  if (lsGet('sn_ping_v1', '') === today()) return;
+  pingSched = true;
+  setTimeout(async () => {          // 0.5~8초 사이 아무 때나 보내서 한꺼번에 몰리는 걸 줄여요
+    pingSched = false;
+    if (BOARD) return;
+    try{ await jsonp({ action:'ping', cb:classCode(GAS), dv:devId() }, REGISTRY_URL); lsSet('sn_ping_v1', today()); }catch(e){}
+  }, 500 + Math.random() * 7500);
+}
+
 /* ===== 학번 등록 ===== */
 function openWho(){
   document.getElementById('sidIn').value = me ? me.sid : '';
@@ -1031,6 +1046,7 @@ if (!GAS){
 } else {
   load();
   startPoll();
+  schedulePing();
   if (!me && !PREVIEW && !BOARD) setTimeout(openWho, 600);
 }
 </script>
