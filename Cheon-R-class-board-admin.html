@@ -1761,8 +1761,24 @@ async function toggleApproval(){
 /* ===== 📊 성장 분석 (주간/월간) ===== */
 let grData = null, grMode = 'w';
 async function loadGrowth(){
-  try{ grData = await jsonp({ action:'ownerGrowth', id:installId }, REGISTRY_URL); renderGrowth(); }
-  catch(e){ grData = null; $('grBox').classList.add('hide'); }   // 등록부 GAS가 옛 버전이면 조용히 숨김
+  if (!grData){ $('grBox').classList.remove('hide'); $('grHead').textContent = '성장 분석을 불러오는 중이에요…'; $('grKpi').innerHTML = $('grLine').innerHTML = $('grBars').innerHTML = $('grChips').innerHTML = $('grTbl').innerHTML = ''; }
+  let err = '';
+  for (let k = 0; k < 2; k++){   // 첫 요청이 느리거나 실패해도 한 번 더 시도 (구글 서버가 잠깐 늦을 때가 있어요)
+    try{ grData = await jsonp({ action:'ownerGrowth', id:installId }, REGISTRY_URL); err = ''; break; }
+    catch(e){ err = e.message || '알 수 없는 오류'; grData = null; if (k === 0) await new Promise(r => setTimeout(r, 1500)); }
+  }
+  if (!grData){ showGrowthError(err); return; }
+  try{ renderGrowth(); }
+  catch(e){ console.error(e); grData = null; showGrowthError('화면을 그리다 오류가 났어요: ' + (e.message || e)); }
+}
+function showGrowthError(msg){   // 성장 분석이 안 뜰 때 조용히 숨기지 않고 이유를 보여줘요
+  $('grBox').classList.remove('hide');
+  const oldGas = /알 수 없는 요청/.test(msg);
+  $('grHead').innerHTML = oldGas
+    ? '등록부 GAS가 아직 <b>옛 버전</b>이라 성장 분석을 쓸 수 없어요. 새 코드로 <b>수정 배포</b>한 뒤 [다시 시도]를 눌러 주세요.'
+    : '성장 분석을 불러오지 못했어요.<small>' + esc(msg) + '<br>잠시 뒤 [다시 시도]를 눌러 보세요. 계속 안 되면 등록부 GAS를 새 코드로 수정 배포했는지 확인해 주세요.</small>';
+  $('grKpi').innerHTML = '<div style="grid-column:1/-1;background:none;padding:0"><button class="btn sub" onclick="loadGrowth()">🔄 다시 시도</button></div>';
+  $('grLine').innerHTML = $('grBars').innerHTML = $('grChips').innerHTML = $('grTbl').innerHTML = '';
 }
 function grSetMode(m){ grMode = m; renderGrowth(); }
 const grPer = () => grMode === 'w' ? '주' : '월';
