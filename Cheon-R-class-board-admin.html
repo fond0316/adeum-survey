@@ -134,6 +134,12 @@ details summary::-webkit-details-marker{display:none}
 .rq .ft{display:flex;align-items:center;justify-content:space-between;margin-top:8px;font-size:12px;color:var(--tx3)}
 .rq .ft button{min-height:36px;padding:0 12px;border-radius:8px;font-size:13px;font-weight:700;background:var(--main);color:#fff}
 .rq.done .ft button{background:var(--bg);color:var(--tx2)}
+.agree{display:flex;align-items:flex-start;gap:10px;margin-top:14px;min-height:44px;font-size:14.5px;line-height:1.5;cursor:pointer}
+.agree input[type=checkbox]{width:22px;height:22px;flex:none;margin-top:2px;accent-color:var(--main)}
+.agd{margin-top:6px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.agd>summary{padding:10px 14px;font-size:13.5px;color:var(--tx2);min-height:44px;display:flex;align-items:center;cursor:pointer}
+.agd .agb{padding:2px 14px 12px;font-size:13px;line-height:1.6;color:var(--tx2)}
+.agd .agb li{margin:4px 0 4px 16px}
 .useline{text-align:right;font-size:12.5px;color:var(--tx2);margin:6px 6px 0}
 .useline b{color:var(--main-d)}
 .stg{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
@@ -198,10 +204,18 @@ input[type=date]{min-width:0;max-width:100%}
   <div id="scrPre" class="center hide">
     <div class="box">
       <h2>📝 사용자 등록</h2>
-      <p class="hint">처음 한 번만 입력하면 돼요. 입력한 정보는 사용 현황 파악을 위해 개발자에게 전달되며, 학생 정보는 전달되지 않아요. (다음 단계에서 구글 시트를 연결하면 등록이 자동으로 완료돼요)</p>
+      <p class="hint">처음 한 번만 입력하면 돼요. 입력한 정보는 사용 현황 파악을 위해 개발자에게 전달돼요. (다음 단계에서 구글 시트를 연결하면 등록이 자동으로 완료돼요)</p>
       <label class="f">이름</label><input type="text" id="preName" maxlength="20" placeholder="홍길동">
       <label class="f">학교</label><input type="text" id="preSchool" maxlength="30" placeholder="○○고등학교">
       <label class="f">학급</label><input type="text" id="preCls" maxlength="20" placeholder="1학년 4반" onkeydown="if(event.key==='Enter')savePre()">
+      <label class="agree"><input type="checkbox" id="preAgree"><span><b>[필수]</b> 개인정보 수집·이용에 동의합니다</span></label>
+      <details class="agd"><summary>자세히 보기 ▾</summary><div class="agb"><ul>
+        <li><b>수집 항목</b>: 이름, 학교, 학급, 앱 사용 기록(접속한 날짜·횟수), 남겨 주신 후기·개선점</li>
+        <li><b>이용 목적</b>: 이용 현황 파악, 문의 응대, 앱 개선, 개발자의 활동 기록 정리. 소개 자료에는 <b>숫자 통계로만</b> 쓰고, 이름·학교가 드러나게 쓰지 않아요. (후기 인용은 후기를 쓰실 때 따로 허락하신 경우에만)</li>
+        <li><b>보유 기간</b>: 앱을 운영하는 동안. 삭제를 요청하시면 지체 없이 삭제해요.</li>
+        <li><b>삭제·문의</b>: ⚙️ 설정 탭의 [✉️ 문의하기]로 요청해 주세요.</li>
+        <li><b>학생 정보</b>: 학생의 이름·학번·공지 내용은 개발자에게 전달되지 않아요. (선생님 본인의 구글 시트에만 저장돼요)</li>
+      </ul><p style="margin:6px 0 0">필수 동의예요. 동의하지 않으시면 사용자 등록을 할 수 없어서 앱을 쓸 수 없어요.</p></div></details>
       <div class="row" style="margin-top:12px"><button class="btn" onclick="savePre()">다음 → 구글 시트 연결</button></div>
       <div class="msg" id="preMsg"></div>
     </div>
@@ -281,6 +295,14 @@ input[type=date]{min-width:0;max-width:100%}
       <label class="f">이름</label><input type="text" id="regName" maxlength="20" placeholder="홍길동">
       <label class="f">학교</label><input type="text" id="regSchool" maxlength="30" placeholder="○○고등학교">
       <label class="f">학급</label><input type="text" id="regCls" maxlength="20" placeholder="1학년 4반">
+      <label class="agree"><input type="checkbox" id="regAgree"><span><b>[필수]</b> 개인정보 수집·이용에 동의합니다</span></label>
+      <details class="agd"><summary>자세히 보기 ▾</summary><div class="agb"><ul>
+        <li><b>수집 항목</b>: 이름, 학교, 학급, 앱 사용 기록(접속한 날짜·횟수), 남겨 주신 후기·개선점</li>
+        <li><b>이용 목적</b>: 이용 현황 파악, 문의 응대, 앱 개선, 개발자의 활동 기록 정리. 소개 자료에는 <b>숫자 통계로만</b> 쓰고, 이름·학교가 드러나게 쓰지 않아요. (후기 인용은 후기를 쓰실 때 따로 허락하신 경우에만)</li>
+        <li><b>보유 기간</b>: 앱을 운영하는 동안. 삭제를 요청하시면 지체 없이 삭제해요.</li>
+        <li><b>삭제·문의</b>: ⚙️ 설정 탭의 [✉️ 문의하기]로 요청해 주세요.</li>
+        <li><b>학생 정보</b>: 학생의 이름·학번·공지 내용은 개발자에게 전달되지 않아요. (선생님 본인의 구글 시트에만 저장돼요)</li>
+      </ul><p style="margin:6px 0 0">필수 동의예요. 동의하지 않으시면 사용자 등록을 할 수 없어서 앱을 쓸 수 없어요.</p></div></details>
       <div class="row" style="margin-top:12px"><button class="btn" onclick="doRegister(this)">등록하기</button><button class="btn sub" onclick="logout()">로그아웃</button></div>
       <div class="msg" id="regMsg"></div>
     </div>
@@ -442,7 +464,7 @@ input[type=date]{min-width:0;max-width:100%}
         <label class="f" style="margin-top:14px">최근 14일 접속자 (명)</label>
         <div class="stbars" id="stBars"></div>
         <div class="row" style="margin-top:12px"><button class="btn sub" onclick="saveStatImg()">🖼️ 화면 이미지로 저장</button></div>
-        <p class="hint" style="margin:10px 0 0">하루에 한 번만 세요 (같은 선생님이 하루에 여러 번 들어와도 1회). 아듬샘 본인·사용 중지된 분은 빼고 세요. 기록은 접속일지 탭에 쌓여요. 모든 선생님 화면 위에도 "오늘·누적" 숫자가 보여요(누적 10명 미만이면 숨김, 아듬샘 화면에는 항상 보임).</p>
+        <p class="hint" style="margin:10px 0 0">하루에 한 번만 세요 (같은 선생님이 하루에 여러 번 들어와도 1회). 아듬샘 본인·사용 중지된 분은 빼고 세요. 기록은 일별·접속일지 탭에 쌓여요. 모든 선생님 화면 위에도 "오늘·누적" 숫자가 보여요(누적 10명 미만이면 숨김, 아듬샘 화면에는 항상 보임).</p>
       </div>
       <div class="box">
         <h2>👑 사용자 관리</h2>
@@ -864,17 +886,19 @@ function logout(){ if (FROM_BOARD) return backToBoard(); PW=''; sessionStorage.r
 /* ===== 사용자 사전 등록 (시트 연결 전에 이름·학교·학급만 먼저 받아 둠) ===== */
 function showPre(){
   const i = lsGet(K.pre, null) || lsGet(K.reg, {});
-  $('preName').value = i.name || ''; $('preSchool').value = i.school || ''; $('preCls').value = i.cls || '';
+  $('preName').value = i.name || ''; $('preSchool').value = i.school || ''; $('preCls').value = i.cls || ''; $('preAgree').checked = !!i.agree;
   msg('preMsg','',true); show('scrPre');
 }
 function savePre(){
   const info = { name:$('preName').value.trim(), school:$('preSchool').value.trim(), cls:$('preCls').value.trim() };
   if (!info.name || !info.school){ msg('preMsg','이름과 학교를 입력해 주세요.'); return; }
+  if (!$('preAgree').checked){ msg('preMsg','개인정보 수집·이용에 동의해 주세요. (필수)'); return; }
+  info.agree = true;
   lsSet(K.pre, info);
   if (REGISTRY_URL){   // 시트 연결 전이라도 이름·학교를 등록부에 바로 남겨 둠 (임시 ID, 실패해도 다음 단계로 진행)
     let pid = lsGet(K.preId, '');
     if (!pid){ pid = 'pre-' + (window.crypto && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 10)); lsSet(K.preId, pid); }
-    jsonp({ action:'register', id:pid, ...info }, REGISTRY_URL).catch(()=>{});
+    jsonp({ action:'register', id:pid, name:info.name, school:info.school, cls:info.cls, agree:'1' }, REGISTRY_URL).catch(()=>{});
   }
   showConnect();
 }
@@ -964,8 +988,8 @@ let autoRegTried = false;
 async function autoRegister(pre){
   show('scrLoading'); msg('loadMsg','사용자 등록 중…',true);
   try{
-    const r = await jsonp({ action:'register', id:installId, old:lsGet(K.preId,''), ...pre }, REGISTRY_URL);
-    lsSet(K.reg, pre); clearPre(); return handleStatus(r.status);
+    const r = await jsonp({ action:'register', id:installId, old:lsGet(K.preId,''), name:pre.name, school:pre.school, cls:pre.cls, agree: pre.agree ? '1' : '' }, REGISTRY_URL);
+    lsSet(K.reg, { name:pre.name, school:pre.school, cls:pre.cls }); clearPre(); return handleStatus(r.status);
   }catch(e){
     // 자동 등록이 안 되면 직접 등록 화면으로
     $('regName').value = pre.name; $('regSchool').value = pre.school; $('regCls').value = pre.cls || loginInfo.className || '';
@@ -979,11 +1003,12 @@ function handleStatus(st){
   if (st === 'unregistered'){
     if (role !== 'admin') return gate('🙋', '담임선생님 등록이 필요해요', '담임선생님이 먼저 관리자 비밀번호로 로그인해서 사용자 등록을 해 주세요.');
     const pre = lsGet(K.pre, null);
-    if (pre && pre.name && pre.school && !autoRegTried){   // 처음 화면에서 받아 둔 정보로 자동 등록
+    if (pre && pre.name && pre.school && pre.agree && !autoRegTried){   // 처음 화면에서 받아 둔 정보로 자동 등록
       autoRegTried = true;
       return autoRegister(pre);
     }
-    const info = lsGet(K.reg, {});
+    const info = lsGet(K.reg, null) || pre || {};   // 이미 등록한 적 있으면 그 정보, 없으면 처음 화면에서 받아 둔 정보로 미리 채움
+    $('regAgree').checked = false;
     $('regName').value = info.name || ''; $('regSchool').value = info.school || '';
     $('regCls').value = info.cls || loginInfo.className || '';
     msg('regMsg','',true); return show('scrReg');
@@ -1016,9 +1041,10 @@ async function recheck(btn){
 async function doRegister(btn){
   const info = { name:$('regName').value.trim(), school:$('regSchool').value.trim(), cls:$('regCls').value.trim() };
   if (!info.name || !info.school){ msg('regMsg','이름과 학교를 입력해 주세요.'); return; }
+  if (!$('regAgree').checked){ msg('regMsg','개인정보 수집·이용에 동의해 주세요. (필수)'); return; }
   btn.disabled = true; msg('regMsg','등록 중…',true);
   try{
-    const r = await jsonp({ action:'register', id:installId, old:lsGet(K.preId,''), ...info }, REGISTRY_URL);
+    const r = await jsonp({ action:'register', id:installId, old:lsGet(K.preId,''), ...info, agree:'1' }, REGISTRY_URL);
     lsSet(K.reg, info); clearPre(); await handleStatus(r.status);
   }catch(e){ msg('regMsg', e.message); }
   btn.disabled = false;
