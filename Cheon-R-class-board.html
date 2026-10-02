@@ -896,11 +896,16 @@ let pingSched = false;
 function schedulePing(){
   if (pingSched || !REGISTRY_URL || !GAS || PREVIEW || BOARD) return;
   if (lsGet('sn_ping_v1', '') === today()) return;
+  if (Date.now() - Number(lsGet('sn_ping_off_v1', 0)) < 3 * 3600 * 1000) return;   // 학급이 아직 인정되지 않았다는 답을 받았으면 3시간 뒤에 다시 시도
   pingSched = true;
   setTimeout(async () => {          // 0.5~8초 사이 아무 때나 보내서 한꺼번에 몰리는 걸 줄여요
     pingSched = false;
     if (BOARD) return;
-    try{ await jsonp({ action:'ping', cb:classCode(GAS), dv:devId() }, REGISTRY_URL); lsSet('sn_ping_v1', today()); }catch(e){}
+    try{
+      const r = await jsonp({ action:'ping', cb:classCode(GAS), dv:devId() }, REGISTRY_URL);
+      if (r && r.on === false) lsSet('sn_ping_off_v1', Date.now());   // 등록 전이거나 학생 전송이 꺼진 학급: 오늘 한 것으로 치지 않고 나중에 다시
+      else lsSet('sn_ping_v1', today());
+    }catch(e){}
   }, 500 + Math.random() * 7500);
 }
 
@@ -996,7 +1001,7 @@ function openHelp(){ document.getElementById('helpOv').classList.add('show'); }
 
 /* ===== 🖥️ 교실 화면 모드 ===== */
 let pollTimer = null;
-function startPoll(){ clearInterval(pollTimer); pollTimer = setInterval(load, BOARD ? 30000 : POLL_MS); }
+function startPoll(){ clearInterval(pollTimer); pollTimer = setInterval(() => { load(); try{ schedulePing(); }catch(e){} }, BOARD ? 30000 : POLL_MS); }   // 화면을 켜 둔 채 날짜가 바뀐 경우도 하루 1번 집계
 function applyBoard(){ document.body.classList.toggle('board', BOARD); }
 let bdMode = 'toggle';
 function go(url){ location.href = url; }
@@ -1035,7 +1040,8 @@ async function toggleBoard(){
 }
 
 /* ===== 시작 ===== */
-document.addEventListener('visibilitychange', () => { if (!document.hidden){ load(); if (!popShowing) stopBlink(); } });
+document.addEventListener('visibilitychange', () => { if (!document.hidden){ load(); if (!popShowing) stopBlink(); try{ schedulePing(); }catch(e){} } });   // 홈 화면·북마크로 다시 열렸을 때도 하루 1번 이용 수 집계
+window.addEventListener('pageshow', e => { if (e.persisted){ try{ schedulePing(); }catch(err){} } });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('Cheon-R-class-board-sw.js', { scope:'./Cheon-R-class-board' }).catch(()=>{});
 if (PREVIEW) document.body.classList.add('pv');
 applyBoard();
