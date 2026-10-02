@@ -297,6 +297,28 @@ canvas{width:100%;height:440px;display:block}
 @media (max-height:860px){ #hub-screen .lc-card{padding:20px 16px 14px;} #hub-screen .lc-grid{gap:12px;} }
 @media (max-height:780px){ #hub-screen .lc-card{padding:14px 14px 10px;} #hub-screen .lc-grid{gap:10px;} }
 
+/* ── 개인정보 동의 · 학생 안내 · 내 정보 ── */
+.mx-note{margin-top:14px;padding:10px 12px;border-radius:10px;background:#EBF3FF;color:#1A5FB4;font-size:12.5px;font-weight:600;line-height:1.5;text-align:center;}
+.mx-legacy{margin:10px 0 0;padding:10px 12px;border-radius:10px;background:#FFF8E6;border:1px solid #FFD97A;color:#8B5E00;font-size:12.5px;line-height:1.5;text-align:center;}
+.mx-agree{margin-top:18px;padding:10px 14px 8px;border:1.5px solid #e5e7eb;border-radius:12px;background:#f9fafb;}
+.mx-agree-row{display:flex;gap:10px;align-items:flex-start;min-height:44px;padding-top:6px;cursor:pointer;font-size:14px;color:#111;line-height:1.5;}
+.mx-agree-row input{width:22px;height:22px;margin-top:2px;flex:0 0 auto;accent-color:#1A5FB4;}
+.mx-agd summary{font-size:12.5px;color:#1A5FB4;cursor:pointer;min-height:36px;padding:8px 0 0 32px;}
+.mx-agb{font-size:12px;color:#4b5563;line-height:1.6;padding:6px 2px 4px;}
+.mx-agb ul{margin:0;padding-left:18px;} .mx-agb li{margin-bottom:5px;} .mx-agb p{margin:6px 0 0;font-weight:600;}
+#mx-me{position:fixed;inset:0;z-index:1070;background:rgba(17,24,39,.55);display:none;overflow-y:auto;padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));}
+#mx-me.mx-open{display:flex;}
+.mx-mecard{margin:auto;width:100%;max-width:440px;background:#fff;border-radius:20px;padding:24px 22px 18px;box-shadow:0 8px 32px rgba(0,0,0,.25);}
+.mx-merows{margin-top:12px;border:1.5px solid #e5e7eb;border-radius:12px;overflow:hidden;}
+.mx-merow{display:flex;justify-content:space-between;gap:12px;padding:10px 14px;font-size:13.5px;border-bottom:1px solid #f0f1f3;}
+.mx-merow:last-child{border-bottom:none;} .mx-merow span:first-child{color:#6b7280;} .mx-merow span:last-child{color:#111;font-weight:600;text-align:right;word-break:break-all;}
+.mx-devbox{display:flex;gap:8px;align-items:center;}
+.mx-devbox code{flex:1;padding:12px;border:1.5px solid #e5e7eb;border-radius:10px;background:#f9fafb;font-size:17px;font-weight:700;letter-spacing:.5px;text-align:center;color:#1A5FB4;}
+.mx-devbox button{min-height:46px;padding:0 16px;border:1.5px solid #B8D4F8;border-radius:10px;background:#EBF3FF;color:#1A5FB4;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;}
+.mx-user .mx-me-btn{color:#6b7280;font-weight:600;}
+.mx-contact{text-align:center;font-size:12px;color:#9ca3af;margin-top:6px;}
+.mx-contact a{color:#1A5FB4;text-decoration:underline;}
+
 /* ════════ 후기 받기 ════════ */
 
 .mx-rvbtn{white-space:nowrap;min-height:44px;padding:0 20px;border:1.5px solid #B8D4F8;border-radius:999px;background:#fff;color:#1A5FB4;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.05);}
@@ -364,6 +386,9 @@ canvas{width:100%;height:440px;display:block}
 .mx-rolelg{display:flex;gap:14px;font-size:12px;color:#374151;margin-top:6px;flex-wrap:wrap;}
 .mx-stat-today{color:#16a34a;font-weight:700;}
 .mx-stat-total{color:#6b7280;font-weight:700;}
+
+.mx-warn{margin-top:12px;padding:10px 12px;border-radius:10px;background:#FDECEA;border:1px solid #F5B7B1;color:#922B21;font-size:12.5px;line-height:1.5;}
+.mx-warn code{background:#fff;padding:1px 5px;border-radius:4px;}
 </style>
 </head>
 <body>
@@ -376,6 +401,7 @@ canvas{width:100%;height:440px;display:block}
     <div class="mx-eyebrow">Math Explorer</div>
     <div class="mx-title">🌟 아듬's 수학탐구실</div>
     <div class="mx-sub">처음이시네요! 간단히 등록하고 시작해요</div>
+    <div class="mx-legacy" id="mx-legacy" style="display:none"></div>
 
     <div class="mx-lbl mx-lbl-main">반가워요! 어떤 분이세요? 😊</div>
     <div class="mx-roles" id="mx-roles">
@@ -385,8 +411,11 @@ canvas{width:100%;height:440px;display:block}
     </div>
 
     <div id="mx-fields" style="display:none">
-      <div class="mx-lbl">이름</div>
-      <input class="mx-in" id="mx-name" type="text" maxlength="20" placeholder="이름을 입력하세요" autocomplete="off">
+      <div id="mx-stu-note" class="mx-note" style="display:none">🔒 학생은 이름을 받지 않아요. 학교·학년·반만 입력해요.</div>
+      <div id="mx-f-name">
+        <div class="mx-lbl">이름</div>
+        <input class="mx-in" id="mx-name" type="text" maxlength="20" placeholder="이름을 입력하세요" autocomplete="off">
+      </div>
 
       <div id="mx-f-school" style="display:none">
         <div class="mx-lbl">학교</div>
@@ -410,11 +439,32 @@ canvas{width:100%;height:440px;display:block}
       <div class="mx-chips" id="mx-purposes"></div>
     </div>
 
+    <div class="mx-agree" id="mx-agree-box" style="display:none">
+      <label class="mx-agree-row"><input type="checkbox" id="mx-agree"><span><b>[필수]</b> 개인정보 수집·이용에 동의합니다</span></label>
+      <details class="mx-agd"><summary>자세히 보기</summary><div class="mx-agb" id="mx-agb"></div></details>
+      <div class="mx-hint" style="margin-top:2px">만 14세 미만은 보호자 확인 후 이용해 주세요.</div>
+    </div>
     <button type="button" class="mx-go" id="mx-go" disabled>시작하기</button>
     <div class="mx-msg" id="mx-msg"></div>
     <button type="button" class="mx-cancel" id="mx-cancel" style="display:none">← 돌아가기</button>
     <div class="mx-priv">수업 개선과 사용 현황 기록을 위해<br>입력한 정보가 저장됩니다 · Made by Cheon_R</div>
+    <div class="mx-contact" id="mx-contact"></div>
     <button type="button" class="mx-adm-link" id="mx-adm-link">관리자</button>
+  </div>
+</div>
+<!-- 내 정보 (기기 번호 확인 · 삭제 요청 메일) -->
+<div id="mx-me">
+  <div class="mx-mecard">
+    <div class="mx-admtitle">👤 내 정보</div>
+    <div id="mx-me-rows" class="mx-merows"></div>
+    <div class="mx-lbl">기기 번호</div>
+    <div class="mx-devbox"><code id="mx-me-dev"></code><button type="button" id="mx-me-cp">복사</button></div>
+    <div class="mx-hint">개인정보 삭제를 요청하실 땐 이 번호를 함께 알려 주세요. (앱이 임의로 만든 번호예요)</div>
+    <div class="mx-admrow"><button type="button" class="mx-main" id="mx-me-mail">✉️ 삭제·문의 메일 보내기</button></div>
+    <div class="mx-contact" id="mx-me-contact"></div>
+    <details class="mx-agd"><summary>개인정보 안내 보기</summary><div class="mx-agb" id="mx-me-agb"></div></details>
+    <div class="mx-msg" id="mx-me-msg" style="color:#2D7D46"></div>
+    <button type="button" class="mx-admclose" id="mx-me-close">닫기</button>
   </div>
 </div>
 <script>
@@ -440,19 +490,20 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
       <div class="mx-sec" id="mx-sec-good" style="order:1">
         <div class="mx-lbl">좋았던 점 <span style="font-weight:500;color:#9ca3af">(여러 개 선택 가능)</span></div>
         <div class="mx-chips" id="mx-rv-chips"></div>
-        <input class="mx-in" id="mx-rv-etc" type="text" maxlength="30" placeholder="직접 적어주세요 (30자)" style="display:none;margin-top:8px" autocomplete="off">
+        <input class="mx-in" id="mx-rv-etc" type="text" maxlength="30" placeholder="직접 적어주세요 (30자, 이름·연락처는 빼고)" style="display:none;margin-top:8px" autocomplete="off">
       </div>
 
       <div class="mx-sec" id="mx-sec-one" style="order:2">
         <div class="mx-lbl">한줄 후기 <span style="font-weight:500;color:#9ca3af">(선택)</span></div>
         <textarea class="mx-rvta" id="mx-rv-one" maxlength="80" placeholder="자유롭게 남겨주세요 (80자)"></textarea>
+        <div class="mx-hint">⚠ 이름·연락처 같은 개인정보는 적지 마세요.</div>
       </div>
 
       <div class="mx-sec" id="mx-sec-imp" style="order:3">
         <div class="mx-lbl" id="mx-rv-implbl">💡 이런 점이 바뀌면 좋겠어요 <span style="font-weight:500;color:#9ca3af">(선택)</span></div>
         <div class="mx-chips" id="mx-rv-warns"></div>
         <textarea class="mx-rvta" id="mx-rv-imp" maxlength="100" placeholder="더 적고 싶은 점이 있으면 적어주세요 (100자)" style="min-height:64px;margin-top:8px"></textarea>
-        <div class="mx-hint">개발자에게만 전달돼요. 소개 자료에는 쓰지 않아요.</div>
+        <div class="mx-hint">개발자에게만 전달돼요. 소개 자료에는 쓰지 않아요. 이름·연락처는 적지 마세요.</div>
       </div>
 
       <div class="mx-sec" id="mx-sec-consent" style="order:4">
@@ -483,6 +534,7 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
       <div class="mx-admtitle">🔧 관리자</div>
       <div class="mx-tabs" id="mx-adm-tabs"><button type="button" class="on" data-t="link">🔗 주소 · QR</button><button type="button" data-t="stat">📊 이용 현황</button></div>
       <div id="mx-adm-tab-link">
+      <div class="mx-warn" id="mx-adm-mailwarn" style="display:none">⚠ 문의 메일 주소(<code>MX_CONTACT_EMAIL</code>)가 비어 있어요. 동의 화면의 삭제·문의 안내와 '내 정보'의 메일 보내기에 쓰이니 꼭 넣어 주세요.</div>
       <div class="mx-admsub">학생들에게 이 주소나 QR을 주세요</div>
       <div class="mx-lbl">학생용 주소 <span style="font-weight:500;color:#9ca3af">(직접 고칠 수 있어요)</span></div>
       <input class="mx-in" id="mx-adm-url" type="url" autocomplete="off" spellcheck="false" style="font-size:14px">
@@ -501,10 +553,11 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
         <div class="mx-admsub" id="mx-st-asof">불러오는 중...</div>
         <div class="mx-tiles">
           <div class="mx-tile"><div class="lb">오늘 접속자</div><div class="v"><b id="mx-st-today">-</b><span>명</span></div><div class="sb" id="mx-st-newtoday">&nbsp;</div></div>
-          <div class="mx-tile"><div class="lb">누적 사용자</div><div class="v"><b id="mx-st-total">-</b><span>명</span></div><div class="sb">등록한 사람 전체</div></div>
+          <div class="mx-tile"><div class="lb">누적 사용자</div><div class="v"><b id="mx-st-total">-</b><span>명</span></div><div class="sb">등록한 사람 · 학생은 기기 기준</div></div>
           <div class="mx-tile"><div class="lb">누적 접속</div><div class="v"><b id="mx-st-visits">-</b><span>회</span></div><div class="sb">들어온 횟수 합계</div></div>
           <div class="mx-tile"><div class="lb">이번 주 접속자</div><div class="v"><b id="mx-st-week">-</b><span>명</span></div><div class="sb">월요일부터, 중복 제외</div></div>
         </div>
+        <div class="mx-hint">학생은 이름 대신 <b>기기 번호</b>로 세어요. 한 학생이 기기를 2개 쓰면 2명으로 보일 수 있어요.</div>
         <div class="mx-lbl">최근 14일 접속자 (명)</div>
         <div class="mx-bars" id="mx-st-bars"></div>
         <div class="mx-barlb"><span>14일 전</span><span>오늘</span></div>
@@ -10804,18 +10857,41 @@ var qrcode = function() {
 // ═══════════════════════════════
 // 사용자 등록 (허브 앞 진입 화면) — 기존 허브/단원 로직과 독립
 // ═══════════════════════════════
-const MX_GAS_URL = 'https://script.google.com/macros/s/AKfycbzo2139RdycLV2myB6aeliiQdQWrPn5f-i_l1rWtHiJI4JCKGciAU2L3gR706F7RI6c7w/exec';   // ← 사용자시트 GAS 웹앱 URL(…/exec)을 여기에 붙여넣기
+const MX_GAS_URL = 'https://script.google.com/macros/s/AKfycbzo2139RdycLV2myB6aeliiQdQWrPn5f-i_l1rWtHiJI4JCKGciAU2L3gR706F7RI6c7w/exec';   // ← 사용자시트 GAS 웹앱 URL(…/exec)
+const MX_CONTACT_EMAIL = 'fond7509@naver.com';      // 문의 전용 메일 (동의 화면 · 내 정보 · 등록 화면 아래에 표시돼요)
 const MX_KEY = 'mathexp_user_v1';
+const MX_DEV_KEY = 'mathexp_device_v1';   // 이 기기의 익명 번호 (학생은 이름 대신 이 번호로 구분돼요)
+const MX_VISIT_JITTER_MS = 30000;         // 접속 기록은 0~30초 사이 랜덤하게 늦춰 보내요 (한꺼번에 몰리지 않도록)
 const MX_PURPOSES = {
   '학생': ['수업 시간 활동','복습·자습','과제','그냥 둘러보기'],
   '교사': ['수업 진행용','수업 준비·자료 확인','연수·공유','그냥 둘러보기'],
   '기타': ['학습용','참고·구경']
 };
-const mx = { role:'', grade:'', purpose:'', cur:null };
+const mx = { role:'', grade:'', purpose:'', cur:null, visitTimer:null, _dev:'' };
 const $mx = id => document.getElementById(id);
 
 function mxLoad(){ try{ return JSON.parse(localStorage.getItem(MX_KEY)||'null'); }catch(e){ return null; } }
 function mxSave(u){ try{ localStorage.setItem(MX_KEY, JSON.stringify(u)); return true; }catch(e){ return false; } }
+
+/* ── 이 기기의 익명 번호 (예: K7Q2-M9XD-4TRB) ── */
+function mxMakeDev(){
+  const A = '0123456789ABCDEFGHJKMNPQRSTVWXYZ', b = new Uint8Array(12);
+  if(window.crypto && crypto.getRandomValues) crypto.getRandomValues(b); else for(let i=0;i<12;i++) b[i] = Math.floor(Math.random()*256);
+  let s = ''; for(let i=0;i<12;i++){ s += A[b[i] % 32]; if(i%4===3 && i<11) s += '-'; }
+  return s;
+}
+function mxDev(){
+  try{
+    let d = localStorage.getItem(MX_DEV_KEY);
+    if(d && /^[A-Z0-9-]{8,40}$/.test(d)) return d;
+    d = mxMakeDev(); localStorage.setItem(MX_DEV_KEY, d); return d;
+  }catch(e){ return mx._dev || (mx._dev = mxMakeDev()); }
+}
+/* 같은 접속을 다시 보내도 한 번만 세도록, 접속(탭)마다 붙이는 번호 */
+function mxSid(){
+  try{ let s = sessionStorage.getItem('mx_sid'); if(!s){ s = mxMakeDev().replace(/-/g,'') + Date.now().toString(36); sessionStorage.setItem('mx_sid', s); } return s; }
+  catch(e){ return mx._sid || (mx._sid = mxMakeDev().replace(/-/g,'')); }
+}
 
 function mxToast(msg, ms){
   const old = document.querySelector('.mx-toast'); if(old) old.remove();
@@ -10824,22 +10900,51 @@ function mxToast(msg, ms){
 }
 
 /* ── JSONP (no-cors 금지: 응답 성공/실패를 정확히 확인) ── */
+function mxQs(params){ return Object.keys(params).map(k=>encodeURIComponent(k)+'='+encodeURIComponent(params[k])).join('&'); }
 function mxJsonp(params, timeoutMs){
   return new Promise((resolve, reject)=>{
     const cb = 'mxcb_' + Date.now() + '_' + Math.floor(Math.random()*1e4);
     const s = document.createElement('script');
     let done = false, timer = null;
-    const finish = fn => v => { if(done) return; done = true; clearTimeout(timer); delete window[cb]; s.remove(); fn(v); };
+    /* late=true: 시간 초과로 포기한 뒤 응답이 늦게 도착해도 에러가 나지 않게, 빈 함수를 잠깐 남겨 둬요 */
+    const finish = (fn, late) => v => { if(done) return; done = true; clearTimeout(timer); if(late) window[cb] = ()=>{ delete window[cb]; }; else delete window[cb]; s.remove(); fn(v); };
     window[cb] = finish(resolve);
     s.onerror = finish(()=>reject(new Error('network')));
-    timer = setTimeout(finish(()=>reject(new Error('timeout'))), timeoutMs||8000);
-    const qs = Object.keys(params).map(k=>encodeURIComponent(k)+'='+encodeURIComponent(params[k])).join('&');
-    s.src = MX_GAS_URL + (MX_GAS_URL.indexOf('?')>=0?'&':'?') + qs + '&callback=' + cb;
+    timer = setTimeout(finish(()=>reject(new Error('timeout')), true), timeoutMs||8000);
+    s.src = MX_GAS_URL + (MX_GAS_URL.indexOf('?')>=0?'&':'?') + mxQs(params) + '&callback=' + cb;
     document.head.appendChild(s);
   });
 }
+/* 서버로 보내는 값. 학생은 이름을 보내지 않고 기기 번호로 구분돼요. */
 function mxParams(u){
-  return { action:'upsert', name:u.name, role:u.role, school:u.school||'', grade:u.grade||'', cls:u.cls||'', purpose:u.purpose||'' };
+  const p = { action:'upsert', role:u.role, school:u.school||'', grade:u.grade||'', cls:u.cls||'', purpose:u.purpose||'', dev:mxDev(), sid:mxSid() };
+  if(u.role !== '학생') p.name = u.name;
+  if(u.agree) p.agree = '1';
+  return p;
+}
+
+/* 문의 메일 링크 (제목에 앱 이름이 자동으로 들어가요) */
+function mxMailLink(subject){ return 'mailto:' + MX_CONTACT_EMAIL + '?subject=' + encodeURIComponent("[아듬's 수학탐구실] " + subject); }
+function mxFillContact(el){
+  if(!el || !MX_CONTACT_EMAIL) return; el.textContent = '';
+  el.appendChild(document.createTextNode('문의 · '));
+  const a = document.createElement('a'); a.href = mxMailLink('문의'); a.textContent = MX_CONTACT_EMAIL; el.appendChild(a);
+}
+
+/* ── 개인정보 안내 (등록 화면 · 내 정보에서 같은 내용을 보여줘요) ── */
+function mxFillConsent(box){
+  box.innerHTML = '<ul>'
+    + '<li><b>수집 항목</b>: 구분(교사·학생·기타), 이름(교사·기타만), 학교, 학년·반(학생), 사용 목적, 접속 일시·횟수, 기기 번호(앱이 임의로 만드는 번호), 후기를 남기면 별점·의견</li>'
+    + '<li><b>이용 목적</b>: 이용 현황 파악과 앱 개선. 소개 자료에는 <b>숫자 통계로만</b> 쓰고, 이름·학교가 드러나게 쓰지 않아요. (후기 인용은 후기를 쓰실 때 따로 허락하신 경우에만)</li>'
+    + '<li><b>학생 정보</b>: 학생은 이름을 입력하지도, 저장하지도 않아요.</li>'
+    + '<li><b>제3자 제공</b>: 다른 곳에 넘기지 않아요.</li>'
+    + '<li><b>보유 기간</b>: 앱을 운영하는 동안. 삭제를 요청하시면 지체 없이 삭제해요.</li>'
+    + '<li><b>삭제·문의</b>: <span class="mx-agmail"></span>로 요청해 주세요. 학생은 [내 정보]에서 기기 번호를 확인해 함께 알려 주세요.</li>'
+    + '<li><b>주의</b>: 후기·의견 칸에 이름·연락처 같은 개인정보는 적지 마세요.</li></ul>'
+    + '<p>필수 동의예요. 동의하지 않으시면 사용자 등록을 할 수 없어서 앱을 쓸 수 없어요.</p>';
+  const m = box.querySelector('.mx-agmail');
+  if(MX_CONTACT_EMAIL){ const a = document.createElement('a'); a.href = 'mailto:' + MX_CONTACT_EMAIL; a.textContent = MX_CONTACT_EMAIL; m.appendChild(a); }
+  else m.textContent = '개발자(Cheon_R)에게 메일';
 }
 
 /* ── 폼 ── */
@@ -10856,6 +10961,9 @@ function mxSetRole(role){
   mx.role = role; mx.purpose = ''; mx.grade = '';
   document.querySelectorAll('.mx-role').forEach(b=>b.classList.toggle('on', b.dataset.role===role));
   $mx('mx-fields').style.display = '';
+  $mx('mx-agree-box').style.display = '';
+  $mx('mx-f-name').style.display = (role==='학생') ? 'none' : '';        // 학생은 이름 칸 없음
+  $mx('mx-stu-note').style.display = (role==='학생') ? '' : 'none';
   $mx('mx-f-school').style.display = (role==='기타') ? 'none' : '';
   $mx('mx-f-gc').style.display = (role==='학생') ? '' : 'none';
   document.querySelectorAll('#mx-grades .mx-chip').forEach(c=>c.classList.remove('on'));
@@ -10865,7 +10973,7 @@ function mxRead(){
   const cls = parseInt($mx('mx-cls').value, 10);
   return {
     role: mx.role,
-    name: $mx('mx-name').value.trim(),
+    name: mx.role==='학생' ? '' : $mx('mx-name').value.trim(),
     school: mx.role==='기타' ? '' : $mx('mx-school').value.trim(),
     grade: mx.role==='학생' ? mx.grade : '',
     cls: (mx.role==='학생' && cls>=1 && cls<=30) ? String(cls) : '',
@@ -10874,21 +10982,24 @@ function mxRead(){
 }
 function mxValid(){
   const u = mxRead();
-  if(!u.role || !u.name || !u.purpose) return false;
+  if(!u.role || !u.purpose || !$mx('mx-agree').checked) return false;
+  if(u.role!=='학생' && !u.name) return false;
   if(u.role!=='기타' && !u.school) return false;
   if(u.role==='학생' && (!u.grade || !u.cls)) return false;
   return true;
 }
 function mxCheck(){ $mx('mx-go').disabled = !mxValid(); $mx('mx-msg').textContent = ''; }
 
+function mxChipText(u){ return u.role==='학생' ? ('👤 학생 · ' + u.grade + '학년 ' + u.cls + '반') : ('👤 ' + u.name + ' (' + u.role + ')'); }
+
 function mxEnter(u){
   mx.cur = u;
   $mx('mx-reg').classList.add('mx-hide');
   mxRenderUserChip();
   mxrOnEnter();
-  mxsLoadHub();
+  mxsLoadHub(false);
 }
-/* 허브의 안내문 아래, 카드 위에 놓이는 도구 한 줄 (후기 · 관리자 · 사용자) */
+/* 허브의 안내문 아래, 카드 위에 놓이는 도구 한 줄 (사용자 · 후기 · 관리자) */
 function mxBar(){
   const hub = $mx('hub-screen'); if(!hub) return null;
   let bar = $mx('mx-bar');
@@ -10906,32 +11017,72 @@ function mxRenderUserChip(){
   if(!chip){
     chip = document.createElement('div'); chip.id = 'mx-user'; chip.className = 'mx-user';
     const nm = document.createElement('span'); nm.id = 'mx-user-nm';
-    const bt = document.createElement('button'); bt.type = 'button'; bt.textContent = '사용자 변경';
-    bt.onclick = mxChangeUser;
-    chip.appendChild(nm); chip.appendChild(bt); (mxBar()||hub).appendChild(chip);
+    const me = document.createElement('button'); me.type = 'button'; me.className = 'mx-me-btn'; me.textContent = '내 정보'; me.onclick = mxOpenMe;
+    const bt = document.createElement('button'); bt.type = 'button'; bt.textContent = '사용자 변경'; bt.onclick = mxChangeUser;
+    chip.appendChild(nm); chip.appendChild(me); chip.appendChild(bt); (mxBar()||hub).appendChild(chip);
   }
-  $mx('mx-user-nm').textContent = '👤 ' + mx.cur.name + ' (' + mx.cur.role + ')';
+  $mx('mx-user-nm').textContent = mxChipText(mx.cur);
 }
 function mxChangeUser(){
   if(!confirm('사용자를 변경할까요?\n등록 화면이 다시 나와요.')) return;
+  $mx('mx-legacy').style.display = 'none';
   $mx('mx-reg').classList.remove('mx-hide');
   $mx('mx-cancel').style.display = '';
+}
+/* 서버가 동의를 요구하거나 옛 정보라서 다시 등록해야 할 때 */
+function mxForceReg(msg){
+  try{ localStorage.removeItem(MX_KEY); }catch(e){}
+  mx.cur = null;
+  const l = $mx('mx-legacy'); l.textContent = msg; l.style.display = '';
+  $mx('mx-cancel').style.display = 'none';
+  $mx('mx-reg').classList.remove('mx-hide');
+}
+
+/* ── 내 정보: 기기 번호 확인 + 삭제 요청 메일 ── */
+function mxMeRow(k, v){ const r = document.createElement('div'); r.className = 'mx-merow'; const a = document.createElement('span'); a.textContent = k; const b = document.createElement('span'); b.textContent = v; r.appendChild(a); r.appendChild(b); return r; }
+function mxOpenMe(){
+  const u = mx.cur; if(!u) return;
+  const rows = $mx('mx-me-rows'); rows.textContent = '';
+  rows.appendChild(mxMeRow('구분', u.role));
+  if(u.role !== '학생') rows.appendChild(mxMeRow('이름', u.name));
+  if(u.role !== '기타') rows.appendChild(mxMeRow('학교', u.school));
+  if(u.role === '학생') rows.appendChild(mxMeRow('학년·반', u.grade + '학년 ' + u.cls + '반'));
+  rows.appendChild(mxMeRow('사용 목적', u.purpose));
+  $mx('mx-me-dev').textContent = mxDev();
+  mxFillConsent($mx('mx-me-agb'));
+  $mx('mx-me-msg').textContent = '';
+  $mx('mx-me').classList.add('mx-open');
+}
+function mxMeMail(){
+  if(!MX_CONTACT_EMAIL){ $mx('mx-me-msg').style.color = '#C0392B'; $mx('mx-me-msg').textContent = '문의 메일 주소가 아직 설정되지 않았어요'; return; }
+  const u = mx.cur || {}, dev = mxDev();
+  const body = '기기 번호: ' + dev + '\n' + (u.role && u.role!=='학생' ? ('이름: ' + (u.name||'') + '\n학교: ' + (u.school||'') + '\n') : '') + '요청 내용(삭제 / 문의): ';
+  const a = document.createElement('a');
+  a.href = 'mailto:' + MX_CONTACT_EMAIL + '?subject=' + encodeURIComponent("[아듬's 수학탐구실] 개인정보 삭제·문의") + '&body=' + encodeURIComponent(body);
+  document.body.appendChild(a); a.click(); a.remove();     // 메일 앱이 열려요
+}
+function mxMeCopy(){
+  const t = mxDev(), ok = ()=>{ $mx('mx-me-msg').style.color = '#2D7D46'; $mx('mx-me-msg').textContent = '기기 번호를 복사했어요 ✅'; };
+  if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok).catch(()=>{});
+  else { const ta = document.createElement('textarea'); ta.value = t; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); ok(); }catch(e){} ta.remove(); }
 }
 
 async function mxSubmit(){
   if(!mxValid()) return;
-  const u = mxRead(); const btn = $mx('mx-go');
+  const u = mxRead(); u.agree = true; const btn = $mx('mx-go');
   btn.disabled = true; btn.textContent = '등록 중...';
   let synced = false, note = '';
   if(!MX_GAS_URL){
     note = '⚠ 기록 서버(GAS)가 아직 연결되지 않아 이 기기에만 저장됐어요';
   } else {
     try{
-      const r = await mxJsonp(mxParams(u), 8000);
-      if(r && r.ok){ synced = true; try{ sessionStorage.setItem('mx_visit','1'); }catch(e){} }
+      const r = await mxJsonp(mxParams(u), 10000);
+      if(r && r.ok){ synced = true; try{ sessionStorage.setItem('mx_visit','1'); }catch(e){} if(r.pub) mxsApplyPub(r.pub); }
+      else if(r && r.code === 'consent'){ btn.textContent = '시작하기'; btn.disabled = false; $mx('mx-msg').textContent = '개인정보 수집·이용에 동의해 주세요.'; return; }
+      else if(r && r.busy) note = '⚠ 지금 접속이 몰려서 등록 기록이 조금 늦어져요. 이용은 바로 할 수 있어요 🙂';
       else note = '⚠ 기록 저장에 실패했어요(' + ((r&&r.error)||'알 수 없는 오류') + '). 다음 접속 때 다시 보낼게요';
     }catch(e){
-      note = '⚠ 인터넷이 불안정해 기록 전송에 실패했어요. 다음 접속 때 다시 보낼게요';
+      note = '⚠ 인터넷이 불안정해 기록 전송에 실패했어요. 곧 다시 보낼게요';
     }
   }
   u.synced = synced;
@@ -10939,21 +11090,42 @@ async function mxSubmit(){
   btn.textContent = '시작하기';
   mxEnter(u);
   if(note) mxToast(note, 6000);
+  if(!synced) mxVisit();      // 등록 기록이 안 갔으면 잠시 뒤 자동으로 다시 보냄
 }
 
-/* ── 접속 기록: 세션당 1회 (등록 실패분도 이때 재전송) ── */
+/* ── 접속 기록: 0~30초 랜덤하게 늦춰서 백그라운드로 보내요 (실패해도 화면엔 영향 없고, 다음에 다시 보내요) ── */
 function mxVisit(){
-  const u = mx.cur; if(!u || !MX_GAS_URL) return;
+  const u = mx.cur; if(!u || !MX_GAS_URL || mx.visitTimer) return;
   try{ if(sessionStorage.getItem('mx_visit')) return; }catch(e){}
-  window.__mxVisitP = mxJsonp(mxParams(u), 8000).then(r=>{
+  mx.visitTimer = setTimeout(mxSendVisit, Math.floor(Math.random() * MX_VISIT_JITTER_MS));
+}
+function mxSendVisit(){
+  mx.visitTimer = null;
+  const u = mx.cur; if(!u) return;
+  /* 서버가 바쁘거나(busy) 인터넷이 불안정하면 15~35초 뒤에 다시 보내요 (최대 3번). 화면에는 아무 영향이 없어요 */
+  const retry = ()=>{ if((mx.visitTry = (mx.visitTry||0) + 1) <= 3 && !mx.visitTimer) mx.visitTimer = setTimeout(mxSendVisit, 15000 + Math.floor(Math.random() * 20000)); };
+  window.__mxVisitP = mxJsonp(mxParams(u), 10000).then(r=>{
     if(r && r.ok){
+      mx.visitTry = 0;
       try{ sessionStorage.setItem('mx_visit','1'); }catch(e){}
       if(!u.synced){ u.synced = true; mxSave(u); }
-    }
-  }).catch(()=>{});
+      if(r.pub) mxsApplyPub(r.pub); else mxsLoadHub(true);          // 숫자가 같이 안 왔을 때만 따로 요청
+    } else if(r && r.code === 'consent'){
+      mxForceReg('개인정보 안내가 추가되어 다시 한 번 등록해 주세요 🙏');
+    } else retry();
+  }).catch(retry);
+}
+/* 보내기 전에 탭을 닫거나 화면을 떠나면 지금 바로 보내요 (이미지 요청은 페이지가 닫혀도 전달돼요) */
+function mxVisitBeacon(){
+  if(document.visibilityState !== 'hidden' || !mx.visitTimer || !mx.cur) return;
+  clearTimeout(mx.visitTimer); mx.visitTimer = null;
+  try{ sessionStorage.setItem('mx_visit','1'); }catch(e){}
+  try{ new Image().src = MX_GAS_URL + (MX_GAS_URL.indexOf('?')>=0?'&':'?') + mxQs(mxParams(mx.cur)); }catch(e){}
 }
 
 window.addEventListener('DOMContentLoaded', ()=>{
+  mxFillConsent($mx('mx-agb'));
+  mxFillContact($mx('mx-contact')); mxFillContact($mx('mx-me-contact'));
   document.querySelectorAll('.mx-role').forEach(b=>b.onclick = ()=>mxSetRole(b.dataset.role));
   document.querySelectorAll('#mx-grades .mx-chip').forEach(c=>c.onclick = ()=>{
     mx.grade = c.dataset.g;
@@ -10964,11 +11136,24 @@ window.addEventListener('DOMContentLoaded', ()=>{
     el.addEventListener('input', mxCheck);
     el.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); mxSubmit(); } });
   });
+  $mx('mx-agree').addEventListener('change', mxCheck);
   $mx('mx-go').onclick = mxSubmit;
   $mx('mx-cancel').onclick = ()=>$mx('mx-reg').classList.add('mx-hide');
+  $mx('mx-me-close').onclick = ()=>$mx('mx-me').classList.remove('mx-open');
+  $mx('mx-me-mail').onclick = mxMeMail;
+  $mx('mx-me-cp').onclick = mxMeCopy;
+  document.addEventListener('visibilitychange', mxVisitBeacon);
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape' && $mx('mx-me').classList.contains('mx-open')) $mx('mx-me').classList.remove('mx-open'); });
 
   const saved = mxLoad();
-  if(saved && saved.name && saved.role){ mx.cur = saved; mxRenderUserChip(); mxVisit(); mxrOnEnter(); Promise.resolve(window.__mxVisitP).then(mxsLoadHub, mxsLoadHub); }
+  if(saved && saved.role === '학생' && !saved.agree){
+    // 예전에 이름을 받던 학생 정보: 이 기기에서 지우고, 동의를 받아 다시 등록하게 해요
+    mxForceReg('개인정보 안내가 추가되어 다시 한 번 등록해 주세요. 학생은 이제 이름을 입력하지 않아요 🙏');
+  } else if(saved && saved.role && (saved.role==='학생' ? (saved.grade && saved.cls && saved.school) : saved.name)){
+    mx.cur = saved; mxRenderUserChip(); mxVisit(); mxrOnEnter();
+    let visited = false; try{ visited = !!sessionStorage.getItem('mx_visit'); }catch(e){}
+    if(visited) mxsLoadHub(false);                // 이미 이번 접속을 보냈다면 숫자만 (5분 안이면 서버를 안 부름)
+  }
   else { $mx('mx-reg').classList.remove('mx-hide'); }   // 저장값이 없거나 손상됐으면 등록 화면
 });
 
@@ -11105,7 +11290,7 @@ async function mxrSend(){
   if(!MX_GAS_URL){ msg.textContent = '기록 서버(GAS)가 아직 연결되지 않아 후기를 보낼 수 없어요'; return; }
   const u = mx.cur;
   const fields = {
-    name:u.name, role:u.role, school:u.school||'', grade:u.grade||'', cls:u.cls||'',
+    name:(u.role==='학생' ? '' : (u.name||'')), role:u.role, school:u.school||'', grade:u.grade||'', cls:u.cls||'', dev:mxDev(),
     stars:String(mxr.stars),
     etc:     mxr.etc ? $mx('mx-rv-etc').value.trim().slice(0,30) : '',
     oneline: $mx('mx-rv-one').value.trim().slice(0,80),
@@ -11125,7 +11310,7 @@ async function mxrSend(){
       const s = mxrLoad(); s.done = true; mxrSave(s);
       mxrClose(); mxToast('후기 감사합니다 🙏 큰 힘이 돼요!', 4000);
     } else {
-      msg.textContent = '저장에 실패했어요(' + ((r&&r.error)||'알 수 없는 오류') + '). 다시 시도해 주세요';
+      msg.textContent = (r && r.busy) ? '지금 접속이 몰려서 저장이 늦어졌어요. 잠시 뒤 다시 눌러 주세요 🙏' : ('저장에 실패했어요(' + ((r&&r.error)||'알 수 없는 오류') + '). 다시 시도해 주세요');
     }
   }catch(e){
     msg.textContent = '인터넷이 불안정해 전송에 실패했어요. 내용은 그대로니 다시 눌러 주세요';
@@ -11224,6 +11409,7 @@ function mxaSetTab(t){
   $mx('mx-adm-tab-link').style.display = (t==='link') ? '' : 'none';
   $mx('mx-adm-tab-stat').style.display = (t==='stat') ? '' : 'none';
   $mx('mx-adm-msg').textContent = '';
+  $mx('mx-adm-mailwarn').style.display = MX_CONTACT_EMAIL ? 'none' : '';
   if(t==='stat') mxsLoadAdmin();
 }
 function mxaOpen(){
@@ -11305,12 +11491,21 @@ function mxsRenderHub(d){
   el.appendChild(document.createTextNode(' / '));
   el.appendChild(mk('mx-stat-total', '누적 ' + mxsNum(d.total) + '명'));
 }
-async function mxsLoadHub(){
-  const c = mxsCacheLoad(); if(c) mxsRenderHub(c);                    // 저장해 둔 숫자를 먼저 보여주고
+const MX_STATS_TTL_MS = 5*60*1000;      // 허브 숫자는 5분 안이면 서버를 부르지 않아요
+function mxsCacheRaw(){ try{ return JSON.parse(localStorage.getItem(MXS_KEY)||'null'); }catch(e){ return null; } }
+/* 접속 기록 응답에 같이 실려 온 숫자(오늘·누적)를 바로 반영 */
+function mxsApplyPub(pub){
+  if(pub && typeof pub.total === 'number'){ mxsCacheSave({today:pub.today, total:pub.total}); mxsRenderHub(pub); }
+}
+async function mxsLoadHub(force){
+  const o = mxsCacheRaw();
+  if(o && o.data) mxsRenderHub(o.data);                                   // 저장해 둔 숫자를 먼저 보여주고
   if(!MX_GAS_URL) return;
+  if(!force && o && o.t && (Date.now() - o.t) < MX_STATS_TTL_MS) return; // 5분 안이면 서버를 안 불러요
+  await new Promise(r=>setTimeout(r, Math.floor(Math.random()*5000)));    // 한꺼번에 몰리지 않게 0~5초 분산
   try{
-    const r = await mxJsonp({action:'stats'}, 8000);                   // 최신 숫자로 갱신
-    if(r && r.ok){ mxsCacheSave(r); mxsRenderHub(r); }
+    const r = await mxJsonp({action:'stats'}, 8000);                      // 최신 숫자로 갱신
+    if(r && r.ok){ mxsCacheSave({today:r.today, total:r.total}); mxsRenderHub(r); }
   }catch(e){}
 }
 
@@ -11344,7 +11539,7 @@ async function mxsLoadAdmin(){
   $mx('mx-st-asof').textContent = '불러오는 중...';
   try{
     const r = await mxJsonp({action:'stats', fresh:'1'}, 10000);
-    if(r && r.ok){ mxsCacheSave(r); mxsRenderAdmin(r); mxsRenderHub(r); }
+    if(r && r.ok){ mxsCacheSave({today:r.today, total:r.total}); mxsRenderAdmin(r); mxsRenderHub(r); }
     else $mx('mx-st-asof').textContent = '불러오지 못했어요 (' + ((r&&r.error)||'알 수 없는 오류') + ')';
   }catch(e){ $mx('mx-st-asof').textContent = '인터넷이 불안정해 불러오지 못했어요. 새로고침을 눌러 주세요'; }
 }
@@ -11362,7 +11557,7 @@ function mxsDrawPng(d){
   c.fillStyle = '#1A5FB4'; c.font = '800 32px '+F; c.fillText('이용 현황', W/2, 226);
   c.fillStyle = '#9ca3af'; c.font = '500 20px '+F; c.fillText('기준 ' + d.asOf, W/2, 262);
   // 숫자 카드 4개
-  const items = [['오늘 접속자', d.today, '명', '오늘 처음 온 사람 ' + mxsNum(d.newToday) + '명'], ['누적 사용자', d.total, '명', '등록한 사람 전체'],
+  const items = [['오늘 접속자', d.today, '명', '오늘 처음 온 사람 ' + mxsNum(d.newToday) + '명'], ['누적 사용자', d.total, '명', '등록한 사람 · 학생은 기기 기준'],
                  ['누적 접속', d.visits, '회', '들어온 횟수 합계'], ['이번 주 접속자', d.week, '명', '월요일부터 오늘까지, 중복 제외']];
   items.forEach((it,i)=>{
     const x = 80 + (i%2)*(410+20), y = 300 + Math.floor(i/2)*(190+20), w = 410, h = 190;
