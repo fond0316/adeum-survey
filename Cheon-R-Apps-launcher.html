@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#9B8EC4">
+<meta name="robots" content="noindex,nofollow">
+<title>Cheon_R 런처</title>
+<link rel="icon" href="Cheon-R-avatar.png">
+<link rel="apple-touch-icon" href="Cheon-R-avatar.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
+<style>
+:root{--main:#9B8EC4;--main-d:#5B4F8E;--bg:#F4F2FA;--card:#fff;--tx:#3D3556;--tx2:#6B6485;--tx3:#8A82A8;--line:#E4E0F0;--soft:#ECE8F7;--err:#C0455B}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'Pretendard',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:var(--bg);color:var(--tx);line-height:1.5;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+button,input,a{font-family:inherit;font-size:15px;color:inherit;text-decoration:none}
+button{cursor:pointer;border:none;background:none}
+h1,h2,h3{font-family:'Jua','Pretendard',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-weight:400}
+.wrap{max-width:560px;margin:0 auto;padding:14px 16px 32px}
+.hide{display:none!important}
+
+.hero{display:flex;align-items:center;gap:14px;background:var(--main);color:#fff;border-radius:18px;padding:16px}
+.hero .av{width:56px;height:56px;border-radius:50%;object-fit:cover;background:#FCF8F1;flex:none}
+.hero .tt{flex:1;min-width:0}
+.hero h1{font-size:24px;line-height:1.2;letter-spacing:.3px}
+.hero p{font-size:13.5px;opacity:.93;margin-top:3px}
+.adm{flex:none;min-width:44px;min-height:44px;border-radius:12px;background:rgba(255,255,255,.2);color:#fff;font-size:20px}
+.adm.on{background:#fff;color:var(--main-d)}
+
+.tabs{display:flex;gap:8px;margin-top:14px}
+.tab{flex:1;min-height:44px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-weight:600;font-size:14px;color:var(--tx2)}
+.tab.on{background:var(--main);border-color:var(--main);color:#fff}
+.tab small{font-weight:400;opacity:.85;margin-left:3px}
+
+.list{margin-top:12px;display:flex;flex-direction:column;gap:10px}
+.app{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;min-height:76px}
+a.app:active{background:#FAF9FE}
+.app .ic{width:52px;height:52px;border-radius:14px;flex:none;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:28px}
+.app .in{flex:1;min-width:0}
+.app .nm{font-family:'Jua','Pretendard',sans-serif;font-size:18px;line-height:1.25;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.app .mm{font-size:13px;color:var(--tx2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.app .ar{flex:none;color:var(--main);font-size:22px;line-height:1}
+.chip{font-family:'Pretendard',sans-serif;font-size:11px;font-weight:600;border-radius:8px;padding:1px 7px;line-height:1.5}
+.chip.p{background:var(--soft);color:var(--main-d)}
+.chip.d{border:1px solid var(--main);color:var(--main-d)}
+.ctl{display:flex;flex-direction:column;gap:2px;flex:none}
+.ctl .row{display:flex;gap:2px}
+.ib{min-width:44px;min-height:44px;border-radius:10px;font-size:17px;color:var(--main-d)}
+.ib:active{background:var(--soft)}
+.ib:disabled{opacity:.25}
+.ib.del{color:var(--err)}
+.empty{border:1.5px dashed #C9C2E2;border-radius:16px;padding:22px 14px;text-align:center;font-size:13.5px;color:var(--tx3);line-height:1.7}
+.addbtn{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;margin-top:14px;border-radius:16px;background:var(--main);color:#fff;font-size:16px;font-weight:700}
+.addbtn:active{background:var(--main-d)}
+.stat{font-size:12.5px;color:var(--tx3);text-align:center;margin-top:10px;min-height:18px}
+
+.box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-top:14px}
+.box h3{font-size:17px;color:var(--main-d);margin-bottom:8px}
+.box p{font-size:13.5px;color:var(--tx2);line-height:1.65}
+.inp{width:100%;min-height:46px;border:1.5px solid var(--line);border-radius:12px;padding:0 12px;background:#fff;margin-top:8px}
+.inp:focus{outline:none;border-color:var(--main)}
+.btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;margin-top:10px;border-radius:14px;background:var(--main);color:#fff;font-weight:700;font-size:16px}
+.btn:active{background:var(--main-d)}
+.btn:disabled{opacity:.5}
+.btn.sub{background:var(--soft);color:var(--main-d)}
+.err{color:var(--err);font-size:13px;margin-top:8px;min-height:18px}
+
+.foot{text-align:center;font-size:12px;color:var(--tx3);margin-top:24px}
+.foot button{min-height:44px;padding:0 10px;font-size:12px;color:var(--tx3);text-decoration:underline}
+
+.ov{position:fixed;inset:0;background:rgba(61,53,86,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20;
+  padding:0 0 env(safe-area-inset-bottom)}
+.sheet{background:#fff;width:100%;max-width:560px;border-radius:20px 20px 0 0;padding:18px 16px 20px;max-height:92vh;overflow-y:auto}
+.sheet h3{font-size:19px;color:var(--main-d);margin-bottom:4px}
+.lb{font-size:13px;font-weight:600;color:var(--tx2);margin-top:12px}
+.seg{display:flex;gap:8px;margin-top:6px}
+.seg button{flex:1;min-height:44px;border-radius:12px;border:1.5px solid var(--line);font-weight:600;color:var(--tx2)}
+.seg button.on{background:var(--main);border-color:var(--main);color:#fff}
+.emo{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.emo button{width:44px;height:44px;border-radius:12px;background:var(--bg);font-size:22px}
+.emo button.on{outline:2px solid var(--main)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--tx);color:#fff;border-radius:12px;padding:10px 16px;font-size:14px;z-index:30;max-width:90vw;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <img class="av" src="Cheon-R-avatar.png" alt="" onerror="this.style.display='none'">
+    <div class="tt"><h1>Cheon_R 런처</h1><p>내가 만든 앱을 한곳에서</p></div>
+    <button class="adm hide" id="admBtn" aria-label="관리 모드">🔒</button>
+  </header>
+
+  <!-- 처음 연결 화면 -->
+  <section id="viewSetup" class="hide">
+    <div class="box">
+      <h3>처음 한 번만 연결해요</h3>
+      <p>구글 시트에 연결한 GAS 웹 앱 주소(…/exec)를 붙여넣어 주세요. 이 기기에만 저장돼요.</p>
+      <input class="inp" id="gasInp" type="url" inputmode="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off">
+      <div class="err" id="setupErr"></div>
+      <button class="btn" id="gasBtn">연결하기</button>
+    </div>
+    <div class="box">
+      <h3>연결 준비</h3>
+      <p>1. 구글 시트를 만들고 확장 프로그램 → Apps Script를 열어요.<br>
+      2. Cheon-R-launcher-GAS.gs 내용을 붙여넣고 <b>초기설정</b> 함수를 한 번 실행해요.<br>
+      3. 배포 → 새 배포 → 웹 앱 (실행: 나, 액세스: 모든 사용자)으로 배포해요.<br>
+      4. 나온 주소를 위에 붙여넣어요. 다른 기기는 <b>?gas=주소</b> 를 붙인 링크로 한 번에 연결돼요.</p>
+    </div>
+  </section>
+
+  <!-- 메인 목록 -->
+  <section id="viewMain" class="hide">
+    <div class="tabs" id="tabs"></div>
+    <div class="list" id="list"></div>
+    <button class="addbtn hide" id="addBtn">+ 앱 추가</button>
+    <div class="stat" id="stat"></div>
+  </section>
+
+  <div class="foot">
+    Made by Cheon_R
+    <div><button id="resetGas" class="hide">연결 주소 바꾸기</button></div>
+  </div>
+</div>
+
+<!-- 관리자 비밀번호 -->
+<div class="ov hide" id="ovPw">
+  <div class="sheet">
+    <h3>관리 모드</h3>
+    <p style="font-size:13.5px;color:var(--tx2)">앱을 추가·수정·삭제하려면 관리자 비밀번호가 필요해요.</p>
+    <input class="inp" id="pwInp" type="password" inputmode="numeric" placeholder="관리자 비밀번호" autocomplete="off">
+    <div class="err" id="pwErr"></div>
+    <button class="btn" id="pwOk">확인</button>
+    <button class="btn sub" id="pwCancel">취소</button>
+  </div>
+</div>
+
+<!-- 앱 등록/수정 -->
+<div class="ov hide" id="ovForm">
+  <div class="sheet">
+    <h3 id="fTitle">앱 추가</h3>
+    <div class="lb">앱 이름</div>
+    <input class="inp" id="fName" maxlength="40" placeholder="예: CLASS BOARD" autocomplete="off">
+    <div class="lb">앱 링크</div>
+    <input class="inp" id="fUrl" type="url" inputmode="url" placeholder="https://…" autocomplete="off">
+    <div class="lb">구분</div>
+    <div class="seg" id="fType"><button data-v="개인용">개인용</button><button data-v="배포용">배포용</button></div>
+    <div class="lb">아이콘</div>
+    <div class="emo" id="fEmo"></div>
+    <input class="inp" id="fIcon" maxlength="4" placeholder="직접 입력도 돼요 (이모지 1개)" autocomplete="off">
+    <div class="lb">메모 (선택)</div>
+    <input class="inp" id="fMemo" maxlength="100" placeholder="한 줄 메모" autocomplete="off">
+    <div class="err" id="fErr"></div>
+    <button class="btn" id="fSave">저장</button>
+    <button class="btn sub" id="fCancel">취소</button>
+  </div>
+</div>
+
+<script>
+const LS_GAS = 'launcher_gas_v1', LS_CACHE = 'launcher_cache_v1', SS_PW = 'launcher_pw_v1';
+const EMOJIS = ['📱','📚','🧮','📋','📝','📊','🎓','🧪','📅','🔔','🛠️','⭐','🏫','🎬','💬','🗂️'];
+const $ = id => document.getElementById(id);
+function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+let GAS = '', apps = [], tab = 'all', admin = false, pw = '', editId = null, fType = '개인용', busy = false;
+const GAS_RE = /^https:\/\/script\.google\.com\/.+\/exec$/;
+
+/* ?gas= 파라미터로 한 번에 연결 */
+(function(){
+  try{
+    const q = new URLSearchParams(location.search).get('gas');
+    if (q && GAS_RE.test(q)) {
+      localStorage.setItem(LS_GAS, q);
+      history.replaceState(null, '', location.pathname + location.hash);
+    }
+  }catch(e){}
+})();
+
+function lsGet(k){ try{ return localStorage.getItem(k) || ''; }catch(e){ return ''; } }
+function lsSet(k, v){ try{ localStorage.setItem(k, v); }catch(e){} }
+
+/* JSONP 호출 (no-cors 아님: 응답을 확인해요) */
+function call(params){
+  return new Promise((resolve, reject) => {
+    if (!GAS) { reject(new Error('GAS 주소가 설정되지 않았어요. 연결 주소를 먼저 입력해 주세요.')); return; }
+    const cb = '__lc' + Date.now() + Math.floor(Math.random() * 1e4);
+    const s = document.createElement('script');
+    let done = false, t = null;
+    const clean = () => { done = true; clearTimeout(t); try{ delete window[cb]; }catch(e){ window[cb] = undefined; } s.remove(); };
+    t = setTimeout(() => { if (!done) { clean(); reject(new Error('응답이 없어요. GAS 주소와 배포 상태를 확인해 주세요.')); } }, 15000);
+    window[cb] = d => { if (!done) { clean(); resolve(d); } };
+    s.onerror = () => { if (!done) { clean(); reject(new Error('연결에 실패했어요. 주소와 네트워크를 확인해 주세요.')); } };
+    const qs = new URLSearchParams(Object.assign({}, params, { callback: cb }));
+    s.src = GAS + (GAS.indexOf('?') >= 0 ? '&' : '?') + qs.toString();
+    document.head.appendChild(s);
+  });
+}
+
+function toast(msg){
+  const old = document.querySelector('.toast'); if (old) old.remove();
+  const t = el('div', 'toast', msg); document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2400);
+}
+
+/* ===== 화면 ===== */
+function showSetup(){
+  $('viewSetup').classList.remove('hide'); $('viewMain').classList.add('hide');
+  $('admBtn').classList.add('hide'); $('resetGas').classList.add('hide');
+}
+function showMain(){
+  $('viewSetup').classList.add('hide'); $('viewMain').classList.remove('hide');
+  $('admBtn').classList.remove('hide'); $('resetGas').classList.remove('hide');
+  render();
+}
+
+function count(t){ return t === 'all' ? apps.length : apps.filter(a => a.type === t).length; }
+
+function render(){
+  const tabs = $('tabs'); tabs.innerHTML = '';
+  [['all','전체'],['개인용','개인용'],['배포용','배포용']].forEach(([v, label]) => {
+    const b = el('button', 'tab' + (tab === v ? ' on' : ''), label);
+    b.appendChild(el('small', '', String(count(v))));
+    b.onclick = () => { tab = v; render(); };
+    tabs.appendChild(b);
+  });
+
+  $('admBtn').textContent = admin ? '🔓' : '🔒';
+  $('admBtn').classList.toggle('on', admin);
+  $('addBtn').classList.toggle('hide', !admin);
+
+  const list = $('list'); list.innerHTML = '';
+  const shown = apps.filter(a => tab === 'all' || a.type === tab);
+  if (!shown.length) {
+    list.appendChild(el('div', 'empty', admin
+      ? '아직 등록된 앱이 없어요.\n아래 “+ 앱 추가”로 첫 앱을 등록해 보세요.'
+      : '아직 등록된 앱이 없어요.\n오른쪽 위 🔒 로 관리 모드에 들어가서 앱을 추가해 보세요.'));
+    list.lastChild.style.whiteSpace = 'pre-line';
+    return;
+  }
+  shown.forEach((a, i) => {
+    const card = admin ? el('div', 'app') : el('a', 'app');
+    if (!admin) card.href = a.url;
+    card.appendChild(el('div', 'ic', a.icon || '📱'));
+    const inn = el('div', 'in');
+    const nm = el('div', 'nm', a.name);
+    nm.appendChild(el('span', 'chip ' + (a.type === '개인용' ? 'p' : 'd'), a.type));
+    inn.appendChild(nm);
+    if (a.memo) inn.appendChild(el('div', 'mm', a.memo));
+    card.appendChild(inn);
+    if (admin) {
+      const ctl = el('div', 'ctl');
+      const r1 = el('div', 'row'), r2 = el('div', 'row');
+      const up = el('button', 'ib', '▲'); up.disabled = i === 0; up.onclick = () => move(shown, i, -1);
+      const dn = el('button', 'ib', '▼'); dn.disabled = i === shown.length - 1; dn.onclick = () => move(shown, i, 1);
+      const ed = el('button', 'ib', '✏️'); ed.onclick = () => openForm(a);
+      const rm = el('button', 'ib del', '🗑️'); rm.onclick = () => removeApp(a);
+      r1.appendChild(up); r1.appendChild(dn); r2.appendChild(ed); r2.appendChild(rm);
+      ctl.appendChild(r1); ctl.appendChild(r2); card.appendChild(ctl);
+    } else {
+      card.appendChild(el('span', 'ar', '›'));
+    }
+    list.appendChild(card);
+  });
+}
+
+/* ===== 데이터 ===== */
+function setApps(list){ apps = Array.isArray(list) ? list : []; lsSet(LS_CACHE, JSON.stringify(apps)); }
+
+async function load(){
+  $('stat').textContent = '불러오는 중…';
+  try{
+    const r = await call({ action: 'list' });
+    if (!r || !r.ok) throw new Error((r && r.error) || '불러오기에 실패했어요.');
+    setApps(r.apps); $('stat').textContent = '';
+  }catch(e){
+    $('stat').textContent = '⚠️ ' + e.message + (apps.length ? ' (저장된 목록을 보여드려요)' : '');
+  }
+  render();
+}
+
+/* 쓰기 요청 공통: 비밀번호 오류/잠금이면 관리 모드 해제 */
+async function write(params){
+  if (busy) return null;
+  busy = true;
+  try{
+    const r = await call(Object.assign({ pw }, params));
+    if (!r || !r.ok) {
+      if (r && (r.code === 'pw' || r.code === 'locked')) { admin = false; pw = ''; try{ sessionStorage.removeItem(SS_PW); }catch(e){} render(); }
+      throw new Error((r && r.error) || '저장에 실패했어요.');
+    }
+    setApps(r.apps); render();
+    return r;
+  } finally { busy = false; }
+}
+
+async function move(shown, i, dir){
+  const a = shown[i], b = shown[i + dir]; if (!a || !b) return;
+  const ia = apps.indexOf(a), ib = apps.indexOf(b);
+  const prev = apps.slice();
+  apps[ia] = b; apps[ib] = a; render();
+  try{ await write({ action: 'reorder', ids: apps.map(x => x.id).join(',') }); }
+  catch(e){ apps = prev; render(); toast(e.message); }
+}
+
+async function removeApp(a){
+  if (!confirm('“' + a.name + '” 을(를) 목록에서 삭제할까요?')) return;
+  try{ await write({ action: 'delete', id: a.id }); toast('삭제했어요'); }catch(e){ toast(e.message); }
+}
+
+/* ===== 관리 모드 ===== */
+function openPw(){ $('pwInp').value = ''; $('pwErr').textContent = ''; $('ovPw').classList.remove('hide'); setTimeout(() => $('pwInp').focus(), 50); }
+function closePw(){ $('ovPw').classList.add('hide'); }
+
+$('admBtn').onclick = () => {
+  if (admin) { admin = false; pw = ''; try{ sessionStorage.removeItem(SS_PW); }catch(e){} render(); toast('관리 모드를 껐어요'); }
+  else openPw();
+};
+$('pwCancel').onclick = closePw;
+$('pwOk').onclick = async () => {
+  const v = $('pwInp').value.trim(); if (!v) { $('pwErr').textContent = '비밀번호를 입력해 주세요.'; return; }
+  $('pwOk').disabled = true; $('pwErr').textContent = '';
+  try{
+    const r = await call({ action: 'check', pw: v });
+    if (!r || !r.ok) throw new Error((r && r.error) || '확인에 실패했어요.');
+    admin = true; pw = v; try{ sessionStorage.setItem(SS_PW, v); }catch(e){}
+    closePw(); render(); toast('관리 모드를 켰어요');
+  }catch(e){ $('pwErr').textContent = e.message; }
+  $('pwOk').disabled = false;
+};
+$('pwInp').addEventListener('keydown', e => { if (e.key === 'Enter') $('pwOk').click(); });
+
+/* ===== 등록/수정 폼 ===== */
+function buildEmoji(){
+  const box = $('fEmo'); box.innerHTML = '';
+  EMOJIS.forEach(em => {
+    const b = el('button', '', em); b.type = 'button';
+    b.onclick = () => { $('fIcon').value = em; markEmoji(); };
+    box.appendChild(b);
+  });
+}
+function markEmoji(){ [...$('fEmo').children].forEach(b => b.classList.toggle('on', b.textContent === $('fIcon').value.trim())); }
+function setType(v){ fType = v; [...$('fType').children].forEach(b => b.classList.toggle('on', b.dataset.v === v)); }
+[...$('fType').children].forEach(b => b.onclick = () => setType(b.dataset.v));
+$('fIcon').addEventListener('input', markEmoji);
+
+function openForm(a){
+  editId = a ? a.id : null;
+  $('fTitle').textContent = a ? '앱 수정' : '앱 추가';
+  $('fName').value = a ? a.name : '';
+  $('fUrl').value = a ? a.url : '';
+  $('fIcon').value = a ? a.icon : '📱';
+  $('fMemo').value = a ? a.memo : '';
+  $('fErr').textContent = '';
+  setType(a ? a.type : (tab === '배포용' ? '배포용' : '개인용'));
+  markEmoji();
+  $('ovForm').classList.remove('hide');
+}
+function closeForm(){ $('ovForm').classList.add('hide'); }
+$('addBtn').onclick = () => openForm(null);
+$('fCancel').onclick = closeForm;
+$('fSave').onclick = async () => {
+  const name = $('fName').value.trim(), url = $('fUrl').value.trim();
+  if (!name) { $('fErr').textContent = '앱 이름을 입력해 주세요.'; return; }
+  if (!/^https?:\/\/\S+$/i.test(url)) { $('fErr').textContent = '링크는 http:// 또는 https:// 로 시작해야 해요.'; return; }
+  const params = { action: editId ? 'update' : 'add', name, url, type: fType, icon: $('fIcon').value.trim() || '📱', memo: $('fMemo').value.trim() };
+  if (editId) params.id = editId;
+  $('fSave').disabled = true; $('fErr').textContent = '';
+  try{ await write(params); closeForm(); toast(editId ? '수정했어요' : '등록했어요'); }
+  catch(e){ $('fErr').textContent = e.message; if (!admin) closeForm(); }
+  $('fSave').disabled = false;
+};
+
+/* ===== 연결 ===== */
+$('gasBtn').onclick = async () => {
+  const v = $('gasInp').value.trim();
+  if (!GAS_RE.test(v)) { $('setupErr').textContent = '주소가 올바르지 않아요. https://script.google.com/…/exec 형태여야 해요.'; return; }
+  $('gasBtn').disabled = true; $('setupErr').textContent = '연결 확인 중…';
+  const prev = GAS; GAS = v;
+  try{
+    const r = await call({ action: 'list' });
+    if (!r || !r.ok) throw new Error((r && r.error) || '연결에 실패했어요.');
+    lsSet(LS_GAS, v); setApps(r.apps); $('setupErr').textContent = '';
+    showMain(); toast('연결했어요');
+  }catch(e){ GAS = prev; $('setupErr').textContent = e.message; }
+  $('gasBtn').disabled = false;
+};
+$('resetGas').onclick = () => {
+  if (!confirm('이 기기의 연결 주소를 지우고 다시 입력할까요? (시트 데이터는 그대로예요)')) return;
+  try{ localStorage.removeItem(LS_GAS); localStorage.removeItem(LS_CACHE); sessionStorage.removeItem(SS_PW); }catch(e){}
+  GAS = ''; apps = []; admin = false; pw = ''; showSetup();
+};
+$('gasInp').addEventListener('keydown', e => { if (e.key === 'Enter') $('gasBtn').click(); });
+
+/* ===== 시작 ===== */
+buildEmoji();
+GAS = lsGet(LS_GAS);
+if (!GAS) { showSetup(); }
+else {
+  try{ apps = JSON.parse(lsGet(LS_CACHE) || '[]'); if (!Array.isArray(apps)) apps = []; }catch(e){ apps = []; }
+  try{ pw = sessionStorage.getItem(SS_PW) || ''; }catch(e){ pw = ''; }
+  admin = !!pw;
+  showMain();
+  load();
+}
+</script>
+</body>
+</html>
