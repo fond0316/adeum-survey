@@ -154,6 +154,24 @@ details summary::-webkit-details-marker{display:none}
 .stbars .c .stk i{display:block;width:100%}
 .stbars .c .stk .ss{background:#CFC7EA}
 .stbars .c .stk .tt{background:var(--main)}
+.grseg{display:inline-flex;gap:6px}
+.grseg button{min-height:40px;min-width:64px;padding:0 14px;border-radius:20px;border:1.5px solid var(--line);background:#fff;color:var(--tx2);font-weight:700;font-size:14px}
+.grseg button.on{background:var(--main);color:#fff;border-color:var(--main)}
+.grhead{background:var(--bg);color:#3B3358;border-radius:12px;padding:12px 14px;font-size:15px;line-height:1.65;margin-top:12px}
+.grhead small{display:block;margin-top:6px;font-size:12.5px;color:var(--tx3);line-height:1.5}
+.grkpi{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.grkpi div{background:var(--bg);border-radius:12px;padding:10px 6px;text-align:center}
+.grkpi b{display:block;font-size:clamp(16px,4.6vw,22px);line-height:1.15;color:var(--main-d)}
+.grkpi small{display:block;font-size:11.5px;color:var(--tx2);margin-top:3px;font-weight:700}
+.grkpi em{display:block;font-style:normal;font-size:10.5px;color:var(--tx3);margin-top:1px}
+.grchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.grchips span{background:var(--bg);border-radius:10px;padding:8px 12px;font-size:12.5px;color:var(--tx2)}
+.grchips b{color:var(--tx);font-weight:800}
+.grtbl{width:100%;border-collapse:collapse;font-size:12.5px;min-width:520px}
+.grtbl th,.grtbl td{padding:7px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+.grtbl th:first-child,.grtbl td:first-child{text-align:left}
+.grtbl th{color:var(--tx2);font-weight:700;background:#fff;position:sticky;top:0}
+.grtbl tr.cur td{color:var(--tx3)}
 .stgrp{font-size:13px;font-weight:700;color:var(--tx2);margin:14px 0 6px}
 .stleg{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--tx2);margin-top:6px}
 .stleg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
@@ -482,6 +500,24 @@ input[type=date]{min-width:0;max-width:100%}
         <div class="stleg" id="stSplitLeg"></div>
         <div class="row" style="margin-top:12px"><button class="btn sub" onclick="saveStatImg()">🖼️ 화면 이미지로 저장</button></div>
         <p class="hint" style="margin:10px 0 0">하루에 한 번만 세요 (같은 선생님·같은 기기가 하루에 여러 번 열어도 1회). 학생은 <b>이름·학번 없이 기기 기준</b>이라 학생 수와 정확히 같지는 않아요(한 학생이 디벗·폰 두 대면 2). 아듬샘 본인·사용 중지된 분·학생 전송을 끈 반은 빼고 세요. 모든 선생님 화면 위에는 <b>선생님 숫자만</b> 보여요(누적 10명 미만이면 숨김, 아듬샘 화면에는 항상 보임).</p>
+      </div>
+      <div class="box hide" id="grBox">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+          <h2 style="margin:0">📊 성장 분석</h2>
+          <div class="grseg"><button id="grW" class="on" onclick="grSetMode('w')">주간</button><button id="grM" onclick="grSetMode('m')">월간</button></div>
+        </div>
+        <div class="grhead" id="grHead"></div>
+        <div class="grkpi" id="grKpi"></div>
+        <div class="stgrp">누적 사용자 (선생님)</div>
+        <div id="grLine"></div>
+        <div class="stleg" style="margin:2px 0 0"><span>빈 점·점선·흐린 막대는 아직 진행 중인 기간이에요</span></div>
+        <div class="stgrp">기간별 신규 · 활성 사용자</div>
+        <div class="stleg" style="margin:0 0 4px"><span><i style="background:var(--main)"></i>신규 (처음 접속)</span><span><i style="background:#CFC7EA"></i>활성 (그 기간에 접속)</span></div>
+        <div id="grBars"></div>
+        <div class="grchips" id="grChips"></div>
+        <details class="agd" style="margin-top:12px"><summary>기간별 상세 표 ▾</summary><div class="agb" style="padding:0 0 8px"><div style="overflow-x:auto" id="grTbl"></div></div></details>
+        <div class="row" style="margin-top:12px"><button class="btn sub" onclick="saveGrowthImg()">🖼️ 성장 분석 이미지 저장</button></div>
+        <p class="hint" style="margin:10px 0 0"><b>신규</b>는 처음 접속한 선생님, <b>활성</b>은 그 기간에 한 번이라도 접속한 서로 다른 선생님, <b>누적</b>은 신규를 계속 더한 값이에요. <b>성장률</b>은 지난 기간 말 누적 대비 이번 기간 말 누적의 증가율이고, 진행 중인 기간은 빼고 계산해요(흐리게 표시). 사용자가 적을 때는 퍼센트가 크게 보일 수 있으니 인원 수와 배수를 같이 봐 주세요. 접속 집계를 시작하기 전 사용자는 등록일로 복원한 값이에요. 학생은 신규 기기까지만 집계해요.</p>
       </div>
       <div class="box">
         <h2>👑 사용자 관리</h2>
@@ -1663,7 +1699,7 @@ async function loadOwner(){
   try{
     const r = await jsonp({ action:'ownerList', id:installId }, REGISTRY_URL);
     const wasLoaded = ownLoaded;
-    own = { approval:r.approval, users:r.users||[], review:r.review||null, stats:r.stats||null }; ownLoaded = true; if (!wasLoaded) msg('ownMsg','',true); renderOwner();
+    own = { approval:r.approval, users:r.users||[], review:r.review||null, stats:r.stats||null }; ownLoaded = true; if (!wasLoaded) msg('ownMsg','',true); renderOwner(); loadGrowth();
   }catch(e){
     ownLoaded = false;
     $('apTxt').textContent = '승인제 (확인 불가)';
@@ -1721,6 +1757,131 @@ async function toggleApproval(){
   own.approval = on; renderOwner(); msg('ownMsg','저장 중…',true);          // 화면 먼저 바꾸고
   try{ await jsonp({ action:'ownerApproval', id:installId, on: on?'1':'' }, REGISTRY_URL); msg('ownMsg', on?'승인제를 켰어요.':'승인제를 껐어요.', true); loadOwner(); }
   catch(e){ own.approval = !on; renderOwner(); msg('ownMsg', '저장하지 못해 되돌렸어요: ' + e.message); }
+}
+/* ===== 📊 성장 분석 (주간/월간) ===== */
+let grData = null, grMode = 'w';
+async function loadGrowth(){
+  try{ grData = await jsonp({ action:'ownerGrowth', id:installId }, REGISTRY_URL); renderGrowth(); }
+  catch(e){ grData = null; $('grBox').classList.add('hide'); }   // 등록부 GAS가 옛 버전이면 조용히 숨김
+}
+function grSetMode(m){ grMode = m; renderGrowth(); }
+const grPer = () => grMode === 'w' ? '주' : '월';
+const grPct = x => x == null ? '-' : (x >= 0 ? '+' : '−') + Math.round(Math.abs(x)) + '%';
+const grLbl = k => grMode === 'w' ? (Number(k.slice(5,7)) + '/' + Number(k.slice(8,10))) : (Number(k.slice(5,7)) + '월');
+function grCalc(arr){
+  const done = arr.filter(x => !x.cur), fp = done.findIndex(x => x.cumT > 0), endI = done.length - 1;
+  const look = grMode === 'w' ? 4 : 3, startI = fp < 0 ? -1 : Math.max(fp, endI - look), L = endI - startI;
+  const out = { ok:false, last:null, avg:null };
+  if (done.length >= 2 && done[endI-1].cumT > 0) out.last = (done[endI].cumT / done[endI-1].cumT - 1) * 100;
+  if (fp >= 0 && L >= 1){
+    const sv = done[startI].cumT, ev = done[endI].cumT, ratio = ev / sv;
+    Object.assign(out, { ok:true, sv, ev, ratio, L, avg:(Math.pow(ratio, 1 / L) - 1) * 100 });
+  }
+  return out;
+}
+function grSummary(arr, now){
+  const c = grCalc(arr), per = grPer(), w = grMode === 'w';
+  if (!c.ok) return { c, text:`아직 완료된 ${w ? '주가' : '달이'} 부족해서 성장률은 계산하지 못해요. (사용자가 있는 완료된 ${w ? '주가' : '달이'} 2개 이상 쌓이면 계산돼요) 지금까지 선생님 ${now.users}명이 사용 중이에요.`, note:'' };
+  const unit = w ? c.L + '주' : c.L + '개월';
+  return { c, text:`최근 ${unit}(진행 중인 ${w ? '주' : '달'} 제외) 동안 누적 사용자가 ${c.sv}명에서 ${c.ev}명으로 ${c.ratio.toFixed(1)}배 늘었어요. ${per} 평균 성장률은 ${grPct(c.avg)}예요.`,
+    note: c.sv < 10 ? '시작 단계라 퍼센트가 크게 보일 수 있어요. 인원 수와 배수를 같이 봐 주세요.' : '' };
+}
+function grLineSvg(vals, keys, Wd){
+  const H = 150, pl = 30, pr = 12, pt = 16, pb = 24, n = vals.length, mx = Math.max(1, ...vals), top = Math.ceil(mx * 1.15);
+  const X = i => pl + (Wd - pl - pr) * (n === 1 ? .5 : i / (n - 1)), Y = v => pt + (H - pt - pb) * (1 - v / top);
+  const done = vals.slice(0, n - 1), solid = done.map((v,i) => (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1)).join(' ');
+  const area = n > 1 ? solid + ` L${X(n-2).toFixed(1)} ${Y(0)} L${X(0).toFixed(1)} ${Y(0)} Z` : '';
+  const dash = n > 1 ? `M${X(n-2).toFixed(1)} ${Y(vals[n-2]).toFixed(1)} L${X(n-1).toFixed(1)} ${Y(vals[n-1]).toFixed(1)}` : '';
+  const step = Math.ceil(n / 6);
+  let g = '';
+  [0, .5, 1].forEach(f => { const v = Math.round(top * f), y = Y(v); g += `<line x1="${pl}" x2="${Wd-pr}" y1="${y}" y2="${y}" stroke="#E9E5F5"/><text x="${pl-5}" y="${y+3}" text-anchor="end" font-size="10" fill="#8A84A0">${v}</text>`; });
+  vals.forEach((v,i) => { const cur = i === n - 1; g += `<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="${cur ? 3.5 : 3}" fill="${cur ? '#fff' : '#9B8EC4'}" stroke="#9B8EC4" stroke-width="1.5"/>`;
+    if (i === n - 1 || i % step === 0 && n <= 14) g += `<text x="${X(i).toFixed(1)}" y="${(Y(v) - 8).toFixed(1)}" text-anchor="middle" font-size="10.5" font-weight="700" fill="#4A4466">${v}</text>`;
+    if (i === n - 1 || i === 0 || (i % step === 0 && n - 1 - i >= step)) g += `<text x="${X(i).toFixed(1)}" y="${H - 6}" text-anchor="middle" font-size="10" fill="#8A84A0">${esc(grLbl(keys[i]))}</text>`; });
+  return `<svg viewBox="0 0 ${Wd} ${H}" width="${Wd}" height="${H}" role="img" aria-label="기간별 누적 사용자 선 그래프"><path d="${area}" fill="#9B8EC4" opacity=".12"/><path d="${solid}" fill="none" stroke="#9B8EC4" stroke-width="2.2" stroke-linejoin="round"/><path d="${dash}" fill="none" stroke="#9B8EC4" stroke-width="2" stroke-dasharray="4 4"/>${g}</svg>`;
+}
+function grBarSvg(nt, at, keys, Wd){
+  const H = 150, pl = 30, pr = 12, pt = 16, pb = 24, n = nt.length, mx = Math.max(1, ...nt, ...at), top = Math.ceil(mx * 1.15), gw = (Wd - pl - pr) / n, bw = Math.max(4, Math.min(16, gw * .36));
+  const Y = v => pt + (H - pt - pb) * (1 - v / top), step = Math.ceil(n / 6);
+  let g = '';
+  [0, .5, 1].forEach(f => { const v = Math.round(top * f), y = Y(v); g += `<line x1="${pl}" x2="${Wd-pr}" y1="${y}" y2="${y}" stroke="#E9E5F5"/><text x="${pl-5}" y="${y+3}" text-anchor="end" font-size="10" fill="#8A84A0">${v}</text>`; });
+  nt.forEach((v,i) => { const cx = pl + gw * (i + .5), op = i === n - 1 ? .5 : 1, ha = Y(0) - Y(at[i]), hn = Y(0) - Y(v);
+    g += `<g opacity="${op}"><rect x="${(cx - bw - 1).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(2, hn).toFixed(1)}" rx="3" fill="#9B8EC4"/><rect x="${(cx + 1).toFixed(1)}" y="${Y(at[i]).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(2, ha).toFixed(1)}" rx="3" fill="#CFC7EA"/></g>`;
+    if (n <= 12){ if (v) g += `<text x="${(cx - bw/2 - 1).toFixed(1)}" y="${(Y(v) - 3).toFixed(1)}" text-anchor="middle" font-size="9.5" font-weight="700" fill="#6F62A8">${v}</text>`; if (at[i]) g += `<text x="${(cx + bw/2 + 1).toFixed(1)}" y="${(Y(at[i]) - 3).toFixed(1)}" text-anchor="middle" font-size="9.5" fill="#8A84A0">${at[i]}</text>`; }
+    if (i === n - 1 || i === 0 || (i % step === 0 && n - 1 - i >= step)) g += `<text x="${cx.toFixed(1)}" y="${H - 6}" text-anchor="middle" font-size="10" fill="#8A84A0">${esc(grLbl(keys[i]))}</text>`; });
+  return `<svg viewBox="0 0 ${Wd} ${H}" width="${Wd}" height="${H}" role="img" aria-label="기간별 신규와 활성 사용자 막대 그래프">${g}</svg>`;
+}
+function renderGrowth(){
+  const box = $('grBox'), d = grData; if (!d) return;
+  const all = grMode === 'w' ? d.weeks : d.months;
+  box.classList.toggle('hide', false);
+  $('grW').classList.toggle('on', grMode === 'w'); $('grM').classList.toggle('on', grMode === 'm');
+  const per = grPer();
+  if (!all || !all.length){ $('grHead').textContent = '아직 쌓인 기록이 없어요. 선생님들이 접속하면 여기에 성장 분석이 나타나요.'; $('grKpi').innerHTML = $('grLine').innerHTML = $('grBars').innerHTML = $('grChips').innerHTML = $('grTbl').innerHTML = ''; return; }
+  const sm = grSummary(all, d.now), c = sm.c, last = all[all.length-1], prev = all.length > 1 ? all[all.length-2] : null;
+  $('grHead').innerHTML = esc(sm.text) + (sm.note ? `<small>${esc(sm.note)}</small>` : '');
+  $('grKpi').innerHTML = `<div><b>${grPct(c.last)}</b><small>지난 ${per} 성장률</small><em>완료된 기간 기준</em></div><div><b>${grPct(c.avg)}</b><small>${per} 평균 성장률</small><em>${c.ok ? '최근 ' + c.L + (grMode === 'w' ? '주' : '개월') : '계산 전'}</em></div><div><b>${last.nt}명</b><small>이번 ${per} 신규</small><em>${prev ? '지난 ' + per + ' ' + prev.nt + '명' : '진행 중'}</em></div>`;
+  const view = all.slice(-12), Wd = Math.max(300, Math.min(900, (box.clientWidth || 360) - 34));
+  $('grLine').innerHTML = grLineSvg(view.map(x => x.cumT), view.map(x => x.k), Wd);
+  $('grBars').innerHTML = grBarSvg(view.map(x => x.nt), view.map(x => x.at), view.map(x => x.k), Wd);
+  const n = d.now, pc = v => n.users ? Math.round(v / n.users * 100) + '%' : '-';
+  $('grChips').innerHTML = `<span>재방문 사용자 비율 <b>${pc(n.returning)}</b></span><span>최근 7일 활성 비율 <b>${pc(n.active7)}</b></span><span>학생 신규 기기 <b>+${last.ns}대</b> (이번 ${per}) · 누적 <b>${n.devices}대</b></span>`;
+  const rows = all.slice().reverse().map((x, i, a) => { const j = all.length - 1 - i, pv = j > 0 ? all[j-1].cumT : 0, g = (!x.cur && pv > 0) ? grPct((x.cumT / pv - 1) * 100) : '-';
+    return `<tr class="${x.cur ? 'cur' : ''}"><td>${esc(grMode === 'w' ? x.k.slice(5).replace('-','/') + ' 주' : x.k.slice(0,4) + '.' + x.k.slice(5))}${x.cur ? ' (진행 중)' : ''}</td><td>${x.nt}</td><td>${x.at}</td><td>${x.cumT}</td><td>${g}</td><td>${x.v}</td><td>${x.ns}</td><td>${x.sv}</td></tr>`; }).join('');
+  $('grTbl').innerHTML = `<table class="grtbl"><thead><tr><th>기간</th><th>신규</th><th>활성</th><th>누적</th><th>성장률</th><th>접속</th><th>학생 신규 기기</th><th>학생 접속</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+let grRz = null; window.addEventListener('resize', () => { clearTimeout(grRz); grRz = setTimeout(() => { if (grData && !$('grBox').classList.contains('hide')) renderGrowth(); }, 200); });
+async function saveGrowthImg(){
+  const d = grData; if (!d){ msg('ownMsg','성장 분석을 아직 못 불러왔어요.'); return; }
+  const all = grMode === 'w' ? d.weeks : d.months; if (!all.length){ msg('ownMsg','아직 쌓인 기록이 없어요.'); return; }
+  try{ await document.fonts.ready; }catch(e){}
+  const per = grPer(), sm = grSummary(all, d.now), c = sm.c, view = all.slice(-12), last = all[all.length-1], prev = all.length > 1 ? all[all.length-2] : null;
+  const S = 2, W = 760, M = 56, F = (w,px) => w + ' ' + px + "px Pretendard, 'Noto Sans KR', sans-serif";
+  const tmp = document.createElement('canvas').getContext('2d'); tmp.font = F('600',18);
+  const wrap = (ctx, text, maxW) => { const out = []; let line = ''; for (const ch of text){ const t = line + ch; if (ctx.measureText(t).width > maxW && line){ out.push(line); line = ch.trimStart(); } else line = t; } if (line) out.push(line); return out; };
+  const hl = wrap(tmp, sm.text, W - 2*M - 28), nl = sm.note ? wrap((tmp.font = F('500',14), tmp), sm.note, W - 2*M - 28) : [];
+  const headH = 24 + hl.length * 28 + (nl.length ? 8 + nl.length * 20 : 0) + 8;
+  const yHead = 140, yKpi = yHead + headH + 16, yLine = yKpi + 96 + 30, yBars = yLine + 230 + 10, yChip = yBars + 250, H = yChip + 132;
+  const cv = document.createElement('canvas'); cv.width = W*S; cv.height = H*S; const x = cv.getContext('2d'); x.scale(S,S);
+  const rr = (X,Y,w,h,r) => { x.beginPath(); x.moveTo(X+r,Y); x.arcTo(X+w,Y,X+w,Y+h,r); x.arcTo(X+w,Y+h,X,Y+h,r); x.arcTo(X,Y+h,X,Y,r); x.arcTo(X,Y,X+w,Y,r); x.closePath(); };
+  x.fillStyle = '#F4F2FA'; x.fillRect(0,0,W,H); x.fillStyle = '#fff'; rr(24,24,W-48,H-48,24); x.fill();
+  x.textBaseline = 'alphabetic'; x.textAlign = 'left';
+  x.fillStyle = '#3B3358'; x.font = F('800',30); x.fillText('CLASS BOARD 성장 분석', M, 84);
+  const now = new Date(), ds = now.getFullYear() + '.' + String(now.getMonth()+1).padStart(2,'0') + '.' + String(now.getDate()).padStart(2,'0');
+  x.fillStyle = '#8A84A0'; x.font = F('500',16); x.fillText(ds + ' 기준 · ' + (grMode === 'w' ? '주간' : '월간') + ' · 선생님 사용자 기준', M, 112);
+  x.fillStyle = '#F4F2FA'; rr(M, yHead, W-2*M, headH, 16); x.fill();
+  x.fillStyle = '#3B3358'; x.font = F('600',18); hl.forEach((t,i) => x.fillText(t, M+14, yHead + 36 + i*28));
+  if (nl.length){ x.fillStyle = '#8A84A0'; x.font = F('500',14); nl.forEach((t,i) => x.fillText(t, M+14, yHead + 36 + hl.length*28 + 8 + i*20)); }
+  const tw = (W-2*M-28)/3, kp = [[grPct(c.last), '지난 ' + per + ' 성장률'], [grPct(c.avg), per + ' 평균 성장률'], [last.nt + '명', '이번 ' + per + ' 신규' + (prev ? ' (지난 ' + per + ' ' + prev.nt + '명)' : '')]];
+  kp.forEach((v,i) => { const X = M + i*(tw+14); x.fillStyle = '#F4F2FA'; rr(X,yKpi,tw,96,16); x.fill(); x.textAlign = 'center'; x.fillStyle = '#6F62A8'; x.font = F('800',32); x.fillText(v[0], X+tw/2, yKpi+46); x.fillStyle = '#4A4466'; x.font = F('700',13); x.fillText(v[1], X+tw/2, yKpi+74); });
+  const n = view.length, pl = 36, pr = M, aw = W - M - pl, plot = (y0, title, draw) => { x.textAlign = 'left'; x.fillStyle = '#4A4466'; x.font = F('700',17); x.fillText(title, M, y0); draw(y0 + 20); };
+  const lab = (i, cx, y) => { x.textAlign = 'center'; x.fillStyle = '#8A84A0'; x.font = F('500',12); const k = view[i].k, t = grMode === 'w' ? (Number(k.slice(5,7)) + '/' + Number(k.slice(8,10))) : (Number(k.slice(5,7)) + '월'); x.fillText(t, cx, y); };
+  const step = Math.ceil(n/6);
+  plot(yLine, '누적 사용자 (선생님)', y0 => {
+    const h = 150, vals = view.map(v => v.cumT), top = Math.ceil(Math.max(1, ...vals) * 1.15), Y = v => y0 + 10 + h * (1 - v/top), X = i => pl + (n === 1 ? aw/2 : aw * i/(n-1));
+    [0,.5,1].forEach(f => { const v = Math.round(top*f), y = Y(v); x.strokeStyle = '#E9E5F5'; x.lineWidth = 1; x.beginPath(); x.moveTo(pl,y); x.lineTo(W-pr,y); x.stroke(); x.textAlign = 'right'; x.fillStyle = '#8A84A0'; x.font = F('500',12); x.fillText(String(v), pl-6, y+4); });
+    x.strokeStyle = '#9B8EC4'; x.lineWidth = 3; x.lineJoin = 'round'; x.beginPath(); vals.slice(0,n-1).forEach((v,i) => i ? x.lineTo(X(i),Y(v)) : x.moveTo(X(i),Y(v))); x.stroke();
+    if (n > 1){ x.setLineDash([6,6]); x.beginPath(); x.moveTo(X(n-2),Y(vals[n-2])); x.lineTo(X(n-1),Y(vals[n-1])); x.stroke(); x.setLineDash([]); }
+    vals.forEach((v,i) => { x.fillStyle = i === n-1 ? '#fff' : '#9B8EC4'; x.strokeStyle = '#9B8EC4'; x.lineWidth = 2; x.beginPath(); x.arc(X(i),Y(v),4.5,0,7); x.fill(); x.stroke();
+      if (i === n-1 || (i % step === 0 && n <= 14)){ x.textAlign = 'center'; x.fillStyle = '#4A4466'; x.font = F('700',13); x.fillText(String(v), X(i), Y(v)-10); }
+      if (i === n-1 || i === 0 || (i % step === 0 && n-1-i >= step)) lab(i, X(i), y0 + 10 + h + 22); });
+  });
+  plot(yBars, '기간별 신규 · 활성 사용자', y0 => {
+    const h = 150, top = Math.ceil(Math.max(1, ...view.map(v => v.nt), ...view.map(v => v.at)) * 1.15), Y = v => y0 + 28 + h * (1 - v/top), gw = aw / n, bw = Math.max(6, Math.min(22, gw*.36));
+    x.textAlign = 'left'; x.fillStyle = '#9B8EC4'; rr(M, y0+2, 12, 12, 3); x.fill(); x.fillStyle = '#6B6680'; x.font = F('500',13); x.fillText('신규 (처음 접속)', M+18, y0+13); x.fillStyle = '#CFC7EA'; rr(M+150, y0+2, 12, 12, 3); x.fill(); x.fillStyle = '#6B6680'; x.fillText('활성 (그 기간에 접속)', M+168, y0+13);
+    [0,.5,1].forEach(f => { const v = Math.round(top*f), y = Y(v); x.strokeStyle = '#E9E5F5'; x.lineWidth = 1; x.beginPath(); x.moveTo(pl,y); x.lineTo(W-pr,y); x.stroke(); x.textAlign = 'right'; x.fillStyle = '#8A84A0'; x.font = F('500',12); x.fillText(String(v), pl-6, y+4); });
+    view.forEach((v,i) => { const cx = pl + gw*(i+.5); x.globalAlpha = v.cur ? .5 : 1;
+      x.fillStyle = '#9B8EC4'; rr(cx-bw-1, Y(v.nt), bw, Math.max(3, Y(0)-Y(v.nt)), 4); x.fill(); x.fillStyle = '#CFC7EA'; rr(cx+1, Y(v.at), bw, Math.max(3, Y(0)-Y(v.at)), 4); x.fill(); x.globalAlpha = 1;
+      if (n <= 12){ x.textAlign = 'center'; x.font = F('700',11); if (v.nt){ x.fillStyle = '#6F62A8'; x.fillText(String(v.nt), cx-bw/2-1, Y(v.nt)-4); } if (v.at){ x.fillStyle = '#8A84A0'; x.fillText(String(v.at), cx+bw/2+1, Y(v.at)-4); } }
+      if (i === n-1 || i === 0 || (i % step === 0 && n-1-i >= step)) lab(i, cx, y0 + 28 + h + 22); });
+  });
+  const nn = d.now, pc = v => nn.users ? Math.round(v/nn.users*100) + '%' : '-';
+  x.textAlign = 'left'; x.fillStyle = '#4A4466'; x.font = F('700',15);
+  x.fillText('재방문 사용자 ' + pc(nn.returning) + '  ·  최근 7일 활성 ' + pc(nn.active7) + '  ·  학생 신규 기기 +' + last.ns + '대 (누적 ' + nn.devices + '대)', M, yChip + 6);
+  x.fillStyle = '#8A84A0'; x.font = F('500',13); x.fillText('신규=처음 접속 · 활성=그 기간에 접속한 선생님 · 하루 1번 기준 · 진행 중인 기간은 흐리게 표시', M, yChip + 32);
+  x.textAlign = 'right'; x.fillStyle = '#B5B0C8'; x.font = F('600',14); x.fillText('Made by Cheon_R', W-M, H-44);
+  cv.toBlob(b => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'CLASS-BOARD_성장분석_' + (grMode === 'w' ? '주간' : '월간') + '_' + ds.replace(/\./g,'-') + '.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+    msg('ownMsg','성장 분석 이미지를 저장했어요. (다운로드/사진 폴더를 확인해 주세요)', true); }, 'image/png');
 }
 async function saveStatImg(){
   const t = own.stats; if (!t){ msg('ownMsg','현황을 아직 못 불러왔어요.'); return; }
