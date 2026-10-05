@@ -225,9 +225,20 @@ input[type=date]{min-width:0;max-width:100%}
 <body>
 <div class="wrap">
 
+  <!-- 0-1) 앱 소개 (처음 접속한 분께만 먼저 보여요) -->
+  <div id="scrIntro" class="center hide">
+    <div class="box">
+      <div style="text-align:center;font-size:12px;color:var(--tx3);letter-spacing:.5px;margin-bottom:6px">CLASS BOARD</div>
+      <div id="introStage" style="background:var(--bg);border-radius:16px;padding:16px 14px;min-height:300px;color:#3B3358"></div>
+      <div id="introDots" style="display:flex;justify-content:center;gap:6px;margin:12px 0 10px"></div>
+      <div id="introBtns" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+  </div>
+
   <!-- 0) 사용자 사전 등록 (처음 접속 시 가장 먼저) -->
   <div id="scrPre" class="center hide">
     <div class="box">
+      <div class="row" style="margin:0 0 10px"><button class="btn sub" style="min-height:40px;font-size:13px" onclick="showIntro()">📖 앱 소개</button><button class="btn sub" style="min-height:40px;font-size:13px" onclick="openDemo()">🎬 체험해보기</button></div>
       <h2>📝 사용자 등록</h2>
       <p class="hint">처음 한 번만 입력하면 돼요. 입력한 정보는 사용 현황 파악을 위해 개발자에게 전달돼요. (다음 단계에서 구글 시트를 연결하면 등록이 자동으로 완료돼요)</p>
       <label class="f">이름</label><input type="text" id="preName" maxlength="20" placeholder="홍길동">
@@ -661,6 +672,7 @@ input[type=date]{min-width:0;max-width:100%}
       <div class="box">
         <h2>📘 CLASS BOARD 사용 가이드</h2>
         <p class="hint" id="helpIntro" style="margin:0">궁금한 항목을 눌러서 펼쳐 보세요.</p>
+        <div class="row adm-only" style="margin-top:10px"><button class="btn sub" onclick="openDemo()">🎬 학생 화면 체험해보기</button></div>
       </div>
 
       <details class="hdet adm-only" id="h-first"><summary>✅ 처음 할 일 (체크리스트)</summary><div class="hb">
@@ -834,7 +846,7 @@ input[type=date]{min-width:0;max-width:100%}
 </div>
 
 <script>
-const K = { gas:'sn_gas_v1', pw:'sn_admin_pw_v1', owner:'sn_owner_v1', reg:'sn_reg_info_v1', pre:'sn_prereg_v1', preId:'sn_preid_v1', rv:'sn_review_v1' };
+const K = { gas:'sn_gas_v1', pw:'sn_admin_pw_v1', owner:'sn_owner_v1', reg:'sn_reg_info_v1', pre:'sn_prereg_v1', preId:'sn_preid_v1', rv:'sn_review_v1', intro:'sn_intro_v1' };
 /* ===== 사용자 등록부 (아듬샘 전용 GAS) ===== */
 const REGISTRY_URL = 'https://script.google.com/macros/s/AKfycbzrgeAlZhEGyvp7vo_j0hgesVoIoI6T_GMayKJCfvOFaV5Sb3wO1xvackSeQLc3HQxsnQ/exec';           // ← 등록부 GAS 웹 앱 URL (비어 있으면 등록 기능 꺼짐)
 const CONTACT_EMAIL = 'fond0316@naver.com';
@@ -848,7 +860,7 @@ function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0
 function today(){ return ymd(new Date()); }
 function prettyDate(s){ const d=new Date(s+'T00:00:00'); return (d.getMonth()+1)+'/'+d.getDate()+'('+'일월화수목금토'[d.getDay()]+')'; }
 function $(id){ return document.getElementById(id); }
-const SCREENS = ['scrPre','scrConnect','scrLogin','scrMain','scrGuide','scrReg','scrGate','scrPw','scrLoading'];
+const SCREENS = ['scrIntro','scrPre','scrConnect','scrLogin','scrMain','scrGuide','scrReg','scrGate','scrPw','scrLoading'];
 let curScreen = '', backScreen = '';
 function show(id){
   curScreen = id; SCREENS.forEach(x => $(x).classList.toggle('hide', x!==id)); window.scrollTo(0,0);
@@ -941,6 +953,38 @@ async function login(){
   }catch(e){ msg('loginMsg', e.message); }
 }
 function logout(){ if (FROM_BOARD) return backToBoard(); PW=''; sessionStorage.removeItem(K.pw); $('pwIn').value=''; msg('loginMsg','',true); show('scrLogin'); }
+
+/* ===== 📖 앱 소개 · 🎬 체험해보기 (처음 오신 선생님이 등록 전에 어떤 앱인지 볼 수 있게) ===== */
+const INTRO = [
+  { t:'학급 공지를 달력으로 한눈에', d:'담임이 올리면 학생 폰과 디벗 책갈피에서 바로 보여요. 유형마다 색이 달라서 눈에 잘 띄어요.',
+    v:'<div style="display:flex;flex-direction:column;gap:6px;margin:12px 0"><div style="background:#FDECEA;color:#B3261E;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:700">긴급 · 3교시 교실이 바뀌었어요</div><div style="background:#E8EEFB;color:#3B4FA0;border-radius:8px;padding:7px 10px;font-size:12px">교과 · 수학 수행평가 준비물 (D-3)</div><div style="background:#fff;color:#3B3358;border-radius:8px;padding:7px 10px;font-size:12px">학급 · 현장체험 동의서 제출 (D-5)</div></div>' },
+  { t:'올리기는 이렇게 쉬워요', d:'카톡 공지 목록을 통째로 붙여넣으면 날짜별로 나눠서 달력에 올려 줘요. 사진과 링크도 붙일 수 있어요.',
+    v:'<div style="margin:12px 0"><div style="background:#fff;border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.7;color:#6B6680">9월 22일(월): 수학 발표<br>9월 24일(수): 과학 실험 보고서<br>9월 26일(금): 체육대회 준비물</div><div style="text-align:center;color:#9B8EC4;font-size:16px;margin:4px 0">↓</div><div style="display:flex;gap:6px"><div style="flex:1;background:#E8EEFB;border-radius:8px;padding:6px;font-size:11px;text-align:center">9/22 수학 발표</div><div style="flex:1;background:#E8EEFB;border-radius:8px;padding:6px;font-size:11px;text-align:center">9/24 과학 보고서</div><div style="flex:1;background:#E8EEFB;border-radius:8px;padding:6px;font-size:11px;text-align:center">9/26 체육 준비물</div></div></div>' },
+  { t:'읽었는지 확인까지', d:'중요 공지에는 학생이 [확인했어요]를 눌러요. 확인현황에서 아직 안 본 학생 명단을 바로 볼 수 있고, 호출은 해당 학생 기기에 팝업으로 떠요.',
+    v:'<div style="margin:12px 0;display:flex;flex-direction:column;gap:8px"><div style="background:#fff;border-radius:10px;padding:10px"><div style="font-size:12px;font-weight:700">현장체험 동의서 제출</div><div style="margin-top:6px;display:flex;align-items:center;gap:8px"><div style="background:#9B8EC4;color:#fff;border-radius:14px;padding:4px 12px;font-size:11px">확인했어요</div><div style="font-size:11px;color:#8A84A0">확인 24 / 28명</div></div></div><div style="background:#FFF6E5;border-radius:10px;padding:10px;font-size:12px;color:#7A5200">미확인 4명: 3번 김하나, 11번 이도윤, 17번 박서준, 25번 최지우</div></div>' },
+  { t:'시작은 세 단계예요', d:'차근차근 따라 하면 돼요. 학생 이름·학번·공지 내용은 선생님 본인의 구글 시트에만 저장돼요.',
+    v:'<div style="margin:12px 0;display:flex;flex-direction:column;gap:10px">' + ['사용자 등록 (이름·학교)','내 구글 시트 연결 (복사해서 붙여넣기)','학생용 링크를 단톡방이나 QR로 공유'].map((t,i) => `<div style="display:flex;gap:10px;align-items:center"><div style="width:24px;height:24px;border-radius:12px;background:#9B8EC4;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none">${i+1}</div><div style="font-size:13px">${t}</div></div>`).join('') + '</div>' }
+];
+let introI = 0;
+function showIntro(){ introI = 0; renderIntro(); show('scrIntro'); }
+function renderIntro(){
+  const s = INTRO[introI], last = introI === INTRO.length - 1;
+  $('introStage').innerHTML = `<div style="font-size:18px;font-weight:800;line-height:1.4">${esc(s.t)}</div><div style="font-size:13.5px;color:var(--tx2);line-height:1.65;margin-top:6px">${esc(s.d)}</div>${s.v}`;
+  $('introDots').innerHTML = INTRO.map((_,k) => `<span style="width:${k===introI?18:7}px;height:7px;border-radius:4px;background:${k===introI?'#9B8EC4':'#D8D2EE'};display:inline-block"></span>`).join('');
+  $('introBtns').innerHTML = (last ? '<button class="btn" onclick="introStart()">사용자 등록하고 시작하기</button>' : '<button class="btn" onclick="introNext()">다음</button>')
+    + '<button class="btn sub" onclick="openDemo()">🎬 체험해보기 (등록 없이)</button>'
+    + (last ? '' : '<div style="text-align:center"><button class="alink" style="min-height:40px;font-size:13px;color:var(--tx3);background:none;border:0;text-decoration:underline" onclick="introStart()">건너뛰고 바로 등록</button></div>');
+}
+function introNext(){ introI = Math.min(introI + 1, INTRO.length - 1); renderIntro(); }
+function introStart(){ lsSet(K.intro, true); showPre(); }
+function openDemo(){ $('demoFrame').src = P + '.html?demo=1'; $('demoOv').classList.remove('hide'); document.body.style.overflow = 'hidden'; }
+function closeDemo(){ $('demoOv').classList.add('hide'); $('demoFrame').src = 'about:blank'; document.body.style.overflow = ''; }
+window.addEventListener('message', e => {   // 체험 화면(학생 앱)이 보내는 [등록하러 가기] [닫기]
+  const f = $('demoFrame'); if (!f || e.source !== f.contentWindow) return;
+  const a = e.data && e.data.cbDemo;
+  if (a === 'close') closeDemo();
+  else if (a === 'register'){ closeDemo(); if (curScreen === 'scrIntro') introStart(); }
+});
 
 /* ===== 사용자 사전 등록 (시트 연결 전에 이름·학교·학급만 먼저 받아 둠) ===== */
 function showPre(){
@@ -2277,7 +2321,7 @@ async function recheckGas(btn){
 
 /* ===== 시작 ===== */
 (async function start(){
-  if (!GAS){ if (lsGet(K.pre, null)) showConnect(); else showPre(); return; }
+  if (!GAS){ if (lsGet(K.pre, null)) showConnect(); else if (!lsGet(K.intro, false)) showIntro(); else showPre(); return; }
   if (PW){
     show('scrLoading');
     let cached = null;   // 교실 화면에서 이미 확인한 로그인 정보 (통신 1번 절약)
@@ -2296,5 +2340,10 @@ async function recheckGas(btn){
   show('scrLogin');
 })();
 </script>
+<!-- 🎬 학생 화면 체험 (샘플 데이터 · 저장·전송 없음) -->
+<div id="demoOv" class="hide" style="position:fixed;inset:0;z-index:95;background:var(--bg)">
+  <iframe id="demoFrame" title="학생 화면 체험해보기" src="about:blank" style="width:100%;height:100%;border:0;background:var(--bg)"></iframe>
+  <button onclick="closeDemo()" style="position:fixed;left:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));min-height:40px;padding:0 14px;border-radius:20px;border:0;background:rgba(59,51,88,.85);color:#fff;font-size:13px;font-weight:700">체험 닫기</button>
+</div>
 </body>
 </html>

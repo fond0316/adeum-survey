@@ -70,6 +70,13 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .rvm input.rvo{font-size:15px;min-height:44px;margin-top:0}
 .rvm .rvn{font-size:12px;color:var(--tx3);margin-top:6px;line-height:1.5}
 body.pv #stuRvBtn{display:none}
+body.demo #stuRvBtn,body.demo .boardBtn{display:none}
+#demoBar{display:none;position:sticky;top:0;z-index:80;background:#3B3358;color:#fff;padding:8px 12px;font-size:13px;line-height:1.5;gap:8px;align-items:center;flex-wrap:wrap}
+body.demo #demoBar{display:flex}
+#demoBar .dt{flex:1 1 200px}
+#demoBar .dt small{display:block;opacity:.8;font-size:11.5px}
+#demoBar button{min-height:40px;border-radius:20px;padding:0 14px;font-size:13px;font-weight:700;border:0;background:#fff;color:#3B3358}
+#demoBar button.p{background:var(--main);color:#fff}
 .boardBtn{display:inline-block;margin-top:8px;min-height:36px;padding:0 12px;border-radius:18px;font-size:12px;color:var(--tx3);background:transparent;border:1px solid var(--line)}
 /* 🖥️ 교실 화면 모드 — 멀리서도 보이게 크게 */
 body.board{zoom:1.25}
@@ -218,6 +225,7 @@ mark{background:#FEF3C7;color:inherit;border-radius:3px;padding:0 1px}
 </style>
 </head>
 <body>
+<div id="demoBar"><div class="dt">🎬 <b>체험 중</b> · 샘플 데이터예요. 아무것도 저장되지 않아요<small>해볼 것: 🚨 팝업 확인 → 📣 호출에서 내 이름(10103 박서준) 눌러 ✅ → 📋 학급공지 [확인했어요]</small></div><button class="p" onclick="demoAct('register')">등록하러 가기</button><button onclick="demoAct('close')" aria-label="체험 닫기">✕ 닫기</button></div>
 <div class="wrap">
   <header class="top">
     <span class="logo">📋</span>
@@ -352,18 +360,21 @@ const ORDER = { '긴급':0, '호출':1, '확인':2, '교과':3, '일반':4 };
 const LABEL = { '긴급':'긴급', '호출':'호출', '확인':'학급공지', '교과':'교과공지', '일반':'일반' };
 const POLL_MS = 60000;
 
-function lsGet(k, d){ try{ const v = localStorage.getItem(k); return v===null ? d : JSON.parse(v); }catch(e){ return d; } }
-function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+const DEMO = new URLSearchParams(location.search).get('demo') === '1';   // 🎬 체험 모드: 샘플 데이터만 쓰고, 이 기기에 아무것도 저장하지 않고, 아무 데도 보내지 않아요
+const _mem = {};
+function lsGet(k, d){ if (DEMO) return k in _mem ? _mem[k] : d; try{ const v = localStorage.getItem(k); return v===null ? d : JSON.parse(v); }catch(e){ return d; } }
+function lsSet(k, v){ if (DEMO){ _mem[k] = v; return; } try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
 
 (function initGas(){
   const g = new URLSearchParams(location.search).get('gas');
-  if (g) lsSet(K.gas, g.trim());
+  if (g && !DEMO) lsSet(K.gas, g.trim());
 })();
-const GAS = lsGet(K.gas, '');
+const GAS = DEMO ? 'demo://sample' : lsGet(K.gas, '');
 const PREVIEW = new URLSearchParams(location.search).get('preview') === '1';
 let BOARD = lsGet(K.board, false) === true;   // 🖥️ 교실 화면 모드 (이 기기에 기억)
 
 let me = lsGet(K.me, null);
+if (DEMO) me = { sid:'10103', name:'박서준' };   // 체험에서는 학번 등록을 건너뛰고 이 학생으로 봐요
 let notices = [], confirmed = new Set(), callDone = {}, links = [];
 let tab = 'today', selDate = null;
 let view = new Date(); view.setDate(1);
@@ -391,8 +402,45 @@ function normDate(s){
 }
 
 /* ===== JSONP ===== */
+/* ===== 🎬 체험 모드용 가짜 서버 (샘플 공지 · 이 화면을 닫으면 모두 사라져요) ===== */
+const demoState = { confirmed:new Set(), callDone:{} };
+const DEMO_ROSTER = { '10101':'김하나', '10102':'이도윤', '10103':'박서준', '10104':'최지우', '10105':'정서연' };
+function demoDate(add){ const d = new Date(); d.setDate(d.getDate() + add); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function demoNotices(){
+  const mk = (id, type, add, title, body, o) => ({ id, type, date:demoDate(add), end:'', title, body, important:false, popup:false, targets:[], author:'담임', attachments:[], memo:'', created:'2000-01-01 00:00:00', ...(o||{}) });
+  return [
+    mk('d1','긴급',0,'3교시 교실이 과학실로 바뀌었어요','수학 수업이 과학실(3층)에서 진행돼요. 종 치기 전에 이동해 주세요.',{ popup:true }),
+    mk('d2','호출',0,'담임선생님이 불러요','교무실로 와 주세요. 다녀오면 이름을 눌러 주세요.',{ popup:true, targets:[{ sid:'10103', name:'박서준' }, { sid:'10105', name:'정서연' }] }),
+    mk('d3','확인',5,'현장체험학습 동의서 제출','보호자 서명을 받아 담임선생님께 제출해 주세요.',{ important:true }),
+    mk('d4','교과',3,'수학 수행평가 준비물','계산기, 자, 색연필을 챙겨 오세요.'),
+    mk('d5','교과',0,'탐구 보고서 주제 정하기','이번 주 안에 모둠별로 주제를 정해서 회장에게 알려 주세요.',{ end:demoDate(6), author:'회장' }),
+    mk('d6','일반',1,'체육대회 반 티셔츠 신청','내일까지 사이즈를 알려 주세요.')
+  ];
+}
+function demoApi(p){
+  return new Promise((resolve, reject) => setTimeout(() => {
+    const a = p.action;
+    if (a === 'load') return resolve({ ok:true, className:'1학년 4반 (체험)', year:new Date().getFullYear(), notices:demoNotices(), confirmed:[...demoState.confirmed], callDone:demoState.callDone, links:[], gasVer:99, serverTime:'' });
+    if (a === 'confirm'){ demoState.confirmed.add(String(p.nid)); return resolve({ ok:true }); }
+    if (a === 'callDone'){
+      const list = (demoState.callDone[p.nid] || []).filter(x => String(x.sid) !== String(p.sid));
+      if (!p.undo) list.push({ sid:String(p.sid), name:DEMO_ROSTER[p.sid] || '학생' });
+      demoState.callDone[p.nid] = list; return resolve({ ok:true, name:DEMO_ROSTER[p.sid] || '학생' });
+    }
+    if (a === 'who') return DEMO_ROSTER[p.sid] ? resolve({ ok:true, sid:p.sid, name:DEMO_ROSTER[p.sid] }) : reject(new Error('체험에서는 학번 10101~10105만 쓸 수 있어요.'));
+    if (a === 'search'){ const q = String(p.q || '').toLowerCase(); return resolve({ ok:true, more:false, results:demoNotices().filter(n => (n.title + ' ' + n.body).toLowerCase().includes(q)) }); }
+    if (a === 'request') return resolve({ ok:true });
+    return reject(new Error('체험에서는 쓸 수 없는 기능이에요.'));
+  }, 150));
+}
+function demoAct(a){   // 관리자 앱 안에서 열렸으면 부모 창에 알리고, 혼자 열렸으면 직접 이동
+  try{ if (window.parent !== window){ parent.postMessage({ cbDemo:a }, '*'); return; } }catch(e){}
+  if (a === 'register') location.href = 'Cheon-R-class-board-admin.html';
+  else if (history.length > 1) history.back(); else window.close();
+}
 let jpSeq = 0;
 function jsonp(params, base){
+  if (DEMO) return demoApi(params);   // 체험 모드: 네트워크를 쓰지 않아요
   return new Promise((resolve, reject) => {
     const B = base || GAS;
     if (!B) return reject(new Error('연결 주소가 없어요. 선생님이 알려준 링크로 다시 열어 주세요.'));
@@ -860,6 +908,7 @@ function rvKindSet(i){ rvKind = rvKind === RVS_KINDS[i] ? '' : RVS_KINDS[i]; ren
 function rvOkSet(i){ rvOk = RVS_OK[i][0]; renderRv(); }
 function rvErr(t){ document.getElementById('rvErr').textContent = t || ''; }
 function openStuReview(){
+  if (DEMO){ alert('체험 모드에서는 쓸 수 없어요.'); return; }
   if (PREVIEW){ alert('👀 담임 미리보기에서는 쓸 수 없어요. 학생 화면에서만 쓸 수 있어요.'); return; }
   if (BOARD){ alert('교실 화면 모드에서는 쓸 수 없어요. 내 디벗이나 핸드폰에서 남겨 주세요.'); return; }
   renderRv(); rvErr(''); rvOn = null;
@@ -894,7 +943,7 @@ async function sendStuReview(){
    - 담임 미리보기·교실 화면 모드(전자칠판)는 세지 않아요 */
 let pingSched = false;
 function schedulePing(){
-  if (pingSched || !REGISTRY_URL || !GAS || PREVIEW || BOARD) return;
+  if (pingSched || DEMO || !REGISTRY_URL || !GAS || PREVIEW || BOARD) return;
   if (lsGet('sn_ping_v1', '') === today()) return;
   if (Date.now() - Number(lsGet('sn_ping_off_v1', 0)) < 3 * 3600 * 1000) return;   // 학급이 아직 인정되지 않았다는 답을 받았으면 3시간 뒤에 다시 시도
   pingSched = true;
@@ -1042,8 +1091,9 @@ async function toggleBoard(){
 /* ===== 시작 ===== */
 document.addEventListener('visibilitychange', () => { if (!document.hidden){ load(); if (!popShowing) stopBlink(); try{ schedulePing(); }catch(e){} } });   // 홈 화면·북마크로 다시 열렸을 때도 하루 1번 이용 수 집계
 window.addEventListener('pageshow', e => { if (e.persisted){ try{ schedulePing(); }catch(err){} } });
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('Cheon-R-class-board-sw.js', { scope:'./Cheon-R-class-board' }).catch(()=>{});
+if (!DEMO && 'serviceWorker' in navigator) navigator.serviceWorker.register('Cheon-R-class-board-sw.js', { scope:'./Cheon-R-class-board' }).catch(()=>{});
 if (PREVIEW) document.body.classList.add('pv');
+if (DEMO) document.body.classList.add('demo');
 applyBoard();
 if (lsGet(K.cls, '')) setSub(lsGet(K.cls, ''));
 render();
