@@ -347,6 +347,7 @@ details.exmore>summary{min-height:46px;font-size:14px}
     <header class="topbar" id="topbar">
       <h1 id="topTitle">경력 노트</h1>
       <button id="syncBadge" class="sync ok" data-act="sync"></button>
+      <button id="aiBadge" class="sync ok" data-act="goAiSettings" hidden></button>
       <button class="iconbtn" id="lockBtn" data-act="lock" aria-label="이 기기에서 잠그기" title="잠그기">🔒</button>
     </header>
     <div class="wrap">
@@ -1887,6 +1888,22 @@ function statSheet(k) {
 }
 ACT.statOpen = t => statSheet(t.dataset.k);
 ACT.statAdd = t => { closeSheet(true); openEditor(null, { cat: CAT_BY_KEY[t.dataset.k].label }); };
+function renderAiBadge() {
+  const el = $('#aiBadge'); if (!el) return;
+  if (S.mode !== 'gas') { el.hidden = true; return; }
+  el.hidden = false;
+  if (S.ai && S.ai.hasKey) { el.className = 'sync ok'; el.textContent = `AI · ${S.ai.provider === 'gpt' ? 'GPT' : 'Claude'}`; el.title = `${S.ai.model} 연결됨 · 누르면 AI 설정`; }
+  else { el.className = 'sync local'; el.textContent = 'AI 키 없음'; el.title = '누르면 AI 설정으로 가요'; }
+}
+const AI_HELP = `<details class="acc" style="margin-bottom:10px"><summary>💡 AI는 어디에 쓰여요?</summary>
+  <ol class="guide"><li><b>기록 입력 창의 ✨ AI로 다듬기</b> — '한 일·성과' 메모를 경력기술서 문장으로 정리해 줘요</li>
+  <li><b>내보내기의 ✨ AI로 목적에 맞게 다시 쓰기</b> — 지원서 목적·글자 수·문체에 맞춰 다시 써 주고, 글자 수도 맞춰 줘요</li>
+  <li><b>📷 사진으로 불러오기</b> — 국민연금 캡처 같은 사진을 읽어서 이력으로 등록해 줘요</li></ol>
+  <p class="hint">키가 없어도 앱의 나머지 기능은 모두 써요. AI에는 그때 누른 내용만 보내고, 쓸 때마다 내 API 계정에서 소액의 사용료가 나가요. 키는 내 GAS에만 저장돼요.</p></details>`;
+const _renderSync0 = renderSync;
+renderSync = function () { _renderSync0(); renderAiBadge(); };
+const _renderSettings0 = renderSettings;
+renderSettings = function () { _renderSettings0(); renderAiBadge(); const c = $('#aiCard'); if (c) c.insertAdjacentHTML('beforebegin', AI_HELP); };
 const homeOpen = {};
 function skillList() {
   const m = new Map();
