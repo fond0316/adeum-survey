@@ -156,6 +156,11 @@ details.acc>summary:last-child{margin-bottom:0}
 .stat .v{font-size:20px;font-weight:800;margin-top:2px;letter-spacing:-.02em}
 .stat .s{font-size:12px;color:var(--ink2);margin-top:1px}
 @media (min-width:720px){.stats{grid-template-columns:repeat(4,1fr)}}
+.stats.s6{grid-template-columns:repeat(2,1fr)}
+@media (min-width:720px){.stats.s6{grid-template-columns:repeat(3,1fr)}}
+button.stat{text-align:left;cursor:pointer;font:inherit;color:inherit;width:100%;display:block}
+button.stat:active{transform:scale(.98)}
+.stat .l .go{float:right;color:var(--ink3);font-weight:800}
 .attn{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .attn-b{flex:1;min-width:150px;min-height:48px;border-radius:14px;border:1px solid var(--line);background:#fff;font-weight:700;font-size:14px;color:var(--ink2);padding:0 14px;text-align:left}
 .attn-b b{color:var(--main-dd)}
@@ -787,10 +792,7 @@ function renderHome() {
   let h = localBanner();
   h += `<div class="hero"><div class="hero-t"><h2>${esc(homeTitle())}</h2><button class="hero-btn" data-act="goTab" data-tab="settings" aria-label="기본 정보 수정">✎</button></div>
     <p>${esc(sub || '설정에서 경력·학력 이력을 넣으면 경력이 자동으로 계산돼요')}</p>${edu ? `<p class="edu">🎓 ${esc(edu)}</p>` : ''}</div>`;
-  h += `<div class="stats">${statHTML('교직 경력', fmtMonths(st.teachMo), st.cur ? `현 학교 ${fmtMonths(st.curMo)}` : '근무 이력을 넣어 주세요')}
-    ${statHTML('교직 외 경력', fmtMonths(st.otherMo), st.otherN ? `${st.otherN}곳` : '설계사무소 등')}
-    ${statHTML('연수 누적', `${fmtNum(st.hours)}시간`, `${sy}학년도 ${fmtNum(st.hoursY)}시간`)}
-    ${statHTML(`${sy}학년도 기록`, `${yrs.length}건`, `전체 ${S.records.length}건`)}</div>`;
+  h += statsHTML(st, sy, yrs);
   if (drafts || needP) h += `<div class="attn">${drafts ? `<button class="attn-b" data-act="goFilter" data-f="fDraft">✏️ 정리 필요 <b>${drafts}건</b></button>` : ''}${needP ? `<button class="attn-b" data-act="goFilter" data-f="fNoProof">📎 증빙 확인 <b>${needP}건</b></button>` : ''}</div>`;
   h += `<button class="btn soft block mt12" data-act="photoImport">📷 사진으로 경력·학력 불러오기 <span class="lsub">국민연금 가입내역 캡처 등</span></button>`;
   if (!S.records.length && !S.affs.length) h += `<div class="card onb"><h3>👋 이렇게 시작해 보세요</h3><ol><li><b>설정 → 경력·학력 이력</b>에 학교·회사·대학원을 넣어요</li><li><b>＋ 버튼</b>으로 생각날 때마다 기록을 남겨요</li><li><b>내보내기</b>에서 양식 골라 바로 복사!</li></ol>
@@ -1848,6 +1850,41 @@ async function photoSave(btn) {
     closeSheet(true); toast(`${n}건을 등록했어요 ✅`); renderAll();
   });
 }
+const EDU_RANK = { '박사': 5, '석사': 4, '학사': 3, '전문학사': 2 };
+function eduTop() { return S.affs.filter(a => a.type === '학력').sort((a, b) => (EDU_RANK[b.position] || 0) - (EDU_RANK[a.position] || 0) || String(b.start).localeCompare(String(a.start)))[0] || null; }
+function statsHTML(st, sy, yrs) {
+  const card = (k, l, v, s, extra) => `<button class="stat" ${extra || `data-act="statOpen" data-k="${k}"`}><div class="l">${esc(l)} <span class="go">›</span></div><div class="v">${esc(v)}</div><div class="s">${esc(s)}</div></button>`;
+  const eduN = S.affs.filter(a => a.type === '학력').length, e = eduTop();
+  const certs = S.records.filter(r => catOf(r).key === 'cert').sort(byStartDesc);
+  return `<div class="stats s6">${card('teach', '교직 경력', fmtMonths(st.teachMo), st.cur ? `현 학교 ${fmtMonths(st.curMo)}` : '근무 이력을 넣어 주세요')}
+    ${card('other', '교직 외 경력', fmtMonths(st.otherMo), st.otherN ? `${st.otherN}곳` : '설계사무소 등')}
+    ${card('edu', '학력', e ? (e.position || e.name) : '-', e ? [e.dept, e.status && e.status !== '졸업' ? e.status : ''].filter(Boolean).join(' · ') || e.name : '학력을 넣어 주세요')}
+    ${card('training', '연수 누적', `${fmtNum(st.hours)}시간`, `${sy}학년도 ${fmtNum(st.hoursY)}시간`)}
+    ${card('cert', '자격·면허', `${certs.length}건`, certs.length ? certs[0].title : '교원자격 등')}
+    ${card('year', `${sy}학년도 기록`, `${yrs.length}건`, `전체 ${S.records.length}건`, 'data-act="goTab" data-tab="records"')}</div>`;
+}
+function statSheet(k) {
+  const affList = type => S.affs.filter(a => a.type === type).sort((a, b) => String(b.start).localeCompare(String(a.start)));
+  const recList = key => S.records.filter(r => catOf(r).key === key).sort(byStartDesc);
+  const sumMo = list => fmtMonths(spanToMo(list.reduce((acc, a) => { const s = affSpan(a); acc.mo += s.mo; acc.d += s.d; return acc; }, { mo: 0, d: 0 })));
+  let title = '', body = '';
+  if (k === 'teach' || k === 'other' || k === 'edu') {
+    const type = k === 'teach' ? '교직' : k === 'other' ? '교직 외' : '학력', list = affList(type);
+    title = `${AFF_TYPES[type].emo} ${type === '학력' ? '학력' : type + ' 경력'}`;
+    if (type !== '학력') body += `<div class="sumline">합계 <b>${sumMo(list)}</b> · ${list.length}곳</div>`;
+    body += list.length ? list.map(affCardHTML).join('') : `<div class="empty"><p>아직 없어요.</p></div>`;
+    body += `<button class="btn soft block mt12" data-act="addAff" data-type="${type}">＋ ${type === '학력' ? '학력' : type + ' 경력'} 추가</button>`;
+  } else if (k === 'training' || k === 'cert') {
+    const key = k, list = recList(key), c = CAT_BY_KEY[key];
+    title = `${c.emo} ${k === 'training' ? '연수' : '자격·면허'}`;
+    body += k === 'training' ? `<div class="sumline">연수 합계 <b>${fmtNum(list.reduce((s, r) => s + hoursOf(r), 0))}시간</b> · ${list.length}건</div>` : `<div class="sumline">${list.length}건</div>`;
+    body += list.length ? list.map(r => cardHTML(r)).join('') : `<div class="empty"><p>아직 ${k === 'training' ? '연수' : '자격·면허'} 기록이 없어요.</p></div>`;
+    body += `<button class="btn soft block mt12" data-act="statAdd" data-k="${key}">＋ ${k === 'training' ? '연수' : '자격·면허'} 기록 추가</button>`;
+  }
+  openSheet(`<div class="sheet-h"><h2>${title}</h2><button class="iconbtn" data-act="closeSheet" aria-label="닫기">✕</button></div><div class="sheet-b">${body}</div>`, {});
+}
+ACT.statOpen = t => statSheet(t.dataset.k);
+ACT.statAdd = t => { closeSheet(true); openEditor(null, { cat: CAT_BY_KEY[t.dataset.k].label }); };
 const homeOpen = {};
 function homeAffHTML() {
   if (!S.affs.length) return '';
@@ -1856,7 +1893,7 @@ function homeAffHTML() {
     const list = S.affs.filter(a => a.type === type).sort((a, b) => String(b.start).localeCompare(String(a.start)));
     if (!list.length) return;
     const tot = type === '학력' ? '' : ` · 합계 ${fmtMonths(spanToMo(list.reduce((acc, a) => { const s = affSpan(a); acc.mo += s.mo; acc.d += s.d; return acc; }, { mo: 0, d: 0 })))}`;
-    h += `<details class="acc mt8" id="hg-${esc(type)}" ${homeOpen[type] === false ? '' : 'open'}><summary>${AFF_TYPES[type].emo} ${type} <span class="lsub">${list.length}곳${tot}</span></summary>${list.map(affCardHTML).join('')}</details>`;
+    h += `<details class="acc mt8" id="hg-${esc(type)}" ${homeOpen[type] ? 'open' : ''}><summary>${AFF_TYPES[type].emo} ${type} <span class="lsub">${list.length}곳${tot}</span></summary>${list.map(affCardHTML).join('')}</details>`;
   });
   return h;
 }
