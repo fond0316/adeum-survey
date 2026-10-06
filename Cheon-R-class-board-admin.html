@@ -126,6 +126,19 @@ details summary::-webkit-details-marker{display:none}
 .ucard .ac .yes{background:var(--main);color:#fff}.ucard .ac .no{background:#FCEBEB;color:#A32D2D}
 .st{font-size:11px;font-weight:700;border-radius:6px;padding:2px 8px}
 .st.ok{background:#E3F3E4;color:#2E7D32}.st.wait{background:#FAEEDA;color:#633806}.st.blk{background:#FCEBEB;color:#A32D2D}
+.rvc{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;background:#fff}
+.rvc.nw{border-color:var(--main);background:#FBFAFE}
+.rvc .tp{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.rvc .stars{font-size:16px;letter-spacing:1px;color:#E0A800}.rvc .stars i{font-style:normal;color:#DAD6E6}
+.rvc .nwt{font-size:11px;font-weight:800;background:var(--main);color:#fff;border-radius:6px;padding:2px 7px}
+.rvc .mt{font-size:12px;color:var(--tx3);margin-top:3px}
+.rvc .pl{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.rvc .pl span{font-size:12px;font-weight:600;border-radius:12px;padding:3px 9px;background:#EFEBF8;color:#5A4D8A}
+.rvc .pl span.lo{background:#FCEBEB;color:#A32D2D}
+.rvc .one{margin-top:7px;font-size:14px;line-height:1.5;word-break:break-word}
+.rvc .imp{margin-top:7px;font-size:13px;line-height:1.5;background:#FAEEDA;color:#633806;border-radius:8px;padding:7px 9px;word-break:break-word}
+.rvc .cs{font-size:11px;font-weight:700;margin-top:7px;color:var(--tx3)}.rvc .cs.y{color:#2E7D32}
+.nbdg{display:inline-block;min-width:18px;padding:0 6px;margin-left:4px;border-radius:9px;background:#E24B4A;color:#fff;font-size:11px;font-weight:800;line-height:18px;text-align:center;vertical-align:middle}
 .rq{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
 .rq.done{opacity:.55}
 .rq .who{font-weight:800;font-size:15px}
@@ -182,6 +195,7 @@ details summary::-webkit-details-marker{display:none}
 .rv-stars{display:flex;justify-content:center;gap:2px;margin:2px 0 4px}
 .rv-star{width:48px;height:48px;font-size:34px;line-height:1;color:#D9D6E3;background:none;padding:0}
 .rv-star.on{color:#F5B301}
+select.sel{min-height:44px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--tx);padding:0 10px;min-width:0}
 label.f small{font-weight:400;color:var(--tx3)}
 .ov{position:fixed;inset:0;background:rgba(30,25,50,.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:60}
 .ov .box{width:100%;max-width:400px;margin:0;max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);overflow-y:auto}
@@ -242,17 +256,19 @@ input[type=date]{min-width:0;max-width:100%}
       <div class="row" style="margin:0 0 10px"><button class="btn sub" style="min-height:40px;font-size:13px" onclick="showIntro()">📖 앱 소개</button><button class="btn sub" style="min-height:40px;font-size:13px" onclick="openDemo()">🎬 체험해보기</button></div>
       <h2>📝 사용자 등록</h2>
       <p class="hint">처음 한 번만 입력하면 돼요. 입력한 정보는 사용 현황 파악을 위해 개발자에게 전달돼요. (다음 단계에서 구글 시트를 연결하면 등록이 자동으로 완료돼요)</p>
-      <label class="f">이름</label><input type="text" id="preName" maxlength="20" placeholder="홍길동">
-      <label class="f">학교</label><input type="text" id="preSchool" maxlength="30" placeholder="○○고등학교">
-      <label class="f">학급</label><input type="text" id="preCls" maxlength="20" placeholder="1학년 4반" onkeydown="if(event.key==='Enter')savePre()">
+      <label class="f">학교 위치·종류 <small>(필수)</small></label>
+      <div class="row" style="flex-wrap:nowrap"><select id="preRegion" class="sel" style="flex:1"><option value="">지역</option><option>서울</option><option>부산</option><option>대구</option><option>인천</option><option>광주</option><option>대전</option><option>울산</option><option>세종</option><option>경기</option><option>강원</option><option>충북</option><option>충남</option><option>전북</option><option>전남</option><option>경북</option><option>경남</option><option>제주</option></select><select id="preLevel" class="sel" style="flex:1"><option value="">학교급</option><option>초등학교</option><option>중학교</option><option>고등학교</option><option>특수·기타</option></select></div><p class="hint" style="margin:6px 0 0">학교 이름과 학급은 받지 않아요. 지역과 학교급만 골라 주세요.<br>🏫 초·중학교(특수·기타 포함)는 교사 사용자만 집계하고, <b>학생 후기·이용 수는 받지 않아요.</b></p>
+      <label class="f">아이디 <small>(필수)</small></label><input type="text" id="preName" maxlength="20" onkeydown="if(event.key==='Enter')savePre()"><p class="hint" style="margin:6px 0 0"><b>실명이 아닌 아이디를 권해요.</b></p>
       <label class="agree"><input type="checkbox" id="preAgree"><span><b>[필수]</b> 개인정보 수집·이용에 동의합니다</span></label>
       <details class="agd"><summary>자세히 보기 ▾</summary><div class="agb"><ul>
-        <li><b>수집 항목</b>: 이름, 학교, 학급, 앱 사용 기록(접속한 날짜·횟수), 남겨 주신 후기·개선점</li>
-        <li><b>이용 목적</b>: 이용 현황 파악, 문의 응대, 앱 개선, 개발자의 활동 기록 정리. 소개 자료에는 <b>숫자 통계로만</b> 쓰고, 이름·학교가 드러나게 쓰지 않아요. (후기 인용은 후기를 쓰실 때 따로 허락하신 경우에만)</li>
+        <li><b>수집 항목</b>: 학교의 지역·학교급(필수), 아이디(필수 · 실명이 아닌 아이디 권장), 앱 사용 기록(접속한 날짜·횟수), 남겨 주신 후기·개선점. <b>학교 이름과 학급은 받지 않아요.</b></li>
+        <li><b>이용 목적</b>: 이용 현황 파악, 문의 응대, 앱 개선, 개발자의 활동 기록 정리. 소개 자료에는 <b>숫자 통계로만</b> 쓰고, 개인이 드러나게 쓰지 않아요. (후기 인용은 후기를 쓰실 때 따로 허락하신 경우에만)</li>
+        <li><b>저장 장소</b>: 개발자의 구글 시트예요. 구글 서버에 저장되고, 구글 서버는 해외에 있을 수 있어요. 개발자 본인만 열어 봐요. 제3자에게 제공하지 않아요.</li>
         <li><b>보유 기간</b>: 앱을 운영하는 동안. 삭제를 요청하시면 지체 없이 삭제해요.</li>
-        <li><b>삭제·문의</b>: ⚙️ 설정 탭의 [✉️ 문의하기]로 요청해 주세요.</li>
-        <li><b>학생 정보</b>: 학생의 이름·학번·공지 내용은 개발자에게 전달되지 않아요. (선생님 본인의 구글 시트에만 저장돼요) 학생이 직접 남기는 후기·개선점, 그리고 학생 앱이 열린 기기 수(하루 1번, 숫자로만)만 <b>이름 없이</b> 전달되고, 선생님이 💬 후기 탭에서 언제든 끌 수 있어요.</li>
-      </ul><p style="margin:6px 0 0">필수 동의예요. 동의하지 않으시면 사용자 등록을 할 수 없어서 앱을 쓸 수 없어요.</p></div></details>
+        <li><b>거부할 권리</b>: 동의하지 않을 수 있어요. 다만 동의하지 않으면 사용자 등록을 할 수 없어서 앱을 쓸 수 없어요.</li>
+        <li><b>열람·정정·삭제 요청</b>: ⚙️ 설정 탭의 [✉️ 문의하기] 또는 fond7509@naver.com 으로 요청해 주세요.</li>
+        <li><b>학생 정보</b>: 학생의 이름·학번·공지 내용은 개발자에게 전달되지 않아요. (선생님 본인의 구글 시트에만 저장돼요) 학생 후기는 학생이 <b>동의 체크</b>를 한 경우에만 <b>이름 없이</b> 전달돼요. 앱 이용 수는 학생 폰이 하루 한 번 <b>'학급 코드 + 1'</b>만 보내서 세고, 이름·학번·기기 번호는 전달되지 않아요. <b>초·중학교로 등록된 학급의 학생 자료는 받지 않아요.</b></li>
+      </ul><p style="margin:6px 0 0"><a href="#" onclick="openPriv();return false" style="color:var(--main-d);font-weight:700">📄 개인정보 처리방침 전체 보기</a></p></div></details>
       <div class="row" style="margin-top:12px"><button class="btn" onclick="savePre()">다음 → 구글 시트 연결</button></div>
       <div class="msg" id="preMsg"></div>
     </div>
@@ -291,11 +307,11 @@ input[type=date]{min-width:0;max-width:100%}
       <li>권한 요청 창: 내 계정 선택 → <b>고급</b> → <b>(안전하지 않음)으로 이동</b> → 허용</li>
       <li>마지막 화면의 <b>…/exec</b>로 끝나는 웹 앱 URL 복사</li></ol></div>
     <div class="step"><div class="st">Step 4. 연결하기</div><ol>
-      <li>링크를 처음 열면 <b>사용자 등록(이름·학교·학급)</b>부터 입력해요</li>
+      <li>링크를 처음 열면 <b>사용자 등록(학교 지역·학교급, 이름은 선택)</b>부터 입력해요</li>
       <li>다음 화면에서 ← 돌아가기 → 복사한 URL 붙여넣기 → <b>연결하기</b></li>
       <li>처음 비밀번호 <b>classboard</b>로 로그인</li>
       <li>바로 <b>새 비밀번호로 바꾸는 화면</b>이 떠요 (꼭 바꿔야 다음으로 넘어가요)</li>
-      <li>사용자 등록(이름·학교·학급)은 <b>링크를 처음 열 때 이미 입력</b>했기 때문에 여기서 자동으로 완료돼요</li></ol>
+      <li>사용자 등록(학교 지역·학교급 등)은 <b>링크를 처음 열 때 이미 입력</b>했기 때문에 여기서 자동으로 완료돼요</li></ol>
       <div class="warn">⚠️ 링크를 열었는데 연결 화면 없이 <b>로그인 화면이 바로 뜬다면</b>, 이 기기에서 다른 선생님이 쓰던 연결이 남아 있는 거예요. (예: 교무실 공용 PC) 로그인 화면의 <b>[연결 주소 변경]</b>을 눌러 내 URL을 붙여넣어 주세요.</div></div>
     <div class="step"><div class="st">Step 5. 첫 설정</div><ol>
       <li>학년도·학급 이름·회장 코드 입력 → 설정 저장</li>
@@ -329,17 +345,19 @@ input[type=date]{min-width:0;max-width:100%}
     <div class="box">
       <h2>📝 사용자 등록</h2>
       <p class="hint">처음 한 번만 등록하면 돼요. 입력한 정보는 사용 현황 파악을 위해 개발자에게 전달되며, 학생 정보는 전달되지 않아요.</p>
-      <label class="f">이름</label><input type="text" id="regName" maxlength="20" placeholder="홍길동">
-      <label class="f">학교</label><input type="text" id="regSchool" maxlength="30" placeholder="○○고등학교">
-      <label class="f">학급</label><input type="text" id="regCls" maxlength="20" placeholder="1학년 4반">
+      <label class="f">학교 위치·종류 <small>(필수)</small></label>
+      <div class="row" style="flex-wrap:nowrap"><select id="regRegion" class="sel" style="flex:1"><option value="">지역</option><option>서울</option><option>부산</option><option>대구</option><option>인천</option><option>광주</option><option>대전</option><option>울산</option><option>세종</option><option>경기</option><option>강원</option><option>충북</option><option>충남</option><option>전북</option><option>전남</option><option>경북</option><option>경남</option><option>제주</option></select><select id="regLevel" class="sel" style="flex:1"><option value="">학교급</option><option>초등학교</option><option>중학교</option><option>고등학교</option><option>특수·기타</option></select></div><p class="hint" style="margin:6px 0 0">학교 이름과 학급은 받지 않아요. 지역과 학교급만 골라 주세요.<br>🏫 초·중학교(특수·기타 포함)는 교사 사용자만 집계하고, <b>학생 후기·이용 수는 받지 않아요.</b></p>
+      <label class="f">아이디 <small>(필수)</small></label><input type="text" id="regName" maxlength="20"><p class="hint" style="margin:6px 0 0"><b>실명이 아닌 아이디를 권해요.</b></p>
       <label class="agree"><input type="checkbox" id="regAgree"><span><b>[필수]</b> 개인정보 수집·이용에 동의합니다</span></label>
       <details class="agd"><summary>자세히 보기 ▾</summary><div class="agb"><ul>
-        <li><b>수집 항목</b>: 이름, 학교, 학급, 앱 사용 기록(접속한 날짜·횟수), 남겨 주신 후기·개선점</li>
-        <li><b>이용 목적</b>: 이용 현황 파악, 문의 응대, 앱 개선, 개발자의 활동 기록 정리. 소개 자료에는 <b>숫자 통계로만</b> 쓰고, 이름·학교가 드러나게 쓰지 않아요. (후기 인용은 후기를 쓰실 때 따로 허락하신 경우에만)</li>
+        <li><b>수집 항목</b>: 학교의 지역·학교급(필수), 아이디(필수 · 실명이 아닌 아이디 권장), 앱 사용 기록(접속한 날짜·횟수), 남겨 주신 후기·개선점. <b>학교 이름과 학급은 받지 않아요.</b></li>
+        <li><b>이용 목적</b>: 이용 현황 파악, 문의 응대, 앱 개선, 개발자의 활동 기록 정리. 소개 자료에는 <b>숫자 통계로만</b> 쓰고, 개인이 드러나게 쓰지 않아요. (후기 인용은 후기를 쓰실 때 따로 허락하신 경우에만)</li>
+        <li><b>저장 장소</b>: 개발자의 구글 시트예요. 구글 서버에 저장되고, 구글 서버는 해외에 있을 수 있어요. 개발자 본인만 열어 봐요. 제3자에게 제공하지 않아요.</li>
         <li><b>보유 기간</b>: 앱을 운영하는 동안. 삭제를 요청하시면 지체 없이 삭제해요.</li>
-        <li><b>삭제·문의</b>: ⚙️ 설정 탭의 [✉️ 문의하기]로 요청해 주세요.</li>
-        <li><b>학생 정보</b>: 학생의 이름·학번·공지 내용은 개발자에게 전달되지 않아요. (선생님 본인의 구글 시트에만 저장돼요) 학생이 직접 남기는 후기·개선점, 그리고 학생 앱이 열린 기기 수(하루 1번, 숫자로만)만 <b>이름 없이</b> 전달되고, 선생님이 💬 후기 탭에서 언제든 끌 수 있어요.</li>
-      </ul><p style="margin:6px 0 0">필수 동의예요. 동의하지 않으시면 사용자 등록을 할 수 없어서 앱을 쓸 수 없어요.</p></div></details>
+        <li><b>거부할 권리</b>: 동의하지 않을 수 있어요. 다만 동의하지 않으면 사용자 등록을 할 수 없어서 앱을 쓸 수 없어요.</li>
+        <li><b>열람·정정·삭제 요청</b>: ⚙️ 설정 탭의 [✉️ 문의하기] 또는 fond7509@naver.com 으로 요청해 주세요.</li>
+        <li><b>학생 정보</b>: 학생의 이름·학번·공지 내용은 개발자에게 전달되지 않아요. (선생님 본인의 구글 시트에만 저장돼요) 학생 후기는 학생이 <b>동의 체크</b>를 한 경우에만 <b>이름 없이</b> 전달돼요. 앱 이용 수는 학생 폰이 하루 한 번 <b>'학급 코드 + 1'</b>만 보내서 세고, 이름·학번·기기 번호는 전달되지 않아요. <b>초·중학교로 등록된 학급의 학생 자료는 받지 않아요.</b></li>
+      </ul><p style="margin:6px 0 0"><a href="#" onclick="openPriv();return false" style="color:var(--main-d);font-weight:700">📄 개인정보 처리방침 전체 보기</a></p></div></details>
       <div class="row" style="margin-top:12px"><button class="btn" onclick="doRegister(this)">등록하기</button><button class="btn sub" onclick="logout()">로그아웃</button></div>
       <div class="msg" id="regMsg"></div>
     </div>
@@ -485,6 +503,7 @@ input[type=date]{min-width:0;max-width:100%}
         <label class="f">설치 ID</label>
         <div class="link"><input type="text" id="instNow" readonly><button class="btn sub" onclick="copy('instNow')">복사</button></div>
         <button class="gbtn" onclick="mailContact()">✉️ 문의하기 (개발자에게 메일)</button>
+        <button class="gbtn" onclick="openPriv()">📄 개인정보 처리방침</button>
       </div>
     </section>
 
@@ -499,19 +518,19 @@ input[type=date]{min-width:0;max-width:100%}
           <div class="stc"><b id="stVisits">0</b><small>누적 접속</small><em>들어온 횟수 합계</em></div>
           <div class="stc"><b id="stWeek">0</b><small>이번 주 접속자</small><em>월~오늘, 중복 제외</em></div>
         </div>
-        <div class="stgrp">🧑‍🎓 학생 <span style="font-weight:400;color:var(--tx3)">(기기 기준 · 이름 없이)</span></div>
+        <div class="stgrp">🧑‍🎓 학생 <span style="font-weight:400;color:var(--tx3)">(이름·번호 없이 · 하루 1번)</span></div>
         <div class="stg">
-          <div class="stc"><b id="stStuToday">0</b><small>오늘 접속 기기</small><em>기기당 하루 1번</em></div>
-          <div class="stc"><b id="stStuDev">0</b><small>누적 학생 기기</small><em>어제까지 · 중복 제외</em></div>
+          <div class="stc"><b id="stStuToday">0</b><small>오늘 학생 접속</small><em>기기당 하루 1번 · 번호 없이</em></div>
+          <div class="stc"><b id="stStuDev">0</b><small>학생 누적 접속</small><em>하루 접속의 합계</em></div>
         </div>
-        <div class="stgrp">최근 14일 접속 (선생님 + 학생 기기)</div>
+        <div class="stgrp">최근 14일 접속 (선생님 + 학생)</div>
         <div class="stbars" id="stBars"></div>
-        <div class="stleg"><span><i style="background:var(--main)"></i>선생님</span><span><i style="background:#CFC7EA"></i>학생 기기</span></div>
-        <div class="stgrp">구분별 누적</div>
+        <div class="stleg"><span><i style="background:var(--main)"></i>선생님</span><span><i style="background:#CFC7EA"></i>학생</span></div>
+        <div class="stgrp">구분별 누적 접속</div>
         <div class="stsplit" id="stSplit"></div>
         <div class="stleg" id="stSplitLeg"></div>
         <div class="row" style="margin-top:12px"><button class="btn sub" onclick="saveStatImg()">🖼️ 화면 이미지로 저장</button></div>
-        <p class="hint" style="margin:10px 0 0">하루에 한 번만 세요 (같은 선생님·같은 기기가 하루에 여러 번 열어도 1회). 학생은 <b>이름·학번 없이 기기 기준</b>이라 학생 수와 정확히 같지는 않아요(한 학생이 디벗·폰 두 대면 2). 아듬샘 본인도 선생님 사용자로 세요(하루 1번). 사용 중지된 분·학생 전송을 끈 반은 빼고 세요. 모든 선생님 화면 위에는 <b>선생님 숫자만</b> 보여요(누적 10명 미만이면 숨김, 아듬샘 화면에는 항상 보임).</p>
+        <p class="hint" style="margin:10px 0 0">하루에 한 번만 세요 (같은 선생님·같은 기기가 하루에 여러 번 열어도 1회). 학생은 <b>번호 없이 기기가 하루 한 번 '+1'</b>만 보내서 세요. 그래서 학생 수와 정확히 같지는 않아요(한 학생이 디벗·폰 두 대면 2, 폰 데이터를 지우면 한 번 더). 아듬샘 본인도 선생님 사용자로 세요(하루 1번). 사용 중지된 분·학생 전송을 끈 반은 빼고 세요. 모든 선생님 화면 위에는 <b>선생님 숫자만</b> 보여요(누적 10명 미만이면 숨김, 아듬샘 화면에는 항상 보임).</p>
       </div>
       <div class="box hide" id="grBox">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
@@ -538,6 +557,17 @@ input[type=date]{min-width:0;max-width:100%}
         <p class="hint hide" id="rvOld" style="margin:8px 0 0">💬 후기 받기 기능을 쓰려면 등록부 GAS를 새 코드로 <b>수정 배포</b>해 주세요.</p>
         <div class="msg" id="ownMsg"></div>
       </div>
+      <div class="box hide" id="rcBox">
+        <h2>💬 받은 후기 <span class="nbdg hide" id="rcNew"></span></h2>
+        <p class="hint" id="rcSum" style="margin:0 0 10px">불러오는 중…</p>
+        <div class="row"><button class="btn" id="rcBtn" onclick="openReviews()">📖 받은 후기 열기</button></div>
+        <div id="rcWrap" class="hide" style="margin-top:12px">
+          <div class="sub-tabs" id="rcTabs"></div>
+          <div id="rcList"></div>
+          <p class="hint" id="rcFoot" style="margin:8px 0 0"></p>
+        </div>
+        <div class="msg" id="rcMsg"></div>
+      </div>
       <div class="box">
         <h2 id="uTitle">등록된 선생님</h2>
         <div class="sub-tabs" id="uTabs"></div>
@@ -548,10 +578,9 @@ input[type=date]{min-width:0;max-width:100%}
     <!-- 💬 후기·개선점 (교사 전용) -->
     <section id="tab-rv" class="hide">
       <div class="box hide" id="srBox">
-        <h2>🧑‍🎓 우리 반 학생 후기</h2>
-        <div class="sw" id="srSw" onclick="toggleSr()"><span class="tg"></span><div><b id="srTxt">학생 후기·이용 수</b><small id="srSub"></small></div></div>
-        <p class="hint" style="margin:8px 0 0">켜 두면 두 가지가 앱 개발자에게 <b>이름·학번 없이</b>(학급 코드만) 전달돼요. ① 학생 앱 맨 아래 <b>💬 후기 남기기</b>로 학생이 직접 쓴 후기, ② 학생 앱을 연 기기 수(<b>하루 1번</b>, 숫자로만). 선생님 시트에는 저장되지 않아요. 원하지 않으면 꺼 두세요.</p>
-        <div class="msg" id="srMsg"></div>
+        <h2>🧑‍🎓 학생 후기·이용 수</h2>
+        <p class="hint" style="margin:0">학생 후기는 학생이 <b>동의 체크</b>를 한 경우에만 <b>이름·학번 없이</b>(학급 코드만) 앱 개발자에게 전달돼요. 앱 이용 수는 학생 폰이 하루 한 번 <b>'학급 코드 + 1'</b>만 보내서 세고, 이름·학번·기기 번호는 전달되지 않아요. 학생 이름·학번·공지 내용도 전달되지 않아요.</p>
+        <p class="hint" style="margin:8px 0 0">🏫 <b>초·중학교</b>(특수·기타 포함)로 등록된 학급은 교사 사용자만 집계하고, <b>학생 후기·이용 수는 받지 않아요.</b></p>
       </div>
       <div class="box">
         <h2>💬 후기·개선점 남기기</h2>
@@ -573,6 +602,7 @@ input[type=date]{min-width:0;max-width:100%}
         <textarea id="rvImp" maxlength="200" style="min-height:84px;margin-top:8px" placeholder="불편했던 점, 있었으면 하는 기능 등을 편하게 적어 주세요"></textarea>
         <label class="f">소개 자료에 써도 될까요?</label>
         <div class="chips" id="rvOk"></div>
+        <div id="rvNameBox" class="hide"><label class="f">공개해도 되는 아이디 <small>(공개를 고르셨어요)</small></label><input type="text" id="rvName" maxlength="20"><p class="hint" style="margin:6px 0 0">이 이름은 등록 정보에도 저장돼요.</p></div>
         <p class="hint" style="margin:6px 0 0">기본은 <b>쓰지 말아주세요</b>예요. 허락해 주신 경우에만 포트폴리오·소개 자료에 인용해요.</p>
         <div class="row" style="margin-top:12px"><button class="btn" id="rvSend" onclick="sendReview()">보내기</button></div>
         <div class="msg" id="rvMsg"></div>
@@ -799,6 +829,32 @@ input[type=date]{min-width:0;max-width:100%}
   <div class="foot">Made by Cheon_R</div>
 </div>
 
+<!-- 개인정보 처리방침 -->
+<div class="ov hide" id="privOv" onclick="if(event.target===this)closePriv()">
+  <div class="box">
+    <h2>📄 개인정보 처리방침</h2>
+    <div class="agb" style="padding:0;font-size:13px;line-height:1.65;color:var(--tx2)">
+      <p style="margin:0 0 8px">CLASS BOARD(Made by Cheon_R)를 만든 개발자가 사용자 등록·후기와 관련해 받는 정보를 어떻게 다루는지 알려 드려요. (시행일 2026-10-06)</p>
+      <p style="margin:10px 0 2px"><b>1. 받는 정보와 목적</b></p>
+      <ul><li>필수: 학교의 지역·학교급 (예: 서울 · 고등학교)</li><li>필수: 아이디 — 등록할 때 한 번만 쓰는 이름표예요. 실명이 아닌 아이디를 권해요. 사용자를 구분하고, 삭제·문의 요청 때 누구의 정보인지 확인하는 데 써요.</li><li>자동: 앱 사용 기록(접속한 날짜·횟수)</li><li>선택 제출: 후기·개선점, 소개 자료 사용 허락 여부</li><li>목적: 이용 현황 파악, 문의 응대, 앱 개선, 개발자의 활동 기록 정리</li><li><b>학교 이름과 학급은 받지 않아요.</b></li></ul>
+      <p style="margin:10px 0 2px"><b>2. 보유 기간과 파기</b></p>
+      <ul><li>앱을 운영하는 동안 보관해요.</li><li>삭제를 요청하시면 지체 없이 등록부(구글 시트)에서 해당 정보를 지워요.</li></ul>
+      <p style="margin:10px 0 2px"><b>3. 제3자 제공·소개 자료 활용</b></p>
+      <ul><li>제3자에게 제공하지 않아요.</li><li>소개 자료에는 숫자 통계로만 쓰고, 후기 인용은 후기를 쓰실 때 따로 허락하신 경우에만 해요.</li></ul>
+      <p style="margin:10px 0 2px"><b>4. 저장 장소 (해외 서버 포함)</b></p>
+      <ul><li>개발자의 구글 시트·구글 Apps Script에 저장돼요. 구글(Google)의 서버를 쓰며, 서버가 해외에 있을 수 있어요.</li><li>등록부는 개발자 본인만 열어 봐요.</li></ul>
+      <p style="margin:10px 0 2px"><b>5. 학생 정보</b></p>
+      <ul><li>학생의 이름·학번·공지 내용은 개발자에게 전달되지 않아요. (각 선생님 본인의 구글 시트에만 저장돼요)</li><li>학생 후기·개선점: 학생이 후기를 보낼 때 <b>동의 체크</b>를 한 경우에만, 이름 없이 전달돼요. (같은 기기로 하루에 여러 번 보내는 걸 막으려고 이 기기에만 저장된 임의 번호가 후기와 함께 전달돼요.)</li><li>앱 이용 수: 학생 폰이 하루에 처음 열릴 때 <b>반 코드(학급을 구분하는 짧은 글자) + 1</b>만 전달돼요. 이름·학번·기기 번호는 전달되지 않아요. 처음 열 때 이 내용을 안내해요.</li><li><b>초·중학교</b>(특수·기타 포함)로 등록된 학급은 교사 사용자만 집계하고, 학생 후기·이용 수는 받지 않아요. 등록할 때 고른 학교급을 기준으로 해요.</li></ul>
+      <p style="margin:10px 0 2px"><b>6. 동의 거부 권리와 불이익</b></p>
+      <ul><li>동의하지 않을 수 있어요. 다만 동의하지 않으면 사용자 등록을 할 수 없어서 앱을 쓸 수 없어요.</li></ul>
+      <p style="margin:10px 0 2px"><b>7. 열람·정정·삭제·처리정지 요청, 문의</b></p>
+      <ul><li>개인정보 관련 문의·요청: 앱 개발자 Cheon_R · <b>fond7509@naver.com</b></li></ul>
+      <p style="margin:10px 0 0;color:var(--tx3)">이 방침이 바뀌면 앱 안에서 알려 드려요.</p>
+    </div>
+    <button class="cbtn btn sub" onclick="closePriv()">닫기</button>
+  </div>
+</div>
+
 <!-- 같은 날짜·과목 공지 확인 창 -->
 <div class="ov hide" id="dupOv">
   <div class="box">
@@ -851,7 +907,11 @@ input[type=date]{min-width:0;max-width:100%}
 const K = { gas:'sn_gas_v1', pw:'sn_admin_pw_v1', owner:'sn_owner_v1', reg:'sn_reg_info_v1', pre:'sn_prereg_v1', preId:'sn_preid_v1', rv:'sn_review_v1', intro:'sn_intro_v1' };
 /* ===== 사용자 등록부 (아듬샘 전용 GAS) ===== */
 const REGISTRY_URL = 'https://script.google.com/macros/s/AKfycbzrgeAlZhEGyvp7vo_j0hgesVoIoI6T_GMayKJCfvOFaV5Sb3wO1xvackSeQLc3HQxsnQ/exec';           // ← 등록부 GAS 웹 앱 URL (비어 있으면 등록 기능 꺼짐)
-const CONTACT_EMAIL = 'fond0316@naver.com';
+const CONTACT_EMAIL = 'fond7509@naver.com';
+const NONAME = '(이름 없음)';   // 이름을 비워 둔 선생님은 등록부에 이 글자로 기록돼요 (등록부 GAS가 이름 칸을 비우면 거절해서)
+const nm = x => String(x||'') === NONAME ? '' : String(x||'');
+function readSchool(p){ const r = $(p+'Region').value, l = $(p+'Level').value; return (r && l) ? r + ' · ' + l : ''; }
+function setSchool(p, v){ const a = String(v||'').split(' · '); $(p+'Region').value = ''; $(p+'Level').value = ''; if (a.length === 2){ $(p+'Region').value = a[0]; $(p+'Level').value = a[1]; } }
 const TYPES = { '긴급':'u', '확인':'c', '호출':'h', '교과':'s', '일반':'g' };
 const LABEL = { '긴급':'긴급', '호출':'호출', '확인':'학급공지', '교과':'교과공지', '일반':'일반' };
 
@@ -967,7 +1027,7 @@ const INTRO = [
   { t:'교실 전자칠판에 크게 띄워 두세요', d:'각 학급 전자칠판에 노트북을 연결해서 [교실 화면 모드]로 크게 띄워 두고 쓸 수 있어요. 조종례 시간에 오늘 공지를 함께 보고, 학생을 호출할 때도 편리해요.',
     v:'<div style="margin:12px 0;background:#2B2446;border-radius:12px;padding:10px 12px;color:#fff"><div style="font-size:10.5px;opacity:.75;margin-bottom:8px">교실 화면 모드 · 30초마다 자동으로 새로고침돼요</div><div style="background:#6F62A8;border-radius:8px;padding:9px 10px;font-size:13px;font-weight:700;margin-bottom:8px">호출 · 10103 박서준, 10105 정서연<div style="font-size:11px;font-weight:400;opacity:.9;margin-top:2px">교무실로 와 주세요</div></div><div style="display:flex;gap:6px"><div style="flex:1;background:rgba(255,255,255,.12);border-radius:8px;padding:7px;font-size:11px">오늘 · 수학 수행평가 준비물</div><div style="flex:1;background:rgba(255,255,255,.12);border-radius:8px;padding:7px;font-size:11px">오늘 · 체육대회 신청</div></div></div><div style="font-size:12px;color:var(--tx2);line-height:1.6">호출은 크게 뜨고 알림음이 나요. 다녀온 학생은 칠판에서 자기 이름을 눌러 체크해요.</div>' },
   { t:'시작은 세 단계예요', d:'차근차근 따라 하면 돼요. 학생 이름·학번·공지 내용은 선생님 본인의 구글 시트에만 저장돼요.',
-    v:'<div style="margin:12px 0;display:flex;flex-direction:column;gap:10px">' + ['사용자 등록 (이름·학교)','내 구글 시트 연결 (복사해서 붙여넣기)','학생용 링크를 단톡방이나 QR로 공유'].map((t,i) => `<div style="display:flex;gap:10px;align-items:center"><div style="width:24px;height:24px;border-radius:12px;background:#9B8EC4;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none">${i+1}</div><div style="font-size:13px">${t}</div></div>`).join('') + '</div>' }
+    v:'<div style="margin:12px 0;display:flex;flex-direction:column;gap:10px">' + ['사용자 등록 (지역·학교급)','내 구글 시트 연결 (복사해서 붙여넣기)','학생용 링크를 단톡방이나 QR로 공유'].map((t,i) => `<div style="display:flex;gap:10px;align-items:center"><div style="width:24px;height:24px;border-radius:12px;background:#9B8EC4;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none">${i+1}</div><div style="font-size:13px">${t}</div></div>`).join('') + '</div>' }
 ];
 let introI = 0;
 function showIntro(){ introI = 0; renderIntro(); show('scrIntro'); }
@@ -1002,25 +1062,26 @@ window.addEventListener('message', e => {   // 체험 화면(학생 앱)이 보�
 /* ===== 사용자 사전 등록 (시트 연결 전에 이름·학교·학급만 먼저 받아 둠) ===== */
 function showPre(){
   const i = lsGet(K.pre, null) || lsGet(K.reg, {});
-  $('preName').value = i.name || ''; $('preSchool').value = i.school || ''; $('preCls').value = i.cls || ''; $('preAgree').checked = !!i.agree;
+  $('preName').value = nm(i.name); setSchool('pre', i.school); $('preAgree').checked = !!i.agree;
   msg('preMsg','',true); show('scrPre');
 }
 function savePre(){
-  const info = { name:$('preName').value.trim(), school:$('preSchool').value.trim(), cls:$('preCls').value.trim() };
-  if (!info.name || !info.school){ msg('preMsg','이름과 학교를 입력해 주세요.'); return; }
+  const info = { name:$('preName').value.trim(), school:readSchool('pre'), cls:'' };
+  if (!info.school){ msg('preMsg','학교의 지역과 학교급을 골라 주세요.'); return; }
+  if (!info.name){ msg('preMsg','아이디를 입력해 주세요.'); return; }
   if (!$('preAgree').checked){ msg('preMsg','개인정보 수집·이용에 동의해 주세요. (필수)'); return; }
   info.agree = true;
   lsSet(K.pre, info);
   if (REGISTRY_URL){   // 시트 연결 전이라도 이름·학교를 등록부에 바로 남겨 둠 (임시 ID, 실패해도 다음 단계로 진행)
     let pid = lsGet(K.preId, '');
     if (!pid){ pid = 'pre-' + (window.crypto && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 10)); lsSet(K.preId, pid); }
-    jsonp({ action:'register', id:pid, name:info.name, school:info.school, cls:info.cls, agree:'1' }, REGISTRY_URL).catch(()=>{});
+    jsonp({ action:'register', id:pid, name:info.name || NONAME, school:info.school, cls:'', agree:'1' }, REGISTRY_URL).catch(()=>{});
   }
   showConnect();
 }
 function showConnect(){
   const i = lsGet(K.pre, null);
-  $('preInfoLine').innerHTML = i ? '👤 ' + esc([i.name, i.school, i.cls].filter(Boolean).join(' · ')) + ' <a href="#" onclick="showPre();return false" style="color:var(--main-d)">수정</a>' : '';
+  $('preInfoLine').innerHTML = i ? '👤 ' + esc([nm(i.name), i.school].filter(Boolean).join(' · ')) + ' <a href="#" onclick="showPre();return false" style="color:var(--main-d)">수정</a>' : '';
   show('scrConnect');
 }
 function clearPre(){ try{ localStorage.removeItem(K.pre); localStorage.removeItem(K.preId); }catch(e){} }
@@ -1037,16 +1098,13 @@ function classCode(url){   // 선생님 GAS 주소 → 짧은 반 코드 (관리
 const RV_CHIPS = ['공지 올리기가 편해요','학생 확인·호출이 유용해요','확인현황을 한눈에 볼 수 있어요','교실 화면 모드가 좋아요','설치·연결이 쉬웠어요','학생 화면이 보기 좋아요'];   // 등록부 GAS의 REVIEW.chips 와 순서 동일
 const RV_LOWS = ['사용법이 어려웠어요','설치·연결이 어려웠어요','기능이 부족해요','오류가 있었어요','학생들이 잘 안 봐요'];   // 별점 3점 이하일 때만 보여요 (GAS의 REVIEW.lows 와 순서 동일)
 const RV_KINDS = ['기능 요청','오류','디자인','기타'];
-const RV_OK = [['name','이름 공개해도 돼요'],['anon','이름 없이 써도 돼요'],['no','쓰지 말아주세요']];
+const RV_OK = [['name','아이디 공개해도 돼요'],['anon','아이디 없이 써도 돼요'],['no','쓰지 말아주세요']];
 let srOn = null;   // 우리 반 학생 후기 받기 (null = 등록부가 아직 모름/옛 버전)
 function renderSr(){
-  $('srBox').classList.toggle('hide', !(reviewOn && srOn !== null));
-  if (srOn === null) return;
-  $('srSw').classList.toggle('on', srOn);
-  $('srTxt').textContent = '학생 후기·이용 수 ' + (srOn ? 'ON' : 'OFF');
-  $('srSub').textContent = srOn ? '후기 버튼이 보이고, 앱 이용 수가 이름 없이 집계돼요' : '후기 버튼이 숨겨지고 이용 수도 집계되지 않아요';
+  $('srBox').classList.toggle('hide', !reviewOn);   // 선생님 스위치는 없앴어요. 학생이 직접 동의·선택하고, 초·중학교 학급은 등록부가 자동으로 제외해요 (안내 글만 보여요)
 }
 async function toggleSr(){
+  return;   // (선생님 스위치 제거 — 호출되지 않아요)
   if (srOn === null) return;
   const on = !srOn; srOn = on; renderSr(); msg('srMsg','저장 중…',true);
   try{ await jsonp({ action:'srSwitch', id:installId, on: on?'1':'' }, REGISTRY_URL); msg('srMsg', on ? '학생 후기·이용 수 집계를 켰어요.' : '학생 후기·이용 수 집계를 껐어요.', true); }
@@ -1077,7 +1135,9 @@ function renderRv(){
   $('rvOther').classList.toggle('hide', !rvOtherOn);
   $('rvKinds').innerHTML = RV_KINDS.map(t => `<button type="button" class="chip rv ${rvKind===t?'on':''}" onclick="rvKindSet('${t}')">${t}</button>`).join('');
   $('rvOk').innerHTML = RV_OK.map(([k,t]) => `<button type="button" class="chip rv ${rvOk===k?'on':''}" onclick="rvOkSet('${k}')">${t}</button>`).join('');
+  $('rvNameBox').classList.toggle('hide', !(rvOk === 'name' && !hasName()));
 }
+function hasName(){ return !!nm((lsGet(K.reg, {}) || {}).name); }
 function rvSet(i){ rvRate = i; if (i > 3){ rvLow = []; rvLowOtherOn = false; } renderRv(); }
 function rvLowTog(i){ if (i < 0) rvLowOtherOn = !rvLowOtherOn; else rvLow = rvLow.includes(i) ? rvLow.filter(x=>x!==i) : [...rvLow, i].sort(); renderRv(); if (i < 0 && rvLowOtherOn) $('rvLowOther').focus(); }
 function rvTog(i){ if (i < 0) rvOtherOn = !rvOtherOn; else rvPick = rvPick.includes(i) ? rvPick.filter(x=>x!==i) : [...rvPick, i].sort(); renderRv(); if (i < 0 && rvOtherOn) $('rvOther').focus(); }
@@ -1088,13 +1148,19 @@ async function sendReview(){
   if (rvSending) return;
   const imp = $('rvImp').value.trim(), lowOn = rvRate >= 1 && rvRate <= 3;
   if (!rvRate && !imp){ msg('rvMsg','별점을 누르거나 개선점을 적어 주세요.'); return; }
+  const newName = (rvOk === 'name' && !hasName()) ? $('rvName').value.trim() : '';
+  if (rvOk === 'name' && !hasName() && !newName){ msg('rvMsg','아이디 공개를 고르셨어요. 공개해도 되는 아이디를 적어 주세요.'); return; }
   rvSending = true; $('rvSend').disabled = true; msg('rvMsg','보내는 중…',true);
   try{
+    if (newName){   // 이름 공개를 허락한 경우에만, 그때 이름을 등록 정보에 저장
+      const reg = lsGet(K.reg, {});
+      if (reg.school){ await jsonp({ action:'register', id:installId, name:newName, school:reg.school, cls:reg.cls || '', agree:'' }, REGISTRY_URL); lsSet(K.reg, { ...reg, name:newName }); }
+    }
     await jsonp({ action:'review', id:installId, rate:rvRate, c:rvPick.join(','), lc: lowOn ? rvLow.join(',') : '', lo: lowOn && rvLowOtherOn ? $('rvLowOther').value.trim() : '', other: rvOtherOn ? $('rvOther').value.trim() : '', one:$('rvOne').value.trim(), ik:rvKind, imp, ok:rvOk }, REGISTRY_URL);
     const st = lsGet(K.rv, { n:0, shown:false, done:false }); st.done = true; lsSet(K.rv, st);
     $('rvBanner').classList.add('hide');
     rvRate = 0; rvPick = []; rvLow = []; rvLowOtherOn = false; rvOtherOn = false; rvKind = ''; rvOk = 'no';
-    $('rvOther').value = ''; $('rvLowOther').value = ''; $('rvOne').value = ''; $('rvImp').value = '';
+    $('rvOther').value = ''; $('rvLowOther').value = ''; $('rvOne').value = ''; $('rvImp').value = ''; $('rvName').value = '';
     renderRv(); msg('rvMsg','💜 소중한 의견 감사합니다! 다음에 또 의견이 생기면 언제든 남겨 주세요.',true);
   }catch(e){ msg('rvMsg','보내지 못했어요. 입력한 내용은 그대로 있어요. (' + e.message + ')'); }
   rvSending = false; $('rvSend').disabled = false;
@@ -1127,11 +1193,11 @@ let autoRegTried = false;
 async function autoRegister(pre){
   show('scrLoading'); msg('loadMsg','사용자 등록 중…',true);
   try{
-    const r = await jsonp({ action:'register', id:installId, old:lsGet(K.preId,''), name:pre.name, school:pre.school, cls:pre.cls, agree: pre.agree ? '1' : '', cb:classCode(GAS) }, REGISTRY_URL);
-    lsSet(K.reg, { name:pre.name, school:pre.school, cls:pre.cls }); clearPre(); return handleStatus(r.status);
+    const r = await jsonp({ action:'register', id:installId, old:lsGet(K.preId,''), name:pre.name || NONAME, school:pre.school, cls:'', agree: pre.agree ? '1' : '', cb:classCode(GAS) }, REGISTRY_URL);
+    lsSet(K.reg, { name:nm(pre.name), school:pre.school, cls:'' }); clearPre(); return handleStatus(r.status);
   }catch(e){
     // 자동 등록이 안 되면 직접 등록 화면으로
-    $('regName').value = pre.name; $('regSchool').value = pre.school; $('regCls').value = pre.cls || loginInfo.className || '';
+    $('regName').value = nm(pre.name); setSchool('reg', pre.school);
     msg('regMsg','자동 등록에 실패했어요. 아래 [등록하기]를 눌러 주세요. (' + e.message + ')'); show('scrReg');
   }
 }
@@ -1148,8 +1214,7 @@ function handleStatus(st){
     }
     const info = lsGet(K.reg, null) || pre || {};   // 이미 등록한 적 있으면 그 정보, 없으면 처음 화면에서 받아 둔 정보로 미리 채움
     $('regAgree').checked = false;
-    $('regName').value = info.name || ''; $('regSchool').value = info.school || '';
-    $('regCls').value = info.cls || loginInfo.className || '';
+    $('regName').value = nm(info.name); setSchool('reg', info.school);
     msg('regMsg','',true); return show('scrReg');
   }
   if (st === 'pending') return gate('⏳', '승인 대기 중이에요', '개발자가 승인하면 사용할 수 있어요. 승인 후 [다시 확인]을 눌러 주세요.');
@@ -1169,7 +1234,7 @@ async function changeFirstPw(btn){
   }catch(e){ msg('npwMsg', e.message); }
   btn.disabled = false;
 }
-function saveRegInfo(res){ if (res && res.name) lsSet(K.reg, { name:res.name, school:res.school, cls:res.cls }); reviewOn = !!(res && res.review === true); usePub = (res && res.pub) || null; srOn = (res && typeof res.sr === 'boolean') ? res.sr : null; applyReviewUi(); }
+function saveRegInfo(res){ if (res && res.name) lsSet(K.reg, { name:nm(res.name), school:res.school, cls:res.cls }); reviewOn = !!(res && res.review === true); usePub = (res && res.pub) || null; srOn = (res && typeof res.sr === 'boolean') ? res.sr : null; applyReviewUi(); }
 function gate(ic, title, text){ $('gateIc').textContent = ic; $('gateTitle').textContent = title; $('gateText').textContent = text; msg('gateMsg','',true); show('scrGate'); }
 async function recheck(btn){
   btn.disabled = true; msg('gateMsg','확인 중…',true);
@@ -1178,20 +1243,23 @@ async function recheck(btn){
   btn.disabled = false;
 }
 async function doRegister(btn){
-  const info = { name:$('regName').value.trim(), school:$('regSchool').value.trim(), cls:$('regCls').value.trim() };
-  if (!info.name || !info.school){ msg('regMsg','이름과 학교를 입력해 주세요.'); return; }
+  const info = { name:$('regName').value.trim(), school:readSchool('reg'), cls:'' };
+  if (!info.school){ msg('regMsg','학교의 지역과 학교급을 골라 주세요.'); return; }
+  if (!info.name){ msg('regMsg','아이디를 입력해 주세요.'); return; }
   if (!$('regAgree').checked){ msg('regMsg','개인정보 수집·이용에 동의해 주세요. (필수)'); return; }
   btn.disabled = true; msg('regMsg','등록 중…',true);
   try{
-    const r = await jsonp({ action:'register', id:installId, old:lsGet(K.preId,''), ...info, agree:'1', cb:classCode(GAS) }, REGISTRY_URL);
+    const r = await jsonp({ action:'register', id:installId, old:lsGet(K.preId,''), name:info.name || NONAME, school:info.school, cls:'', agree:'1', cb:classCode(GAS) }, REGISTRY_URL);
     lsSet(K.reg, info); clearPre(); await handleStatus(r.status);
   }catch(e){ msg('regMsg', e.message); }
   btn.disabled = false;
 }
 function mailSubject(){
   const info = lsGet(K.reg, {});
-  return '[CLASS BOARD 문의] ' + [info.school, info.name].filter(Boolean).join(' ');
+  return '[CLASS BOARD 문의] ' + [info.school, nm(info.name)].filter(Boolean).join(' ');
 }
+function openPriv(){ $('privOv').classList.remove('hide'); }
+function closePriv(){ $('privOv').classList.add('hide'); }
 function mailContact(){
   $('contactAddr').value = CONTACT_EMAIL; msg('contactMsg','',true);
   $('contactOv').classList.remove('hide');
@@ -1219,7 +1287,7 @@ async function enterMain(){
   updateReqBadge();
   resetForm();
   goTab(role==='admin' && !data.students.length ? 'set' : 'write');   // 처음(명단 없음)엔 설정 탭부터
-  applyReviewUi(); renderUseLine(); rvVisit();
+  applyReviewUi(); renderUseLine(); rvVisit(); rcPeek();
 }
 async function refresh(usePre){
   let r = null;
@@ -1757,7 +1825,7 @@ async function loadOwner(){
   try{
     const r = await jsonp({ action:'ownerList', id:installId }, REGISTRY_URL);
     const wasLoaded = ownLoaded;
-    own = { approval:r.approval, users:r.users||[], review:r.review||null, stats:r.stats||null }; ownLoaded = true; if (!wasLoaded) msg('ownMsg','',true); renderOwner(); loadGrowth();
+    own = { approval:r.approval, users:r.users||[], review:r.review||null, stats:r.stats||null }; ownLoaded = true; if (!wasLoaded) msg('ownMsg','',true); renderOwner(); renderRcBox(true); loadGrowth();
   }catch(e){
     ownLoaded = false;
     $('apTxt').textContent = '승인제 (확인 불가)';
@@ -1776,12 +1844,12 @@ function renderOwner(){
     $('stWeek').textContent = stt.week == null ? '-' : stt.week;
     $('stNew').textContent = stt.newToday == null ? '' : '오늘 처음 온 분 ' + stt.newToday + '명';
     const st2 = stt.stu || { today:0, devices:0, visits:0 };
-    $('stStuToday').textContent = st2.today; $('stStuDev').textContent = st2.devices;
+    $('stStuToday').textContent = st2.today; $('stStuDev').textContent = st2.visits;
     const tot = d => d.n + (d.s || 0), mx = Math.max(1, ...stt.days.map(tot)), L = stt.days.length, H = 56;
     $('stBars').innerHTML = stt.days.map((d,i) => `<div class="c"><em>${tot(d)||''}</em><div class="stk" style="height:${tot(d) ? Math.max(3, Math.round(tot(d)/mx*H)) : 3}px"><i class="ss" style="flex:${d.s||0} 0 0"></i><i class="tt" style="flex:${d.n} 0 0"></i></div><span>${i===0?esc(L+'일 전'):i===L-1?'오늘':''}</span></div>`).join('');
-    const sumT = stt.users, sumS = st2.devices, sumA = Math.max(1, sumT + sumS);
+    const sumT = stt.visits, sumS = st2.visits, sumA = Math.max(1, sumT + sumS);
     $('stSplit').innerHTML = `<b style="width:${sumT/sumA*100}%;background:var(--main)"></b><b style="width:${sumS/sumA*100}%;background:#CFC7EA"></b>`;
-    $('stSplitLeg').innerHTML = `<span><i style="background:var(--main)"></i>선생님 ${sumT}명</span><span><i style="background:#CFC7EA"></i>학생 기기 ${sumS}대</span>`;
+    $('stSplitLeg').innerHTML = `<span><i style="background:var(--main)"></i>선생님 접속 ${sumT}회</span><span><i style="background:#CFC7EA"></i>학생 접속 ${sumS}회</span>`;
   }
   const rv = own.review;
   $('rvSw').classList.toggle('hide', !rv); $('rvOld').classList.toggle('hide', !!rv);
@@ -1807,6 +1875,65 @@ function renderOwner(){
         <button class="${u.block?'':'no'}" onclick="setUser('${esc(u.id)}','block',${!u.block})">${u.block?'차단 해제':'차단'}</button>
       </div>
     </div>`).join('') : '<p class="hint">해당하는 선생님이 없어요.</p>';
+}
+/* ===== 💬 받은 후기 보기 (아듬샘 전용) ===== */
+let rc = { t:[], s:[], tTotal:0, sTotal:0, seenT:0, seenS:0, shown:60, tab:'t', open:false, ok:false };
+function rcNewN(){ return Math.max(0, rc.tTotal - rc.seenT) + Math.max(0, rc.sTotal - rc.seenS); }
+function updateOwnBadge(){
+  const n = rcNewN(), b = document.querySelector('#nav button[data-t="own"]');
+  if (b) b.innerHTML = '👑 사용자 관리' + (n ? `<span class="nbdg">${n}</span>` : '');
+}
+async function rcPeek(){   // 앱을 열 때 '새 후기' 건수만 가볍게 확인 (실패해도 조용히 넘어가요)
+  if (!(role==='admin' && isOwner && REGISTRY_URL && installId)) return;
+  try{
+    const r = await jsonp({ action:'ownerReviews', id:installId, peek:'1' }, REGISTRY_URL);
+    if (r && r.ok){ rc.tTotal = r.tTotal||0; rc.sTotal = r.sTotal||0; rc.seenT = r.seenT||0; rc.seenS = r.seenS||0; rc.ok = true; updateOwnBadge(); renderRcBox(); }
+  }catch(e){}
+}
+function renderRcBox(fromList){   // fromList=true: 등록부에서 목록을 막 받았을 때만 건수를 맞춰요
+  const rv = own.review, box = $('rcBox');
+  if (!ownLoaded || !rv){ box.classList.add('hide'); return; }   // 예전 등록부 GAS면 숨김
+  box.classList.remove('hide');
+  if (fromList && rv.seenT != null){ rc.tTotal = rv.reviews||0; rc.sTotal = rv.sreviews||0; rc.seenT = rv.seenT||0; rc.seenS = rv.seenS||0; rc.ok = true; }
+  const n = rcNewN();
+  $('rcNew').textContent = '새 후기 ' + n; $('rcNew').classList.toggle('hide', !n);
+  if (!rc.ok){ $('rcSum').innerHTML = '후기를 보려면 등록부 GAS를 새 코드로 <b>수정 배포</b>해 주세요.'; $('rcBtn').classList.add('hide'); updateOwnBadge(); return; }
+  $('rcBtn').classList.remove('hide');
+  $('rcSum').textContent = `교사 후기 ${rc.tTotal}건 · 학생 후기 ${rc.sTotal}건` + (n ? ` · 아직 안 본 후기 ${n}건` : ' · 모두 확인했어요');
+  $('rcBtn').textContent = rc.open ? '🔄 새로고침' : (n ? `📖 새 후기 ${n}건 열기` : '📖 받은 후기 열기');
+  updateOwnBadge();
+}
+async function openReviews(){
+  msg('rcMsg','불러오는 중…',true); $('rcBtn').disabled = true;
+  try{
+    const r = await jsonp({ action:'ownerReviews', id:installId, mark:'1' }, REGISTRY_URL);
+    rc.t = r.t||[]; rc.s = r.s||[]; rc.shown = r.shown||60; rc.open = true;
+    if (!rc.t.some(x=>x.nw) && rc.s.some(x=>x.nw)) rc.tab = 's'; else if (rc.t.some(x=>x.nw)) rc.tab = 't';
+    rc.tTotal = r.tTotal||0; rc.sTotal = r.sTotal||0; rc.seenT = rc.tTotal; rc.seenS = rc.sTotal;   // 열었으니 '확인함'
+    $('rcWrap').classList.remove('hide'); msg('rcMsg','',true); renderRc(); renderRcBox();
+  }catch(e){ msg('rcMsg','불러오지 못했어요: ' + e.message + ' (등록부 GAS를 수정 배포했는지 확인해 주세요)'); }
+  $('rcBtn').disabled = false;
+}
+function rcStars(n){ return '<span class="stars">' + '★'.repeat(n) + '<i>' + '★'.repeat(Math.max(0, 5-n)) + '</i></span>'; }
+function renderRc(){
+  const nT = rc.t.filter(x=>x.nw).length, nS = rc.s.filter(x=>x.nw).length;
+  $('rcTabs').innerHTML = [['t',`👩‍🏫 교사 ${rc.tTotal}` + (nT?` · 새 ${nT}`:'')],['s',`🧑‍🎓 학생 ${rc.sTotal}` + (nS?` · 새 ${nS}`:'')]]
+    .map(([k,l])=>`<button class="${rc.tab===k?'on':''}" onclick="rc.tab='${k}';renderRc()">${l}</button>`).join('');
+  const arr = rc.tab==='t' ? rc.t : rc.s, total = rc.tab==='t' ? rc.tTotal : rc.sTotal;
+  $('rcList').innerHTML = arr.length ? arr.map(x=>{
+    const who = rc.tab==='t' ? [x.name, x.school, x.cls] : [x.school, x.cls && ('학급 ' + x.cls)];
+    const pills = (x.chips||[]).map(c=>`<span>${esc(c)}</span>`).join('') + (x.other ? `<span>${esc(x.other)}</span>` : '')
+      + (x.lows||[]).map(c=>`<span class="lo">${esc(c)}</span>`).join('') + (x.lowOther ? `<span class="lo">${esc(x.lowOther)}</span>` : '');
+    const yes = x.consent && x.consent !== '사용 불가';
+    return `<div class="rvc${x.nw?' nw':''}">
+      <div class="tp">${x.rate ? rcStars(x.rate) : '<span class="mt" style="margin:0">별점 없음</span>'}${x.nw?'<span class="nwt">NEW</span>':''}<span class="mt" style="margin:0 0 0 auto">${esc(x.t)}</span></div>
+      <div class="mt">${who.filter(Boolean).map(esc).join(' · ')}</div>
+      ${pills ? `<div class="pl">${pills}</div>` : ''}
+      ${x.one ? `<div class="one">“${esc(x.one)}”</div>` : ''}
+      ${x.imp ? `<div class="imp">💡 ${x.kind ? '<b>['+esc(x.kind)+']</b> ' : ''}${esc(x.imp)}</div>` : ''}
+      <div class="cs${yes?' y':''}">소개자료 사용: ${esc(x.consent || '사용 불가')}</div>
+    </div>`; }).join('') : '<p class="hint">아직 받은 후기가 없어요.</p>';
+  $('rcFoot').textContent = total > arr.length ? `최근 ${arr.length}건만 보여요. 더 이전 후기는 구글 시트의 '${rc.tab==='t'?'후기':'학생후기'}' 탭에서 볼 수 있어요.` : '';
 }
 async function toggleApproval(){
   if (!ownLoaded){ msg('ownMsg','아직 등록부 정보를 불러오지 못했어요.'); return; }
@@ -1899,10 +2026,10 @@ function renderGrowth(){
   $('grLine').innerHTML = grLineSvg(view.map(x => x.cumT), view.map(x => x.k), Wd);
   $('grBars').innerHTML = grBarSvg(view.map(x => x.nt), view.map(x => x.at), view.map(x => x.k), Wd);
   const n = d.now, pc = v => n.users ? Math.round(v / n.users * 100) + '%' : '-';
-  $('grChips').innerHTML = `<span>재방문 사용자 비율 <b>${pc(n.returning)}</b></span><span>최근 7일 활성 비율 <b>${pc(n.active7)}</b></span><span>학생 신규 기기 <b>+${last.ns}대</b> (이번 ${per}) · 누적 <b>${n.devices}대</b></span>`;
+  $('grChips').innerHTML = `<span>재방문 사용자 비율 <b>${pc(n.returning)}</b></span><span>최근 7일 활성 비율 <b>${pc(n.active7)}</b></span><span>학생 접속 <b>${last.sv}회</b> (이번 ${per})</span>`;
   const rows = all.slice().reverse().map((x, i, a) => { const j = all.length - 1 - i, pv = j > 0 ? all[j-1].cumT : 0, g = (!x.cur && pv > 0) ? grPct((x.cumT / pv - 1) * 100) : '-';
-    return `<tr class="${x.cur ? 'cur' : ''}"><td>${esc(grMode === 'w' ? x.k.slice(5).replace('-','/') + ' 주' : x.k.slice(0,4) + '.' + x.k.slice(5))}${x.cur ? ' (진행 중)' : ''}</td><td>${x.nt}</td><td>${x.at}</td><td>${x.cumT}</td><td>${g}</td><td>${x.v}</td><td>${x.ns}</td><td>${x.sv}</td></tr>`; }).join('');
-  $('grTbl').innerHTML = `<table class="grtbl"><thead><tr><th>기간</th><th>신규</th><th>활성</th><th>누적</th><th>성장률</th><th>접속</th><th>학생 신규 기기</th><th>학생 접속</th></tr></thead><tbody>${rows}</tbody></table>`;
+    return `<tr class="${x.cur ? 'cur' : ''}"><td>${esc(grMode === 'w' ? x.k.slice(5).replace('-','/') + ' 주' : x.k.slice(0,4) + '.' + x.k.slice(5))}${x.cur ? ' (진행 중)' : ''}</td><td>${x.nt}</td><td>${x.at}</td><td>${x.cumT}</td><td>${g}</td><td>${x.v}</td><td>${x.sv}</td></tr>`; }).join('');
+  $('grTbl').innerHTML = `<table class="grtbl"><thead><tr><th>기간</th><th>신규</th><th>활성</th><th>누적</th><th>성장률</th><th>접속</th><th>학생 접속</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 let grRz = null; window.addEventListener('resize', () => { clearTimeout(grRz); grRz = setTimeout(() => { if (grData && !$('grBox').classList.contains('hide')) renderGrowth(); }, 200); });
 async function saveGrowthImg(){
@@ -1951,7 +2078,7 @@ async function saveGrowthImg(){
   });
   const nn = d.now, pc = v => nn.users ? Math.round(v/nn.users*100) + '%' : '-';
   x.textAlign = 'left'; x.fillStyle = '#4A4466'; x.font = F('700',15);
-  x.fillText('재방문 사용자 ' + pc(nn.returning) + '  ·  최근 7일 활성 ' + pc(nn.active7) + '  ·  학생 신규 기기 +' + last.ns + '대 (누적 ' + nn.devices + '대)', M, yChip + 6);
+  x.fillText('재방문 사용자 ' + pc(nn.returning) + '  ·  최근 7일 활성 ' + pc(nn.active7) + '  ·  학생 접속 ' + last.sv + '회 (이번 기간)', M, yChip + 6);
   x.fillStyle = '#8A84A0'; x.font = F('500',13); x.fillText('신규=처음 접속 · 활성=그 기간에 접속한 선생님 · 하루 1번 기준 · 진행 중인 기간은 흐리게 표시', M, yChip + 32);
   x.textAlign = 'right'; x.fillStyle = '#B5B0C8'; x.font = F('600',14); x.fillText('Made by Cheon_R', W-M, H-44);
   cv.toBlob(b => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'CLASS-BOARD_성장분석_' + (grMode === 'w' ? '주간' : '월간') + '_' + ds.replace(/\./g,'-') + '.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
@@ -1970,7 +2097,7 @@ async function saveStatImg(){
   x.textBaseline = 'alphabetic'; x.textAlign = 'left';
   x.fillStyle = '#3B3358'; x.font = F('800',30); x.fillText('CLASS BOARD 이용 현황', 56, 84);
   const now = new Date(), ds = now.getFullYear() + '.' + String(now.getMonth()+1).padStart(2,'0') + '.' + String(now.getDate()).padStart(2,'0');
-  x.fillStyle = '#8A84A0'; x.font = F('500',17); x.fillText(ds + ' 기준 · 하루 1번 기준 집계 · 학생은 이름 없이 기기 기준', 56, 112);
+  x.fillStyle = '#8A84A0'; x.font = F('500',17); x.fillText(ds + ' 기준 · 하루 1번 기준 집계 · 학생은 이름·번호 없이 하루 한 번 +1', 56, 112);
   const tw = (W-48-64-16)/2, th = 124;
   const tile = (i, y0, v) => {
     const X = 56 + (i%2)*(tw+16), Y = y0 + Math.floor(i/2)*(th+14);
@@ -1980,9 +2107,9 @@ async function saveStatImg(){
   };
   x.textAlign = 'left'; x.fillStyle = '#4A4466'; x.font = F('700',18); x.fillText('선생님', 56, 156);
   [[t.today,'오늘 접속자', t.newToday==null?'':'오늘 처음 온 분 ' + t.newToday + '명'],[t.users,'누적 사용자','접속한 선생님 수'],[t.visits,'누적 접속','들어온 횟수 합계'],[t.week==null?'-':t.week,'이번 주 접속자','월~오늘, 중복 제외']].forEach((v,i) => tile(i,168,v));
-  x.textAlign = 'left'; x.fillStyle = '#4A4466'; x.font = F('700',18); x.fillText('학생 (기기 기준)', 56, 464);
-  [[u.today,'오늘 접속 기기','기기당 하루 1번'],[u.devices,'누적 학생 기기','어제까지 · 중복 제외']].forEach((v,i) => tile(i,476,v));
-  x.textAlign = 'left'; x.fillStyle = '#4A4466'; x.font = F('700',18); x.fillText('최근 ' + t.days.length + '일 접속 (선생님 + 학생 기기)', 56, 650);
+  x.textAlign = 'left'; x.fillStyle = '#4A4466'; x.font = F('700',18); x.fillText('학생 (이름·번호 없이)', 56, 464);
+  [[u.today,'오늘 학생 접속','기기당 하루 1번'],[u.visits,'학생 누적 접속','하루 접속의 합계']].forEach((v,i) => tile(i,476,v));
+  x.textAlign = 'left'; x.fillStyle = '#4A4466'; x.font = F('700',18); x.fillText('최근 ' + t.days.length + '일 접속 (선생님 + 학생)', 56, 650);
   const L = t.days.length, tot = d => d.n + (d.s||0), mx = Math.max(1, ...t.days.map(tot)), areaW = W-48-64, gap = 6, bw = (areaW - gap*(L-1))/L, base = 900, maxH = 190;
   t.days.forEach((d,i) => {
     const X = 56 + i*(bw+gap), hT = Math.round(d.n/mx*maxH), hS = Math.round((d.s||0)/mx*maxH), h = Math.max(4, hT + hS);
@@ -1992,11 +2119,11 @@ async function saveStatImg(){
   });
   x.textAlign = 'left'; x.fillStyle = '#8A84A0'; x.font = F('500',14); x.fillText(L + '일 전', 56, base+24); x.textAlign = 'right'; x.fillText('오늘', W-56, base+24);
   x.textAlign = 'left'; x.fillStyle = '#9B8EC4'; rr(56, base+42, 12, 12, 3); x.fill(); x.fillStyle = '#6B6680'; x.font = F('500',14); x.fillText('선생님', 74, base+53);
-  x.fillStyle = '#CFC7EA'; rr(140, base+42, 12, 12, 3); x.fill(); x.fillStyle = '#6B6680'; x.fillText('학생 기기', 158, base+53);
-  const sumT = t.users, sumS = u.devices, sumA = Math.max(1, sumT + sumS), bx = 56, bwid = W-48-64, by = base+100;
-  x.fillStyle = '#4A4466'; x.font = F('700',16); x.fillText('구분별 누적', 56, by);
+  x.fillStyle = '#CFC7EA'; rr(140, base+42, 12, 12, 3); x.fill(); x.fillStyle = '#6B6680'; x.fillText('학생', 158, base+53);
+  const sumT = t.visits, sumS = u.visits, sumA = Math.max(1, sumT + sumS), bx = 56, bwid = W-48-64, by = base+100;
+  x.fillStyle = '#4A4466'; x.font = F('700',16); x.fillText('구분별 누적 접속', 56, by);
   x.save(); rr(bx, by+10, bwid, 14, 7); x.clip(); x.fillStyle = '#E9E5F5'; x.fillRect(bx, by+10, bwid, 14); x.fillStyle = '#9B8EC4'; x.fillRect(bx, by+10, bwid*sumT/sumA, 14); x.fillStyle = '#CFC7EA'; x.fillRect(bx+bwid*sumT/sumA, by+10, bwid*sumS/sumA, 14); x.restore();
-  x.fillStyle = '#6B6680'; x.font = F('500',14); x.fillText('선생님 ' + sumT + '명 · 학생 기기 ' + sumS + '대', 56, by+46);
+  x.fillStyle = '#6B6680'; x.font = F('500',14); x.fillText('선생님 접속 ' + sumT + '회 · 학생 접속 ' + sumS + '회', 56, by+46);
   x.textAlign = 'right'; x.fillStyle = '#B5B0C8'; x.font = F('600',14); x.fillText('Made by Cheon_R', W-56, H-44);
   c.toBlob(b => {
     const a = document.createElement('a'); a.href = URL.createObjectURL(b);

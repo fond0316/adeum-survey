@@ -191,6 +191,11 @@ mark{background:#FEF3C7;color:inherit;border-radius:3px;padding:0 1px}
 .modal input:focus{outline:none;border-color:var(--main)}
 .btns{display:flex;gap:8px;margin-top:14px}
 .btns button{flex:1;min-height:48px;border-radius:10px;font-size:16px;font-weight:700}
+.rvag{display:flex;gap:10px;align-items:flex-start;margin-top:16px;font-size:13.5px;line-height:1.5;color:var(--tx);min-height:44px;cursor:pointer}
+.rvag input{width:22px;height:22px;flex:none;margin-top:1px;accent-color:var(--main)}
+#statBn{display:none;position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:55;background:#fff;border:1.5px solid var(--main);border-radius:16px;padding:14px;box-shadow:0 6px 24px rgba(40,30,70,.25);max-width:420px;margin:0 auto;font-size:13.5px;line-height:1.6;color:var(--tx2)}
+#statBn.show{display:block}
+#statBn b{color:var(--tx)}
 .b1{background:var(--main);color:#fff}.b2{background:var(--bg);color:var(--tx2)}
 .err{color:#C0392B;font-size:13px;margin-top:8px;min-height:18px}
 .pop{border-top:8px solid var(--u-dot);text-align:center;padding-top:26px}
@@ -293,7 +298,8 @@ mark{background:#FEF3C7;color:inherit;border-radius:3px;padding:0 1px}
     <div class="hl"><span class="ic">✏️</span><div><b>틀린 내용·궁금한 점</b><br>공지 안의 <b>[수정 요청·질문]</b>으로 보내요. 선생님(또는 회장)에게만 가고, 학번·이름이 함께 전달돼요.</div></div>
     <div class="hl"><span class="ic">🔍</span><div><b>지난 공지 찾기</b><br>공지 위쪽 🔍를 누르고 단어를 입력해요. (예: 수행평가, 체육복)</div></div>
     <div class="hl"><span class="ic">↻</span><div><b>안 보이거나 느릴 때</b><br>위쪽 <b>↻</b>를 눌러 새로고침해요. 학교 와이파이에서 안 되면 데이터로 바꿔 보세요.</div></div>
-    <div class="hl"><span class="ic">💬</span><div><b>후기·바라는 점</b><br>맨 아래 <b>[💬 후기 남기기]</b>로 보내요. 이름 없이 앱을 만든 선생님께만 전달돼요. 또 앱이 얼마나 쓰이는지 알 수 있게, 앱을 연 기기 수만 하루 한 번 숫자로 세요.</div></div>
+    <div class="hl"><span class="ic">💬</span><div><b>후기·바라는 점</b><br>맨 아래 <b>[💬 후기 남기기]</b>로 보내요. 보낼 때 <b>동의 체크</b>를 하면 이름 없이 앱을 만든 선생님께만 전달돼요. 앱이 얼마나 쓰이는지는 아래 <b>📊 이용 수 세기</b>처럼 번호 없이 세요.</div></div>
+    <div class="hl" id="statRow" style="display:none"><span class="ic">📊</span><div><b>이용 수 세기</b><br>이 기기가 하루에 처음 열릴 때 <b>'우리 반 코드 + 1'</b>만 보내요. 이름·학번·기기 번호는 보내지 않아요.</div></div>
     <div class="hl"><span class="ic">🔒</span><div><b>링크는 우리 반끼리만</b><br>이 링크는 다른 반이나 밖으로 보내지 말아 주세요.</div></div>
   </div>
 </div>
@@ -322,10 +328,18 @@ mark{background:#FEF3C7;color:inherit;border-radius:3px;padding:0 1px}
       <div class="rvl">소개 자료에 써도 될까요? <small>(이름은 안 나와요)</small></div>
       <div class="rvcw" id="rvOk"></div>
       <div class="rvn">기본은 <b>쓰지 말아주세요</b>예요. 학번·이름·공지 내용은 전달되지 않아요.</div>
+      <label class="rvag"><input type="checkbox" id="rvAgree"><span><b>[필수]</b> 내가 쓴 후기가 <b>이름·학번 없이</b> 앱을 만든 선생님께 전달되는 것에 동의해요.</span></label>
     </div>
     <div class="err" id="rvErr"></div>
     <div class="btns"><button class="b2" onclick="closeOv('rvOv')">닫기</button><button class="b1" id="rvSend" onclick="sendStuReview()">보내기</button></div>
   </div>
+</div>
+
+<!-- 📊 이용 수 세기 안내 (처음 한 번 · 이름·번호 없이 '학급 코드 + 1'만) -->
+<div id="statBn" role="dialog" aria-label="이용 수 세기 안내">
+  <b>📊 이용 수는 이렇게 세요</b><br>
+  앱이 얼마나 쓰이는지 알 수 있게, 이 기기가 하루에 처음 열릴 때 <b>'우리 반 코드 + 1'</b>만 보내요. <b>이름·학번·기기 번호는 보내지 않아요.</b> 나중에 ❓ 사용법에서 다시 볼 수 있어요.
+  <div class="btns"><button class="b1" onclick="statSet('ack')">확인했어요</button></div>
 </div>
 
 <!-- 교실 화면 모드 -->
@@ -911,7 +925,7 @@ function openStuReview(){
   if (DEMO){ alert('체험 모드에서는 쓸 수 없어요.'); return; }
   if (PREVIEW){ alert('👀 담임 미리보기에서는 쓸 수 없어요. 학생 화면에서만 쓸 수 있어요.'); return; }
   if (BOARD){ alert('교실 화면 모드에서는 쓸 수 없어요. 내 디벗이나 핸드폰에서 남겨 주세요.'); return; }
-  renderRv(); rvErr(''); rvOn = null;
+  renderRv(); rvErr(''); rvOn = null; document.getElementById('rvAgree').checked = false;
   document.getElementById('rvForm').style.display = ''; document.getElementById('rvSend').disabled = false;
   document.getElementById('rvOv').classList.add('show');
   // 지금 후기를 받는 중인지 확인 (응답이 늦거나 없어도 일단 쓸 수 있게 두고, 보낼 때 서버가 한 번 더 확인해요)
@@ -924,13 +938,14 @@ async function sendStuReview(){
   if (rvSending || rvOn === false) return;
   const $ = id => document.getElementById(id), imp = $('rvImp').value.trim(), low = rvRate >= 1 && rvRate <= 3;
   if (!rvRate && !imp){ rvErr('별점을 누르거나 바라는 점을 적어 주세요.'); return; }
+  if (!$('rvAgree').checked){ rvErr('전달에 동의하면 체크해 주세요. (필수)'); return; }
   rvSending = true; $('rvSend').disabled = true; rvErr('');
   const note = $('rvErr'); note.style.color = 'var(--tx2)'; note.textContent = '보내는 중…';
   try{
     await jsonp({ action:'sreview', cb:classCode(GAS), dv:devId(), rate:rvRate, c:rvPick.join(','), other: rvOtherOn ? $('rvOther').value.trim() : '',
       lc: low ? rvLow.join(',') : '', lo: low && rvLowOtherOn ? $('rvLowOther').value.trim() : '', one:$('rvOne').value.trim(), ik:rvKind, imp, ok:rvOk }, REGISTRY_URL);
     rvRate = 0; rvPick = []; rvLow = []; rvOtherOn = false; rvLowOtherOn = false; rvKind = ''; rvOk = 'no';
-    ['rvOther','rvLowOther','rvOne','rvImp'].forEach(id => $(id).value = '');
+    ['rvOther','rvLowOther','rvOne','rvImp'].forEach(id => $(id).value = ''); $('rvAgree').checked = false;
     note.style.color = '#2E7D32'; note.textContent = '💜 고마워요! 소중한 의견 잘 받았어요.'; renderRv();
     setTimeout(() => { closeOv('rvOv'); note.style.color = ''; note.textContent = ''; }, 1600);
   }catch(e){ note.style.color = ''; note.textContent = '보내지 못했어요. 쓴 내용은 그대로 있어요. (' + e.message + ')'; }
@@ -941,8 +956,28 @@ async function sendStuReview(){
 /* ===== 이용 수 집계: 앱을 연 기기를 '하루에 한 번만', 이름·학번 없이 숫자로만 알려요 =====
    - 화면·속도에는 아무 영향 없이 뒤에서 조용히 보내요 (실패해도 아무 표시 없음, 다음에 다시 시도)
    - 담임 미리보기·교실 화면 모드(전자칠판)는 세지 않아요 */
+/* ===== 이용 수 세기 안내: 이름·학번·기기 번호 없이 '학급 코드 + 1'만 하루 한 번 보내요 =====
+   - 처음 한 번 안내를 [확인했어요]로 보고 난 뒤부터 세요
+   - 초·중학교 등으로 등록된 학급(등록부가 '받지 않음'이라고 답하는 학급)에는 안내도 띄우지 않고 세지도 않아요 */
+const STAT_KEY = 'sn_stat_v1';
+let statClassOn = null;   // 이 학급이 학생 집계를 받는지 (null = 아직 모름)
+function statGet(){ return lsGet(STAT_KEY, ''); }
+function statShow(on){ const b = document.getElementById('statBn'); if (b) b.classList.toggle('show', !!on); }
+function renderStatRow(){ const row = document.getElementById('statRow'); if (row) row.style.display = statClassOn === true ? '' : 'none'; }
+function statSet(v){ lsSet(STAT_KEY, v); statShow(false); renderStatRow(); if (v === 'ack') schedulePing(); }
+async function statInit(){
+  if (DEMO || PREVIEW || BOARD || !REGISTRY_URL || !GAS) return;
+  try{ const r = await jsonp({ action:'reviewConf', cb:classCode(GAS) }, REGISTRY_URL); statClassOn = !!(r && r.on); }catch(e){ return; }
+  renderStatRow();
+  if (statClassOn && !statGet()){   // 다른 창(학번 등록 등)이 열려 있으면 닫힐 때까지 기다렸다가 보여 줘요
+    let tries = 0;
+    const tick = () => { if (statGet()) return; if (document.querySelector('.ov.show') && tries++ < 60) return setTimeout(tick, 2000); statShow(true); };
+    setTimeout(tick, 2500);
+  }
+}
 let pingSched = false;
 function schedulePing(){
+  if (!['ack','yes'].includes(statGet())) return;   // 안내를 확인한 기기부터 세요
   if (pingSched || DEMO || !REGISTRY_URL || !GAS || PREVIEW || BOARD) return;
   if (lsGet('sn_ping_v1', '') === today()) return;
   if (Date.now() - Number(lsGet('sn_ping_off_v1', 0)) < 3 * 3600 * 1000) return;   // 학급이 아직 인정되지 않았다는 답을 받았으면 3시간 뒤에 다시 시도
@@ -951,7 +986,7 @@ function schedulePing(){
     pingSched = false;
     if (BOARD) return;
     try{
-      const r = await jsonp({ action:'ping', cb:classCode(GAS), dv:devId() }, REGISTRY_URL);
+      const r = await jsonp({ action:'ping', cb:classCode(GAS) }, REGISTRY_URL);   // 기기 번호 없이 '학급 코드'만
       if (r && r.on === false) lsSet('sn_ping_off_v1', Date.now());   // 등록 전이거나 학생 전송이 꺼진 학급: 오늘 한 것으로 치지 않고 나중에 다시
       else lsSet('sn_ping_v1', today());
     }catch(e){}
@@ -1103,6 +1138,7 @@ if (!GAS){
   load();
   startPoll();
   schedulePing();
+  statInit();
   if (!me && !PREVIEW && !BOARD) setTimeout(openWho, 600);
 }
 </script>
