@@ -796,6 +796,8 @@ function renderHome() {
   h += statsHTML(st, sy, yrs);
   if (drafts || needP) h += `<div class="attn">${drafts ? `<button class="attn-b" data-act="goFilter" data-f="fDraft">✏️ 정리 필요 <b>${drafts}건</b></button>` : ''}${needP ? `<button class="attn-b" data-act="goFilter" data-f="fNoProof">📎 증빙 확인 <b>${needP}건</b></button>` : ''}</div>`;
   h += `<button class="btn soft block mt12" data-act="photoImport">📷 사진으로 경력·학력 불러오기 <span class="lsub">국민연금 가입내역 캡처 등</span></button>`;
+  h += `<button class="btn soft block mt8" data-act="trainImport">📷 사진으로 연수 불러오기 <span class="lsub">연수 이수내역 캡처 등</span></button>`;
+  h += `<button class="btn soft block mt8" data-act="trainFile">📊 엑셀·CSV로 연수 불러오기 <span class="lsub">AI 없이 · 무료</span></button>`;
   if (!S.records.length && !S.affs.length) h += `<div class="card onb"><h3>👋 이렇게 시작해 보세요</h3><ol><li><b>설정 → 경력·학력 이력</b>에 학교·회사·대학원을 넣어요</li><li><b>＋ 버튼</b>으로 생각날 때마다 기록을 남겨요</li><li><b>내보내기</b>에서 양식 골라 바로 복사!</li></ol>
     <div class="row wrap"><button class="btn soft" data-act="addAff">경력·학력 넣기</button><button class="btn pri" data-act="quickAdd">＋ 기록 남기기</button></div></div>`;
   h += homeAffHTML();
@@ -1883,6 +1885,8 @@ function statSheet(k) {
     body += k === 'training' ? `<div class="sumline">연수 합계 <b>${fmtNum(list.reduce((s, r) => s + hoursOf(r), 0))}시간</b> · ${list.length}건</div>` : `<div class="sumline">${list.length}건</div>`;
     body += list.length ? list.map(r => cardHTML(r)).join('') : `<div class="empty"><p>아직 ${k === 'training' ? '연수' : '자격·면허'} 기록이 없어요.</p></div>`;
     body += `<button class="btn soft block mt12" data-act="statAdd" data-k="${key}">＋ ${k === 'training' ? '연수' : '자격·면허'} 기록 추가</button>`;
+    if (k === 'training') body += `<button class="btn soft block mt8" data-act="trainImport">📷 사진으로 연수 불러오기 <span class="lsub">연수 이수내역 캡처</span></button>`;
+    if (k === 'training') body += `<button class="btn soft block mt8" data-act="trainFile">📊 엑셀·CSV로 연수 불러오기 <span class="lsub">AI 없이 · 무료</span></button>`;
   }
   openSheet(`<div class="sheet-h"><h2>${title}</h2><button class="iconbtn" data-act="closeSheet" aria-label="닫기">✕</button></div><div class="sheet-b">${body}</div>`, {});
 }
@@ -1898,7 +1902,7 @@ function renderAiBadge() {
 const AI_HELP = `<details class="acc" style="margin-bottom:10px"><summary>💡 AI는 어디에 쓰여요?</summary>
   <ol class="guide"><li><b>기록 입력 창의 ✨ AI로 다듬기</b> — '한 일·성과' 메모를 경력기술서 문장으로 정리해 줘요</li>
   <li><b>내보내기의 ✨ AI로 목적에 맞게 다시 쓰기</b> — 지원서 목적·글자 수·문체에 맞춰 다시 써 주고, 글자 수도 맞춰 줘요</li>
-  <li><b>📷 사진으로 불러오기</b> — 국민연금 캡처 같은 사진을 읽어서 이력으로 등록해 줘요</li></ol>
+  <li><b>📷 사진으로 불러오기</b> — 국민연금 캡처 같은 사진을 읽어서 이력으로 등록해 줘요</li><li><b>📷 사진으로 연수 불러오기</b> — 연수 이수내역 캡처를 읽어서 연수 기록으로 한꺼번에 등록해 줘요</li></ol>
   <p class="hint">키가 없어도 앱의 나머지 기능은 모두 써요. AI에는 그때 누른 내용만 보내고, 쓸 때마다 내 API 계정에서 소액의 사용료가 나가요. 키는 내 GAS에만 저장돼요.</p></details>`;
 const _renderSync0 = renderSync;
 renderSync = function () { _renderSync0(); renderAiBadge(); };
@@ -1944,6 +1948,254 @@ document.addEventListener('change', e => {
   if (t.dataset.pk && t.closest('#ovl')) phField(t);
 });
 document.addEventListener('input', e => { const t = e.target; if (t.dataset.pk && t.closest('#ovl') && t.type !== 'checkbox') phField(t); });
+
+/* ═════════ 사진으로 연수 불러오기 (연수 이수내역 캡처 등 · 추가 기능) ═════════ */
+let PT = null;
+const PT_SYS = `당신은 한국어 화면 캡처에서 연수·교육 이수 내역을 정확히 옮겨 적는 도우미입니다. 사진에 보이는 글자만 옮기고, 없는 내용은 절대 만들지 않습니다.`;
+const PT_KINDS = ['직무연수(원격)', '직무연수(집합)', '자격연수', '워크숍·컨설팅', '사내교육', '기타'];
+const PT_PROMPT = `사진은 교원 연수·교육 이수 내역 목록입니다. 각 연수를 아래 JSON 형식으로만 출력하세요. 다른 설명, 마크다운, 코드블록은 쓰지 마세요.
+{"items":[{"title":"연수명","org":"연수기관","hours":숫자,"start":"YYYY-MM-DD","end":"YYYY-MM-DD 또는 빈 문자열","kind":"구분","no":"이수번호 또는 빈 문자열"}]}
+규칙:
+- title은 사진에 보이는 연수명 그대로 적습니다.
+- hours는 이수 시간을 '시간' 단위 숫자로 적습니다. "3시간0분"은 3, "1시간30분"은 1.5, "2시간2분"은 2.03처럼 분은 60으로 나눠 소수 둘째 자리까지 환산합니다. 시간 없이 학점만 있으면 1학점=15시간으로 환산하고, 둘 다 없으면 0입니다.
+- start/end는 연수 기간입니다. 하루짜리거나 이수일 하나만 보이면 start에 넣고 end는 빈 문자열입니다. 연도가 두 자리면 20XX로 바꿉니다.
+- kind는 다음 중 가장 가까운 하나만 고릅니다: ${PT_KINDS.join(' / ')}. 원격·온라인이면 직무연수(원격), 대면·집합이면 직무연수(집합), 자격연수 과정이면 자격연수, 판단이 어려우면 기타.
+- no는 이수번호·수료번호·연수번호가 보일 때만 적고 없으면 빈 문자열입니다. 번호가 "중앙교육연수원-원격-2026-777692"처럼 기관명과 함께 한 칸에 있으면 그 칸 전체를 그대로 적습니다. 번호에 '원격'이 들어 있고 구분 열이 없으면 kind는 직무연수(원격)입니다.
+- 주민번호 등 개인정보는 적지 않습니다.
+- 항목이 하나도 안 보이면 {"items":[]} 만 출력합니다.`;
+function ptIsDup(r) {
+  const n = normName(r.title), s = normDate(r.start);
+  return !!n && S.records.some(x => catOf(x).key === 'training' && normName(x.title) === n && normDate(x.start) === s);
+}
+function openTrainPick() {
+  if (S.mode !== 'gas') return toast('사진 읽기는 구글 시트를 연결한 뒤에 쓸 수 있어요', 'err');
+  if (!S.ai.hasKey) { toast('설정 › AI에서 키를 먼저 넣어 주세요', 'err'); return; }
+  const old = $('#photoFileT'); if (old) old.remove();
+  const inp = document.createElement('input'); inp.type = 'file'; inp.id = 'photoFileT'; inp.accept = 'image/*'; inp.multiple = true; inp.hidden = true;
+  document.body.appendChild(inp); inp.click();
+}
+async function trainRead(files) {
+  files = Array.from(files || []).slice(0, 6);
+  if (!files.length) return;
+  const found = [];
+  try {
+    for (let i = 0; i < files.length; i++) {
+      phBusy(`연수 사진 ${i + 1}/${files.length}장 읽는 중…`);
+      const im = await photoResize(files[i], 1400);
+      const res = await gasCall('aiVision', { system: PT_SYS, prompt: PT_PROMPT, images: [im], maxTokens: 4000 }, { timeout: 170000 });
+      parsePhotoJson(res.text).forEach(it => found.push(it));
+    }
+  } finally { phBusyEnd(); }
+  ptPreview(found);
+}
+function ptPreview(found, src) {
+  const seen = new Set(), rows = [];
+  found.forEach(it => {
+    const title = String(it.title || '').trim(), start = normDate(it.start);
+    if (!title) return;
+    const key = normName(title) + '|' + start; if (seen.has(key)) return; seen.add(key);
+    const h = parseFloat(String(it.hours == null ? '' : it.hours).replace(/[^0-9.]/g, ''));
+    const r = { title, org: String(it.org || '').trim(), hours: isFinite(h) && h > 0 ? String(h) : '', start, end: normDate(it.end), kind: PT_KINDS.includes(it.kind) ? it.kind : '', no: String(it.no || '').trim() };
+    r.dup = ptIsDup(r); r.sel = !r.dup; rows.push(r);
+  });
+  rows.sort((a, b) => b.start.localeCompare(a.start));
+  if (!rows.length) return toast('연수 내역을 찾지 못했어요. 목록이 잘 보이게 다시 찍어 주세요', 'err');
+  PT = { rows, src: src || 'photo' };
+  openSheet(`<div class="sheet-h"><h2>${src === 'file' ? '📊' : '📷'} 읽은 연수 확인</h2><button class="iconbtn" data-act="closeSheet" aria-label="닫기">✕</button></div>
+    <div class="sheet-b" id="ptBody">${ptBodyHTML()}</div>
+    <div class="sheet-f"><button class="btn" data-act="closeSheet">취소</button><button class="btn pri grow" data-act="trainSave" id="ptSaveBtn">${ptSaveLabel()}</button></div>`,
+    { dirty: () => !!PT, onClose: () => { PT = null; } });
+}
+const ptSaveLabel = () => `체크한 ${PT.rows.filter(r => r.sel).length}건 등록`;
+function ptBodyHTML() {
+  let h = `<p class="hint">${PT.src === 'file' ? '파일에서 읽은 결과예요.' : 'AI가 읽은 결과예요.'} <b>시간·날짜가 맞는지 꼭 확인</b>하고, 틀린 곳은 고친 뒤 등록할 것만 체크해 주세요. ${PT.src === 'file' ? '파일은 저장되지 않아요.' : '사진은 읽는 데에만 쓰고 저장되지 않아요.'}</p>
+    <div class="row wrap" style="margin:4px 0 2px"><button class="btn soft sm" data-act="trainAll" data-v="1">전체 선택</button><button class="btn soft sm" data-act="trainAll" data-v="0">전체 해제</button><span class="hint" style="margin:0">총 ${PT.rows.length}건</span></div>`;
+  h += PT.rows.map((r, i) => `<div class="card mt8" style="padding:12px 14px">
+    <div class="row"><input type="checkbox" style="width:22px;height:22px;accent-color:var(--main);flex-shrink:0;margin:0" data-tk="sel" data-ti="${i}" ${r.sel ? 'checked' : ''} aria-label="등록하기"><input type="text" data-tk="title" data-ti="${i}" value="${esc(r.title)}" aria-label="연수명"></div>
+    ${r.dup ? `<p class="hint" style="margin:6px 2px 0">⚠️ 이미 등록된 연수명·시작일이에요 (그래서 체크가 꺼져 있어요)</p>` : ''}
+    <div class="g2"><div><label class="f">기관</label><input type="text" data-tk="org" data-ti="${i}" value="${esc(r.org)}"></div>
+    <div><label class="f">시간</label><input type="number" inputmode="decimal" data-tk="hours" data-ti="${i}" value="${esc(r.hours)}"></div></div>
+    <div class="g2"><div><label class="f">시작일</label><input type="date" data-tk="start" data-ti="${i}" value="${esc(r.start)}"></div>
+    <div><label class="f">종료일</label><input type="date" data-tk="end" data-ti="${i}" value="${esc(r.end)}"></div></div>
+    <div class="g2"><div><label class="f">구분</label><select data-tk="kind" data-ti="${i}"><option value="">선택 안 함</option>${PT_KINDS.map(k => `<option ${r.kind === k ? 'selected' : ''}>${k}</option>`).join('')}</select></div>
+    <div><label class="f">이수번호</label><input type="text" data-tk="no" data-ti="${i}" value="${esc(r.no)}"></div></div></div>`).join('');
+  return h;
+}
+function ptField(t) {
+  if (!PT) return;
+  const r = PT.rows[+t.dataset.ti], k = t.dataset.tk; if (!r) return;
+  if (t.type === 'checkbox') r.sel = t.checked; else r[k] = t.value;
+  if (k === 'sel') { const b = $('#ptSaveBtn'); if (b && !b.disabled) b.textContent = ptSaveLabel(); }
+}
+async function trainSave(btn) {
+  if (!PT) return;
+  const pick = PT.rows.filter(r => r.sel);
+  if (!pick.length) return toast('등록할 항목을 체크해 주세요', 'err');
+  for (const r of pick) {
+    r.title = String(r.title || '').trim(); r.start = normDate(r.start); r.end = normDate(r.end);
+    if (!r.title) return toast('연수명이 빈 항목이 있어요', 'err');
+    if (!r.start) return toast(`'${r.title}'의 시작일을 확인해 주세요`, 'err');
+    if (r.end && r.end < r.start) return toast(`'${r.title}'의 종료일이 시작일보다 빨라요`, 'err');
+  }
+  const dups = pick.filter(ptIsDup).length;
+  if (dups && !confirm(`이미 등록된 것과 연수명·시작일이 같은 항목이 ${dups}건 있어요. 그래도 등록할까요? (중복으로 들어가요)`)) return;
+  const c = CAT_BY_KEY.training;
+  await run(btn, '등록 중…', async () => {
+    let n = 0;
+    for (const r of pick) {
+      if (btn) btn.textContent = `등록 중… ${n + 1}/${pick.length}`;
+      const m = matchAff(r.start, c);
+      await persistRecord({ id: uid('r'), cat: c.label, title: r.title, start: r.start, end: r.end, f_org: r.org, f_hours: r.hours, f_kind: r.kind, f_no: r.no, affId: m ? m.id : '', affName: m ? m.name : '', year: String(schoolYear(r.start) || '') });
+      n++;
+    }
+    closeSheet(true); toast(`연수 ${n}건을 등록했어요 ✅`); renderAll();
+  });
+}
+ACT.trainImport = () => { closeSheet(true); openTrainPick(); };
+ACT.trainSave = t => trainSave(t);
+ACT.trainAll = t => { if (!PT) return; const v = t.dataset.v === '1'; PT.rows.forEach(r => { r.sel = v; }); $('#ptBody').querySelectorAll('[data-tk="sel"]').forEach(x => { x.checked = v; }); const b = $('#ptSaveBtn'); if (b) b.textContent = ptSaveLabel(); };
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'photoFileT') { const fs = Array.from(t.files || []); t.remove(); if (fs.length) run(null, '', () => trainRead(fs)); return; }
+  if (t.dataset.tk && t.closest('#ovl')) ptField(t);
+});
+document.addEventListener('input', e => { const t = e.target; if (t.dataset.tk && t.closest('#ovl') && t.type !== 'checkbox') ptField(t); });
+
+/* ═════════ 엑셀·CSV로 연수 불러오기 (AI 없이 표를 직접 읽음 · 추가 기능) ═════════ */
+function openTrainFilePick() {
+  const old = $('#trainTblFile'); if (old) old.remove();
+  const inp = document.createElement('input'); inp.type = 'file'; inp.id = 'trainTblFile'; inp.accept = '.xlsx,.xls,.csv,.tsv,.txt,.html,.htm'; inp.hidden = true;
+  document.body.appendChild(inp); inp.click();
+}
+async function zipEntries(buf) {
+  const dv = new DataView(buf), u8 = new Uint8Array(buf);
+  let e = -1; for (let i = u8.length - 22; i >= Math.max(0, u8.length - 70000); i--) if (dv.getUint32(i, true) === 0x06054b50) { e = i; break; }
+  if (e < 0) throw new Error('엑셀 파일을 열 수 없어요');
+  const n = dv.getUint16(e + 10, true); let p = dv.getUint32(e + 16, true); const out = {};
+  for (let i = 0; i < n; i++) {
+    if (dv.getUint32(p, true) !== 0x02014b50) break;
+    const method = dv.getUint16(p + 10, true), csz = dv.getUint32(p + 20, true), nl = dv.getUint16(p + 28, true), el = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), off = dv.getUint32(p + 42, true);
+    const name = new TextDecoder().decode(u8.subarray(p + 46, p + 46 + nl));
+    out[name] = { method, csz, off }; p += 46 + nl + el + cl;
+  }
+  const read = async name => {
+    const m = out[name]; if (!m) return null;
+    const lh = m.off, l2 = dv.getUint16(lh + 26, true), e2 = dv.getUint16(lh + 28, true), st = lh + 30 + l2 + e2, data = u8.subarray(st, st + m.csz);
+    if (m.method === 0) return new TextDecoder().decode(data);
+    if (m.method !== 8 || typeof DecompressionStream === 'undefined') throw new Error('이 브라우저에서는 엑셀을 못 읽어요. CSV로 저장해서 올려 주세요');
+    const ds = new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    return new TextDecoder().decode(await new Response(ds).arrayBuffer());
+  };
+  return { names: Object.keys(out), read };
+}
+function colIdx(ref) { const m = /^([A-Z]+)/.exec(ref || ''); if (!m) return 0; let n = 0; for (const ch of m[1]) n = n * 26 + ch.charCodeAt(0) - 64; return n - 1; }
+async function xlsxToRows(buf) {
+  const z = await zipEntries(buf), dp = new DOMParser();
+  const xml = async n => { const t = await z.read(n); return t ? dp.parseFromString(t, 'text/xml') : null; };
+  const ss = [], sd = await xml('xl/sharedStrings.xml');
+  if (sd) Array.from(sd.getElementsByTagName('si')).forEach(si => ss.push(Array.from(si.getElementsByTagName('t')).map(t => t.textContent).join('')));
+  const sheets = z.names.filter(n => /^xl\/worksheets\/sheet\d+\.xml$/.test(n)).sort((a, b) => parseInt(a.match(/\d+/)[0]) - parseInt(b.match(/\d+/)[0]));
+  if (!sheets.length) throw new Error('엑셀에서 시트를 찾지 못했어요');
+  const sh = await xml(sheets[0]), rows = [];
+  Array.from(sh.getElementsByTagName('row')).forEach(rw => {
+    const r = []; Array.from(rw.getElementsByTagName('c')).forEach(c => {
+      const t = c.getAttribute('t'), v = c.getElementsByTagName('v')[0]; let val = '';
+      if (t === 's') val = v ? (ss[+v.textContent] || '') : '';
+      else if (t === 'inlineStr') val = Array.from(c.getElementsByTagName('t')).map(x => x.textContent).join('');
+      else val = v ? v.textContent : '';
+      r[colIdx(c.getAttribute('r'))] = String(val).trim();
+    });
+    rows.push(Array.from(r, x => x || ''));
+  });
+  return rows;
+}
+function csvToRows(text) {
+  text = text.replace(/^﻿/, '');
+  const first = text.split(/\r?\n/).slice(0, 5).join('\n'), d = (first.match(/\t/g) || []).length >= (first.match(/,/g) || []).length ? '\t' : ',';
+  const rows = []; let row = [], cur = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) { if (ch === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += ch; }
+    else if (ch === '"') q = true;
+    else if (ch === d) { row.push(cur.trim()); cur = ''; }
+    else if (ch === '\n' || ch === '\r') { if (ch === '\r' && text[i + 1] === '\n') i++; row.push(cur.trim()); rows.push(row); row = []; cur = ''; }
+    else cur += ch;
+  }
+  if (cur || row.length) { row.push(cur.trim()); rows.push(row); }
+  return rows.filter(r => r.some(x => x));
+}
+function htmlToRows(text) {
+  const doc = new DOMParser().parseFromString(text, 'text/html'), tb = Array.from(doc.querySelectorAll('table')).sort((a, b) => b.rows.length - a.rows.length)[0];
+  if (!tb) return [];
+  return Array.from(tb.rows).map(tr => Array.from(tr.cells).map(c => c.textContent.replace(/\s+/g, ' ').trim()));
+}
+async function fileToRows(file) {
+  const buf = await file.arrayBuffer(), u8 = new Uint8Array(buf);
+  if (u8[0] === 0x50 && u8[1] === 0x4b) return xlsxToRows(buf);
+  if (u8[0] === 0xD0 && u8[1] === 0xCF) throw new Error('옛 엑셀(.xls) 형식은 못 읽어요. 엑셀에서 "다른 이름으로 저장 → .xlsx 또는 CSV"로 저장해서 올려 주세요');
+  let text; try { text = new TextDecoder('utf-8', { fatal: true }).decode(buf); } catch (e) { text = new TextDecoder('euc-kr').decode(buf); }
+  return /^\s*</.test(text) ? htmlToRows(text) : csvToRows(text);
+}
+const TD_DATE = /(\d{4})\s*[-./년]\s*(\d{1,2})\s*[-./월]\s*(\d{1,2})/;
+function serialToDate(n) { const d = new Date(Date.UTC(1899, 11, 30) + Math.round(n) * 86400000); return d.toISOString().slice(0, 10); }
+function cellDates(s) {
+  s = String(s || ''); const out = []; const re = new RegExp(TD_DATE.source, 'g'); let m;
+  while ((m = re.exec(s))) out.push(`${m[1]}-${String(m[2]).padStart(2, '0')}-${String(m[3]).padStart(2, '0')}`);
+  if (!out.length && /^\d{5}(\.\d+)?$/.test(s.trim())) { const n = parseFloat(s); if (n > 40000 && n < 70000) out.push(serialToDate(n)); }
+  return out;
+}
+function parseHoursText(s) {
+  s = String(s || '').trim(); if (!s) return '';
+  let m = /(\d+(?:\.\d+)?)\s*시간(?:\s*(\d+)\s*분)?/.exec(s);
+  if (m) return String(Math.round((parseFloat(m[1]) + (m[2] ? +m[2] / 60 : 0)) * 100) / 100);
+  m = /^(\d+)\s*분$/.exec(s); if (m) return String(Math.round(+m[1] / 60 * 100) / 100);
+  m = /^(\d+(?:\.\d+)?)$/.exec(s); if (m && parseFloat(m[1]) <= 400) return m[1];
+  return '';
+}
+function kindFromText(s) {
+  s = String(s || '');
+  if (/원격|온라인|e-?러닝/i.test(s)) return '직무연수(원격)';
+  if (/집합|대면|오프라인/.test(s)) return '직무연수(집합)';
+  if (/자격/.test(s)) return '자격연수';
+  if (/워크숍|워크샵|컨설팅/.test(s)) return '워크숍·컨설팅';
+  if (/사내/.test(s)) return '사내교육';
+  return '';
+}
+function tableToTrainItems(rows) {
+  rows = rows.filter(r => r && r.some(x => x));
+  const KW = /연수명|과정명|수강과정|교육명|강좌|기관|시간|일자|기간|번호|구분|시작|종료/;
+  let hi = -1; for (let i = 0; i < Math.min(rows.length, 10); i++) if (rows[i].filter(c => KW.test(c || '')).length >= 2) { hi = i; break; }
+  const head = hi >= 0 ? rows[hi] : [], data = rows.slice(hi + 1).filter(r => r.some(c => cellDates(c).length));
+  if (!data.length) return [];
+  const nc = Math.max(...rows.map(r => r.length)), roles = {}, used = new Set();
+  const byHead = (role, re, ex) => { for (let c = 0; c < nc; c++) if (!used.has(c) && re.test(head[c] || '') && !(ex && ex.test(head[c] || ''))) { roles[role] = c; used.add(c); return; } };
+  byHead('kind', /구분|유형|종류/); byHead('title', /연수명|과정명|수강과정|교육명|강좌|프로그램|^과정|연수\s*과정/); byHead('org', /기관/);
+  byHead('hours', /시간/); byHead('no', /번호|코드/); byHead('start', /시작|개시/); byHead('end', /종료|까지|끝/);
+  const dateCols = []; for (let c = 0; c < nc; c++) if (!used.has(c) && data.filter(r => cellDates(r[c]).length).length >= data.length * 0.6) dateCols.push(c);
+  const pct = (c, f) => data.filter(r => f(r[c] || '')).length / data.length;
+  const free = () => Array.from({ length: nc }, (_, c) => c).filter(c => !used.has(c) && !dateCols.includes(c));
+  if (roles.hours === undefined) { const c = free().find(c => pct(c, v => /\d\s*시간/.test(v)) >= 0.6) ?? free().find(c => pct(c, v => /^\d+(\.\d+)?$/.test(v.trim()) && parseFloat(v) <= 400) >= 0.8); if (c !== undefined) { roles.hours = c; used.add(c); } }
+  if (roles.no === undefined) { const c = free().find(c => pct(c, v => /-\d{3,}\s*$/.test(v)) >= 0.6); if (c !== undefined) { roles.no = c; used.add(c); } }
+  if (roles.org === undefined) { const c = free().find(c => pct(c, v => /연수원|교육청|연수|대학|공단|협회|원$/.test(v) && v.length < 25) >= 0.5); if (c !== undefined) { roles.org = c; used.add(c); } }
+  if (roles.title === undefined) { const c = free().map(c => [c, data.reduce((s, r) => s + (r[c] || '').length, 0)]).sort((a, b) => b[1] - a[1])[0]; if (c && c[1] > 0) { roles.title = c[0]; used.add(c[0]); } }
+  if (roles.title === undefined) return [];
+  return data.map(r => {
+    let ds = []; if (roles.start !== undefined) ds = ds.concat(cellDates(r[roles.start])); if (roles.end !== undefined) ds = ds.concat(cellDates(r[roles.end]));
+    if (!ds.length) dateCols.forEach(c => { ds = ds.concat(cellDates(r[c])); });
+    const no = roles.no !== undefined ? r[roles.no] || '' : '';
+    return { title: r[roles.title] || '', org: roles.org !== undefined ? r[roles.org] || '' : '', hours: roles.hours !== undefined ? parseHoursText(r[roles.hours]) : '', start: ds[0] || '', end: ds[1] && ds[1] !== ds[0] ? ds[1] : '', kind: kindFromText(roles.kind !== undefined ? r[roles.kind] : '') || kindFromText(no), no };
+  });
+}
+async function trainFileRead(file) {
+  const rows = await fileToRows(file), items = tableToTrainItems(rows);
+  if (!items.length) return toast('표에서 연수 내역을 찾지 못했어요. 연수명·날짜가 있는 표인지 확인해 주세요', 'err');
+  ptPreview(items, 'file');
+}
+ACT.trainFile = () => { closeSheet(true); openTrainFilePick(); };
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'trainTblFile') { const f = t.files && t.files[0]; t.remove(); if (f) run(null, '', () => trainFileRead(f)); }
+});
 
 /* ═════════ 시작 ═════════ */
 function init() {
