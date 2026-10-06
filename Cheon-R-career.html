@@ -2006,10 +2006,10 @@ function ptPreview(found, src) {
 const ptSaveLabel = () => `체크한 ${PT.rows.filter(r => r.sel).length}건 등록`;
 function ptBodyHTML() {
   let h = `<p class="hint">${PT.src === 'file' ? '파일에서 읽은 결과예요.' : 'AI가 읽은 결과예요.'} <b>시간·날짜가 맞는지 꼭 확인</b>하고, 틀린 곳은 고친 뒤 등록할 것만 체크해 주세요. ${PT.src === 'file' ? '파일은 저장되지 않아요.' : PT.src === 'pdf' ? 'PDF는 읽는 데에만 쓰고 저장되지 않아요.' : '사진은 읽는 데에만 쓰고 저장되지 않아요.'}</p>
-    <div class="row wrap" style="margin:4px 0 2px"><button class="btn soft sm" data-act="trainAll" data-v="1">전체 선택</button><button class="btn soft sm" data-act="trainAll" data-v="0">전체 해제</button><span class="hint" style="margin:0">총 ${PT.rows.length}건</span></div>`;
+    <div class="row wrap" style="margin:4px 0 2px"><button class="btn soft sm" data-act="trainAll" data-v="1">전체 선택 <span class="lsub">(중복 제외)</span></button><button class="btn soft sm" data-act="trainAll" data-v="0">전체 해제</button><span class="hint" style="margin:0">총 ${PT.rows.length}건</span></div>`;
   h += PT.rows.map((r, i) => `<div class="card mt8" style="padding:12px 14px">
     <div class="row"><input type="checkbox" style="width:22px;height:22px;accent-color:var(--main);flex-shrink:0;margin:0" data-tk="sel" data-ti="${i}" ${r.sel ? 'checked' : ''} aria-label="등록하기"><input type="text" data-tk="title" data-ti="${i}" value="${esc(r.title)}" aria-label="연수명"></div>
-    ${r.dup ? `<p class="hint" style="margin:6px 2px 0">⚠️ 이미 등록된 연수명·시작일이에요 (그래서 체크가 꺼져 있어요)</p>` : ''}
+    ${r.dup ? `<p class="hint" style="margin:6px 2px 0">⚠️ 이미 등록된 연수명·시작일이에요 (그래서 체크가 꺼져 있어요. 또 등록하려면 직접 체크하세요)</p>` : ''}
     <div class="g2"><div><label class="f">기관</label><input type="text" data-tk="org" data-ti="${i}" value="${esc(r.org)}"></div>
     <div><label class="f">시간</label><input type="number" inputmode="decimal" data-tk="hours" data-ti="${i}" value="${esc(r.hours)}"></div></div>
     <div class="g2"><div><label class="f">시작일</label><input type="date" data-tk="start" data-ti="${i}" value="${esc(r.start)}"></div>
@@ -2034,8 +2034,6 @@ async function trainSave(btn) {
     if (!r.start) return toast(`'${r.title}'의 시작일을 확인해 주세요`, 'err');
     if (r.end && r.end < r.start) return toast(`'${r.title}'의 종료일이 시작일보다 빨라요`, 'err');
   }
-  const dups = pick.filter(ptIsDup).length;
-  if (dups && !confirm(`이미 등록된 것과 연수명·시작일이 같은 항목이 ${dups}건 있어요. 그래도 등록할까요? (중복으로 들어가요)`)) return;
   const c = CAT_BY_KEY.training;
   await run(btn, '등록 중…', async () => {
     let n = 0;
@@ -2050,7 +2048,7 @@ async function trainSave(btn) {
 }
 ACT.trainImport = () => { closeSheet(true); openTrainPick(); };
 ACT.trainSave = t => trainSave(t);
-ACT.trainAll = t => { if (!PT) return; const v = t.dataset.v === '1'; PT.rows.forEach(r => { r.sel = v; }); $('#ptBody').querySelectorAll('[data-tk="sel"]').forEach(x => { x.checked = v; }); const b = $('#ptSaveBtn'); if (b) b.textContent = ptSaveLabel(); };
+ACT.trainAll = t => { if (!PT) return; const v = t.dataset.v === '1'; PT.rows.forEach(r => { r.sel = v && !r.dup; }); $('#ptBody').querySelectorAll('[data-tk="sel"]').forEach((x, i) => { x.checked = PT.rows[i].sel; }); const b = $('#ptSaveBtn'); if (b) b.textContent = ptSaveLabel(); };
 document.addEventListener('change', e => {
   const t = e.target;
   if (t.id === 'photoFileT') { const fs = Array.from(t.files || []); t.remove(); if (fs.length) run(null, '', () => trainRead(fs)); return; }
