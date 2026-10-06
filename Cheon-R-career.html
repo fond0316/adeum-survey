@@ -795,6 +795,7 @@ function renderHome() {
   h += `<button class="btn soft block mt12" data-act="photoImport">📷 사진으로 경력·학력 불러오기 <span class="lsub">국민연금 가입내역 캡처 등</span></button>`;
   if (!S.records.length && !S.affs.length) h += `<div class="card onb"><h3>👋 이렇게 시작해 보세요</h3><ol><li><b>설정 → 경력·학력 이력</b>에 학교·회사·대학원을 넣어요</li><li><b>＋ 버튼</b>으로 생각날 때마다 기록을 남겨요</li><li><b>내보내기</b>에서 양식 골라 바로 복사!</li></ol>
     <div class="row wrap"><button class="btn soft" data-act="addAff">경력·학력 넣기</button><button class="btn pri" data-act="quickAdd">＋ 기록 남기기</button></div></div>`;
+  h += homeAffHTML();
   h += `<div class="sec-title">📅 ${sy}학년도 기록 <button class="link" data-act="goTab" data-tab="records">전체 보기 ›</button></div>`;
   h += yrs.length ? yrs.slice(0, 6).map(r => cardHTML(r)).join('') + (yrs.length > 6 ? `<button class="btn soft block" data-act="goTab" data-tab="records">${yrs.length - 6}건 더 보기</button>` : '')
     : `<div class="empty"><p>이번 학년도 기록이 아직 없어요.</p><button class="btn pri" data-act="quickAdd">＋ 첫 기록 남기기</button></div>`;
@@ -852,6 +853,7 @@ function renderRecordsBody() {
     else if (u.cat !== 'all' && CAT_BY_KEY[u.cat]) head = `<div class="sumline">${CAT_BY_KEY[u.cat].emo} ${CAT_BY_KEY[u.cat].label} <b>${items.length}건</b></div>`;
     $('#rlist').innerHTML = items.length ? head + items.map(r => cardHTML(r)).join('') : emptyListHTML();
   }
+  if (!S.records.length && S.affs.length) $('#rlist').insertAdjacentHTML('afterbegin', `<div class="card mt12"><b>📌 여기는 '활동 기록'이 쌓이는 곳이에요</b><p class="hint" style="margin:6px 0 10px">연수·수상·수업·개발 같은 활동을 남기면 학년도별로 정리돼요. 등록한 학교·회사 이력(${S.affs.length}건)은 홈의 '경력·학력'에서 볼 수 있어요.</p><button class="btn soft sm" data-act="goTab" data-tab="home">🏠 홈에서 이력 보기</button></div>`);
 }
 function yearGroupHTML(k, items) {
   const school = S.ui.period === 'school';
@@ -1763,16 +1765,30 @@ function openPhotoPick() {
   const inp = document.createElement('input'); inp.type = 'file'; inp.id = 'photoFile'; inp.accept = 'image/*'; inp.multiple = true; inp.hidden = true;
   document.body.appendChild(inp); inp.click();
 }
+let phBusyEl = null, phBusyTimer = null;
+function phBusy(msg) {
+  const t0 = phBusy.t0 || (phBusy.t0 = Date.now());
+  if (!phBusyEl) {
+    phBusyEl = document.createElement('div');
+    phBusyEl.style.cssText = 'position:fixed;inset:0;z-index:250;background:rgba(30,24,50,.45);display:flex;align-items:center;justify-content:center;padding:20px';
+    document.body.appendChild(phBusyEl);
+    phBusyTimer = setInterval(() => { const e = phBusyEl && phBusyEl.querySelector('[data-sec]'); if (e) e.textContent = Math.round((Date.now() - t0) / 1000); }, 500);
+  }
+  phBusyEl.innerHTML = `<div class="card center" style="max-width:340px;width:100%;padding:22px 18px"><div style="font-size:30px;margin-bottom:6px">📷</div><div style="font-weight:800;font-size:16px"><span class="spin" style="margin-right:8px;vertical-align:-2px"></span>${esc(msg)}</div><p class="hint" style="margin:10px 0 0"><span data-sec>${Math.round((Date.now() - t0) / 1000)}</span>초 지났어요 · 사진 한 장에 10~40초쯤 걸려요<br>창을 닫지 말고 기다려 주세요</p></div>`;
+}
+function phBusyEnd() { clearInterval(phBusyTimer); phBusyTimer = null; phBusy.t0 = 0; if (phBusyEl) { phBusyEl.remove(); phBusyEl = null; } }
 async function photoRead(files) {
   files = Array.from(files || []).slice(0, 6);
   if (!files.length) return;
   const found = [];
+  try {
   for (let i = 0; i < files.length; i++) {
-    toast(`사진 ${i + 1}/${files.length}장 읽는 중… (몇 초 걸려요)`);
+    phBusy(`사진 ${i + 1}/${files.length}장 읽는 중…`);
     const im = await photoResize(files[i], 1000);
     const res = await gasCall('aiVision', { system: PH_SYS, prompt: PH_PROMPT, images: [im], maxTokens: 1500 }, { timeout: 150000 });
     parsePhotoJson(res.text).forEach(it => found.push(it));
   }
+  } finally { phBusyEnd(); }
   const seen = new Set(), rows = [];
   found.forEach(it => {
     const name = String(it.name || '').replace(/\s*\((직장)\)\s*$/, '').trim(), start = normDate(it.start);
@@ -1832,6 +1848,19 @@ async function photoSave(btn) {
     closeSheet(true); toast(`${n}건을 등록했어요 ✅`); renderAll();
   });
 }
+const homeOpen = {};
+function homeAffHTML() {
+  if (!S.affs.length) return '';
+  let h = `<div class="sec-title">🏫 경력·학력 <button class="link" data-act="addAff">＋ 추가</button></div>`;
+  AFF_ORDER.forEach(type => {
+    const list = S.affs.filter(a => a.type === type).sort((a, b) => String(b.start).localeCompare(String(a.start)));
+    if (!list.length) return;
+    const tot = type === '학력' ? '' : ` · 합계 ${fmtMonths(spanToMo(list.reduce((acc, a) => { const s = affSpan(a); acc.mo += s.mo; acc.d += s.d; return acc; }, { mo: 0, d: 0 })))}`;
+    h += `<details class="acc mt8" id="hg-${esc(type)}" ${homeOpen[type] === false ? '' : 'open'}><summary>${AFF_TYPES[type].emo} ${type} <span class="lsub">${list.length}곳${tot}</span></summary>${list.map(affCardHTML).join('')}</details>`;
+  });
+  return h;
+}
+document.addEventListener('toggle', e => { const id = e.target.id || ''; if (id.indexOf('hg-') === 0) homeOpen[id.slice(3)] = e.target.open; }, true);
 ACT.photoImport = () => openPhotoPick();
 ACT.photoSave = t => photoSave(t);
 document.addEventListener('change', e => {
