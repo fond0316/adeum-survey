@@ -798,6 +798,7 @@ function renderHome() {
   if (!S.records.length && !S.affs.length) h += `<div class="card onb"><h3>👋 이렇게 시작해 보세요</h3><ol><li><b>설정 → 경력·학력 이력</b>에 학교·회사·대학원을 넣어요</li><li><b>＋ 버튼</b>으로 생각날 때마다 기록을 남겨요</li><li><b>내보내기</b>에서 양식 골라 바로 복사!</li></ol>
     <div class="row wrap"><button class="btn soft" data-act="addAff">경력·학력 넣기</button><button class="btn pri" data-act="quickAdd">＋ 기록 남기기</button></div></div>`;
   h += homeAffHTML();
+  h += homeSkillsHTML();
   h += `<div class="sec-title">📅 ${sy}학년도 기록 <button class="link" data-act="goTab" data-tab="records">전체 보기 ›</button></div>`;
   h += yrs.length ? yrs.slice(0, 6).map(r => cardHTML(r)).join('') + (yrs.length > 6 ? `<button class="btn soft block" data-act="goTab" data-tab="records">${yrs.length - 6}건 더 보기</button>` : '')
     : `<div class="empty"><p>이번 학년도 기록이 아직 없어요.</p><button class="btn pri" data-act="quickAdd">＋ 첫 기록 남기기</button></div>`;
@@ -1169,6 +1170,7 @@ function genCareer(o) {
     const orphan = recs.filter(r => !affById(r.affId) && catOf(r).key !== 'year' && cats.includes(catOf(r).key)).sort(byCatThenDate(o.order));
     if (orphan.length) { doc.add(1, '기타 활동'); pushItems(orphan); }
   }
+  if (o.skills !== false) { const sk = skillList(); if (sk.length) { doc.blank(); doc.text(`활용 가능 도구: ${sk.map(x => x.name).join(', ')}`); } }
   return { text: doc.toString(), warn: !S.affs.length ? '설정에서 경력·학력 이력을 넣으면 학교·회사별로 묶여서 나와요.' : '' };
 }
 function isTeaching(r) { const t = trackOf(r); return t !== '교직 외' && t !== '학력'; }
@@ -1245,7 +1247,7 @@ function exOptionsHTML() {
   if (o.type === 'career') {
     const affs = sortedAffs(), sel = o.affIds || defaultAffIds();
     return fmt + more(`<label class="f">넣을 소속</label><div class="cklist">${affs.map(a => `<label class="ck"><input type="checkbox" data-exaff="${esc(a.id)}" ${sel.includes(a.id) ? 'checked' : ''}> ${AFF_TYPES[a.type].emo} ${esc(a.name)}</label>`).join('')}${ck('noAff', '📌 소속 없는 기록', o.noAff)}</div>
-      ${catChips}${period}<div class="g2">${order}<div></div></div>${inc(ck('yearRows', '학년도별 담당', o.yearRows) + ck('star', '⭐ 핵심만', o.star))}`, '소속·카테고리·기간·넣을 내용');
+      ${catChips}${period}<div class="g2">${order}<div></div></div>${inc(ck('yearRows', '학년도별 담당', o.yearRows) + ck('skills', '🛠 활용 가능 도구', o.skills !== false) + ck('star', '⭐ 핵심만', o.star))}`, '소속·카테고리·기간·넣을 내용');
   }
   if (o.type === 'self') {
     const set = new Set([curSchoolYear()]); S.records.forEach(r => { const y = schoolYear(r.start); if (y) set.add(y); });
@@ -1886,6 +1888,25 @@ function statSheet(k) {
 ACT.statOpen = t => statSheet(t.dataset.k);
 ACT.statAdd = t => { closeSheet(true); openEditor(null, { cat: CAT_BY_KEY[t.dataset.k].label }); };
 const homeOpen = {};
+function skillList() {
+  const m = new Map();
+  S.records.forEach(r => {
+    const k = catOf(r).key; if (k !== 'dev' && k !== 'project') return;
+    String(r.f_subject || '').split(/[,，、·/|]+/).map(s => s.trim()).filter(Boolean).forEach(n => {
+      const key = n.toLowerCase(), e = m.get(key) || { name: n, n: 0 }; e.n++; m.set(key, e);
+    });
+  });
+  return [...m.values()].sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
+}
+function homeSkillsHTML() {
+  if (!S.records.length) return '';
+  const list = skillList();
+  return `<details class="acc mt8" id="hg-skill" ${homeOpen.skill ? 'open' : ''}><summary>🛠 스킬 <span class="lsub">${list.length}개 · 개발·프로젝트 기록의 사용 기술</span></summary>${list.length
+    ? `<div class="chips" style="margin-bottom:4px">${list.map(x => `<button type="button" class="chip" data-act="skillFind" data-v="${esc(x.name)}">${esc(x.name)} <span class="n">${x.n}</span></button>`).join('')}</div><p class="hint">누르면 그 기술을 쓴 기록만 찾아 줘요.</p>`
+    : `<p class="hint" style="margin-top:0">개발·에듀테크, 프로젝트 기록에 '사용 기술·프로그램'을 적으면 여기에 모여요.</p>`}</details>`;
+}
+ACT.skillFind = t => { Object.assign(S.ui, { q: t.dataset.v, fStar: false, fDraft: false, fNoProof: false, tag: '', track: 'all', cat: 'all' }); setTab('records'); };
+
 function homeAffHTML() {
   if (!S.affs.length) return '';
   let h = `<div class="sec-title">🏫 경력·학력 <button class="link" data-act="addAff">＋ 추가</button></div>`;
