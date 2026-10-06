@@ -216,6 +216,7 @@ input[type=date]{min-width:0;max-width:100%}
 .warn{background:#FCEBEB;border-radius:12px;padding:12px 14px;font-size:13px;color:#A32D2D;line-height:1.8;margin-top:8px}
 .code{margin-top:10px}
 .code pre{background:#2E2A3D;color:#E9E5F5;border-radius:10px;padding:12px;font-size:12px;line-height:1.5;max-height:260px;overflow:auto;white-space:pre}
+.gasTa{width:100%;height:160px;box-sizing:border-box;background:#2E2A3D;color:#E9E5F5;border:0;border-radius:10px;padding:12px;font-size:12px;line-height:1.5;font-family:monospace;resize:none;white-space:pre}
 .code summary{font-size:13px;color:var(--tx2);cursor:pointer;min-height:36px;display:flex;align-items:center}
 /* 제목용 폰트: 주아 */
 .top h1,.gtop h1,.box h2{font-family:'Jua','Pretendard',-apple-system,sans-serif;font-weight:400}
@@ -283,7 +284,7 @@ input[type=date]{min-width:0;max-width:100%}
       <li>아래 <b>코드 전체 복사</b> 버튼 → 붙여넣기 → 저장(💾)</li></ol>
       <div class="row" style="margin-top:10px"><button class="btn" id="gasCopyBtn" onclick="copyGas()">📋 코드 전체 복사</button><span class="msg" id="gasCopyMsg" style="margin:0"></span></div>
       <p class="hint" style="margin-top:8px">🔄 이미 쓰고 계신다면: 앱이 업데이트되면 관리 화면 맨 위에 🔔 알림이 떠요. 그때도 여기서 새 코드를 복사해서 붙여넣고 <b>수정 배포</b>하면 돼요.</p>
-      <details class="code"><summary>코드 미리보기</summary><pre id="gasCode">불러오는 중…</pre></details></div>
+      <details class="code hide" id="gasFallback"><summary>복사가 안 될 때: 코드 직접 복사하기</summary><textarea id="gasCode" class="gasTa" readonly onclick="this.select()"></textarea></details></div>
     <div class="step"><div class="st">Step 3. 웹 앱으로 배포</div><ol>
       <li>오른쪽 위 <b>배포 → 새 배포</b> → 톱니바퀴에서 <b>웹 앱</b> 선택</li>
       <li>실행 사용자: <b>나</b> / 액세스 권한: <b>모든 사용자</b> → 배포</li>
@@ -816,7 +817,8 @@ input[type=date]{min-width:0;max-width:100%}
     <p class="hint">새 기능이 제대로 동작하도록, 내 구글 시트의 코드를 최신으로 바꿔요. 공지·명단 등 기존 데이터는 그대로예요.</p>
     <div class="step" style="margin-top:8px"><div class="st">1. 새 코드 복사</div>
       <button class="btn" type="button" onclick="copyGas('gasUpMsg')">📋 새 코드 복사</button>
-      <div class="msg" id="gasUpMsg"></div></div>
+      <div class="msg" id="gasUpMsg"></div>
+      <details class="code hide" id="gasFallbackUp"><summary>복사가 안 될 때: 코드 직접 복사하기</summary><textarea id="gasCodeUp" class="gasTa" readonly onclick="this.select()"></textarea></details></div>
     <div class="step"><div class="st">2. 붙여넣기 → 저장</div><ol>
       <li>내 구글 시트 → <b>확장 프로그램 → Apps Script</b></li>
       <li>편집기의 코드를 <b>Ctrl+A로 전부 지우고</b> 붙여넣기 → 저장(💾)</li></ol></div>
@@ -2254,6 +2256,7 @@ function openStudentView(){
 
 /* ===== 설치 가이드 ===== */
 let gasText = '';
+function setGasBoxes(t){ ['gasCode','gasCodeUp'].forEach(id => { const el = $(id); if (el) el.value = t; }); }
 /** 깃허브에 올라간 최신 GAS 코드 불러오기 (가이드·업데이트 창 공용) */
 async function ensureGasText(){
   if (gasText) return true;
@@ -2261,10 +2264,9 @@ async function ensureGasText(){
     const r = await fetch(P + '-GAS.gs', { cache:'no-store' });
     if (!r.ok) throw 0;
     gasText = await r.text();
-    $('gasCode').textContent = gasText;
+    setGasBoxes(gasText);
     return true;
   }catch(e){
-    $('gasCode').textContent = '코드 파일을 불러오지 못했어요. (깃허브에 ' + P + '-GAS.gs 파일이 함께 올라가 있는지 확인해 주세요)';
     return false;
   }
 }
@@ -2279,9 +2281,18 @@ async function copyGas(where){
   const box = typeof where === 'string' ? where : 'gasCopyMsg';
   if (!(await ensureGasText())){ msg(box,'코드를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.'); return; }
   if (fileVer() < NEED_GAS){ msg(box,'⚠️ 깃허브에 올라간 코드가 아직 옛 버전이에요. (앱을 만든 선생님이 새 코드를 올려야 해요)'); return; }
-  try{ await navigator.clipboard.writeText(gasText); }
-  catch(e){ const ta=document.createElement('textarea'); ta.value=gasText; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
-  msg(box,'✅ 복사했어요! Apps Script에 붙여넣으세요.',true);
+  let copied = false;
+  try{ await navigator.clipboard.writeText(gasText); copied = true; }
+  catch(e){
+    try{ const ta=document.createElement('textarea'); ta.value=gasText; ta.style.cssText='position:fixed;top:0;left:0;opacity:0'; document.body.appendChild(ta); ta.focus(); ta.select(); copied = !!document.execCommand('copy'); ta.remove(); }catch(e2){ copied = false; }
+  }
+  const fb = $(box === 'gasUpMsg' ? 'gasFallbackUp' : 'gasFallback');
+  if (copied){ if (fb) fb.classList.add('hide'); msg(box,'✅ 복사했어요! Apps Script에 붙여넣으세요.',true); return; }
+  if (fb){
+    fb.classList.remove('hide'); fb.open = true;
+    const t = fb.querySelector('textarea'); if (t){ t.value = gasText; try{ t.focus(); t.select(); }catch(e3){} }
+  }
+  msg(box,'자동 복사가 안 됐어요. 아래 코드 칸을 눌러 전체 선택한 뒤 직접 복사해 주세요.');
 }
 
 /* ===== 📘 사용 가이드 ===== */
