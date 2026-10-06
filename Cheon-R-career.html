@@ -1425,6 +1425,7 @@ function renderSettings() {
     <div><label class="f" for="pf_lic">교원 자격</label><input type="text" id="pf_lic" value="${esc(p.license || '')}" placeholder="중등학교 정교사(1급) 수학"></div></div>
     <button class="btn pri mt12" data-act="saveProfile">저장</button></div>`;
   h += `<div class="sec-title">🏫 경력·학력 이력 <button class="link" data-act="addAff">＋ 추가</button></div>`;
+  h += `<div class="row wrap" style="margin:-2px 0 12px"><button class="btn soft sm" data-act="photoImport">📷 사진으로 불러오기</button><span class="hint" style="margin:0">국민연금 가입내역 캡처 등 · AI(Claude) 키 필요</span></div>`;
   h += AFF_ORDER.map(type => {
     const list = S.affs.filter(a => a.type === type).sort((a, b) => String(b.start).localeCompare(String(a.start))), T = AFF_TYPES[type];
     const tot = type === '학력' || !list.length ? '' : fmtMonths(spanToMo(list.reduce((acc, a) => { const s = affSpan(a); acc.mo += s.mo; acc.d += s.d; return acc; }, { mo: 0, d: 0 })));
@@ -1714,6 +1715,130 @@ document.addEventListener('toggle', e => { if (e.target.id === 'aiBox') S.aiOpen
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.mode === 'gas' && S.pw && !$('#shell').hidden && !SHEET && Date.now() - S.lastSyncAt > 60000) syncNow(true); });
 window.addEventListener('resize', debounce(measure, 150));
 window.addEventListener('focus', () => document.body.classList.remove('printing'));
+
+/* ═════════ 사진으로 경력·학력 불러오기 (국민연금 가입내역 등 · 추가 기능) ═════════ */
+let PH = null;
+const PH_SYS = `당신은 한국어 화면 캡처에서 근무 이력을 정확히 옮겨 적는 도우미입니다. 사진에 보이는 글자만 옮기고, 없는 내용은 절대 만들지 않습니다.`;
+const PH_PROMPT = `사진은 국민연금 가입내역 등 근무 이력 목록입니다. 각 항목(사업장/기관)을 아래 JSON 형식으로만 출력하세요. 다른 설명, 마크다운, 코드블록은 쓰지 마세요.
+{"items":[{"name":"기관명","start":"YYYY-MM-DD","end":"YYYY-MM-DD 또는 빈 문자열","ongoing":true 또는 false}]}
+규칙:
+- name은 사진에 보이는 그대로 적되, 이름 뒤에 붙은 "(직장)" 표시만 뺍니다. "(주)", "주식회사" 등은 그대로 둡니다.
+- 기간이 "시작~종료" 형식이면 start와 end로 나눕니다. 종료가 "재직중", "현재", "~" 뒤가 비어 있으면 end는 빈 문자열, ongoing은 true입니다.
+- 소득정보·금액은 절대 적지 않습니다.
+- 항목이 하나도 안 보이면 {"items":[]} 만 출력합니다.`;
+const normName = s => String(s || '').replace(/\s+/g, '').replace(/\(주\)|㈜|주식회사/g, '').toLowerCase();
+function guessAffType(name) { return /학교/.test(name) && !/대학교|대학원/.test(name) ? '교직' : '교직 외'; }
+function photoResize(file, maxSide) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      try {
+        const k = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+        const w = Math.max(1, Math.round(img.naturalWidth * k)), h = Math.max(1, Math.round(img.naturalHeight * k));
+        const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+        const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, w, h); cx.drawImage(img, 0, 0, w, h);
+        const d = cv.toDataURL('image/jpeg', 0.72);
+        URL.revokeObjectURL(url); resolve({ mt: 'image/jpeg', data: d.slice(d.indexOf(',') + 1) });
+      } catch (e) { URL.revokeObjectURL(url); reject(e); }
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('사진을 열 수 없어요. 다른 사진으로 해 주세요.')); };
+    img.src = url;
+  });
+}
+function parsePhotoJson(text) {
+  const m = /\{[\s\S]*\}/.exec(String(text || '')); if (!m) throw new Error('AI 답변을 읽지 못했어요. 사진을 더 선명하게 해서 다시 해 주세요.');
+  let o; try { o = JSON.parse(m[0]); } catch (e) { throw new Error('AI 답변을 읽지 못했어요. 다시 시도해 주세요.'); }
+  return Array.isArray(o.items) ? o.items : [];
+}
+function phIsDup(r) {
+  const n = normName(r.name), s = normDate(r.start);
+  return !!n && S.affs.some(a => normName(a.name) === n && normDate(a.start) === s);
+}
+function openPhotoPick() {
+  if (S.mode !== 'gas') return toast('사진 읽기는 구글 시트를 연결한 뒤에 쓸 수 있어요', 'err');
+  if (!S.ai.hasKey) { toast('설정 › AI에서 Claude 키를 먼저 넣어 주세요', 'err'); return; }
+  if (S.ai.provider === 'gpt') return toast('사진 읽기는 Claude로 설정해야 돼요. 설정 › AI에서 Claude를 골라 주세요', 'err');
+  const old = $('#photoFile'); if (old) old.remove();
+  const inp = document.createElement('input'); inp.type = 'file'; inp.id = 'photoFile'; inp.accept = 'image/*'; inp.multiple = true; inp.hidden = true;
+  document.body.appendChild(inp); inp.click();
+}
+async function photoRead(files) {
+  files = Array.from(files || []).slice(0, 6);
+  if (!files.length) return;
+  const found = [];
+  for (let i = 0; i < files.length; i++) {
+    toast(`사진 ${i + 1}/${files.length}장 읽는 중… (몇 초 걸려요)`);
+    const im = await photoResize(files[i], 1000);
+    const res = await gasCall('aiVision', { system: PH_SYS, prompt: PH_PROMPT, images: [im], maxTokens: 1500 }, { timeout: 150000 });
+    parsePhotoJson(res.text).forEach(it => found.push(it));
+  }
+  const seen = new Set(), rows = [];
+  found.forEach(it => {
+    const name = String(it.name || '').replace(/\s*\((직장)\)\s*$/, '').trim(), start = normDate(it.start);
+    if (!name || !start) return;
+    const key = normName(name) + '|' + start; if (seen.has(key)) return; seen.add(key);
+    const ongoing = it.ongoing === true || it.ongoing === 'true';
+    const r = { name, start, end: ongoing ? '' : normDate(it.end), ongoing, type: guessAffType(name) };
+    r.dup = phIsDup(r); r.sel = !r.dup; rows.push(r);
+  });
+  rows.sort((a, b) => b.start.localeCompare(a.start));
+  if (!rows.length) return toast('사진에서 근무 이력을 찾지 못했어요. 목록이 잘 보이게 다시 찍어 주세요', 'err');
+  PH = { rows };
+  openSheet(`<div class="sheet-h"><h2>📷 읽은 내용 확인</h2><button class="iconbtn" data-act="closeSheet" aria-label="닫기">✕</button></div>
+    <div class="sheet-b" id="phBody">${phBodyHTML()}</div>
+    <div class="sheet-f"><button class="btn" data-act="closeSheet">취소</button><button class="btn pri grow" data-act="photoSave" id="phSaveBtn">${phSaveLabel()}</button></div>`,
+    { dirty: () => !!PH, onClose: () => { PH = null; } });
+}
+const phSaveLabel = () => `체크한 ${PH.rows.filter(r => r.sel).length}건 등록`;
+function phBodyHTML() {
+  let h = `<p class="hint">AI가 읽은 결과예요. <b>틀린 곳은 고치고</b>, 등록할 것만 체크해 주세요. 소득정보는 가져오지 않아요. 사진은 읽는 데에만 쓰고 저장되지 않아요.</p>`;
+  h += PH.rows.map((r, i) => `<div class="card mt8" style="padding:12px 14px">
+    <div class="row"><input type="checkbox" style="width:22px;height:22px;accent-color:var(--main);flex-shrink:0;margin:0" data-pk="sel" data-pi="${i}" ${r.sel ? 'checked' : ''} aria-label="등록하기"><input type="text" data-pk="name" data-pi="${i}" value="${esc(r.name)}" aria-label="기관명"></div>
+    ${r.dup ? `<p class="hint" style="margin:6px 2px 0">⚠️ 이미 등록된 이름·시작일이에요 (그래서 체크가 꺼져 있어요)</p>` : ''}
+    <div class="g2"><div><label class="f">구분</label><select data-pk="type" data-pi="${i}">${AFF_ORDER.map(t => `<option ${r.type === t ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
+    <div><label class="f">시작일</label><input type="date" data-pk="start" data-pi="${i}" value="${esc(r.start)}"></div></div>
+    <div class="g2"><div><label class="f">종료일</label><input type="date" data-pk="end" data-pi="${i}" value="${esc(r.end)}" ${r.ongoing ? 'disabled' : ''}></div>
+    <div><label class="tog sm" style="margin-top:22px"><span>재직 중</span><input type="checkbox" data-pk="ongoing" data-pi="${i}" ${r.ongoing ? 'checked' : ''}></label></div></div></div>`).join('');
+  return h;
+}
+function phField(t) {
+  if (!PH) return;
+  const r = PH.rows[+t.dataset.pi], k = t.dataset.pk; if (!r) return;
+  if (t.type === 'checkbox') {
+    r[k === 'sel' ? 'sel' : 'ongoing'] = t.checked;
+    if (k === 'ongoing') { const e2 = t.closest('.card').querySelector('[data-pk="end"]'); e2.disabled = t.checked; if (t.checked) { e2.value = ''; r.end = ''; } }
+  } else r[k] = t.value;
+  if (k === 'sel') { const b = $('#phSaveBtn'); if (b && !b.disabled) b.textContent = phSaveLabel(); }
+}
+async function photoSave(btn) {
+  if (!PH) return;
+  const pick = PH.rows.filter(r => r.sel);
+  if (!pick.length) return toast('등록할 항목을 체크해 주세요', 'err');
+  for (const r of pick) {
+    r.name = String(r.name || '').trim(); r.start = normDate(r.start); r.end = r.ongoing ? '' : normDate(r.end);
+    if (!r.name) return toast('기관명이 빈 항목이 있어요', 'err');
+    if (!r.start) return toast(`'${r.name}'의 시작일을 확인해 주세요`, 'err');
+    if (r.end && r.end < r.start) return toast(`'${r.name}'의 종료일이 시작일보다 빨라요`, 'err');
+  }
+  const dups = pick.filter(phIsDup).length;
+  if (dups && !confirm(`이미 등록된 것과 이름·시작일이 같은 항목이 ${dups}건 있어요. 그래도 등록할까요? (중복으로 들어가요)`)) return;
+  await run(btn, '등록 중…', async () => {
+    let n = 0;
+    for (const r of pick) {
+      await persistAff({ id: uid('a'), type: r.type, name: r.name, start: r.start, end: r.end, ongoing: r.ongoing ? 'O' : '' });
+      n++;
+    }
+    closeSheet(true); toast(`${n}건을 등록했어요 ✅`); renderAll();
+  });
+}
+ACT.photoImport = () => openPhotoPick();
+ACT.photoSave = t => photoSave(t);
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'photoFile') { const fs = Array.from(t.files || []); t.remove(); if (fs.length) run(null, '', () => photoRead(fs)); return; }
+  if (t.dataset.pk && t.closest('#ovl')) phField(t);
+});
+document.addEventListener('input', e => { const t = e.target; if (t.dataset.pk && t.closest('#ovl') && t.type !== 'checkbox') phField(t); });
 
 /* ═════════ 시작 ═════════ */
 function init() {
