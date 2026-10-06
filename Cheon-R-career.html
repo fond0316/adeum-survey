@@ -795,9 +795,7 @@ function renderHome() {
     <p>${esc(sub || '설정에서 경력·학력 이력을 넣으면 경력이 자동으로 계산돼요')}</p>${edu ? `<p class="edu">🎓 ${esc(edu)}</p>` : ''}</div>`;
   h += statsHTML(st, sy, yrs);
   if (drafts || needP) h += `<div class="attn">${drafts ? `<button class="attn-b" data-act="goFilter" data-f="fDraft">✏️ 정리 필요 <b>${drafts}건</b></button>` : ''}${needP ? `<button class="attn-b" data-act="goFilter" data-f="fNoProof">📎 증빙 확인 <b>${needP}건</b></button>` : ''}</div>`;
-  h += `<button class="btn soft block mt12" data-act="photoImport">📷 사진으로 경력·학력 불러오기 <span class="lsub">국민연금 가입내역 캡처 등</span></button>`;
-  h += `<button class="btn soft block mt8" data-act="trainImport">📷 사진으로 연수 불러오기 <span class="lsub">연수 이수내역 캡처 등</span></button>`;
-  h += `<button class="btn soft block mt8" data-act="trainFile">📊 엑셀·CSV로 연수 불러오기 <span class="lsub">AI 없이 · 무료</span></button>`;
+  h += `<button class="btn soft block mt12" data-act="importHub">📥 불러오기 <span class="lsub">경력·학력 · 연수 (사진 · 엑셀 · PDF)</span></button>`;
   if (!S.records.length && !S.affs.length) h += `<div class="card onb"><h3>👋 이렇게 시작해 보세요</h3><ol><li><b>설정 → 경력·학력 이력</b>에 학교·회사·대학원을 넣어요</li><li><b>＋ 버튼</b>으로 생각날 때마다 기록을 남겨요</li><li><b>내보내기</b>에서 양식 골라 바로 복사!</li></ol>
     <div class="row wrap"><button class="btn soft" data-act="addAff">경력·학력 넣기</button><button class="btn pri" data-act="quickAdd">＋ 기록 남기기</button></div></div>`;
   h += homeAffHTML();
@@ -1885,8 +1883,7 @@ function statSheet(k) {
     body += k === 'training' ? `<div class="sumline">연수 합계 <b>${fmtNum(list.reduce((s, r) => s + hoursOf(r), 0))}시간</b> · ${list.length}건</div>` : `<div class="sumline">${list.length}건</div>`;
     body += list.length ? list.map(r => cardHTML(r)).join('') : `<div class="empty"><p>아직 ${k === 'training' ? '연수' : '자격·면허'} 기록이 없어요.</p></div>`;
     body += `<button class="btn soft block mt12" data-act="statAdd" data-k="${key}">＋ ${k === 'training' ? '연수' : '자격·면허'} 기록 추가</button>`;
-    if (k === 'training') body += `<button class="btn soft block mt8" data-act="trainImport">📷 사진으로 연수 불러오기 <span class="lsub">연수 이수내역 캡처</span></button>`;
-    if (k === 'training') body += `<button class="btn soft block mt8" data-act="trainFile">📊 엑셀·CSV로 연수 불러오기 <span class="lsub">AI 없이 · 무료</span></button>`;
+    if (k === 'training') body += `<button class="btn soft block mt8" data-act="importHub" data-cat="train">📥 연수 불러오기 <span class="lsub">사진 · 엑셀 · PDF</span></button>`;
   }
   openSheet(`<div class="sheet-h"><h2>${title}</h2><button class="iconbtn" data-act="closeSheet" aria-label="닫기">✕</button></div><div class="sheet-b">${body}</div>`, {});
 }
@@ -1902,7 +1899,7 @@ function renderAiBadge() {
 const AI_HELP = `<details class="acc" style="margin-bottom:10px"><summary>💡 AI는 어디에 쓰여요?</summary>
   <ol class="guide"><li><b>기록 입력 창의 ✨ AI로 다듬기</b> — '한 일·성과' 메모를 경력기술서 문장으로 정리해 줘요</li>
   <li><b>내보내기의 ✨ AI로 목적에 맞게 다시 쓰기</b> — 지원서 목적·글자 수·문체에 맞춰 다시 써 주고, 글자 수도 맞춰 줘요</li>
-  <li><b>📷 사진으로 불러오기</b> — 국민연금 캡처 같은 사진을 읽어서 이력으로 등록해 줘요</li><li><b>📷 사진으로 연수 불러오기</b> — 연수 이수내역 캡처를 읽어서 연수 기록으로 한꺼번에 등록해 줘요</li></ol>
+  <li><b>📷 사진으로 불러오기</b> — 국민연금 캡처 같은 사진을 읽어서 이력으로 등록해 줘요</li><li><b>📷 사진으로 연수 불러오기</b> — 연수 이수내역 캡처를 읽어서 연수 기록으로 한꺼번에 등록해 줘요</li><li><b>📄 PDF로 연수 불러오기</b> — PDF를 쪽마다 읽어서 연수 기록으로 등록해 줘요 (쪽마다 API 사용료)</li></ol>
   <p class="hint">키가 없어도 앱의 나머지 기능은 모두 써요. AI에는 그때 누른 내용만 보내고, 쓸 때마다 내 API 계정에서 소액의 사용료가 나가요. 키는 내 GAS에만 저장돼요.</p></details>`;
 const _renderSync0 = renderSync;
 renderSync = function () { _renderSync0(); renderAiBadge(); };
@@ -1994,21 +1991,21 @@ function ptPreview(found, src) {
     const title = String(it.title || '').trim(), start = normDate(it.start);
     if (!title) return;
     const key = normName(title) + '|' + start; if (seen.has(key)) return; seen.add(key);
-    const h = parseFloat(String(it.hours == null ? '' : it.hours).replace(/[^0-9.]/g, ''));
+    const h = parseFloat(parseHoursText(it.hours == null ? '' : it.hours));
     const r = { title, org: String(it.org || '').trim(), hours: isFinite(h) && h > 0 ? String(h) : '', start, end: normDate(it.end), kind: PT_KINDS.includes(it.kind) ? it.kind : '', no: String(it.no || '').trim() };
     r.dup = ptIsDup(r); r.sel = !r.dup; rows.push(r);
   });
   rows.sort((a, b) => b.start.localeCompare(a.start));
   if (!rows.length) return toast('연수 내역을 찾지 못했어요. 목록이 잘 보이게 다시 찍어 주세요', 'err');
   PT = { rows, src: src || 'photo' };
-  openSheet(`<div class="sheet-h"><h2>${src === 'file' ? '📊' : '📷'} 읽은 연수 확인</h2><button class="iconbtn" data-act="closeSheet" aria-label="닫기">✕</button></div>
+  openSheet(`<div class="sheet-h"><h2>${src === 'file' ? '📊' : src === 'pdf' ? '📄' : '📷'} 읽은 연수 확인</h2><button class="iconbtn" data-act="closeSheet" aria-label="닫기">✕</button></div>
     <div class="sheet-b" id="ptBody">${ptBodyHTML()}</div>
     <div class="sheet-f"><button class="btn" data-act="closeSheet">취소</button><button class="btn pri grow" data-act="trainSave" id="ptSaveBtn">${ptSaveLabel()}</button></div>`,
     { dirty: () => !!PT, onClose: () => { PT = null; } });
 }
 const ptSaveLabel = () => `체크한 ${PT.rows.filter(r => r.sel).length}건 등록`;
 function ptBodyHTML() {
-  let h = `<p class="hint">${PT.src === 'file' ? '파일에서 읽은 결과예요.' : 'AI가 읽은 결과예요.'} <b>시간·날짜가 맞는지 꼭 확인</b>하고, 틀린 곳은 고친 뒤 등록할 것만 체크해 주세요. ${PT.src === 'file' ? '파일은 저장되지 않아요.' : '사진은 읽는 데에만 쓰고 저장되지 않아요.'}</p>
+  let h = `<p class="hint">${PT.src === 'file' ? '파일에서 읽은 결과예요.' : 'AI가 읽은 결과예요.'} <b>시간·날짜가 맞는지 꼭 확인</b>하고, 틀린 곳은 고친 뒤 등록할 것만 체크해 주세요. ${PT.src === 'file' ? '파일은 저장되지 않아요.' : PT.src === 'pdf' ? 'PDF는 읽는 데에만 쓰고 저장되지 않아요.' : '사진은 읽는 데에만 쓰고 저장되지 않아요.'}</p>
     <div class="row wrap" style="margin:4px 0 2px"><button class="btn soft sm" data-act="trainAll" data-v="1">전체 선택</button><button class="btn soft sm" data-act="trainAll" data-v="0">전체 해제</button><span class="hint" style="margin:0">총 ${PT.rows.length}건</span></div>`;
   h += PT.rows.map((r, i) => `<div class="card mt8" style="padding:12px 14px">
     <div class="row"><input type="checkbox" style="width:22px;height:22px;accent-color:var(--main);flex-shrink:0;margin:0" data-tk="sel" data-ti="${i}" ${r.sel ? 'checked' : ''} aria-label="등록하기"><input type="text" data-tk="title" data-ti="${i}" value="${esc(r.title)}" aria-label="연수명"></div>
@@ -2196,6 +2193,89 @@ document.addEventListener('change', e => {
   const t = e.target;
   if (t.id === 'trainTblFile') { const f = t.files && t.files[0]; t.remove(); if (f) run(null, '', () => trainFileRead(f)); }
 });
+
+/* ═════════ PDF로 연수 불러오기 (PDF 쪽을 그림으로 바꿔 AI가 읽음 · 추가 기능) ═════════ */
+const PDFJS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js', PDFJS_WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+let pdfjsReady = null;
+function loadPdfJs() {
+  if (window.pdfjsLib && pdfjsLib.GlobalWorkerOptions.workerSrc) return Promise.resolve();
+  if (pdfjsReady) return pdfjsReady;
+  pdfjsReady = new Promise((resolve, reject) => {
+    const s = document.createElement('script'); s.src = PDFJS_URL;
+    s.onload = async () => {
+      try { const t = await (await fetch(PDFJS_WORKER)).text(); pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([t], { type: 'text/javascript' })); resolve(); }
+      catch (e) { reject(e); }
+    };
+    s.onerror = () => reject(new Error('PDF 읽기 도구를 불러오지 못했어요. 인터넷 연결을 확인하거나 사진·엑셀로 해 주세요'));
+    document.head.appendChild(s);
+  }).catch(e => { pdfjsReady = null; throw e; });
+  return pdfjsReady;
+}
+async function pdfToImages(file, maxPages, maxSide) {
+  await loadPdfJs();
+  const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise, n = Math.min(pdf.numPages, maxPages), imgs = [];
+  for (let i = 1; i <= n; i++) {
+    const page = await pdf.getPage(i), v1 = page.getViewport({ scale: 1 }), k = maxSide / Math.max(v1.width, v1.height), vp = page.getViewport({ scale: k });
+    const cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
+    const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, cv.width, cv.height);
+    await page.render({ canvasContext: cx, viewport: vp }).promise;
+    const d = cv.toDataURL('image/jpeg', 0.72); imgs.push({ mt: 'image/jpeg', data: d.slice(d.indexOf(',') + 1) });
+  }
+  return { imgs, total: pdf.numPages };
+}
+function openTrainPdfPick() {
+  if (S.mode !== 'gas') return toast('PDF 읽기(AI)는 구글 시트를 연결한 뒤에 쓸 수 있어요', 'err');
+  if (!S.ai.hasKey) { toast('설정 › AI에서 키를 먼저 넣어 주세요', 'err'); return; }
+  const old = $('#trainPdfFile'); if (old) old.remove();
+  const inp = document.createElement('input'); inp.type = 'file'; inp.id = 'trainPdfFile'; inp.accept = 'application/pdf,.pdf'; inp.hidden = true;
+  document.body.appendChild(inp); inp.click();
+}
+async function trainPdfRead(file) {
+  const found = []; let total = 0, used = 0;
+  try {
+    phBusy('PDF를 그림으로 바꾸는 중…');
+    const r = await pdfToImages(file, 6, 1400); total = r.total; used = r.imgs.length;
+    for (let i = 0; i < r.imgs.length; i++) {
+      phBusy(`PDF ${i + 1}/${r.imgs.length}쪽 AI가 읽는 중…`);
+      const res = await gasCall('aiVision', { system: PT_SYS, prompt: PT_PROMPT, images: [r.imgs[i]], maxTokens: 4000 }, { timeout: 170000 });
+      parsePhotoJson(res.text).forEach(it => found.push(it));
+    }
+  } finally { phBusyEnd(); }
+  ptPreview(found, 'pdf');
+  if (total > used) toast(`PDF가 ${total}쪽이라 앞 ${used}쪽만 읽었어요. 나머지는 나눠서 올려 주세요`, 'err');
+}
+ACT.trainPdf = () => { closeSheet(true); openTrainPdfPick(); };
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'trainPdfFile') { const f = t.files && t.files[0]; t.remove(); if (f) run(null, '', () => trainPdfRead(f)); }
+});
+
+/* ═════════ 불러오기 모음 (무엇을 → 어떻게) · 홈/기록/연수 카드에서 공통으로 사용 ═════════ */
+let HUB = null;
+const HUB_CATS = {
+  affs: { emo: '🏫', label: '경력·학력', sub: '국민연금 가입내역 캡처 등', methods: [['photoImport', '📷', '사진으로 읽기', 'AI(API) 사용 · 사진 1장마다 사용료']] },
+  train: { emo: '🎓', label: '연수', sub: '연수 이수내역 목록', methods: [['trainFile', '📊', '엑셀·CSV 파일', 'AI 없이 · 무료 · 가장 정확해요'], ['trainImport', '📷', '사진(캡처)으로 읽기', 'AI(API) 사용 · 사진 1장마다 사용료'], ['trainPdf', '📄', 'PDF로 읽기', 'AI(API) 사용 · 쪽마다 사용료 · 6쪽까지']] }
+};
+function hubHTML() {
+  if (!HUB || !HUB.cat) return `<p class="hint" style="margin-top:0">무엇을 불러올까요?</p>` + Object.keys(HUB_CATS).map(k => `<button class="btn soft block mt8" data-act="hubCat" data-c="${k}" style="text-align:left">${HUB_CATS[k].emo} ${HUB_CATS[k].label} <span class="lsub">${HUB_CATS[k].sub}</span></button>`).join('');
+  const c = HUB_CATS[HUB.cat];
+  return `<button class="link" data-act="hubBack" style="margin-bottom:6px">‹ 처음으로</button><p class="hint" style="margin:0 0 4px"><b>${c.emo} ${c.label}</b> · 어떻게 불러올까요?</p>`
+    + c.methods.map(m => `<button class="btn soft block mt8" data-act="hubGo" data-m="${m[0]}" style="text-align:left">${m[1]} ${m[2]} <span class="lsub">${m[3]}</span></button>`).join('')
+    + `<p class="hint">읽은 뒤에는 꼭 <b>확인 화면</b>이 먼저 나와요. 체크한 것만 등록되니 안심하세요.</p>`;
+}
+function openImportHub(cat) {
+  HUB = { cat: HUB_CATS[cat] ? cat : '' };
+  openSheet(`<div class="sheet-h"><h2>📥 불러오기</h2><button class="iconbtn" data-act="closeSheet" aria-label="닫기">✕</button></div><div class="sheet-b" id="hubBody">${hubHTML()}</div>`, { onClose: () => { HUB = null; } });
+}
+ACT.importHub = t => openImportHub(t && t.dataset ? t.dataset.cat : '');
+ACT.hubCat = t => { HUB = { cat: t.dataset.c }; $('#hubBody').innerHTML = hubHTML(); };
+ACT.hubBack = () => { HUB = { cat: '' }; $('#hubBody').innerHTML = hubHTML(); };
+ACT.hubGo = t => { const m = t.dataset.m; closeSheet(true); if (ACT[m]) ACT[m](t); };
+const _renderRecordsBody0 = renderRecordsBody;
+renderRecordsBody = function () {
+  _renderRecordsBody0();
+  const el = $('#rlist'); if (el) el.insertAdjacentHTML('afterbegin', `<div class="row wrap" style="margin:2px 0 8px"><button class="btn soft sm" data-act="importHub" data-cat="train">📥 연수·이력 불러오기</button><span class="hint" style="margin:0">사진 · 엑셀 · PDF로 한꺼번에</span></div>`);
+};
 
 /* ═════════ 시작 ═════════ */
 function init() {
