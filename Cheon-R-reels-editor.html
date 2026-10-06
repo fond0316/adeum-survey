@@ -187,6 +187,11 @@
       <label>꼭 보여주고 싶은 기능 <span class="hint">(선택)</span></label>
       <input type="text" id="shotFocus" placeholder="예: 점수 입력하면 등급이 바로 계산되는 부분">
     </div>
+    <div style="display:flex;flex-direction:column;gap:7px;margin:4px 0 14px;font-size:12.5px;">
+      <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;line-height:1.45;"><input type="checkbox" id="shotOptReview" checked style="margin-top:2px;"><span>👀 <b>AI가 화면을 보고 확인·재시도</b> <span class="hint">(팝업이 가리거나 빈 화면이면 자동 보정, 개인정보 의심 장면 표시 · API 호출이 조금 늘어요)</span></span></label>
+      <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;line-height:1.45;"><input type="checkbox" id="shotOptTap" checked style="margin-top:2px;"><span>👆 <b>누른 곳에 탭 표시</b> 넣기</span></label>
+      <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;line-height:1.45;"><input type="checkbox" id="shotOptZoom" checked style="margin-top:2px;"><span>🔍 <b>결과 부분 확대 장면</b> 추가 <span class="hint">(마음에 안 들면 ✕로 빼면 돼요)</span></span></label>
+    </div>
     <button class="btn btn-main" id="btnShotStart" style="width:100%;">🎥 자동 촬영 시작</button>
     <p style="font-size:11px;color:var(--sub);margin:8px 2px 0;line-height:1.5;">
       촬영할 때 "이 탭 공유" 허용창이 한 번 떠요. 앱이 이 브라우저에 저장된 <b>실제 데이터</b>를 그대로 보여주니, 촬영 후 아래 미리보기에서 학생 이름 등이 보이는 장면은 ✕로 빼주세요.
@@ -1123,6 +1128,7 @@ document.addEventListener("click",function(e){var a=e.target&&e.target.closest&&
 document.addEventListener("submit",function(e){e.preventDefault()},true);
 })();`;
 
+let shotLastEl = null; // 이번 장면에서 마지막으로 누른/고른 요소 (탭 표시용)
 let shotRunId = 0; // 촬영 1회마다 올라가는 번호 (취소/재시작 시 이전 촬영이 멈추도록)
 let shotStream = null, shotVideo = null;
 let shotResults = []; // { blob, url, caption }
@@ -1294,17 +1300,121 @@ async function shotRunAction(win, doc, a){
     const v = String(a.value == null ? "" : a.value);
     const opt = Array.from(el.options || []).find(o => o.value === v || o.textContent.trim() === v);
     if(!opt) return false;
+    shotLastEl = el;
     el.value = opt.value;
     el.dispatchEvent(new win.Event("input", { bubbles:true }));
     el.dispatchEvent(new win.Event("change", { bubbles:true }));
   }else{
+    shotLastEl = el;
     el.click();
   }
   return true;
 }
 
+/* --- AI 호출 공통 / 화면 확인 / 탭 표시 / 확대 --- */
+async function shotAsk(apiKey, content, maxTokens){
+  const resp = await fetch("https://api.anthropic.com/v1/messages", {
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "x-api-key": apiKey,
+      "anthropic-version":"2023-06-01",
+      "anthropic-dangerous-direct-browser-access":"true"
+    },
+    body: JSON.stringify({ model: SHOT_MODEL, max_tokens: maxTokens, messages:[{ role:"user", content }] })
+  });
+  if(!resp.ok){
+    const t = await resp.text();
+    throw new Error("API 오류 (" + resp.status + "): " + t.slice(0, 200));
+  }
+  const data = await resp.json();
+  const block = (data.content || []).find(b => b.type === "text");
+  if(!block) throw new Error("AI 응답을 읽지 못했어요");
+  return block.text;
+}
+async function shotBlobToB64(blob, max){
+  const bmp = await createImageBitmap(blob);
+  const k = Math.min(1, max / Math.max(bmp.width, bmp.height));
+  const c = document.createElement("canvas");
+  c.width = Math.round(bmp.width * k);
+  c.height = Math.round(bmp.height * k);
+  c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+  return c.toDataURL("image/jpeg", 0.7).split(",")[1];
+}
+function shotShowTap(doc, el){
+  try{
+    const r = el.getBoundingClientRect();
+    if(r.width < 4 || r.bottom < 0 || r.top > doc.defaultView.innerHeight) return null;
+    const d = doc.createElement("div");
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    d.style.cssText = "position:fixed;left:" + (cx - 28) + "px;top:" + (cy - 28) + "px;width:56px;height:56px;border-radius:50%;box-sizing:border-box;border:4px solid #fff;background:rgba(155,142,196,.35);box-shadow:0 0 0 3px rgba(155,142,196,.85),0 6px 18px rgba(0,0,0,.35);z-index:2147483647;pointer-events:none;";
+    doc.body.appendChild(d);
+    return d;
+  }catch(e){ return null; }
+}
+async function shotCaptureStep(doc, el, useTap){
+  const ring = (useTap && el) ? shotShowTap(doc, el) : null;
+  try{ return await shotGrab(); }
+  finally{ if(ring) ring.remove(); }
+}
+// 찍힌 화면을 AI가 보고: 가려지거나 비었는지, 개인정보가 보이는지 판단
+async function shotReview(apiKey, blob, caption, appName, elements){
+  try{
+    const b64 = await shotBlobToB64(blob, 640);
+    const text =
+`앱 소개 릴스의 한 장면을 찍는 중이야. 앱: "${appName || "웹앱"}", 이 장면의 의도(자막): "${caption}".
+첨부 이미지는 방금 찍은 화면이고, 지금 화면에서 누를 수 있는 요소는 다음과 같아:
+${JSON.stringify(elements.slice(0, 60))}
+
+JSON만 답해 (설명·코드블록 없이):
+{"ok":true,"problem":"","fix":[],"privacy":false,"privacyNote":""}
+- ok=false 조건: ①등록/동의/안내 팝업이 화면을 가리고 있다 ②화면이 비었거나 로딩·에러 상태다 ③장면 의도가 화면에 전혀 안 보인다.
+- ok=false면 fix에 최대 3개 action으로 해결 방법을 줘 (예: 팝업 닫기·가짜 정보로 등록 통과). action 형식: {"do":"click","id":"","text":""} / {"do":"type","id":"","text":"","value":""} / {"do":"scroll","y":0~1}. 삭제·초기화·전송·설정 류는 금지. 방법이 없으면 fix는 빈 배열.
+- privacy: 사람 실명, 학번, 연락처, 실제 학교 이름처럼 진짜 개인정보로 보이는 글자가 보이면 true (학생A 같은 가짜 예시는 false). true면 privacyNote에 무엇이 보이는지 한 줄.`;
+    const raw = await shotAsk(apiKey, [
+      { type:"image", source:{ type:"base64", media_type:"image/jpeg", data:b64 } },
+      { type:"text", text }
+    ], 700);
+    const s0 = raw.indexOf("{"), e0 = raw.lastIndexOf("}");
+    if(s0 < 0 || e0 < 0) return null;
+    return JSON.parse(raw.slice(s0, e0 + 1));
+  }catch(err){
+    console.warn("화면 확인 실패(건너뜀):", err);
+    return null;
+  }
+}
+// 결과 영역을 9:16으로 확대한 크롭 이미지 (확대 효과가 거의 없으면 null)
+async function shotZoomCrop(blob, doc, target){
+  try{
+    const el = shotFindTarget(doc, target);
+    if(!el) return null;
+    let r = el.getBoundingClientRect();
+    try{ // 박스가 아니라 안의 글자·내용이 실제로 차지하는 영역 기준으로 확대 (넓은 박스도 제대로 확대되게)
+      const rg = doc.createRange();
+      rg.selectNodeContents(el);
+      const rr = rg.getBoundingClientRect();
+      if(rr.width >= 4 && rr.height >= 4) r = rr;
+    }catch(e){}
+    const fw = shotFrame.clientWidth, fh = shotFrame.clientHeight;
+    if(r.width < 4 || r.bottom < 0 || r.top > fh) return null;
+    const bmp = await createImageBitmap(blob);
+    const k = bmp.width / fw;
+    let cw = Math.min(fw, Math.max(fw * 0.55, r.width * 1.4));
+    let ch = cw * 16 / 9;
+    if(ch > fh){ ch = fh; cw = ch * 9 / 16; }
+    if(cw > fw * 0.85) return null;
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const x0 = Math.min(Math.max(cx - cw / 2, 0), fw - cw);
+    const y0 = Math.min(Math.max(cy - ch / 2, 0), fh - ch);
+    const c = document.createElement("canvas");
+    c.width = bmp.width; c.height = bmp.height;
+    c.getContext("2d").drawImage(bmp, x0 * k, y0 * k, cw * k, ch * k, 0, 0, c.width, c.height);
+    return await new Promise(res => c.toBlob(res, "image/jpeg", 0.92));
+  }catch(e){ return null; }
+}
+
 /* --- AI 촬영 계획 --- */
-async function shotPlan(apiKey, src, elements, focus){
+async function shotPlan(apiKey, src, elements, focus, useZoom){
   let code = src;
   if(code.length > 60000) code = code.slice(0, 22000) + "\n/* ...중간 생략... */\n" + code.slice(-38000);
   const prompt =
@@ -1328,34 +1438,18 @@ ${focus ? "=== 꼭 보여주고 싶은 기능 ===\n" + focus + "\n" : ""}
 - 삭제·초기화·로그아웃·전송·관리자·설정·API 키·시트 연결 같은 버튼은 누르지 마.
 - caption: 그 장면이 무슨 기능인지 한눈에 보이는 15자 이내 짧고 임팩트 있는 한국어 자막.
 - title: 영상 맨 앞 3초용 후킹 제목, 20자 이내.
-설명이나 코드블록 없이 JSON만 답해:
-{"appName":"","oneLiner":"한 줄 소개","title":"","steps":[{"caption":"","actions":[]}]}`;
+${useZoom ? "- zoom: 결과가 나타나는 영역(예: 결과 박스)을 크게 확대해 보여주면 좋은 장면에만 {\"id\":\"\",\"text\":\"\"} 형태로 넣어줘 (최대 3장면, 나머지는 생략). 그 영역을 통째로 감싸는 요소를 골라.\n" : ""}설명이나 코드블록 없이 JSON만 답해:
+{"appName":"","oneLiner":"한 줄 소개","title":"","steps":[{"caption":"","actions":[]${useZoom ? ',"zoom":{"id":"","text":""}' : ""}}]}`;
 
-  const resp = await fetch("https://api.anthropic.com/v1/messages", {
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "x-api-key": apiKey,
-      "anthropic-version":"2023-06-01",
-      "anthropic-dangerous-direct-browser-access":"true"
-    },
-    body: JSON.stringify({ model: SHOT_MODEL, max_tokens: 3000, messages:[{ role:"user", content: prompt }] })
-  });
-  if(!resp.ok){
-    const t = await resp.text();
-    throw new Error("API 오류 (" + resp.status + "): " + t.slice(0, 200));
-  }
-  const data = await resp.json();
-  const block = (data.content || []).find(b => b.type === "text");
-  if(!block) throw new Error("촬영 계획을 읽지 못했어요");
-  let raw = block.text.trim();
+  let raw = (await shotAsk(apiKey, [{ type:"text", text: prompt }], 3000)).trim();
   const s = raw.indexOf("{"), e = raw.lastIndexOf("}");
   if(s < 0 || e < 0) throw new Error("촬영 계획 형식이 올바르지 않아요. 다시 시도해주세요");
   const plan = JSON.parse(raw.slice(s, e + 1));
   if(!Array.isArray(plan.steps) || plan.steps.length === 0) throw new Error("촬영 계획이 비어 있어요. 다시 시도해주세요");
   plan.steps = plan.steps.slice(0, 8).map(st => ({
     caption: String(st.caption || "").slice(0, 30),
-    actions: (Array.isArray(st.actions) ? st.actions : []).filter(a => a && typeof a === "object").slice(0, 4)
+    actions: (Array.isArray(st.actions) ? st.actions : []).filter(a => a && typeof a === "object").slice(0, 4),
+    zoom: (useZoom && st.zoom && typeof st.zoom === "object" && (st.zoom.id || st.zoom.text)) ? { id: String(st.zoom.id || ""), text: String(st.zoom.text || "") } : null
   }));
   return plan;
 }
@@ -1387,7 +1481,26 @@ function shotRender(){
     inp.placeholder = "자막";
     inp.style.cssText = "width:100%;border:0;border-top:1px solid #E4DFF0;padding:8px;font-size:12px;font-family:inherit;box-sizing:border-box;";
     inp.oninput = ()=>{ r.caption = inp.value; };
-    d.appendChild(img); d.appendChild(del); d.appendChild(inp);
+    d.appendChild(img); d.appendChild(del);
+    if(r.zoom || r.warn){
+      const tags = document.createElement("div");
+      tags.style.cssText = "position:absolute;left:6px;top:6px;display:flex;flex-direction:column;gap:4px;align-items:flex-start;";
+      if(r.zoom){
+        const z = document.createElement("span");
+        z.textContent = "🔍 확대";
+        z.style.cssText = "background:rgba(155,142,196,.95);color:#fff;font-size:11px;font-weight:700;padding:3px 7px;border-radius:8px;";
+        tags.appendChild(z);
+      }
+      if(r.warn){
+        const w = document.createElement("span");
+        w.textContent = "⚠️ 개인정보?";
+        w.title = r.warn;
+        w.style.cssText = "background:#E5484D;color:#fff;font-size:11px;font-weight:700;padding:3px 7px;border-radius:8px;";
+        tags.appendChild(w);
+      }
+      d.appendChild(tags);
+    }
+    d.appendChild(inp);
     grid.appendChild(d);
   });
 }
@@ -1403,6 +1516,7 @@ $("#btnShotStart").onclick = async ()=>{
 
   const run = ++shotRunId;
   const aborted = ()=> run !== shotRunId;
+  const optReview = $("#shotOptReview").checked, optTap = $("#shotOptTap").checked, optZoom = $("#shotOptZoom").checked;
   shotResults = [];
   $("#shotResult").style.display = "none";
   $("#btnShotStart").disabled = true;
@@ -1421,7 +1535,7 @@ $("#btnShotStart").onclick = async ()=>{
     if(aborted()) return;
 
     shotSay("🤖 AI가 앱 기능을 분석하는 중...");
-    const plan = await shotPlan(key, src, shotListElements(shotFrame.contentDocument), $("#shotFocus").value.trim());
+    const plan = await shotPlan(key, src, shotListElements(shotFrame.contentDocument), $("#shotFocus").value.trim(), optZoom);
     if(aborted()) return;
     shotMeta = { title: String(plan.title || ""), appName: String(plan.appName || ""), oneLiner: String(plan.oneLiner || "") };
 
@@ -1433,15 +1547,46 @@ $("#btnShotStart").onclick = async ()=>{
       const win = shotFrame.contentWindow;
       let doc;
       try{ doc = win.document; }catch(e){ break; }
+      shotLastEl = null;
       for(const a of step.actions){
         const ok = await shotRunAction(win, doc, a);
         if(!ok) skipped++;
         await shotSleep(450);
       }
       if(win.location.href !== "about:srcdoc") break; // 앱이 다른 페이지로 넘어가버린 경우 (안전하게 중단)
-      const blob = await shotGrab();
+      let blob = await shotCaptureStep(doc, shotLastEl, optTap);
       if(aborted()) return;
-      shotResults.push({ blob, url: URL.createObjectURL(blob), caption: step.caption });
+      let warn = "";
+      let escaped = false;
+      if(optReview){
+        for(let t = 0; t <= 2; t++){
+          shotSay("👀 화면 확인 중 (" + (i + 1) + "/" + plan.steps.length + ") · " + step.caption);
+          const rv = await shotReview(key, blob, step.caption, plan.appName, shotListElements(doc));
+          if(aborted()) return;
+          if(!rv) break;
+          warn = rv.privacy ? String(rv.privacyNote || "개인정보로 보이는 글자가 있어요") : "";
+          if(rv.ok || !Array.isArray(rv.fix) || rv.fix.length === 0 || t === 2) break;
+          shotSay("🔧 화면 보정 중 (" + (i + 1) + "/" + plan.steps.length + ") · " + String(rv.problem || ""));
+          shotLastEl = null;
+          for(const a of rv.fix.filter(x => x && typeof x === "object").slice(0, 3)){
+            const ok = await shotRunAction(win, doc, a);
+            if(!ok) skipped++;
+            await shotSleep(450);
+          }
+          if(win.location.href !== "about:srcdoc"){ escaped = true; break; }
+          blob = await shotCaptureStep(doc, shotLastEl, optTap);
+          if(aborted()) return;
+        }
+      }
+      shotResults.push({ blob, url: URL.createObjectURL(blob), caption: step.caption, warn });
+      if(escaped) break;
+      if(optZoom && step.zoom){
+        // 확대 장면은 탭 표시가 없는 깨끗한 화면에서 따요
+        const cleanBlob = (optTap && shotLastEl) ? await shotCaptureStep(doc, null, false) : blob;
+        const zb = await shotZoomCrop(cleanBlob, doc, step.zoom);
+        if(aborted()) return;
+        if(zb) shotResults.push({ blob: zb, url: URL.createObjectURL(zb), caption: step.caption, warn, zoom: true });
+      }
     }
     if(aborted()) return;
     if(shotResults.length === 0) throw new Error("촬영된 장면이 없어요. 앱 주소를 확인하고 다시 시도해주세요");
@@ -1459,6 +1604,8 @@ $("#btnShotStart").onclick = async ()=>{
 
 $("#btnShotApply").onclick = ()=>{
   if(shotResults.length === 0){ toast("넣을 장면이 없어요"); return; }
+  const warnN = shotResults.filter(r => r.warn).length;
+  if(warnN && !confirm("개인정보로 의심되는 장면이 " + warnN + "개 남아 있어요 (⚠️ 표시). 그래도 STEP 1에 넣을까요?")) return;
   shotResults.forEach((r, i)=>{
     const file = new File([r.blob], "앱촬영_" + (i + 1) + ".jpg", { type:"image/jpeg" });
     mediaFiles.push({ id: uid++, file, type:"image", url: URL.createObjectURL(file), caption: r.caption || "" });
