@@ -716,7 +716,7 @@ input[type=date]{min-width:0;max-width:100%}
           <li>글씨가 아주 많은 문서는 사진보다 <b>PDF·문서 링크</b>가 더 선명해요.</li></ol></div>
         <div class="step"><div class="st">🔔 같은 날짜·과목 알림</div><ol>
           <li>같은 날짜에 같은 과목 공지가 이미 있으면 올리기 전에 물어봐요.</li>
-          <li><b>기존 공지에 내용 추가</b> / <b>이 내용으로 바꾸기</b> / <b>올리지 않기</b> 중에서 골라요.</li></ol></div>
+          <li><b>기존 공지에 내용 추가</b> / <b>이 내용으로 바꾸기</b> / <b>따로 새 공지로 올리기</b> / <b>올리지 않기</b> 중에서 골라요.</li></ol></div>
         <div class="step"><div class="st">수정·삭제</div><ol>
           <li>공지 목록에서 <b>[수정] [삭제]</b>. <span class="pres-only">회장은 <b>본인이 쓴 공지만</b> 고칠 수 있어요.</span><span class="adm-only">회장은 본인이 쓴 공지만 고칠 수 있어요.</span></li></ol></div>
       </div></details>
@@ -731,7 +731,7 @@ input[type=date]{min-width:0;max-width:100%}
           <li>"○월 ○일 공지" 같은 머리말 줄, 날짜 없는 줄은 자동으로 빠져요.</li>
           <li>"9월~10월: 탐구 진행"처럼 기간인 줄은 시작 달 1일에 들어가요.</li>
           <li>적힌 요일이 실제 요일과 다르면 ⚠️ 경고가 떠요. 날짜를 한 번 더 확인해 주세요.</li>
-          <li>이미 올라간 공지와 겹치면 줄마다 <b>추가 / 바꾸기 / 올리지 않기</b>를 고를 수 있어요.</li>
+          <li>이미 올라간 공지와 겹치면 줄마다 <b>추가 / 바꾸기 / 따로 올리기 / 올리지 않기</b>를 고를 수 있어요.</li>
         </ul>
       </div></details>
 
@@ -1615,6 +1615,7 @@ function showDup(n, d){
   $('dupBtns').innerHTML = d.canEdit
     ? `<button class="cbtn btn ${d.exact?'sub':''}" onclick="dupChoose('add')">기존 공지에 내용 추가</button>
        <button class="cbtn btn sub" onclick="dupChoose('edit')">기존 공지를 이 내용으로 바꾸기</button>
+       <button class="cbtn btn sub" onclick="dupChoose('new')">따로 새 공지로 올리기</button>
        <button class="cbtn btn ${d.exact?'':'sub'}" onclick="dupChoose('skip')">올리지 않기</button>`
     : `<button class="cbtn btn" onclick="dupChoose('new')">따로 올리기</button>
        <button class="cbtn btn sub" onclick="dupChoose('skip')">올리지 않기</button>`;
@@ -2148,7 +2149,7 @@ function renderBulk(){
       ${it.saved?'<div class="bulk-warn" style="color:#2E7D32">✅ 이미 올라갔어요</div>':''}${it.warn?`<div class="bulk-warn">⚠️ ${esc(it.warn)}</div>`:''}
       ${it.dup?`<div class="bulk-dup">📅 ${prettyDate(it.date)}에 <b>${esc(subjLabel(it.title))}</b> 공지가 이미 있어요: "${esc(it.dup.target.title)}"${it.dup.exact?' — <b>제목까지 똑같아요</b>':''}${it.dup.canEdit?'':'<br>담임 공지라 회장은 고칠 수 없어요.'}
         <select onchange="setAct(${i},this.value)">${it.dup.canEdit
-          ? `<option value="add" ${it.act==='add'?'selected':''}>기존 공지에 내용 추가</option><option value="edit" ${it.act==='edit'?'selected':''}>기존 공지를 이 내용으로 바꾸기</option><option value="skip" ${it.act==='skip'?'selected':''}>올리지 않기</option>`
+          ? `<option value="add" ${it.act==='add'?'selected':''}>기존 공지에 내용 추가</option><option value="edit" ${it.act==='edit'?'selected':''}>기존 공지를 이 내용으로 바꾸기</option><option value="new" ${it.act==='new'?'selected':''}>따로 새 공지로 올리기</option><option value="skip" ${it.act==='skip'?'selected':''}>올리지 않기</option>`
           : `<option value="new" ${it.act==='new'?'selected':''}>따로 올리기</option><option value="skip" ${it.act==='skip'?'selected':''}>올리지 않기</option>`}</select></div>`:''}
     </div>`).join('');
   $('bulkAct').classList.remove('hide'); bulkCount();
