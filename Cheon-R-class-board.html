@@ -486,7 +486,9 @@ function waitOn(el, base){
 }
 
 let loaded = false;   // 처음 불러오기가 끝났는지
-async function load(manual){
+let lastLoadAt = 0;   // 마지막으로 불러오기를 시작한 시각 (앱을 다시 켤 때 너무 자주 불러오지 않게)
+async function load(manual, _try){
+  lastLoadAt = Date.now();
   const btn = document.getElementById('refBtn');
   btn.classList.add('spin');
   try{
@@ -503,7 +505,13 @@ async function load(manual){
     document.getElementById('upd').textContent = '마지막 업데이트 ' + new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
     lsSet(K.last, res.serverTime || '');
   }catch(e){
-    document.getElementById('list').innerHTML = '<div class="empty">'+esc(e.message)+'<br><button class="alink" style="margin-top:8px" onclick="load(true)">다시 시도</button></div>';
+    const tries = _try || 0;
+    if (tries < 2 && /서버 응답이 없어요|서버에 연결하지 못했어요/.test(e.message || '')){   // 구글이 잠깐 바쁠 수 있어서 몇 초 뒤 알아서 다시 시도 (한꺼번에 몰리지 않게 3~10초 사이 아무 때나)
+      if (!loaded) document.getElementById('list').innerHTML = '<div class="empty">구글 서버가 바빠요. 잠시 뒤 다시 불러올게요…</div>';
+      setTimeout(() => load(manual, tries + 1), 3000 + Math.random() * 7000);
+    } else if (!loaded || manual){   // 이미 화면에 공지가 있으면 자동 새로고침 실패로 지우지 않아요
+      document.getElementById('list').innerHTML = '<div class="empty">'+esc(e.message)+'<br><button class="alink" style="margin-top:8px" onclick="load(true)">다시 시도</button></div>';
+    }
   }finally{
     btn.classList.remove('spin');
   }
@@ -967,7 +975,11 @@ function renderStatRow(){ const row = document.getElementById('statRow'); if (ro
 function statSet(v){ lsSet(STAT_KEY, v); statShow(false); renderStatRow(); if (v === 'ack') schedulePing(); }
 async function statInit(){
   if (DEMO || PREVIEW || BOARD || !REGISTRY_URL || !GAS) return;
-  try{ const r = await jsonp({ action:'reviewConf', cb:classCode(GAS) }, REGISTRY_URL); statClassOn = !!(r && r.on); }catch(e){ return; }
+  const ck = lsGet('sn_stat_cf_v1', null), cc = classCode(GAS);
+  if (ck && ck.d === today() && ck.c === cc) statClassOn = !!ck.on;   // 오늘 이미 물어봤으면 다시 묻지 않아요
+  else{
+    try{ const r = await jsonp({ action:'reviewConf', cb:cc }, REGISTRY_URL); statClassOn = !!(r && r.on); lsSet('sn_stat_cf_v1', { d: today(), c: cc, on: statClassOn }); }catch(e){ return; }
+  }
   renderStatRow();
   if (statClassOn && !statGet()){   // 다른 창(학번 등록 등)이 열려 있으면 닫힐 때까지 기다렸다가 보여 줘요
     let tries = 0;
@@ -982,15 +994,15 @@ function schedulePing(){
   if (lsGet('sn_ping_v1', '') === today()) return;
   if (Date.now() - Number(lsGet('sn_ping_off_v1', 0)) < 3 * 3600 * 1000) return;   // 학급이 아직 인정되지 않았다는 답을 받았으면 3시간 뒤에 다시 시도
   pingSched = true;
-  setTimeout(async () => {          // 0.5~8초 사이 아무 때나 보내서 한꺼번에 몰리는 걸 줄여요
+  setTimeout(async () => {          // 4~30초 사이 아무 때나 보내서 한꺼번에 몰리는 걸 줄여요
     pingSched = false;
     if (BOARD) return;
     try{
       const r = await jsonp({ action:'ping', cb:classCode(GAS) }, REGISTRY_URL);   // 기기 번호 없이 '학급 코드'만
       if (r && r.on === false) lsSet('sn_ping_off_v1', Date.now());   // 등록 전이거나 학생 전송이 꺼진 학급: 오늘 한 것으로 치지 않고 나중에 다시
       else lsSet('sn_ping_v1', today());
-    }catch(e){}
-  }, 500 + Math.random() * 7500);
+    }catch(e){ lsSet('sn_ping_off_v1', Date.now()); }   // 실패하면 3시간 쉬어요 (구글이 바쁠 때 계속 다시 보내지 않게)
+  }, 4000 + Math.random() * 26000);
 }
 
 /* ===== 학번 등록 ===== */
@@ -1124,7 +1136,7 @@ async function toggleBoard(){
 }
 
 /* ===== 시작 ===== */
-document.addEventListener('visibilitychange', () => { if (!document.hidden){ load(); if (!popShowing) stopBlink(); try{ schedulePing(); }catch(e){} } });   // 홈 화면·북마크로 다시 열렸을 때도 하루 1번 이용 수 집계
+document.addEventListener('visibilitychange', () => { if (!document.hidden){ if (Date.now() - lastLoadAt > 20000) load(); if (!popShowing) stopBlink(); try{ schedulePing(); }catch(e){} } });   // 홈 화면·북마크로 다시 열렸을 때도 하루 1번 이용 수 집계
 window.addEventListener('pageshow', e => { if (e.persisted){ try{ schedulePing(); }catch(err){} } });
 if (!DEMO && 'serviceWorker' in navigator) navigator.serviceWorker.register('Cheon-R-class-board-sw.js', { scope:'./Cheon-R-class-board' }).catch(()=>{});
 if (PREVIEW) document.body.classList.add('pv');
@@ -1138,7 +1150,7 @@ if (!GAS){
   load();
   startPoll();
   schedulePing();
-  statInit();
+  setTimeout(statInit, 4000 + Math.random() * 16000);   // 공지 불러오기가 먼저, 등록부 확인은 4~20초 뒤에
   if (!me && !PREVIEW && !BOARD) setTimeout(openWho, 600);
 }
 </script>
