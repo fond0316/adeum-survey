@@ -1158,7 +1158,8 @@ input[type=file]{display:none;}
     <!-- 학급자율활동 항목 관리 -->
     <div class="card" style="margin-bottom:16px;border:2px solid var(--primary-mid);">
       <div class="card-title">🏫 학급자율활동 항목 관리</div>
-      <div class="info-box">학생 첫 화면에 보이는 항목이에요. 유형에 따라 섹션이 자동으로 나뉘어요.<br>· 제출형 → "내가 제출해요" · 기존 연결 → "기록해요" · 안내형 → "확인해요"<br>· 수정 후 <b>저장하기</b>를 눌러야 시트와 학생 화면에 반영돼요.</div>
+      <div class="info-box">학생 첫 화면에 보이는 주제예요. 영역 탭(🌱 자율 · 💡 진로 · 🎈 기타)별로 나뉘어 보여요.<br>· ✏️ 수정에서 <b>영역</b>·이름·설명·<b>제출 질문</b>·<b>마감일</b>을 바꿀 수 있어요.<br>· 제출형 → 질문에 답하는 주제 · 안내형 → 읽기만 하는 주제 · 기존 연결 → 스터디 화면<br>· 수정 후 <b>저장하기</b>를 눌러야 시트와 학생 화면에 반영돼요.</div>
+      <div id="hubAdminTabs"></div>
       <div id="hubAdminList"></div>
       <div class="form-group" style="margin-top:12px;">
         <label>🔑 서버 암호 <span style="font-weight:400;color:var(--gray-400);font-size:11px;">(.gs 파일 맨 위 ADMIN_PW에 적은 암호)</span></label>
@@ -2938,17 +2939,17 @@ function loadStudentInfoToForm() {
     <div class="form-group" id="hubGType">
       <label>유형</label>
       <select id="hubFType" onchange="hubTypeChange()">
-        <option value="info">안내형 — 설명·링크만 보여줘요</option>
-        <option value="submit">제출형 — 요약본 제출 + 파일 링크</option>
+        <option value="info">📌 안내형 — 읽기만 해요 (설명·링크)</option>
+        <option value="submit">✍️ 제출형 — 질문에 답해요 (주제 + 질문)</option>
         <option value="study">기존 연결 — 자율스터디 화면 열기</option>
       </select>
     </div>
     <div class="form-group" id="hubGArea">
       <label>영역 (학생 홈의 어느 탭에 보일까요?)</label>
       <select id="hubFArea" onchange="hubAreaTouched=true">
-        <option value="auto">🏃 자율</option>
-        <option value="career">🎯 진로</option>
-        <option value="etc">📦 기타 (학급활동)</option>
+        <option value="auto">🌱 자율</option>
+        <option value="career">💡 진로</option>
+        <option value="etc">🎈 기타 (학급활동)</option>
       </select>
     </div>
     <div class="form-group">
@@ -3399,16 +3400,25 @@ function hubRowHtml(it, kind, i, n){
 function hubAdminRender(){
   const a = document.getElementById('hubAdminList'), b = document.getElementById('hubStudyAdminList');
   if(!a || !b || !hubDraft) return;
-  a.innerHTML = hubDraft.items.map((it,i)=>hubRowHtml(it,'hub',i,hubDraft.items.length)).join('')
-    || '<div class="hub-empty">항목이 없어요. 아래 ＋ 항목 추가를 눌러주세요.</div>';
+  const tb = document.getElementById('hubAdminTabs');
+  if(tb) tb.innerHTML = '<div class="hub-tabs">' + Object.keys(HUB_AREAS).map(k=>{
+    const n = hubDraft.items.filter(x=>x.area===k).length;
+    return '<button type="button" class="hub-tab ar-' + k + (hubATab===k ? ' on' : '') + '" onclick="hubSetATab(\'' + k + '\')"><b data-ic="' + HUB_AREA_IC[k] + '">' + HUB_AREAS[k] + '</b><span>' + n + '개</span></button>';
+  }).join('') + '</div>';
+  a.innerHTML = hubDraft.items.map((it,i)=>it.area===hubATab ? hubRowHtml(it,'hub',i,hubDraft.items.length) : '').join('')
+    || '<div class="hub-empty">' + HUB_AREAS[hubATab] + ' 영역에 주제가 없어요. 아래 ＋ 항목 추가를 눌러주세요.</div>';
   b.innerHTML = hubDraft.study.map((it,i)=>hubRowHtml(it,'study',i,hubDraft.study.length)).join('');
   const btn = document.getElementById('hubSaveBtn');
   if(btn) btn.textContent = hubDirty ? '💾 저장하기 (변경됨)' : '💾 저장하기';
   hubTvFill();
 }
+let hubATab = 'auto';
+const HUB_AREA_IC = { auto:'🌱', career:'💡', etc:'🎈' };
+function hubSetATab(k){ hubATab = k; hubAdminRender(); }
 function hubArr(kind){ return kind==='study' ? hubDraft.study : hubDraft.items; }
 function hubMove(kind, i, d){
-  const arr = hubArr(kind), j = i + d;
+  const arr = hubArr(kind); let j = i + d;
+  if(kind === 'hub'){ while(j >= 0 && j < arr.length && arr[j].area !== arr[i].area) j += d; }
   if(j < 0 || j >= arr.length) return;
   const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
   hubDirty = true; hubTouched = true; hubAdminRender();
@@ -3425,7 +3435,7 @@ function hubOpenEdit(kind, idx){
   if(!hubDraft) hubAdminInit();
   hubEditCtx = { kind: kind, idx: idx };
   hubTouched = true;
-  const it = idx >= 0 ? hubArr(kind)[idx] : { type:'info', icon:'📌', name:'', desc:'', body:'', link:'', linkLabel:'', visible:true, closed:false };
+  const it = idx >= 0 ? hubArr(kind)[idx] : { type:'submit', icon:'📝', name:'', desc:'', body:'', link:'', linkLabel:'', visible:true, closed:false };
   document.getElementById('hubEditTitle').textContent = idx >= 0 ? '항목 수정' : '새 항목 추가';
   document.getElementById('hubFType').value = kind==='study' ? 'info' : it.type;
   document.getElementById('hubFIcon').value = it.icon;
@@ -3439,6 +3449,7 @@ function hubOpenEdit(kind, idx){
   document.getElementById('hubFArea').value = it.area || hubInferArea(it);
   document.getElementById('hubFDue').value = it.due || '';
   hubAreaTouched = idx >= 0;
+  if(idx < 0 && kind === 'hub'){ document.getElementById('hubFArea').value = hubATab; hubAreaTouched = true; }
   hubEditId = idx >= 0 ? it.id : hubNewId();
   if(!hubDraft.forms) hubDraft.forms = {};
   hubEditQs = hubClone(hubDraft.forms[hubEditId] || []).map(hubNormQ);
@@ -3517,6 +3528,7 @@ function hubApplyEdit(){
     due: (!isMenu && type === 'submit') ? document.getElementById('hubFDue').value : ''
   }, isMenu);
   if(old) arr[hubEditCtx.idx] = obj; else arr.push(obj);
+  if(!isMenu) hubATab = obj.area;
   if(!isMenu){
     if(type === 'submit') hubDraft.forms[obj.id] = hubEditQs.map(hubNormQ);
     else delete hubDraft.forms[obj.id];
