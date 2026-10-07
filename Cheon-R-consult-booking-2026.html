@@ -1092,7 +1092,7 @@ const DEFAULT_GAS_URL = '';
 
 // URL 파라미터로 GAS URL이 전달된 경우 자동 세팅 (배포용) — 형식이 정확할 때만 저장
 const GAS_URL_RE = /^https:\/\/script\.google\.com\/(?:a\/macros\/[A-Za-z0-9.\-]+|macros)\/s\/[A-Za-z0-9_\-]+\/exec$/;
-const NEED_GAS   = 3;   // 이 HTML이 요구하는 GAS 코드 버전 (GAS 파일의 GAS_VER와 비교)
+const NEED_GAS   = 4;   // 이 HTML이 요구하는 GAS 코드 버전 (GAS 파일의 GAS_VER와 비교)
 function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
 function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
 const _paramGasUrl = (new URLSearchParams(window.location.search).get('gas') || '').trim();
@@ -1124,6 +1124,10 @@ function syncServerTime(str){
 function nowKstStr(){ return new Date(Date.now()+serverOffset+9*3600e3).toISOString().slice(0,16).replace('T',' '); }
 function slotIsPast(dateKey,time){
   const m = String(time).match(/^(\d{2}:\d{2})/);
+  return m ? (dateKey+' '+m[1]) <= nowKstStr() : false;
+}
+function slotEndedNow(dateKey,time){
+  const m = String(time).match(/~\s*(\d{2}:\d{2})/);
   return m ? (dateKey+' '+m[1]) <= nowKstStr() : false;
 }
 function bookingOpenNow(){ return appSettings.bookingEnabled === true; }
@@ -1858,7 +1862,7 @@ function renderDaySlotList() {
       ? `<div class="slot-grid">${d.slots.map((s,si)=>`
           <div class="slot-item">
             <span class="slot-time">${esc(s.time)}${s.booked?' <span style="font-size:10px;color:#10B981;margin-left:4px;">✓예약</span>':''}</span>
-            ${!s.booked?`<button class="slot-del" onclick="deleteSlot(${di},${si})">×</button>`:''}
+            ${(!s.booked||slotEndedNow(d.dateKey,s.time))?`<button class="slot-del" onclick="deleteSlot(${di},${si})">×</button>`:''}
           </div>`).join('')}</div>`
       : '<p style="font-size:13px;color:#9CA3AF;margin-bottom:12px;">시간 슬롯이 없어요</p>';
     return `<div class="day-section">
@@ -1888,7 +1892,7 @@ async function adminSlotOp(action, extra, okMsg) {
   try {
     const res = adminCheck(await gasAdmin(action, extra));
     if (res.slots) appSlots = res.slots;
-    if (res.result === 'hasBooking') { showToast('⚠️ 예약이 있는 날짜·시간은 삭제할 수 없어요. 먼저 예약을 취소해 주세요.'); renderDaySlotList(); return false; }
+    if (res.result === 'hasBooking') { showToast('⚠️ 아직 지나지 않은 예약이 있어요. 먼저 예약을 취소해 주세요. (지난 상담은 바로 삭제 가능)'); renderDaySlotList(); return false; }
     if (res.result === 'exists')     { showToast('⚠️ 이미 있는 항목이에요.'); renderDaySlotList(); return false; }
     if (res.result !== 'success') throw new Error(res.message || res.result);
     renderDaySlotList(); renderDateGrid();
@@ -1906,7 +1910,8 @@ async function addDay() {
 }
 
 async function deleteDay(di) {
-  if (!confirm('이 날짜를 삭제할까요?')) return;
+  const hasPastBooked = appSlots[di].slots.some(s=>s.booked && slotEndedNow(appSlots[di].dateKey,s.time));
+  if (!confirm(hasPastBooked ? '이미 지난 상담 예약이 포함된 날짜예요.\n날짜를 삭제해도 예약 현황의 기록은 그대로 남아요.\n삭제할까요?' : '이 날짜를 삭제할까요?')) return;
   await adminSlotOp('deleteDay', { dateKey:appSlots[di].dateKey }, '🗑️ 날짜가 삭제됐어요!');
 }
 
@@ -1922,6 +1927,8 @@ async function addSlot(di) {
 }
 
 async function deleteSlot(di,si) {
+  const sl = appSlots[di].slots[si];
+  if (sl.booked && !confirm('이미 지난 상담 예약이에요.\n시간을 삭제해도 예약 현황의 기록은 그대로 남아요.\n삭제할까요?')) return;
   await adminSlotOp('deleteSlot', { slotId:appSlots[di].slots[si].id }, '🗑️ 시간이 삭제됐어요!');
 }
 
