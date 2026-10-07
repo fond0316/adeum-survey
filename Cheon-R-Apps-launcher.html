@@ -103,6 +103,8 @@ a.app:active{background:#FAF9FE}
 .emo button{width:44px;height:44px;border-radius:12px;background:var(--bg);font-size:22px}
 .emo button.on{outline:2px solid var(--main)}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--tx);color:#fff;border-radius:12px;padding:10px 16px;font-size:14px;z-index:30;max-width:90vw;text-align:center}
+.saving{position:fixed;top:calc(12px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:420px;background:var(--main-d);color:#fff;border-radius:14px;padding:12px 16px;font-size:14px;line-height:1.55;text-align:center;white-space:pre-line;z-index:40}
+.saved{font-size:12px;color:var(--tx2);text-align:center;margin-top:4px;min-height:18px}
 </style>
 </head>
 <body>
@@ -141,6 +143,7 @@ a.app:active{background:#FAF9FE}
     <div class="list" id="list"></div>
     <button class="addbtn hide" id="addBtn">+ 앱 추가</button>
     <div class="stat" id="stat"></div>
+    <div class="saved" id="savedAt"></div>
   </section>
 
   <div class="foot">
@@ -225,10 +228,15 @@ a.app:active{background:#FAF9FE}
   </div>
 </div>
 
+<!-- 저장이 오래 걸릴 때 안내 -->
+<div class="saving hide" id="saving" role="status" aria-live="polite"></div>
+
 <script>
 const LS_GAS = 'launcher_gas_v1', LS_CACHE = 'launcher_cache_v1', LS_SET = 'launcher_settings_v1', SS_PW = 'launcher_pw_v1';
 const DEF_SET = { title: 'Cheon_R 런처', subtitle: '내가 만든 앱을 한곳에서' };
 let settings = Object.assign({}, DEF_SET);
+const LS_SAVED = 'launcher_saved_v1';
+let savedAt = '', savingIv = null;
 const EMOJIS = ['📱','📚','🧮','📋','📝','📊','🎓','🧪','📅','🔔','🛠️','⭐','🏫','🎬','💬','🗂️'];
 const $ = id => document.getElementById(id);
 function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -350,6 +358,21 @@ function applySettings(s){
   $('hSub').textContent = settings.subtitle; $('hSub').style.display = settings.subtitle ? '' : 'none';
   document.title = settings.title;
 }
+/* 마지막 저장 일시 (서버가 KST로 기록해서 폰·PC가 같은 값을 봐요) */
+function renderSaved(){ $('savedAt').textContent = savedAt ? '마지막 저장 ' + savedAt : '마지막 저장 기록 없음 · 저장하면 여기에 표시돼요'; }
+function applySaved(s){
+  if (typeof s !== 'string') return;   // 예전 GAS(저장 일시 없음)면 그대로 둠
+  savedAt = s; lsSet(LS_SAVED, s); renderSaved();
+}
+
+/* 저장이 오래 걸릴 때 안내 (경과 시간 표시) */
+function showSaving(t0){
+  const box = $('saving'); box.classList.remove('hide');
+  const upd = () => { box.textContent = '⏳ 구글 서버에 저장하는 중이에요 (' + Math.floor((Date.now() - t0) / 1000) + '초)\n조금 오래 걸릴 수 있어요. 기다려 주세요.'; };
+  upd(); clearInterval(savingIv); savingIv = setInterval(upd, 1000);
+}
+function hideSaving(){ clearInterval(savingIv); savingIv = null; $('saving').classList.add('hide'); }
+
 function setApps(list){ apps = Array.isArray(list) ? list : []; lsSet(LS_CACHE, JSON.stringify(apps)); }
 
 async function load(){
@@ -357,7 +380,7 @@ async function load(){
   try{
     const r = await call({ action: 'list' });
     if (!r || !r.ok) throw new Error((r && r.error) || '불러오기에 실패했어요.');
-    setApps(r.apps); applySettings(r.settings); $('stat').textContent = '';
+    setApps(r.apps); applySettings(r.settings); applySaved(r.savedAt); $('stat').textContent = '';
   }catch(e){
     $('stat').textContent = '⚠️ ' + e.message + (apps.length ? ' (저장된 목록을 보여드려요)' : '');
   }
@@ -368,16 +391,21 @@ async function load(){
 async function write(params){
   if (busy) return null;
   busy = true;
+  const t0 = Date.now(), slow = setTimeout(() => showSaving(t0), 2500);
   try{
-    const r = await call(Object.assign({ pw }, params));
+    const r = await call(Object.assign({ pw }, params)).catch(e => {
+      // 응답이 없어도 서버에는 저장됐을 수 있어서 솔직하게 안내
+      if (String(e.message).indexOf('응답이 없어요') === 0) throw new Error('저장 응답이 없어요. 저장됐는지 확인되지 않았어요. 새로고침해서 목록을 확인해 주세요.');
+      throw e;
+    });
     if (!r || !r.ok) {
       if (r && (r.code === 'pw' || r.code === 'locked')) { admin = false; pw = ''; try{ sessionStorage.removeItem(SS_PW); }catch(e){} render(); }
       throw new Error((r && r.error) || '저장에 실패했어요.');
     }
     if (Array.isArray(r.apps)) setApps(r.apps);
-    applySettings(r.settings); render();
+    applySettings(r.settings); applySaved(r.savedAt); render();
     return r;
-  } finally { busy = false; }
+  } finally { busy = false; clearTimeout(slow); hideSaving(); }
 }
 
 async function move(shown, i, dir){
@@ -567,7 +595,7 @@ $('gasBtn').onclick = async () => {
   try{
     const r = await call({ action: 'list' });
     if (!r || !r.ok) throw new Error((r && r.error) || '연결에 실패했어요.');
-    lsSet(LS_GAS, v); setApps(r.apps); applySettings(r.settings); $('setupErr').textContent = '';
+    lsSet(LS_GAS, v); setApps(r.apps); applySettings(r.settings); applySaved(r.savedAt); $('setupErr').textContent = '';
     showMain(); toast('연결했어요');
   }catch(e){ GAS = prev; $('setupErr').textContent = e.message; }
   $('gasBtn').disabled = false;
@@ -575,6 +603,7 @@ $('gasBtn').onclick = async () => {
 $('resetGas').onclick = () => {
   if (!confirm('이 기기의 연결 주소를 지우고 다시 입력할까요? (시트 데이터는 그대로예요)')) return;
   try{ localStorage.removeItem(LS_GAS); localStorage.removeItem(LS_CACHE); sessionStorage.removeItem(SS_PW); }catch(e){}
+  try{ localStorage.removeItem(LS_SAVED); }catch(e){} savedAt = ''; $('savedAt').textContent = '';
   GAS = ''; apps = []; admin = false; pw = ''; showSetup();
 };
 $('gasInp').addEventListener('keydown', e => { if (e.key === 'Enter') $('gasBtn').click(); });
@@ -586,6 +615,7 @@ if (!GAS) { showSetup(); }
 else {
   try{ apps = JSON.parse(lsGet(LS_CACHE) || '[]'); if (!Array.isArray(apps)) apps = []; }catch(e){ apps = []; }
   try{ applySettings(JSON.parse(lsGet(LS_SET) || 'null')); }catch(e){}
+  try{ const sv = lsGet(LS_SAVED); if (sv) applySaved(sv); }catch(e){}
   try{ pw = sessionStorage.getItem(SS_PW) || ''; }catch(e){ pw = ''; }
   admin = !!pw;
   showMain();
