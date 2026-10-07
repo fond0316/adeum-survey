@@ -226,6 +226,16 @@ input[type=date]{min-width:0;max-width:100%}
 .gt td:first-child,.gt td:last-child{white-space:nowrap}
 .ck-list label{display:flex;gap:8px;align-items:flex-start;min-height:40px;font-size:14px;color:var(--tx2);line-height:1.6;padding:4px 0}
 .ck-list input{width:20px;height:20px;margin-top:2px;accent-color:var(--main);flex:none}
+.tsi{border:1px solid var(--line);border-radius:10px;margin-top:8px;background:#fff}
+.tsi>summary{padding:11px 14px;font-weight:700;font-size:14px;line-height:1.5;min-height:44px;display:flex;align-items:center;cursor:pointer;color:var(--tx)}
+.tsi[open]>summary{border-bottom:1px solid var(--line)}
+.tsi .tb{padding:6px 14px 12px;font-size:14px;color:var(--tx2);line-height:1.8;overflow-wrap:anywhere}
+.tsi .tb ol{padding-left:20px;margin:4px 0 0}
+.tsi .tb b{color:var(--tx)}
+.tsi .tw{background:#FEF9C3;color:#92400E;border-radius:8px;padding:8px 10px;margin-top:8px;font-size:13px;line-height:1.7}
+.tsbox{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:10px}
+.tsbox .th{font-size:14px;font-weight:800;color:var(--main-d)}
+.tsbox .ts{font-size:12px;color:var(--tx3);margin-top:2px}
 .tip{background:#FEF9C3;border-radius:12px;padding:12px 14px;font-size:13px;color:#92400E;line-height:1.8;margin-top:12px}
 .warn{background:#FCEBEB;border-radius:12px;padding:12px 14px;font-size:13px;color:#A32D2D;line-height:1.8;margin-top:8px}
 .code{margin-top:10px}
@@ -283,6 +293,7 @@ input[type=date]{min-width:0;max-width:100%}
       <input type="text" id="gasIn" placeholder="https://script.google.com/macros/s/.../exec">
       <div class="row" style="margin-top:10px"><button class="btn" onclick="connect()">연결하기</button></div>
       <div class="msg" id="conMsg"></div>
+      <div class="tsbox hide" id="conHelp"></div>
       <button class="gbtn" onclick="openGuide()">📖 처음 사용하시나요? 설치 가이드 보기</button>
     </div>
   </div>
@@ -305,9 +316,10 @@ input[type=date]{min-width:0;max-width:100%}
       <li>오른쪽 위 <b>배포 → 새 배포</b> → 톱니바퀴에서 <b>웹 앱</b> 선택</li>
       <li>실행 사용자: <b>나</b> / 액세스 권한: <b>모든 사용자</b> → 배포</li>
       <li>권한 요청 창: 내 계정 선택 → <b>고급</b> → <b>(안전하지 않음)으로 이동</b> → 허용</li>
-      <li>마지막 화면의 <b>…/exec</b>로 끝나는 웹 앱 URL 복사</li></ol></div>
+      <li>마지막 화면의 <b>…/exec</b>로 끝나는 웹 앱 URL 복사</li></ol>
+      <p class="hint" style="margin-top:8px">🆘 오류가 나거나 막히면 → <a href="#" onclick="tsJump();return false" style="color:var(--main-d);font-weight:700">맨 아래 '해결 방법' 보기</a> (PC 크롬에서 하는 걸 권해요)</p></div>
     <div class="step"><div class="st">Step 4. 연결하기</div><ol>
-      <li>링크를 처음 열면 <b>사용자 등록(학교 지역·학교급, 이름은 선택)</b>부터 입력해요</li>
+      <li>링크를 처음 열면 <b>사용자 등록(학교 지역·학교급, 아이디)</b>부터 입력해요</li>
       <li>다음 화면에서 ← 돌아가기 → 복사한 URL 붙여넣기 → <b>연결하기</b></li>
       <li>처음 비밀번호 <b>classboard</b>로 로그인</li>
       <li>바로 <b>새 비밀번호로 바꾸는 화면</b>이 떠요 (꼭 바꿔야 다음으로 넘어가요)</li>
@@ -325,6 +337,8 @@ input[type=date]{min-width:0;max-width:100%}
       <li>교실 <b>전자칠판</b>엔 학생용 링크를 열고 맨 아래 <b>🖥️ 교실 화면 모드</b>를 켜 두세요.</li></ol></div>
     <div class="tip">💡 나중에 GAS 코드를 고칠 땐 <b>새 배포</b>가 아니라 <b>배포 관리 → ✏️ 수정 → 새 버전</b>으로 해야 기존 학생 링크가 유지돼요.</div>
     <div class="tip" style="background:var(--bg);color:var(--tx2)">📘 설치가 끝나고 로그인하면, 관리 화면의 <b>📘 가이드</b> 탭에서 사용법을 볼 수 있어요.</div>
+    <div class="step" id="tsGuide" style="border-left-color:#E0A800"><div class="st">🆘 설치하다 막혔다면 (증상을 눌러 보세요)</div>
+      <div id="tsGuideList"></div></div>
     <button class="gbtn" onclick="mailContact()">✉️ 궁금한 점은 메일로 문의해 주세요</button>
   </div>
 
@@ -400,6 +414,7 @@ input[type=date]{min-width:0;max-width:100%}
         <button class="btn sub" onclick="resetGas()">연결 주소 변경</button>
       </div>
       <div class="msg" id="loginMsg"></div>
+      <div class="tsbox hide" id="loginHelp"></div>
     </div>
   </div>
 
@@ -804,6 +819,12 @@ input[type=date]{min-width:0;max-width:100%}
         </ul>
       </div></details>
 
+      <details class="hdet adm-only"><summary>🆘 설치·연결이 안 될 때</summary><div class="hb">
+        <p style="margin-top:6px">해당하는 증상을 눌러 순서대로 확인해 보세요.</p>
+        <div id="tsHelpList"></div>
+        <div class="row" style="margin-top:10px"><button class="btn sub" onclick="mailContact()">✉️ 그래도 안 되면 개발자에게 문의</button></div>
+      </div></details>
+
       <details class="hdet"><summary>🛠️ 이럴 땐 이렇게 (문제 해결)</summary><div class="hb">
         <ul>
           <li><b>"저장 중…"이 오래 걸려요</b> → 구글 서버가 느릴 때가 있어요. 몇 초째인지 표시되고, <b>1분 안에 결과</b>를 알려 줘요. 실패로 나와도 <b>다시 눌러도 두 번 올라가지 않아요.</b></li>
@@ -994,25 +1015,102 @@ function jsonp(params, base){
   });
 }
 
+/* ===== 🆘 설치·연결 문제 해결 (여기 한 곳만 고치면 설치 화면 · 연결/로그인 오류 아래 · 가이드 탭에 같은 내용이 보여요) ===== */
+const TS = [
+ { k:'noresp', i:'🔌', t:'"서버 응답이 없어요" · "서버에 연결하지 못했어요"가 떠요', s:[
+   '주소가 <b>https://script.google.com/macros/s/…/exec</b> 로 <b>끝까지</b> 복사됐는지 봐 주세요. (<b>/dev</b>로 끝나는 주소는 테스트용이라 안 돼요)',
+   'Apps Script 오른쪽 위 <b>배포 → 배포 관리 → ✏️(수정)</b>에서 <b>실행 사용자: 나</b> / <b>액세스 권한: 모든 사용자</b>인지 확인해요. ("Google 계정이 있는 모든 사용자"를 고르면 안 돼요)',
+   '코드를 붙여넣고 <b>저장만 하고 배포를 안 했다면</b> 배포를 해야 주소가 생겨요.',
+   '크롬 <b>시크릿 창</b>에서 같은 화면을 열어 보세요. (확장 프로그램이나 여러 구글 계정 때문일 수 있어요)',
+   '<b>학교 와이파이</b>가 구글 스크립트 주소를 막는 경우가 있어요. 폰 데이터나 다른 와이파이로 바꿔 보세요.',
+   '방금 배포했다면 1~2분 뒤에 다시 눌러 보세요.' ],
+   w:'그래도 안 되면 주소를 새로 복사해 붙여 넣어 보고, 아래 문의 버튼으로 알려 주세요.' },
+ { k:'perm', i:'🛡️', t:'권한 창에서 "확인되지 않은 앱"이라며 막혀요', s:[
+   '내 구글 계정을 고른 뒤 왼쪽 아래 <b>고급</b>(Advanced)을 눌러요.',
+   '<b>(안전하지 않음)으로 이동</b> → <b>허용</b>을 눌러요.',
+   '"확인되지 않은 앱"이라고 뜨는 건 <b>정상</b>이에요. 내 구글 계정에서 만든 내 코드라 구글이 따로 검수하지 않았다는 뜻이고, 내 시트에 공지·명단을 저장하는 데 쓰여요.',
+   '<b>고급</b>이 안 보이거나 "관리자가 차단했어요"라고 뜨면 아래 <b>학교 구글 계정</b> 항목을 봐 주세요.' ] },
+ { k:'workspace', i:'🏫', t:'학교(업무용) 구글 계정이라 "모든 사용자" 배포가 안 돼요', s:[
+   '학교·업무용 계정은 관리자 설정 때문에 액세스 권한에 <b>"모든 사용자"가 안 보이거나</b> 외부 접속이 막힐 수 있어요.',
+   '이럴 땐 <b>개인 구글 계정(@gmail.com)</b>으로 스프레드시트와 Apps Script를 새로 만들어서 Step 1부터 해 주세요.',
+   '이미 학교 계정 시트에 입력해 둔 내용이 있다면 메일로 문의해 주세요.' ] },
+ { k:'paste', i:'📋', t:'코드를 붙여넣었더니 오류가 나요 · 저장이 안 돼요', s:[
+   '편집기에 원래 있던 <b>function myFunction() {}</b> 같은 기본 코드를 <b>Ctrl+A → Delete</b>로 전부 지운 뒤 붙여넣어요.',
+   '코드를 <b>두 번 붙여넣지</b> 않았는지 확인해요. (맨 아래까지 내려서 같은 코드가 또 있으면 중복이에요)',
+   '[📋 코드 전체 복사]가 안 되면 <b>"복사가 안 될 때: 코드 직접 복사하기"</b> 상자를 눌러 → Ctrl+A → Ctrl+C 해요.',
+   '붙여넣은 뒤 💾 <b>저장</b>까지 눌렀는지 확인해요. 저장하지 않으면 배포에 반영되지 않아요.' ],
+   w:'Apps Script 편집은 폰에서는 어려워요. <b>PC(크롬)</b>에서 하는 걸 권해요.' },
+ { k:'newdeploy', i:'🔁', t:'배포를 새로 했더니 주소가 바뀌었어요 · 학생 링크가 이상해요', s:[
+   '코드를 고칠 땐 <b>배포 → 새 배포</b>가 아니라 <b>배포 관리 → ✏️ 수정 → 버전: 새 버전 → 배포</b>예요. 새 배포를 하면 주소가 바뀌어요.',
+   '이미 새 배포를 했다면, 새 주소를 로그인 화면의 <b>[연결 주소 변경]</b>에 넣고 연결해 주세요.',
+   '⚙️ 탭의 <b>학생용 링크를 다시 공유</b>해 주세요. 예전 링크는 옛 주소를 보고 있어서 옛 코드가 나오거나 안 열릴 수 있어요.' ] },
+ { k:'tab', i:'📄', t:'구글 시트에 탭이 안 생겨요 · 공지가 시트에 안 보여요', s:[
+   '시트 탭(설정 등)은 <b>연결한 뒤 처음 로그인할 때</b> 자동으로 생겨요. 로그인까지 해 보세요.',
+   '코드를 붙여넣은 시트와 <b>같은 시트</b>를 보고 있는지 확인해요. (시트를 여러 개 만들었다면 헷갈리기 쉬워요)',
+   '시트 화면을 새로고침(F5)해 보세요.' ] },
+ { k:'stale', i:'🔔', t:'업데이트했는데 🔔 알림이 계속 떠요 · 화면이 그대로예요', s:[
+   '새 코드 붙여넣기 → 💾 저장 → <b>배포 관리 → ✏️ 수정 → 버전: 새 버전 → 배포</b>까지 했는지 확인해요. 저장만 하면 반영되지 않아요.',
+   '배포한 뒤 <b>1분쯤</b> 기다렸다가 [다시 확인]을 눌러요.',
+   '화면은 <b>Ctrl+F5</b>(폰은 새로고침)로 새로 불러와요.',
+   '홈 화면에 추가한 앱이라면 앱을 완전히 닫았다가 다시 열어 보세요.' ] },
+ { k:'pw', i:'🔑', t:'비밀번호가 맞지 않아요 · 비밀번호를 잊었어요', s:[
+   '처음 설치했다면 초기 비밀번호는 <b>classboard</b>예요. (영문 소문자 · 한/영 키를 확인해요)',
+   '바꾼 뒤에 잊었다면 내 구글 시트의 <b>\'설정\' 탭 → 관리자비번</b> 칸에서 확인할 수 있어요.',
+   '<b>회장</b>은 비밀번호가 아니라 <b>회장 코드</b>를 입력해요.',
+   '로그인 화면이 바로 뜨는데 내 시트가 아닌 것 같다면, 이 기기에 <b>다른 선생님의 연결</b>이 남아 있는 거예요(공용 PC). <b>[연결 주소 변경]</b>에 내 주소를 넣어 주세요.' ] },
+ { k:'quota', i:'⏳', t:'갑자기 느리거나 구글이 "너무 많이 호출됐다"는 오류를 보여요', s:[
+   '구글 무료 계정에는 <b>순간·하루 사용량 제한</b>이 있어요. 학생들이 한꺼번에 접속하는 시간대에 잠깐 느리거나 실패할 수 있어요.',
+   '몇 분 뒤에 다시 해 보세요. 한도 때문이라면 보통 시간이 지나면 풀려요.',
+   '저장이 실패로 나와도 <b>다시 눌러도 두 번 올라가지 않아요.</b>',
+   '자주 반복되면 아래 문의 버튼으로 알려 주세요.' ] },
+ { k:'gate', i:'⏸️', t:'"승인 대기" 또는 "사용이 중지되었어요" 화면이 떠요', s:[
+   '<b>승인 대기</b>: 개발자가 승인해야 쓸 수 있는 상태예요. 문의 메일로 학교 지역과 아이디를 알려 주세요.',
+   '<b>사용이 중지되었어요</b>: 이 학급의 사용이 중지된 상태예요. 문의 메일로 알려 주세요.' ] },
+ { k:'student', i:'🧑‍🎓', t:'학생이 "서버에 연결하지 못했어요" · "명단에 없는 학번"이라고 해요', s:[
+   '<b>서버에 연결하지 못했어요</b>: 학교 와이파이가 막는 경우가 있어요. 데이터로 바꾸거나 크롬으로 열어 보게 해 주세요.',
+   '<b>명단에 없는 학번이에요</b>: 👥 명단 탭에 학번이 맞게 들어갔는지, <b>명단 저장</b>을 눌렀는지 확인해요.',
+   '학생이 ⚙️ 탭의 <b>학생용 링크</b>가 아니라 다른 주소(관리자 링크 등)로 들어오지 않았는지 확인해요.',
+   '홈 화면에 추가한 앱이 예전 주소를 쓰고 있다면, 새 링크로 다시 추가해 주세요.' ] }
+];
+const TS_CONN = ['noresp','perm','workspace','newdeploy'], TS_LOGIN = ['pw','noresp'];
+function tsHtml(keys, openFirst){
+  const list = keys ? keys.map(k => TS.find(x => x.k === k)).filter(Boolean) : TS;
+  return list.map((x, n) => `<details class="tsi"${openFirst && n === 0 ? ' open' : ''}><summary>${x.i}&nbsp;${x.t}</summary><div class="tb"><ol>${x.s.map(t => `<li>${t}</li>`).join('')}</ol>${x.w ? `<div class="tw">${x.w}</div>` : ''}</div></details>`).join('');
+}
+function renderTs(){
+  if ($('tsGuideList')) $('tsGuideList').innerHTML = tsHtml(null, false);
+  if ($('tsHelpList')) $('tsHelpList').innerHTML = tsHtml(null, false);
+}
+function showHelpBox(id, keys, on){   // 연결·로그인 오류 아래에 '이렇게 확인해 보세요'를 펼쳐 줘요
+  const el = $(id); if (!el) return;
+  if (!on){ el.classList.add('hide'); el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="th">🔧 이렇게 확인해 보세요</div><div class="ts">해당하는 걸 눌러 순서대로 해 보세요</div>${tsHtml(keys, true)}`
+    + `<button class="gbtn" onclick="openGuideTs()">📖 더 많은 해결 방법 보기</button>`;
+  el.classList.remove('hide');
+}
+function tsJump(){ const el = $('tsGuide'); if (el) el.scrollIntoView({ behavior:'smooth', block:'start' }); }
+async function openGuideTs(){ await openGuide(); setTimeout(tsJump, 150); }
+renderTs();
+
 /* ===== 연결 & 로그인 ===== */
 async function connect(){
   const url = $('gasIn').value.trim();
   if (!/^https:\/\/script\.google\.com\/.+\/exec/.test(url)){ msg('conMsg','…/exec 로 끝나는 웹 앱 URL을 넣어 주세요.'); return; }
-  const old = GAS; GAS = url; msg('conMsg','연결 확인 중…',true);
+  const old = GAS; GAS = url; msg('conMsg','연결 확인 중…',true); showHelpBox('conHelp', 0, false);
   try{ await jsonp({ action:'ping' }); lsSet(K.gas, url); msg('conMsg','연결됐어요!',true); setTimeout(()=>show('scrLogin'),400); }
-  catch(e){ GAS = old; msg('conMsg', e.message); }
+  catch(e){ GAS = old; msg('conMsg', e.message); showHelpBox('conHelp', TS_CONN, true); }
 }
 function resetGas(){ $('gasIn').value = GAS; show('scrConnect'); }
 async function login(){
   const pw = $('pwIn').value.trim();
   if (!pw){ msg('loginMsg','비밀번호를 입력해 주세요.'); return; }
-  msg('loginMsg','확인 중…',true);
+  msg('loginMsg','확인 중…',true); showHelpBox('loginHelp', 0, false);
   try{
     const r = await jsonp({ action:'login', pw });
-    if (!r.role){ msg('loginMsg','비밀번호가 맞지 않아요.'); return; }
+    if (!r.role){ msg('loginMsg','비밀번호가 맞지 않아요.'); showHelpBox('loginHelp', TS_LOGIN, true); return; }
     PW = pw; sessionStorage.setItem(K.pw, pw); role = r.role;
     await afterLogin(r);
-  }catch(e){ msg('loginMsg', e.message); }
+  }catch(e){ msg('loginMsg', e.message); showHelpBox('loginHelp', ['noresp','pw'], true); }
 }
 function logout(){ if (FROM_BOARD) return backToBoard(); PW=''; sessionStorage.removeItem(K.pw); $('pwIn').value=''; msg('loginMsg','',true); show('scrLogin'); }
 
