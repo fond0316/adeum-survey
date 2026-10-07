@@ -295,6 +295,7 @@ input[type=file]{display:none;}
 .hub-tabs{display:flex;gap:6px;margin:4px 0 12px;}
 .hub-tab{flex:1;min-width:0;min-height:52px;padding:7px 0 6px;border-radius:12px;background:white;border:1.5px solid #e5e7eb;color:#6b7280;font-family:inherit;cursor:pointer;text-align:center;}
 .hub-tab b{display:block;font-size:14px;font-weight:700;}
+.hub-tab b::before{content:attr(data-ic) ' ';}
 .hub-tab span{display:block;font-size:11px;margin-top:1px;}
 .hub-tab.ar-auto.on{background:#FDEFC8;border-color:#E9C46A;color:#8A5A12;}
 .hub-tab.ar-career.on{background:#D7F0E3;border-color:#7FCBA3;color:#1F6B4A;}
@@ -3162,7 +3163,7 @@ function renderHub(){
   keys.forEach(k=>{
     const list = vis.filter(x=>x.area===k), subs = list.filter(x=>x.type==='submit');
     const sub = subs.length ? (subs.filter(isDone).length + '/' + subs.length) : (list.length + '개');
-    html += '<button class="hub-tab ar-' + k + (hubTab===k ? ' on' : '') + '" data-area="' + k + '"><b>' + HUB_AREAS[k] + '</b><span>' + sub + '</span></button>';
+    html += '<button class="hub-tab ar-' + k + (hubTab===k ? ' on' : '') + '" data-area="' + k + '"><b data-ic="' + ({auto:'🌱',career:'💡',etc:'🎈'})[k] + '">' + HUB_AREAS[k] + '</b><span>' + sub + '</span></button>';
   });
   html += '</div>';
   const list = vis.filter(x=>x.area===hubTab), subs = list.filter(x=>x.type==='submit');
