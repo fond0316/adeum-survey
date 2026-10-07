@@ -460,12 +460,12 @@ function jsonp(params, base){
     if (!B) return reject(new Error('연결 주소가 없어요. 선생님이 알려준 링크로 다시 열어 주세요.'));
     const cb = '__sn' + Date.now() + (jpSeq++);
     const s = document.createElement('script');
-    const t = setTimeout(() => { cleanup(); reject(new Error('서버 응답이 없어요. 화면 위 ↻를 누른 뒤 다시 시도해 주세요.')); }, 15000);
+    const t = setTimeout(() => { cleanup(); reject(new Error('서버 응답이 없어요. 접속자가 많아서 잠시 끊겼을 수도 있어요. 1~2분 뒤에 화면 위 ↻를 눌러 다시 해 보세요.')); }, 25000);
     function cleanup(){ clearTimeout(t); delete window[cb]; s.remove(); }
     window[cb] = (res) => { cleanup(); res && res.ok ? resolve(res) : reject(new Error((res && res.error) || '요청에 실패했어요.')); };
     const q = new URLSearchParams({ ...params, callback: cb, _: Date.now() });
     s.src = B + (B.includes('?') ? '&' : '?') + q.toString();
-    s.onerror = () => { cleanup(); reject(new Error('서버에 연결하지 못했어요.')); };
+    s.onerror = () => { cleanup(); reject(new Error('서버에 연결하지 못했어요. 접속자가 많아서 잠시 끊겼을 수도 있어요. 조금 있다 다시 해 보세요.')); };
     document.body.appendChild(s);
   });
 }

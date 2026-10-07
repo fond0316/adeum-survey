@@ -31,8 +31,8 @@ function doGet(e) {
   var cb = p.callback || 'callback';
   var out;
   try {
-    setup_();
-    out = route_(p);
+    out = fastLoad_(p);                    // 학생 불러오기: 잠깐 기억해 둔 결과가 있으면 그걸로 (없거나 문제가 생기면 null → 아래 원래 방식)
+    if (!out) { setup_(); out = route_(p); }
   } catch (err) {
     out = { ok: false, error: String(err && err.message || err) };
   }
@@ -43,7 +43,7 @@ function doGet(e) {
 
 function route_(p) {
   switch (p.action) {
-    case 'ping': return { ok: true, className: getSetting_('학급명'), year: year_(), gasVer: GAS_VER };
+    case 'ping': return { ok: true, className: getSetting_('학급명'), year: year_(), gasVer: GAS_VER, cacheVer: CACHE_VER };
     case 'load': return load_(p);
     case 'search': return search_(p);
     case 'who': return who_(p);
@@ -186,10 +186,10 @@ function need_(p, roles) {
   if (roles.indexOf(role) < 0) throw new Error('권한이 없어요. 비밀번호(코드)를 확인해 주세요.');
   return role;
 }
-function lock_(fn) {
+function lock_(fn, scope) {
   var lock = LockService.getScriptLock();
   lock.waitLock(10000);
-  try { return fn(); } finally { lock.releaseLock(); }
+  try { return fn(); } finally { cbump_(scope); lock.releaseLock(); }   // 저장이 끝나면(실패해도) 기억해 둔 불러오기 결과를 비워서 바로 새 내용이 보이게
 }
 function noticeObj_(r, targetMap, attMap) {
   return {
@@ -418,6 +418,109 @@ function load_(p) {
   return { ok: true, className: getSetting_('학급명'), year: year_(), notices: notices, confirmed: mine, callDone: callDoneMap_(), links: linksList_(), gasVer: GAS_VER, serverTime: now_() };
 }
 
+/* ---------- 빠른 불러오기 (학생 21~30명이 한꺼번에 열어도 가볍게) ----------
+ * 학생 앱의 '불러오기'는 시트를 여러 개 읽어서 한꺼번에 몰리면 느려져요.
+ * 읽은 결과를 CACHE_TTL초 동안 기억해 두고, 공지·설정·확인 등 무언가 저장되면 lock_ 가 바로 비워요.
+ * 어떤 단계든 문제가 생기면 null 을 돌려줘서 원래 방식(load_)으로 처리돼요.
+ * 시트를 직접 고친 경우에는 최대 CACHE_TTL초 뒤에 반영돼요. */
+var CACHE_VER = 1, CACHE_TTL = 30, CACHE_CHUNK = 30000;
+function fastLoad_(p) {
+  if (p.action !== 'load') return null;
+  try {
+    var hit = cacheRead_();
+    if (hit.base && hit.cf) return loadAssemble_(hit.base, hit.cf, p);
+    var lock = null, got = false;
+    try { lock = LockService.getDocumentLock(); got = !!lock && lock.tryLock(8000); } catch (e) { got = false; }   // 한 명만 시트를 읽고 나머지는 그 결과를 받아가요
+    try {
+      if (got) { hit = cacheRead_(); if (hit.base && hit.cf) return loadAssemble_(hit.base, hit.cf, p); }
+      setup_();
+      var gens = cacheGens_();                       // 읽기 전에 번호를 적어 둠 (읽는 동안 저장이 있었다면 이 결과는 버려짐)
+      var base = hit.base, cf = hit.cf;
+      if (!base) {                                   // 공지·설정·링크 등 (확인 체크 제외)
+        base = load_({});
+        delete base.confirmed; delete base.serverTime;
+        cacheWrite_('base', gens.base, base);
+      }
+      if (!cf) {                                     // 확인 체크 — 학번별 목록
+        cf = {};
+        rows_('confirms').forEach(function (r) { var k = 's' + r[1]; (cf[k] = cf[k] || []).push(r[0]); });
+        cacheWrite_('cf', gens.cf, cf);
+      }
+      return loadAssemble_(base, cf, p);
+    } finally {
+      if (got) { try { lock.releaseLock(); } catch (e2) {} }
+    }
+  } catch (err) {
+    return null;
+  }
+}
+function loadAssemble_(base, cf, p) {
+  var sid = String(p.sid || ''), o = {};
+  Object.keys(base).forEach(function (k) { o[k] = base[k]; });
+  o.confirmed = (sid && Object.prototype.hasOwnProperty.call(cf, 's' + sid)) ? cf['s' + sid].slice() : [];
+  o.serverTime = now_();
+  return o;
+}
+function cacheGens_() {
+  var g = {};
+  try { g = CacheService.getScriptCache().getAll(['gen_base', 'gen_cf']) || {}; } catch (e) {}
+  return { base: g.gen_base || '0', cf: g.gen_cf || '0' };
+}
+/** scope: 'cf' = 확인기록만 바뀜, 그 외(없음) = 전부 비움 */
+function cbump_(scope) {
+  try {
+    var kv = { gen_cf: String(Date.now()) + Math.floor(Math.random() * 1000) };
+    if (scope !== 'cf') kv.gen_base = String(Date.now()) + Math.floor(Math.random() * 1000);
+    CacheService.getScriptCache().putAll(kv, 21600);
+  } catch (e) {}
+}
+/** 긴 결과는 조각내서 저장 (한 칸 100KB 제한 + 글자 반쪽이 잘리지 않게) */
+function cacheWrite_(name, gen, obj) {
+  try {
+    var s = JSON.stringify(obj), parts = [], i = 0;
+    while (i < s.length) {
+      var e = Math.min(i + CACHE_CHUNK, s.length);
+      if (e < s.length) { var cc = s.charCodeAt(e - 1); if (cc >= 0xD800 && cc <= 0xDBFF) e--; }
+      parts.push(s.substring(i, e)); i = e;
+    }
+    var pre = 'ld_' + name + '_' + gen + '_', kv = {};
+    parts.forEach(function (x, n) { kv[pre + n] = x; });
+    kv[pre + 'm'] = parts.length + ':' + s.length;
+    CacheService.getScriptCache().putAll(kv, CACHE_TTL);
+  } catch (e) {}
+}
+/** 기억해 둔 결과 읽기 — { base, cf } 각각 없거나 길이가 안 맞으면 null */
+function cacheRead_() {
+  var res = { base: null, cf: null };
+  try {
+    var c = CacheService.getScriptCache(), gens = cacheGens_();
+    var pairs = [['base', 'ld_base_' + gens.base + '_'], ['cf', 'ld_cf_' + gens.cf + '_']];
+    var m = c.getAll([pairs[0][1] + 'm', pairs[1][1] + 'm']) || {};
+    var keys = [], info = [];
+    pairs.forEach(function (pr) {
+      var meta = m[pr[1] + 'm'];
+      if (!meta) return;
+      var mm = String(meta).split(':'), n = Number(mm[0]), len = Number(mm[1]);
+      if (!(n >= 1) || !(len >= 0)) return;
+      for (var i = 0; i < n; i++) keys.push(pr[1] + i);
+      info.push({ name: pr[0], pre: pr[1], n: n, len: len });
+    });
+    if (!info.length) return res;
+    var got = c.getAll(keys) || {};
+    info.forEach(function (it) {
+      var s = '', j;
+      for (j = 0; j < it.n; j++) {
+        var part = got[it.pre + j];
+        if (part === undefined || part === null) return;
+        s += part;
+      }
+      if (s.length !== it.len) return;
+      try { res[it.name] = JSON.parse(s); } catch (e) {}
+    });
+  } catch (e) {}
+  return res;
+}
+
 function who_(p) {
   var sid = String(p.sid || '');
   var r = rows_('students').filter(function (x) { return x[0] === sid; })[0];
@@ -433,7 +536,7 @@ function confirm_(p) {
     var dup = rows_('confirms').some(function (r) { return r[0] === nid && r[1] === sid; });
     if (!dup) sh_('confirms').appendRow([nid, sid, st[1], now_()]);
     return { ok: true };
-  });
+  }, 'cf');
 }
 
 /** 학생 수정요청·질문 — 이름은 명단에서 자동으로 붙임 (사칭 방지) */
