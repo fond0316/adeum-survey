@@ -224,6 +224,7 @@
     <div class="row" style="justify-content:center;margin-top:10px;">
       <button class="btn ghost small" id="dxRvBtn" data-dx="open-panel" data-v="review" style="display:none;">💬 후기 남기기</button>
       <button class="btn ghost small" data-dx="open-panel" data-v="info">⚙️ 정보·문의</button>
+      <button class="btn ghost small" data-dx="open-owner">👑 관리자 모드</button>
     </div>
     <p class="dx-use" id="dxUse" style="display:none;"></p>
     <p class="dx-note">🔒 학생 이름·점수는 이 기기 브라우저에만 저장되고 어디로도 전송되지 않아요. 공용 컴퓨터라면 사용 후 '전체 데이터 삭제'를 눌러 주세요.</p>
@@ -454,6 +455,17 @@
         <p class="dx-hint">사용자 등록·후기에 쓰이는 이름표예요. 문의할 때 알려 주시면 확인이 빨라요.</p>
         <button class="btn ghost small" data-dx="copy-id" style="margin-top:8px;">ID 복사</button>
         <div class="dx-msg" id="dxIdMsg"></div>
+      </div>
+    </div>
+
+    <!-- 관리자 로그인 -->
+    <div id="dxSecOwnLogin" style="display:none;">
+      <div class="card">
+        <h2>👑 관리자 모드</h2>
+        <p class="desc">앱을 만든 사람 전용 화면이에요. 비밀번호를 입력해 주세요.</p>
+        <input class="dx-in" id="dxOwnPw" type="password" inputmode="numeric" autocomplete="off" placeholder="관리자 비밀번호" maxlength="30">
+        <button class="btn" data-dx="own-login" style="width:100%;margin-top:10px;">들어가기</button>
+        <div class="dx-msg" id="dxOwnLoginMsg"></div>
       </div>
     </div>
 
@@ -1287,6 +1299,7 @@
   function toast(t){ var el=g('dxToast'); el.textContent=t; el.style.display='block'; clearTimeout(toastT); toastT=setTimeout(function(){ el.style.display='none'; },2400); }
 
   // ---------- 상태 ----------
+  var ownUnlocked=false, ownFail=0, ownLockUntil=0;
   var installId='', isOwner=false, reviewOn=false, usePub=null, bootDone=false, curTab='info';
   var rvRate=0, rvPick=[], rvLow=[], rvLowOtherOn=false, rvOtherOn=false, rvKind='', rvOk='no', rvSending=false;
   var own=null;
@@ -1403,7 +1416,7 @@
     var allowed = reviewOn || isOwner;
     g('dxRvBtn').style.display = allowed ? '' : 'none';
     g('dxTabReview').style.display = allowed ? '' : 'none';
-    g('dxTabOwner').style.display = isOwner ? '' : 'none';
+    g('dxTabOwner').style.display = (isOwner && ownUnlocked) ? '' : 'none';
     g('dxInstallId').textContent = installId || '(등록 기능이 꺼져 있어요)';
     var u=usePub, show = u && typeof u.users==='number' && (isOwner || u.users>=10);   // 누적 10명 미만이면 숨김 (아듬샘에겐 항상 표시)
     var ul=g('dxUse'); ul.style.display = show ? '' : 'none';
@@ -1428,12 +1441,14 @@
   function openPanel(tab){
     var allowed = reviewOn || isOwner;
     if(tab==='review' && !allowed) tab='info';
-    if(tab==='owner' && !isOwner) tab='info';
+    if(tab==='owner' && !(isOwner && ownUnlocked)) tab='ownLogin';
     curTab=tab;
-    ['review','info','owner'].forEach(function(t){
-      g('dxSec'+t.charAt(0).toUpperCase()+t.slice(1)).style.display = t===tab ? '' : 'none';
-      g('dxTab'+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle('active', t===tab);
+    ['review','info','owner','ownLogin'].forEach(function(t){
+      var T=t.charAt(0).toUpperCase()+t.slice(1), tb=g('dxTab'+T);
+      g('dxSec'+T).style.display = t===tab ? '' : 'none';
+      if(tb) tb.classList.toggle('active', t===tab);
     });
+    if(tab==='ownLogin'){ g('dxOwnPw').value=''; setMsg('dxOwnLoginMsg',''); }
     g('dxPanel').classList.add('show'); g('dxPanel').scrollTop=0;
     if(tab==='review') renderRv();
     if(tab==='owner' && !own) ownerLoad();
@@ -1502,6 +1517,37 @@
     function ok(){ setMsg('dxIdMsg','✅ 복사했어요',true); }
     if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok).catch(function(){ setMsg('dxIdMsg','자동 복사가 안 됐어요. 직접 선택해서 복사해 주세요.'); });
     else setMsg('dxIdMsg','자동 복사가 안 됐어요. 직접 선택해서 복사해 주세요.');
+  }
+
+  // ---------- 👑 관리자 모드 비밀번호 (화면 열기용 · 실제 자료 보호는 등록부가 설치 ID로 확인해요) ----------
+  var OWN_HASH='1sx1r6l134s68';
+  function ownHash(s){
+    var h1=0xdeadbeef, h2=0x41c6ce57, r, i, ch, str='grade-owner-v1|'+s;
+    for(r=0;r<2000;r++){
+      for(i=0;i<str.length;i++){ ch=str.charCodeAt(i); h1=Math.imul(h1^ch,2654435761); h2=Math.imul(h2^ch,1597334677); }
+      h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);
+      h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+      str=(h1>>>0).toString(36)+'|'+(h2>>>0).toString(36)+'|'+s;
+    }
+    return (h1>>>0).toString(36)+(h2>>>0).toString(36);
+  }
+  function ownerLogin(){
+    var now=Date.now();
+    if(now<ownLockUntil){ setMsg('dxOwnLoginMsg','비밀번호를 여러 번 틀렸어요. 잠시 후 다시 해 주세요.'); return; }
+    var pw=g('dxOwnPw').value.trim();
+    if(!pw){ setMsg('dxOwnLoginMsg','비밀번호를 입력해 주세요.'); return; }
+    if(ownHash(pw)!==OWN_HASH){
+      ownFail++;
+      if(ownFail>=5){ ownFail=0; ownLockUntil=now+30000; setMsg('dxOwnLoginMsg','5번 틀려서 30초 동안 잠겼어요.'); }
+      else setMsg('dxOwnLoginMsg','비밀번호가 맞지 않아요.');
+      return;
+    }
+    ownFail=0;
+    if(!isOwner){
+      setMsg('dxOwnLoginMsg','비밀번호는 맞아요! 그런데 이 기기는 등록부에 관리자로 등록되어 있지 않아요. ⚙️ 정보·문의의 설치 ID를 등록부 시트 설정 탭 [관리자설치ID]에 붙여넣은 뒤 새로고침해 주세요.');
+      return;
+    }
+    ownUnlocked=true; applyUi(); openPanel('owner');
   }
 
   // ---------- 👑 관리자 (앱 만든 사람 전용 · 등록부가 owner로 확인해 줄 때만) ----------
@@ -1608,6 +1654,8 @@
       case 'copy-id': copyId(); break;
       case 'banner-go': bannerClose(true); break;
       case 'banner-later': bannerClose(false); break;
+      case 'open-owner': openPanel('owner'); break;
+      case 'own-login': ownerLogin(); break;
       case 'own-load': ownerLoad(); break;
       case 'own-img': ownerSaveImg(); break;
       case 'own-reviews': ownerOpenReviews(); break;
