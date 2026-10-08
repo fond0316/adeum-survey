@@ -395,7 +395,7 @@
 <div class="dx-ov" id="dxPanel">
   <div class="dx-sheet">
     <div class="dx-head"><h3>🌟 등급계산기</h3><button class="dx-x" data-dx="close-panel" aria-label="닫기">✕</button></div>
-    <div class="dx-tabs">
+    <div class="dx-tabs" id="dxTabs">
       <button class="dx-tab" id="dxTabReview" data-dx="tab" data-v="review">💬 후기</button>
       <button class="dx-tab" id="dxTabInfo" data-dx="tab" data-v="info">ℹ️ 정보·문의</button>
       <button class="dx-tab" id="dxTabOwner" data-dx="tab" data-v="owner" style="display:none;">👑 관리자</button>
@@ -1448,6 +1448,7 @@
       g('dxSec'+T).style.display = t===tab ? '' : 'none';
       if(tb) tb.classList.toggle('active', t===tab);
     });
+    g('dxTabs').style.display = tab==='ownLogin' ? 'none' : '';
     if(tab==='ownLogin'){ g('dxOwnPw').value=''; setMsg('dxOwnLoginMsg',''); }
     g('dxPanel').classList.add('show'); g('dxPanel').scrollTop=0;
     if(tab==='review') renderRv();
