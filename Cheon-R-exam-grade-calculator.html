@@ -582,7 +582,20 @@
   const NEIS_PATH = `<div class="path">📍 교과담임 → 정기시험조회 → 과목별일람표조회 → 전체학급 선택 → 학기 선택 → 중간고사/기말고사 설정 → 조회 → 엑셀 다운로드</div>
     위 경로로 받은 "정기시험 교과목별 일람표" 엑셀은 그대로 업로드하면 자동으로 인식돼요.`;
   const PERFORMANCE_PATH = `<div class="path">📍 수행평가는 나이스 정기시험 일람표 형식이 아니에요</div>
-    직접 만든 명렬표(학번 또는 반+번호, 이름, 점수)를 올려주세요. 여러 항목을 합산한 <b>최종 수행평가 총점 1개</b> 열로 정리해서 넣으면 계산이 가능해요.`;
+    직접 만든 명렬표(학번 또는 반+번호, 이름, 점수)를 올려주세요. 여러 항목을 합산한 <b>최종 수행평가 총점 1개</b> 열로 정리해서 넣으면 계산이 가능해요.
+    <div style="margin-top:10px;"><button type="button" class="btn ghost small" data-tpl="perf">📥 수행평가 양식(엑셀) 내려받기</button>
+    <div style="font-size:12px;margin-top:6px;">양식에 <b>학번 · 이름 · 점수</b>만 채워서 올리면 돼요. 학번이 없으면 <b>반</b>·<b>번호</b> 열을 추가해도 괜찮아요.</div></div>`;
+
+  function downloadPerfTemplate(){
+    if(typeof XLSX === 'undefined'){ alert('엑셀 도구를 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.'); return; }
+    const rows = [['학번','이름','점수']];
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:12},{wch:14},{wch:12}];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '수행평가');
+    XLSX.writeFile(wb, '수행평가_양식.xlsx');
+  }
+  document.addEventListener('click', e=>{ const b = e.target.closest && e.target.closest('[data-tpl="perf"]'); if(b) downloadPerfTemplate(); });
 
   const GUIDE_TEXT = { midterm: NEIS_PATH, final: NEIS_PATH, performance: PERFORMANCE_PATH };
   const GUIDE_COMMON = `
