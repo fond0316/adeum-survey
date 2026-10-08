@@ -3,7 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>아듬's 등급계산기</title>
+<title>🌟 등급계산기</title>
+<meta name="description" content="나이스 일람표 엑셀을 넣으면 5등급제 석차등급을 자동으로 계산해요">
+<meta property="og:type" content="website">
+<meta property="og:title" content="🌟 등급계산기">
+<meta property="og:description" content="나이스 일람표 엑셀을 넣으면 5등급제 석차등급을 자동으로 계산해요">
+<meta property="og:image" content="https://fond0316.github.io/adeum-survey/Cheon-R-og2.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="🌟 등급계산기">
+<meta name="twitter:description" content="나이스 일람표 엑셀을 넣으면 5등급제 석차등급을 자동으로 계산해요">
+<meta name="twitter:image" content="https://fond0316.github.io/adeum-survey/Cheon-R-og2.png">
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -148,15 +159,75 @@
   .weightsum{ font-size:13px; font-weight:600; margin-bottom:14px; }
   .weightsum.bad{ color:#A32D2D; }
   .weightsum.good{ color:#3B6D11; }
+
+  /* ===== 배포용 추가 요소 (dx-) ===== */
+  .dx-note{ font-size:11.5px; color:var(--sub); margin:8px 0 0; line-height:1.5; }
+  .dx-use{ font-size:12px; color:var(--main-dark); margin:6px 0 0; font-weight:600; }
+  .dx-banner{ background:#F0EDFA; border:1px solid var(--main); border-radius:12px; padding:12px 14px; margin:12px auto 0; max-width:520px; text-align:left; font-size:13px; line-height:1.6; color:var(--main-dark); }
+  .dx-banner .row{ margin-top:8px; }
+  .dx-foot{ margin-top:30px; text-align:center; font-size:12px; color:var(--sub); line-height:1.9; }
+  .dx-foot a{ color:var(--main-dark); font-weight:600; text-decoration:none; }
+  .dx-ov{ position:fixed; inset:0; z-index:1000; display:none; overflow-y:auto; background:rgba(46,42,61,0.55);
+    padding:max(16px, env(safe-area-inset-top)) 14px max(16px, env(safe-area-inset-bottom)); }
+  .dx-ov.solid{ background:var(--bg); }
+  .dx-ov.show{ display:block; }
+  .dx-sheet{ max-width:560px; margin:0 auto; background:var(--bg); border-radius:18px; padding:16px; }
+  .dx-ov.solid .dx-sheet{ padding:8px 0; }
+  .dx-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .dx-head h3{ margin:0; font-size:16px; }
+  .dx-x{ border:none; background:#fff; border:1px solid var(--border); border-radius:10px; width:44px; height:44px; font-size:16px; cursor:pointer; color:var(--main-dark); }
+  .dx-tabs{ display:flex; gap:6px; background:#EAE6F5; padding:5px; border-radius:14px; margin-bottom:14px; }
+  .dx-tab{ flex:1; border:none; background:transparent; color:var(--main-dark); font-family:inherit; font-size:13px; font-weight:600; padding:10px 6px; border-radius:10px; cursor:pointer; min-height:44px; position:relative; }
+  .dx-tab.active{ background:var(--main); color:#fff; }
+  .dx-lbl{ display:block; font-size:13px; font-weight:600; margin:12px 0 6px; }
+  .dx-lbl small{ font-weight:400; color:var(--sub); }
+  .dx-in{ width:100%; border:1px solid var(--border); border-radius:10px; padding:11px 12px; font-size:14px; font-family:inherit; background:#fff; min-height:44px; color:var(--text); }
+  textarea.dx-in{ min-height:70px; resize:vertical; }
+  .dx-two{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .dx-chips{ display:flex; flex-wrap:wrap; gap:8px; }
+  .dx-chip{ border:1.5px solid var(--border); background:#fff; color:var(--text); border-radius:20px; padding:9px 13px; font-family:inherit; font-size:13px; cursor:pointer; min-height:44px; }
+  .dx-chip.on{ border-color:var(--main); background:#F0EDFA; color:var(--main-dark); font-weight:700; }
+  .dx-stars{ display:flex; gap:4px; }
+  .dx-star{ border:none; background:none; font-size:34px; line-height:1; color:#D8D3E8; cursor:pointer; width:48px; height:48px; padding:0; }
+  .dx-star.on{ color:#F2C94C; }
+  .dx-hint{ font-size:12px; color:var(--sub); line-height:1.6; margin:6px 0 0; }
+  .dx-msg{ font-size:12.5px; color:#A32D2D; margin-top:10px; min-height:18px; line-height:1.5; }
+  .dx-msg.ok{ color:#3B6D11; }
+  .dx-box{ background:#fff; border:1px solid var(--border); border-radius:12px; padding:12px; font-size:12px; word-break:break-all; color:var(--sub); }
+  .dx-priv{ font-size:12.5px; color:var(--sub); line-height:1.7; padding-left:18px; margin:6px 0; }
+  .dx-agree{ display:flex; gap:10px; align-items:flex-start; margin:12px 0 4px; font-size:13px; line-height:1.5; }
+  .dx-agree input{ width:22px; height:22px; margin-top:1px; flex:none; accent-color:var(--main); }
+  .dx-gate-ic{ font-size:44px; text-align:center; margin:10px 0 4px; }
+  .dx-stat-cards{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:12px; }
+  .dx-stat-card{ background:#fff; border:1px solid var(--border); border-radius:12px; padding:10px 4px; text-align:center; }
+  .dx-stat-card b{ display:block; font-size:18px; color:var(--main-dark); }
+  .dx-stat-card span{ font-size:11px; color:var(--sub); }
+  .dx-tag{ display:inline-block; font-size:11px; background:#F0EDFA; color:var(--main-dark); border-radius:8px; padding:2px 7px; margin-left:4px; }
+  .dx-tag.bad{ background:#FDECEC; color:#A32D2D; } .dx-tag.warn{ background:#FFF6E5; color:#7A5B00; }
+  .dx-row{ background:#fff; border:1px solid var(--border); border-radius:12px; padding:10px 12px; margin-bottom:8px; font-size:13px; line-height:1.6; }
+  .dx-row.nw{ border-color:var(--main); }
+  .dx-row small{ color:var(--sub); }
+  .dx-row .stars{ color:#F2C94C; letter-spacing:1px; } .dx-row .stars i{ color:#D8D3E8; font-style:normal; }
+  .dx-dot{ display:inline-block; min-width:18px; height:18px; line-height:18px; border-radius:9px; background:#EB5757; color:#fff; font-size:11px; padding:0 5px; margin-left:4px; }
+  .dx-toast{ position:fixed; left:50%; bottom:max(24px, env(safe-area-inset-bottom)); transform:translateX(-50%); background:#2E2A3D; color:#fff; padding:11px 16px; border-radius:12px; font-size:13px; z-index:2000; display:none; max-width:90%; }
+  .dx-switch{ display:flex; align-items:center; gap:10px; margin:8px 0; font-size:13px; }
+  .dx-switch input{ width:24px; height:24px; accent-color:var(--main); }
 </style>
 </head>
 <body>
 <div class="wrap">
 
   <header>
-    <h1>📝 아듬's 등급계산기</h1>
+    <h1>📝 등급계산기</h1>
     <p>2022 개정 교육과정 5등급제 · 반별 엑셀을 넣으면 전체 학년 기준으로 자동 계산됩니다</p>
     <button class="btn ghost small" id="clearStorageBtn" style="margin-top:10px;">🗑️ 전체 데이터 삭제</button>
+    <div class="row" style="justify-content:center;margin-top:10px;">
+      <button class="btn ghost small" id="dxRvBtn" data-dx="open-panel" data-v="review" style="display:none;">💬 후기 남기기</button>
+      <button class="btn ghost small" data-dx="open-panel" data-v="info">⚙️ 정보·문의</button>
+    </div>
+    <p class="dx-use" id="dxUse" style="display:none;"></p>
+    <p class="dx-note">🔒 학생 이름·점수는 이 기기 브라우저에만 저장되고 어디로도 전송되지 않아요. 공용 컴퓨터라면 사용 후 '전체 데이터 삭제'를 눌러 주세요.</p>
+    <div id="dxBanner" class="dx-banner" style="display:none;"></div>
   </header>
 
   <div class="tabbar" id="tabBar"></div>
@@ -170,6 +241,16 @@
 
       <div class="guide" id="pathGuide" style="margin-bottom:14px;"></div>
 
+      <div class="row" style="margin-bottom:12px;">
+        <label for="gradeSel" style="font-size:13px;font-weight:600;">📌 학년</label>
+        <select id="gradeSel" class="dx-in" style="width:auto;min-width:150px;">
+          <option value="auto">자동 (기본)</option>
+          <option value="1">1학년</option>
+          <option value="2">2학년</option>
+          <option value="3">3학년</option>
+        </select>
+        <span class="dx-hint" style="flex:1 1 220px;margin:0;">학번 열이 없고 반+번호만 있는 파일에서 학번을 만들 때 써요. 학번이 있거나 나이스 일람표처럼 학년이 적힌 파일은 파일 내용이 우선이에요. '자동'은 이미 계산한 다른 탭의 학년을 따라가고, 없으면 1학년이에요.</span>
+      </div>
       <div id="restoredNote"></div>
 
       <div class="dropzone" id="dropzone">
@@ -269,8 +350,141 @@
     <div class="classgrid" id="classGrid"></div>
   </div>
 
+  <div class="dx-foot">문의 <a id="dxFootMail" href="mailto:fond7509@naver.com">fond7509@naver.com</a></div>
   <footer>Made by Cheon_R</footer>
 </div>
+
+<!-- ===== 배포용 추가: 등록/승인 안내 화면 ===== -->
+<div class="dx-ov solid" id="dxGate">
+  <div class="dx-sheet">
+    <div id="dxRegBox" style="display:none;">
+      <div class="card">
+        <h2>👋 처음 오셨네요! 사용자 등록</h2>
+        <p class="desc">앱을 쓰는 선생님이 얼마나 되는지 파악하고 더 좋게 고치는 데에만 써요. 1분이면 끝나요 🙂</p>
+        <label class="dx-lbl" for="dxRegion">학교 지역 · 학교급</label>
+        <div class="dx-two">
+          <select class="dx-in" id="dxRegion"></select>
+          <select class="dx-in" id="dxLevel"></select>
+        </div>
+        <label class="dx-lbl" for="dxName">아이디 <small>(실명 말고 · 20자까지)</small></label>
+        <input class="dx-in" id="dxName" type="text" maxlength="20" placeholder="사용할 아이디를 적어 주세요">
+        <details style="margin-top:12px;">
+          <summary>🔒 개인정보 수집·이용 안내 (눌러서 보기)</summary>
+          <div id="dxPrivGate"></div>
+        </details>
+        <label class="dx-agree"><input type="checkbox" id="dxAgree"><span>개인정보 수집·이용에 동의해요 <b>(필수)</b></span></label>
+        <button class="btn" id="dxRegBtn" data-dx="reg-submit" style="width:100%;margin-top:10px;">등록하고 시작하기</button>
+        <div class="dx-msg" id="dxRegMsg"></div>
+      </div>
+    </div>
+    <div id="dxStatBox" style="display:none;">
+      <div class="card" style="text-align:center;">
+        <div class="dx-gate-ic" id="dxGateIc">⏳</div>
+        <h2 id="dxGateTitle" style="justify-content:center;"></h2>
+        <p class="desc" id="dxGateText"></p>
+        <button class="btn ghost" data-dx="gate-recheck" style="width:100%;">다시 확인</button>
+        <div class="dx-msg" id="dxGateMsg"></div>
+        <p class="dx-hint"><a id="dxGateMail" href="mailto:fond7509@naver.com">문의하기</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 배포용 추가: 정보·후기·관리자 패널 ===== -->
+<div class="dx-ov" id="dxPanel">
+  <div class="dx-sheet">
+    <div class="dx-head"><h3>🌟 등급계산기</h3><button class="dx-x" data-dx="close-panel" aria-label="닫기">✕</button></div>
+    <div class="dx-tabs">
+      <button class="dx-tab" id="dxTabReview" data-dx="tab" data-v="review">💬 후기</button>
+      <button class="dx-tab" id="dxTabInfo" data-dx="tab" data-v="info">ℹ️ 정보·문의</button>
+      <button class="dx-tab" id="dxTabOwner" data-dx="tab" data-v="owner" style="display:none;">👑 관리자</button>
+    </div>
+
+    <!-- 후기 -->
+    <div id="dxSecReview" style="display:none;">
+      <div class="card">
+        <h2>💬 후기·개선점 남기기</h2>
+        <div id="dxRvOff" class="desc" style="display:none;">지금은 후기를 받고 있지 않아요 🙏</div>
+        <div id="dxRvForm">
+          <p class="desc">써 주신 의견은 앱을 더 좋게 만드는 데 쓰여요. 학생 정보는 전달되지 않아요 🙂</p>
+          <label class="dx-lbl">사용해 보니 어떠셨나요? <small>(별점)</small></label>
+          <div class="dx-stars" id="dxStars"></div>
+          <div id="dxLowBox" style="display:none;">
+            <label class="dx-lbl">아쉬웠던 점 <small>(여러 개 선택 가능)</small></label>
+            <div class="dx-chips" id="dxLows"></div>
+            <input class="dx-in" id="dxLowOther" type="text" maxlength="30" placeholder="아쉬웠던 점을 직접 적어 주세요" style="display:none;margin-top:8px;">
+          </div>
+          <label class="dx-lbl">좋았던 점 <small>(여러 개 선택 가능)</small></label>
+          <div class="dx-chips" id="dxGoods"></div>
+          <input class="dx-in" id="dxGoodOther" type="text" maxlength="30" placeholder="좋았던 점을 직접 적어 주세요" style="display:none;margin-top:8px;">
+          <label class="dx-lbl" for="dxOne">한줄 후기 <small>(선택 · 80자)</small></label>
+          <textarea class="dx-in" id="dxOne" maxlength="80" placeholder="한 줄로 소감을 남겨 주세요"></textarea>
+          <label class="dx-lbl">이런 점이 개선되면 좋겠어요 <small>(선택 · 200자)</small></label>
+          <div class="dx-chips" id="dxKinds"></div>
+          <textarea class="dx-in" id="dxImp" maxlength="200" placeholder="불편했던 점, 있었으면 하는 기능 등을 편하게 적어 주세요" style="margin-top:8px;"></textarea>
+          <label class="dx-lbl">소개 자료에 써도 될까요?</label>
+          <div class="dx-chips" id="dxOks"></div>
+          <p class="dx-hint">기본은 <b>쓰지 말아주세요</b>예요. 허락해 주신 경우에만 포트폴리오·소개 자료에 인용해요.</p>
+          <button class="btn" id="dxRvSend" data-dx="send-review" style="width:100%;margin-top:12px;">보내기</button>
+          <div class="dx-msg" id="dxRvMsg"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 정보·문의 -->
+    <div id="dxSecInfo" style="display:none;">
+      <div class="card">
+        <h2>📮 문의</h2>
+        <p class="desc">궁금한 점, 오류, 개인정보 수정·삭제 요청은 아래 메일로 보내 주세요.</p>
+        <a class="btn ghost" id="dxMailBtn" href="mailto:fond7509@naver.com" style="text-decoration:none;width:100%;">✉️ fond7509@naver.com</a>
+      </div>
+      <div class="card">
+        <h2>🔗 공유하기</h2>
+        <p class="desc">동료 선생님께 보낼 링크를 글자 하나로 복사해요. (카톡·메신저에 붙여넣기)</p>
+        <button class="btn ghost" data-dx="copy-share" style="width:100%;">🔗 링크 복사</button>
+        <div class="dx-msg" id="dxShareMsg"></div>
+      </div>
+      <div class="card">
+        <h2>🔒 개인정보 안내</h2>
+        <div id="dxPrivPanel"></div>
+      </div>
+      <div class="card">
+        <h2>🪪 내 설치 ID</h2>
+        <div class="dx-box" id="dxInstallId">-</div>
+        <p class="dx-hint">사용자 등록·후기에 쓰이는 이름표예요. 문의할 때 알려 주시면 확인이 빨라요.</p>
+        <button class="btn ghost small" data-dx="copy-id" style="margin-top:8px;">ID 복사</button>
+        <div class="dx-msg" id="dxIdMsg"></div>
+      </div>
+    </div>
+
+    <!-- 관리자 (앱 만든 사람 전용) -->
+    <div id="dxSecOwner" style="display:none;">
+      <div class="card">
+        <h2>📊 이용 현황</h2>
+        <div class="dx-stat-cards" id="dxStatCards"></div>
+        <canvas id="dxChart" width="640" height="300" style="width:100%;height:auto;border:1px solid var(--border);border-radius:10px;background:#fff;"></canvas>
+        <div class="row" style="margin-top:10px;">
+          <button class="btn ghost small" data-dx="own-load">🔄 새로고침</button>
+          <button class="btn ghost small" data-dx="own-img">🖼️ PNG 저장</button>
+        </div>
+        <div class="dx-msg" id="dxOwnMsg"></div>
+      </div>
+      <div class="card">
+        <h2>💬 후기 받기 · 받은 후기</h2>
+        <label class="dx-switch"><input type="checkbox" id="dxOwnToggle"><span id="dxOwnToggleLbl">후기 받기</span></label>
+        <div class="dx-hint" id="dxOwnRvCount"></div>
+        <button class="btn ghost small" data-dx="own-reviews" style="margin-top:8px;">받은 후기 보기 <span id="dxOwnRvNew"></span></button>
+        <div id="dxOwnRvList" style="margin-top:12px;"></div>
+      </div>
+      <div class="card">
+        <h2>👥 사용자 <span id="dxOwnUserCnt" style="font-weight:400;font-size:12px;color:var(--sub);"></span></h2>
+        <div class="dx-hint" id="dxOwnApproval"></div>
+        <div id="dxOwnUsers" style="margin-top:10px;"><div class="empty">새로고침을 눌러 불러오세요</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="dx-toast" id="dxToast"></div>
 
 <script>
 (function(){
@@ -287,6 +501,35 @@
   const store = { midterm: newExamStore(), final: newExamStore(), performance: newExamStore() };
   const combinedStore = { weights: { midterm:34, final:33, performance:33 }, results: [], sortState: { key:'classNo', asc:true } };
   let currentTab = 'midterm';
+  // ---------- 학년 선택 (반+번호만 있는 파일의 학번 생성용) ----------
+  const GRADE_SEL_KEY = 'cheonr_grade_sel_v1';
+  function inferGrade(){
+    for(const k of ['midterm','final','performance']){
+      const r = (store[k].results||[]).find(x=> /^\d{5}$/.test(String(x.studentId)));
+      if(r) return parseInt(String(r.studentId)[0],10);
+    }
+    return 1;
+  }
+  function isGradeExplicit(){ const el = document.getElementById('gradeSel'); return !!el && el.value !== 'auto'; }
+  function selectedGrade(){
+    const el = document.getElementById('gradeSel');
+    if(el && el.value !== 'auto') return parseInt(el.value,10) || 1;
+    return inferGrade();
+  }
+  function gradeMismatchMsg(){
+    if(!isGradeExplicit()) return null;
+    const sel = selectedGrade();
+    const found = [...new Set(cur().students.map(r=> String(r.studentId)).filter(id=> /^\d{5}$/.test(id)).map(id=> parseInt(id[0],10)))];
+    const diff = found.filter(g=> g !== sel).sort();
+    if(diff.length === 0) return null;
+    return `선택한 학년은 ${sel}학년인데, 파일 안의 학번은 ${diff.join('·')}학년으로 되어 있어요.\n학번 기준 그대로 계산할까요?\n(취소하면 계산하지 않아요. 학년 선택이나 파일을 확인해 주세요.)`;
+  }
+  (function initGradeSel(){
+    const el = document.getElementById('gradeSel'); if(!el) return;
+    try{ const v = localStorage.getItem(GRADE_SEL_KEY); if(v && ['auto','1','2','3'].includes(v)) el.value = v; }catch(e){}
+    el.addEventListener('change', ()=>{ try{ localStorage.setItem(GRADE_SEL_KEY, el.value); }catch(e){} });
+  })();
+  function escHtml(s){ return String(s===undefined||s===null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
   function cur(){ return store[currentTab]; } // 시험 탭 전용 (combined일 땐 사용 금지)
   function activeStore(){ return currentTab === 'combined' ? combinedStore : store[currentTab]; }
@@ -404,7 +647,7 @@
           calcBtn.disabled = cur().uploadedFiles.length === 0;
           document.getElementById('restoredNote').innerHTML = '';
         }catch(err){
-          uploadWarn.innerHTML = `<div class="warn">⚠️ "${file.name}" 파일을 읽을 수 없어요. 엑셀 파일(.xlsx/.xls)인지 확인해주세요.</div>`;
+          uploadWarn.innerHTML = `<div class="warn">⚠️ "${escHtml(file.name)}" 파일을 읽을 수 없어요. 엑셀 파일(.xlsx/.xls)인지 확인해주세요.</div>`;
         }
       };
       reader.readAsArrayBuffer(file);
@@ -414,7 +657,7 @@
   function renderFileList(){
     const files = cur().uploadedFiles;
     fileListEl.innerHTML = files.map((f,i)=>
-      `<div class="filechip">${f.name}<button data-i="${i}">✕</button></div>`
+      `<div class="filechip">${escHtml(f.name)}<button data-i="${i}">✕</button></div>`
     ).join('');
     fileListEl.querySelectorAll('button').forEach(btn=>{
       btn.onclick = ()=>{
@@ -554,7 +797,7 @@
         if(classNo === null || isNaN(classNo)) classNo = parseInt(digits.slice(1,3),10);
         if(no === null || isNaN(no)) no = parseInt(digits.slice(3,5),10);
       }
-      if(!studentId && classNo && no) studentId = makeStudentId(1, classNo, no);
+      if(!studentId && classNo && no) studentId = makeStudentId(selectedGrade(), classNo, no);
       if(!name && !studentId && isNaN(score)) return;
 
       entries.push({
@@ -615,6 +858,8 @@
       warnMsgs.push(`점수가 비어있는 학생 ${noScore.length}명이 있어요 (계산에서 제외됩니다).`);
     }
     if(dupIds.length>0) warnMsgs.push(`학번이 중복된 학생이 있어요: ${dupIds.join(', ')}`);
+    const noIdCnt = allEntries.filter(e=> e.studentId === '-').length;
+    if(noIdCnt>0) warnMsgs.push(`학번도 반/번호도 없는 행 ${noIdCnt}개는 구분할 수 없어서 한 명으로 합쳐져요. 학번 또는 반+번호 열을 넣어 주세요.`);
 
     uploadWarn.innerHTML = warnMsgs.length ? `<div class="warn">⚠️ ${warnMsgs.join('<br>⚠️ ')}</div>` : '';
 
@@ -719,6 +964,8 @@
       uploadWarn.innerHTML += `<div class="warn">⚠️ 계산할 수 있는 학생 데이터가 없어요. 엑셀 열 이름을 확인해주세요.</div>`;
       return;
     }
+    const gradeMsg = gradeMismatchMsg();
+    if(gradeMsg && !confirm(gradeMsg)) return;
     cur().results = computeRanks(cur().students);
     cur().sortState = { key:'studentId', asc:true };
     if(cur().examMeta && cur().examMeta.fullMark){
@@ -801,6 +1048,7 @@
     // 포함된 시험들의 studentId 교집합만 종합 계산 대상
     const idSets = included.map(k=> new Set(store[k].results.map(r=>r.studentId)));
     const allIds = [...idSets[0]].filter(id=> idSets.every(s=> s.has(id)));
+    if(allIds.length === 0){ alert('세 시험에 공통으로 들어 있는 학생이 없어요. 학번(또는 반+번호)이 시험마다 같은지 확인해 주세요.'); return; }
 
     const lookups = {};
     included.forEach(k=>{
@@ -881,6 +1129,7 @@
     document.querySelectorAll('thead th').forEach(th=>{
       th.onclick = ()=>{
         const key = th.dataset.key;
+        if(!key) return;
         const s = activeStore();
         s.sortState.asc = (s.sortState.key === key) ? !s.sortState.asc : true;
         s.sortState.key = key;
@@ -945,7 +1194,7 @@
         <td>${r.classNo}</td>
         <td>${r.no}</td>
         <td>${r.studentId}</td>
-        <td>${r.name}</td>
+        <td>${escHtml(r.name)}</td>
         <td>${r.score}</td>
         <td>${r.rank}</td>
         <td>${r.percentile}%</td>
@@ -1006,6 +1255,368 @@
   loadFromStorage();
   renderTabBar();
   switchTab('midterm');
+})();
+</script>
+<script>
+/* ===== 배포용 추가: 사용자 등록 · 등록부 · 후기 · 문의 · 👑 관리자 =====
+   (성적 계산 코드와는 완전히 분리돼 있어요. 학생 이름·점수는 등록부로 보내지 않아요.) */
+(function(){
+  'use strict';
+  var REGISTRY_URL  = 'https://script.google.com/macros/s/AKfycbzrgeAlZhEGyvp7vo_j0hgesVoIoI6T_GMayKJCfvOFaV5Sb3wO1xvackSeQLc3HQxsnQ/exec';   // 비어 있으면 등록 기능 꺼짐
+  var CONTACT_EMAIL = 'fond7509@naver.com';
+  var APP_TITLE     = "등급계산기";
+  var APP_KEY       = 'grade';
+  var NONAME        = '(이름 없음)';
+  var SHARE_TXT     = '등급계산기_made by Cheon R';
+  var RK = { id:'grade_install_v1', reg:'grade_reg_info_v1', rv:'grade_review_v1', owner:'grade_owner_v1' };
+  var RV_CHIPS = ['엑셀만 올리면 바로 계산돼요','나이스 일람표를 그대로 쓸 수 있어요','반별 등급 분포를 한눈에 볼 수 있어요','학기말 종합 계산이 편해요','결과를 엑셀로 바로 받을 수 있어요','열 이름·학번을 자동으로 알아봐요'];   // 등록부 GAS REVIEW_GRADE.chips 와 순서 동일
+  var RV_LOWS  = ['사용법이 어려웠어요','엑셀 인식이 잘 안 됐어요','기능이 부족해요','오류가 있었어요','계산 결과가 달라요'];   // 별점 3점 이하일 때만 (GAS REVIEW_GRADE.lows 와 순서 동일)
+  var RV_KINDS = ['기능 요청','오류','디자인','기타'];
+  var RV_OK    = [['name','아이디 공개해도 돼요'],['anon','아이디 없이 써도 돼요'],['no','쓰지 말아주세요']];
+  var REGIONS  = ['서울','부산','대구','인천','광주','대전','울산','세종','경기','강원','충북','충남','전북','전남','경북','경남','제주'];
+  var LEVELS   = ['초등학교','중학교','고등학교','기타'];
+
+  function g(id){ return document.getElementById(id); }
+  function esc(s){ return String(s===undefined||s===null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function jget(k,d){ try{ var v=localStorage.getItem(k); return v===null?d:JSON.parse(v); }catch(e){ return d; } }
+  function jset(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+  function nmOf(x){ return String(x||'')===NONAME?'':String(x||''); }
+  function todayStr(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  function setMsg(id,t,ok){ var el=g(id); if(!el) return; el.textContent=t||''; el.classList.toggle('ok',!!ok); }
+  var toastT=null;
+  function toast(t){ var el=g('dxToast'); el.textContent=t; el.style.display='block'; clearTimeout(toastT); toastT=setTimeout(function(){ el.style.display='none'; },2400); }
+
+  // ---------- 상태 ----------
+  var installId='', isOwner=false, reviewOn=false, usePub=null, bootDone=false, curTab='info';
+  var rvRate=0, rvPick=[], rvLow=[], rvLowOtherOn=false, rvOtherOn=false, rvKind='', rvOk='no', rvSending=false;
+  var own=null;
+
+  function newId(){
+    var u = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36)+Math.random().toString(36).slice(2,12)+Math.random().toString(36).slice(2,8));
+    return 'grade-'+u;
+  }
+  function getId(){
+    var id=jget(RK.id,'');
+    if(!id || typeof id!=='string'){ id=newId(); jset(RK.id,id); }
+    return id;
+  }
+
+  // ---------- 등록부 통신 (JSONP · no-cors 금지) ----------
+  function jsonp(url, ms){
+    return new Promise(function(resolve,reject){
+      var cb='__dx'+Date.now().toString(36)+Math.random().toString(36).slice(2,7), s=document.createElement('script'), done=false, t;
+      function end(){ done=true; clearTimeout(t); try{ delete window[cb]; }catch(e){ window[cb]=undefined; } if(s.parentNode) s.parentNode.removeChild(s); }
+      t=setTimeout(function(){ if(done) return; end(); reject(new Error('응답이 없어요 (시간 초과)')); }, ms||15000);
+      window[cb]=function(d){ if(done) return; end(); resolve(d); };
+      s.onerror=function(){ if(done) return; end(); reject(new Error('등록부에 연결하지 못했어요')); };
+      s.src=url+(url.indexOf('?')>=0?'&':'?')+'callback='+cb;
+      document.head.appendChild(s);
+    });
+  }
+  function regCall(params){
+    if(!REGISTRY_URL) return Promise.reject(new Error('등록부 주소가 없어요'));
+    var q=new URLSearchParams(Object.assign({app:APP_KEY},params)).toString();
+    return jsonp(REGISTRY_URL+'?'+q).then(function(r){
+      if(!r || r.ok===false) throw new Error((r && r.error) || '등록부 응답 오류');
+      return r;
+    });
+  }
+
+  // ---------- 개인정보 안내 문구 (등록 화면 · 정보 탭 공용) ----------
+  function privHtml(){
+    return '<ul class="dx-priv">'
+      +'<li><b>수집 항목</b>: 학교 지역·학교급, 아이디, 설치 ID(앱이 만든 임의 이름표), 접속 날짜, 후기(작성한 경우)</li>'
+      +'<li><b>이용 목적</b>: 사용 현황 파악, 앱 개선</li>'
+      +'<li><b>보관 기간</b>: 앱을 운영하는 동안 보관하고, 삭제를 요청하시면 지체 없이 지워요</li>'
+      +'<li><b>제3자 제공</b>: 하지 않아요</li>'
+      +'<li><b>학생 정보는 수집하지 않아요</b>: 엑셀의 학생 이름·학번·점수는 이 기기 브라우저에만 저장되고 어디로도 전송되지 않아요</li>'
+      +'<li><b>동의하지 않을 권리</b>: 동의하지 않을 수 있어요. 다만 등록이 필요해서 앱을 쓸 수 없어요</li>'
+      +'<li><b>수정·삭제 요청</b>: <a href="'+mailHref()+'">'+CONTACT_EMAIL+'</a> 로 보내 주세요</li>'
+      +'</ul>';
+  }
+  function mailHref(){ return 'mailto:'+CONTACT_EMAIL+'?subject='+encodeURIComponent('['+APP_TITLE+'] 문의'); }
+
+  // ---------- 등록 / 상태 처리 ----------
+  function showGate(which){
+    g('dxRegBox').style.display = which==='reg' ? '' : 'none';
+    g('dxStatBox').style.display = which==='stat' ? '' : 'none';
+    g('dxGate').classList.add('show');
+  }
+  function closeGate(){ g('dxGate').classList.remove('show'); }
+  function gateInfo(ic,title,text){ g('dxGateIc').textContent=ic; g('dxGateTitle').textContent=title; g('dxGateText').textContent=text; setMsg('dxGateMsg',''); showGate('stat'); }
+  function saveInfo(res){
+    if(res && res.name) jset(RK.reg,{name:nmOf(res.name), school:res.school||'', cls:res.cls||''});
+    reviewOn = !!(res && res.review===true);
+    usePub = (res && res.pub) || null;
+  }
+  function handleStatus(st){
+    isOwner = (st==='owner');
+    if(isOwner) jset(RK.owner, installId);
+    if(st==='unregistered'){ showGate('reg'); return; }
+    if(st==='pending'){ gateInfo('⏳','승인 대기 중이에요','앱 개발자가 승인하면 사용할 수 있어요. 승인 후 [다시 확인]을 눌러 주세요.'); return; }
+    if(st==='blocked'){ gateInfo('⛔','사용이 중지되었어요','이 앱의 사용이 중지되었어요. 궁금한 점은 [문의하기]로 알려 주세요.'); return; }
+    closeGate(); afterOk();
+  }
+  function afterOk(){
+    if(!bootDone){   // 하루 한 번만 방문 횟수를 세어요 (3회째 방문 때 후기 안내)
+      bootDone=true;
+      var st=jget(RK.rv,{n:0,shown:false,done:false,day:''});
+      if(st.day!==todayStr()){ st.n=(st.n||0)+1; st.day=todayStr(); jset(RK.rv,st); }
+    }
+    applyUi();
+    if(isOwner) ownerPeek();
+  }
+  function boot(){
+    g('dxRegion').innerHTML='<option value="">지역 선택</option>'+REGIONS.map(function(r){ return '<option>'+r+'</option>'; }).join('');
+    g('dxLevel').innerHTML='<option value="">학교급 선택</option>'+LEVELS.map(function(r){ return '<option>'+r+'</option>'; }).join('');
+    g('dxPrivGate').innerHTML=privHtml(); g('dxPrivPanel').innerHTML=privHtml();
+    g('dxMailBtn').href=mailHref(); g('dxGateMail').href=mailHref();
+    var fm=g('dxFootMail'); if(fm) fm.href=mailHref();
+    if(!REGISTRY_URL){ applyUi(); return; }
+    installId=getId();
+    regCall({action:'check', id:installId}).then(function(res){
+      saveInfo(res); handleStatus(res.status);
+    }).catch(function(){
+      isOwner = jget(RK.owner,'')===installId;   // 등록부가 응답하지 않으면 일단 사용해요
+      afterOk();
+    });
+  }
+  function regSubmit(){
+    var region=g('dxRegion').value, level=g('dxLevel').value, name=g('dxName').value.trim();
+    if(!region || !level){ setMsg('dxRegMsg','학교의 지역과 학교급을 골라 주세요.'); return; }
+    if(!name){ setMsg('dxRegMsg','아이디를 입력해 주세요.'); return; }
+    if(!g('dxAgree').checked){ setMsg('dxRegMsg','개인정보 수집·이용에 동의해 주세요. (필수)'); return; }
+    var btn=g('dxRegBtn'); btn.disabled=true; setMsg('dxRegMsg','등록 중…',true);
+    var school=region+' · '+level;
+    regCall({action:'register', id:installId, name:name, school:school, cls:'', agree:'1'}).then(function(r){
+      jset(RK.reg,{name:name, school:school, cls:''});
+      return regCall({action:'check', id:installId}).then(function(res){ saveInfo(res); handleStatus(res.status); }, function(){ handleStatus(r.status); });
+    }).catch(function(e){ setMsg('dxRegMsg', e.message); }).then(function(){ btn.disabled=false; });
+  }
+  function recheck(){
+    setMsg('dxGateMsg','확인 중…',true);
+    regCall({action:'check', id:installId}).then(function(res){ saveInfo(res); handleStatus(res.status); }).catch(function(e){ setMsg('dxGateMsg', e.message); });
+  }
+
+  // ---------- 화면 반영 ----------
+  function applyUi(){
+    var allowed = reviewOn || isOwner;
+    g('dxRvBtn').style.display = allowed ? '' : 'none';
+    g('dxTabReview').style.display = allowed ? '' : 'none';
+    g('dxTabOwner').style.display = isOwner ? '' : 'none';
+    g('dxInstallId').textContent = installId || '(등록 기능이 꺼져 있어요)';
+    var u=usePub, show = u && typeof u.users==='number' && (isOwner || u.users>=10);   // 누적 10명 미만이면 숨김 (아듬샘에겐 항상 표시)
+    var ul=g('dxUse'); ul.style.display = show ? '' : 'none';
+    if(show) ul.innerHTML='● 오늘 '+u.today+'명 / 누적 '+u.users+'명 사용 중';
+    renderRv(); checkBanner();
+  }
+  function checkBanner(){
+    var st=jget(RK.rv,{n:0,shown:false,done:false}), b=g('dxBanner');
+    if(reviewOn && !st.done && !st.shown && (st.n||0)>=3){
+      b.innerHTML='🌟 잘 쓰고 계신가요? 1분이면 되는 후기를 남겨 주시면 앱을 더 좋게 만드는 데 큰 힘이 돼요.'
+        +'<div class="row"><button class="btn small" data-dx="banner-go">후기 남기기</button><button class="btn ghost small" data-dx="banner-later">다음에</button></div>';
+      b.style.display='';
+    } else b.style.display='none';
+  }
+  function bannerClose(go){
+    var st=jget(RK.rv,{n:0,shown:false,done:false}); st.shown=true; jset(RK.rv,st);
+    g('dxBanner').style.display='none';
+    if(go) openPanel('review');
+  }
+
+  // ---------- 패널 ----------
+  function openPanel(tab){
+    var allowed = reviewOn || isOwner;
+    if(tab==='review' && !allowed) tab='info';
+    if(tab==='owner' && !isOwner) tab='info';
+    curTab=tab;
+    ['review','info','owner'].forEach(function(t){
+      g('dxSec'+t.charAt(0).toUpperCase()+t.slice(1)).style.display = t===tab ? '' : 'none';
+      g('dxTab'+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle('active', t===tab);
+    });
+    g('dxPanel').classList.add('show'); g('dxPanel').scrollTop=0;
+    if(tab==='review') renderRv();
+    if(tab==='owner' && !own) ownerLoad();
+  }
+  function closePanel(){ g('dxPanel').classList.remove('show'); }
+
+  // ---------- 후기 ----------
+  function chip(act,v,label,on){ return '<button type="button" class="dx-chip'+(on?' on':'')+'" data-dx="'+act+'" data-v="'+v+'">'+esc(label)+'</button>'; }
+  function renderRv(){
+    var allowed = reviewOn || isOwner;
+    g('dxRvOff').style.display = allowed?'none':'';
+    g('dxRvForm').style.display = allowed?'':'none';
+    var i, h='';
+    for(i=1;i<=5;i++) h+='<button type="button" class="dx-star'+(i<=rvRate?' on':'')+'" data-dx="star" data-v="'+i+'" aria-label="'+i+'점">★</button>';
+    g('dxStars').innerHTML=h;
+    var low = rvRate>=1 && rvRate<=3;
+    g('dxLowBox').style.display = low?'':'none';
+    g('dxLows').innerHTML = RV_LOWS.map(function(t,k){ return chip('low',k,t,rvLow.indexOf(k)>=0); }).join('')+chip('low',-1,'기타 (직접 입력)',rvLowOtherOn);
+    g('dxLowOther').style.display = (low && rvLowOtherOn)?'':'none';
+    g('dxGoods').innerHTML = RV_CHIPS.map(function(t,k){ return chip('good',k,t,rvPick.indexOf(k)>=0); }).join('')+chip('good',-1,'기타 (직접 입력)',rvOtherOn);
+    g('dxGoodOther').style.display = rvOtherOn?'':'none';
+    g('dxKinds').innerHTML = RV_KINDS.map(function(t){ return chip('kind',t,t,rvKind===t); }).join('');
+    g('dxOks').innerHTML = RV_OK.map(function(p){ return chip('ok',p[0],p[1],rvOk===p[0]); }).join('');
+  }
+  function toggleIn(arr,i){ var p=arr.indexOf(i); if(p>=0) arr.splice(p,1); else { arr.push(i); arr.sort(function(a,b){return a-b;}); } }
+  function sendReview(){
+    if(rvSending) return;
+    if(!reviewOn && !isOwner){ setMsg('dxRvMsg','지금은 후기를 받고 있지 않아요 🙏'); return; }
+    if(!installId){ setMsg('dxRvMsg','등록 정보를 확인하지 못했어요. 새로고침 후 다시 해 주세요.'); return; }
+    var imp=g('dxImp').value.trim(), lowOn = rvRate>=1 && rvRate<=3;
+    if(!rvRate && !imp){ setMsg('dxRvMsg','별점을 누르거나 개선점을 적어 주세요.'); return; }
+    rvSending=true; g('dxRvSend').disabled=true; setMsg('dxRvMsg','보내는 중…',true);
+    regCall({action:'review', id:installId, rate:rvRate, c:rvPick.join(','), lc: lowOn?rvLow.join(','):'', lo: lowOn&&rvLowOtherOn?g('dxLowOther').value.trim():'',
+             other: rvOtherOn?g('dxGoodOther').value.trim():'', one:g('dxOne').value.trim(), ik:rvKind, imp:imp, ok:rvOk}).then(function(){
+      var st=jget(RK.rv,{n:0,shown:false,done:false}); st.done=true; jset(RK.rv,st);
+      g('dxBanner').style.display='none';
+      rvRate=0; rvPick=[]; rvLow=[]; rvLowOtherOn=false; rvOtherOn=false; rvKind=''; rvOk='no';
+      ['dxGoodOther','dxLowOther','dxOne','dxImp'].forEach(function(id){ g(id).value=''; });
+      renderRv(); setMsg('dxRvMsg','💜 소중한 의견 감사합니다! 다음에 또 의견이 생기면 언제든 남겨 주세요.',true);
+    }).catch(function(e){ setMsg('dxRvMsg', /마감|받고 있지/.test(e.message)?e.message:'보내지 못했어요. 입력한 내용은 그대로 있어요. ('+e.message+')'); })
+      .then(function(){ rvSending=false; g('dxRvSend').disabled=false; });
+  }
+
+  // ---------- 공유 링크 · ID 복사 ----------
+  function copyShare(){
+    var url=location.href.split('#')[0].split('?')[0];
+    function ok(){ setMsg('dxShareMsg','✅ 복사했어요! 붙여넣으면 "'+SHARE_TXT+'" 글자로 보여요.',true); }
+    function fallback(){
+      try{
+        var box=document.createElement('div'); box.style.cssText='position:fixed;left:0;top:0;opacity:0;pointer-events:none;';
+        var a=document.createElement('a'); a.href=url; a.textContent=SHARE_TXT; box.appendChild(a); document.body.appendChild(box);
+        var r=document.createRange(); r.selectNodeContents(a); var sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+        var done=document.execCommand('copy'); sel.removeAllRanges(); box.remove();
+        if(done) ok(); else setMsg('dxShareMsg','자동 복사가 안 됐어요. 주소: '+url);
+      }catch(e){ setMsg('dxShareMsg','자동 복사가 안 됐어요. 주소: '+url); }
+    }
+    try{
+      if(window.ClipboardItem && navigator.clipboard && navigator.clipboard.write){
+        var html='<a href="'+esc(url)+'">'+esc(SHARE_TXT)+'</a>';
+        navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([SHARE_TXT+' '+url],{type:'text/plain'})})]).then(ok).catch(fallback);
+      } else fallback();
+    }catch(e){ fallback(); }
+  }
+  function copyId(){
+    var t=installId||''; if(!t) return;
+    function ok(){ setMsg('dxIdMsg','✅ 복사했어요',true); }
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok).catch(function(){ setMsg('dxIdMsg','자동 복사가 안 됐어요. 직접 선택해서 복사해 주세요.'); });
+    else setMsg('dxIdMsg','자동 복사가 안 됐어요. 직접 선택해서 복사해 주세요.');
+  }
+
+  // ---------- 👑 관리자 (앱 만든 사람 전용 · 등록부가 owner로 확인해 줄 때만) ----------
+  function ownerPeek(){
+    regCall({action:'ownerReviews', id:installId, peek:'1'}).then(function(r){
+      var n=Math.max(0,(r.tTotal||0)-(r.seenT||0)), b=g('dxTabOwner'), old=b.querySelector('.dx-dot'); if(old) old.remove();
+      if(n>0){ var s=document.createElement('span'); s.className='dx-dot'; s.textContent=n>99?'99+':n; b.appendChild(s); }
+    }).catch(function(){});
+  }
+  function ownerLoad(){
+    setMsg('dxOwnMsg','불러오는 중…',true);
+    regCall({action:'ownerList', id:installId}).then(function(r){ own=r; setMsg('dxOwnMsg',''); ownerRender(); }).catch(function(e){ setMsg('dxOwnMsg',e.message); });
+  }
+  function ownerRender(){
+    if(!own) return;
+    var st=own.stats||{}, rv=own.review||{};
+    g('dxStatCards').innerHTML=[['오늘',st.today],['누적 사용자',st.users],['누적 접속',st.visits],['이번 주',st.week]].map(function(p){ return '<div class="dx-stat-card"><b>'+(Number(p[1])||0)+'</b><span>'+p[0]+'</span></div>'; }).join('');
+    drawChart(g('dxChart'), st.days||[]);
+    g('dxOwnToggle').checked=!!rv.on; g('dxOwnToggleLbl').textContent = rv.on?'후기 받는 중':'후기 받기 꺼짐';
+    g('dxOwnRvCount').textContent='받은 후기 '+(rv.reviews||0)+'건 · 개선점 '+(rv.improves||0)+'건';
+    var nw=Math.max(0,(rv.reviews||0)-(rv.seenT||0)); g('dxOwnRvNew').innerHTML = nw?'<span class="dx-dot">'+nw+'</span>':'';
+    g('dxOwnApproval').textContent = own.approval ? '🔒 승인제 ON — 승인한 사용자만 쓸 수 있어요. (켜고 끄기는 등록부 시트의 설정 탭에서)' : '🔓 승인제 OFF — 등록하면 바로 쓸 수 있어요. 문제가 있는 사용자만 차단하세요.';
+    var us=own.users||[]; g('dxOwnUserCnt').textContent='('+us.length+'명)';
+    g('dxOwnUsers').innerHTML = us.length ? us.map(function(u,i){
+      var tag = u.block ? '<span class="dx-tag bad">차단</span>' : (own.approval && !u.ok) ? '<span class="dx-tag warn">승인 대기</span>' : '';
+      return '<div class="dx-row"><b>'+esc(nmOf(u.name)||NONAME)+'</b><span class="dx-tag">'+esc(u.school)+'</span>'+(u.conn?'':'<span class="dx-tag warn">미연결</span>')+tag
+        +'<div><small>등록 '+esc(u.reg)+' · 마지막 '+esc(u.last)+'</small></div>'
+        +'<div class="row" style="margin-top:6px;">'+(own.approval?'<button class="btn ghost small" data-dx="own-user" data-v="'+i+':ok">'+(u.ok?'승인 취소':'✅ 승인')+'</button>':'')
+        +'<button class="btn ghost small" data-dx="own-user" data-v="'+i+':block">'+(u.block?'차단 해제':'⛔ 차단')+'</button></div></div>';
+    }).join('') : '<div class="empty">아직 등록한 선생님이 없어요</div>';
+  }
+  function drawChart(cv, days){
+    var ctx=cv.getContext('2d'), W=cv.width, H=cv.height, padL=36, padB=38, padT=34, padR=12;
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#7B6BA8'; ctx.font='700 18px Pretendard, sans-serif'; ctx.textAlign='left'; ctx.fillText('최근 14일 접속자 수',padL,22);
+    var max=Math.max.apply(null,[3].concat(days.map(function(d){ return d.n||0; }))), cw=(W-padL-padR)/Math.max(1,days.length), ch=H-padT-padB;
+    ctx.strokeStyle='#E5E7EB'; ctx.fillStyle='#9CA3AF'; ctx.font='12px Pretendard, sans-serif'; ctx.textAlign='right';
+    for(var k=0;k<=3;k++){ var y=padT+ch-ch*k/3; ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke(); ctx.fillText(String(Math.round(max*k/3)),padL-6,y+4); }
+    days.forEach(function(d,i){
+      var h=ch*(d.n||0)/max, x=padL+i*cw+cw*0.18, w=cw*0.64, y=padT+ch-h;
+      ctx.fillStyle = i===days.length-1?'#7B6BA8':'#9B8EC4'; ctx.fillRect(x,y,w,h);
+      ctx.fillStyle='#374151'; ctx.textAlign='center'; ctx.font='12px Pretendard, sans-serif'; if(d.n) ctx.fillText(String(d.n),x+w/2,y-4);
+      ctx.fillStyle='#6B7280'; ctx.font='11px Pretendard, sans-serif'; if(i%2===(days.length-1)%2) ctx.fillText(String(d.d||''),x+w/2,H-padB+16);
+    });
+  }
+  function ownerSaveImg(){
+    if(!own){ setMsg('dxOwnMsg','먼저 새로고침을 눌러 불러와 주세요.'); return; }
+    var cv=document.createElement('canvas'); cv.width=640; cv.height=300; drawChart(cv,(own.stats&&own.stats.days)||[]);
+    var st=own.stats||{}, out=document.createElement('canvas'); out.width=640; out.height=400;
+    var c=out.getContext('2d'); c.fillStyle='#fff'; c.fillRect(0,0,640,400);
+    c.fillStyle='#374151'; c.font='700 20px Pretendard, sans-serif'; c.textAlign='left'; c.fillText('🌟 '+APP_TITLE+' · 이용 현황',20,34);
+    c.font='15px Pretendard, sans-serif'; c.fillStyle='#6B7280';
+    c.fillText('오늘 '+(st.today||0)+'명 · 누적 사용자 '+(st.users||0)+'명 · 누적 접속 '+(st.visits||0)+'회 · 이번 주 '+(st.week||0)+'명',20,62);
+    c.drawImage(cv,0,90);
+    out.toBlob(function(b){ var a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='grade-calculator-usage.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(a.href); },4000); },'image/png');
+  }
+  function ownerSetUser(v){
+    var p=String(v).split(':'), i=+p[0], field=p[1], u=own && own.users && own.users[i]; if(!u) return;
+    var cur = field==='block' ? u.block : u.ok;
+    regCall({action:'ownerUser', id:installId, target:u.id, field:field, value: cur?'':'1'}).then(function(){
+      if(field==='block') u.block=!cur; else u.ok=!cur; ownerRender();
+    }).catch(function(e){ setMsg('dxOwnMsg',e.message); });
+  }
+  function ownerToggleReview(){
+    var el=g('dxOwnToggle'), on=el.checked;
+    regCall({action:'ownerReview', id:installId, on:on?'1':''}).then(function(){
+      if(own && own.review) own.review.on=on; reviewOn=on; ownerRender(); applyUi(); toast(on?'💬 후기 받기를 켰어요':'💬 후기 받기를 껐어요');
+    }).catch(function(e){ el.checked=!on; setMsg('dxOwnMsg',e.message); });
+  }
+  function stars(n){ n=Math.max(0,Math.min(5,+n||0)); return '<span class="stars">'+'★'.repeat(n)+'<i>'+'★'.repeat(5-n)+'</i></span>'; }
+  function ownerOpenReviews(){
+    var box=g('dxOwnRvList'); box.innerHTML='<div class="dx-hint">불러오는 중…</div>';
+    regCall({action:'ownerReviews', id:installId, mark:'1'}).then(function(r){
+      var list=r.t||[];
+      box.innerHTML = list.length ? list.map(function(x){
+        var good=(x.chips||[]).concat(x.other?[x.other]:[]), bad=(x.lows||[]).concat(x.lowOther?[x.lowOther]:[]);
+        var one=x.one||x.line||'', imp=x.imp||x.improve||'', ik=x.ik||x.kind||'', okv=x.ok||x.use||'';
+        return '<div class="dx-row'+(x.nw?' nw':'')+'">'+stars(x.rate)+' <b>'+esc(nmOf(x.name)||NONAME)+'</b><span class="dx-tag">'+esc(x.school)+'</span> <small>'+esc(x.t)+'</small>'
+          +(good.length?'<div>👍 '+esc(good.join(' · '))+'</div>':'')+(bad.length?'<div>😕 '+esc(bad.join(' · '))+'</div>':'')
+          +(one?'<div>“'+esc(one)+'”</div>':'')+(imp?'<div>🛠️ '+(ik?'['+esc(ik)+'] ':'')+esc(imp)+'</div>':'')
+          +(okv?'<div><small>소개자료 사용: '+esc(okv)+'</small></div>':'')+'</div>';
+      }).join('') : '<div class="empty">아직 받은 후기가 없어요</div>';
+      ownerPeek();
+    }).catch(function(e){ box.innerHTML='<div class="dx-msg">'+esc(e.message)+'</div>'; });
+  }
+
+  // ---------- 이벤트 (한 곳에서 처리) ----------
+  document.addEventListener('click', function(e){
+    var b=e.target.closest ? e.target.closest('[data-dx]') : null; if(!b) return;
+    var a=b.getAttribute('data-dx'), v=b.getAttribute('data-v');
+    switch(a){
+      case 'reg-submit': regSubmit(); break;
+      case 'gate-recheck': recheck(); break;
+      case 'open-panel': openPanel(v||'info'); break;
+      case 'close-panel': closePanel(); break;
+      case 'tab': openPanel(v); break;
+      case 'star': rvRate=+v; if(rvRate>3){ rvLow=[]; rvLowOtherOn=false; g('dxLowOther').value=''; } renderRv(); break;
+      case 'low': if(+v<0){ rvLowOtherOn=!rvLowOtherOn; renderRv(); if(rvLowOtherOn) g('dxLowOther').focus(); } else { toggleIn(rvLow,+v); renderRv(); } break;
+      case 'good': if(+v<0){ rvOtherOn=!rvOtherOn; renderRv(); if(rvOtherOn) g('dxGoodOther').focus(); } else { toggleIn(rvPick,+v); renderRv(); } break;
+      case 'kind': rvKind = rvKind===v ? '' : v; renderRv(); break;
+      case 'ok': rvOk=v; renderRv(); break;
+      case 'send-review': sendReview(); break;
+      case 'copy-share': copyShare(); break;
+      case 'copy-id': copyId(); break;
+      case 'banner-go': bannerClose(true); break;
+      case 'banner-later': bannerClose(false); break;
+      case 'own-load': ownerLoad(); break;
+      case 'own-img': ownerSaveImg(); break;
+      case 'own-reviews': ownerOpenReviews(); break;
+      case 'own-user': ownerSetUser(v); break;
+    }
+  });
+  document.addEventListener('change', function(e){ if(e.target && e.target.id==='dxOwnToggle') ownerToggleReview(); });
+
+  boot();
 })();
 </script>
 </body>
