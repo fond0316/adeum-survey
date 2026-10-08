@@ -3377,6 +3377,46 @@ function hubMsg(text, kind){
   el.style.color = kind==='ok' ? '#166534' : kind==='warn' ? '#92400E' : '#B91C1C';
   el.textContent = text;
 }
+// ── 관리자 화면: 자주 안 쓰는 카드는 아코디언으로 접기 ──
+let hubAccDone = false;
+function hubAccMake(title, untilNextTitle){
+  if(!title || title.dataset.acc) return;
+  title.dataset.acc = '1';
+  const body = document.createElement('div');
+  body.style.cssText = 'display:none;margin-top:12px;';
+  let n = title.nextSibling;
+  while(n){
+    const nx = n.nextSibling;
+    if(untilNextTitle && n.nodeType === 1 && n.classList.contains('card-title')) break;
+    body.appendChild(n);
+    n = nx;
+  }
+  title.parentNode.insertBefore(body, title.nextSibling);
+  const arrow = document.createElement('span');
+  arrow.textContent = '▾';
+  arrow.style.cssText = 'font-size:18px;color:var(--gray-400);transition:transform .3s;margin-left:auto;';
+  title.style.cssText += ';display:flex;align-items:center;gap:8px;cursor:pointer;min-height:44px;margin-bottom:0;';
+  title.appendChild(arrow);
+  title.setAttribute('role', 'button');
+  title.addEventListener('click', function(){
+    const on = body.style.display === 'none';
+    body.style.display = on ? '' : 'none';
+    arrow.style.transform = on ? 'rotate(180deg)' : '';
+  });
+}
+function hubAccInit(){
+  if(hubAccDone) return; hubAccDone = true;
+  const root = document.getElementById('adminContainer'); if(!root) return;
+  const hubCard = document.getElementById('hubAdminList'); const hc = hubCard && hubCard.closest('.card');
+  // 항목 관리 카드 안: 스터디 안 메뉴 / 주제별 보기 (항목 관리 본문은 그대로 펼침)
+  if(hc) hc.querySelectorAll('.card-title').forEach((t, i)=>{ if(i > 0) hubAccMake(t, true); });
+  // 그 밖의 설정 카드: 학년도 / 제출 마감 / 전체 초기화 / 분기 기간
+  root.querySelectorAll(':scope > .container > .card, :scope > .container > .admin-action-card').forEach(c=>{
+    if(c === hc) return;
+    const t = c.querySelector(':scope > .card-title, :scope > .aa-title');
+    if(t) hubAccMake(t, false);
+  });
+}
 function hubConnSet(open){
   const b = document.getElementById('hubConnBody'), a = document.getElementById('hubConnArrow');
   if(!b) return;
@@ -3385,6 +3425,7 @@ function hubConnSet(open){
   if(a) a.style.transform = on ? 'rotate(180deg)' : '';
 }
 function hubAdminInit(){
+  hubAccInit();
   hubConnSet(!GAS_URL);
   hubDraft = { items: hubClone(hubItems), study: hubClone(hubStudy), forms: hubClone(hubForms) };
   hubDirty = false; hubTouched = false; hubMsg(''); hubPwRestore(); hubAdminRender();
