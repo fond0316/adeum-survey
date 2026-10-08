@@ -1176,8 +1176,9 @@ input[type=file]{display:none;}
       <div id="hubAdminTabs"></div>
       <div id="hubAdminList"></div>
       <div class="form-group" style="margin-top:12px;">
-        <label>🔑 서버 암호 <span style="font-weight:400;color:var(--gray-400);font-size:11px;">(.gs 파일 맨 위 ADMIN_PW에 적은 암호)</span></label>
-        <input type="password" id="hubSrvPw" autocomplete="off" placeholder="저장하기·주제별 보기에 필요해요"/>
+        <label>🔑 관리자 암호</label>
+        <div style="font-size:11px;color:var(--gray-400);line-height:1.6;margin-bottom:6px;">💾 저장하기와 제출 현황·주제별 보기를 쓸 때 필요해요. 학생이 마음대로 항목을 바꾸지 못하게 막는 암호예요. 한 번 입력하면 이 창을 닫을 때까지 기억해요. (GAS 파일 맨 위 ADMIN_PW에 적은 값)</div>
+        <input type="password" id="hubSrvPw" autocomplete="off" placeholder="관리자 암호"/>
       </div>
       <div style="display:flex;gap:8px;margin:10px 0 4px;">
         <button class="btn btn-secondary" style="flex:1" onclick="hubOpenEdit('hub',-1)">＋ 항목 추가</button>
@@ -2956,7 +2957,10 @@ function loadStudentInfoToForm() {
 <!-- 학급자율활동 항목 편집 모달 -->
 <div class="hub-modal" id="hubEditModal">
   <div class="hub-modal-box">
-    <div id="hubEditTitle" style="font-size:16px;font-weight:800;color:#1F2937;margin-bottom:14px;">항목 편집</div>
+    <div style="position:sticky;top:-20px;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:-20px -20px 14px;padding:14px 12px 10px 20px;background:white;border-radius:16px 16px 0 0;">
+      <div id="hubEditTitle" style="font-size:16px;font-weight:800;color:#1F2937;">항목 편집</div>
+      <button type="button" class="hub-ib" aria-label="닫기" title="닫기 (Esc)" onclick="hubCloseEdit()" style="font-size:20px;line-height:1;">✕</button>
+    </div>
     <div class="form-group" id="hubGType">
       <label>유형</label>
       <select id="hubFType" onchange="hubTypeChange()">
@@ -3569,6 +3573,11 @@ function hubQMove(i, d){ const j = i + d; if(j < 0 || j >= hubEditQs.length) ret
 function hubQDel(i){ hubEditQs.splice(i,1); hubQRender(); }
 
 function hubCloseEdit(){ document.getElementById('hubEditModal').classList.remove('show'); }
+document.addEventListener('keydown', function(e){
+  if(e.key !== 'Escape') return;
+  const m = document.getElementById('hubEditModal');
+  if(m && m.classList.contains('show')) hubCloseEdit();
+});
 function hubApplyEdit(){
   const err = document.getElementById('hubFErr');
   const name = document.getElementById('hubFName').value.trim();
@@ -3650,7 +3659,7 @@ async function hubSave(){
     let ok = false;
     try{
       const res = await postGASRead(payload);
-      if(res && res.status === 'auth'){ hubMsg('🔒 ' + (res.message || '서버 암호가 달라요.') + ' (이 기기에는 저장됨)', 'err'); return; }
+      if(res && res.status === 'auth'){ hubMsg('🔒 ' + (res.message || '관리자 암호가 달라요.') + ' (이 기기에는 저장됨)', 'err'); return; }
       ok = !!(res && res.status === 'ok');
       if(!ok) throw new Error((res && res.message) || 'ERR');
     }catch(e1){
@@ -3665,7 +3674,7 @@ async function hubSave(){
   }
 }
 
-// ── 관리자: 서버 암호 / 주제별 보기 ──
+// ── 관리자: 관리자 암호 / 주제별 보기 ──
 const HUB_PW_KEY = 'class_hub_srvpw';
 function hubPwRestore(){
   const el = document.getElementById('hubSrvPw');
@@ -3709,12 +3718,12 @@ async function hubSumLoad(){
   const out = document.getElementById('hubSumOut'); if(out) out.innerHTML = '';
   if(!GAS_URL){ hubSumMsg('GAS URL이 설정되지 않았어요. 위쪽에서 GAS를 먼저 연결해 주세요.', 'warn'); return; }
   const pw = hubGetPw();
-  if(!pw){ hubSumMsg('위의 "서버 암호"를 입력해 주세요.', 'warn'); return; }
+  if(!pw){ hubSumMsg('위의 "관리자 암호"를 입력해 주세요.', 'warn'); return; }
   hubSumMsg('불러오는 중…');
   let res;
   try{ res = await postGASRead({ type:'adminTopicSummary', pw: pw }); }
   catch(e){ hubSumMsg('❌ 불러오지 못했어요. 인터넷 연결과 GAS "수정 배포" 상태를 확인해 주세요.', 'err'); return; }
-  if(!res || res.status === 'auth'){ hubSumMsg('🔒 ' + ((res && res.message) || '서버 암호가 달라요.'), 'err'); return; }
+  if(!res || res.status === 'auth'){ hubSumMsg('🔒 ' + ((res && res.message) || '관리자 암호가 달라요.'), 'err'); return; }
   if(res.status !== 'ok'){ hubSumMsg('⚠️ ' + (res.message || '불러오지 못했어요.'), 'warn'); return; }
   hubSumRender(res.items || []);
 }
@@ -3755,12 +3764,12 @@ async function hubTvLoad(){
   if(!sel || !sel.value){ hubTvMsg('제출형 주제가 없어요. 항목을 만들고 저장하기를 먼저 눌러 주세요.', 'warn'); return; }
   if(!GAS_URL){ hubTvMsg('GAS URL이 설정되지 않았어요. 위쪽에서 GAS를 먼저 연결해 주세요.', 'warn'); return; }
   const pw = hubGetPw();
-  if(!pw){ hubTvMsg('위의 "서버 암호"를 입력해 주세요.', 'warn'); return; }
+  if(!pw){ hubTvMsg('위의 "관리자 암호"를 입력해 주세요.', 'warn'); return; }
   hubTvMsg('불러오는 중…');
   let res;
   try{ res = await postGASRead({ type:'adminTopicView', itemId: sel.value, pw: pw }); }
   catch(e){ hubTvMsg('❌ 불러오지 못했어요. 인터넷 연결과 GAS "수정 배포" 상태를 확인해 주세요.', 'err'); return; }
-  if(!res || res.status === 'auth'){ hubTvMsg('🔒 ' + ((res && res.message) || '서버 암호가 달라요.'), 'err'); return; }
+  if(!res || res.status === 'auth'){ hubTvMsg('🔒 ' + ((res && res.message) || '관리자 암호가 달라요.'), 'err'); return; }
   if(res.status !== 'ok'){ hubTvMsg('⚠️ ' + (res.message || '불러오지 못했어요.'), 'warn'); return; }
   hubTvRender(res);
 }
