@@ -2980,11 +2980,11 @@ function loadStudentInfoToForm() {
     </div>
     <div class="form-group">
       <label>이름</label>
-      <input type="text" id="hubFName" maxlength="30" placeholder="진로탐색 프로젝트"/>
+      <input type="text" id="hubFName" maxlength="60" placeholder="진로탐색 프로젝트"/>
     </div>
     <div class="form-group">
       <label>한 줄 설명</label>
-      <input type="text" id="hubFDesc" maxlength="40" placeholder="카드 아래에 작게 보여요"/>
+      <input type="text" id="hubFDesc" maxlength="80" placeholder="카드 아래에 작게 보여요"/>
     </div>
     <div class="form-group" id="hubGBody">
       <label>안내 내용</label>
@@ -3095,9 +3095,9 @@ function hubNormQ(q){
   q = q || {};
   const t = ['short','long','check'].indexOf(q.type) >= 0 ? q.type : 'short';
   const id = hubSanId(q.id || ('q' + Date.now().toString(36) + Math.floor(Math.random()*1296).toString(36))) || 'q0';
-  return { id: id, label: String(q.label || '').slice(0,60), type: t,
+  return { id: id, label: String(q.label || '').slice(0,300), type: t,
     required: (q.required === true || String(q.required) === 'true' || String(q.required) === 'O'),
-    hint: String(q.hint || '').slice(0,80) };
+    hint: String(q.hint || '').slice(0,300) };
 }
 function hubDefaultForm(){
   return [
@@ -3283,7 +3283,7 @@ function hubFormHtml(it){
       if(q.hint) h += '<div class="hub-hint">' + hubEsc(q.hint) + '</div>';
       h += q.type === 'long'
         ? '<textarea id="' + idA + '" data-q="' + hubEsc(q.id) + '" rows="5" maxlength="2000">' + hubEsc(v || '') + '</textarea>'
-        : '<input type="text" id="' + idA + '" data-q="' + hubEsc(q.id) + '" maxlength="100" value="' + hubEsc(v || '') + '"/>';
+        : '<input type="text" id="' + idA + '" data-q="' + hubEsc(q.id) + '" maxlength="200" value="' + hubEsc(v || '') + '"/>';
     }
     h += '</div>';
   });
@@ -3552,8 +3552,8 @@ function hubQRender(){
   el.innerHTML = hubEditQs.map((q,i)=>{
     const opts = Object.keys(HUB_QTYPES).map(k=>'<option value="' + k + '"' + (q.type===k ? ' selected' : '') + '>' + HUB_QTYPES[k] + '</option>').join('');
     return '<div class="hub-qrow">'
-      + '<input type="text" maxlength="60" value="' + hubEsc(q.label) + '" placeholder="질문 (예: 활동 제목)" oninput="hubQSet(' + i + ',\'label\',this.value)"/>'
-      + '<input type="text" maxlength="80" value="' + hubEsc(q.hint) + '" placeholder="안내 문구 (선택)" oninput="hubQSet(' + i + ',\'hint\',this.value)" style="margin-top:6px;"/>'
+      + '<textarea rows="2" maxlength="300" placeholder="질문 (예: 활동 제목) — 길게 써도 돼요" oninput="hubQSet(' + i + ',\'label\',this.value)" style="min-height:64px;resize:vertical;">' + hubEsc(q.label) + '</textarea>'
+      + '<textarea rows="2" maxlength="300" placeholder="안내 문구 (선택)" oninput="hubQSet(' + i + ',\'hint\',this.value)" style="margin-top:6px;min-height:52px;resize:vertical;">' + hubEsc(q.hint) + '</textarea>'
       + '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;">'
       + '<select onchange="hubQSet(' + i + ',\'type\',this.value)" style="flex:1;min-width:120px;">' + opts + '</select>'
       + '<label style="display:flex;align-items:center;gap:6px;min-height:44px;font-size:13px;margin:0;"><input type="checkbox"' + (q.required ? ' checked' : '') + ' onchange="hubQSet(' + i + ',\'required\',this.checked)" style="width:20px;height:20px;"/>필수</label>'
