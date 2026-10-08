@@ -129,6 +129,10 @@
   .chip{padding:8px 14px;border-radius:20px;background:var(--bg);color:var(--sub);font-size:12.5px;
     cursor:pointer;border:1.5px solid transparent;font-weight:600;}
   .chip.on{background:var(--main);color:#fff;}
+  .chip .sw{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px;border:1px solid rgba(0,0,0,.08);}
+  .fx-hint{font-size:11px;color:var(--sub);margin:6px 2px 0;line-height:1.5;}
+  .fx-check{display:flex;gap:8px;align-items:flex-start;cursor:pointer;line-height:1.45;}
+  .fx-check input{margin-top:2px;}
 
   .settings-btn{position:fixed;top:calc(var(--safe-top) + 14px);right:16px;z-index:20;
     background:#fff;border-radius:50%;width:40px;height:40px;box-shadow:0 2px 10px rgba(0,0,0,.1);
@@ -202,7 +206,9 @@
       <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;line-height:1.45;"><input type="checkbox" id="shotOptTap" checked style="margin-top:2px;"><span>👆 <b>누른 곳에 탭 표시</b> 넣기</span></label>
       <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;line-height:1.45;"><input type="checkbox" id="shotOptZoom" checked style="margin-top:2px;"><span>🔍 <b>결과 부분 확대 장면</b> 추가 <span class="hint">(마음에 안 들면 ✕로 빼면 돼요)</span></span></label>
     </div>
-    <button class="btn btn-main" id="btnShotStart" style="width:100%;">🎥 자동 촬영 시작</button>
+    <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;line-height:1.45;font-size:12.5px;margin:-6px 0 14px;"><input type="checkbox" id="shotOptCache" checked style="margin-top:2px;"><span>♻️ <b>같은 앱이면 지난 분석 재사용</b> <span class="hint">(앱 코드가 그대로면 계획 AI 호출 0회 · 앱을 고쳤으면 자동으로 새로 분석)</span></span></label>
+    <button class="btn btn-main" id="btnShotAll" style="width:100%;">⚡ 촬영부터 영상까지 한 번에</button>
+    <button class="btn btn-outline" id="btnShotStart" style="width:100%;margin-top:8px;">🎥 촬영만 하기 <span style="font-weight:400;font-size:12px;">(장면 확인 후 직접 넣기)</span></button>
     <p style="font-size:11px;color:var(--sub);margin:8px 2px 0;line-height:1.5;">
       촬영할 때 "이 탭 공유" 허용창이 한 번 떠요. 앱은 이 브라우저의 실제 저장 데이터 대신 <b>빈 임시 저장소(또는 가짜 데모 데이터)</b>로 열려서 실제 학생 정보는 안 보여요. 그래도 앱 안에 원래 적혀 있는 이름이 있으면 ✕로 빼주세요.
       <a href="#" id="lnkShotBudget" style="color:var(--main-dark);">💰 호출 상한·하루 한도 설정</a>
@@ -302,22 +308,55 @@
   <!-- STEP 3: 편집 설정 -->
   <div class="card">
     <h2><span class="num">3</span>편집 세부 설정</h2>
-    <p class="desc">스타일을 고르면 자동으로 채워져요. 직접 수정해도 돼요.</p>
+    <p class="desc">스타일을 고르면 자동으로 채워져요. 직접 수정해도 돼요. 아래 효과는 모두 무료(AI 호출 없음)예요.</p>
+
+    <div class="field">
+      <label>화면 구성 <span class="hint">(앱 화면 소개엔 쇼케이스 추천)</span></label>
+      <div class="chiprow" id="layoutChips">
+        <div class="chip on" data-val="fill">꽉 채우기</div>
+        <div class="chip" data-val="showcase">📱 쇼케이스 (폰 카드)</div>
+      </div>
+      <p class="fx-hint">쇼케이스: 앱 화면을 둥근 카드로 가운데 두고, 빈 아래 여백은 자동으로 잘라요. 제목은 위, 장면 자막은 아래 여백에 들어가서 앱을 가리지 않아요.</p>
+      <div id="themeWrap" style="display:none;margin-top:8px;">
+        <div class="chiprow" id="themeChips">
+          <div class="chip on" data-val="lavender"><span class="sw" style="background:linear-gradient(135deg,#C9BFEA,#7C6BA8)"></span>라벤더</div>
+          <div class="chip" data-val="pink"><span class="sw" style="background:linear-gradient(135deg,#FCD3E1,#E07A9A)"></span>핑크</div>
+          <div class="chip" data-val="mint"><span class="sw" style="background:linear-gradient(135deg,#C6EEDF,#4FA88A)"></span>민트</div>
+          <div class="chip" data-val="sky"><span class="sw" style="background:linear-gradient(135deg,#CFE6FA,#4F86C6)"></span>하늘</div>
+          <div class="chip" data-val="peach"><span class="sw" style="background:linear-gradient(135deg,#FFE3C8,#F09A5B)"></span>피치</div>
+          <div class="chip" data-val="dark"><span class="sw" style="background:linear-gradient(135deg,#4A4462,#15121F)"></span>다크</div>
+        </div>
+      </div>
+    </div>
 
     <div class="field">
       <label>화면 전환 방식</label>
       <div class="chiprow" id="transitionChips">
         <div class="chip on" data-val="cut">칼컷</div>
         <div class="chip" data-val="crossfade">크로스페이드</div>
+        <div class="chip" data-val="slideleft">옆으로 밀기</div>
+        <div class="chip" data-val="slideup">위로 밀기</div>
+        <div class="chip" data-val="smoothleft">부드럽게 넘기기</div>
+        <div class="chip" data-val="circleopen">원형 열기</div>
+        <div class="chip" data-val="wipeleft">와이프</div>
+        <div class="chip" data-val="fadewhite">화이트 플래시</div>
+        <div class="chip" data-val="fadeblack">블랙 페이드</div>
+        <div class="chip" data-val="pixelize">픽셀</div>
+        <div class="chip" data-val="mix">🎲 섞기</div>
       </div>
     </div>
 
     <div class="field">
-      <label>켄번스 효과 <span class="hint">(사진에 자동 줌인, 스크린샷 화면 시연에 추천)</span></label>
+      <label>장면 움직임 <span class="hint">(사진·스크린샷에 적용)</span></label>
       <div class="chiprow" id="kenburnsChips">
-        <div class="chip on" data-val="off">끄기</div>
-        <div class="chip" data-val="on">켜기</div>
+        <div class="chip on" data-val="off">없음</div>
+        <div class="chip" data-val="on">가운데 줌인</div>
+        <div class="chip" data-val="tap">👆 누른 곳으로 줌인</div>
+        <div class="chip" data-val="out">줌아웃</div>
+        <div class="chip" data-val="pan">위→아래 훑기</div>
+        <div class="chip" data-val="mix">🎲 섞기</div>
       </div>
+      <p class="fx-hint">누른 곳으로 줌인: 자동 촬영에서 버튼을 누른 위치로 다가가요 (직접 올린 사진은 가운데로). 섞기: 장면마다 다른 움직임.</p>
     </div>
 
     <div class="row2">
@@ -335,10 +374,13 @@
       <label>색감 필터</label>
       <div class="chiprow" id="filterChips">
         <div class="chip on" data-val="none">원본</div>
+        <div class="chip" data-val="vivid">선명하게</div>
+        <div class="chip" data-val="bright">화사하게</div>
         <div class="chip" data-val="warm">따뜻하게</div>
         <div class="chip" data-val="cool">시원하게</div>
         <div class="chip" data-val="bw">흑백</div>
         <div class="chip" data-val="vintage">빈티지</div>
+        <div class="chip" data-val="vignette">비네팅</div>
       </div>
     </div>
 
@@ -350,14 +392,22 @@
         <div class="chip" data-val="neon">네온 글로우</div>
         <div class="chip" data-val="handwrite">손글씨 캐주얼</div>
       </div>
-      <p style="font-size:11px;color:var(--sub);margin:6px 2px 0;line-height:1.5;">
-        기본: 지금까지 쓰던 흰 글씨+검은 박스 &nbsp;·&nbsp; 임팩트: 두꺼운 검은 테두리 볼드체 (예능 자막 느낌) &nbsp;·&nbsp; 네온: 형광 초록 + 어두운 박스 &nbsp;·&nbsp; 손글씨: 크림색 박스 + 손글씨체
-      </p>
+      <p class="fx-hint">기본: 흰 글씨+반투명 박스 · 임팩트: 두꺼운 검은 테두리 (예능 자막 느낌) · 네온: 형광 초록 + 어두운 박스 · 손글씨: 크림색 박스 + 손글씨체</p>
+    </div>
+
+    <div class="field">
+      <label>자막 등장 효과</label>
+      <div class="chiprow" id="captionAnimChips">
+        <div class="chip" data-val="none">그냥</div>
+        <div class="chip on" data-val="fade">스르륵 나타나기</div>
+        <div class="chip" data-val="rise">아래서 올라오기</div>
+        <div class="chip" data-val="pop">톡 튀어나오기</div>
+      </div>
     </div>
 
     <div class="field">
       <label>제목 자막 <span class="hint">(맨 앞 3초에 표시, 비워두면 자막 없음)</span></label>
-      <input type="text" id="captionText" placeholder="예: 제주도 3박4일 ✈️">
+      <input type="text" id="captionText" placeholder="예: 성적 처리 10초 컷">
     </div>
 
     <div class="row2">
@@ -379,7 +429,17 @@
       </div>
     </div>
 
-    <p style="font-size:11px;color:var(--sub);margin-top:-4px;">🎵 배경음악(BGM) 합성은 다음 버전에서 지원 예정이에요. 이번 버전은 무음으로 만들어져요.</p>
+    <div class="field">
+      <label>추가 장면·장식</label>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:12.5px;">
+        <label class="fx-check"><input type="checkbox" id="optIntro"><span>🎬 <b>인트로 카드</b> <span class="hint">(배경색 위에 제목을 크게 1.5초 · 켜면 제목 자막은 인트로에만 나와요)</span></span></label>
+        <label class="fx-check"><input type="checkbox" id="optOutro"><span>🔚 <b>엔딩 카드</b> <span class="hint">(마지막 2초)</span></span></label>
+        <input type="text" id="outroText" placeholder="엔딩 문구 · 예: 프로필 링크에서 써보세요" style="display:none;">
+        <label class="fx-check"><input type="checkbox" id="optProgress"><span>📏 <b>위쪽 진행 바</b> <span class="hint">(영상이 얼마나 남았는지 보이는 얇은 막대)</span></span></label>
+      </div>
+    </div>
+
+    <p style="font-size:11px;color:var(--sub);margin-top:-4px;">🎵 배경음악은 아직 없어요 (무음으로 만들어져요). 저작권 걱정 없는 음원은 인스타 업로드 화면에서 넣는 게 가장 안전해요.</p>
   </div>
 
   <!-- STEP 4: 실행 -->
@@ -908,6 +968,7 @@ async function requestAutoCaptions(apiKey, purpose, thumbs){
 규칙:
 - 장면별 자막(scenes)은 사진/영상 실제 내용과 관련 있게, 15자 이내로 짧고 강하게
 - 제목 자막(title)은 클릭을 부르는 후킹 문구, 20자 이내
+- 이모지·화살표 같은 특수기호는 쓰지 마 (영상 폰트에 없어서 빈칸으로 나와). 한글·숫자·영문·기본 문장부호만
 - 이미지가 없다고 표시된 장면은 파일명을 참고해서 자연스럽게 채워줘
 - 설명, 마크다운 코드블록 없이 아래 JSON 형식으로만 답해:
 {"title": "...", "scenes": ["장면1 자막", "장면2 자막", ...]}
@@ -1066,13 +1127,13 @@ async function analyzeStyleWithClaude(apiKey, base64Frames){
 
 // 프리셋
 const PRESETS = [
-  {id:"screenshot", name:"📱 스크린샷 데모", desc:"화면 캡처만으로 자연스러운 시연 영상", transition:"cut", clipDuration:2.8, filter:"none", kenBurns:true, p1:"#E1E9F6", p2:"#F4F2FA"},
-  {id:"vlog", name:"잔잔한 브이로그", desc:"느린 컷, 자연광 느낌", transition:"crossfade", clipDuration:3.5, filter:"warm", p1:"#F3E7E0", p2:"#F4F2FA"},
-  {id:"highlight", name:"빠른컷 하이라이트", desc:"템포감 있는 강한 컷", transition:"cut", clipDuration:1.2, filter:"none", p1:"#E1E9F6", p2:"#F4F2FA"},
-  {id:"mood", name:"무드있는 감성", desc:"어둡고 차분한 톤", transition:"crossfade", clipDuration:3, filter:"cool", p1:"#DCE2EF", p2:"#EDEBF7"},
-  {id:"beat", name:"강한 비트 챌린지", desc:"칼컷 위주, 리듬감 강조", transition:"cut", clipDuration:0.8, filter:"none", p1:"#F6E1EA", p2:"#F4F2FA"},
-  {id:"minimal", name:"미니멀 화이트", desc:"깔끔하고 밝은 톤", transition:"cut", clipDuration:2.5, filter:"none", p1:"#EFEFF6", p2:"#FFFFFF"},
-  {id:"retro", name:"레트로 필름", desc:"옛날 필름 감성", transition:"crossfade", clipDuration:2.8, filter:"vintage", p1:"#EFE3D3", p2:"#F4F2FA"},
+  {id:"screenshot", name:"📱 앱 화면 시연", desc:"폰 카드 + 누른 곳 줌인 + 옆으로 넘기기", transition:"slideleft", clipDuration:2.8, filter:"none", motion:"tap", layout:"showcase", p1:"#E1E9F6", p2:"#F4F2FA"},
+  {id:"vlog", name:"잔잔한 브이로그", desc:"느린 컷, 자연광 느낌", transition:"crossfade", clipDuration:3.5, filter:"warm", motion:"on", p1:"#F3E7E0", p2:"#F4F2FA"},
+  {id:"highlight", name:"빠른컷 하이라이트", desc:"템포감 있는 강한 컷", transition:"cut", clipDuration:1.2, filter:"vivid", p1:"#E1E9F6", p2:"#F4F2FA"},
+  {id:"mood", name:"무드있는 감성", desc:"어둡고 차분한 톤", transition:"fadeblack", clipDuration:3, filter:"cool", motion:"out", p1:"#DCE2EF", p2:"#EDEBF7"},
+  {id:"beat", name:"강한 비트 챌린지", desc:"칼컷 위주, 리듬감 강조", transition:"cut", clipDuration:0.8, filter:"vivid", p1:"#F6E1EA", p2:"#F4F2FA"},
+  {id:"minimal", name:"미니멀 화이트", desc:"깔끔하고 밝은 톤", transition:"fadewhite", clipDuration:2.5, filter:"bright", p1:"#EFEFF6", p2:"#FFFFFF"},
+  {id:"retro", name:"레트로 필름", desc:"옛날 필름 감성", transition:"crossfade", clipDuration:2.8, filter:"vintage", motion:"pan", p1:"#EFE3D3", p2:"#F4F2FA"},
 ];
 const presetGrid = $("#presetGrid");
 PRESETS.forEach(p=>{
@@ -1085,49 +1146,49 @@ PRESETS.forEach(p=>{
     $$(".preset").forEach(x=>x.classList.remove("selected"));
     div.classList.add("selected");
     applyStyle({
-      transition:p.transition, clipDuration:p.clipDuration, filter:p.filter, kenBurns:!!p.kenBurns,
+      transition:p.transition, clipDuration:p.clipDuration, filter:p.filter, motion:p.motion || "off", layout:p.layout,
       captionSuggestion:"", mood:p.desc, source:"프리셋 · "+p.name
     });
   };
   presetGrid.appendChild(div);
 });
 
+function setChip(sel, val){
+  if(!$$(sel + " .chip").some(c => c.dataset.val === val)) return;
+  $$(sel + " .chip").forEach(c=>c.classList.toggle("on", c.dataset.val===val));
+  if(sel === "#layoutChips") syncLayoutUI();
+}
+function chipLabel(sel, val){
+  const c = $$(sel + " .chip").find(x => x.dataset.val === val);
+  return c ? c.textContent.trim() : val;
+}
 function applyStyle(style){
   currentStyle = style;
-  // 전환 chip
-  $$("#transitionChips .chip").forEach(c=>c.classList.toggle("on", c.dataset.val===style.transition));
-  // 필터 chip
-  $$("#filterChips .chip").forEach(c=>c.classList.toggle("on", c.dataset.val===style.filter));
-  // 켄번스 chip (스타일에 명시 안 되어있으면 끄기 유지)
-  const kb = style.kenBurns ? "on" : "off";
-  $$("#kenburnsChips .chip").forEach(c=>c.classList.toggle("on", c.dataset.val===kb));
+  const motion = style.motion || (style.kenBurns ? "on" : "off");
+  setChip("#transitionChips", style.transition);
+  setChip("#filterChips", style.filter);
+  setChip("#kenburnsChips", motion);
+  if(style.layout) setChip("#layoutChips", style.layout);
   $("#clipDuration").value = style.clipDuration;
 
   const summary = $("#styleSummary");
   summary.classList.add("show");
   summary.innerHTML = `<b>${style.source}</b> 스타일이 적용됐어요.<br>
     ${style.mood ? "분위기: "+style.mood+"<br>" : ""}
-    전환: ${style.transition==="cut"?"칼컷":"크로스페이드"} · 컷당 ${style.clipDuration}초 · 필터: ${filterLabel(style.filter)} · 켄번스: ${style.kenBurns?"켜짐":"꺼짐"}
+    전환: ${chipLabel("#transitionChips", style.transition)} · 컷당 ${style.clipDuration}초 · 필터: ${filterLabel(style.filter)} · 움직임: ${chipLabel("#kenburnsChips", motion)}${style.layout ? " · 화면: " + chipLabel("#layoutChips", style.layout) : ""}
     ${style.captionSuggestion ? "<br>자막 참고: "+style.captionSuggestion : ""}
     <br><span style="color:var(--sub);">※ 아래 3번 항목에서 자유롭게 다시 수정할 수 있어요.</span>`;
 }
 function filterLabel(f){
-  return {none:"원본", warm:"따뜻하게", cool:"시원하게", bw:"흑백", vintage:"빈티지"}[f] || f;
+  return chipLabel("#filterChips", f);
 }
 
-/* ---------- STEP 3: 칩 선택 ---------- */
-$$("#transitionChips .chip").forEach(c=>{
-  c.onclick = ()=>{ $$("#transitionChips .chip").forEach(x=>x.classList.remove("on")); c.classList.add("on"); };
+/* ---------- STEP 3: 칩 선택 (한 줄에 하나만) ---------- */
+["#transitionChips","#filterChips","#kenburnsChips","#captionStyleChips","#layoutChips","#themeChips","#captionAnimChips"].forEach(sel=>{
+  $$(sel + " .chip").forEach(c=>{ c.onclick = ()=> setChip(sel, c.dataset.val); });
 });
-$$("#filterChips .chip").forEach(c=>{
-  c.onclick = ()=>{ $$("#filterChips .chip").forEach(x=>x.classList.remove("on")); c.classList.add("on"); };
-});
-$$("#kenburnsChips .chip").forEach(c=>{
-  c.onclick = ()=>{ $$("#kenburnsChips .chip").forEach(x=>x.classList.remove("on")); c.classList.add("on"); };
-});
-$$("#captionStyleChips .chip").forEach(c=>{
-  c.onclick = ()=>{ $$("#captionStyleChips .chip").forEach(x=>x.classList.remove("on")); c.classList.add("on"); };
-});
+function syncLayoutUI(){ $("#themeWrap").style.display = getVal("#layoutChips") === "showcase" ? "block" : "none"; }
+$("#optOutro").addEventListener("change", ()=>{ $("#outroText").style.display = $("#optOutro").checked ? "block" : "none"; });
 
 function getVal(chipsSel){
   return $$(chipsSel+" .chip.on")[0]?.dataset.val;
@@ -1143,15 +1204,17 @@ function updateRenderEstimate(){
   if(mediaFiles.length === 0){ box.style.display = "none"; return; }
   const photoDur = parseFloat($("#clipDuration").value) || 2.5;
   const videoDur = parseFloat($("#videoClipDuration").value) || 4;
-  const kb = (getVal("#kenburnsChips") || "off") === "on";
-  const xf = (getVal("#transitionChips") || "cut") === "crossfade";
+  const kb = (getVal("#kenburnsChips") || "off") !== "off";
+  const xf = (getVal("#transitionChips") || "cut") !== "cut";
   let outSec = 0, work = 0;
   mediaFiles.forEach(m=>{
     const d = m.type === "video" ? videoDur : photoDur;
     outSec += d;
-    work += d * (m.type === "image" && kb ? 1 : 0.45);   // 켄번스가 제일 무거워요
+    work += d * (m.type === "image" && kb ? 0.8 : 0.35);   // 움직임 효과가 제일 무거워요
   });
-  const lo = work * 2.5 + (xf ? outSec * 0.5 : 5) + 8, hi = work * 7 + (xf ? outSec * 1.5 : 10) + 20;
+  if($("#optIntro").checked){ outSec += 1.5; work += 1.5 * 0.8; }
+  if($("#optOutro").checked){ outSec += 2; work += 2 * 0.8; }
+  const lo = work * 2 + outSec * (xf ? 0.5 : 0.3) + 8, hi = work * 5 + outSec * (xf ? 1.3 : 0.8) + 20;
   box.style.display = "block";
   box.innerHTML = "⏱ <b>예상 시간 " + fmtRangeMin(lo, hi) + "</b> (완성 영상 약 " + Math.round(outSec) + "초 분량 · 대략적인 추정이에요)" +
     "<br>처음 한 번은 편집 엔진을 내려받느라 <b>1분쯤 더</b> 걸려요. 시작하면 경과 시간과 남은 시간이 화면에 계속 표시되고, 언제든 취소할 수 있어요.";
@@ -1242,6 +1305,7 @@ async function ensureFFmpeg(){
   ffmpeg = new FFmpeg();
   ffmpeg.on("log", ({message})=>{ console.log(message); });
   ffmpeg.on("log", progBeat);
+  ffmpeg.on("log", ({message})=>{ if(/error|invalid|failed|cannot|no such/i.test(message || "")) ffLastErr = message; });
   ffmpeg.on("progress", ({progress})=>{
     progBeat();
     if(progSeg && isFinite(progress)){ showProgress(undefined, undefined, progSeg.base + Math.min(1, Math.max(0, progress)) * progSeg.span); }
@@ -1271,6 +1335,9 @@ function filterChainFor(name){
     case "cool": return "colorbalance=rs=-.15:gs=.0:bs=.2";
     case "bw": return "hue=s=0";
     case "vintage": return "curves=preset=vintage";
+    case "vivid": return "eq=contrast=1.06:saturation=1.3";
+    case "bright": return "eq=brightness=0.04:contrast=1.03:saturation=1.1";
+    case "vignette": return "vignette=PI/5";
     default: return null;
   }
 }
@@ -1280,13 +1347,13 @@ function escapeDrawtext(text){
 }
 
 /* ---------- 자막 스타일 프리셋 ---------- */
-// 각 스타일에 필요한 폰트는 처음 쓸 때 한 번만 구글폰트 저장소에서 받아서
-// ffmpeg 가상 파일시스템에 심어두고 재사용해요 (기본 스타일은 폰트 파일 필요 없음).
+// 각 스타일에 필요한 폰트는 처음 쓸 때 한 번만 구글폰트 저장소에서 받아서 ffmpeg 가상 파일시스템에 심어두고 재사용해요.
+// ※ 브라우저용 ffmpeg에는 기본 폰트가 없어서, '기본' 스타일도 한글 폰트 파일이 꼭 필요해요 (없으면 자막이 있는 순간 편집이 실패해요).
 const CAPTION_STYLES = {
-  basic:     { label:"기본 (깔끔)",     fontUrl:null, fontFile:null },
-  impact:    { label:"임팩트 볼드",     fontUrl:"https://raw.githubusercontent.com/google/fonts/main/ofl/blackhansans/BlackHanSans-Regular.ttf", fontFile:"font_impact.ttf" },
-  neon:      { label:"네온 글로우",     fontUrl:"https://raw.githubusercontent.com/google/fonts/main/ofl/jua/Jua-Regular.ttf", fontFile:"font_neon.ttf" },
-  handwrite: { label:"손글씨 캐주얼",   fontUrl:"https://raw.githubusercontent.com/google/fonts/main/ofl/gaegu/Gaegu-Bold.ttf", fontFile:"font_handwrite.ttf" }
+  basic:     { label:"기본 (깔끔)",     fontUrl:"https://raw.githubusercontent.com/google/fonts/main/ofl/nanumgothic/NanumGothic-ExtraBold.ttf", fontFile:"font_basic.ttf", extra:"·→" },
+  impact:    { label:"임팩트 볼드",     fontUrl:"https://raw.githubusercontent.com/google/fonts/main/ofl/blackhansans/BlackHanSans-Regular.ttf", fontFile:"font_impact.ttf", extra:"" },
+  neon:      { label:"네온 글로우",     fontUrl:"https://raw.githubusercontent.com/google/fonts/main/ofl/jua/Jua-Regular.ttf", fontFile:"font_neon.ttf", extra:"★♥" },
+  handwrite: { label:"손글씨 캐주얼",   fontUrl:"https://raw.githubusercontent.com/google/fonts/main/ofl/gaegu/Gaegu-Bold.ttf", fontFile:"font_handwrite.ttf", extra:"" }
 };
 const loadedCaptionFonts = new Set();
 
@@ -1300,33 +1367,56 @@ async function ensureCaptionFont(styleId){
   loadedCaptionFonts.add(styleId);
 }
 
-function drawtextOptsFor(styleId){
+// 폰트에 없는 글자(이모지·화살표·특수기호)는 빈칸으로 찍혀서, 미리 바꾸거나 빼요
+function cleanCaption(text, styleId){
+  const extra = (CAPTION_STYLES[styleId] || CAPTION_STYLES.basic).extra || "";
+  let s = String(text || "").normalize("NFC");
+  if(!extra.includes("→")) s = s.replace(/\s*[→⇒➡➔⟶>]\s*/g, " > ");
+  else s = s.replace(/[⇒➡➔⟶]/g, "→");
+  if(!extra.includes("·")) s = s.replace(/[·•∙ㆍ]/g, " ");
+  s = s.replace(/[“”]/g, '"').replace(/[‘’]/g, "'").replace(/…/g, "...");
+  const keep = new RegExp("[^가-힣ㄱ-ㅎㅏ-ㅣ\\x20-\\x7E" + extra.replace(/[\]\\^-]/g, "\\$&") + "]", "gu");
+  s = s.replace(keep, "");
+  return s.replace(/\s{2,}/g, " ").trim();
+}
+// 글자 수에 맞춰 크기를 줄여서 화면 밖으로 안 나가게 (1080 폭 중 약 960px 안에)
+function fitFontSize(text, size){
+  let units = 0;
+  for(const ch of text) units += /[\x20-\x7E]/.test(ch) ? 0.56 : 1.0;
+  return Math.max(28, Math.min(Number(size) || 64, Math.floor(960 / Math.max(1, units))));
+}
+
+function drawtextOptsFor(styleId, fs){
+  const k = (fs || 64) / 64;   // 테두리·박스 두께를 글자 크기에 맞춰요
   switch(styleId){
     case "impact":
-      return { fontfile:"font_impact.ttf", fontcolor:"white", borderw:10, bordercolor:"black",
-        box:false, shadowcolor:"black@0.45", shadowx:3, shadowy:3 };
+      return { fontfile:"font_impact.ttf", fontcolor:"white", borderw:Math.max(3, Math.round(7*k)), bordercolor:"black",
+        box:false, shadowcolor:"black@0.45", shadowx:Math.round(3*k), shadowy:Math.round(3*k) };
     case "neon":
-      return { fontfile:"font_neon.ttf", fontcolor:"0x39FF9E", borderw:6, bordercolor:"0x0B3D2E",
-        box:true, boxcolor:"black@0.55", boxborderw:16 };
+      return { fontfile:"font_neon.ttf", fontcolor:"0x39FF9E", borderw:Math.max(2, Math.round(5*k)), bordercolor:"0x0B3D2E",
+        box:true, boxcolor:"black@0.55", boxborderw:Math.round(16*k) };
     case "handwrite":
       return { fontfile:"font_handwrite.ttf", fontcolor:"0x3A2E1F", borderw:0,
-        box:true, boxcolor:"0xFFF4D6@0.85", boxborderw:14, shadowcolor:"black@0.15", shadowx:1, shadowy:1 };
+        box:true, boxcolor:"0xFFF4D6@0.85", boxborderw:Math.round(14*k), shadowcolor:"black@0.15", shadowx:1, shadowy:1 };
     default: // basic
-      return { fontfile:null, fontcolor:"white", borderw:0,
-        box:true, boxcolor:"black@0.4", boxborderw:14 };
+      return { fontfile:"font_basic.ttf", fontcolor:"white", borderw:0,
+        box:true, boxcolor:"black@0.45", boxborderw:Math.round(16*k) };
   }
 }
 
-// text: 표시할 문구, styleId: CAPTION_STYLES 키, opts: {fontsize, x, y, extra(선택, enable= 등 추가 옵션 문자열)}
+// text: 표시할 문구, styleId: CAPTION_STYLES 키, opts: {fontsize, x, y, alpha, extra} · 표시할 글자가 없으면 null
 function buildCaptionDrawtext(text, styleId, opts){
-  const o = drawtextOptsFor(styleId);
-  const escaped = escapeDrawtext(text);
-  const parts = [`drawtext=text='${escaped}'`];
+  const clean = cleanCaption(text, styleId);
+  if(!clean) return null;
+  const fs = fitFontSize(clean, opts.fontsize);
+  const o = drawtextOptsFor(styleId, fs);
+  const parts = [`drawtext=text='${escapeDrawtext(clean)}'`, "expansion=none"];   // expansion=none: '100%' 같은 글자가 자막을 망가뜨리지 않게
   if(o.fontfile) parts.push(`fontfile='${o.fontfile}'`);
   parts.push(`fontcolor=${o.fontcolor}`);
-  parts.push(`fontsize=${opts.fontsize}`);
-  parts.push(`x=${opts.x}`);
-  parts.push(`y=${opts.y}`);
+  parts.push(`fontsize=${fs}`);
+  parts.push(`x='${opts.x}'`);
+  parts.push(`y='${opts.y}'`);
+  if(opts.alpha) parts.push(`alpha='${opts.alpha}'`);
   if(o.box){ parts.push("box=1"); parts.push(`boxcolor=${o.boxcolor}`); parts.push(`boxborderw=${o.boxborderw}`); }
   else{ parts.push("box=0"); }
   if(o.borderw){ parts.push(`borderw=${o.borderw}`); parts.push(`bordercolor=${o.bordercolor}`); }
@@ -1335,24 +1425,155 @@ function buildCaptionDrawtext(text, styleId, opts){
   return parts.join(":");
 }
 
-// 정지 이미지용 켄번스(자동 줌인) 필터. frames = 세그먼트 길이(초) * fps
-function kenBurnsFilter(frames, fps){
-  const maxZoom = 1.15;
-  const incr = ((maxZoom-1)/frames).toFixed(6);
-  return `zoompan=z='min(zoom+${incr},${maxZoom})':d=${frames}:s=1080x1920:fps=${fps}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'`;
+/* ---------- 무료 효과 모음 (모두 브라우저 안에서 처리, AI 호출 없음) ---------- */
+const FX_TRANSITIONS = ["crossfade","slideleft","slideup","smoothleft","circleopen","wipeleft","fadewhite","fadeblack","pixelize"];
+const FX_MIX_TRANSITIONS = ["slideleft","crossfade","circleopen","slideup","smoothleft","wipeleft"];
+const FX_MIX_MOTIONS = ["tap","on","pan","out"];
+const THEMES = {
+  lavender:["#C9BFEA","#7C6BA8"], pink:["#FCD3E1","#E07A9A"], mint:["#C6EEDF","#4FA88A"],
+  sky:["#CFE6FA","#4F86C6"], peach:["#FFE3C8","#F09A5B"], dark:["#4A4462","#15121F"]
+};
+
+// 자막 등장 애니메이션: t는 그 자막이 나타난 뒤 지난 시간(초) 기준식
+function captionAnim(kind, baseY, tExpr, endAt){
+  const T = tExpr || "t";
+  const out = endAt ? `*min(1,max(0,(${endAt}-${T})/0.35))` : "";
+  switch(kind){
+    case "fade": return { y: baseY, alpha: `min(1,${T}/0.4)${out}` };
+    case "rise": return { y: `(${baseY})+60*max(0,1-${T}/0.4)`, alpha: `min(1,${T}/0.3)${out}` };
+    case "pop":  return { y: `(${baseY})-26*sin(PI*min(1,${T}/0.32))`, alpha: `min(1,${T}/0.12)${out}` };
+    default: return { y: baseY, alpha: endAt ? `1${out}` : "" };
+  }
 }
+
+// 장면 움직임 (zoompan). 입력을 2배로 키운 뒤 움직이면 화면 떨림이 줄어요
+function motionFilter(kind, frames, fps, focus){
+  const F = Math.max(2, frames), S = `:d=${F}:s=1080x1920:fps=${fps}`;
+  const pre = "scale=2160:3840,";
+  const cx = "x='iw/2-(iw/zoom/2)'", cy = "y='ih/2-(ih/zoom/2)'";
+  const ease = `(1-(1-on/${F})*(1-on/${F}))`;   // 처음엔 빠르게, 끝엔 천천히
+  switch(kind){
+    case "tap": {
+      if(!focus) return motionFilter("on", frames, fps, null);
+      const fx = Math.min(0.95, Math.max(0.05, focus.x)).toFixed(3), fy = Math.min(0.95, Math.max(0.05, focus.y)).toFixed(3);
+      return pre + `zoompan=z='1+0.32*${ease}':x='max(0,min(iw-iw/zoom,${fx}*iw-iw/zoom/2))':y='max(0,min(ih-ih/zoom,${fy}*ih-ih/zoom/2))'` + S;
+    }
+    case "out": return pre + `zoompan=z='1.18-0.18*${ease}':${cx}:${cy}` + S;
+    case "pan": return pre + `zoompan=z='1.14':${cx}:y='(ih-ih/zoom)*on/${F}'` + S;
+    case "on":
+    default: return pre + `zoompan=z='1+0.15*${ease}':${cx}:${cy}` + S;
+  }
+}
+
+/* --- 쇼케이스 화면 구성 (캔버스로 미리 합성) --- */
+function roundRectPath(g, x, y, w, h, r){
+  g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+  g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+}
+function paintBackground(g, theme){
+  const [c1, c2] = THEMES[theme] || THEMES.lavender;
+  const gr = g.createLinearGradient(0, 0, 1080, 1920);
+  gr.addColorStop(0, c1); gr.addColorStop(1, c2);
+  g.fillStyle = gr; g.fillRect(0, 0, 1080, 1920);
+  g.save(); g.globalAlpha = theme === "dark" ? 0.08 : 0.2; g.fillStyle = "#fff";
+  [[930, 230, 300], [120, 1700, 360], [1000, 1500, 140]].forEach(([x, y, r])=>{ g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); });
+  g.restore();
+}
+// 스크린샷 아래쪽의 단색 빈 여백 높이를 찾아서 잘라요 (내용이 있는 곳 + 약간의 여유까지만)
+function contentHeight(bmp){
+  try{
+    const W = 120, H = Math.max(20, Math.round(120 * bmp.height / bmp.width));
+    const c = document.createElement("canvas"); c.width = W; c.height = H;
+    const g = c.getContext("2d"); g.drawImage(bmp, 0, 0, W, H);
+    const d = g.getImageData(0, 0, W, H).data, ref = (H - 1) * W * 4;
+    let last = H - 1;
+    for(let y = H - 1; y >= 0; y--){
+      let diff = 0;
+      for(let x = 0; x < W; x++){
+        const i = (y * W + x) * 4, j = ref + x * 4;
+        if(Math.abs(d[i] - d[j]) + Math.abs(d[i+1] - d[j+1]) + Math.abs(d[i+2] - d[j+2]) > 30) diff++;
+      }
+      if(diff > W * 0.02){ last = y; break; }
+    }
+    const ratio = Math.min(1, Math.max(0.42, (last + 1) / H + 0.035));
+    return Math.round(bmp.height * ratio);
+  }catch(e){ return bmp.height; }
+}
+async function composeShowcase(file, theme, focus){
+  const bmp = await createImageBitmap(file);
+  const sh = contentHeight(bmp);
+  const c = document.createElement("canvas"); c.width = 1080; c.height = 1920;
+  const g = c.getContext("2d");
+  paintBackground(g, theme);
+  const maxW = 860, maxH = 1340, midY = 990;
+  const k = Math.min(maxW / bmp.width, maxH / sh);
+  const cw = Math.round(bmp.width * k), ch = Math.round(sh * k);
+  const x = Math.round((1080 - cw) / 2), y = Math.round(midY - ch / 2);
+  const r = 46;
+  g.save(); g.shadowColor = "rgba(20,10,40,.32)"; g.shadowBlur = 70; g.shadowOffsetY = 26;
+  roundRectPath(g, x, y, cw, ch, r); g.fillStyle = "#fff"; g.fill(); g.restore();
+  g.save(); roundRectPath(g, x, y, cw, ch, r); g.clip();
+  g.drawImage(bmp, 0, 0, bmp.width, sh, x, y, cw, ch); g.restore();
+  g.save(); roundRectPath(g, x, y, cw, ch, r); g.lineWidth = 8; g.strokeStyle = "rgba(255,255,255,.85)"; g.stroke(); g.restore();
+  let f2 = null;
+  if(focus && focus.y * bmp.height <= sh) f2 = { x: (x + focus.x * bmp.width * k) / 1080, y: (y + focus.y * bmp.height * k) / 1920 };
+  const blob = await new Promise(res => c.toBlob(res, "image/jpeg", 0.93));
+  return { blob, focus: f2 };
+}
+async function makeCardImage(theme){
+  const c = document.createElement("canvas"); c.width = 1080; c.height = 1920;
+  paintBackground(c.getContext("2d"), theme);
+  return await new Promise(res => c.toBlob(res, "image/jpeg", 0.93));
+}
+
+// 영상 파일의 실제 길이 (설정한 최대 길이보다 짧은 영상이면 전환 위치가 어긋나지 않게)
+function videoDurationOf(file){
+  return new Promise(resolve=>{
+    const v = document.createElement("video");
+    v.preload = "metadata"; v.muted = true;
+    const done = (d)=>{ try{ URL.revokeObjectURL(v.src); }catch(e){} resolve(d); };
+    v.onloadedmetadata = ()=> done(isFinite(v.duration) ? v.duration : 0);
+    v.onerror = ()=> done(0);
+    setTimeout(()=> done(0), 5000);
+    v.src = URL.createObjectURL(file);
+  });
+}
+
+// 인코딩 설정: veryfast는 화질 차이는 거의 없고 브라우저에서 훨씬 빨라요
+const ENC = ["-c:v","libx264","-preset","veryfast","-crf","20","-pix_fmt","yuv420p"];
+async function ffRun(args, label){
+  ffLastErr = "";
+  const rc = await ffmpeg.exec(args);
+  if(renderCancelled) throw new Error("취소됨");
+  if(rc !== 0) throw new Error(label + " 단계에서 실패했어요" + (ffLastErr ? " (" + ffLastErr.slice(0, 120) + ")" : ""));
+}
+let ffLastErr = "";
+let lastCoverUrl = "";
 
 $("#btnRender").onclick = async ()=>{
   if(mediaFiles.length===0){ toast("먼저 사진/영상을 올려주세요"); return; }
   const transition = getVal("#transitionChips") || "cut";
   const filter = getVal("#filterChips") || "none";
-  const kenburns = getVal("#kenburnsChips") || "off";
+  const motion = getVal("#kenburnsChips") || "off";
+  const layout = getVal("#layoutChips") || "fill";
+  const theme = getVal("#themeChips") || "lavender";
+  const anim = getVal("#captionAnimChips") || "none";
   const photoDur = parseFloat($("#clipDuration").value) || 2.5;
   const videoMaxDur = parseFloat($("#videoClipDuration").value) || 4;
   const captionText = $("#captionText").value.trim();
   const captionPos = $("#captionPos").value;
-  const captionSize = $("#captionSize").value;
+  const captionSize = Number($("#captionSize").value) || 64;
+  const sceneSize = Math.round(captionSize * 0.8);   // 장면 자막도 크기 설정을 따라가요 (제목보다 조금 작게)
   const captionStyle = getVal("#captionStyleChips") || "basic";
+  const appName = (typeof shotMeta !== "undefined" && shotMeta.appName) ? shotMeta.appName : "";
+  const useIntro = $("#optIntro").checked && !!(captionText || appName);
+  const useOutro = $("#optOutro").checked;
+  const outroText = $("#outroText").value.trim() || "프로필 링크에서 써보세요";
+  const useProgress = $("#optProgress").checked;
+  const show = layout === "showcase";
+  const sceneY = show ? "h*0.915-text_h/2" : "h*0.84";
+  const titleY = captionPos==="top" ? (show ? "h*0.062" : "h*0.08") : captionPos==="bottom" ? (show ? "h*0.915-text_h/2" : "h*0.84") : "(h-text_h)/2";
+  const written = [];   // 끝나면 지울 임시 파일 (여러 번 편집해도 메모리가 쌓이지 않게)
 
   $("#btnRender").disabled = true;
   $("#resultWrap").style.display = "none";
@@ -1362,111 +1583,157 @@ $("#btnRender").onclick = async ()=>{
 
   try{
     await ensureFFmpeg();
-    if(captionStyle !== "basic"){
+    const needsFont = !!captionText || useIntro || useOutro || mediaFiles.some(m => (m.caption || "").trim());
+    if(needsFont){
       showProgress("자막 폰트 불러오는 중...", CAPTION_STYLES[captionStyle].label, 4);
       await ensureCaptionFont(captionStyle);
     }
 
-    const W=1080, H=1920;
+    const W=1080, H=1920, fps = 30;
     const filterChain = filterChainFor(filter);
-    const segDurations = [];
-    const segNames = [];
+    // 만들 장면 목록: [인트로] + 사진/영상 + [엔딩]
+    const jobs = [];
+    if(useIntro) jobs.push({ kind:"intro", dur:1.6 });
+    mediaFiles.forEach(m => jobs.push({ kind:"media", m }));
+    if(useOutro) jobs.push({ kind:"outro", dur:2.2 });
+    const segDurations = [], segNames = [];
+    let motionIdx = 0;
 
     const segT0 = Date.now();
-    for(let i=0;i<mediaFiles.length;i++){
-      const m = mediaFiles[i];
-      const pct = 5 + (i/mediaFiles.length)*55;
-      showProgress(`영상 조각 만드는 중 (${i+1}/${mediaFiles.length})`, m.file.name, pct);
-      progSeg = { base: pct, span: 55/mediaFiles.length };
+    for(let i=0;i<jobs.length;i++){
+      const job = jobs[i];
+      const pct = 5 + (i/jobs.length)*60;
+      const label = job.kind === "intro" ? "인트로 카드" : job.kind === "outro" ? "엔딩 카드" : job.m.file.name;
+      showProgress(`영상 조각 만드는 중 (${i+1}/${jobs.length})`, label, pct);
+      progSeg = { base: pct, span: 60/jobs.length };
       if(i > 0){
         const per = (Date.now() - segT0) / 1000 / i;   // 지금까지 걸린 실제 시간으로 남은 시간을 다시 계산
-        progSetEta(per * (mediaFiles.length - i) + per * 0.9);
+        progSetEta(per * (jobs.length - i) + per * 0.6);
       }
-
-      const inName = `in_${i}.${m.type==="video" ? "mp4" : "jpg"}`;
       const outName = `seg_${i}.mp4`;
-      await ffmpeg.writeFile(inName, await fetchFile(m.file));
-
-      const useKenBurns = kenburns==="on" && m.type==="image";
-      const slideCaption = (m.caption || "").trim();
-
+      written.push(outName);
       let args;
-      if(m.type==="image"){
-        const dur = photoDur;
-        segDurations.push(dur);
-        const fps = 30;
-        const vf = [`scale=${W}:${H}:force_original_aspect_ratio=increase`, `crop=${W}:${H}`];
-        if(useKenBurns){
-          // 켄번스는 필터 안에서 자체적으로 프레임 수(d)만큼 애니메이션을 만들기 때문에,
-          // 입력을 -t로 미리 잘라두면 안 되고(원본 로직과의 유일한 차이점) 출력쪽 -t로 잘라야 정상 동작해요.
-          vf.push(kenBurnsFilter(Math.round(dur*fps), fps));
-        }
-        if(filterChain) vf.push(filterChain);
-        if(slideCaption) vf.push(buildCaptionDrawtext(slideCaption, captionStyle, {fontsize:54, x:"(w-text_w)/2", y:"h*0.85"}));
 
-        if(useKenBurns){
-          args = ["-loop","1","-i",inName,
-            "-vf", vf.join(","), "-t",String(dur), "-r",String(fps),"-pix_fmt","yuv420p", outName];
-        }else{
-          args = ["-loop","1","-t",String(dur),"-i",inName,
-            "-vf", vf.join(","), "-r",String(fps),"-pix_fmt","yuv420p", outName];
-        }
-      }else{
-        const dur = videoMaxDur;
-        segDurations.push(dur);
-        const vf = [`scale=${W}:${H}:force_original_aspect_ratio=increase`, `crop=${W}:${H}`];
+      if(job.kind !== "media"){
+        // 인트로/엔딩: 배경 카드 + 큰 글씨
+        const inName = `card_${i}.jpg`;
+        written.push(inName);
+        await ffmpeg.writeFile(inName, new Uint8Array(await (await makeCardImage(theme)).arrayBuffer()));
+        const big = job.kind === "intro" ? (captionText || appName) : outroText;
+        const small = job.kind === "intro" ? (captionText && appName ? appName : "") : (appName || captionText);
+        const vf = [motionFilter("on", Math.round(job.dur*fps), fps, null), "setsar=1"];
         if(filterChain) vf.push(filterChain);
-        if(slideCaption) vf.push(buildCaptionDrawtext(slideCaption, captionStyle, {fontsize:54, x:"(w-text_w)/2", y:"h*0.85"}));
-        args = ["-i",inName,"-t",String(dur),
-          "-vf", vf.join(","), "-r","30","-an","-pix_fmt","yuv420p", outName];
+        const a1 = captionAnim(anim === "none" ? "fade" : anim, "(h-text_h)/2-60", "t");
+        const d1 = buildCaptionDrawtext(big, captionStyle, { fontsize: 104, x:"(w-text_w)/2", y:a1.y, alpha:a1.alpha });
+        if(d1) vf.push(d1);
+        if(small){
+          const a2 = captionAnim("fade", "h/2+70", "max(0,t-0.35)");
+          const d2 = buildCaptionDrawtext(small, captionStyle, { fontsize: 50, x:"(w-text_w)/2", y:a2.y, alpha:a2.alpha });
+          if(d2) vf.push(d2);
+        }
+        args = ["-i",inName, "-vf", vf.join(","), "-t",String(job.dur), "-r",String(fps), ...ENC, outName];
+        segDurations.push(job.dur);
+      }else{
+        const m = job.m;
+        const inName = `in_${i}.${m.type==="video" ? "mp4" : "jpg"}`;
+        written.push(inName);
+        let focus = m.focus || null;
+        if(m.type === "image" && show){
+          const comp = await composeShowcase(m.file, theme, focus);
+          focus = comp.focus;
+          await ffmpeg.writeFile(inName, new Uint8Array(await comp.blob.arrayBuffer()));
+        }else{
+          await ffmpeg.writeFile(inName, await fetchFile(m.file));
+        }
+        const ca = captionAnim(anim, sceneY, "t");
+        const capDraw = (m.caption || "").trim() ? buildCaptionDrawtext(m.caption, captionStyle, {fontsize:sceneSize, x:"(w-text_w)/2", y:ca.y, alpha:ca.alpha}) : null;
+
+        if(m.type==="image"){
+          const dur = photoDur;
+          segDurations.push(dur);
+          let mv = motion === "mix" ? FX_MIX_MOTIONS[motionIdx++ % FX_MIX_MOTIONS.length] : motion;
+          if(mv === "tap" && !focus && motion === "mix") mv = "on";
+          const vf = [`scale=${W}:${H}:force_original_aspect_ratio=increase`, `crop=${W}:${H}`];
+          if(mv !== "off") vf.push(motionFilter(mv, Math.round(dur*fps), fps, focus));
+          vf.push("setsar=1");
+          if(filterChain) vf.push(filterChain);
+          if(capDraw) vf.push(capDraw);
+          // 움직임 효과는 필터 안에서 프레임을 만들어서 한 장만 넣고 출력쪽 -t로 잘라요
+          args = mv !== "off"
+            ? ["-i",inName, "-vf", vf.join(","), "-t",String(dur), "-r",String(fps), ...ENC, outName]
+            : ["-loop","1","-t",String(dur),"-i",inName, "-vf", vf.join(","), "-r",String(fps), ...ENC, outName];
+        }else{
+          const real = await videoDurationOf(m.file);
+          const dur = real > 0.3 ? Math.min(videoMaxDur, real) : videoMaxDur;
+          segDurations.push(dur);
+          const bg = (THEMES[theme] || THEMES.lavender)[1].replace("#", "0x");
+          const vf = show
+            ? ["scale=860:1340:force_original_aspect_ratio=decrease", "scale=trunc(iw/2)*2:trunc(ih/2)*2", `pad=${W}:${H}:(ow-iw)/2:(oh-ih)/2:color=${bg}`, "setsar=1", `fps=${fps}`]
+            : [`scale=${W}:${H}:force_original_aspect_ratio=increase`, `crop=${W}:${H}`, "setsar=1", `fps=${fps}`];
+          if(filterChain) vf.push(filterChain);
+          if(capDraw) vf.push(capDraw);
+          args = ["-i",inName,"-t",String(dur), "-vf", vf.join(","), "-an", ...ENC, outName];
+        }
       }
-      await ffmpeg.exec(args);
+      await ffRun(args, (i+1) + "번째 장면");
       segNames.push(outName);
+      try{ await ffmpeg.deleteFile(written[written.length - 1]); }catch(e){}
     }
     progSeg = null;
-    { const per = (Date.now() - segT0) / 1000 / mediaFiles.length; progSetEta(per * mediaFiles.length * (transition === "crossfade" ? 0.8 : 0.25) + (captionText ? per * 0.6 : 0) + 3); }
+    { const per = (Date.now() - segT0) / 1000 / jobs.length; progSetEta(per * jobs.length * (transition === "cut" ? 0.35 : 0.8) + 4); }
 
-    showProgress("영상 이어붙이는 중...", transition==="crossfade" ? "부드러운 전환 적용 중" : "컷 편집 중", 65);
-
-    let bodyName = "body.mp4";
-    if(transition === "cut" || segNames.length===1){
-      const listContent = segNames.map(n=>`file '${n}'`).join("\n");
-      await ffmpeg.writeFile("list.txt", new TextEncoder().encode(listContent));
-      await ffmpeg.exec(["-f","concat","-safe","0","-i","list.txt","-c:v","libx264","-pix_fmt","yuv420p", bodyName]);
-    } else {
-      const t = 0.5; // 전환 길이
-      let filterComplex = "";
-      let cum = segDurations[0];
-      let prevLabel = "0:v";
-      for(let i=1;i<segNames.length;i++){
-        const outLabel = i===segNames.length-1 ? "outv" : `v${i}`;
-        const offset = Math.max(cum - t, 0.05);
-        filterComplex += `[${prevLabel}][${i}:v]xfade=transition=fade:duration=${t}:offset=${offset.toFixed(2)}[${outLabel}];`;
-        cum = cum + segDurations[i] - t;
-        prevLabel = outLabel;
+    // 이어붙이기 + 전환 + 제목 자막 + 진행 바를 한 번에 (인코딩 1회)
+    showProgress("영상 이어붙이는 중...", chipLabel("#transitionChips", transition) + (captionText && !useIntro ? " + 제목 자막" : "") + (useProgress ? " + 진행 바" : ""), 70);
+    progSeg = { base: 70, span: 25 };
+    const N = segNames.length;
+    let graph = "", total = 0;
+    if(transition === "cut" || N === 1){
+      graph = segNames.map((_, i) => `[${i}:v]`).join("") + `concat=n=${N}:v=1:a=0[body]`;
+      total = segDurations.reduce((a, b) => a + b, 0);
+    }else{
+      let cum = segDurations[0], prev = "0:v";
+      for(let i=1;i<N;i++){
+        const out = i === N-1 ? "body" : `x${i}`;
+        const tt = Math.min(0.5, segDurations[i-1] * 0.4, segDurations[i] * 0.4);
+        const name = transition === "mix" ? FX_MIX_TRANSITIONS[(i-1) % FX_MIX_TRANSITIONS.length] : transition;
+        const xf = name === "crossfade" ? "fade" : name;
+        graph += `[${prev}][${i}:v]xfade=transition=${xf}:duration=${tt.toFixed(2)}:offset=${Math.max(cum - tt, 0.05).toFixed(2)}[${out}];`;
+        cum = cum + segDurations[i] - tt;
+        prev = out;
       }
-      filterComplex = filterComplex.replace(/;$/,"");
-      const inputArgs = segNames.flatMap(n=>["-i", n]);
-      await ffmpeg.exec([...inputArgs, "-filter_complex", filterComplex, "-map","[outv]",
-        "-c:v","libx264","-pix_fmt","yuv420p", bodyName]);
+      graph = graph.replace(/;$/, "");
+      total = cum;
     }
-
-    let finalName = bodyName;
-    if(captionText){
-      showProgress("자막 입히는 중...", captionText, 85);
-      const yExpr = captionPos==="top" ? "h*0.08" : captionPos==="bottom" ? "h*0.85" : "(h-text_h)/2";
-      const draw = buildCaptionDrawtext(captionText, captionStyle, {
-        fontsize:captionSize, x:"(w-text_w)/2", y:yExpr, extra:"enable='between(t,0,3)'"
-      });
-      finalName = "final.mp4";
-      await ffmpeg.exec(["-i", bodyName, "-vf", draw, "-c:v","libx264","-pix_fmt","yuv420p", finalName]);
+    let last = "body";
+    if(captionText && !useIntro){
+      const ta = captionAnim(anim, titleY, "t", 3);
+      const td = buildCaptionDrawtext(captionText, captionStyle, { fontsize:captionSize, x:"(w-text_w)/2", y:ta.y, alpha:ta.alpha, extra:"enable='between(t,0,3)'" });
+      if(td){ graph += `;[${last}]${td}[tt]`; last = "tt"; }
     }
+    if(useProgress){
+      graph += `;[${last}]drawbox=x=0:y=0:w=iw:h=12:color=black@0.22:t=fill[pbg];color=c=white:s=${W}x12:r=${fps}[pb];[pbg][pb]overlay=x='-W+W*t/${total.toFixed(2)}':y=0:shortest=1[pp]`;
+      last = "pp";
+    }
+    const finalName = "final.mp4";
+    written.push(finalName, "cover.jpg");
+    await ffRun([...segNames.flatMap(n=>["-i", n]), "-filter_complex", graph, "-map", `[${last}]`, ...ENC, "-movflags","+faststart", finalName], "이어붙이기");
+    progSeg = null;
 
-    progSetEta(3);
-    showProgress("마무리 처리 중...", "거의 다 됐어요", 96);
+    progSetEta(4);
+    showProgress("마무리 처리 중...", "커버 이미지도 만드는 중", 97);
     const data = await ffmpeg.readFile(finalName);
     const blob = new Blob([data.buffer], {type:"video/mp4"});
     const url = URL.createObjectURL(blob);
+    // 커버 이미지: 제목이 또렷하게 보이는 순간의 한 장면
+    let coverUrl = "";
+    try{
+      const at = useIntro ? 1.0 : (captionText ? 1.2 : 0.5);
+      await ffRun(["-ss", String(Math.min(at, Math.max(0, total - 0.1))), "-i", finalName, "-frames:v","1", "-q:v","2", "cover.jpg"], "커버 이미지");
+      const cv = await ffmpeg.readFile("cover.jpg");
+      coverUrl = URL.createObjectURL(new Blob([cv.buffer], {type:"image/jpeg"}));
+    }catch(e){ console.warn("커버 이미지 실패", e); }
+    if(lastCoverUrl) try{ URL.revokeObjectURL(lastCoverUrl); }catch(e){}
+    lastCoverUrl = coverUrl;
 
     showProgress("완료!", "총 " + fmtDur((Date.now() - progT0)/1000) + " 걸렸어요", 100);
     progClockStop();
@@ -1476,7 +1743,11 @@ $("#btnRender").onclick = async ()=>{
     resultWrap.style.display = "block";
     resultWrap.innerHTML = `
       <video src="${url}" controls playsinline></video>
-      <a class="btn btn-main" href="${url}" download="reels_edit.mp4" style="display:inline-block;text-decoration:none;">⬇️ 다운로드</a>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+        <a class="btn btn-main" href="${url}" download="reels_edit.mp4" style="display:inline-block;text-decoration:none;">⬇️ 영상 다운로드</a>
+        ${coverUrl ? `<a class="btn btn-outline" href="${coverUrl}" download="reels_cover.jpg" style="display:inline-block;text-decoration:none;">🖼 커버 이미지 저장</a>` : ""}
+      </div>
+      ${coverUrl ? `<div style="margin-top:12px;font-size:11.5px;color:var(--sub);">커버 이미지 미리보기 (인스타 업로드할 때 '커버 수정'에서 이 사진을 고르면 돼요)</div><img src="${coverUrl}" alt="커버" style="width:120px;border-radius:10px;margin-top:6px;box-shadow:0 2px 10px rgba(0,0,0,.12);">` : ""}
     `;
     toast("편집 완료! 아래에서 확인해보세요 🎉");
 
@@ -1484,9 +1755,10 @@ $("#btnRender").onclick = async ()=>{
     console.error(err);
     hideProgress();
     if(renderCancelled) toast(renderCancelMsg || "편집을 취소했어요", 4200);
-    else toast("편집 중 오류가 발생했어요: " + (err.message || err), 5000);
+    else toast("편집 중 오류가 발생했어요: " + (err.message || err), 6000);
   }finally{
     progClockStop();
+    if(ffmpeg && ffmpegLoaded) for(const f of new Set(written)){ try{ await ffmpeg.deleteFile(f); }catch(e){} }
     $("#btnRender").disabled = mediaFiles.length===0;
   }
 };
@@ -1509,6 +1781,7 @@ try{window.addEventListener("error",function(e){try{var Q=window.parent;if(Q.__s
 var mk=function(n){var d={};try{var Q=window.parent;if(Q.__shotLS){d=Q.__shotLS[n]=Q.__shotLS[n]||{}}}catch(e){}return{getItem:function(k){k=String(k);return Object.prototype.hasOwnProperty.call(d,k)?d[k]:null},setItem:function(k,v){d[String(k)]=String(v)},removeItem:function(k){delete d[String(k)]},clear:function(){for(var k in d)delete d[k]},key:function(i){return Object.keys(d)[i]||null},get length(){return Object.keys(d).length}}};
 try{Object.defineProperty(window,"localStorage",{value:mk("l"),configurable:true});}catch(e){}
 try{Object.defineProperty(window,"sessionStorage",{value:mk("s"),configurable:true});}catch(e){}
+try{var IDB=window.indexedDB;if(IDB){var P="__shot__";Object.defineProperty(window,"indexedDB",{configurable:true,value:{open:function(n,v){return v===undefined?IDB.open(P+n):IDB.open(P+n,v)},deleteDatabase:function(n){return IDB.deleteDatabase(P+n)},cmp:function(a,b){return IDB.cmp(a,b)},databases:function(){return IDB.databases?IDB.databases().then(function(l){return l.filter(function(d){return d.name.indexOf(P)===0}).map(function(d){return{name:d.name.slice(P.length),version:d.version}})}):Promise.resolve([])}}})}}catch(e){}
 window.alert=function(){};window.confirm=function(){return true};window.prompt=function(m,d){return d==null?"":String(d)};window.open=function(){return null};window.print=function(){};
 var _f=window.fetch;if(_f){window.fetch=function(u){try{var x=new URL(typeof u==="string"?u:u.url,document.baseURI);if(x.origin!==O)return Promise.reject(new TypeError("blocked"))}catch(e){}return _f.apply(this,arguments)}}
 document.addEventListener("click",function(e){var a=e.target&&e.target.closest&&e.target.closest("a[href]");if(a)e.preventDefault()},true);
@@ -1519,6 +1792,14 @@ try{var sa=Element.prototype.setAttribute;Element.prototype.setAttribute=functio
 try{var xo=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(m,u){var blocked=bad(u);try{if(new URL(String(u),document.baseURI).origin!==O)blocked=true}catch(e){}return blocked?xo.call(this,m,"about:blank"):xo.apply(this,arguments)}}catch(e){}
 try{navigator.sendBeacon=function(){return true}}catch(e){}
 })();`;
+// ※ IndexedDB도 "__shot__" 이름을 붙인 별도 DB로 돌려서, 실제 데이터와 섞이지 않고 촬영이 끝나면 지워요
+async function shotClearIDB(){
+  try{
+    if(!indexedDB.databases) return;
+    const list = await indexedDB.databases();
+    await Promise.all(list.filter(d => d.name && d.name.startsWith("__shot__")).map(d => new Promise(r=>{ const q = indexedDB.deleteDatabase(d.name); q.onsuccess = q.onerror = q.onblocked = ()=> r(); })));
+  }catch(e){}
+}
 // ※ confirm은 true로 둬요: 삭제/초기화 버튼은 애초에 안 누르니, "저장할까요?" 같은 확인창이 진행을 막지 않게 하려는 것
 
 let shotLastEl = null;     // 이번 장면에서 마지막으로 누른/고른 요소 (탭 표시용)
@@ -1554,7 +1835,7 @@ function shotUpdateHint(){
   const [lo, hi] = shotEstimate();
   const base = 1 + ($("#shotOptReview").checked ? 1 : 0), cap = shotCallCap();
   const lim = budgetLimit();
-  let t = "⏱ 예상 " + fmtRangeMin(lo, hi) + " · 🤖 AI 호출 보통 " + base + "회 (막혔을 때만 최대 " + Math.max(base, cap) + "회)";
+  let t = "⏱ 촬영 예상 " + fmtRangeMin(lo, hi) + " · 🤖 AI 호출 보통 " + base + "회 (같은 앱 재촬영은 " + (base - 1) + "회 · 막혔을 때만 최대 " + Math.max(base, cap) + "회)";
   t += "\n💰 오늘 사용 약 " + budgetToday().toLocaleString() + "원" + (lim ? " / 하루 한도 " + lim.toLocaleString() + "원" : " · 하루 한도 없음");
   const avg = usageAvgShot(); if(avg) t += "\n" + avg;
   h.textContent = t;
@@ -1705,6 +1986,7 @@ function shotLoadFrame(src, url){
 }
 // 데모 데이터를 넣고(또는 비우고) 앱을 새로 열기
 async function shotOpenApp(seedLS){
+  await shotClearIDB();
   window.__shotLS = { l: Object.assign({}, seedLS || {}), s: {} };
   window.__shotErr = [];
   await shotLoadFrame(shotSrcCache, shotUrlCache);
@@ -2187,6 +2469,31 @@ async function shotZoomCrop(blob, doc, target){
   }catch(e){ return null; }
 }
 
+/* --- 계획 재사용 (같은 앱·같은 설정이면 AI를 다시 부르지 않아요) --- */
+const PLAN_CACHE_KEY = "reels_editor_plancache_v1";
+async function shotPlanKey(url, src, mode, focus, zoom, seed){
+  const raw = [url, mode, focus, zoom ? 1 : 0, seed ? 1 : 0, src].join("\u0001");
+  try{
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
+    return Array.from(new Uint8Array(buf)).slice(0, 16).map(b => b.toString(16).padStart(2, "0")).join("");
+  }catch(e){
+    let h = 2166136261; for(let i = 0; i < raw.length; i++){ h ^= raw.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return "f" + (h >>> 0).toString(16) + raw.length;
+  }
+}
+function shotPlanCacheGet(key){
+  try{ const o = JSON.parse(localStorage.getItem(PLAN_CACHE_KEY) || "{}"); const e = o[key]; return e && e.plan && Array.isArray(e.plan.steps) ? e.plan : null; }catch(e){ return null; }
+}
+function shotPlanCacheSet(key, plan){
+  try{
+    const o = JSON.parse(localStorage.getItem(PLAN_CACHE_KEY) || "{}");
+    o[key] = { t: Date.now(), plan };
+    const keys = Object.keys(o).sort((a, b) => o[b].t - o[a].t);
+    keys.slice(8).forEach(k => delete o[k]);   // 최근 8개만 보관
+    localStorage.setItem(PLAN_CACHE_KEY, JSON.stringify(o));
+  }catch(e){}
+}
+
 /* --- AI 촬영 계획 (+ 데모 데이터) --- */
 const SHOT_COUNT_CAP = { short:4, auto:7, thorough:12 };
 function shotCleanStyle(raw){
@@ -2196,10 +2503,12 @@ function shotCleanStyle(raw){
   if(!isFinite(dur)) dur = 2.5;
   dur = Math.min(6, Math.max(1, Math.round(dur * 2) / 2));
   return {
-    transition: pick(raw.transition, ["cut","crossfade"], "cut"),
-    kenBurns: raw.kenBurns === true,
+    transition: pick(raw.transition, FX_TRANSITIONS.concat(["cut","mix"]), "slideleft"),
+    motion: pick(raw.motion, ["off","on","tap","out","pan","mix"], raw.kenBurns === true ? "on" : "tap"),
     clipDuration: dur,
-    filter: pick(raw.filter, ["none","warm","cool","bw","vintage"], "none"),
+    filter: pick(raw.filter, ["none","vivid","bright","warm","cool","bw","vintage","vignette"], "none"),
+    theme: pick(raw.theme, ["lavender","pink","mint","sky","peach","dark"], "lavender"),
+    captionAnim: pick(raw.captionAnim, ["none","fade","rise","pop"], "fade"),
     captionStyle: pick(raw.captionStyle, ["basic","impact","neon","handwrite"], "basic"),
     captionPos: pick(raw.captionPos, ["top","center","bottom"], "center"),
     captionSize: pick(raw.captionSize, ["small","medium","large"], "medium"),
@@ -2273,15 +2582,15 @@ ${focus ? "=== 꼭 보여주고 싶은 기능 ===\n" + focus + "\n" : ""}
 - action: {"do":"click","id":"","text":""} / {"do":"type","id":"","text":"","value":"예시"} / {"do":"select","id":"","text":"","value":"옵션"} / {"do":"scroll","y":0~1}
 - 요소는 소스에 있는 id를 우선 쓰고, 없으면 화면에 보이는 글자(text)로. 소스에 없는 요소를 지어내지 마. 등록 팝업 통과 동작은 넣지 마.
 - 입력값은 가짜 예시(학생A, 85)만. 삭제·초기화·로그아웃·전송·관리자·설정·API 키·시트 연결 버튼은 누르지 마.
-- caption: 그 장면의 기능을 보여주는 15자 이내 한국어 자막. title: 영상 맨 앞 3초용 후킹 제목, 20자 이내.
-- style 허용값: transition cut|crossfade / kenBurns true|false / clipDurationSec 1.5~5 / filter none|warm|cool|bw|vintage / captionStyle basic|impact|neon|handwrite / captionPos top|center|bottom / captionSize small|medium|large / reason 40자 이내
+- caption: 그 장면의 기능을 보여주는 15자 이내 한국어 자막. title: 영상 맨 앞 3초용 후킹 제목, 20자 이내. 둘 다 이모지·화살표 같은 특수기호 없이 한글·숫자·영문만(영상 폰트에 없는 글자는 빈칸으로 나와).
+- style 허용값: transition cut|crossfade|slideleft|slideup|smoothleft|circleopen|wipeleft|fadewhite|fadeblack|pixelize|mix / motion off|on(가운데 줌인)|tap(누른 곳으로 줌인)|out(줌아웃)|pan(위→아래 훑기)|mix / clipDurationSec 1.5~5 / filter none|vivid|bright|warm|cool|bw|vintage|vignette / theme(쇼케이스 배경색) lavender|pink|mint|sky|peach|dark — 앱의 주 색감과 어울리게 / captionStyle basic|impact|neon|handwrite / captionAnim none|fade|rise|pop / captionPos top|center|bottom / captionSize small|medium|large / reason 40자 이내
 ${useZoom ? '- zoom: 결과가 나타나는 영역을 크게 보여주면 좋은 장면에만 {"id":"","text":""} (최대 3장면). 그 영역을 통째로 감싸는 요소로.\n' : ""}${useSeed ? `- seed: 앱이 "첫 등록·초기 설정을 이미 마쳤고, 가짜 예시 데이터가 조금 들어 있는 상태"로 열리도록 localStorage에 넣을 값.
   · 소스에서 앱이 실제로 읽는 키 이름과 형식(JSON 구조·필드명·자료형)을 정확히 지켜. 값은 문자열(JSON이면 JSON 문자열로).
   · 이름은 학생A·학생B처럼 가짜로, 항목은 3~5개 정도로 작게, 전체 2500자 이내.
   · API 키·토큰은 넣지 마. 등록 완료를 시트 주소 유무로 판단하는 앱이면 주소는 "https://example.com/demo".
   · localStorage를 안 쓰는 앱이거나 확실하지 않으면 {}.
 ` : ""}설명이나 코드블록 없이 JSON만 (seed는 맨 마지막에):
-{"appName":"","oneLiner":"한 줄 소개","title":"","style":{"transition":"cut","kenBurns":false,"clipDurationSec":2.5,"filter":"none","captionStyle":"basic","captionPos":"center","captionSize":"medium","reason":""},"steps":[{"caption":"","actions":[]${useZoom ? ',"zoom":{"id":"","text":""}' : ""}}]${useSeed ? ',"seed":{"localStorage":{}}' : ""}}`;
+{"appName":"","oneLiner":"한 줄 소개","title":"","style":{"transition":"slideleft","motion":"tap","clipDurationSec":2.5,"filter":"none","theme":"lavender","captionStyle":"basic","captionAnim":"fade","captionPos":"top","captionSize":"medium","reason":""},"steps":[{"caption":"","actions":[]${useZoom ? ',"zoom":{"id":"","text":""}' : ""}}]${useSeed ? ',"seed":{"localStorage":{}}' : ""}}`;
 
   const raw = await shotAsk([{ type:"text", text: prompt }], useSeed ? 6000 : 4000, 180000, "촬영 계획");
   if(raw == null) throw new Error("AI 호출 상한이 0이에요");
@@ -2307,7 +2616,7 @@ async function shotFinalReview(appName, oneLiner){
 {"title":"20자 이내 후킹 제목","scenes":[{"keep":true,"caption":"","privacy":false,"note":""}]}
 - scenes는 정확히 ${items.length}개, 순서 그대로.
 - keep=false: 빈 화면·로딩·에러 화면이거나, 팝업이 화면 대부분을 가려 기능이 안 보이거나, 다른 장면과 사실상 같은 화면일 때만. 애매하면 true. note에 이유 한 줄.
-- caption: 그 화면에 실제로 보이는 기능을 15자 이내로 짧고 임팩트 있게 (지금 자막이 맞으면 그대로 둬도 돼).
+- caption: 그 화면에 실제로 보이는 기능을 15자 이내로 짧고 임팩트 있게 (지금 자막이 맞으면 그대로 둬도 돼). title과 caption 모두 이모지·화살표 같은 특수기호 없이 한글·숫자·영문만.
 - privacy: 실명·학번·연락처·실제 학교 이름처럼 진짜 개인정보로 보이면 true (학생A, OO고 같은 가짜는 false). true면 note에 무엇인지.` }];
   for(let i = 0; i < items.length; i++){
     content.push({ type:"text", text:"장면 " + (i + 1) + " (지금 자막: " + (items[i].caption || "없음") + ")" });
@@ -2346,12 +2655,14 @@ function shotCleanup(){
   shotStage.style.display = "none";
   shotFrame.onload = null;
   shotFrame.srcdoc = "";
+  setTimeout(shotClearIDB, 500);
 }
 function shotShowSummary(st){
   const el = $("#shotSummary");
   const n = shotResults.filter(r => !r.zoom).length, z = shotResults.length - n;
   const label = { short:"짧게 3~4장", auto:"자동 5~7장", thorough:"꼼꼼히 8~12장" }[st.mode];
   let h = "<b>요청: " + label + " → 서로 다른 화면 " + n + "장" + (z ? " + 확대 " + z + "장" : "") + "</b>";
+  if(st.cached) h += "<br>♻️ 같은 앱이라 지난 분석을 재사용했어요 (계획 AI 호출 0회).";
   if(st.seed === "ok") h += "<br>🧪 AI가 만든 가짜 데모 데이터를 넣고 찍었어요 (등록 단계 없이 내용이 채워진 화면).";
   else if(st.seed === "fail") h += "<br>🧪 데모 데이터가 앱과 맞지 않아서 빈 상태로 찍었어요.";
   if(st.forced) h += "<br>⚠️ 등록 팝업을 끝내 통과하지 못해서 팝업을 가리고 뒤 화면을 찍었어요.";
@@ -2442,7 +2753,7 @@ function shotRender(){
   });
 }
 
-$("#btnShotCancel").onclick = ()=>{ shotRunId++; budgetOverride = false; shotCleanup(); $("#btnShotStart").disabled = false; };
+$("#btnShotCancel").onclick = ()=>{ shotRunId++; budgetOverride = false; shotAutoFinish = false; shotCleanup(); $("#btnShotStart").disabled = false; $("#btnShotAll").disabled = false; };
 $("#lnkShotBudget").onclick = (e)=>{ e.preventDefault(); openUsage(); };
 
 $("#btnShotStart").onclick = async ()=>{
@@ -2469,9 +2780,10 @@ $("#btnShotStart").onclick = async ()=>{
   $("#shotLogWrap").style.display = "none";
   const usageMark = usageLoad().seq;
   usageRunId = "shot-" + Date.now();
-  const st = { dup: 0, explored: 0, rescue: 0, need, mode: shotMode, stuck: false, usage: "", seed: "", forced: false, review: null };
+  const st = { dup: 0, explored: 0, rescue: 0, need, mode: shotMode, stuck: false, usage: "", seed: "", forced: false, review: null, cached: false };
+  const autoFinish = shotAutoFinish; shotAutoFinish = false;
   $("#shotResult").style.display = "none";
-  $("#btnShotStart").disabled = true;
+  $("#btnShotStart").disabled = true; $("#btnShotAll").disabled = true;
   shotStage.style.display = "flex";
   shotLayout();
   shotSay("화면 공유 허용창이 뜨면 '이 탭'을 허용해주세요 🙏");
@@ -2486,7 +2798,15 @@ $("#btnShotStart").onclick = async ()=>{
     if(shotIsDup(sig)){ st.dup++; shotLog("🔁 앞과 같은 화면 → 제외 (" + why + ")"); return false; }
     shotKept.push(sig);
     const group = ++shotSeq;
-    shotResults.push({ blob: cap.shown, clean: cap.clean, url: URL.createObjectURL(cap.shown), caption: caption || shotGuessCaption(doc), warn:"", seq: group, group });
+    let focus = null;   // 누른 곳 (영상에서 '누른 곳으로 줌인'에 써요)
+    try{
+      if(shotLastEl && shotLastEl.isConnected){
+        const rr = shotLastEl.getBoundingClientRect(), fw = shotFrame.clientWidth, fh = shotFrame.clientHeight;
+        const fx = (rr.left + rr.width / 2) / fw, fy = (rr.top + rr.height / 2) / fh;
+        if(rr.width >= 4 && fx >= 0 && fx <= 1 && fy >= 0 && fy <= 1) focus = { x: fx, y: fy };
+      }
+    }catch(e){}
+    shotResults.push({ blob: cap.shown, clean: cap.clean, url: URL.createObjectURL(cap.shown), caption: caption || shotGuessCaption(doc), warn:"", seq: group, group, focus });
     shotLog("📸 저장 " + keptN() + "장째 '" + caption + "' (" + why + ")");
     if(optZoom && zoomTarget){
       const zb = await shotZoomCrop(cap.clean, doc, zoomTarget);
@@ -2511,8 +2831,14 @@ $("#btnShotStart").onclick = async ()=>{
     // ① AI 1회: 계획 + 스타일 + 데모 데이터 (실패해도 규칙 촬영으로 계속)
     shotSay("🤖 AI가 앱 기능을 분석하는 중... (보통 20~60초, 이번 촬영의 주요 AI 호출이에요)");
     let plan = null;
-    try{
+    const cacheKey = await shotPlanKey(url, src, shotMode, focus, optZoom, optSeed);
+    if($("#shotOptCache").checked){
+      plan = shotPlanCacheGet(cacheKey);
+      if(plan){ st.cached = true; shotLog("♻️ 지난 분석을 그대로 써요 (앱 코드가 같음) → 계획 AI 호출 0회"); }
+    }
+    if(!plan) try{
       plan = await shotPlan(src, shotListElements(shotFrame.contentDocument), focus, optZoom, shotMode, optSeed);
+      if(plan && plan.steps.length) shotPlanCacheSet(cacheKey, plan);
     }catch(err){
       if(/401|키가 올바른지|API 키가 없어요|한도/.test(err.message || "")) throw err;   // 키·한도 문제는 바로 알려줘요
       shotLog("⚠️ AI 계획 실패 → 규칙으로만 촬영해요: " + (err.message || err));
@@ -2639,8 +2965,9 @@ $("#btnShotStart").onclick = async ()=>{
     shotRender();
     $("#shotResult").style.display = "block";
     $("#shotResult").scrollIntoView({ behavior:"smooth", block:"start" });
-    toast("촬영 완료! " + shotResults.length + "장면 · 확인 후 STEP 1에 넣어주세요 📸" + (shotReco ? " · STEP 2에 AI 추천 스타일도 떴어요 🎨" : ""), 4800);
     showReco();
+    if(autoFinish) setTimeout(()=> shotFinishToVideo(), 300);
+    else toast("촬영 완료! " + shotResults.length + "장면 · 확인 후 STEP 1에 넣어주세요 📸" + (shotReco ? " · STEP 2에 AI 추천 스타일도 떴어요 🎨" : ""), 4800);
   }catch(err){
     console.error(err);
     shotLog("❌ 실패: " + (err.message || err));
@@ -2648,30 +2975,57 @@ $("#btnShotStart").onclick = async ()=>{
   }finally{
     usageRunId = "";
     budgetOverride = false;
-    if(!aborted()){ shotShowLog(); shotUpdateHint(); shotCleanup(); $("#btnShotStart").disabled = false; }
+    if(!aborted()){ shotShowLog(); shotUpdateHint(); shotCleanup(); $("#btnShotStart").disabled = false; $("#btnShotAll").disabled = false; }
   }
 };
 
-$("#btnShotApply").onclick = ()=>{
-  if(shotResults.length === 0){ toast("넣을 장면이 없어요"); return; }
-  const warnN = shotResults.filter(r => r.warn).length;
-  if(warnN && !confirm("개인정보로 의심되는 장면이 " + warnN + "개 남아 있어요 (⚠️ 표시). 그래도 STEP 1에 넣을까요?")) return;
+function shotApplyToStep1(){
   shotResults.forEach((r, i)=>{
     const file = new File([r.blob], "앱촬영_" + (i + 1) + ".jpg", { type:"image/jpeg" });
-    mediaFiles.push({ id: uid++, file, type:"image", url: URL.createObjectURL(file), caption: r.caption || "" });
+    mediaFiles.push({ id: uid++, file, type:"image", url: URL.createObjectURL(file), caption: r.caption || "", focus: r.focus || null });
   });
   if(shotMeta.title && !$("#captionText").value.trim()) $("#captionText").value = shotMeta.title;
   if(!$("#videoPurpose").value.trim()){
     $("#videoPurpose").value = ((shotMeta.appName || "내 앱") + " 소개 영상 — " + (shotMeta.oneLiner || "")).trim();
   }
+  setChip("#layoutChips", "showcase");   // 앱 화면은 쇼케이스가 잘 어울려요 (3번에서 바꿀 수 있어요)
   const n = shotResults.length;
   renderThumbs();
   shotResults = [];
   $("#shotGrid").innerHTML = "";
   $("#shotResult").style.display = "none";
-  toast("STEP 1에 " + n + "장면을 넣었어요 ✅ 자막은 아래에서 바로 고칠 수 있어요");
+  return n;
+}
+$("#btnShotApply").onclick = ()=>{
+  if(shotResults.length === 0){ toast("넣을 장면이 없어요"); return; }
+  const warnN = shotResults.filter(r => r.warn).length;
+  if(warnN && !confirm("개인정보로 의심되는 장면이 " + warnN + "개 남아 있어요 (⚠️ 표시). 그래도 STEP 1에 넣을까요?")) return;
+  const n = shotApplyToStep1();
+  toast("STEP 1에 " + n + "장면을 넣었어요 ✅ 화면 구성은 쇼케이스로 바꿔뒀어요");
   $("#dropzone").scrollIntoView({ behavior:"smooth", block:"center" });
 };
+
+/* --- ⚡ 촬영부터 영상까지 한 번에 --- */
+let shotAutoFinish = false, shotAutoReplace = false;
+$("#btnShotAll").onclick = ()=>{
+  if(!aiConfig().key){ toast("먼저 ⚙️에서 API 키를 등록해주세요"); openSettings(); return; }
+  shotAutoReplace = mediaFiles.length > 0 && confirm("STEP 1에 이미 있는 " + mediaFiles.length + "개는 빼고, 새로 찍은 장면으로만 영상을 만들까요?\n(취소를 누르면 기존 것 뒤에 이어 붙여요)");
+  shotAutoFinish = true;
+  $("#btnShotStart").onclick();   // 허용창이 뜨도록 클릭 흐름 안에서 바로 시작해요
+};
+async function shotFinishToVideo(){
+  const warnN = shotResults.filter(r => r.warn).length;
+  if(warnN){
+    toast("⚠️ 개인정보로 의심되는 장면이 " + warnN + "개 있어서 자동 완성을 멈췄어요. 확인하고 'STEP 1에 넣기'를 눌러주세요", 6500);
+    return;
+  }
+  if(shotAutoReplace){ mediaFiles = []; shotAutoReplace = false; }
+  const n = shotApplyToStep1();
+  if(shotReco) applyReco(shotReco);
+  toast("📸 " + n + "장면을 넣고 AI 추천 스타일로 영상을 만들어요 🎬", 3500);
+  $("#btnRender").scrollIntoView({ behavior:"smooth", block:"center" });
+  setTimeout(()=> $("#btnRender").click(), 600);
+}
 
 /* ---------- API 사용량 화면 ---------- */
 const usageModal = $("#usageModal");
@@ -2729,26 +3083,27 @@ $("#shotOptReview").addEventListener("change", shotUpdateHint);
 $("#shotOptZoom").addEventListener("change", shotUpdateHint);
 shotUpdateHint();
 updateRenderEstimate();
-const RECO_LABELS = {
-  transition:{cut:"컷 전환",crossfade:"부드러운 전환"}, filter:{none:"필터 없음",warm:"따뜻한 필터",cool:"차가운 필터",bw:"흑백",vintage:"빈티지"},
-  captionStyle:{basic:"기본 자막",impact:"임팩트 자막",neon:"네온 자막",handwrite:"손글씨 자막"},
-  captionPos:{top:"자막 위",center:"자막 가운데",bottom:"자막 아래"}, captionSize:{small:"작은 글자",medium:"중간 글자",large:"큰 글자"}
-};
 function showReco(){
   const r = shotReco;
   if(!r){ $("#aiRecoBox").style.display = "none"; return; }
   $("#aiRecoReason").textContent = r.reason ? "💡 " + r.reason : "";
-  const tags = [RECO_LABELS.transition[r.transition], r.kenBurns ? "줌 효과" : "줌 없음", "장면당 " + r.clipDuration + "초",
-    RECO_LABELS.filter[r.filter], RECO_LABELS.captionStyle[r.captionStyle], RECO_LABELS.captionPos[r.captionPos], RECO_LABELS.captionSize[r.captionSize]];
+  const tags = ["📱 쇼케이스 · " + chipLabel("#themeChips", r.theme), chipLabel("#transitionChips", r.transition), "움직임: " + chipLabel("#kenburnsChips", r.motion),
+    "장면당 " + r.clipDuration + "초", "필터: " + chipLabel("#filterChips", r.filter), chipLabel("#captionStyleChips", r.captionStyle) + " 자막",
+    chipLabel("#captionAnimChips", r.captionAnim), { top:"자막 위", center:"자막 가운데", bottom:"자막 아래" }[r.captionPos]];
   $("#aiRecoChips").innerHTML = tags.map(t => '<span style="padding:4px 10px;border-radius:999px;background:#fff;border:1px solid var(--main);font-size:12px;">' + t + '</span>').join("");
   $("#aiRecoBox").style.display = "block";
 }
-$("#btnApplyReco").onclick = ()=>{
-  const r = shotReco; if(!r) return;
-  applyStyle({ transition:r.transition, clipDuration:r.clipDuration, filter:r.filter, kenBurns:r.kenBurns, captionSuggestion:"", mood:r.reason, source:"AI 추천(앱 분석)" });
-  $$("#captionStyleChips .chip").forEach(x=>x.classList.toggle("on", x.dataset.val === r.captionStyle));
+function applyReco(r){
+  if(!r) return;
+  applyStyle({ transition:r.transition, clipDuration:r.clipDuration, filter:r.filter, motion:r.motion, layout:"showcase", captionSuggestion:"", mood:r.reason, source:"AI 추천(앱 분석)" });
+  setChip("#themeChips", r.theme);
+  setChip("#captionStyleChips", r.captionStyle);
+  setChip("#captionAnimChips", r.captionAnim);
   $("#captionPos").value = r.captionPos;
   $("#captionSize").value = String({small:48,medium:64,large:84}[r.captionSize]);
+}
+$("#btnApplyReco").onclick = ()=>{
+  applyReco(shotReco);
   toast("AI 추천 스타일을 적용했어요 ✨ (3번에서 바꿀 수 있어요)");
 };
 
