@@ -205,6 +205,11 @@
     <p style="font-size:11px;color:var(--sub);margin:8px 2px 0;line-height:1.5;">
       촬영할 때 "이 탭 공유" 허용창이 한 번 떠요. 앱이 이 브라우저에 저장된 <b>실제 데이터</b>를 그대로 보여주니, 촬영 후 아래 미리보기에서 학생 이름 등이 보이는 장면은 ✕로 빼주세요.
     </p>
+    <details id="shotLogWrap" style="display:none;margin-top:14px;font-size:12px;">
+      <summary style="cursor:pointer;font-weight:700;">🔍 촬영 기록 보기 <span style="font-weight:400;color:var(--sub);">(결과가 이상하면 복사해서 알려주세요)</span></summary>
+      <pre id="shotLogText" style="white-space:pre-wrap;word-break:break-all;max-height:260px;overflow:auto;background:var(--bg);border-radius:10px;padding:10px;margin:8px 0;font-size:11px;line-height:1.5;"></pre>
+      <button class="btn btn-ghost btn-sm" id="btnShotLogCopy">📋 기록 복사</button>
+    </details>
     <div id="shotResult" style="display:none;margin-top:16px;">
       <div style="font-size:12.5px;font-weight:700;margin-bottom:8px;">📸 촬영 결과 <span class="hint" style="font-weight:400;">(사진을 누르면 크게 볼 수 있고, 자막은 고칠 수 있어요. 마음에 안 드는 장면은 ✕)</span></div>
       <div id="shotSummary" style="font-size:12px;line-height:1.55;margin-bottom:10px;padding:9px 12px;border-radius:10px;background:var(--bg);"></div>
@@ -434,9 +439,34 @@
     </div>
     <button class="btn btn-outline btn-sm" id="btnTestAi" style="width:100%;margin-bottom:8px;">🔌 연결 테스트 (저장 전에도 돼요)</button>
     <div id="aiTestStatus" style="font-size:12px;line-height:1.5;min-height:18px;margin:0 0 12px;color:var(--sub);word-break:break-all;"></div>
+    <button class="btn btn-outline btn-sm" id="btnOpenUsage" style="width:100%;margin-bottom:12px;">📊 API 사용량 · 비용 보기</button>
     <div style="display:flex;gap:8px;">
       <button class="btn btn-ghost" style="flex:1;" id="btnCloseSettings">닫기</button>
       <button class="btn btn-main" style="flex:1;" id="btnSaveKey">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- API 사용량 모달 -->
+<div class="modal-bg" id="usageModal" style="z-index:60;">
+  <div class="modal" style="max-width:460px;max-height:88vh;overflow:auto;">
+    <h3>📊 API 사용량 · 비용</h3>
+    <p style="margin-bottom:10px;">이 브라우저에서 AI를 부를 때마다 응답에 포함된 실제 토큰 수를 기록해요. 비용은 아래 단가로 계산한 <b>예상치</b>예요 (실제 청구는 각 회사 사용량 페이지가 기준).</p>
+    <div id="usageBody" style="font-size:12.5px;line-height:1.6;"></div>
+    <div class="field" style="margin-top:12px;">
+      <label>단가 <span class="hint">(100만 토큰당 USD · 직접 고칠 수 있어요)</span></label>
+      <div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:6px 8px;align-items:center;font-size:12px;">
+        <span></span><span style="color:var(--sub)">입력</span><span style="color:var(--sub)">출력</span>
+        <span>Claude</span><input type="number" step="0.01" id="pCin"><input type="number" step="0.01" id="pCout">
+        <span>GPT</span><input type="number" step="0.01" id="pOin"><input type="number" step="0.01" id="pOout">
+        <span>환율(원/$)</span><input type="number" step="1" id="pKrw"><span></span>
+      </div>
+      <div style="font-size:11px;color:var(--sub);margin-top:6px;line-height:1.5;">기본값: Claude Sonnet 5.5 입력 $2 · 출력 $10, GPT-4o 입력 $2.5 · 출력 $10 (공식 가격표 기준). 다른 모델을 쓰면 단가를 바꿔주세요.</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button class="btn btn-ghost btn-sm" id="btnUsageReset" style="flex:1;">기록 지우기</button>
+      <button class="btn btn-outline btn-sm" id="btnUsagePrice" style="flex:1;">단가 저장</button>
+      <button class="btn btn-main btn-sm" id="btnUsageClose" style="flex:1;">닫기</button>
     </div>
   </div>
 </div>
@@ -512,6 +542,52 @@ function aiErrorMessage(status, bodyText, cfg){
 }
 
 // content: 문자열 또는 [{type:"text",text}, {type:"image",source:{type:"base64",media_type,data}}] (Claude 형식) — GPT면 자동 변환
+/* ---------- API 사용량 기록 ---------- */
+const USAGE_KEY = "reels_editor_usage_v1", PRICE_KEY = "reels_editor_prices_v1";
+const PRICE_DEFAULT = { claude:{ in:2, out:10 }, openai:{ in:2.5, out:10 }, krw:1400 };   // 100만 토큰당 USD (공식 가격표 기준 · 직접 수정 가능)
+let usageRunId = "";
+function usageLoad(){
+  try{ const o = JSON.parse(localStorage.getItem(USAGE_KEY) || "{}"); return { seq: o.seq || 0, calls: Array.isArray(o.calls) ? o.calls : [] }; }
+  catch(e){ return { seq:0, calls:[] }; }
+}
+function usageRecord(r){
+  try{
+    const o = usageLoad();
+    o.seq++; o.calls.push(Object.assign({ id:o.seq, t:Date.now(), run:usageRunId }, r));
+    if(o.calls.length > 600) o.calls.splice(0, o.calls.length - 600);
+    localStorage.setItem(USAGE_KEY, JSON.stringify(o));
+  }catch(e){}
+}
+function priceLoad(){
+  let p = {};
+  try{ p = JSON.parse(localStorage.getItem(PRICE_KEY) || "{}"); }catch(e){}
+  return {
+    claude: Object.assign({}, PRICE_DEFAULT.claude, p.claude || {}),
+    openai: Object.assign({}, PRICE_DEFAULT.openai, p.openai || {}),
+    krw: Number(p.krw) > 0 ? Number(p.krw) : PRICE_DEFAULT.krw
+  };
+}
+function usageCost(c, pr){ const p = pr[c.provider] || pr.claude; return (c.inTok || 0) * p.in / 1e6 + (c.outTok || 0) * p.out / 1e6; }
+function usageSum(list){
+  const pr = priceLoad(), s = { n:0, inTok:0, outTok:0, usd:0, krw:pr.krw };
+  list.forEach(c=>{ s.n++; s.inTok += c.inTok || 0; s.outTok += c.outTok || 0; s.usd += usageCost(c, pr); });
+  return s;
+}
+function fmtTok(n){ return n >= 1000 ? (n / 1000).toFixed(n >= 100000 ? 0 : 1) + "k" : String(n); }
+function fmtMoney(usd, krw){ return "$" + (usd < 0.01 ? usd.toFixed(4) : usd.toFixed(2)) + " (≈" + Math.round(usd * krw).toLocaleString() + "원)"; }
+function usageLine(sm){ return sm.n + "회 · 입력 " + fmtTok(sm.inTok) + " · 출력 " + fmtTok(sm.outTok) + " · 약 " + fmtMoney(sm.usd, sm.krw); }
+function usageSince(seq){ return usageLoad().calls.filter(c => c.id > seq); }
+// 최근 자동 촬영 N회의 평균 비용 (있을 때만)
+function usageAvgShot(){
+  const runs = {};
+  usageLoad().calls.forEach(c=>{ if(String(c.run || "").startsWith("shot-")) (runs[c.run] = runs[c.run] || []).push(c); });
+  const keys = Object.keys(runs).slice(-5);
+  if(!keys.length) return "";
+  const sums = keys.map(k => usageSum(runs[k]));
+  const avg = sums.reduce((a, b) => a + b.usd, 0) / sums.length, calls = sums.reduce((a, b) => a + b.n, 0) / sums.length;
+  return "💰 최근 촬영 " + keys.length + "회 평균: 호출 약 " + Math.round(calls) + "회 · " + fmtMoney(avg, priceLoad().krw);
+}
+
 function fmtClock(sec){ sec = Math.max(0, Math.round(sec)); return Math.floor(sec/60) + ":" + String(sec%60).padStart(2,"0"); }
 function fmtDur(sec){
   sec = Math.max(0, Math.round(sec));
@@ -526,18 +602,18 @@ function fmtRangeMin(loSec, hiSec){
 function etaLeft(eta){ return eta ? Math.max(0, eta.sec - (Date.now() - eta.at)/1000) : null; }
 
 // AI 호출에 시간 제한을 둬서 무한 대기를 막아요 (기본 2분)
-async function callAI(content, maxTokens, draft, timeoutMs){
+async function callAI(content, maxTokens, draft, timeoutMs, tag){
   const ctl = new AbortController();
   const lim = timeoutMs || 120000;
   const tm = setTimeout(()=>ctl.abort(), lim);
   try{
-    return await callAIInner(content, maxTokens, draft, ctl.signal);
+    return await callAIInner(content, maxTokens, draft, ctl.signal, tag);
   }catch(err){
     if(err && err.name === "AbortError") throw new Error("AI 응답이 " + Math.round(lim/1000) + "초가 넘도록 오지 않아 중단했어요. 인터넷 연결을 확인하고 다시 시도해주세요");
     throw err;
   }finally{ clearTimeout(tm); }
 }
-async function callAIInner(content, maxTokens, draft, signal){
+async function callAIInner(content, maxTokens, draft, signal, tag){
   const cfg = aiConfig(draft);
   if(!cfg.key) throw new Error("API 키가 없어요. ⚙️ 설정에서 " + AI_LABELS[cfg.provider] + " 키를 등록해주세요");
   const blocks = (typeof content === "string") ? [{ type:"text", text: content }] : content;
@@ -568,6 +644,11 @@ async function callAIInner(content, maxTokens, draft, signal){
   }
   if(!resp.ok) throw new Error(aiErrorMessage(resp.status, await resp.text(), cfg));
   const data = await resp.json();
+  try{   // 실제 사용 토큰 기록
+    const u = (data && data.usage) || {}, oa = cfg.provider === "openai";
+    usageRecord({ provider: cfg.provider, model: cfg.model, tag: tag || "기타",
+      inTok: Number(oa ? u.prompt_tokens : u.input_tokens) || 0, outTok: Number(oa ? u.completion_tokens : u.output_tokens) || 0 });
+  }catch(e){}
   let text = "";
   if(cfg.provider === "openai"){
     const msg = data && data.choices && data.choices[0] && data.choices[0].message;
@@ -643,7 +724,7 @@ $("#btnTestAi").onclick = async () => {
   st.textContent = "🔌 연결 확인 중... (" + AI_LABELS[cfg.provider] + " · " + cfg.model + ")";
   btn.disabled = true;
   try{
-    await callAI("한 단어로만 답해줘: OK", 20, aiDraft);
+    await callAI("한 단어로만 답해줘: OK", 20, aiDraft, undefined, "연결 테스트");
     st.style.color = "var(--ok)";
     st.textContent = "✅ 연결 성공! " + AI_LABELS[cfg.provider] + " · " + cfg.model;
   }catch(err){
@@ -808,7 +889,7 @@ async function requestAutoCaptions(apiKey, purpose, thumbs){
     }
   });
 
-  const text = await callAI(content, 1500);
+  const text = await callAI(content, 1500, undefined, undefined, "자막 자동 채우기");
   return parseAiJson(text);
 }
 
@@ -946,7 +1027,7 @@ async function analyzeStyleWithClaude(apiKey, base64Frames){
     ...base64Frames.map(f=>({type:"image", source:{type:"base64", media_type:"image/jpeg", data:f}}))
   ];
 
-  const text = await callAI(content, 600);
+  const text = await callAI(content, 600, undefined, undefined, "스타일 분석");
   return parseAiJson(text);
 }
 
@@ -1385,13 +1466,18 @@ const SHOT_INTERACTIVE_SEL = 'button, a[href], input, select, textarea, summary,
 const SHOT_BLOCK_WORDS = /삭제|초기화|리셋|로그아웃|탈퇴|전송|제출|보내기|reset|delete|remove|logout|clear/i;
 const SHOT_SHIM = `(function(){
 var O="__ORIGIN__";
-var mk=function(){var d={};return{getItem:function(k){k=String(k);return Object.prototype.hasOwnProperty.call(d,k)?d[k]:null},setItem:function(k,v){d[String(k)]=String(v)},removeItem:function(k){delete d[String(k)]},clear:function(){d={}},key:function(i){return Object.keys(d)[i]||null},get length(){return Object.keys(d).length}}};
-try{Object.defineProperty(window,"localStorage",{value:mk(),configurable:true});}catch(e){}
-try{Object.defineProperty(window,"sessionStorage",{value:mk(),configurable:true});}catch(e){}
+var mk=function(n){var d={};try{var Q=window.parent;if(Q.__shotLS){d=Q.__shotLS[n]=Q.__shotLS[n]||{}}}catch(e){}return{getItem:function(k){k=String(k);return Object.prototype.hasOwnProperty.call(d,k)?d[k]:null},setItem:function(k,v){d[String(k)]=String(v)},removeItem:function(k){delete d[String(k)]},clear:function(){for(var k in d)delete d[k]},key:function(i){return Object.keys(d)[i]||null},get length(){return Object.keys(d).length}}};
+try{Object.defineProperty(window,"localStorage",{value:mk("l"),configurable:true});}catch(e){}
+try{Object.defineProperty(window,"sessionStorage",{value:mk("s"),configurable:true});}catch(e){}
 window.alert=function(){};window.confirm=function(){return false};window.prompt=function(){return null};window.open=function(){return null};window.print=function(){};
 var _f=window.fetch;if(_f){window.fetch=function(u){try{var x=new URL(typeof u==="string"?u:u.url,document.baseURI);if(x.origin!==O)return Promise.reject(new TypeError("blocked"))}catch(e){}return _f.apply(this,arguments)}}
 document.addEventListener("click",function(e){var a=e.target&&e.target.closest&&e.target.closest("a[href]");if(a)e.preventDefault()},true);
 document.addEventListener("submit",function(e){e.preventDefault()},true);
+var bad=function(u){try{var x=new URL(String(u),document.baseURI);return /(^|\\.)script\\.google\\.com$|script\\.googleusercontent\\.com$/.test(x.hostname)||(/docs\\.google\\.com$/.test(x.hostname)&&/forms/.test(x.pathname))}catch(e){return false}};
+try{var sd=Object.getOwnPropertyDescriptor(HTMLScriptElement.prototype,"src");Object.defineProperty(HTMLScriptElement.prototype,"src",{configurable:true,get:sd.get,set:function(v){if(bad(v))return;sd.set.call(this,v)}});}catch(e){}
+try{var sa=Element.prototype.setAttribute;Element.prototype.setAttribute=function(n,v){if(this.tagName==="SCRIPT"&&String(n).toLowerCase()==="src"&&bad(v))return;return sa.apply(this,arguments)}}catch(e){}
+try{var xo=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(m,u){var blocked=bad(u);try{if(new URL(String(u),document.baseURI).origin!==O)blocked=true}catch(e){}return blocked?xo.call(this,m,"about:blank"):xo.apply(this,arguments)}}catch(e){}
+try{navigator.sendBeacon=function(){return true}}catch(e){}
 })();`;
 
 let shotLastEl = null; // 이번 장면에서 마지막으로 누른/고른 요소 (탭 표시용)
@@ -1418,7 +1504,8 @@ function shotEstimate(){
 function shotUpdateHint(){
   const h = $("#shotCountHint"); if(!h) return;
   const [lo, hi] = shotEstimate();
-  h.textContent = "⏱ 예상 " + fmtRangeMin(lo, hi) + " (대략 · AI 확인·재시도를 켜면 더 걸려요). 촬영 중엔 경과·남은 시간이 표시돼요.";
+  h.textContent = "⏱ 예상 " + fmtRangeMin(lo, hi) + " (대략 · AI 확인·재시도를 켜면 더 걸려요). 촬영 중엔 경과·남은 시간이 표시돼요." + (usageAvgShot() ? "\n" + usageAvgShot() : "");
+  h.style.whiteSpace = "pre-line";
 }
 function shotClockStart(){
   shotT0 = Date.now(); shotEta = null; shotSayAt = Date.now();
@@ -1588,6 +1675,142 @@ function shotOverlayNote(doc){
   }catch(e){}
   return "";
 }
+/* --- 촬영 기록 (문제 생겼을 때 원인 파악용) --- */
+let shotLogs = [], shotLogT0 = Date.now(), shotSrcCache = "", shotUrlCache = "", shotRecoverCount = 0;
+function shotLog(msg){ shotLogs.push("[" + fmtClock((Date.now() - shotLogT0) / 1000) + "] " + msg); if(shotLogs.length > 500) shotLogs.shift(); }
+function shotDescAction(a){ return (a.do || "?") + (a.id ? " #" + a.id : "") + (a.text ? " '" + a.text + "'" : "") + (a.value != null && a.value !== "" ? " = " + a.value : "") + (a.y != null ? " y=" + a.y : ""); }
+async function shotDo(win, a, why){
+  let ok = false;
+  try{ ok = await shotRunAction(win, win.document, a); }catch(e){ shotLog("⚠️ 동작 오류: " + (e.message || e)); }
+  shotLog((ok ? "✅ " : "❌ ") + shotDescAction(a) + (why ? " · " + why : ""));
+  return ok;
+}
+function shotShowLog(){
+  $("#shotLogWrap").style.display = "block";
+  $("#shotLogText").textContent = shotLogs.join("\n");
+}
+$("#btnShotLogCopy").onclick = async ()=>{
+  const t = shotLogs.join("\n");
+  try{ await navigator.clipboard.writeText(t); toast("촬영 기록을 복사했어요 📋"); }
+  catch(e){ const r = document.createRange(); r.selectNodeContents($("#shotLogText")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); toast("글자를 선택했어요. 복사(Ctrl+C) 해주세요"); }
+};
+// 앱이 다른 주소로 이동했거나 새로고침됐을 때 → 앱을 다시 열어요 (저장소는 유지돼서 등록 상태가 이어져요)
+async function shotEnsureFrame(){
+  const win = shotFrame.contentWindow;
+  let href = "";
+  try{ href = win.location.href; }catch(e){ href = "(접근 불가)"; }
+  if(href === "about:srcdoc") return true;
+  shotLog("↪️ 앱이 다른 주소로 이동함 (" + String(href).slice(0, 80) + ") → 앱을 다시 열어요");
+  if(shotRecoverCount++ >= 4){ shotLog("다시 열기 4회를 넘겨서 중단"); return false; }
+  shotSay("🔄 앱이 화면을 새로 불러와서 다시 열고 있어요...");
+  try{ await shotLoadFrame(shotSrcCache, shotUrlCache); return true; }
+  catch(e){ shotLog("다시 열기 실패: " + (e.message || e)); return false; }
+}
+async function shotWaitReady(win){
+  for(let i = 0; i < 20; i++){
+    try{ if(win.document.readyState === "complete" && win.document.body) break; }catch(e){}
+    await shotSleep(200);
+  }
+  await shotSleep(350);
+}
+// 화면 전체를 덮는 팝업 요소 (없으면 null)
+function shotOverlayRoot(doc){
+  try{
+    const win = doc.defaultView, vw = win.innerWidth, vh = win.innerHeight;
+    const cands = doc.querySelectorAll('[class*="modal"],[class*="overlay"],[class*="popup"],[class*="dialog"],[role="dialog"],dialog,[id*="modal"],[id*="Modal"],[id*="overlay"],[id*="reg"],[id*="Reg"]');
+    for(const el of cands){
+      if(!shotVisible(el)) continue;
+      const cs = win.getComputedStyle(el);
+      if(cs.position !== "fixed" && cs.position !== "absolute") continue;
+      const r = el.getBoundingClientRect();
+      if(r.width * r.height < vw * vh * 0.5) continue;
+      return el;
+    }
+  }catch(e){}
+  return null;
+}
+function shotGuessCaption(doc, fallback){
+  try{
+    const root = shotOverlayRoot(doc) || doc;
+    const h = Array.from(root.querySelectorAll("h1,h2,h3")).find(x => shotVisible(x) && (x.innerText || "").trim());
+    if(h) return h.innerText.replace(/\s+/g, " ").trim().slice(0, 16);
+  }catch(e){}
+  return fallback || "앱 화면";
+}
+// 등록·동의·안내 팝업을 AI 없이 규칙으로 통과 (가짜 값 입력 → 선택 → 체크 → 확인 버튼). 하나라도 했으면 개수를 돌려줘요
+async function shotAutoPass(win){
+  const FAKE = { email:"test@example.com", tel:"010-0000-0000", number:"1", password:"test1234", url:"https://example.com", date:"2026-03-02" };
+  const fire = (el)=>{ el.dispatchEvent(new win.Event("input", { bubbles:true })); el.dispatchEvent(new win.Event("change", { bubbles:true })); };
+  let total = 0;
+  for(let round = 0; round < 4; round++){
+    const doc = win.document, root = shotOverlayRoot(doc);
+    if(!root) break;
+    let did = 0;
+    for(const el of root.querySelectorAll("input,textarea,select")){
+      const t = (el.type || "").toLowerCase();
+      if(t === "checkbox"){ if(!el.checked && !el.disabled){ el.click(); did++; shotLog("🧩 체크: " + (el.id || el.name || "체크박스")); } continue; }
+      if(t === "radio"){
+        const grp = el.name ? root.querySelectorAll('input[type="radio"][name="' + el.name + '"]') : [el];
+        if(!Array.from(grp).some(r => r.checked) && !el.disabled){ el.click(); did++; shotLog("🧩 선택: " + (el.id || el.name || "라디오")); }
+        continue;
+      }
+      if(!shotVisible(el) || el.disabled || el.readOnly) continue;
+      if(["button","submit","file","hidden","range","color","image","reset"].includes(t)) continue;
+      if(/GAS|URL|주소|시트|sheet|api|키|key|token|토큰|비밀번호|password/i.test((el.id || "") + " " + (el.name || "") + " " + (el.placeholder || "") + " " + (el.getAttribute("aria-label") || ""))) continue;   // 시트 주소·키·비밀번호 칸은 건드리지 않아요
+      if(el.tagName === "SELECT"){
+        const cur = el.options[el.selectedIndex];
+        if(el.value === "" || (el.selectedIndex <= 0 && cur && /선택|select|--/i.test(cur.textContent))){
+          const opt = Array.from(el.options).find(o => !o.disabled && o.value !== "" && o.index > 0) || Array.from(el.options).find(o => !o.disabled && o.value !== "");
+          if(opt){ el.value = opt.value; fire(el); did++; shotLog("🧩 드롭다운: " + (el.id || el.name || "select") + " = " + opt.textContent.trim().slice(0, 14)); }
+        }
+      }else if(!el.value){
+        const proto = el.tagName === "TEXTAREA" ? win.HTMLTextAreaElement.prototype : win.HTMLInputElement.prototype;
+        const desc = Object.getOwnPropertyDescriptor(proto, "value"), v = FAKE[t] || "test";
+        if(desc && desc.set) desc.set.call(el, v); else el.value = v;
+        fire(el); did++; shotLog("🧩 입력: " + (el.id || el.name || el.placeholder || "입력칸") + " = " + v);
+      }
+    }
+    await shotSleep(300);
+    const txt = b => shotTextOf(b);
+    const okBtn = b => {
+      const t = txt(b);
+      if(SHOT_BLOCK_WORDS.test(t + " " + (b.id || ""))) return false;
+      if(/나중|건너|skip|취소|닫기|돌아가기/i.test(t)) return true;   // 연결을 "미루는" 버튼은 OK
+      return !/연결하기|연결 테스트|GAS|API|키 저장|비밀번호|관리자|탈퇴/i.test(t);
+    };
+    const btns = Array.from(root.querySelectorAll('button,[role="button"],input[type="button"],input[type="submit"]')).filter(b => shotVisible(b) && !b.disabled && okBtn(b));
+    const pick = btns.find(b => /등록|시작|확인|입장|계속|완료|다음|동의|저장|OK|Next|Start|Continue/i.test(txt(b))) ||
+                 btns.find(b => /건너|나중|닫기|취소|둘러|체험|데모|×|✕|close|skip/i.test(txt(b)));
+    if(pick){ shotLastEl = pick; pick.click(); did++; shotLog("🧩 버튼: " + (txt(pick) || pick.id || "버튼").slice(0, 20)); }
+    total += did;
+    await shotSleep(700);
+    if(!(await shotEnsureFrame())) break;
+    await shotWaitReady(win);
+    if(!did) break;
+  }
+  return total;
+}
+// AI가 막혔을 때를 위한 대체 탐색: 아직 안 눌러본 탭/메뉴/버튼을 순서대로 눌러봐요
+function shotCandKey(el){ return (el.tagName + "|" + (el.id || "") + "|" + shotTextOf(el)).slice(0, 80); }
+function shotCrawlPick(doc, visited){
+  const root = shotOverlayRoot(doc) || doc;
+  const BADT = /연결하기|연결 테스트|GAS|API|키|비밀번호|관리자|설정|로그인|가입|등록|백업|내보내기|다운로드|업로드|복사|공유|backup|export/i;
+  const out = [];
+  Array.from(root.querySelectorAll('[role="tab"],.tab,[class*="tab"] button,[class*="tab"] a,nav button,nav a,button,[onclick],summary,[role="button"]')).forEach(el=>{
+    if(!shotVisible(el) || el.disabled) return;
+    const t = shotTextOf(el), key = shotCandKey(el);
+    if(!t || visited.has(key)) return;
+    if(SHOT_BLOCK_WORDS.test(t + " " + (el.id || "")) || BADT.test(t)) return;
+    if(el.tagName === "A"){ const h = el.getAttribute("href") || ""; if(h && h !== "#" && !/^javascript:/i.test(h)) return; }
+    let sc = 0;
+    if(el.matches('[role="tab"],.tab,[class*="tab"] *,nav *')) sc += 3;
+    if(/체험|데모|소개|가이드|둘러|보기|기록|통계|캘린더|목록|결과|계산|예시/.test(t)) sc += 2;
+    out.push({ el, key, t, sc, top: el.getBoundingClientRect().top });
+  });
+  out.sort((a, b) => b.sc - a.sc || a.top - b.top);
+  return out[0] || null;
+}
+
 /* --- 같은 화면인지 비교 (작게 줄여서 밝기 차이로) --- */
 let shotKeptSigs = [];
 async function shotSig(blob){
@@ -1666,8 +1889,8 @@ async function shotRunAction(win, doc, a){
 }
 
 /* --- AI 호출 공통 / 화면 확인 / 탭 표시 / 확대 --- */
-async function shotAsk(apiKey, content, maxTokens, timeoutMs){
-  return await callAI(content, maxTokens, undefined, timeoutMs);
+async function shotAsk(apiKey, content, maxTokens, timeoutMs, tag){
+  return await callAI(content, maxTokens, undefined, timeoutMs, tag);
 }
 async function shotBlobToB64(blob, max){
   const bmp = await createImageBitmap(blob);
@@ -1712,7 +1935,7 @@ ${extra ? "- 참고: " + extra + "\n" : ""}- privacy: 사람 실명, 학번, 연
     const raw = await shotAsk(apiKey, [
       { type:"image", source:{ type:"base64", media_type:"image/jpeg", data:b64 } },
       { type:"text", text }
-    ], 700);
+    ], 700, undefined, "화면 확인");
     const s0 = raw.indexOf("{"), e0 = raw.lastIndexOf("}");
     if(s0 < 0 || e0 < 0) return null;
     return JSON.parse(raw.slice(s0, e0 + 1));
@@ -1743,7 +1966,7 @@ JSON만 답해 (설명 없이): {"done":false,"caption":"그 장면이 무슨 �
     const raw = await shotAsk(apiKey, [
       { type:"image", source:{ type:"base64", media_type:"image/jpeg", data:b64 } },
       { type:"text", text }
-    ], 900, 90000);
+    ], 900, 90000, "다음 화면 탐색");
     const s0 = raw.indexOf("{"), e0 = raw.lastIndexOf("}");
     if(s0 < 0 || e0 < 0) return null;
     const o = JSON.parse(raw.slice(s0, e0 + 1));
@@ -1841,7 +2064,7 @@ ${focus ? "=== 꼭 보여주고 싶은 기능 ===\n" + focus + "\n" : ""}
 ${useZoom ? "- zoom: 결과가 나타나는 영역(예: 결과 박스)을 크게 확대해 보여주면 좋은 장면에만 {\"id\":\"\",\"text\":\"\"} 형태로 넣어줘 (최대 3장면, 나머지는 생략). 그 영역을 통째로 감싸는 요소를 골라.\n" : ""}설명이나 코드블록 없이 JSON만 답해:
 {"appName":"","oneLiner":"한 줄 소개","title":"","style":{"transition":"cut","kenBurns":false,"clipDurationSec":2.5,"filter":"none","captionStyle":"basic","captionPos":"center","captionSize":"medium","reason":""},"steps":[{"caption":"","actions":[]${useZoom ? ',"zoom":{"id":"","text":""}' : ""}}]}`;
 
-  let raw = (await shotAsk(apiKey, [{ type:"text", text: prompt }], 4500, 180000)).trim();
+  let raw = (await shotAsk(apiKey, [{ type:"text", text: prompt }], 4500, 180000, "촬영 계획")).trim();
   const s = raw.indexOf("{"), e = raw.lastIndexOf("}");
   if(s < 0 || e < 0) throw new Error("촬영 계획 형식이 올바르지 않아요. 다시 시도해주세요");
   const plan = JSON.parse(raw.slice(s, e + 1));
@@ -1870,12 +2093,14 @@ function shotShowSummary(st){
   let h = "<b>요청: " + label + " → 서로 다른 화면 " + n + "장" + (z ? " + 확대 " + z + "장" : "") + "</b>";
   if(st.explored) h += "<br>🧭 계획에 없던 화면 " + st.explored + "장은 AI가 화면을 직접 보면서 찾아 찍었어요.";
   if(st.dup) h += "<br>🔁 앞 장면과 똑같은 화면 " + st.dup + "장은 자동으로 뺐어요.";
+  if(st.usage) h += '<br>💰 이번 촬영 API 사용: ' + st.usage + ' <a href="#" id="lnkUsage" style="color:var(--main-dark);">자세히</a>';
   if(st.stuck){
     h += "<br>⚠️ 목표(" + st.need + "장)보다 적게 찍혔어요. 앱이 처음 화면(등록·연결 단계)에서 더 안 넘어갔거나 더 보여줄 새 화면을 못 찾은 경우예요. " +
       "<b>'꼭 보여주고 싶은 기능'</b>에 화면 이동 방법을 적어주면 도움이 돼요 (예: '체험해보기 버튼 누르면 나오는 화면들').";
     el.style.background = "#FFF4E5";
   }else el.style.background = "var(--bg)";
   el.innerHTML = h;
+  const lk = $("#lnkUsage"); if(lk) lk.onclick = (e)=>{ e.preventDefault(); openUsage(); };
 }
 let lbIdx = 0;
 function shotOpenLightbox(idx){
@@ -1957,7 +2182,12 @@ $("#btnShotStart").onclick = async ()=>{
   const aborted = ()=> run !== shotRunId;
   const optReview = $("#shotOptReview").checked, optTap = $("#shotOptTap").checked, optZoom = $("#shotOptZoom").checked;
   shotResults = []; shotKeptSigs = [];
-  const shotStat = { dup: 0, explored: 0, need: 0, mode: "auto", stuck: false };
+  window.__shotLS = { l:{}, s:{} };   // 촬영용 앱의 임시 저장소 (새로고침돼도 등록 상태가 이어지게 여기에 보관)
+  shotLogs = []; shotLogT0 = Date.now(); shotRecoverCount = 0;
+  $("#shotLogWrap").style.display = "none";
+  const usageMark = usageLoad().seq;
+  usageRunId = "shot-" + Date.now();
+  const shotStat = { dup: 0, explored: 0, need: 0, mode: "auto", stuck: false, usage: "" };
   $("#shotResult").style.display = "none";
   $("#btnShotStart").disabled = true;
   shotStage.style.display = "flex";
@@ -1972,6 +2202,8 @@ $("#btnShotStart").onclick = async ()=>{
     const resp = await fetch(url, { cache:"no-store" });
     if(!resp.ok) throw new Error("앱을 불러오지 못했어요 (" + resp.status + ")");
     const src = await resp.text();
+    shotSrcCache = src; shotUrlCache = url;
+    { const cf = aiConfig(); shotLog("시작: " + url + " · " + AI_LABELS[cf.provider] + " " + cf.model + " · 화면캡처 " + (shared ? "탭 공유" : "html2canvas") + " · 앱 소스 " + src.length + "자 · 모드 " + (getVal("#shotCountChips") || "auto")); }
     await shotLoadFrame(src, url);
     if(aborted()) return;
 
@@ -1980,6 +2212,7 @@ $("#btnShotStart").onclick = async ()=>{
     if(aborted()) return;
     shotMeta = { title: String(plan.title || ""), appName: String(plan.appName || ""), oneLiner: String(plan.oneLiner || "") };
     shotReco = plan.style || null;
+    shotLog("AI 계획 " + plan.steps.length + "장면: " + plan.steps.map(st => "'" + st.caption + "'(" + st.actions.length + "동작)").join(", "));
 
     let skipped = 0, escapedAny = false;
     const shotMode = getVal("#shotCountChips") || "auto";
@@ -1994,12 +2227,15 @@ $("#btnShotStart").onclick = async ()=>{
       let doc;
       try{ doc = win.document; }catch(e){ break; }
       shotLastEl = null;
+      shotLog("— 계획 " + (i + 1) + "/" + plan.steps.length + " '" + step.caption + "'");
       for(const a of step.actions){
-        const ok = await shotRunAction(win, doc, a);
+        const ok = await shotDo(win, a, "계획 " + (i + 1));
         if(!ok) skipped++;
         await shotSleep(450);
       }
-      if(win.location.href !== "about:srcdoc") break; // 앱이 다른 페이지로 넘어가버린 경우 (안전하게 중단)
+      if(!(await shotEnsureFrame())) break;   // 앱이 이동/새로고침되면 다시 열고 이어가요
+      await shotWaitReady(win);
+      doc = win.document;
       let ringed = optTap && !!shotLastEl;
       let blob = await shotCaptureStep(doc, shotLastEl, optTap);
       if(aborted()) return;
@@ -2012,17 +2248,20 @@ $("#btnShotStart").onclick = async ()=>{
           try{ if(shotIsDup(await shotScreenSig(doc, blob, ringed))) extra += " 방금 찍은 화면은 앞서 찍은 화면과 거의 똑같아(화면이 안 바뀜). ok=false로 하고, 이 장면 의도에 맞는 화면으로 넘어가는 fix를 줘."; }catch(e){}
           const rv = await shotReview(key, blob, step.caption, plan.appName, shotListElements(doc), extra.trim());
           if(aborted()) return;
+          shotLog("👀 확인: " + (rv ? (rv.ok ? "OK" : "문제 - " + String(rv.problem || "").slice(0, 60) + " (보정 " + ((rv.fix || []).length) + "개)") : "응답 없음/해석 실패") + (extra.includes("똑같아") ? " · 앞 화면과 같음" : ""));
           if(!rv) break;
           warn = rv.privacy ? String(rv.privacyNote || "개인정보로 보이는 글자가 있어요") : "";
           if(rv.ok || !Array.isArray(rv.fix) || rv.fix.length === 0 || t === 2) break;
           shotSay("🔧 화면 보정 중 (" + (i + 1) + "/" + plan.steps.length + ") · " + String(rv.problem || ""));
           shotLastEl = null;
           for(const a of rv.fix.filter(x => x && typeof x === "object").slice(0, 3)){
-            const ok = await shotRunAction(win, doc, a);
+            const ok = await shotDo(win, a, "보정");
             if(!ok) skipped++;
             await shotSleep(450);
           }
-          if(win.location.href !== "about:srcdoc"){ escaped = true; break; }
+          if(!(await shotEnsureFrame())){ escaped = true; break; }
+          await shotWaitReady(win);
+          doc = win.document;
           ringed = optTap && !!shotLastEl;
           blob = await shotCaptureStep(doc, shotLastEl, optTap);
           if(aborted()) return;
@@ -2030,7 +2269,18 @@ $("#btnShotStart").onclick = async ()=>{
       }
       let sigNow = null;
       try{ sigNow = await shotScreenSig(doc, blob, ringed); }catch(e){}
-      if(sigNow && shotIsDup(sigNow)){ shotStat.dup++; if(escaped){ escapedAny = true; break; } continue; }   // 앞 장면과 똑같은 화면은 빼요
+      if(sigNow && shotIsDup(sigNow) && !escaped && shotOverlayRoot(doc)){   // 같은 팝업(등록·동의 등)에 계속 막혀 있으면 규칙으로 통과 시도
+        shotLog("🧩 같은 팝업 화면이 반복돼서 자동 통과를 시도해요");
+        shotSay("🧩 등록·안내 팝업을 자동으로 통과하는 중...");
+        shotLastEl = null;
+        const np = await shotAutoPass(win);
+        if(np > 0){
+          doc = win.document; ringed = false;
+          blob = await shotCaptureStep(doc, null, false);
+          try{ sigNow = await shotSig(blob); }catch(e){}
+        }
+      }
+      if(sigNow && shotIsDup(sigNow)){ shotStat.dup++; shotLog("🔁 앞 장면과 같은 화면 → 제외 ('" + step.caption + "')"); if(escaped){ escapedAny = true; break; } continue; }   // 앞 장면과 똑같은 화면은 빼요
       if(sigNow) shotKeptSigs.push(sigNow);
       shotResults.push({ blob, url: URL.createObjectURL(blob), caption: step.caption, warn });
       if(escaped){ escapedAny = true; break; }
@@ -2044,61 +2294,102 @@ $("#btnShotStart").onclick = async ()=>{
     }
     if(aborted()) return;
 
-    // 목표 장수에 못 미치면, AI가 지금 화면을 직접 보면서 다음 화면을 찾아 이어서 찍어요 (등록 단계에서 막힌 경우도 여기서 풀려요)
+    // 목표 장수에 못 미치면 이어서 찾아 찍어요: ①팝업은 규칙으로 통과 ②AI가 지금 화면을 보고 다음 동작 제안 ③AI가 막히면 안 눌러본 탭·버튼을 차례로 눌러보기
     {
       const keptN = ()=> shotResults.filter(r => !r.zoom).length;
-      let rounds = 0, fails = 0, hint = "";
+      const visited = new Set();
+      let rounds = 0, aiFails = 0, aiOff = false, crawlMiss = 0, hint = "";
       const t0 = Date.now();
-      while(!escapedAny && keptN() < shotStat.need && rounds < 10 && fails < 3 && Date.now() - t0 < 12 * 60 * 1000){
-        if(aborted()) return;
-        rounds++;
-        const win = shotFrame.contentWindow;
-        let doc;
-        try{ doc = win.document; }catch(e){ break; }
-        if(win.location.href !== "about:srcdoc") break;
-        shotSay("🧭 더 보여줄 화면을 찾는 중... (지금 " + keptN() + "장 / 목표 " + shotStat.need + "장)");
-        shotLastEl = null;
-        const cur = await shotCaptureStep(doc, null, false);
-        if(aborted()) return;
-        const nx = await shotNext(key, cur, {
-          appName: plan.appName, focus: $("#shotFocus").value.trim(),
-          have: keptN(), need: shotStat.need,
-          done: shotResults.filter(r => !r.zoom).map(r => r.caption),
-          planned: plan.steps.map(st => st.caption),
-          elements: shotListElements(doc), overlay: shotOverlayNote(doc), hint
-        });
-        if(aborted()) return;
-        if(!nx){ fails++; continue; }
-        if(nx.done || nx.actions.length === 0) break;
-        shotSay("🎥 추가 촬영 중 (" + (keptN() + 1) + "장째) · " + nx.caption);
-        shotLastEl = null;
-        for(const a of nx.actions){
-          const ok = await shotRunAction(win, doc, a);
-          if(!ok) skipped++;
-          await shotSleep(450);
-        }
-        if(win.location.href !== "about:srcdoc") break;
+      const keep = async (caption, why)=>{   // 지금 화면을 찍어서 새 화면이면 저장
+        const w = shotFrame.contentWindow;
         const ringed2 = optTap && !!shotLastEl;
-        const blob2 = await shotCaptureStep(doc, shotLastEl, optTap);
-        if(aborted()) return;
+        const blob2 = await shotCaptureStep(w.document, shotLastEl, optTap);
+        if(aborted()) return false;
         let sig2 = null;
-        try{ sig2 = await shotScreenSig(doc, blob2, ringed2); }catch(e){}
-        if(sig2 && shotIsDup(sig2)){ fails++; shotStat.dup++; hint = "방금 시도한 동작(" + (nx.caption || "") + ")으로는 화면이 안 바뀌었어. 다른 요소(다른 탭·버튼)를 누르거나, 막혀 있으면 필수 칸·체크를 먼저 채워."; continue; }
-        fails = 0; hint = "";
+        try{ sig2 = await shotScreenSig(w.document, blob2, ringed2); }catch(e){}
+        if(sig2 && shotIsDup(sig2)){ shotStat.dup++; shotLog("🔁 같은 화면 → 제외 (" + why + ")"); return false; }
         if(sig2) shotKeptSigs.push(sig2);
         let warn2 = "";
         if(optReview){
-          const rv2 = await shotReview(key, blob2, nx.caption, plan.appName, shotListElements(doc), "");
-          if(aborted()) return;
+          const rv2 = await shotReview(key, blob2, caption, plan.appName, shotListElements(w.document), "");
+          if(aborted()) return false;
           if(rv2 && rv2.privacy) warn2 = String(rv2.privacyNote || "개인정보로 보이는 글자가 있어요");
         }
-        shotResults.push({ blob: blob2, url: URL.createObjectURL(blob2), caption: nx.caption || "화면 " + (keptN() + 1), warn: warn2, explored: true });
+        shotResults.push({ blob: blob2, url: URL.createObjectURL(blob2), caption: caption || "화면 " + (keptN() + 1), warn: warn2, explored: true });
         shotStat.explored++;
+        shotLog("📸 추가 저장 '" + caption + "' (" + why + ")");
+        return true;
+      };
+      while(!escapedAny && keptN() < shotStat.need && rounds < 18 && Date.now() - t0 < 12 * 60 * 1000){
+        if(aborted()) return;
+        rounds++;
+        if(!(await shotEnsureFrame())) break;
+        const win = shotFrame.contentWindow;
+        await shotWaitReady(win);
+        let doc = win.document;
+        shotSay("🧭 더 보여줄 화면을 찾는 중... (지금 " + keptN() + "장 / 목표 " + shotStat.need + "장)");
+        shotLastEl = null;
+        // ① 처음 단계의 팝업은 규칙으로 먼저 통과
+        if(shotOverlayRoot(doc) && (keptN() <= 3 || aiFails > 0)){
+          shotLog("🧩 팝업이 떠 있어서 자동 통과를 시도해요");
+          const np = await shotAutoPass(win);
+          if(np > 0){
+            doc = win.document;
+            await keep(shotGuessCaption(doc, "앱 화면"), "팝업 통과 후 화면");
+            if(keptN() >= shotStat.need) break;
+            continue;
+          }
+        }
+        // ② AI에게 화면을 보여주고 다음 동작 받기
+        let acted = false;
+        if(!aiOff){
+          const cur = await shotCaptureStep(doc, null, false);
+          if(aborted()) return;
+          const nx = await shotNext(key, cur, {
+            appName: plan.appName, focus: $("#shotFocus").value.trim(),
+            have: keptN(), need: shotStat.need,
+            done: shotResults.filter(r => !r.zoom).map(r => r.caption),
+            planned: plan.steps.map(st => st.caption),
+            elements: shotListElements(doc), overlay: shotOverlayNote(doc), hint
+          });
+          if(aborted()) return;
+          shotLog("🧭 AI 제안: " + (nx ? (nx.done ? "더 없음(done)" : "'" + nx.caption + "' " + nx.actions.map(shotDescAction).join(" / ")) : "응답 없음/해석 실패"));
+          if(!nx){ if(++aiFails >= 2) aiOff = true; }
+          else if(nx.done || nx.actions.length === 0){ aiOff = true; }
+          else{
+            shotSay("🎥 추가 촬영 중 (" + (keptN() + 1) + "장째) · " + nx.caption);
+            shotLastEl = null;
+            for(const a of nx.actions){ const ok = await shotDo(win, a, "AI 탐색"); if(!ok) skipped++; await shotSleep(450); }
+            if(!(await shotEnsureFrame())) break;
+            await shotWaitReady(win);
+            acted = true;
+            const got = await keep(nx.caption, "AI 제안");
+            if(got){ aiFails = 0; hint = ""; }
+            else{ if(++aiFails >= 3) aiOff = true; hint = "방금 시도한 동작(" + (nx.caption || "") + ")으로는 화면이 안 바뀌었어. 다른 요소(다른 탭·버튼)를 누르거나, 막혀 있으면 필수 칸·체크를 먼저 채워."; }
+          }
+        }
+        // ③ AI가 못 찾으면 규칙으로: 아직 안 눌러본 탭·버튼을 눌러봐요
+        if(!acted && aiOff){
+          const pick = shotCrawlPick(win.document, visited);
+          if(!pick){ shotLog("🧭 더 눌러볼 탭·버튼이 없어요"); break; }
+          visited.add(pick.key);
+          shotSay("🎥 추가 촬영 중 (" + (keptN() + 1) + "장째) · " + pick.t);
+          shotLastEl = null;
+          const ok = await shotDo(win, { do:"click", id: pick.el.id || "", text: pick.el.id ? "" : pick.t }, "자동 탐색");
+          if(!ok) skipped++;
+          await shotSleep(450);
+          if(!(await shotEnsureFrame())) break;
+          await shotWaitReady(win);
+          const got = await keep(shotGuessCaption(win.document, pick.t.slice(0, 14)) === "앱 화면" ? pick.t.slice(0, 14) : pick.t.slice(0, 14), "자동 탐색: " + pick.t.slice(0, 14));
+          if(!got && ++crawlMiss >= 8) break;
+        }
       }
       shotStat.stuck = keptN() < shotStat.need;
     }
     if(aborted()) return;
     if(shotResults.length === 0) throw new Error("촬영된 장면이 없어요. 앱 주소를 확인하고 다시 시도해주세요");
+    shotStat.usage = usageLine(usageSum(usageSince(usageMark)));
+    shotLog("끝: 서로 다른 화면 " + shotResults.filter(r => !r.zoom).length + "장 · 같은 화면 제외 " + shotStat.dup + "장 · API " + shotStat.usage);
     shotShowSummary(shotStat);
     shotRender();
     $("#shotResult").style.display = "block";
@@ -2107,9 +2398,11 @@ $("#btnShotStart").onclick = async ()=>{
     showReco();
   }catch(err){
     console.error(err);
+    shotLog("❌ 실패: " + (err.message || err));
     if(!aborted()) toast("자동 촬영 실패: " + (err.message || err), 4500);
   }finally{
-    if(!aborted()){ shotCleanup(); $("#btnShotStart").disabled = false; }
+    usageRunId = "";
+    if(!aborted()){ shotShowLog(); shotUpdateHint(); shotCleanup(); $("#btnShotStart").disabled = false; }
   }
 };
 
@@ -2132,6 +2425,48 @@ $("#btnShotApply").onclick = ()=>{
   $("#shotResult").style.display = "none";
   toast("STEP 1에 " + n + "장면을 넣었어요 ✅ 자막은 아래에서 바로 고칠 수 있어요");
   $("#dropzone").scrollIntoView({ behavior:"smooth", block:"center" });
+};
+
+/* ---------- API 사용량 화면 ---------- */
+const usageModal = $("#usageModal");
+function usageRender(){
+  const all = usageLoad().calls, pr = priceLoad();
+  const d0 = new Date(); d0.setHours(0, 0, 0, 0);
+  const sec = (label, list)=> '<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid #EEEAF6;"><b>' + label + '</b><span style="text-align:right;">' + usageLine(usageSum(list)) + '</span></div>';
+  let h = sec("오늘", all.filter(c => c.t >= d0.getTime())) + sec("최근 7일", all.filter(c => c.t >= Date.now() - 7 * 864e5)) + sec("전체(최근 600회)", all);
+  const by = {};
+  all.forEach(c=>{ (by[c.tag || "기타"] = by[c.tag || "기타"] || []).push(c); });
+  const tags = Object.keys(by).sort((a, b) => usageSum(by[b]).usd - usageSum(by[a]).usd);
+  if(tags.length){
+    h += '<div style="margin:12px 0 4px;font-weight:700;">기능별</div>';
+    h += tags.map(t => { const sm = usageSum(by[t]); return '<div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0;"><span>' + t + ' <span style="color:var(--sub);">' + sm.n + '회</span></span><span style="color:var(--sub);text-align:right;">입력 ' + fmtTok(sm.inTok) + ' · 출력 ' + fmtTok(sm.outTok) + ' · ' + fmtMoney(sm.usd, pr.krw) + '</span></div>'; }).join("");
+    const avg = usageAvgShot();
+    if(avg) h += '<div style="margin-top:10px;padding:8px 10px;border-radius:10px;background:var(--bg);">' + avg + '</div>';
+    h += '<div style="margin:12px 0 4px;font-weight:700;">최근 호출 8개</div>';
+    h += all.slice(-8).reverse().map(c => { const t = new Date(c.t); return '<div style="font-size:11.5px;color:var(--sub);padding:2px 0;">' + String(t.getMonth() + 1) + '/' + t.getDate() + ' ' + String(t.getHours()).padStart(2, "0") + ':' + String(t.getMinutes()).padStart(2, "0") + ' · ' + (c.tag || "기타") + ' · ' + (c.model || "") + ' · 입력 ' + fmtTok(c.inTok || 0) + ' / 출력 ' + fmtTok(c.outTok || 0) + '</div>'; }).join("");
+  }else{
+    h += '<div style="padding:14px 0;color:var(--sub);">아직 기록이 없어요. AI 기능을 한 번 쓰면 여기에 쌓여요.</div>';
+  }
+  $("#usageBody").innerHTML = h;
+  $("#pCin").value = pr.claude.in; $("#pCout").value = pr.claude.out;
+  $("#pOin").value = pr.openai.in; $("#pOout").value = pr.openai.out; $("#pKrw").value = pr.krw;
+}
+function openUsage(){ usageRender(); usageModal.classList.add("show"); }
+$("#btnOpenUsage").onclick = openUsage;
+$("#btnUsageClose").onclick = ()=> usageModal.classList.remove("show");
+$("#btnUsageReset").onclick = ()=>{
+  if(!confirm("API 사용량 기록을 모두 지울까요? (실제 청구에는 영향이 없어요)")) return;
+  try{ localStorage.removeItem(USAGE_KEY); }catch(e){}
+  usageRender(); shotUpdateHint();
+};
+$("#btnUsagePrice").onclick = ()=>{
+  const n = (id, d)=> { const v = parseFloat($(id).value); return v >= 0 ? v : d; };
+  try{
+    localStorage.setItem(PRICE_KEY, JSON.stringify({
+      claude:{ in:n("#pCin", 2), out:n("#pCout", 10) }, openai:{ in:n("#pOin", 2.5), out:n("#pOout", 10) }, krw: n("#pKrw", 1400) || 1400
+    }));
+  }catch(e){}
+  usageRender(); shotUpdateHint(); toast("단가를 저장했어요 ✅");
 };
 
 /* ---------- 장면 수 칩 / AI 추천 스타일 ---------- */
@@ -2261,7 +2596,7 @@ ${sourceHTML}
 ${EDIT_FORMAT_RULES}`;
 
   say("🤖 AI가 고칠 부분을 찾는 중... (보통 20~60초)");
-  const text = await callAI(prompt, 8192, undefined, 240000);
+  const text = await callAI(prompt, 8192, undefined, 240000, "AI 수정");
   const parsed = parseEditBlocks(text);
   if(parsed.opens === 0) throw new Error("AI가 수정할 부분을 알려주지 못했어요. 요청을 조금 더 구체적으로 적어서 다시 시도해주세요");
   if(parsed.blocks.length < parsed.opens) throw new Error("AI 응답이 중간에 잘렸어요. 요청을 더 작게 나눠서 다시 시도해주세요");
@@ -2286,7 +2621,7 @@ ${res.html}
 ${redoInfo}
 
 ${EDIT_FORMAT_RULES}`;
-    const text2 = await callAI(prompt2, 8192, undefined, 240000);
+    const text2 = await callAI(prompt2, 8192, undefined, 240000, "AI 수정(재확인)");
     const p2 = parseEditBlocks(text2);
     if(p2.blocks.length === 0 || p2.blocks.length < p2.opens) throw new Error("수정할 위치를 찾지 못했어요. 요청을 더 구체적으로(어느 화면·어떤 버튼인지) 적어서 다시 시도해주세요");
     const res2 = applyEditBlocks(res.html, p2.blocks);
@@ -2324,19 +2659,23 @@ $("#btnAiEdit").onclick = async ()=>{
   }, 1000);
   try{
     const base = await getCurrentSource();
+    const editMark = usageLoad().seq;
+    usageRunId = "edit-" + Date.now();
     const done = await requestAiEdit(key, base, req, (m)=>{ aiBase = m; });
+    done.cost = usageLine(usageSum(usageSince(editMark)));
     const newHTML = done.html;
     pendingEditHTML = newHTML;
     $("#aiPreviewFrame").srcdoc = newHTML;
     $("#aiPreviewWrap").style.display = "block";
     setAiStatus("");
-    toast("수정 완료! " + done.count + "곳을 고쳤어요 · 아래 미리보기에서 확인해보세요 🔍 (" + fmtDur((Date.now() - aiT0) / 1000) + " 걸림)", 4800);
+    toast("수정 완료! " + done.count + "곳을 고쳤어요 · 아래 미리보기에서 확인해보세요 🔍 (" + fmtDur((Date.now() - aiT0) / 1000) + " 걸림 · API " + done.cost + ")", 6000);
   }catch(err){
     console.error(err);
     setAiStatus("");
     $("#aiEditRequest").disabled = false;
     toast("수정 실패: " + (err.message || err), 5200);
   }finally{
+    usageRunId = "";
     clearInterval(aiClock);
     $("#btnAiEdit").disabled = false;
   }
