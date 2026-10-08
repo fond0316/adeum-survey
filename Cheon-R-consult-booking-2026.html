@@ -748,6 +748,16 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
           <button class="btn btn-secondary" onclick="saveQrPng()" style="font-size:13px;padding:11px;">🖼️ QR 이미지 저장</button>
         </div>
         <div id="qrMsg" class="reg-msg ok"></div>
+
+        <div id="shareBox" style="display:none;margin-top:18px;padding-top:16px;border-top:1px dashed var(--gray-200);">
+          <label class="form-label">🤝 다른 선생님께 공유용 링크 (시트 연결 없음)</label>
+          <div id="shareLinkDisplay" style="font-size:12px;color:var(--gray-700);background:var(--gray-50);border-radius:8px;padding:10px 12px;word-break:break-all;border:1px solid var(--gray-200);margin-bottom:10px;"></div>
+          <button class="btn btn-secondary" onclick="copyShareLink()" style="font-size:13px;padding:11px;margin-bottom:8px;">📋 링크 복사</button>
+          <button class="btn btn-primary" onclick="copyShareRich()" style="font-size:13px;padding:11px;">🔗 글자 링크로 복사 (학부모상담예약_made by Cheon R)</button>
+          <p class="reg-hint" style="margin-top:8px;">메일·구글 문서·한글·워드에 붙여넣으면 주소 대신 <b>학부모상담예약_made by Cheon R</b> 글자에 링크가 걸려요. (카톡은 글자 링크를 지원하지 않아 주소가 같이 보여요)</p>
+          <p class="reg-hint">다른 선생님은 이 링크로 들어가서 설치 가이드를 따라 본인 시트를 연결하면 돼요.</p>
+          <div id="shareMsg" class="reg-msg ok"></div>
+        </div>
       </div>
 
       <!-- 설치 가이드 아코디언 -->
@@ -4854,6 +4864,7 @@ async function regRecheck(btn){
 function applyRegUi(){
   gid('aTab-review').style.display = (reviewOn || isOwner) ? '' : 'none';
   gid('aTab-owner').style.display  = isOwner ? '' : 'none';
+  shareBoxRefresh();
   gid('setInstallId').textContent = adminInstallId || (needGasUpdate ? '(GAS 코드를 최신으로 바꾸면 표시돼요)' : '로그인하면 표시돼요');
   const u = usePub, showUse = u && typeof u.users === 'number' && (isOwner || u.users >= 10);
   gid('useLine').style.display = showUse ? '' : 'none';
@@ -4864,6 +4875,7 @@ function applyRegUi(){
 function resetRegState(){
   adminInstallId = ''; isOwner = false; reviewOn = false; usePub = null; autoRegTried = false;
   ['aTab-review','aTab-owner'].forEach(id => { const el = gid(id); if (el) el.style.display = 'none'; });
+  const sb = gid('shareBox'); if (sb) sb.style.display = 'none';
   const b = gid('rvBanner'); if (b) b.style.display = 'none';
 }
 
@@ -4979,6 +4991,31 @@ function copyRichLink(){
     rg.selectNodeContents(a); sel.removeAllRanges(); sel.addRange(rg);
     let done = false; try{ done = document.execCommand('copy'); }catch(e){}
     sel.removeAllRanges(); done ? ok() : qrFlash('복사에 실패했어요. 위의 [링크 복사]를 이용해 주세요');
+  };
+  if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write){
+    navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type:'text/html' }), 'text/plain': new Blob([plain], { type:'text/plain' }) })]).then(ok).catch(fallback);
+  } else fallback();
+}
+// ── 다른 선생님께 공유용 링크 (시트 연결 없음 · 아듬샘 계정에만 표시, 클래스보드와 동일 방식) ──
+function shareBoxRefresh(){
+  const sb = gid('shareBox'); if (!sb) return;
+  gid('shareLinkDisplay').textContent = location.origin + location.pathname;
+  sb.style.display = isOwner ? '' : 'none';
+}
+function shareFlash(t){ setMsg('shareMsg', t, true); clearTimeout(shareFlash._t); shareFlash._t = setTimeout(() => setMsg('shareMsg', ''), 2600); }
+function copyShareLink(){
+  const url = gid('shareLinkDisplay').textContent;
+  (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(() => shareFlash('복사했어요 ✅')).catch(() => shareFlash('복사에 실패했어요. 주소를 길게 눌러 직접 복사해 주세요'));
+}
+function copyShareRich(){
+  const url = gid('shareLinkDisplay').textContent, txt = DEFAULT_LINK_TXT;
+  const html = '<a href="' + esc(url) + '">' + esc(txt) + '</a>', plain = txt + ' 👉 ' + url;
+  const ok = () => shareFlash('"' + txt + '" 글자 링크로 복사했어요 ✅ 메일·문서에 붙여넣어 보세요');
+  const fallback = () => {
+    const d = document.createElement('div'); d.contentEditable = 'true'; d.innerHTML = html; d.style.cssText = 'position:fixed;left:-9999px;top:0';
+    document.body.appendChild(d); const rg = document.createRange(); rg.selectNodeContents(d); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(rg);
+    let done = false; try{ done = document.execCommand('copy'); }catch(e){}
+    sel.removeAllRanges(); d.remove(); done ? ok() : shareFlash('복사에 실패했어요. 위의 [링크 복사]를 이용해 주세요');
   };
   if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write){
     navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type:'text/html' }), 'text/plain': new Blob([plain], { type:'text/plain' }) })]).then(ok).catch(fallback);
