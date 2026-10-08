@@ -671,6 +671,9 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
           <div class="form-group"><label class="form-label">수업 1교시 길이 (분)</label>
             <input class="form-input" type="number" id="ttClassLen" min="10" max="120" step="5" value="50" onchange="ttSettingsChanged()"></div>
         </div>
+        <div class="form-group"><label class="form-label">상담 사이 쉬는 시간 (분)</label>
+          <input class="form-input" type="number" id="ttGap" min="0" max="30" step="1" value="5" onchange="ttSettingsChanged()">
+          <div class="reg-hint">상담과 상담 사이에 비워 둘 시간이에요. 0이면 붙여서 만들어요.</div></div>
         <div class="tt-grid2">
           <div class="form-group"><label class="form-label">점심 시작</label>
             <input class="form-input" type="time" id="ttLunchStart" value="12:10" onchange="ttSettingsChanged()"></div>
@@ -2110,7 +2113,7 @@ function ttSetStatus(msg, kind){
 function ttReadSettings(){
   const num=(id,d,lo,hi)=>{ const v=parseInt(document.getElementById(id).value,10); return isFinite(v)?Math.min(hi,Math.max(lo,v)):d; };
   return {
-    unit: num('ttUnit',20,5,120), classLen: num('ttClassLen',50,10,120),
+    unit: num('ttUnit',20,5,120), classLen: num('ttClassLen',50,10,120), gap: num('ttGap',5,0,30),
     lunchOn: document.getElementById('ttLunchOn').checked,
     lunchStart: document.getElementById('ttLunchStart').value || '12:10',
     lunchEnd: document.getElementById('ttLunchEnd').value || '13:10',
@@ -2119,13 +2122,14 @@ function ttReadSettings(){
 }
 function ttSettingsChanged(){
   const S=ttReadSettings();
-  lsSet(TT_KEY, JSON.stringify({unit:S.unit,classLen:S.classLen,lunchOn:S.lunchOn,lunchStart:S.lunchStart,lunchEnd:S.lunchEnd}));
+  lsSet(TT_KEY, JSON.stringify({unit:S.unit,classLen:S.classLen,gap:S.gap,lunchOn:S.lunchOn,lunchStart:S.lunchStart,lunchEnd:S.lunchEnd}));
   ttRender();
 }
 function ttInitCard(){
   let S={}; try{ S=JSON.parse(lsGet(TT_KEY)||'{}'); }catch(e){}
   if (S.unit) document.getElementById('ttUnit').value=S.unit;
   if (S.classLen) document.getElementById('ttClassLen').value=S.classLen;
+  if (S.gap!==undefined) document.getElementById('ttGap').value=S.gap;
   if (S.lunchStart) document.getElementById('ttLunchStart').value=S.lunchStart;
   if (S.lunchEnd) document.getElementById('ttLunchEnd').value=S.lunchEnd;
   if (S.lunchOn===false) document.getElementById('ttLunchOn').checked=false;
@@ -2331,7 +2335,7 @@ function ttToggleCell(d,n){ tt.busy[d][n]=!tt.busy[d][n]; ttRenderEditor(); ttRe
 function ttAddPeriod(){ const n=tt.periods.length ? tt.periods[tt.periods.length-1].n+1 : 1; tt.periods.push({n,start:''}); ttRenderEditor(); ttRender(); }
 function ttDelPeriod(){ if (tt.periods.length<=1) return; const p=tt.periods.pop(); TT_DAYS.forEach(d=>delete tt.busy[d][p.n]); ttRenderEditor(); ttRender(); }
 
-// ── 후보 만들기: 공강 교시마다 [시작, 시작+수업길이]를 점심 제외 후 N분 단위로 쪼갬 (쉬는시간은 이어붙이지 않음) ──
+// ── 후보 만들기: 공강 교시마다 [시작, 시작+수업길이]를 점심 제외 후 N분 단위로 쪼갬 (상담 사이에 쉬는 시간 gap분을 둠, 교시 사이는 이어붙이지 않음) ──
 function ttComputeCands(){
   if (!tt) return [];
   const S=ttReadSettings();
@@ -2347,7 +2351,7 @@ function ttComputeCands(){
       const e=s+S.classLen;
       let segs=[[s,e]];
       if (useLunch) { segs=[]; if (s<lS) segs.push([s,Math.min(e,lS)]); if (e>lE) segs.push([Math.max(s,lE),e]); }
-      segs.forEach(([a,b])=>{ for (let t=a;t+S.unit<=b;t+=S.unit) perDay[d].push([t,t+S.unit]); });
+      segs.forEach(([a,b])=>{ for (let t=a;t+S.unit<=b;t+=S.unit+S.gap) perDay[d].push([t,t+S.unit]); });
     });
   });
   const out=[], nowStr=nowKstStr();
