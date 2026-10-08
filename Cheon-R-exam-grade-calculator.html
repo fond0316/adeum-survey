@@ -173,6 +173,14 @@
   .dx-ov.show{ display:block; }
   .dx-sheet{ max-width:560px; margin:0 auto; background:var(--bg); border-radius:18px; padding:16px; }
   .dx-ov.solid .dx-sheet{ padding:8px 0; }
+  .dx-og-wrap{ min-height:100%; display:flex; align-items:center; justify-content:center; padding:16px 0; }
+  .dx-og-card{ width:100%; max-width:340px; background:#fff; border-radius:24px; padding:30px 24px 24px; box-shadow:0 8px 30px rgba(110,95,160,.15); text-align:center; }
+  .dx-og-ic{ font-size:44px; line-height:1; }
+  .dx-og-title{ margin:10px 0 4px; font-size:18px; }
+  .dx-og-sub{ margin:0 0 18px; font-size:12.5px; color:var(--sub); }
+  .dx-og-in{ text-align:center; letter-spacing:.2em; min-height:48px; }
+  .dx-og-btn{ width:100%; margin-top:10px; min-height:48px; background:#ECE9F5; color:var(--main-dark); border:1px solid #CFC8E6; }
+  .dx-og-back{ width:100%; margin-top:8px; min-height:48px; background:#F2F2F5; color:#444; border:none; }
   .dx-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
   .dx-head h3{ margin:0; font-size:16px; }
   .dx-x{ border:none; background:#fff; border:1px solid var(--border); border-radius:10px; width:44px; height:44px; font-size:16px; cursor:pointer; color:var(--main-dark); }
@@ -224,7 +232,7 @@
     <div class="row" style="justify-content:center;margin-top:10px;">
       <button class="btn ghost small" id="dxRvBtn" data-dx="open-panel" data-v="review" style="display:none;">💬 후기 남기기</button>
       <button class="btn ghost small" data-dx="open-panel" data-v="info">⚙️ 정보·문의</button>
-      <button class="btn ghost small" data-dx="open-owner">👑 관리자 모드</button>
+      <button class="btn ghost small" id="dxOwBtn" data-dx="open-owner">👑 관리자 모드</button>
     </div>
     <p class="dx-use" id="dxUse" style="display:none;"></p>
     <p class="dx-note">🔒 학생 이름·점수는 이 기기 브라우저에만 저장되고 어디로도 전송되지 않아요. 공용 컴퓨터라면 사용 후 '전체 데이터 삭제'를 눌러 주세요.</p>
@@ -394,7 +402,7 @@
 <!-- ===== 배포용 추가: 정보·후기·관리자 패널 ===== -->
 <div class="dx-ov" id="dxPanel">
   <div class="dx-sheet">
-    <div class="dx-head"><h3>🌟 등급계산기</h3><button class="dx-x" data-dx="close-panel" aria-label="닫기">✕</button></div>
+    <div class="dx-head"><h3 id="dxPanelTitle">🌟 등급계산기</h3><button class="dx-x" data-dx="close-panel" aria-label="닫기">✕</button></div>
     <div class="dx-tabs" id="dxTabs">
       <button class="dx-tab" id="dxTabReview" data-dx="tab" data-v="review">💬 후기</button>
       <button class="dx-tab" id="dxTabInfo" data-dx="tab" data-v="info">ℹ️ 정보·문의</button>
@@ -458,17 +466,6 @@
       </div>
     </div>
 
-    <!-- 관리자 로그인 -->
-    <div id="dxSecOwnLogin" style="display:none;">
-      <div class="card">
-        <h2>👑 관리자 모드</h2>
-        <p class="desc">앱을 만든 사람 전용 화면이에요. 비밀번호를 입력해 주세요.</p>
-        <input class="dx-in" id="dxOwnPw" type="password" inputmode="numeric" autocomplete="off" placeholder="관리자 비밀번호" maxlength="30">
-        <button class="btn" data-dx="own-login" style="width:100%;margin-top:10px;">들어가기</button>
-        <div class="dx-msg" id="dxOwnLoginMsg"></div>
-      </div>
-    </div>
-
     <!-- 관리자 (앱 만든 사람 전용) -->
     <div id="dxSecOwner" style="display:none;">
       <div class="card">
@@ -493,6 +490,20 @@
         <div class="dx-hint" id="dxOwnApproval"></div>
         <div id="dxOwnUsers" style="margin-top:10px;"><div class="empty">새로고침을 눌러 불러오세요</div></div>
       </div>
+    </div>
+  </div>
+</div>
+<!-- ===== 관리자 로그인 (전체 화면) ===== -->
+<div class="dx-ov solid" id="dxOwnGate">
+  <div class="dx-og-wrap">
+    <div class="dx-og-card">
+      <div class="dx-og-ic">🔐</div>
+      <h2 class="dx-og-title">관리자 로그인</h2>
+      <p class="dx-og-sub">관리자 비밀번호를 입력하세요</p>
+      <input class="dx-in dx-og-in" id="dxOwnPw" type="password" inputmode="numeric" autocomplete="off" placeholder="비 밀 번 호" maxlength="30">
+      <button class="btn dx-og-btn" data-dx="own-login">로그인</button>
+      <button class="btn dx-og-back" data-dx="own-back">← 돌아가기</button>
+      <div class="dx-msg" id="dxOwnLoginMsg" style="text-align:center;"></div>
     </div>
   </div>
 </div>
@@ -1416,7 +1427,7 @@
     var allowed = reviewOn || isOwner;
     g('dxRvBtn').style.display = allowed ? '' : 'none';
     g('dxTabReview').style.display = allowed ? '' : 'none';
-    g('dxTabOwner').style.display = (isOwner && ownUnlocked) ? '' : 'none';
+    g('dxTabOwner').style.display = 'none';
     g('dxInstallId').textContent = installId || '(등록 기능이 꺼져 있어요)';
     var u=usePub, show = u && typeof u.users==='number' && (isOwner || u.users>=10);   // 누적 10명 미만이면 숨김 (아듬샘에겐 항상 표시)
     var ul=g('dxUse'); ul.style.display = show ? '' : 'none';
@@ -1441,15 +1452,15 @@
   function openPanel(tab){
     var allowed = reviewOn || isOwner;
     if(tab==='review' && !allowed) tab='info';
-    if(tab==='owner' && !(isOwner && ownUnlocked)) tab='ownLogin';
+    if(tab==='owner' && !(isOwner && ownUnlocked)){ showOwnGate(); return; }
     curTab=tab;
-    ['review','info','owner','ownLogin'].forEach(function(t){
+    ['review','info','owner'].forEach(function(t){
       var T=t.charAt(0).toUpperCase()+t.slice(1), tb=g('dxTab'+T);
       g('dxSec'+T).style.display = t===tab ? '' : 'none';
       if(tb) tb.classList.toggle('active', t===tab);
     });
-    g('dxTabs').style.display = tab==='ownLogin' ? 'none' : '';
-    if(tab==='ownLogin'){ g('dxOwnPw').value=''; setMsg('dxOwnLoginMsg',''); }
+    g('dxTabs').style.display = tab==='owner' ? 'none' : '';   // 관리자 화면에는 후기·정보 탭이 필요 없어요
+    g('dxPanelTitle').textContent = tab==='owner' ? '👑 관리자 모드' : '🌟 등급계산기';
     g('dxPanel').classList.add('show'); g('dxPanel').scrollTop=0;
     if(tab==='review') renderRv();
     if(tab==='owner' && !own) ownerLoad();
@@ -1532,6 +1543,12 @@
     }
     return (h1>>>0).toString(36)+(h2>>>0).toString(36);
   }
+  function showOwnGate(){
+    g('dxPanel').classList.remove('show');
+    g('dxOwnPw').value=''; setMsg('dxOwnLoginMsg','');
+    g('dxOwnGate').classList.add('show'); g('dxOwnGate').scrollTop=0;
+    setTimeout(function(){ try{ g('dxOwnPw').focus(); }catch(e){} },50);
+  }
   function ownerLogin(){
     var now=Date.now();
     if(now<ownLockUntil){ setMsg('dxOwnLoginMsg','비밀번호를 여러 번 틀렸어요. 잠시 후 다시 해 주세요.'); return; }
@@ -1548,13 +1565,13 @@
       setMsg('dxOwnLoginMsg','비밀번호는 맞아요! 그런데 이 기기는 등록부에 관리자로 등록되어 있지 않아요. ⚙️ 정보·문의의 설치 ID를 등록부 시트 설정 탭 [관리자설치ID]에 붙여넣은 뒤 새로고침해 주세요.');
       return;
     }
-    ownUnlocked=true; applyUi(); openPanel('owner');
+    ownUnlocked=true; g('dxOwnGate').classList.remove('show'); applyUi(); openPanel('owner');
   }
 
   // ---------- 👑 관리자 (앱 만든 사람 전용 · 등록부가 owner로 확인해 줄 때만) ----------
   function ownerPeek(){
     regCall({action:'ownerReviews', id:installId, peek:'1'}).then(function(r){
-      var n=Math.max(0,(r.tTotal||0)-(r.seenT||0)), b=g('dxTabOwner'), old=b.querySelector('.dx-dot'); if(old) old.remove();
+      var n=Math.max(0,(r.tTotal||0)-(r.seenT||0)), b=g('dxOwBtn'), old=b.querySelector('.dx-dot'); if(old) old.remove();
       if(n>0){ var s=document.createElement('span'); s.className='dx-dot'; s.textContent=n>99?'99+':n; b.appendChild(s); }
     }).catch(function(){});
   }
@@ -1656,6 +1673,7 @@
       case 'banner-go': bannerClose(true); break;
       case 'banner-later': bannerClose(false); break;
       case 'open-owner': openPanel('owner'); break;
+      case 'own-back': g('dxOwnGate').classList.remove('show'); break;
       case 'own-login': ownerLogin(); break;
       case 'own-load': ownerLoad(); break;
       case 'own-img': ownerSaveImg(); break;
@@ -1663,6 +1681,7 @@
       case 'own-user': ownerSetUser(v); break;
     }
   });
+  document.addEventListener('keydown', function(e){ if(e.key==='Enter' && e.target && e.target.id==='dxOwnPw'){ e.preventDefault(); ownerLogin(); } });
   document.addEventListener('change', function(e){ if(e.target && e.target.id==='dxOwnToggle') ownerToggleReview(); });
 
   boot();
