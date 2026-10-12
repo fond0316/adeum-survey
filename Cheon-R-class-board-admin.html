@@ -542,6 +542,18 @@ input[type=date]{min-width:0;max-width:100%}
         <div class="msg" id="nsMsg"></div>
         <div id="nsTest" class="hint"></div>
       </div>
+
+      <div class="box" id="ttBox">
+        <h2>📅 우리 반 시간표 (N교시 제안용)</h2>
+        <p class="hint">나이스에 시간표가 없는 학교에서도 공지 제목의 과목으로 <b>N교시</b>를 제안해요. <b>평소 요일 패턴</b>만 넣어요. 학생 화면에는 보이지 않아요. 나이스에 시간표가 있으면 그걸 먼저 써요.</p>
+        <label class="f">엑셀에서 복사해서 붙여넣기</label>
+        <textarea id="ttPaste" rows="3" placeholder="우리 반 학급 시간표 표를 엑셀에서 드래그해 복사(Ctrl+C) → 여기에 붙여넣기(Ctrl+V)" style="min-height:70px"></textarea>
+        <div class="row" style="margin-top:8px"><button class="btn sub" onclick="ttFill()">표에 채우기</button></div>
+        <div id="ttGrid" style="margin-top:10px;overflow-x:auto"></div>
+        <p class="hint" style="margin-top:6px">칸은 <b>과목 담당교사</b>처럼 써요 (예: <b>수학 천아름</b>). 공지 제목의 "과학"은 <b>과A·과B</b>, "체육"은 <b>체A</b>, "사회"는 <b>사B</b> 같은 약칭 칸과도 맞춰요.</p>
+        <div class="row" style="margin-top:12px"><button class="btn" onclick="ttSave(this)">시간표 저장</button></div>
+        <div class="msg" id="ttMsg"></div>
+      </div>
     </section>
 
     <!-- 👑 사용자 관리 (아듬샘 전용) -->
@@ -839,6 +851,7 @@ input[type=date]{min-width:0;max-width:100%}
           <li><b>준비</b>: open.neis.go.kr에서 인증키를 발급받아 ⚙️ 연결·설정 탭의 <b>나이스 연동</b> 박스에 붙여넣고 [인증키 저장] → 학교 검색 후 선택 → 학년·반 입력 → [나이스 설정 저장].</li>
           <li><b>학생 화면</b>: 위쪽에 <b>🏫 학교 알림판</b> 띠가 생겨요. 누르면 펼쳐지고, 폰은 접힌 채로, 교실 화면(전자칠판)은 펼친 채로 시작해요. 기기마다 접어 둔 상태를 기억해요.</li>
           <li><b>N교시 제안</b>: 공지 제목을 <b>"10/15 수학 숙제"</b>처럼 (날짜 + 과목으로 시작) 쓰면 그날 시간표에서 찾아 <b>[3교시]</b> 버튼이 떠요. 누르면 제목에 들어가요. 시간표는 학생 화면에 보이지 않아요.</li>
+          <li>나이스에 시간표가 없으면 ⚙️ 설정의 <b>📅 우리 반 시간표</b>에 엑셀 표를 붙여넣어 저장하면 같은 방식으로 N교시를 제안해요. (과학→과A·과B, 체육→체A 같은 약칭도 맞춰요)</li>
           <li>접힌 띠·펼친 급식에 무엇을 보일지는 설정 박스에서 고를 수 있어요. 알레르기 번호는 보여주지 않아요.</li>
           <li>[연결 테스트]로 오늘 급식·학사일정·시간표가 잘 오는지 확인해요. 주말·방학엔 비어 있을 수 있어요.</li>
           <li>GAS 코드를 <b>버전 2</b>로 바꾼 뒤 [수정 배포] 해야 해요. 처음 한 번 코드 편집기에서 <b>나이스권한승인</b> 함수를 실행해 권한을 허용해 주세요.</li>
@@ -2649,7 +2662,7 @@ async function neisSave(btn, extra){
   const key = $('nsKey').value.trim(); if (key) payload.key = key;
   try{
     await jsonp({ action:'neisSave', pw:PW, data:JSON.stringify(payload) });
-    $('nsKey').value = '';
+    $('nsKey').value = ''; nsPerOff = false;
     await neisLoad(true); msg('nsMsg','저장했어요.',true);
     return true;
   }catch(e){ msg('nsMsg', e.message); return false; }
@@ -2681,6 +2694,7 @@ async function neisTest(btn){
     L.push(r.scheduleErr ? '❌ 학사일정: ' + esc(r.scheduleErr) : '📆 오늘 학사일정: ' + ((r.schedule||[]).length ? esc(r.schedule.join(', ')) : '없음'));
     L.push(r.mealErr ? '❌ 급식: ' + esc(r.mealErr) : '🍚 오늘 점심: ' + (((r.meals||{})['점심']||[]).length ? esc(r.meals['점심'].join(', ')) : '없음 (주말·방학이면 정상)'));
     L.push(r.periodErr ? '❌ 시간표: ' + esc(r.periodErr) : '🕘 오늘 시간표: ' + (r.periods ? r.periods + '칸' : '없음 (학년·반을 확인하거나 주말·방학이면 정상)'));
+    if (r.diag) L.push('🔎 시간표 진단<br><span style="white-space:pre-line">' + esc(r.diag) + '</span>');
     $('nsTest').innerHTML = L.join('<br>'); msg('nsMsg','',true);
   }catch(e){ msg('nsMsg', e.message); }
   btn.disabled = false;
@@ -2737,6 +2751,69 @@ async function neisPerRun(){
 function neisPerSoon(){ clearTimeout(nsPerT); const p = neisPerParse(); if (!p){ neisPerHide(); return; } nsPerT = setTimeout(neisPerRun, 700); }
 $('fTitle').addEventListener('input', neisPerSoon);
 $('fDate').addEventListener('change', neisPerSoon);
+
+/* ===== 📅 우리 반 시간표 (월~금 × 1~7교시) — 나이스에 시간표가 없는 학교용 ===== */
+WRITE_ACTIONS.push('ttSave');
+let ttLoaded = false;
+function ttBuild(grid){
+  const days = ['월','화','수','목','금'];
+  let h = '<table style="border-collapse:collapse;width:100%;min-width:340px"><tr><th></th>' + days.map(d => `<th style="font-size:13px;color:var(--tx2);padding:4px">${d}</th>`).join('') + '</tr>';
+  for (let r = 0; r < 7; r++){
+    h += `<tr><th style="font-size:12px;color:var(--tx2);padding:2px 4px;white-space:nowrap">${r+1}교시</th>`;
+    for (let c = 0; c < 5; c++) h += `<td style="padding:2px"><input type="text" id="tt_${r}_${c}" maxlength="30" value="${esc((grid[r]||[])[c]||'')}" style="width:100%;min-width:62px;min-height:44px;padding:0 6px;font-size:13px"></td>`;
+    h += '</tr>';
+  }
+  $('ttGrid').innerHTML = h + '</table>';
+}
+function ttRead(){ const g = []; for (let r = 0; r < 7; r++){ const row = []; for (let c = 0; c < 5; c++){ const el = $('tt_'+r+'_'+c); row.push(el ? el.value : ''); } g.push(row); } return g; }
+function ttParse(text){   // 엑셀 복사(탭·줄바꿈, 칸 안 줄바꿈은 따옴표) 읽기
+  const rows = []; let row = [], cur = '', q = false;
+  for (let i = 0; i < text.length; i++){
+    const ch = text[i];
+    if (q){ if (ch === '"'){ if (text[i+1] === '"'){ cur += '"'; i++; } else q = false; } else cur += ch; }
+    else if (ch === '"' && cur === '') q = true;
+    else if (ch === '\t'){ row.push(cur); cur = ''; }
+    else if (ch === '\n' || ch === '\r'){ if (ch === '\r' && text[i+1] === '\n') i++; row.push(cur); cur = ''; rows.push(row); row = []; }
+    else cur += ch;
+  }
+  if (cur !== '' || row.length){ row.push(cur); rows.push(row); }
+  return rows.map(r => r.map(v => v.replace(/\s+/g, ' ').trim()));
+}
+function ttFill(){
+  const rows = ttParse($('ttPaste').value).filter(r => r.some(v => v));
+  if (!rows.length){ msg('ttMsg','먼저 엑셀 시간표를 붙여넣어 주세요.'); return; }
+  const g = ttRead(); let seq = 0, got = 0;
+  rows.forEach(r => {
+    if (r.slice(0,6).some(v => v === '월') && r.slice(0,6).some(v => v === '금')) return;   // 머리글 줄 (월~금)
+    const m = String(r[0] || '').match(/^(\d)\s*교시/);
+    let n, vals;
+    if (m){ n = Number(m[1]); vals = r.slice(1,6); }
+    else { n = ++seq; vals = r.slice(0,5); }
+    if (n < 1 || n > 7) return;
+    for (let c = 0; c < 5; c++){ g[n-1][c] = (vals[c] || '').slice(0,30); }
+    got++;
+  });
+  ttBuild(g);
+  msg('ttMsg', got ? '표에 채웠어요. 확인하고 아래 [시간표 저장]을 눌러 주세요.' : '교시 줄을 찾지 못했어요. 월~금 표를 그대로 복사해 주세요.', !!got);
+}
+async function ttLoad(force){
+  if (role !== 'admin' || !$('ttBox')) return;
+  if (gasVer !== null && gasVer < 2){ ttBuild(ttRead()); return; }
+  if (ttLoaded && !force) return;
+  try{ const r = await jsonp({ action:'ttLoad', pw:PW }); ttLoaded = true; ttBuild(r.grid || []); }
+  catch(e){ ttBuild(ttRead()); msg('ttMsg', e.message); }
+}
+async function ttSave(btn){
+  btn.disabled = true; msg('ttMsg','저장 중…',true);
+  try{
+    await jsonp({ action:'ttSave', pw:PW, data:JSON.stringify({ grid: ttRead() }) });
+    nsPerOff = false; Object.keys(nsPerCache).forEach(k => delete nsPerCache[k]);   // 새 시간표로 다시 찾기
+    msg('ttMsg','저장했어요. 이제 공지 제목에 "10/15 수학 숙제"처럼 쓰면 N교시를 제안해요.',true);
+  }catch(e){ msg('ttMsg', e.message); }
+  btn.disabled = false;
+}
+ttBuild([]);
+(function(){ const rf2 = refresh; refresh = async function(u){ const r = await rf2(u); try{ ttLoad(); }catch(e){} return r; }; })();
 </script>
 <!-- 🎬 학생 화면 체험 (샘플 데이터 · 저장·전송 없음) -->
 <div id="demoOv" class="hide" style="position:fixed;inset:0;z-index:95;background:var(--bg)">

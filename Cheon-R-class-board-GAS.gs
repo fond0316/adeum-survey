@@ -5,7 +5,7 @@
  */
 
 /** GAS 코드 버전 — 코드를 고칠 때마다 1씩 올려요. 관리 화면이 이 번호로 업데이트가 필요한지 알려줘요. */
-var GAS_VER = 1;
+var GAS_VER = 2;
 
 var TZ = 'Asia/Seoul';
 var SHEETS = {
@@ -21,6 +21,7 @@ var SHEETS = {
   photos: { name: '사진', headers: ['사진ID', '순서', '조각'] },
   photoIdx: { name: '사진목록', headers: ['사진ID', '조각수', '글자수', '저장시각'] }
 };
+SHEETS.timetable = { name: '시간표', headers: ['교시', '월', '화', '수', '목', '금'] };   // 우리 반 시간표 (나이스에 시간표가 없는 학교용 · N교시 제안)
 var PRESIDENT_TYPES = ['확인', '교과', '일반'];
 var DEFAULT_PW = 'classboard';   // 초기 비밀번호 — 첫 로그인 때 변경 강제
 var DEFAULT_SETTINGS = [['학년도', String(new Date().getFullYear())], ['학급명', '우리 반'], ['관리자비번', DEFAULT_PW], ['회장코드', '']];
@@ -63,6 +64,14 @@ function route_(p) {
     case 'photoStatus': return photoStatus_(p);
     case 'photoDrop': return photoDrop_(p);
     case 'photoCleanup': return photoCleanup_(p);
+    case 'ttLoad': return ttLoad_(p);
+    case 'ttSave': return ttSave_(p);
+    case 'neisToday': return neisToday_(p);
+    case 'neisSettings': return neisSettings_(p);
+    case 'neisSave': return neisSave_(p);
+    case 'neisSearch': return neisSearch_(p);
+    case 'neisTest': return neisTest_(p);
+    case 'neisPeriod': return neisPeriod_(p);
     default: return { ok: false, error: '알 수 없는 요청이에요.' };
   }
 }
@@ -770,4 +779,263 @@ function saveSettings_(p) {
     }
     return { ok: true };
   });
+}
+
+
+/* =====================================================================
+ * 나이스(NEIS) 교육정보 개방포털 연동 — v2에서 추가
+ *  - 급식·학사일정은 학생 화면의 '학교 알림판' 카드에, 시간표는 공지 작성 때 'N교시' 제안에만 써요.
+ *  - 인증키·학교코드는 이 시트의 '설정' 탭에만 저장돼요 (등록부·학생 화면으로 보내지 않아요).
+ *  - 처음 한 번 GAS 편집기에서 '나이스권한승인' 함수를 실행해 외부 연결 권한을 승인해야 해요.
+ * ===================================================================== */
+var NEIS_BASE = 'https://open.neis.go.kr/hub/';
+var NEIS_TT = { '고등학교': 'hisTimetable', '중학교': 'misTimetable', '초등학교': 'elsTimetable', '특수학교': 'spsTimetable' };
+var NEIS_MEAL = { '조식': '1', '점심': '2', '석식': '3' };
+
+/** 수동 실행용 — 외부 서버(나이스) 연결 권한 승인창을 띄워요 */
+function 나이스권한승인() {
+  var r = UrlFetchApp.fetch(NEIS_BASE + 'schoolInfo?Type=json&pSize=1&SCHUL_NM=' + encodeURIComponent('서울'), { muteHttpExceptions: true });
+  Logger.log('나이스 연결 확인: HTTP ' + r.getResponseCode());
+}
+
+function neisHas_(s, w) { return (',' + String(s || '') + ',').indexOf(',' + w + ',') >= 0; }
+function neisYmd_(d) { return String(d).replace(/-/g, ''); }
+function neisDate_(v) {
+  v = String(v || '');
+  if (!v) return Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) throw new Error('날짜 형식이 올바르지 않아요.');
+  return v;
+}
+/** 나이스 호출 + 잠깐 기억(캐시). 결과 없음(INFO-200)은 빈 목록 */
+function neisFetch_(svc, params, ttl) {
+  var key = getSetting_('NEIS키');
+  if (!key) throw new Error('나이스 인증키가 아직 없어요.');
+  var q = Object.keys(params).sort().map(function (k) { return k + '=' + encodeURIComponent(params[k]); }).join('&');
+  var ck = 'neis_' + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, svc + '?' + q)).slice(0, 24);
+  var cache = CacheService.getScriptCache();
+  try { var hit = cache.get(ck); if (hit) return JSON.parse(hit); } catch (e) {}
+  var url = NEIS_BASE + svc + '?KEY=' + encodeURIComponent(key) + '&Type=json&pIndex=1&pSize=100&' + q;
+  var res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+  if (res.getResponseCode() !== 200) throw new Error('나이스 서버 응답이 이상해요 (HTTP ' + res.getResponseCode() + ').');
+  var j = JSON.parse(res.getContentText());
+  var rows = [];
+  if (j.RESULT) {
+    var code = String(j.RESULT.CODE || '');
+    if (code !== 'INFO-200') throw new Error('나이스 응답: ' + code + ' ' + (j.RESULT.MESSAGE || ''));
+  } else if (j[svc]) {
+    j[svc].forEach(function (blk) {
+      if (blk.row) rows = rows.concat(blk.row);
+      if (blk.head) blk.head.forEach(function (h) {
+        if (h.RESULT && String(h.RESULT.CODE) !== 'INFO-000' && String(h.RESULT.CODE) !== 'INFO-200') throw new Error('나이스 응답: ' + h.RESULT.CODE + ' ' + (h.RESULT.MESSAGE || ''));
+      });
+    });
+  }
+  try { cache.put(ck, JSON.stringify(rows), ttl || 3600); } catch (e) {}
+  return rows;
+}
+/** 메뉴 이름만 남기기 — 알레르기 번호·괄호·별표 제거 */
+function neisMenu_(raw) {
+  return String(raw || '').split(/<br\s*\/?>/i).map(function (m) {
+    return m.replace(/\s*\(\s*[\d.,\s]+\)/g, '').replace(/[\d.]+\s*$/, '').replace(/[*＊]/g, '').replace(/\s+/g, ' ').trim();
+  }).filter(function (m) { return m; });
+}
+function neisSchool_() {
+  var a = getSetting_('NEIS교육청코드'), c = getSetting_('NEIS학교코드');
+  if (!a || !c) throw new Error('학교가 아직 선택되지 않았어요.');
+  return { ATPT_OFCDC_SC_CODE: a, SD_SCHUL_CODE: c };
+}
+function neisEnabled_() { return !!(getSetting_('NEIS키') && getSetting_('NEIS교육청코드') && getSetting_('NEIS학교코드')); }
+function neisStrip_() { var v = getSetting_('NEIS띠'); return v === '' ? '학사일정,점심' : v; }
+function neisOpen_() { var v = getSetting_('NEIS펼침'); return v === '' ? '점심' : v; }
+function neisMeals_(date, names) {
+  var out = {};
+  names.forEach(function (nm) {
+    var sc = neisSchool_(); sc.MLSV_YMD = neisYmd_(date); sc.MMEAL_SC_CODE = NEIS_MEAL[nm];
+    var rows = neisFetch_('mealServiceDietInfo', sc, 7200);
+    out[nm] = rows.length ? neisMenu_(rows[0].DDISH_NM) : [];
+  });
+  return out;
+}
+function neisSchedule_(date) {
+  var sc = neisSchool_(); sc.AA_YMD = neisYmd_(date);
+  var g = Number(getSetting_('NEIS학년')) || 0;
+  var gf = ['', 'ONE', 'TW', 'THREE'];
+  var seen = {}, list = [];
+  neisFetch_('SchoolSchedule', sc, 7200).forEach(function (r) {
+    if (g >= 1 && g <= 3) {
+      var mine = r[gf[g] + '_GRADE_EVENT_YN'];
+      var any = r.ONE_GRADE_EVENT_YN === 'Y' || r.TW_GRADE_EVENT_YN === 'Y' || r.THREE_GRADE_EVENT_YN === 'Y';
+      if (mine === 'N' && any) return;   // 다른 학년만의 행사는 제외
+    }
+    var nm = String(r.EVENT_NM || '').trim();
+    if (nm && !seen[nm]) { seen[nm] = 1; list.push(nm); }
+  });
+  return list;
+}
+
+/** 학생 화면용 — 로그인 없이 호출 (키·학교코드는 돌려주지 않아요) */
+function neisToday_(p) {
+  if (!neisEnabled_()) return { ok: true, enabled: false };
+  var date = neisDate_(p.date);
+  var strip = neisStrip_(), open = neisOpen_();
+  var need = [];
+  ['조식', '점심', '석식'].forEach(function (m) { if (neisHas_(strip, m) || neisHas_(open, m)) need.push(m); });
+  var res = { ok: true, enabled: true, date: date, strip: strip, open: open, schedule: [], meals: {} };
+  res.schedule = neisSchedule_(date);
+  res.meals = neisMeals_(date, need);
+  return res;
+}
+
+/** 담임 설정 화면용 */
+function neisSettings_(p) {
+  need_(p, ['admin']);
+  return { ok: true, hasKey: !!getSetting_('NEIS키'), atpt: getSetting_('NEIS교육청코드'), code: getSetting_('NEIS학교코드'),
+    school: getSetting_('NEIS학교명'), level: getSetting_('NEIS학교급'), grade: getSetting_('NEIS학년'), cls: getSetting_('NEIS반'),
+    strip: neisStrip_(), open: neisOpen_() };
+}
+function neisSave_(p) {
+  need_(p, ['admin']);
+  var s = JSON.parse(p.data || '{}');
+  return lock_(function () {
+    if (s.clearKey) setSetting_('NEIS키', '');
+    else if (s.key !== undefined && String(s.key).trim()) {
+      var k = String(s.key).trim();
+      if (!/^[A-Za-z0-9]{10,64}$/.test(k)) throw new Error('인증키 형식이 올바르지 않아요. 복사한 키를 다시 확인해 주세요.');
+      setSetting_('NEIS키', k);
+    }
+    if (s.atpt !== undefined) setSetting_('NEIS교육청코드', String(s.atpt).replace(/[^A-Za-z0-9]/g, ''));
+    if (s.code !== undefined) setSetting_('NEIS학교코드', String(s.code).replace(/[^A-Za-z0-9]/g, ''));
+    if (s.school !== undefined) setSetting_('NEIS학교명', String(s.school).slice(0, 60));
+    if (s.level !== undefined) setSetting_('NEIS학교급', String(s.level).slice(0, 20));
+    if (s.grade !== undefined) setSetting_('NEIS학년', String(Number(s.grade) || ''));
+    if (s.cls !== undefined) setSetting_('NEIS반', String(Number(s.cls) || ''));
+    var ok = ['학사일정', '조식', '점심', '석식'];
+    if (s.strip !== undefined) setSetting_('NEIS띠', String(s.strip).split(',').filter(function (x) { return ok.indexOf(x) >= 0; }).join(','));
+    if (s.open !== undefined) setSetting_('NEIS펼침', String(s.open).split(',').filter(function (x) { return ['조식', '점심', '석식'].indexOf(x) >= 0; }).join(','));
+    return { ok: true };
+  });
+}
+/** 학교 이름으로 검색 (저장된 인증키 사용) */
+function neisSearch_(p) {
+  need_(p, ['admin']);
+  var q = String(p.q || '').trim();
+  if (q.length < 2) throw new Error('학교 이름을 2글자 이상 입력해 주세요.');
+  var rows = neisFetch_('schoolInfo', { SCHUL_NM: q }, 600);
+  return { ok: true, list: rows.slice(0, 20).map(function (r) {
+    return { atpt: r.ATPT_OFCDC_SC_CODE, code: r.SD_SCHUL_CODE, name: r.SCHUL_NM, level: r.SCHUL_KND_SC_NM, addr: r.ORG_RDNMA || '', office: r.ATPT_OFCDC_SC_NM || '' };
+  }) };
+}
+/** 연결 확인 — 오늘(또는 지정일) 급식·학사일정·시간표가 가져와지는지 */
+function neisTest_(p) {
+  need_(p, ['admin']);
+  if (!neisEnabled_()) throw new Error('인증키와 학교를 먼저 저장해 주세요.');
+  var date = neisDate_(p.date);
+  var res = { ok: true, date: date };
+  try { res.schedule = neisSchedule_(date); } catch (e) { res.scheduleErr = String(e.message || e); }
+  try { res.meals = neisMeals_(date, ['점심']); } catch (e) { res.mealErr = String(e.message || e); }
+  try { res.periods = neisPeriods_(date).length; } catch (e) { res.periodErr = String(e.message || e); }
+  if (!res.periods && !res.periodErr) { try { res.diag = neisDiag_(date); } catch (e) { res.diag = '진단 중 오류: ' + String(e.message || e); } }
+  return res;
+}
+/** 시간표가 비어 있을 때 이유를 찾기 위한 진단 (날짜 없이·학급 없이 넓혀서 조회) */
+function neisDiag_(date) {
+  var level = getSetting_('NEIS학교급'), svc = NEIS_TT[level];
+  if (!svc) return '학교급 정보가 없거나 시간표를 지원하지 않는 학교급이에요 (' + (level || '비어 있음') + '). 학교를 다시 검색해서 선택해 주세요.';
+  var g = getSetting_('NEIS학년'), c = getSetting_('NEIS반');
+  if (!g || !c) return '학년·반이 비어 있어요. 학년과 반을 입력하고 저장해 주세요.';
+  var out = ['서비스 ' + svc + ' · 조회 학급 ' + g + '학년 ' + c + '반 · 조회일 ' + date];
+  function span(rows) {
+    var d = rows.map(function (r) { return String(r.ALL_TI_YMD || ''); }).filter(function (x) { return x; }).sort();
+    return rows.length + '칸' + (d.length ? ' (' + d[0] + ' ~ ' + d[d.length - 1] + ')' : '');
+  }
+  var sc = neisSchool_(); sc.GRADE = g; sc.CLASS_NM = c;
+  out.push('우리 반 전체 기간: ' + span(neisFetch_(svc, sc, 600)));
+  var sc2 = neisSchool_(); sc2.GRADE = g;
+  var r2 = neisFetch_(svc, sc2, 600);
+  var cls = {}; r2.forEach(function (r) { cls[String(r.CLASS_NM)] = 1; });
+  out.push(g + '학년 전체: ' + span(r2) + (Object.keys(cls).length ? ' · 반 이름 ' + Object.keys(cls).sort().slice(0, 15).join(',') : ''));
+  out.push('학교 전체: ' + span(neisFetch_(svc, neisSchool_(), 600)));
+  return out.join('\n');
+}
+function neisPeriods_(date) {
+  var svc = NEIS_TT[getSetting_('NEIS학교급')];
+  var g = getSetting_('NEIS학년'), c = getSetting_('NEIS반');
+  if (!svc || !g || !c) return [];
+  var sc = neisSchool_(); sc.ALL_TI_YMD = neisYmd_(date); sc.GRADE = g; sc.CLASS_NM = c;
+  var seen = {}, out = [];
+  neisFetch_(svc, sc, 3600).forEach(function (r) {
+    var per = String(r.PERIO || '').trim(), nm = String(r.ITRT_CNTNT || '').trim();
+    if (per && nm && !seen[per + '|' + nm]) { seen[per + '|' + nm] = 1; out.push({ perio: Number(per) || per, name: nm }); }
+  });
+  return out.sort(function (a, b) { return Number(a.perio) - Number(b.perio); });
+}
+/** 공지 작성용 — 그날 시간표에서 과목이 몇 교시인지 (담임·회장) */
+function neisPeriod_(p) {
+  need_(p, ['admin', 'president']);
+  var sub = String(p.subject || '').replace(/\s+/g, '');
+  var hasTt = ttHas_();
+  if (!neisEnabled_() && !hasTt) return { ok: true, enabled: false, periods: [] };
+  if (!sub) return { ok: true, enabled: true, periods: [] };
+  var date = neisDate_(p.date);
+  var list = [];
+  if (neisEnabled_()) {   // 나이스 시간표가 있으면 그걸 먼저 (없거나 안 되면 아래 우리 반 시간표)
+    try { list = neisPeriods_(date).filter(function (x) { return x.name.replace(/\s+/g, '').indexOf(sub) === 0; }); } catch (e) { list = []; }
+  }
+  if (!list.length && hasTt) list = ttPeriods_(date, sub);
+  return { ok: true, enabled: true, date: date, periods: list };
+}
+
+/* ---------- 우리 반 시간표 (시트 '시간표' 탭 · 월~금 × 1~7교시) ---------- */
+var TT_ALIAS = { '과학': '과', '사회': '사', '체육': '체', '한국사': '국사', '일본어': '일', '일어': '일', '한문': '한문', '진로': '진로', '미술': '미', '음악': '음' };
+function ttGrid_() {
+  var g = [];
+  for (var i = 0; i < 7; i++) g.push(['', '', '', '', '']);
+  rows_('timetable').forEach(function (r) {
+    var m = String(r[0]).match(/^(\d)/);
+    var n = m ? Number(m[1]) : 0;
+    if (n >= 1 && n <= 7) for (var c = 0; c < 5; c++) g[n - 1][c] = r[c + 1] || '';
+  });
+  return g;
+}
+function ttHas_() {
+  return ttGrid_().some(function (row) { return row.some(function (v) { return v && v !== '공강' && v !== '자율'; }); });
+}
+function ttLoad_(p) {
+  need_(p, ['admin']);
+  return { ok: true, grid: ttGrid_() };
+}
+function ttSave_(p) {
+  need_(p, ['admin']);
+  var d = JSON.parse(p.data || '{}');
+  var grid = d.grid;
+  if (!grid || grid.length !== 7) throw new Error('시간표 형식이 올바르지 않아요.');
+  var days = ['월', '화', '수', '목', '금'];
+  var out = grid.map(function (row, i) {
+    if (!row || row.length !== 5) throw new Error('시간표 형식이 올바르지 않아요.');
+    return [(i + 1) + '교시'].concat(row.map(function (v) { return String(v || '').replace(/\s+/g, ' ').trim().slice(0, 30); }));
+  });
+  return lock_(function () {
+    var sh = sh_('timetable');
+    sh.getRange(1, 1, 1, 6).setValues([SHEETS.timetable.headers]).setFontWeight('bold');
+    sh.getRange(2, 1, 7, 6).setNumberFormat('@').setValues(out);
+    return { ok: true };
+  });
+}
+/** 공지 제목의 과목(sub)이 그날 시간표 칸의 과목과 맞는지 — '과학'→'과B', '체육'→'체A' 같은 약칭도 인정 */
+function ttMatch_(cell, sub) {
+  var first = String(cell || '').trim().split(/\s+/)[0] || '';
+  var cs = first.replace(/^[A-Da-d]_/, '');
+  if (!cs || cs === '공강' || cs === '자율') return false;
+  if (cs.indexOf(sub) === 0) return true;
+  var a = TT_ALIAS[sub];
+  return !!(a && cs.indexOf(a) === 0);
+}
+function ttPeriods_(date, sub) {
+  var m = String(date).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return [];
+  var wd = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]))).getUTCDay();   // 0=일 … 6=토 (서버 시간대와 상관없이 날짜 그대로)
+  if (wd < 1 || wd > 5) return [];
+  var g = ttGrid_(), out = [];
+  for (var i = 0; i < 7; i++) { var cell = g[i][wd - 1]; if (ttMatch_(cell, sub)) out.push({ perio: i + 1, name: cell }); }
+  return out;
 }
