@@ -548,11 +548,7 @@ input[type=date]{min-width:0;max-width:100%}
         <p class="hint">나이스에 시간표가 없는 학교에서도 공지 제목의 과목으로 <b>N교시</b>를 제안해요. <b>평소 요일 패턴</b>만 넣어요. 학생 화면에는 보이지 않아요. 나이스에 시간표가 있으면 그걸 먼저 써요.</p>
         <p class="hint" style="background:var(--bg);border-radius:10px;padding:10px 12px"><b>쓰는 법</b>: 엑셀에서 우리 반 시간표를 드래그해 복사(Ctrl+C) → 아래 표의 <b>아무 칸이나 눌러서</b> 붙여넣기(Ctrl+V)하면 한 번에 채워져요. 직접 한 칸씩 써도 돼요.</p>
         <div id="ttGrid" style="margin-top:10px;overflow-x:auto"></div>
-        <details style="margin-top:6px"><summary style="font-size:13px;color:var(--tx2);min-height:44px;display:flex;align-items:center">표에 붙여넣기가 안 될 때 (폰 등) ▾</summary>
-          <textarea id="ttPaste" rows="3" placeholder="여기에 붙여넣고 아래 [표에 채우기]를 눌러요" style="min-height:70px"></textarea>
-          <div class="row" style="margin-top:8px"><button class="btn sub" onclick="ttFill()">표에 채우기</button></div>
-        </details>
-        <p class="hint" style="margin-top:6px">칸은 <b>과목 담당교사</b>처럼 써요 (예: <b>수학 홍길동</b>). 공지 제목의 "과학"은 <b>과A·과B</b>, "체육"은 <b>체A</b>, "사회"는 <b>사B</b> 같은 약칭 칸과도 맞춰요.</p>
+        <p class="hint" style="margin-top:6px">칸은 <b>과목 이름만</b> 써요 (예: <b>수학</b>). 붙여넣을 때 담당 선생님 이름은 자동으로 빠져요. 공지 제목의 "과학"은 <b>과A·과B</b>, "체육"은 <b>체A</b>, "사회"는 <b>사B</b> 같은 약칭 칸과도 맞춰요.</p>
         <div class="row" style="margin-top:12px"><button class="btn" onclick="ttSave(this)">시간표 저장</button></div>
         <div class="msg" id="ttMsg"></div>
       </div>
@@ -2781,8 +2777,9 @@ function ttParse(text){   // 엑셀 복사(탭·줄바꿈, 칸 안 줄바꿈은 
   if (cur !== '' || row.length){ row.push(cur); rows.push(row); }
   return rows.map(r => r.map(v => v.replace(/\s+/g, ' ').trim()));
 }
+function ttSubj(v){ return String(v || '').trim().split(/\s+/)[0].slice(0,20); }   // 과목만 남기기 — 담당 선생님 이름은 저장하지 않아요
 function ttFill(txt){
-  const rows = ttParse(typeof txt === 'string' ? txt : $('ttPaste').value).filter(r => r.some(v => v));
+  const rows = ttParse(String(txt || '')).filter(r => r.some(v => v));
   if (!rows.length){ msg('ttMsg','먼저 엑셀 시간표를 붙여넣어 주세요.'); return; }
   const g = ttRead(); let seq = 0, got = 0;
   rows.forEach(r => {
@@ -2792,7 +2789,7 @@ function ttFill(txt){
     if (m){ n = Number(m[1]); vals = r.slice(1,6); }
     else { n = ++seq; vals = r.slice(0,5); }
     if (n < 1 || n > 7) return;
-    for (let c = 0; c < 5; c++){ g[n-1][c] = (vals[c] || '').slice(0,30); }
+    for (let c = 0; c < 5; c++){ g[n-1][c] = ttSubj(vals[c]); }
     got++;
   });
   ttBuild(g);
@@ -2808,7 +2805,7 @@ async function ttLoad(force){
 async function ttSave(btn){
   btn.disabled = true; msg('ttMsg','저장 중…',true);
   try{
-    await jsonp({ action:'ttSave', pw:PW, data:JSON.stringify({ grid: ttRead() }) });
+    await jsonp({ action:'ttSave', pw:PW, data:JSON.stringify({ grid: ttRead().map(r => r.map(ttSubj)) }) });
     nsPerOff = false; Object.keys(nsPerCache).forEach(k => delete nsPerCache[k]);   // 새 시간표로 다시 찾기
     msg('ttMsg','저장했어요. 이제 공지 제목에 "10/15 수학 숙제"처럼 쓰면 N교시를 제안해요.',true);
   }catch(e){ msg('ttMsg', e.message); }
