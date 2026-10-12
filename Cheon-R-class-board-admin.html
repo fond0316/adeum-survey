@@ -2701,6 +2701,8 @@ async function neisTest(btn){
     L.push(r.scheduleErr ? '❌ 학사일정: ' + esc(r.scheduleErr) : '📆 오늘 학사일정: ' + ((r.schedule||[]).length ? esc(r.schedule.join(', ')) : '없음'));
     L.push(r.mealErr ? '❌ 급식: ' + esc(r.mealErr) : '🍚 오늘 점심: ' + (((r.meals||{})['점심']||[]).length ? esc(r.meals['점심'].join(', ')) : '없음 (주말·방학이면 정상)'));
     L.push(r.periodErr ? '❌ 시간표: ' + esc(r.periodErr) : '🕘 오늘 시간표: ' + (r.periods ? r.periods + '칸' : '없음 (학년·반을 확인하거나 주말·방학이면 정상)'));
+    if (r.periodList) L.push('🕘 나이스 시간표: ' + esc(r.periodList));
+    if (r.ttList) L.push('📅 우리 반 시간표(저장한 것): ' + esc(r.ttList));
     if (r.diag) L.push('🔎 시간표 진단<br><span style="white-space:pre-line">' + esc(r.diag) + '</span>');
     $('nsTest').innerHTML = L.join('<br>'); msg('nsMsg','',true);
   }catch(e){ msg('nsMsg', e.message); }

@@ -933,7 +933,8 @@ function neisTest_(p) {
   var res = { ok: true, date: date };
   try { res.schedule = neisSchedule_(date); } catch (e) { res.scheduleErr = String(e.message || e); }
   try { res.meals = neisMeals_(date, ['점심']); } catch (e) { res.mealErr = String(e.message || e); }
-  try { res.periods = neisPeriods_(date).length; } catch (e) { res.periodErr = String(e.message || e); }
+  try { var pl = neisPeriods_(date); res.periods = pl.length; res.periodList = pl.map(function (x) { return x.perio + '교시 ' + x.name; }).join(' · '); } catch (e) { res.periodErr = String(e.message || e); }
+  try { res.ttList = ttDay_(date); } catch (e) {}
   if (!res.periods && !res.periodErr) { try { res.diag = neisDiag_(date); } catch (e) { res.diag = '진단 중 오류: ' + String(e.message || e); } }
   return res;
 }
@@ -1029,6 +1030,16 @@ function ttMatch_(cell, sub) {
   if (cs.indexOf(sub) === 0) return true;
   var a = TT_ALIAS[sub];
   return !!(a && cs.indexOf(a) === 0);
+}
+/** 그날(요일) 우리 반 시간표 시트의 교시별 과목 — 확인용 */
+function ttDay_(date) {
+  var m = String(date).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return '';
+  var wd = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]))).getUTCDay();
+  if (wd < 1 || wd > 5) return '';
+  var g = ttGrid_(), out = [];
+  for (var i = 0; i < 7; i++) if (g[i][wd - 1]) out.push((i + 1) + '교시 ' + g[i][wd - 1]);
+  return out.join(' · ');
 }
 function ttPeriods_(date, sub) {
   var m = String(date).match(/^(\d{4})-(\d{2})-(\d{2})$/);

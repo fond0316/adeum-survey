@@ -1187,6 +1187,11 @@ function tiToggle(){
   st[BOARD ? 'b' : 'p'] = tiOpen() ? 'closed' : 'open';
   lsSet(TI_KEY, st); tiRender();
 }
+function tiLab(d){   // 오늘이 아닌 날짜를 보고 있으면 그 날짜를 제목 앞에 (예: 10/14(수))
+  if (!d || !d.date || d.date === today()) return '';
+  const x = new Date(d.date + 'T00:00:00');
+  return (x.getMonth()+1) + '/' + x.getDate() + '(' + '일월화수목금토'[x.getDay()] + ') ';
+}
 function tiRender(){
   const box = document.getElementById('ti');
   if (!box) return;
@@ -1206,27 +1211,36 @@ function tiRender(){
     const list = meals[m] || [];
     rows.push(`<div class="ti-row"><span class="tag m">${m}</span><div>${list.length ? list.map(esc).join(' · ') : '<span class="no">급식 정보가 없어요</span>'}</div></div>`);
   }});
-  if (!parts.length && !rows.length){ box.style.display = 'none'; return; }
+  if (!parts.length && !rows.length && !(d.date && d.date !== today())){ box.style.display = 'none'; return; }   // 오늘 정보가 없으면 숨김 · 다른 날짜를 눌렀을 땐 '정보 없음'으로 보여줘요
   const open = tiOpen();
   box.style.display = '';
   box.className = 'ti' + (open ? ' open' : '');
-  box.innerHTML = `<button type="button" class="ti-head" onclick="tiToggle()" aria-expanded="${open}"><span>🏫</span><span class="tt">학교 알림판${parts.length ? ' · ' + parts.join(' · ') : ''}</span><span class="ar">▼</span></button><div class="ti-body">${rows.join('') || '<div class="ti-row"><span class="no">오늘 등록된 정보가 없어요</span></div>'}</div>`;
+  box.innerHTML = `<button type="button" class="ti-head" onclick="tiToggle()" aria-expanded="${open}"><span>🏫</span><span class="tt">${tiLab(d)}학교 알림판${parts.length ? ' · ' + parts.join(' · ') : ''}</span><span class="ar">▼</span></button><div class="ti-body">${rows.join('') || '<div class="ti-row"><span class="no">오늘 등록된 정보가 없어요</span></div>'}</div>`;
 }
-async function tiLoad(){
+const tiCache = {}, tiBusy = {};
+function tiTarget(){ return (typeof selDate === 'string' && selDate) ? selDate : today(); }   // 달력에서 누른 날짜 (없으면 오늘)
+async function tiLoad(date){
+  date = date || tiTarget();
+  const hit = tiCache[date];
+  if (hit && Date.now() - hit.at < 30*60000){ if (date === tiTarget()) tiData = hit.d; tiRender(); return; }
   try{
-    const day = today();
-    tiData = await jsonp({ action:'neisToday', date:day });
-    tiDay = day; tiAt = Date.now();
-  }catch(e){ if (tiDay !== today()) tiData = null; }   // 실패해도 공지 화면은 그대로 — 카드만 숨겨요
+    const r = await (tiBusy[date] || (tiBusy[date] = jsonp({ action:'neisToday', date }))).finally(() => { delete tiBusy[date]; });   // 같은 날짜를 동시에 두 번 부르지 않게
+    tiCache[date] = { d:r, at:Date.now() };
+    if (date === tiTarget()) tiData = r;
+  }catch(e){ if (date === tiTarget()) tiData = null; }   // 실패해도 공지 화면은 그대로 — 카드만 숨겨요
   tiRender();
 }
 (function(){   // 교실 화면 모드를 켜고 끌 때 카드도 그 모드의 접힘 상태로 다시 그려요
   const ab = applyBoard;
   applyBoard = function(){ ab(); try{ tiRender(); }catch(e){} };
 })();
+(function(){   // 달력 날짜·탭을 바꾸면(화면을 다시 그릴 때) 그 날짜의 알림판으로 바꿔요
+  const rd = render;
+  render = function(){ rd(); try{ if (GAS) tiLoad(); }catch(e){} };
+})();
 if (GAS){
   tiLoad();
-  setInterval(() => { if (Date.now() - tiAt > 30*60000 || tiDay !== today()) tiLoad(); }, 60000);   // 30분마다, 날짜가 바뀌면 바로
+  setInterval(() => { tiLoad(); }, 60000);   // 같은 날짜는 30분마다만 새로 받고, 날짜가 바뀌면 바로
 }
 </script>
 </body>
