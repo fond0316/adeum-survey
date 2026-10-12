@@ -980,7 +980,7 @@ function neisPeriod_(p) {
   var date = neisDate_(p.date);
   var list = [];
   if (neisEnabled_()) {   // 나이스 시간표가 있으면 그걸 먼저 (없거나 안 되면 아래 우리 반 시간표)
-    try { list = neisPeriods_(date).filter(function (x) { return x.name.replace(/\s+/g, '').indexOf(sub) === 0; }); } catch (e) { list = []; }
+    try { list = neisPeriods_(date).filter(function (x) { return ttMatch_(x.name, sub); }); } catch (e) { list = []; }
   }
   if (!list.length && hasTt) list = ttPeriods_(date, sub);
   return { ok: true, enabled: true, date: date, periods: list };
@@ -1022,14 +1022,24 @@ function ttSave_(p) {
     return { ok: true };
   });
 }
-/** 공지 제목의 과목(sub)이 그날 시간표 칸의 과목과 맞는지 — '과학'→'과B', '체육'→'체A' 같은 약칭도 인정 */
+/** 과목 칸의 '기본 이름' — 공통수학2→수학, 통합과학2→과학, 국어A→국어, 과B→과, 한국사2→한국사 */
+function ttBase_(cell) {
+  var first = String(cell || '').trim().split(/\s+/)[0] || '';
+  var cs = first.replace(/^[A-Da-d]_/, '').replace(/^(공통|통합|기초|심화)/, '');
+  return cs.replace(/[0-9ⅠⅡⅢⅣⅤ]+$/, '').replace(/[A-Da-d]$/, '');
+}
+/** 공지 제목의 과목(sub)이 시간표 칸의 과목과 맞는지 — '수학숙제'(띄어쓰기 없이)도, '과학'→'과B'·'통합과학2'도 인정 */
 function ttMatch_(cell, sub) {
   var first = String(cell || '').trim().split(/\s+/)[0] || '';
-  var cs = first.replace(/^[A-Da-d]_/, '');
-  if (!cs || cs === '공강' || cs === '자율') return false;
-  if (cs.indexOf(sub) === 0) return true;
-  var a = TT_ALIAS[sub];
-  return !!(a && cs.indexOf(a) === 0);
+  if (!first || first === '공강' || first === '자율') return false;
+  var b = ttBase_(cell);
+  if (!b || !sub) return false;
+  if (b.length >= 2 && sub.indexOf(b) === 0) return true;      // 제목이 과목으로 시작 (수학숙제 ← 수학)
+  if (sub.length >= 2 && b.indexOf(sub) === 0) return true;    // 짧게 쓴 경우 (국어 ← 국어회화)
+  for (var k in TT_ALIAS) {                                     // 약칭 (과학숙제 ← 과B, 체육 ← 체A)
+    if (sub.indexOf(k) === 0 && b.indexOf(TT_ALIAS[k]) === 0) return true;
+  }
+  return false;
 }
 /** 그날(요일) 우리 반 시간표 시트의 교시별 과목 — 확인용 */
 function ttDay_(date) {
