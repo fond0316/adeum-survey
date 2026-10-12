@@ -2845,6 +2845,101 @@ $('ttGrid').addEventListener('paste', function(e){   // 표 아무 칸에 붙여
     h.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); tog(); } });
   });
 })();
+
+/* ===== 📋 목록으로 한 번에 올릴 때도 N교시 자동 넣기 (과목이 그날 한 번뿐일 때만 자동 · 여러 번이면 고르기) ===== */
+(function(){   // 제목 앞의 [N교시] 표시는 중복 공지 찾기에서 무시 (예전 공지와 같은 공지로 인식되도록)
+  const sl = subjLabel; subjLabel = function(t){ return sl(String(t||'').replace(/^\s*\[\d+교시\]\s*/, '')); };
+  const nt = normT; normT = function(sx){ return nt(String(sx||'').replace(/\[\d+교시\]/g, '')); };
+})();
+function neisPerSub(title){
+  const raw = String(title||'').trim();
+  if (!raw || /\[\d+교시\]/.test(raw)) return null;
+  const sub = raw.split(/\s+/)[0].replace(/[,.:;!?]+$/, '');
+  return (sub.length >= 2 && /^[가-힣A-Za-zⅠⅡⅢⅣⅤ0-9()]+$/.test(sub)) ? sub : null;
+}
+async function neisPerFetch(date, sub){   // 시간표에서 찾기 (null = 연동·시간표 없음)
+  const key = date + '|' + sub;
+  if (nsPerCache[key]) return nsPerCache[key];
+  if (nsPerOff) return null;
+  try{
+    const r = await jsonp({ action:'neisPeriod', pw:PW, date, subject:sub });
+    if (r.enabled === false){ nsPerOff = true; return null; }
+    nsPerCache[key] = r.periods || [];
+  }catch(e){ nsPerCache[key] = []; }
+  return nsPerCache[key];
+}
+let bulkPerBusy = false;
+async function bulkPer(){
+  const items = bulkItems.slice();
+  const jobs = items.filter(it => it.date && /^\d{4}-\d{2}-\d{2}$/.test(it.date) && neisPerSub(it.title));
+  if (!jobs.length || nsPerOff) return;
+  bulkPerBusy = true; $('bulkSave').disabled = true; msg('bulkMsg','🕘 N교시 찾는 중…',true);
+  let auto = 0;
+  for (let i = 0; i < jobs.length; i += 4){
+    await Promise.all(jobs.slice(i, i+4).map(async it => {
+      const base = it.title;
+      const list = await neisPerFetch(it.date, neisPerSub(base));
+      if (!list || !list.length || bulkItems.indexOf(it) < 0 || it.title !== base) return;   // 그 사이 고쳤으면 건드리지 않아요
+      const seen = {}, opts = list.filter(x => !seen[x.perio] && (seen[x.perio] = 1));
+      it.perBase = base;
+      if (opts.length === 1){ it.title = '[' + Number(opts[0].perio) + '교시] ' + base; it.perAuto = Number(opts[0].perio); auto++; }
+      else it.perOpts = opts;
+    }));
+  }
+  bulkPerBusy = false; $('bulkSave').disabled = false;
+  bulkItems.forEach(it => { if (it.perAuto || it.perOpts) bulkDup(it, true); });
+  renderBulk();
+  const multi = bulkItems.filter(it => it.perOpts).length;
+  msg('bulkMsg', (auto ? `N교시 ${auto}개를 자동으로 넣었어요.` : '') + (multi ? ` ${multi}개는 교시가 여러 번이라 골라 주세요.` : '') + (auto || multi ? ' 확인하고 올려 주세요.' : ''), true);
+}
+function bulkPerPick(i, p){ const it = bulkItems[i]; if (!it) return; it.title = '[' + p + '교시] ' + it.perBase; it.perAuto = p; it.perOpts = null; bulkChanged(i); }
+function bulkPerUndo(i){ const it = bulkItems[i]; if (!it) return; it.title = it.perBase; it.perAuto = 0; bulkChanged(i); }
+(function(){
+  const pb = parseBulk;
+  parseBulk = function(){ pb(); try{ bulkPer(); }catch(e){ bulkPerBusy = false; $('bulkSave').disabled = false; } };
+  const rb = renderBulk;
+  renderBulk = function(){
+    rb();
+    const rows = document.querySelectorAll('#bulkPrev .bulk-row');
+    bulkItems.forEach((it, i) => {
+      const row = rows[i]; if (!row) return;
+      let h = '';
+      if (it.perAuto) h = `<div class="bulk-warn" style="color:#2E7D32">🕘 ${it.perAuto}교시를 자동으로 넣었어요 <button type="button" class="chip" style="min-height:36px;padding:0 12px;font-size:13px" onclick="bulkPerUndo(${i})">되돌리기</button></div>`;
+      else if (it.perOpts) h = `<div class="bulk-warn" style="color:#2E7D32">🕘 시간표에 여러 번 있어요. 눌러서 고르세요 ` + it.perOpts.map(x => `<button type="button" class="chip" style="min-height:36px;padding:0 12px;font-size:13px" onclick="bulkPerPick(${i},${Number(x.perio)})">${Number(x.perio)}교시 · ${esc(x.name)}</button>`).join(' ') + `</div>`;
+      if (h) row.insertAdjacentHTML('beforeend', h);
+    });
+    if (bulkPerBusy) $('bulkSave').disabled = true;
+  };
+})();
+
+/* ===== ✏️ 공지 하나 올릴 때: 올리기를 누르는 순간 N교시 자동 넣기 (하나뿐이면 자동 · 여러 번이면 고르게) ===== */
+let nsPerAsked = '';
+$('fTitle').addEventListener('input', () => { nsPerAsked = ''; });
+(function(){
+  const sn = saveNotice;
+  saveNotice = async function(btn, skipDup){
+    try{
+      if (!editId && !nsPerOff && fType !== '긴급' && fType !== '호출'){
+        const p = neisPerParse();
+        if (p){
+          if (btn) btn.disabled = true;
+          const list = await neisPerFetch(p.date, p.sub);
+          if (btn) btn.disabled = false;
+          if (list && list.length){
+            const seen = {}, opts = list.filter(x => !seen[x.perio] && (seen[x.perio] = 1));
+            if (opts.length === 1){ $('fTitle').value = p.prefix + '[' + Number(opts[0].perio) + '교시] ' + p.rest; neisPerHide(); }
+            else if (nsPerAsked !== p.key){   // 교시가 여러 번이라 한 번 물어봐요 (그냥 올리려면 한 번 더 누르면 돼요)
+              nsPerAsked = p.key; neisPerRender(p, list);
+              msg('formMsg','🕘 ' + p.sub + '이(가) 그날 여러 번 있어요. 교시를 골라 주세요. 그냥 올리려면 [공지 올리기]를 한 번 더 눌러요.');
+              return;
+            }
+          }
+        }
+      }
+    }catch(e){ if (btn) btn.disabled = false; }   // 나이스·시간표가 안 되어도 공지 올리기는 그대로
+    return sn(btn, skipDup);
+  };
+})();
 </script>
 <!-- 🎬 학생 화면 체험 (샘플 데이터 · 저장·전송 없음) -->
 <div id="demoOv" class="hide" style="position:fixed;inset:0;z-index:95;background:var(--bg)">

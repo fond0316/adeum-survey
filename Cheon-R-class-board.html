@@ -1175,7 +1175,7 @@ if (!GAS){
 /* ===== 🏫 학교 알림판 카드 (나이스 연동 — 급식·학사일정) =====
    공지와 따로 불러와요. 나이스가 안 되거나 연동을 안 했으면 카드만 조용히 숨겨져요. */
 const TI_KEY = 'sn_ti_v1';
-let tiData = null, tiDay = '', tiAt = 0;
+let tiData = null, tiDay = '', tiAt = 0, tiLast = '';
 function tiHas(list, w){ return (',' + (list||'') + ',').indexOf(',' + w + ',') >= 0; }
 function tiOpen(){   // 접힘 상태 — 기기마다 기억. 처음엔 폰=접힘, 교실 화면=펼침
   const st = lsGet(TI_KEY, {});
@@ -1215,7 +1215,9 @@ function tiRender(){
   const open = tiOpen();
   box.style.display = '';
   box.className = 'ti' + (open ? ' open' : '');
-  box.innerHTML = `<button type="button" class="ti-head" onclick="tiToggle()" aria-expanded="${open}"><span>🏫</span><span class="tt">${tiLab(d)}학교 알림판${parts.length ? ' · ' + parts.join(' · ') : ''}</span><span class="ar">▼</span></button><div class="ti-body">${rows.join('') || '<div class="ti-row"><span class="no">오늘 등록된 정보가 없어요</span></div>'}</div>`;
+  const html = `<button type="button" class="ti-head" onclick="tiToggle()" aria-expanded="${open}"><span>🏫</span><span class="tt">${tiLab(d)}학교 알림판${parts.length ? ' · ' + parts.join(' · ') : ''}</span><span class="ar">▼</span></button><div class="ti-body">${rows.join('') || '<div class="ti-row"><span class="no">오늘 등록된 정보가 없어요</span></div>'}</div>`;
+  box.className = 'ti' + (open ? ' open' : '');
+  if (tiLast !== html){ tiLast = html; box.innerHTML = html; }   // 내용이 같으면 다시 그리지 않아요 (누르는 순간 버튼이 바뀌어 눌림이 씹히는 것 방지)
 }
 const tiCache = {}, tiBusy = {};
 function tiTarget(){ return (typeof selDate === 'string' && selDate) ? selDate : today(); }   // 달력에서 누른 날짜 (없으면 오늘)
