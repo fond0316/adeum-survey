@@ -3641,6 +3641,7 @@ function dGetNugaPromptBlock() {
 var CS_LS_DATA = 'adum_classstudy_v1';      // { importedAt, items:[{id,name,dest,kind,students:{ '번호|이름': 텍스트 }}] }
 var CS_LS_GAS  = 'adum_classstudy_gas_v1';  // 클래스스터디 GAS 주소
 var _csPw = '';                              // 관리자 암호는 이번 접속 동안만 메모리에 보관 (저장 안 함)
+var _csFetched = false;                      // 목록 불러오기 성공 여부
 var _csTopics = [];                          // 팝업에 표시 중인 주제 목록
 var csChecked = {};                          // 담임 화면 체크 상태
 var csSectionCollapsed = false;
@@ -3679,6 +3680,7 @@ function csSetMsg(t, isErr) {
 async function csPost(payload) {
   var url = (document.getElementById('cs-gas-input').value || '').trim();
   if (!url || url.indexOf('https://script.google.com') !== 0) throw new Error('클래스스터디 GAS 주소를 먼저 입력해 주세요. (https://script.google.com/... 로 시작)');
+  if (url.indexOf('/macros/s/') < 0 || !/\/(exec|dev)(\?.*)?$/.test(url)) throw new Error('이 주소는 Apps Script 편집 화면 주소예요. 편집 화면 오른쪽 위 [배포] → [배포 관리]에서 "웹 앱 URL"(…/macros/s/…/exec)을 복사해 넣어 주세요.');
   var pw = document.getElementById('cs-pw-input').value;
   if (!pw) throw new Error('클래스스터디 관리자 암호를 입력해 주세요.');
   _csPw = pw;
@@ -3696,10 +3698,11 @@ async function csFetchTopics() {
   csSetMsg('⏳ 클래스스터디에서 목록을 가져오는 중...');
   try {
     var d = await csPost({ type: 'adminExportForSaengibu' });
+    _csFetched = true;
     _csTopics = (d.topics || []).map(function (t) {
       return { id: t.id, name: t.name, area: t.area, count: t.count, dest: csDefaultDest(t.area), on: false };
     });
-    csSetMsg('주제 ' + _csTopics.length + '개를 찾았어요. 가져올 항목을 선택하세요.');
+    csSetMsg(_csTopics.length ? '제출형 주제 ' + _csTopics.length + '개를 찾았어요. 가져올 항목을 선택하세요.' : '제출형 주제는 아직 없어요 (클래스스터디 관리자 화면에서 주제를 만들고 [저장하기]를 누르면 나타나요). 자율스터디 요약은 가져올 수 있어요.');
     csRenderTopicList();
   } catch (e) { csSetMsg('❌ ' + e.message, true); }
 }
@@ -3719,7 +3722,7 @@ function csRenderTopicList() {
       + '<div style="font-size:10px;color:#9ca3af;">제출 ' + t.count + '명 · 영역 ' + dEsc({ auto: '자율', career: '진로', etc: '기타' }[t.area] || t.area) + '</div></div>'
       + csDestSelect(i, t.dest) + '</div>';
   });
-  if (_csTopics.length) {
+  if (_csFetched) {
     html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;border:1px solid ' + (_csStudy.on ? '#9B8EC4' : '#e5e7eb') + ';background:' + (_csStudy.on ? '#F4F2FA' : 'white') + ';">'
       + '<input type="checkbox" ' + (_csStudy.on ? 'checked' : '') + ' onchange="_csStudy.on=this.checked;csRenderTopicList();" style="accent-color:#9B8EC4;width:18px;height:18px;flex-shrink:0;">'
       + '<div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:700;color:#111;">📚 자율스터디 활동 요약</div>'
@@ -3728,7 +3731,7 @@ function csRenderTopicList() {
   }
   el.innerHTML = html || '<div style="font-size:12px;color:#9ca3af;text-align:center;padding:16px 0;">위의 "목록 불러오기"를 눌러 주세요.</div>';
   var btn = document.getElementById('cs-import-btn');
-  if (btn) btn.style.display = _csTopics.length ? 'inline-block' : 'none';
+  if (btn) btn.style.display = _csFetched ? 'inline-block' : 'none';
 }
 var _csStudy = { on: false, dest: '자율' };
 function csToggleTopic(i, on) { if (_csTopics[i]) _csTopics[i].on = on; csRenderTopicList(); }
@@ -3866,7 +3869,13 @@ function dGetCsPromptBlock() {
     it.text.split('\n').forEach(function (l) { lines.push('    - ' + l); });
   });
   if (!lines.length) return '';
-  return '\n[학급자율활동(클래스스터디) 학생 제출 자료 — 학생이 직접 쓴 원문임. 그대로 옮기지 말고 교사 관찰 시각으로 다듬어 녹일 것. 제출 횟수·시간 같은 숫자는 그대로 나열하지 말고 성실성·꾸준함의 근거로만 활용할 것]\n' + lines.join('\n') + '\n';
+  var hasStudy = csItemsForCurrent().some(function (it) { return it.kind === 'study' && csChecked[it.key] !== false; });
+  var guide = '\n[학급자율활동(클래스스터디) 학생 제출 자료 — 학생이 직접 쓴 원문임. 아래 규칙을 지킬 것]\n'
+    + '  · 학생이 실제로 쓴 내용만 근거로 삼고, 없는 활동·성과·수치를 지어내지 말 것. 원문 문장은 그대로 옮기지 말고 교사 관찰 시각의 생기부 문체로 다듬을 것.\n'
+    + '  · 주제별 제출 내용은 구체적인 활동·탐구·깨달음의 근거로 활용하되, 질문-답변 형식을 드러내지 말고 하나의 서술로 자연스럽게 엮을 것.\n'
+    + (hasStudy ? '  · 자율스터디 요약의 제출 횟수·활동시간 같은 숫자는 그대로 나열하지 말고 "꾸준히", "성실하게" 같은 태도 서술의 근거로만 쓸 것(필요하면 "학기 내내" 정도로 표현).\n'
+      + '  · 최종 느낀점의 아쉬운 점·다음 목표는 부정적으로 쓰지 말고 성장 과정과 다짐으로 긍정적으로 서술할 것.\n' : '');
+  return guide + lines.join('\n') + '\n';
 }
 
 /* ══ 구글 시트 불러오기 팝업 ══ */
