@@ -546,11 +546,13 @@ input[type=date]{min-width:0;max-width:100%}
       <div class="box" id="ttBox">
         <h2>📅 우리 반 시간표 (N교시 제안용)</h2>
         <p class="hint">나이스에 시간표가 없는 학교에서도 공지 제목의 과목으로 <b>N교시</b>를 제안해요. <b>평소 요일 패턴</b>만 넣어요. 학생 화면에는 보이지 않아요. 나이스에 시간표가 있으면 그걸 먼저 써요.</p>
-        <label class="f">엑셀에서 복사해서 붙여넣기</label>
-        <textarea id="ttPaste" rows="3" placeholder="우리 반 학급 시간표 표를 엑셀에서 드래그해 복사(Ctrl+C) → 여기에 붙여넣기(Ctrl+V)" style="min-height:70px"></textarea>
-        <div class="row" style="margin-top:8px"><button class="btn sub" onclick="ttFill()">표에 채우기</button></div>
+        <p class="hint" style="background:var(--bg);border-radius:10px;padding:10px 12px"><b>쓰는 법</b>: 엑셀에서 우리 반 시간표를 드래그해 복사(Ctrl+C) → 아래 표의 <b>아무 칸이나 눌러서</b> 붙여넣기(Ctrl+V)하면 한 번에 채워져요. 직접 한 칸씩 써도 돼요.</p>
         <div id="ttGrid" style="margin-top:10px;overflow-x:auto"></div>
-        <p class="hint" style="margin-top:6px">칸은 <b>과목 담당교사</b>처럼 써요 (예: <b>수학 천아름</b>). 공지 제목의 "과학"은 <b>과A·과B</b>, "체육"은 <b>체A</b>, "사회"는 <b>사B</b> 같은 약칭 칸과도 맞춰요.</p>
+        <details style="margin-top:6px"><summary style="font-size:13px;color:var(--tx2);min-height:44px;display:flex;align-items:center">표에 붙여넣기가 안 될 때 (폰 등) ▾</summary>
+          <textarea id="ttPaste" rows="3" placeholder="여기에 붙여넣고 아래 [표에 채우기]를 눌러요" style="min-height:70px"></textarea>
+          <div class="row" style="margin-top:8px"><button class="btn sub" onclick="ttFill()">표에 채우기</button></div>
+        </details>
+        <p class="hint" style="margin-top:6px">칸은 <b>과목 담당교사</b>처럼 써요 (예: <b>수학 홍길동</b>). 공지 제목의 "과학"은 <b>과A·과B</b>, "체육"은 <b>체A</b>, "사회"는 <b>사B</b> 같은 약칭 칸과도 맞춰요.</p>
         <div class="row" style="margin-top:12px"><button class="btn" onclick="ttSave(this)">시간표 저장</button></div>
         <div class="msg" id="ttMsg"></div>
       </div>
@@ -2779,8 +2781,8 @@ function ttParse(text){   // 엑셀 복사(탭·줄바꿈, 칸 안 줄바꿈은 
   if (cur !== '' || row.length){ row.push(cur); rows.push(row); }
   return rows.map(r => r.map(v => v.replace(/\s+/g, ' ').trim()));
 }
-function ttFill(){
-  const rows = ttParse($('ttPaste').value).filter(r => r.some(v => v));
+function ttFill(txt){
+  const rows = ttParse(typeof txt === 'string' ? txt : $('ttPaste').value).filter(r => r.some(v => v));
   if (!rows.length){ msg('ttMsg','먼저 엑셀 시간표를 붙여넣어 주세요.'); return; }
   const g = ttRead(); let seq = 0, got = 0;
   rows.forEach(r => {
@@ -2813,6 +2815,10 @@ async function ttSave(btn){
   btn.disabled = false;
 }
 ttBuild([]);
+$('ttGrid').addEventListener('paste', function(e){   // 표 아무 칸에 붙여넣으면 엑셀 표 전체를 한 번에 채워요
+  const t = (e.clipboardData || window.clipboardData).getData('text') || '';
+  if (/[\t\n\r]/.test(t)){ e.preventDefault(); ttFill(t); }   // 한 칸짜리 글자는 그냥 그 칸에 붙여넣기
+});
 (function(){ const rf2 = refresh; refresh = async function(u){ const r = await rf2(u); try{ ttLoad(); }catch(e){} return r; }; })();
 </script>
 <!-- 🎬 학생 화면 체험 (샘플 데이터 · 저장·전송 없음) -->
