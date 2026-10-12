@@ -2692,7 +2692,9 @@ async function neisPick(i){
   if (await neisSave(null, { atpt:x.atpt, code:x.code, school:x.name, level:x.level })) $('nsList').innerHTML = '';
 }
 async function neisTest(btn){
-  btn.disabled = true; msg('nsMsg','연결 확인 중…',true); $('nsTest').innerHTML = '';
+  btn.disabled = true; $('nsTest').innerHTML = '';
+  if (!(await neisSave(null))){ btn.disabled = false; return; }   // 화면에 적힌 학년·반·체크를 먼저 저장하고 테스트해요 (저장 안 눌러도 맞게)
+  msg('nsMsg','연결 확인 중…',true);
   try{
     const r = await jsonp({ action:'neisTest', pw:PW, date:today() });
     const L = [];
