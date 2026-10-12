@@ -520,6 +520,28 @@ input[type=date]{min-width:0;max-width:100%}
         <button class="gbtn" onclick="mailContact()">✉️ 문의하기 (개발자에게 메일)</button>
         <button class="gbtn" onclick="openPriv()">📄 개인정보 처리방침</button>
       </div>
+
+      <div class="box" id="neisBox">
+        <h2>🍚 나이스 연동 (급식·학사일정·N교시)</h2>
+        <p class="hint">학생 화면의 <b>학교 알림판</b> 카드에 급식·학사일정을 보여주고, 공지 제목에 <b>N교시</b>를 제안해요. 학생 정보는 쓰지 않는 공개 자료만 가져와요.</p>
+        <label class="f">1. 나이스 인증키 <span id="nsKeySt" style="font-weight:400;color:var(--tx3)"></span></label>
+        <input type="password" id="nsKey" placeholder="open.neis.go.kr에서 받은 인증키 붙여넣기" autocomplete="off">
+        <p class="hint" style="margin-top:6px">open.neis.go.kr → 로그인 → <b>인증키 신청</b>에서 발급받아요. 키는 내 구글 시트에만 저장되고 학생 화면에는 전달되지 않아요. <b>단톡방·채팅에는 올리지 마세요.</b></p>
+        <div class="row"><button class="btn sub" onclick="neisSave(this)">인증키 저장</button></div>
+        <label class="f" style="margin-top:14px">2. 우리 학교 <span id="nsSchool" style="font-weight:400;color:var(--tx3)"></span></label>
+        <div class="link"><input type="text" id="nsQ" placeholder="학교 이름 (예: ○○고등학교)" onkeydown="if(event.key==='Enter')neisSearch($('nsSearchBtn'))"><button class="btn sub" id="nsSearchBtn" onclick="neisSearch(this)">검색</button></div>
+        <div id="nsList" style="margin-top:6px"></div>
+        <label class="f" style="margin-top:14px">3. 우리 반 (시간표로 N교시를 찾을 때만 써요)</label>
+        <div class="link"><input type="text" id="nsGrade" maxlength="1" inputmode="numeric" placeholder="학년"><input type="text" id="nsCls" maxlength="2" inputmode="numeric" placeholder="반"></div>
+        <label class="f" style="margin-top:14px">4. 접힌 띠에 보일 것</label>
+        <div class="chips" id="nsStrip"><label class="chk"><input type="checkbox" data-ns="strip" value="학사일정"> 학사일정</label><label class="chk"><input type="checkbox" data-ns="strip" value="조식"> 조식</label><label class="chk"><input type="checkbox" data-ns="strip" value="점심"> 점심</label><label class="chk"><input type="checkbox" data-ns="strip" value="석식"> 석식</label></div>
+        <label class="f">5. 펼쳤을 때 보일 급식</label>
+        <div class="chips" id="nsOpen"><label class="chk"><input type="checkbox" data-ns="open" value="조식"> 조식</label><label class="chk"><input type="checkbox" data-ns="open" value="점심"> 점심</label><label class="chk"><input type="checkbox" data-ns="open" value="석식"> 석식</label></div>
+        <p class="hint" style="margin-top:6px">알레르기 번호는 보여주지 않고 메뉴 이름만 보여요.</p>
+        <div class="row" style="margin-top:12px"><button class="btn" onclick="neisSave(this)">나이스 설정 저장</button><button class="btn sub" onclick="neisTest(this)">연결 테스트</button></div>
+        <div class="msg" id="nsMsg"></div>
+        <div id="nsTest" class="hint"></div>
+      </div>
     </section>
 
     <!-- 👑 사용자 관리 (아듬샘 전용) -->
@@ -659,6 +681,7 @@ input[type=date]{min-width:0;max-width:100%}
         </div>
         <label class="f">제목</label>
         <input type="text" id="fTitle" maxlength="60" placeholder="학생 목록에 보이는 한 줄">
+        <div id="neisPer" class="hide" style="margin-top:6px"></div>
         <div id="targetBox" class="hide">
           <label class="f">호출 대상 (명단에서 선택)</label>
           <div class="roster" id="roster"></div>
@@ -808,6 +831,17 @@ input[type=date]{min-width:0;max-width:100%}
           <li>할 수 있는 것: <b>학급공지·교과공지·일반</b> 올리기, 기간·사진·링크, 목록 한 번에 올리기, 본인 글 수정·삭제</li>
           <li>못 하는 것: 긴급·호출, 명단·설정, 확인현황</li>
           <li>회장이 로그인하면 이 가이드에서 <b>회장에게 필요한 부분만</b> 보여요.</li>
+        </ul>
+      </div></details>
+
+      <details class="hdet adm-only"><summary>🍚 나이스 연동 (급식·학사일정·N교시)</summary><div class="hb">
+        <ul>
+          <li><b>준비</b>: open.neis.go.kr에서 인증키를 발급받아 ⚙️ 연결·설정 탭의 <b>나이스 연동</b> 박스에 붙여넣고 [인증키 저장] → 학교 검색 후 선택 → 학년·반 입력 → [나이스 설정 저장].</li>
+          <li><b>학생 화면</b>: 위쪽에 <b>🏫 학교 알림판</b> 띠가 생겨요. 누르면 펼쳐지고, 폰은 접힌 채로, 교실 화면(전자칠판)은 펼친 채로 시작해요. 기기마다 접어 둔 상태를 기억해요.</li>
+          <li><b>N교시 제안</b>: 공지 제목을 <b>"10/15 수학 숙제"</b>처럼 (날짜 + 과목으로 시작) 쓰면 그날 시간표에서 찾아 <b>[3교시]</b> 버튼이 떠요. 누르면 제목에 들어가요. 시간표는 학생 화면에 보이지 않아요.</li>
+          <li>접힌 띠·펼친 급식에 무엇을 보일지는 설정 박스에서 고를 수 있어요. 알레르기 번호는 보여주지 않아요.</li>
+          <li>[연결 테스트]로 오늘 급식·학사일정·시간표가 잘 오는지 확인해요. 주말·방학엔 비어 있을 수 있어요.</li>
+          <li>GAS 코드를 <b>버전 2</b>로 바꾼 뒤 [수정 배포] 해야 해요. 처음 한 번 코드 편집기에서 <b>나이스권한승인</b> 함수를 실행해 권한을 허용해 주세요.</li>
         </ul>
       </div></details>
 
@@ -2536,7 +2570,7 @@ function renderHelp(){
 }
 
 /* ===== 🔔 GAS 코드 버전 확인 ===== */
-const NEED_GAS = 1;        // 이 화면이 필요로 하는 GAS 코드 버전 (GAS를 고칠 때 같이 올려요)
+const NEED_GAS = 2;        // 이 화면이 필요로 하는 GAS 코드 버전 (GAS를 고칠 때 같이 올려요)
 let gasVer = null;
 const gasOld = () => gasVer !== null && gasVer < NEED_GAS;
 function renderGasBanner(){
@@ -2545,7 +2579,7 @@ function renderGasBanner(){
   if ($('gasVerNow')) $('gasVerNow').textContent = gasVer === null ? '확인 중…' : old ? `버전 ${gasVer || '(옛 버전)'} → 최신 버전 ${NEED_GAS}로 업데이트가 필요해요` : `버전 ${gasVer} · 최신이에요 ✅`;
   if (!old) return;
   if (role === 'admin'){
-    $('gasBannerText').textContent = '새 기능(검색·기간 공지·사진 올리기)을 쓰려면 내 구글 시트의 코드를 바꿔야 해요. 기존 공지·명단은 그대로예요. (3분이면 끝나요)';
+    $('gasBannerText').textContent = '새 기능(나이스 급식·학사일정, 검색·기간 공지·사진 올리기)을 쓰려면 내 구글 시트의 코드를 바꿔야 해요. 기존 공지·명단은 그대로예요. (3분이면 끝나요)';
     $('gasBannerBtns').classList.remove('hide');
   } else {
     $('gasBannerText').textContent = '담임선생님이 코드를 업데이트해야 기간 공지·사진 올리기를 쓸 수 있어요. 담임선생님께 알려 주세요.';
@@ -2588,6 +2622,121 @@ async function recheckGas(btn){
   }
   show('scrLogin');
 })();
+
+/* ===== 🍚 나이스 연동 (급식·학사일정·N교시) — GAS 버전 2 이상 ===== */
+WRITE_ACTIONS.push('neisSave');
+let neisLoaded = false;
+function nsChecks(kind){ return [...document.querySelectorAll('input[data-ns="'+kind+'"]')]; }
+function nsGetChecks(kind){ return nsChecks(kind).filter(c => c.checked).map(c => c.value).join(','); }
+function nsSetChecks(kind, list){ const a = (',' + list + ','); nsChecks(kind).forEach(c => { c.checked = a.indexOf(',' + c.value + ',') >= 0; }); }
+async function neisLoad(force){
+  if (role !== 'admin' || !$('neisBox')) return;
+  if (gasVer !== null && gasVer < 2){ msg('nsMsg','⚠️ 나이스 기능을 쓰려면 먼저 GAS 코드를 최신(버전 2)으로 바꿔 주세요.'); return; }
+  if (neisLoaded && !force) return;
+  try{
+    const r = await jsonp({ action:'neisSettings', pw:PW });
+    neisLoaded = true;
+    $('nsKeySt').textContent = r.hasKey ? '· ✅ 저장됨' : '· 아직 없어요';
+    $('nsSchool').textContent = r.school ? '· ' + r.school + (r.level ? ' (' + r.level + ')' : '') : '· 아직 선택 안 했어요';
+    $('nsGrade').value = r.grade || ''; $('nsCls').value = r.cls || '';
+    nsSetChecks('strip', r.strip); nsSetChecks('open', r.open);
+  }catch(e){ msg('nsMsg', e.message); }
+}
+async function neisSave(btn, extra){
+  if (btn && btn.disabled !== undefined) btn.disabled = true;
+  msg('nsMsg','저장 중…',true);
+  const payload = Object.assign({ grade:$('nsGrade').value.trim(), cls:$('nsCls').value.trim(), strip:nsGetChecks('strip'), open:nsGetChecks('open') }, extra || {});
+  const key = $('nsKey').value.trim(); if (key) payload.key = key;
+  try{
+    await jsonp({ action:'neisSave', pw:PW, data:JSON.stringify(payload) });
+    $('nsKey').value = '';
+    await neisLoad(true); msg('nsMsg','저장했어요.',true);
+    return true;
+  }catch(e){ msg('nsMsg', e.message); return false; }
+  finally{ if (btn && btn.disabled !== undefined) btn.disabled = false; }
+}
+let nsRes = [];
+async function neisSearch(btn){
+  const q = $('nsQ').value.trim();
+  if (q.length < 2){ msg('nsMsg','학교 이름을 2글자 이상 입력해 주세요.'); return; }
+  if ($('nsKey').value.trim()){ if (!(await neisSave(null))) return; }   // 입력해 둔 인증키를 먼저 저장
+  btn.disabled = true; msg('nsMsg','검색 중…',true);
+  try{
+    const r = await jsonp({ action:'neisSearch', pw:PW, q });
+    nsRes = r.list || [];
+    $('nsList').innerHTML = nsRes.length ? nsRes.map((x,i) => `<button type="button" class="chip" style="display:block;width:100%;text-align:left;margin-top:6px;padding:8px 14px;line-height:1.4" onclick="neisPick(${i})">${esc(x.name)} <small style="font-weight:400">${esc(x.level)} · ${esc(x.addr)}</small></button>`).join('') : '<p class="hint">검색 결과가 없어요. 학교 이름을 다시 확인해 주세요.</p>';
+    msg('nsMsg', nsRes.length ? '우리 학교를 눌러 선택해 주세요.' : '', true);
+  }catch(e){ msg('nsMsg', e.message); }
+  btn.disabled = false;
+}
+async function neisPick(i){
+  const x = nsRes[i]; if (!x) return;
+  if (await neisSave(null, { atpt:x.atpt, code:x.code, school:x.name, level:x.level })) $('nsList').innerHTML = '';
+}
+async function neisTest(btn){
+  btn.disabled = true; msg('nsMsg','연결 확인 중…',true); $('nsTest').innerHTML = '';
+  try{
+    const r = await jsonp({ action:'neisTest', pw:PW, date:today() });
+    const L = [];
+    L.push(r.scheduleErr ? '❌ 학사일정: ' + esc(r.scheduleErr) : '📆 오늘 학사일정: ' + ((r.schedule||[]).length ? esc(r.schedule.join(', ')) : '없음'));
+    L.push(r.mealErr ? '❌ 급식: ' + esc(r.mealErr) : '🍚 오늘 점심: ' + (((r.meals||{})['점심']||[]).length ? esc(r.meals['점심'].join(', ')) : '없음 (주말·방학이면 정상)'));
+    L.push(r.periodErr ? '❌ 시간표: ' + esc(r.periodErr) : '🕘 오늘 시간표: ' + (r.periods ? r.periods + '칸' : '없음 (학년·반을 확인하거나 주말·방학이면 정상)'));
+    $('nsTest').innerHTML = L.join('<br>'); msg('nsMsg','',true);
+  }catch(e){ msg('nsMsg', e.message); }
+  btn.disabled = false;
+}
+(function(){   // 관리자 정보를 불러올 때마다 나이스 설정도 (처음 한 번) 같이 불러와요
+  const rf = refresh;
+  refresh = async function(u){ const r = await rf(u); try{ neisLoad(); }catch(e){} return r; };
+  const rs = resetForm;
+  resetForm = function(){ rs(); neisPerHide(); };
+})();
+
+/* --- 공지 제목 "10/15 수학 숙제" → 그날 시간표에서 N교시 제안 (눌러서 확인하면 제목에 들어가요) --- */
+let nsPerT = null, nsPerOff = false; const nsPerCache = {};
+function neisPerHide(){ const b = $('neisPer'); if (b){ b.classList.add('hide'); b.innerHTML = ''; } }
+function neisPerParse(){
+  const raw = $('fTitle').value.replace(/^\s+/, '');
+  if (!raw || /\[\d+교시\]/.test(raw)) return null;
+  let date = $('fDate').value, rest = raw, prefix = '';
+  const m = raw.match(/^(\d{1,2})\s*[\/.월]\s*(\d{1,2})\s*일?\s*(?:\([월화수목금토일]\))?\s*/);
+  if (m){
+    const y = (date || today()).slice(0,4);
+    date = y + '-' + m[1].padStart(2,'0') + '-' + m[2].padStart(2,'0');
+    prefix = m[0]; rest = raw.slice(m[0].length);
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) return null;
+  const sub = rest.split(/\s+/)[0].replace(/[,.:;!?]+$/, '');
+  if (sub.length < 2 || !/^[가-힣A-Za-zⅠⅡⅢⅣⅤ0-9()]+$/.test(sub)) return null;
+  return { date, prefix, rest, sub, key: date + '|' + sub };
+}
+function neisPerRender(p, list){
+  const b = $('neisPer'); if (!b) return;
+  if (!list || !list.length){ neisPerHide(); return; }
+  const seen = {}, items = list.filter(x => !seen[x.perio] && (seen[x.perio] = 1));
+  b.innerHTML = `<div class="hint" style="margin-bottom:4px">💡 ${Number(p.date.slice(5,7))}/${Number(p.date.slice(8,10))} 시간표에서 찾았어요. 눌러서 제목에 넣어요.</div><div class="chips">${items.map(x => `<button type="button" class="chip" onclick="neisPerApply(${Number(x.perio)})">${Number(x.perio)}교시 · ${esc(x.name)}</button>`).join('')}</div>`;
+  b.classList.remove('hide');
+}
+function neisPerApply(per){
+  const p = neisPerParse(); if (!p) return;
+  $('fTitle').value = p.prefix + '[' + per + '교시] ' + p.rest;
+  neisPerHide();
+}
+async function neisPerRun(){
+  const p = neisPerParse();
+  if (!p || nsPerOff){ neisPerHide(); return; }
+  if (nsPerCache[p.key]){ neisPerRender(p, nsPerCache[p.key]); return; }
+  try{
+    const r = await jsonp({ action:'neisPeriod', pw:PW, date:p.date, subject:p.sub });
+    if (r.enabled === false){ nsPerOff = true; neisPerHide(); return; }
+    nsPerCache[p.key] = r.periods || [];
+  }catch(e){ nsPerCache[p.key] = []; }   // 나이스가 안 되어도 공지 쓰기는 그대로
+  const cur = neisPerParse();
+  if (cur && cur.key === p.key) neisPerRender(cur, nsPerCache[p.key]); else neisPerHide();
+}
+function neisPerSoon(){ clearTimeout(nsPerT); const p = neisPerParse(); if (!p){ neisPerHide(); return; } nsPerT = setTimeout(neisPerRun, 700); }
+$('fTitle').addEventListener('input', neisPerSoon);
+$('fDate').addEventListener('change', neisPerSoon);
 </script>
 <!-- 🎬 학생 화면 체험 (샘플 데이터 · 저장·전송 없음) -->
 <div id="demoOv" class="hide" style="position:fixed;inset:0;z-index:95;background:var(--bg)">

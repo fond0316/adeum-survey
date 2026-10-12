@@ -227,6 +227,23 @@ mark{background:#FEF3C7;color:inherit;border-radius:3px;padding:0 1px}
 #imgOv{background:rgba(20,16,36,.88);cursor:zoom-out;flex-direction:column;gap:8px}
 #imgOv img{max-width:96vw;max-height:88vh;border-radius:10px;background:#fff}
 #imgOv span{color:#fff;font-size:13px}
+
+/* 🏫 학교 알림판 카드 (나이스 연동 — 급식·학사일정) */
+.ti{margin-top:10px;background:#E9F6EF;border:1px solid #D7ECE1;border-radius:14px;color:#1F5C45;overflow:hidden}
+.ti-head{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;padding:8px 14px;text-align:left;font-size:14px;font-weight:700;color:#1F5C45}
+.ti-head .tt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ti-head .ar{flex:none;font-size:12px;opacity:.7;transition:transform .15s}
+.ti.open .ti-head .ar{transform:rotate(180deg)}
+.ti.open .ti-head .tt{white-space:normal}
+.ti-body{display:none;padding:2px 14px 12px;border-top:1px solid #D7ECE1}
+.ti.open .ti-body{display:block}
+.ti-row{display:flex;gap:8px;align-items:flex-start;margin-top:8px;font-size:14px;line-height:1.5;color:#2E2A3D}
+.ti-row .tag{flex:none;min-width:56px;text-align:center;padding:2px 8px;border-radius:10px;background:#CDEBDD;color:#1F5C45;font-size:12px;font-weight:700;margin-top:2px}
+.ti-row .tag.m{background:#EFEAFB;color:#3C3489}
+.ti-row .no{color:var(--tx3)}
+body.board .ti-head{font-size:18px;min-height:52px}
+body.board .ti-row{font-size:18px}
+body.board .ti-row .tag{font-size:15px}
 </style>
 </head>
 <body>
@@ -241,6 +258,7 @@ mark{background:#FEF3C7;color:inherit;border-radius:3px;padding:0 1px}
   </header>
 
   <div id="urgent"></div>
+  <div class="ti" id="ti" style="display:none"></div>
 
   <div class="main">
     <section class="panel cal-panel">
@@ -444,6 +462,7 @@ function demoApi(p){
     if (a === 'who') return DEMO_ROSTER[p.sid] ? resolve({ ok:true, sid:p.sid, name:DEMO_ROSTER[p.sid] }) : reject(new Error('체험에서는 학번 10101~10105만 쓸 수 있어요.'));
     if (a === 'search'){ const q = String(p.q || '').toLowerCase(); return resolve({ ok:true, more:false, results:demoNotices().filter(n => (n.title + ' ' + n.body).toLowerCase().includes(q)) }); }
     if (a === 'request') return resolve({ ok:true });
+    if (a === 'neisToday') return resolve({ ok:true, enabled:true, date:p.date, strip:'학사일정,점심', open:'점심', schedule:['체험 학사일정 예시'], meals:{ '점심':['잡곡밥','된장찌개','제육볶음','배추김치','과일'] } });
     return reject(new Error('체험에서는 쓸 수 없는 기능이에요.'));
   }, 150));
 }
@@ -1152,6 +1171,62 @@ if (!GAS){
   schedulePing();
   setTimeout(statInit, 4000 + Math.random() * 16000);   // 공지 불러오기가 먼저, 등록부 확인은 4~20초 뒤에
   if (!me && !PREVIEW && !BOARD) setTimeout(openWho, 600);
+}
+/* ===== 🏫 학교 알림판 카드 (나이스 연동 — 급식·학사일정) =====
+   공지와 따로 불러와요. 나이스가 안 되거나 연동을 안 했으면 카드만 조용히 숨겨져요. */
+const TI_KEY = 'sn_ti_v1';
+let tiData = null, tiDay = '', tiAt = 0;
+function tiHas(list, w){ return (',' + (list||'') + ',').indexOf(',' + w + ',') >= 0; }
+function tiOpen(){   // 접힘 상태 — 기기마다 기억. 처음엔 폰=접힘, 교실 화면=펼침
+  const st = lsGet(TI_KEY, {});
+  const v = st[BOARD ? 'b' : 'p'];
+  return v === undefined ? BOARD : v === 'open';
+}
+function tiToggle(){
+  const st = lsGet(TI_KEY, {}) || {};
+  st[BOARD ? 'b' : 'p'] = tiOpen() ? 'closed' : 'open';
+  lsSet(TI_KEY, st); tiRender();
+}
+function tiRender(){
+  const box = document.getElementById('ti');
+  if (!box) return;
+  const d = tiData;
+  if (!d || !d.enabled){ box.style.display = 'none'; return; }
+  const sch = d.schedule || [], meals = d.meals || {};
+  const showSch = tiHas(d.strip, '학사일정') || tiHas(d.open, '학사일정');
+  const mealNames = ['조식','점심','석식'];
+  // 접힌 띠: 설정에서 고른 항목만 한 줄로
+  const parts = [];
+  if (tiHas(d.strip, '학사일정') && sch.length) parts.push(esc(sch[0]) + (sch.length > 1 ? ' 외 ' + (sch.length-1) : ''));
+  mealNames.forEach(m => { if (tiHas(d.strip, m) && (meals[m]||[]).length) parts.push(m + ' ' + esc(meals[m][0]) + (meals[m].length > 1 ? ' 외 ' + (meals[m].length-1) : '')); });
+  // 펼친 내용: 학사일정(있을 때) + 설정에서 고른 식사
+  const rows = [];
+  if (sch.length) rows.push(`<div class="ti-row"><span class="tag">학사일정</span><div>${sch.map(esc).join(' · ')}</div></div>`);
+  mealNames.forEach(m => { if (tiHas(d.open, m)){
+    const list = meals[m] || [];
+    rows.push(`<div class="ti-row"><span class="tag m">${m}</span><div>${list.length ? list.map(esc).join(' · ') : '<span class="no">급식 정보가 없어요</span>'}</div></div>`);
+  }});
+  if (!parts.length && !rows.length){ box.style.display = 'none'; return; }
+  const open = tiOpen();
+  box.style.display = '';
+  box.className = 'ti' + (open ? ' open' : '');
+  box.innerHTML = `<button type="button" class="ti-head" onclick="tiToggle()" aria-expanded="${open}"><span>🏫</span><span class="tt">학교 알림판${parts.length ? ' · ' + parts.join(' · ') : ''}</span><span class="ar">▼</span></button><div class="ti-body">${rows.join('') || '<div class="ti-row"><span class="no">오늘 등록된 정보가 없어요</span></div>'}</div>`;
+}
+async function tiLoad(){
+  try{
+    const day = today();
+    tiData = await jsonp({ action:'neisToday', date:day });
+    tiDay = day; tiAt = Date.now();
+  }catch(e){ if (tiDay !== today()) tiData = null; }   // 실패해도 공지 화면은 그대로 — 카드만 숨겨요
+  tiRender();
+}
+(function(){   // 교실 화면 모드를 켜고 끌 때 카드도 그 모드의 접힘 상태로 다시 그려요
+  const ab = applyBoard;
+  applyBoard = function(){ ab(); try{ tiRender(); }catch(e){} };
+})();
+if (GAS){
+  tiLoad();
+  setInterval(() => { if (Date.now() - tiAt > 30*60000 || tiDay !== today()) tiLoad(); }, 60000);   // 30분마다, 날짜가 바뀌면 바로
 }
 </script>
 </body>
