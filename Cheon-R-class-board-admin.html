@@ -245,6 +245,13 @@ input[type=date]{min-width:0;max-width:100%}
 /* 제목용 폰트: 주아 */
 .top h1,.gtop h1,.box h2{font-family:'Jua','Pretendard',-apple-system,sans-serif;font-weight:400}
 .top h1,.gtop h1{font-size:20px}
+
+/* ⚙️ 설정 탭 — 박스를 제목만 보이게 접었다 폈다 */
+.cbx > h2{cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;-webkit-user-select:none;user-select:none}
+.cbx > h2::after{content:'▾';flex:none;font-size:16px;color:var(--tx3);transition:transform .15s}
+.cbx.cbx-open > h2::after{transform:rotate(180deg)}
+.cbx:not(.cbx-open) > h2{margin-bottom:0}
+.cbx:not(.cbx-open) > *:not(h2){display:none !important}
 </style>
 </head>
 <body>
@@ -464,7 +471,7 @@ input[type=date]{min-width:0;max-width:100%}
         <label class="f">🤝 다른 선생님께 공유용 링크 (시트 연결 없음)</label>
         <div class="link"><input type="text" id="shareLink" readonly><button class="btn sub" onclick="copy('shareLink')">복사</button></div>
         <div class="row" style="margin-top:8px"><button class="btn" onclick="copyRich('shareLink','CLASS BOARD_made by Cheon R')">🔗 글자 링크로 복사 (CLASS BOARD_made by Cheon R)</button></div>
-        <p class="hint" style="margin-top:6px">메일·구글 문서·한글·워드에 붙여넣으면 주소 대신 <b>CLASS BOARD_made by Cheon R</b> 글자에 링크가 걸려요. (카톡은 글자 링크를 지원하지 않아 주소가 같이 보여요)</p>
+        <p class="hint" style="margin-top:6px">메일·구글 문서·한글·워드에 붙여넣으면 주소 대신 <b>CLASS BOARD_made by Cheon R</b> 글자에 링크가 걸려요. (메신저 앱은 글자 링크를 지원하지 않아 주소가 같이 보여요)</p>
         <p class="hint" style="margin-top:6px">다른 선생님은 이 링크로 들어가서 설치 가이드를 따라 본인 시트를 연결하면 돼요.</p>
         </div>
         <div class="msg ok" id="copyMsg"></div>
@@ -727,7 +734,7 @@ input[type=date]{min-width:0;max-width:100%}
       </div>
       <details class="box" id="bulkBox" style="padding:16px">
         <summary style="font-size:16px">📋 목록 붙여넣기로 한 번에 올리기</summary>
-        <p class="hint" style="margin-top:10px">카톡 공지처럼 <b>"9월 22일(월): 수학 발표"</b> 형식의 목록을 통째로 붙여넣으면 날짜별 공지로 나눠서 올려요.</p>
+        <p class="hint" style="margin-top:10px">공지 목록처럼 <b>"9월 22일(월): 수학 발표"</b> 형식의 목록을 통째로 붙여넣으면 날짜별 공지로 나눠서 올려요.</p>
         <label class="f">유형</label>
         <div class="chips" id="bulkChips"></div>
         <label class="f">붙여넣기</label>
@@ -799,7 +806,7 @@ input[type=date]{min-width:0;max-width:100%}
           <li>공지 목록에서 <b>[수정] [삭제]</b>. <span class="pres-only">회장은 <b>본인이 쓴 공지만</b> 고칠 수 있어요.</span><span class="adm-only">회장은 본인이 쓴 공지만 고칠 수 있어요.</span></li></ol></div>
       </div></details>
 
-      <details class="hdet"><summary>📋 카톡 목록을 한 번에 올리기</summary><div class="hb">
+      <details class="hdet"><summary>📋 목록을 한 번에 올리기</summary><div class="hb">
         <p>"9월 22일(월): 수학 발표" 같은 목록을 통째로 붙여넣으면 <b>날짜별 공지로 나눠서</b> 달력에 올려 줘요.</p>
         <div class="step"><div class="st">방법</div><ol>
           <li>공지 탭 아래 <b>📋 목록 붙여넣기로 한 번에 올리기</b> → 유형 고르기 → 붙여넣기 → <b>읽어오기</b></li>
@@ -2817,6 +2824,23 @@ $('ttGrid').addEventListener('paste', function(e){   // 표 아무 칸에 붙여
   if (/[\t\n\r]/.test(t)){ e.preventDefault(); ttFill(t); }   // 한 칸짜리 글자는 그냥 그 칸에 붙여넣기
 });
 (function(){ const rf2 = refresh; refresh = async function(u){ const r = await rf2(u); try{ ttLoad(); }catch(e){} return r; }; })();
+
+/* ===== ⚙️ 설정 탭 박스 접었다 폈다 (처음엔 모두 접힘 · 펼친 것은 이 기기에 기억) ===== */
+(function(){
+  const KEY = 'sn_setopen_v1';
+  let open = [];
+  try{ open = JSON.parse(localStorage.getItem(KEY) || '[]') || []; }catch(e){}
+  const boxes = [...document.querySelectorAll('#tab-set > .box')].filter(b => b.id !== 'firstHint' && b.querySelector(':scope > h2'));
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(boxes.map((b,i) => b.classList.contains('cbx-open') ? i : -1).filter(i => i >= 0))); }catch(e){} }
+  boxes.forEach((b, i) => {
+    const h = b.querySelector(':scope > h2');
+    b.classList.add('cbx'); if (open.includes(i)) b.classList.add('cbx-open');
+    h.setAttribute('role','button'); h.setAttribute('tabindex','0'); h.setAttribute('aria-expanded', b.classList.contains('cbx-open'));
+    const tog = () => { b.classList.toggle('cbx-open'); h.setAttribute('aria-expanded', b.classList.contains('cbx-open')); save(); };
+    h.addEventListener('click', tog);
+    h.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); tog(); } });
+  });
+})();
 </script>
 <!-- 🎬 학생 화면 체험 (샘플 데이터 · 저장·전송 없음) -->
 <div id="demoOv" class="hide" style="position:fixed;inset:0;z-index:95;background:var(--bg)">
