@@ -269,6 +269,11 @@ input[type=date]{min-width:0;max-width:100%}
 .rtb button{min-height:40px;min-width:44px;padding:0 12px;border-radius:20px;border:1.5px solid var(--line);background:#fff;font-weight:700;color:var(--tx2);display:inline-flex;align-items:center;justify-content:center}
 .rtb button svg.rstar{width:22px;height:22px;vertical-align:0}
 #fRich{background:var(--bg);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:14px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.fed{min-height:110px;max-height:60vh;overflow-y:auto;resize:vertical;width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;color:var(--tx);line-height:1.5;white-space:pre-wrap;word-break:break-word;outline:none}
+.fed:focus{border-color:var(--main)}
+.fed:empty:before{content:attr(data-ph);color:var(--tx3);pointer-events:none}
+.fed .edstar{display:inline-block}
+.rtb button.on{background:var(--main);border-color:var(--main);color:#fff}
 </style>
 </head>
 <body>
@@ -748,9 +753,9 @@ input[type=date]{min-width:0;max-width:100%}
           <button type="button" data-r="형광" title="형광펜"><span class="rc-h">가</span></button>
           <button type="button" data-r="별" title="별표 넣기"></button>
         </div>
-        <textarea id="fBody" maxlength="1500" placeholder="자세한 내용 (짧으면 학생 목록에 바로 보이고, 길면 눌러서 봐요)" oninput="checkSplit()"></textarea>
-        <div id="fRich" class="hide"></div>
-        <p class="hint" id="fRichHint" style="margin:6px 0 0">글자를 <b>드래그해서 고른 뒤</b> 버튼을 누르면 꾸며져요. (기한·마감 같은 곳에 쓰면 좋아요) 내용 칸에서만 쓸 수 있고 제목에는 적용되지 않아요.</p>
+        <div id="fEd" class="fed" contenteditable="true" role="textbox" aria-multiline="true" aria-label="공지 내용" data-ph="자세한 내용 (짧으면 학생 목록에 바로 보이고, 길면 눌러서 봐요)"></div>
+        <textarea id="fBody" maxlength="1500" style="display:none" tabindex="-1" aria-hidden="true" placeholder="자세한 내용 (짧으면 학생 목록에 바로 보이고, 길면 눌러서 봐요)" oninput="checkSplit()"></textarea>
+        <p class="hint" id="fRichHint" style="margin:6px 0 0">글자를 <b>드래그해서 고른 뒤</b> 버튼을 누르면 바로 꾸며져요. (기한·마감 같은 곳에 쓰면 좋아요) 내용 칸에서만 쓸 수 있고 제목에는 적용되지 않아요. 붙여넣기는 글자만 들어가요.</p>
         <div id="splitHint" class="hide" style="background:var(--s-bg);color:var(--s-tx);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:14px;line-height:1.5">
           📅 날짜가 있는 줄이 <b id="splitCnt">0</b>개 있어요. <b>날짜별로 나눠서</b> 달력에 올릴까요?
           <div class="row" style="margin-top:8px"><button class="btn" onclick="splitToBulk()">날짜별로 나누기</button></div>
@@ -3133,34 +3138,138 @@ function plain(s){   // 꾸밈 표시를 걷어낸 글자 (제목·알림·검�
   return t.replace(/\{별\}/g, '★');
 }
 
-(function(){   // 꾸미기 버튼 — 고른 글자를 {빨강:글자}처럼 감싸요 (이미 감싼 걸 다시 누르면 풀어요)
-  const ta = $('fBody'), tb = $('rTb');
-  $('rTb').querySelector('[data-r="별"]').innerHTML = RICH_STAR;
-  tb.addEventListener('mousedown', e => { if (e.target.closest('button')) e.preventDefault(); });   // 글자 선택이 풀리지 않게
+
+/* ===== ✏️ 보이는 그대로 쓰는 내용 칸 (저장은 {굵게:…} 표시로 — 기존 칸 fBody는 숨겨 둔 저장용으로 유지) ===== */
+(function(){
+  const ta = $('fBody'), ed = $('fEd'), tb = $('rTb'), MAX = 1500;
+  const tget = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').get;
+  const tset = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
+  tb.querySelector('[data-r="별"]').innerHTML = RICH_STAR;
+  const STAR_WRAP = '<span class="edstar" contenteditable="false">' + RICH_STAR + '</span>';
+  const RED = [214,50,47], BLUE = [31,111,208];
+  function rgb(v){
+    v = String(v || '').trim().toLowerCase(); let m;
+    if ((m = v.match(/^rgba?\(\s*(\d+)[ ,]+(\d+)[ ,]+(\d+)(?:[ ,/]+([\d.]+))?/))) return { c:[+m[1], +m[2], +m[3]], a:m[4] === undefined ? 1 : +m[4] };
+    if ((m = v.match(/^#([0-9a-f]{6})$/))) return { c:[0,2,4].map(i => parseInt(m[1].substr(i,2),16)), a:1 };
+    if ((m = v.match(/^#([0-9a-f]{3})$/))) return { c:[0,1,2].map(i => parseInt(m[1][i]+m[1][i],16)), a:1 };
+    return null;
+  }
+  const near = (c, t) => Math.abs(c[0]-t[0]) + Math.abs(c[1]-t[1]) + Math.abs(c[2]-t[2]) < 90;
+  function colorKind(v){ const r = rgb(v); if (!r || r.a === 0) return ''; return near(r.c, RED) ? '빨강' : near(r.c, BLUE) ? '파랑' : ''; }
+  function hasBg(v){ const r = rgb(v); return !!(r && r.a > 0 && !(r.c[0] > 250 && r.c[1] > 250 && r.c[2] > 250)); }
+  // 칸 안의 모양 → {굵게:…} 표시 글자
+  function ser(node, st){
+    let out = '';
+    node.childNodes.forEach(n => {
+      if (n.nodeType === 3){ out += n.nodeValue.replace(/[ ]/g, ' ').replace(/​/g, ''); return; }
+      if (n.nodeType !== 1) return;
+      const tag = n.tagName;
+      if (n.classList && n.classList.contains('edstar')){ out += '{별}'; return; }
+      if (tag === 'BR'){ out += '\n'; return; }
+      if (tag === 'SVG' || tag === 'svg' || tag === 'STYLE' || tag === 'SCRIPT') return;
+      const block = tag === 'DIV' || tag === 'P' || tag === 'LI';
+      if (block && out && !out.endsWith('\n')) out += '\n';
+      let inner = ser(n);
+      if (inner.replace(/\n/g, '')){
+        const cs = n.style || {};
+        let bold = tag === 'B' || tag === 'STRONG' || /^(bold|[6-9]00)$/.test(cs.fontWeight || '');
+        let und = tag === 'U' || /underline/.test(cs.textDecorationLine || cs.textDecoration || '');
+        let col = '';
+        if (tag === 'FONT') col = colorKind(n.getAttribute('color'));
+        if (cs.color) col = colorKind(cs.color) || col;
+        if (n.classList) { if (n.classList.contains('rc-r')) col = '빨강'; else if (n.classList.contains('rc-b')) col = '파랑'; }
+        const hl = (n.classList && n.classList.contains('rc-h')) || hasBg(cs.backgroundColor);
+        const lead = inner.match(/^\n*/)[0], trail = inner.match(/\n*$/)[0];
+        let core = inner.slice(lead.length, inner.length - trail.length);
+        if (core){
+          if (bold) core = '{굵게:' + core + '}';
+          if (und) core = '{밑줄:' + core + '}';
+          if (col) core = '{' + col + ':' + core + '}';
+          if (hl) core = '{형광:' + core + '}';
+        }
+        inner = lead + core + trail;
+      }
+      out += inner;
+    });
+    return out;
+  }
+  // 줄 안에 걸친 표시는 줄마다 따로 감싸요 ({굵게:앞줄\n뒷줄}은 한 줄 안에서만 쓰이니까)
+  function fixLines(t){
+    for (let i = 0; i < 6; i++){
+      const n = t.replace(/\{(굵게|밑줄|빨강|파랑|형광):([^{}]*\n[^{}]*)\}/g, (m, k, x) => x.split('\n').map(l => l ? '{' + k + ':' + l + '}' : l).join('\n'));
+      if (n === t) break; t = n;
+    }
+    return t;
+  }
+  function serialize(){ return fixLines(ser(ed)).replace(/\n$/, ''); }
+  function render(v){
+    let h = rich(v).split(RICH_STAR).join(STAR_WRAP).replace(/\n/g, '<br>');
+    ed.innerHTML = h;
+  }
+  function sync(){
+    let v = serialize();
+    if (!v && ed.innerHTML) { if (/^(<br>|<div><br><\/div>)?$/.test(ed.innerHTML)) ed.innerHTML = ''; }
+    if (v !== tget.call(ta)){ tset.call(ta, v); ta.dispatchEvent(new Event('input', { bubbles:true })); }
+    marks();
+  }
+  // 다른 곳에서 내용을 넣거나 비울 때(수정하려고 불러오기, 올린 뒤 비우기) 칸에도 반영
+  Object.defineProperty(ta, 'value', { configurable:true,
+    get(){ return tget.call(ta); },
+    set(v){ tset.call(ta, v); v = String(v == null ? '' : v); if (serialize() !== v) render(v); marks(); } });
+  ta.focus = function(){ ed.focus(); };
+  // 글자 수 제한(1500)
+  ed.addEventListener('beforeinput', e => {
+    if (e.isComposing || !/^insert/.test(e.inputType || '')) return;
+    if (tget.call(ta).length >= MAX) e.preventDefault();
+  });
+  ed.addEventListener('input', sync);
+  // 붙여넣기는 글자만
+  ed.addEventListener('paste', e => {
+    e.preventDefault();
+    let t = (e.clipboardData || window.clipboardData).getData('text/plain') || '';
+    t = t.replace(/\r\n?/g, '\n');
+    const room = MAX - tget.call(ta).length; if (room <= 0) return;
+    document.execCommand('insertText', false, t.slice(0, room));
+  });
+  ed.addEventListener('drop', e => e.preventDefault());   // 끌어다 놓기로 서식이 들어오는 것 막기
+  // 버튼
+  let saved = null;
+  document.addEventListener('selectionchange', () => { const s = getSelection(); if (s.rangeCount && ed.contains(s.anchorNode)) saved = s.getRangeAt(0).cloneRange(); marks(); });
+  function inEd(){ const s = getSelection(); return s.rangeCount && ed.contains(s.anchorNode); }
+  function marks(){   // 지금 글자에 적용된 버튼은 눌린 모양으로
+    try{
+      if (!inEd()) { tb.querySelectorAll('button[data-r]').forEach(b => b.classList.remove('on')); return; }
+      document.execCommand('styleWithCSS', false, true);
+      const on = {
+        '굵게': document.queryCommandState('bold'), '밑줄': document.queryCommandState('underline'),
+        '빨강': colorKind(document.queryCommandValue('foreColor')) === '빨강', '파랑': colorKind(document.queryCommandValue('foreColor')) === '파랑',
+        '형광': hasBg(document.queryCommandValue('hiliteColor') || document.queryCommandValue('backColor'))
+      };
+      tb.querySelectorAll('button[data-r]').forEach(b => b.classList.toggle('on', !!on[b.dataset.r]));
+    }catch(e){}
+  }
+  tb.addEventListener('mousedown', e => { if (e.target.closest('button')) e.preventDefault(); });   // 고른 글자가 풀리지 않게
   tb.addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
-    const k = b.dataset.r, v = ta.value;
-    let s0 = ta.selectionStart, e0 = ta.selectionEnd;
-    if (k === '별'){ ta.value = v.slice(0, s0) + '{별}' + v.slice(e0); ta.selectionStart = ta.selectionEnd = s0 + 3; }
-    else {
-      const open = '{' + k + ':', sel = v.slice(s0, e0);
-      if (sel.startsWith(open) && sel.endsWith('}') && sel.length > open.length){   // 풀기
-        const inner = sel.slice(open.length, -1); ta.value = v.slice(0, s0) + inner + v.slice(e0); ta.selectionStart = s0; ta.selectionEnd = s0 + inner.length;
-      } else if (v.slice(s0 - open.length, s0) === open && v[e0] === '}'){   // 글자만 고른 상태에서 다시 누름 → 풀기
-        ta.value = v.slice(0, s0 - open.length) + sel + v.slice(e0 + 1); ta.selectionStart = s0 - open.length; ta.selectionEnd = s0 - open.length + sel.length;
-      } else {
-        ta.value = v.slice(0, s0) + open + sel + '}' + v.slice(e0);
-        if (sel){ ta.selectionStart = s0 + open.length; ta.selectionEnd = s0 + open.length + sel.length; }
-        else ta.selectionStart = ta.selectionEnd = s0 + open.length;   // 고른 글자가 없으면 괄호 안에서 바로 쓰기
-      }
+    const k = b.dataset.r;
+    if (!inEd()){ ed.focus(); if (saved){ const s = getSelection(); s.removeAllRanges(); s.addRange(saved); } }
+    const ex = (c, v) => document.execCommand(c, false, v);
+    if (k === '굵게'){ ex('styleWithCSS', false); ex('bold'); }
+    else if (k === '밑줄'){ ex('styleWithCSS', false); ex('underline'); }
+    else if (k === '빨강' || k === '파랑'){
+      ex('styleWithCSS', true);
+      const cur = colorKind(document.queryCommandValue('foreColor'));
+      ex('foreColor', cur === k ? '#2E2A3D' : (k === '빨강' ? '#D6322F' : '#1F6FD0'));
     }
-    ta.focus(); ta.dispatchEvent(new Event('input', { bubbles:true }));
+    else if (k === '형광'){
+      ex('styleWithCSS', true);
+      const cur = hasBg(document.queryCommandValue('hiliteColor') || document.queryCommandValue('backColor'));
+      ex('hiliteColor', cur ? '#ffffff' : '#FFE97A');
+    }
+    else if (k === '별'){ ex('insertHTML', STAR_WRAP + '​'); }
+    sync();
   });
-  function pv(){ const t = ta.value, box = $('fRich'); const has = /\{(굵게|밑줄|빨강|파랑|형광):|\{별\}/.test(t); box.classList.toggle('hide', !has); if (has) box.innerHTML = '<small style="color:var(--tx3)">학생 화면 미리보기</small><br>' + rich(t); }
-  ta.addEventListener('input', pv);
-  const rf = resetForm; resetForm = function(){ rf(); pv(); };
-  const en = editNotice; editNotice = function(id){ en(id); pv(); };   // 고치려고 불러올 때도 미리보기 갱신   // 폼을 비우거나 채울 때도 미리보기 갱신
-  pv();
+  render(tget.call(ta));
 })();
 (function(){   // 날짜별로 나눌 때 제목에는 꾸밈 표시가 들어가지 않게 (제목은 늘 일반 글자)
   const pd = parseDated;
