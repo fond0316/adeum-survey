@@ -261,6 +261,14 @@ input[type=date]{min-width:0;max-width:100%}
 .schrow .bd{flex:none;font-size:11px;font-weight:700;border-radius:8px;padding:2px 7px;background:#CDEBDD;color:#1F6F4F}
 .schrow button.mini{min-height:36px;padding:0 10px;border-radius:8px;background:var(--bg);color:var(--tx2);font-weight:700;font-size:13px}
 .schrow input{min-height:40px;flex:1;min-width:120px}
+.rc-r{color:#D6322F}
+.rc-b{color:#1F6FD0}
+.rc-h{background:linear-gradient(transparent 38%,#FFE97A 38%);padding:0 2px;color:#2E2A3D}
+.rstar{width:1.15em;height:1.15em;vertical-align:-.2em;fill:none;stroke:#E24B4A;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.rtb{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 6px}
+.rtb button{min-height:40px;min-width:44px;padding:0 12px;border-radius:20px;border:1.5px solid var(--line);background:#fff;font-weight:700;color:var(--tx2);display:inline-flex;align-items:center;justify-content:center}
+.rtb button svg.rstar{width:22px;height:22px;vertical-align:0}
+#fRich{background:var(--bg);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:14px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
 </style>
 </head>
 <body>
@@ -732,7 +740,17 @@ input[type=date]{min-width:0;max-width:100%}
           <input type="text" id="fMemo" maxlength="40" placeholder="학급회장, 주번 등">
         </div>
         <label class="f">내용</label>
+        <div class="rtb" id="rTb" aria-label="글자 꾸미기">
+          <button type="button" data-r="굵게" style="font-weight:900" title="굵게">가</button>
+          <button type="button" data-r="밑줄" style="text-decoration:underline;text-underline-offset:3px" title="밑줄">가</button>
+          <button type="button" data-r="빨강" style="color:#D6322F" title="빨강">가</button>
+          <button type="button" data-r="파랑" style="color:#1F6FD0" title="파랑">가</button>
+          <button type="button" data-r="형광" title="형광펜"><span class="rc-h">가</span></button>
+          <button type="button" data-r="별" title="별표 넣기"></button>
+        </div>
         <textarea id="fBody" maxlength="1500" placeholder="자세한 내용 (짧으면 학생 목록에 바로 보이고, 길면 눌러서 봐요)" oninput="checkSplit()"></textarea>
+        <div id="fRich" class="hide"></div>
+        <p class="hint" id="fRichHint" style="margin:6px 0 0">글자를 <b>드래그해서 고른 뒤</b> 버튼을 누르면 꾸며져요. (기한·마감 같은 곳에 쓰면 좋아요) 내용 칸에서만 쓸 수 있고 제목에는 적용되지 않아요.</p>
         <div id="splitHint" class="hide" style="background:var(--s-bg);color:var(--s-tx);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:14px;line-height:1.5">
           📅 날짜가 있는 줄이 <b id="splitCnt">0</b>개 있어요. <b>날짜별로 나눠서</b> 달력에 올릴까요?
           <div class="row" style="margin-top:8px"><button class="btn" onclick="splitToBulk()">날짜별로 나누기</button></div>
@@ -3096,6 +3114,58 @@ async function schAdd(btn){
   await schSet({ date:d, name:n }, '추가', n);
   $('schAddN').value = ''; btn.disabled = false;
 }
+
+/* ===== ✨ 공지 꾸미기: {굵게:글자} {밑줄:글자} {빨강:글자} {파랑:글자} {형광:글자} {별} (내용 칸에서만) ===== */
+const RICH_STAR = '<svg class="rstar" viewBox="0 0 24 24" role="img" aria-label="별표"><path d="M12.2,2.4 L17.6,20.4 L2.2,8.6 L21.8,9.1 L6,20.3 L11.6,1.6"/></svg>';
+const RICH_TAG = { '굵게':['<b>','</b>'], '밑줄':['<u>','</u>'], '빨강':['<span class="rc-r">','</span>'], '파랑':['<span class="rc-b">','</span>'], '형광':['<span class="rc-h">','</span>'] };
+const RICH_RE = /\{(굵게|밑줄|빨강|파랑|형광):([^{}]*)\}/g;
+function rich(s){   // 먼저 안전하게 이스케이프한 뒤에 꾸밈 표시만 바꿔요 (그 밖의 HTML은 절대 안 먹혀요)
+  let t = esc(String(s || ''));
+  for (let i = 0; i < 8; i++){
+    const n = t.replace(RICH_RE, (m, k, x) => RICH_TAG[k][0] + x + RICH_TAG[k][1]);
+    if (n === t) break; t = n;
+  }
+  return t.replace(/\{별\}/g, RICH_STAR);
+}
+function plain(s){   // 꾸밈 표시를 걷어낸 글자 (제목·알림·검색 등에서 표시가 그대로 보이지 않게)
+  let t = String(s || '');
+  for (let i = 0; i < 8; i++){ const n = t.replace(RICH_RE, '$2'); if (n === t) break; t = n; }
+  return t.replace(/\{별\}/g, '★');
+}
+
+(function(){   // 꾸미기 버튼 — 고른 글자를 {빨강:글자}처럼 감싸요 (이미 감싼 걸 다시 누르면 풀어요)
+  const ta = $('fBody'), tb = $('rTb');
+  $('rTb').querySelector('[data-r="별"]').innerHTML = RICH_STAR;
+  tb.addEventListener('mousedown', e => { if (e.target.closest('button')) e.preventDefault(); });   // 글자 선택이 풀리지 않게
+  tb.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    const k = b.dataset.r, v = ta.value;
+    let s0 = ta.selectionStart, e0 = ta.selectionEnd;
+    if (k === '별'){ ta.value = v.slice(0, s0) + '{별}' + v.slice(e0); ta.selectionStart = ta.selectionEnd = s0 + 3; }
+    else {
+      const open = '{' + k + ':', sel = v.slice(s0, e0);
+      if (sel.startsWith(open) && sel.endsWith('}') && sel.length > open.length){   // 풀기
+        const inner = sel.slice(open.length, -1); ta.value = v.slice(0, s0) + inner + v.slice(e0); ta.selectionStart = s0; ta.selectionEnd = s0 + inner.length;
+      } else if (v.slice(s0 - open.length, s0) === open && v[e0] === '}'){   // 글자만 고른 상태에서 다시 누름 → 풀기
+        ta.value = v.slice(0, s0 - open.length) + sel + v.slice(e0 + 1); ta.selectionStart = s0 - open.length; ta.selectionEnd = s0 - open.length + sel.length;
+      } else {
+        ta.value = v.slice(0, s0) + open + sel + '}' + v.slice(e0);
+        if (sel){ ta.selectionStart = s0 + open.length; ta.selectionEnd = s0 + open.length + sel.length; }
+        else ta.selectionStart = ta.selectionEnd = s0 + open.length;   // 고른 글자가 없으면 괄호 안에서 바로 쓰기
+      }
+    }
+    ta.focus(); ta.dispatchEvent(new Event('input', { bubbles:true }));
+  });
+  function pv(){ const t = ta.value, box = $('fRich'); const has = /\{(굵게|밑줄|빨강|파랑|형광):|\{별\}/.test(t); box.classList.toggle('hide', !has); if (has) box.innerHTML = '<small style="color:var(--tx3)">학생 화면 미리보기</small><br>' + rich(t); }
+  ta.addEventListener('input', pv);
+  const rf = resetForm; resetForm = function(){ rf(); pv(); };
+  const en = editNotice; editNotice = function(id){ en(id); pv(); };   // 고치려고 불러올 때도 미리보기 갱신   // 폼을 비우거나 채울 때도 미리보기 갱신
+  pv();
+})();
+(function(){   // 날짜별로 나눌 때 제목에는 꾸밈 표시가 들어가지 않게 (제목은 늘 일반 글자)
+  const pd = parseDated;
+  parseDated = function(t){ const r = pd(t); r.forEach(x => { if (x && x.title) x.title = plain(x.title); }); return r; };
+})();
 </script>
 <!-- 🎬 학생 화면 체험 (샘플 데이터 · 저장·전송 없음) -->
 <div id="demoOv" class="hide" style="position:fixed;inset:0;z-index:95;background:var(--bg)">

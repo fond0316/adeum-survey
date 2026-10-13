@@ -244,6 +244,10 @@ mark{background:#FEF3C7;color:inherit;border-radius:3px;padding:0 1px}
 body.board .ti-head{font-size:18px;min-height:52px}
 body.board .ti-row{font-size:18px}
 body.board .ti-row .tag{font-size:15px}
+.rc-r{color:#D6322F}
+.rc-b{color:#1F6FD0}
+.rc-h{background:linear-gradient(transparent 38%,#FFE97A 38%);padding:0 2px;color:#2E2A3D}
+.rstar{width:1.15em;height:1.15em;vertical-align:-.2em;fill:none;stroke:#E24B4A;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 </style>
 </head>
 <body>
@@ -610,12 +614,12 @@ function renderUrgent(){
   const t = today();
   const u = notices.filter(n => n.type === '긴급' && covers(n, t)).sort(sortN);
   let html = u.map(n =>
-    `<div class="ub"><span>🚨</span><div>${esc(n.title)}${n.body?`<small>${esc(n.body)}</small>`:''}</div></div>`).join('');
+    `<div class="ub"><span>🚨</span><div>${esc(n.title)}${n.body?`<small>${esc(plain(n.body))}</small>`:''}</div></div>`).join('');
   if (BOARD){   // 교실 화면: 오늘 호출은 한 줄에 나란히 (안 다녀온 호출이 앞, 다녀온 호출은 작은 회색)
     const calls = notices.filter(n => n.type === '호출' && n.date === t).sort((a, b) => (allDone(a) - allDone(b)) || sortN(a, b));
     if (calls.length) html += '<div class="cstrip">' + calls.map(n => {
       const fin = allDone(n);
-      return `<div class="ub h${fin?' done':''}" onclick="openCall('${esc(n.id)}')"><span>${fin?'✅':'📣'}</span><div>${fin?'다녀왔어요 · ':''}${esc(n.title)}${n.body&&!fin?`<small>${esc(n.body)}</small>`:''}<div>${callChips(n)}</div></div></div>`;
+      return `<div class="ub h${fin?' done':''}" onclick="openCall('${esc(n.id)}')"><span>${fin?'✅':'📣'}</span><div>${fin?'다녀왔어요 · ':''}${esc(n.title)}${n.body&&!fin?`<small>${esc(plain(n.body))}</small>`:''}<div>${callChips(n)}</div></div></div>`;
     }).join('') + '</div>';
   }
   document.getElementById('urgent').innerHTML = html;
@@ -731,7 +735,7 @@ function card(n, inSearch){
     <div class="row1"><span class="bd ${T.c}">${LABEL[n.type]||n.type}</span>${n.author==='회장'?'<span class="bd p">회장</span>':''}${isNew?'<span class="bd new">NEW</span>':''}${(n.attachments||[]).length?`<span class="bd att">📎 ${n.attachments.length}</span>`:''}${ck}${dd}</div>
     <div class="ttl">${inSearch ? hl(n.title) : esc(n.title)}</div>
     ${inSearch ? `<div class="sinfo" style="margin:4px 0 0">${isPeriod(n) ? '📅 ' + periodText(n) : prettyDate(n.date)}</div>` : ''}
-    ${body ? (isShort ? `<div class="full">${inSearch ? hl(body) : esc(body)}</div>` : `<div class="prev">${inSearch ? hl(body) : esc(body)}</div><div class="more">눌러서 전체 보기 ›</div>`) : ''}
+    ${body ? (isShort ? `<div class="full">${inSearch ? hl(plain(body)) : rich(body)}</div>` : `<div class="prev">${inSearch ? hl(plain(body)) : rich(body)}</div><div class="more">눌러서 전체 보기 ›</div>`) : ''}
     ${tg}${mine && !isDone(n, me.sid)?'<span class="callme">나를 불렀어요</span>':''}${n.type==='호출' && allDone(n)?'<span class="gone">✅ 다녀왔어요</span>':''}
   </button>`;
 }
@@ -767,7 +771,7 @@ function openCall(id){
     <button class="x" onclick="closeOv('detOv')" aria-label="닫기">✕</button>
     <div class="row1"><span class="bd h">호출</span></div>
     <div class="ttl" style="font-size:22px">${esc(n.title)}</div>
-    ${n.body?`<div class="body">${esc(n.body)}</div>`:''}
+    ${n.body?`<div class="body">${rich(n.body)}</div>`:''}
     <p style="margin-top:12px;font-weight:700">✅ 다녀왔으면 내 이름을 눌러 주세요 <span style="font-weight:400;color:var(--tx3)">(잘못 눌렀으면 한 번 더)</span></p>
     ${btns?`<div class="cbtns">${btns}</div>`:''}
     ${extra.length?`<div class="cbtns">${extra.map(d=>`<button class="ok" onclick="markCall('${esc(d.sid)}')">✅ ${esc(d.sid)} ${esc(d.name)}</button>`).join('')}</div>`:''}
@@ -816,7 +820,7 @@ function openDetail(id){
     <div class="dt">${isPeriod(n) ? '📅 ' + periodText(n) : prettyDate(n.date) + (n.type==='확인'?' 마감':'')}</div>
     ${targetLine(n)}${isMine(n) && !isDone(n, me.sid)?'<span class="callme">나를 불렀어요</span>':''}
     ${n.type==='호출' ? `<div class="btns"><button class="b1" onclick="openCall('${esc(n.id)}')">${allDone(n)?'✅ 다녀왔어요 (보기)':'✅ 다녀왔어요 체크하기'}</button></div>` : ''}
-    ${n.body?`<div class="body">${esc(n.body)}</div>`:''}
+    ${n.body?`<div class="body">${rich(n.body)}</div>`:''}
     ${attsHtml(n)}
     ${ck}
     <div id="reqArea"><button class="req-btn" onclick="openReq('${esc(n.id)}')">✏️ 수정 요청·질문</button></div>`;
@@ -1077,7 +1081,7 @@ function showNextPop(){
   const box = document.getElementById('popBox');
   box.className = 'modal pop' + (n.type === '호출' ? ' h' : '');
   box.innerHTML = `<div class="ic">${T.ic}</div><div class="ttl">${esc(n.title)}</div>${tg}
-    ${n.body?`<div class="body">${esc(n.body)}</div>`:''}
+    ${n.body?`<div class="body">${rich(n.body)}</div>`:''}
     <div class="btns"><button class="b1" id="popOk">확인했어요</button></div>`;
   document.getElementById('popOk').onclick = async () => {
     const seen = lsGet(K.seen, []);
@@ -1294,6 +1298,24 @@ async function schLoad(force){
 if (GAS){
   schLoad();
   setInterval(() => { schLoad(); }, 5*60000);   // 30분마다만 새로 받아요
+}
+
+/* ===== ✨ 공지 꾸미기: {굵게:글자} {밑줄:글자} {빨강:글자} {파랑:글자} {형광:글자} {별} (내용 칸에서만) ===== */
+const RICH_STAR = '<svg class="rstar" viewBox="0 0 24 24" role="img" aria-label="별표"><path d="M12.2,2.4 L17.6,20.4 L2.2,8.6 L21.8,9.1 L6,20.3 L11.6,1.6"/></svg>';
+const RICH_TAG = { '굵게':['<b>','</b>'], '밑줄':['<u>','</u>'], '빨강':['<span class="rc-r">','</span>'], '파랑':['<span class="rc-b">','</span>'], '형광':['<span class="rc-h">','</span>'] };
+const RICH_RE = /\{(굵게|밑줄|빨강|파랑|형광):([^{}]*)\}/g;
+function rich(s){   // 먼저 안전하게 이스케이프한 뒤에 꾸밈 표시만 바꿔요 (그 밖의 HTML은 절대 안 먹혀요)
+  let t = esc(String(s || ''));
+  for (let i = 0; i < 8; i++){
+    const n = t.replace(RICH_RE, (m, k, x) => RICH_TAG[k][0] + x + RICH_TAG[k][1]);
+    if (n === t) break; t = n;
+  }
+  return t.replace(/\{별\}/g, RICH_STAR);
+}
+function plain(s){   // 꾸밈 표시를 걷어낸 글자 (제목·알림·검색 등에서 표시가 그대로 보이지 않게)
+  let t = String(s || '');
+  for (let i = 0; i < 8; i++){ const n = t.replace(RICH_RE, '$2'); if (n === t) break; t = n; }
+  return t.replace(/\{별\}/g, '★');
 }
 </script>
 </body>
