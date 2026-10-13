@@ -463,6 +463,7 @@ function demoApi(p){
     if (a === 'search'){ const q = String(p.q || '').toLowerCase(); return resolve({ ok:true, more:false, results:demoNotices().filter(n => (n.title + ' ' + n.body).toLowerCase().includes(q)) }); }
     if (a === 'request') return resolve({ ok:true });
     if (a === 'neisToday') return resolve({ ok:true, enabled:true, date:p.date, strip:'학사일정,점심', open:'점심', schedule:['체험 학사일정 예시'], meals:{ '점심':['잡곡밥','된장찌개','제육볶음','배추김치','과일'] } });
+    if (a === 'neisCalDots'){ const t0 = new Date(), f = n => { const d = new Date(t0); d.setDate(d.getDate()+n); return ymd(d); }; return resolve({ ok:true, enabled:true, dots:[f(2), f(9)] }); }
     return reject(new Error('체험에서는 쓸 수 없는 기능이에요.'));
   }, 150));
 }
@@ -1243,6 +1244,56 @@ async function tiLoad(date){
 if (GAS){
   tiLoad();
   setInterval(() => { tiLoad(); }, 60000);   // 같은 날짜는 30분마다만 새로 받고, 날짜가 바뀌면 바로
+}
+
+/* ===== 📅 학사일정 점 (달력) · 공지 순서(긴급·호출 → 일반 → 학급 → 교시) ===== */
+let schDots = new Set(), schAt = 0, schBusy = false;
+const SCH_COLOR = '#3FB68B';
+async function schLoad(force){
+  if (!GAS || schBusy) return;
+  if (!force && schAt && Date.now() - schAt < 30*60000) return;
+  schBusy = true;
+  try{
+    const r = await jsonp({ action:'neisCalDots' });
+    schDots = new Set((r && r.ok && r.enabled && r.dots) ? r.dots : []);
+    schAt = Date.now();
+  }catch(e){ /* 실패하면 점만 안 보여요 — 공지 화면은 그대로 */ }
+  schBusy = false;
+  try{ renderCal(); }catch(e){}
+}
+(function(){   // 달력을 그릴 때마다 학사일정 있는 날에 초록 점을 하나 더 찍어요
+  const rc = renderCal;
+  renderCal = function(){
+    rc();
+    try{
+      document.querySelectorAll('#days .day').forEach(b => {
+        const m = /pickDate\('([\d-]+)'\)/.exec(b.getAttribute('onclick') || '');
+        if (m && schDots.has(m[1])){
+          const box = b.querySelector('.dots');
+          if (box) box.insertAdjacentHTML('beforeend', `<i style="background:${SCH_COLOR}" title="학사일정"></i>`);
+        }
+      });
+      const lg = document.querySelector('.legend');
+      let sp = document.getElementById('schLg');
+      if (lg && !sp){ sp = document.createElement('span'); sp.id = 'schLg'; sp.innerHTML = `<i style="background:${SCH_COLOR}"></i>학사일정`; lg.appendChild(sp); }
+      if (sp) sp.style.display = schDots.size ? '' : 'none';
+    }catch(e){}
+  };
+})();
+(function(){   // 그날 공지 순서: 긴급 → 호출 → 일반 → 학급공지 → 교시 공지(1교시부터) → 교시 표시 없는 교과공지
+  const rank = n => {
+    if (n.type === '긴급') return 0;
+    if (n.type === '호출') return 1;
+    if (n.type === '확인') return 3;
+    const m = /\[\s*(\d)\s*교시\s*\]/.exec(n.title || '');
+    if (m) return 4 + Number(m[1]) / 10;
+    return n.type === '일반' ? 2 : 4.95;
+  };
+  sortN = function(a, b){ return a.date.localeCompare(b.date) || rank(a) - rank(b) || String(a.created).localeCompare(String(b.created)); };
+})();
+if (GAS){
+  schLoad();
+  setInterval(() => { schLoad(); }, 5*60000);   // 30분마다만 새로 받아요
 }
 </script>
 </body>

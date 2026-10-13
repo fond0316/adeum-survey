@@ -5,7 +5,7 @@
  */
 
 /** GAS 코드 버전 — 코드를 고칠 때마다 1씩 올려요. 관리 화면이 이 번호로 업데이트가 필요한지 알려줘요. */
-var GAS_VER = 2;
+var GAS_VER = 3;
 
 var TZ = 'Asia/Seoul';
 var SHEETS = {
@@ -22,6 +22,7 @@ var SHEETS = {
   photoIdx: { name: '사진목록', headers: ['사진ID', '조각수', '글자수', '저장시각'] }
 };
 SHEETS.timetable = { name: '시간표', headers: ['교시', '월', '화', '수', '목', '금'] };   // 우리 반 시간표 (나이스에 시간표가 없는 학교용 · N교시 제안)
+SHEETS.scheduleOv = { name: '학사일정수정', headers: ['날짜', '원래일정', '상태', '내용', '수정시각'] };   // 담임이 나이스 학사일정을 고친 내용 (수정/숨김/추가)
 var PRESIDENT_TYPES = ['확인', '교과', '일반'];
 var DEFAULT_PW = 'classboard';   // 초기 비밀번호 — 첫 로그인 때 변경 강제
 var DEFAULT_SETTINGS = [['학년도', String(new Date().getFullYear())], ['학급명', '우리 반'], ['관리자비번', DEFAULT_PW], ['회장코드', '']];
@@ -72,6 +73,9 @@ function route_(p) {
     case 'neisSearch': return neisSearch_(p);
     case 'neisTest': return neisTest_(p);
     case 'neisPeriod': return neisPeriod_(p);
+    case 'neisCalDots': return neisCalDots_(p);
+    case 'neisCalList': return neisCalList_(p);
+    case 'neisOvSet': return neisOvSet_(p);
     default: return { ok: false, error: '알 수 없는 요청이에요.' };
   }
 }
@@ -1060,3 +1064,175 @@ function ttPeriods_(date, sub) {
   for (var i = 0; i < 7; i++) { var cell = g[i][wd - 1]; if (ttMatch_(cell, sub)) out.push({ perio: i + 1, name: cell }); }
   return out;
 }
+
+
+/* ---------- 학사일정 달력 점 · 담임 보정 (v3) ---------- */
+/** 기본 기간 = 학년도 전체 (3/1 ~ 다음 해 2월 말) */
+function neisDefRange_() {
+  var t = new Date(), y = t.getFullYear(), m = t.getMonth() + 1;
+  var sy = m >= 3 ? y : y - 1;
+  var last = new Date(sy + 1, 2, 0).getDate();
+  return { from: sy + '-03-01', to: (sy + 1) + '-02-' + (last < 10 ? '0' + last : last) };
+}
+function neisRange_() {
+  var d = neisDefRange_();
+  var f = getSetting_('NEIS일정시작'), t = getSetting_('NEIS일정끝');
+  var ok = /^\d{4}-\d{2}-\d{2}$/;
+  if (!ok.test(f) || !ok.test(t) || f > t) return { from: d.from, to: d.to, custom: false };
+  return { from: f, to: t, custom: true };
+}
+/** 기간 전체를 한 번에 받아서(1000건씩) 날짜별 이름 목록으로 정리 · 주말/공휴일/휴업일 제외 · 우리 학년 것만 */
+function neisYearMap_() {
+  var rg = neisRange_();
+  var g = Number(getSetting_('NEIS학년')) || 0;
+  var ck = 'neisYr_' + Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5,
+    [getSetting_('NEIS학교코드'), rg.from, rg.to, g].join('|'))).slice(0, 20);
+  var cache = CacheService.getScriptCache();
+  try { var hit = cache.get(ck); if (hit) return JSON.parse(hit); } catch (e) {}
+  var key = getSetting_('NEIS키');
+  var sc = neisSchool_();
+  var gf = ['', 'ONE', 'TW', 'THREE'];
+  var map = {}, total = 0;
+  for (var page = 1; page <= 5; page++) {
+    var url = NEIS_BASE + 'SchoolSchedule?KEY=' + encodeURIComponent(key) + '&Type=json&pIndex=' + page + '&pSize=1000'
+      + '&ATPT_OFCDC_SC_CODE=' + sc.ATPT_OFCDC_SC_CODE + '&SD_SCHUL_CODE=' + sc.SD_SCHUL_CODE
+      + '&AA_FROM_YMD=' + neisYmd_(rg.from) + '&AA_TO_YMD=' + neisYmd_(rg.to);
+    var res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+    if (res.getResponseCode() !== 200) throw new Error('나이스 서버 응답이 이상해요 (HTTP ' + res.getResponseCode() + ').');
+    var j = JSON.parse(res.getContentText());
+    var rows = [];
+    if (j.RESULT) {
+      if (String(j.RESULT.CODE || '') !== 'INFO-200') throw new Error('나이스 응답: ' + j.RESULT.CODE + ' ' + (j.RESULT.MESSAGE || ''));
+    } else if (j.SchoolSchedule) {
+      j.SchoolSchedule.forEach(function (blk) {
+        if (blk.row) rows = rows.concat(blk.row);
+        if (blk.head) blk.head.forEach(function (h) {
+          if (h.RESULT && String(h.RESULT.CODE) !== 'INFO-000' && String(h.RESULT.CODE) !== 'INFO-200') throw new Error('나이스 응답: ' + h.RESULT.CODE + ' ' + (h.RESULT.MESSAGE || ''));
+        });
+      });
+    }
+    total += rows.length;
+    rows.forEach(function (r) {
+      var ymd = String(r.AA_YMD || ''); if (ymd.length !== 8) return;
+      var d = ymd.slice(0, 4) + '-' + ymd.slice(4, 6) + '-' + ymd.slice(6, 8);
+      var nm = String(r.EVENT_NM || '').trim(); if (!nm) return;
+      var wd = new Date(Number(ymd.slice(0, 4)), Number(ymd.slice(4, 6)) - 1, Number(ymd.slice(6, 8))).getDay();
+      if (wd === 0 || wd === 6) return;                                            // 주말
+      var sb = String(r.SBTR_DD_SC_NM || '');
+      if (sb === '공휴일' || sb === '휴업일' || /토요휴업일/.test(nm)) return;   // 공휴일·휴업일
+      if (g >= 1 && g <= 3) {
+        var mine = r[gf[g] + '_GRADE_EVENT_YN'];
+        var any = r.ONE_GRADE_EVENT_YN === 'Y' || r.TW_GRADE_EVENT_YN === 'Y' || r.THREE_GRADE_EVENT_YN === 'Y';
+        if (mine === 'N' && any) return;
+      }
+      var arr = map[d] = map[d] || [];
+      if (arr.indexOf(nm) < 0) arr.push(nm);
+    });
+    if (rows.length < 1000) break;
+  }
+  var out = { map: map, total: total };
+  try { cache.put(ck, JSON.stringify(out), 10800); } catch (e) {}
+  return out;
+}
+/** 담임이 고친 내용 읽기 */
+function neisOvRows_() {
+  return rows_('scheduleOv').filter(function (r) { return r[0] && r[2]; }).map(function (r) {
+    return { date: r[0], orig: r[1], status: r[2], text: r[3] };
+  });
+}
+/** 나이스 이름 목록에 담임 보정(숨김/수정/추가)을 덮어씌움 */
+function neisApplyOv_(date, list, ov) {
+  var out = list.slice();
+  (ov || neisOvRows_()).forEach(function (o) {
+    if (o.date !== date) return;
+    var i = out.indexOf(o.orig);
+    if (o.status === '숨김') { if (i >= 0) out.splice(i, 1); }
+    else if (o.status === '수정') { if (i >= 0) { if (o.text) out[i] = o.text; } }
+    else if (o.status === '추가') { var t = o.text || o.orig; if (t && out.indexOf(t) < 0) out.push(t); }
+  });
+  return out;
+}
+/* 학교 알림판의 학사일정에도 담임 보정이 반영되게 — 기존 함수를 감싸요 */
+(function () {
+  var base = neisSchedule_;
+  neisSchedule_ = function (date) {
+    var list = base(date);
+    try { return neisApplyOv_(neisDate_(date), list); } catch (e) { return list; }
+  };
+})();
+/** 학생 화면용 — 달력에 점 찍을 날짜들 (로그인 없이) */
+function neisCalDots_(p) {
+  if (!neisEnabled_()) return { ok: true, enabled: false, dots: [] };
+  var strip = neisStrip_();
+  if (!neisHas_(strip, '학사일정')) return { ok: true, enabled: true, dots: [] };
+  var yr = neisYearMap_(), ov = neisOvRows_(), dots = [];
+  var dates = {};
+  Object.keys(yr.map).forEach(function (d) { dates[d] = 1; });
+  ov.forEach(function (o) { dates[o.date] = 1; });
+  Object.keys(dates).sort().forEach(function (d) {
+    if (neisApplyOv_(d, yr.map[d] || [], ov).length) dots.push(d);
+  });
+  var rg = neisRange_();
+  return { ok: true, enabled: true, dots: dots, from: rg.from, to: rg.to };
+}
+/** 담임 화면용 — 기간 안 학사일정 목록(보정 상태 포함) */
+function neisCalList_(p) {
+  need_(p, ['admin']);
+  if (!neisEnabled_()) throw new Error('인증키와 학교를 먼저 저장해 주세요.');
+  var yr = neisYearMap_(), ov = neisOvRows_(), items = [];
+  Object.keys(yr.map).sort().forEach(function (d) {
+    yr.map[d].forEach(function (nm) {
+      var o = ov.filter(function (x) { return x.date === d && x.orig === nm && x.status !== '추가'; })[0];
+      items.push({ date: d, name: nm, status: o ? o.status : '', text: o ? o.text : '' });
+    });
+  });
+  ov.filter(function (x) { return x.status === '추가'; }).forEach(function (o) {
+    items.push({ date: o.date, name: o.text || o.orig, status: '추가', text: o.text || o.orig });
+  });
+  items.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+  var rg = neisRange_();
+  return { ok: true, items: items, total: yr.total, from: rg.from, to: rg.to, custom: rg.custom };
+}
+/** 담임 보정 저장 — data: {date, orig, status: 수정|숨김|추가|해제, text} */
+function neisOvSet_(p) {
+  need_(p, ['admin']);
+  var d = JSON.parse(p.data || '{}');
+  var date = neisDate_(d.date), orig = String(d.orig || '').trim().slice(0, 80);
+  var st = String(d.status || ''), text = String(d.text || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+  if (['수정', '숨김', '추가', '해제'].indexOf(st) < 0) throw new Error('상태 값이 올바르지 않아요.');
+  if (st === '추가') { if (!text) throw new Error('추가할 일정 이름을 적어 주세요.'); orig = text; }
+  if (st === '수정' && !text) throw new Error('바꿀 이름을 적어 주세요.');
+  if (!orig) throw new Error('원래 일정 이름이 없어요.');
+  return lock_(function () {
+    var sh = sh_('scheduleOv');
+    var last = sh.getLastRow(), rows = last < 2 ? [] : sh.getRange(2, 1, last - 1, 5).getValues().map(function (r) { return r.map(str_); });
+    for (var i = rows.length - 1; i >= 0; i--) {
+      if (rows[i][0] === date && rows[i][1] === orig) sh.deleteRow(i + 2);   // 같은 일정의 예전 보정은 지우고 새로 씀
+    }
+    if (st !== '해제') writeRow_(sh, sh.getLastRow() + 1, [date, orig, st, st === '숨김' ? '' : text, now_()]);
+    return { ok: true };
+  });
+}
+/* 설정 화면 — 기간 값도 같이 주고받기 (기존 함수를 감싸요) */
+(function () {
+  var bs = neisSettings_, bv = neisSave_;
+  neisSettings_ = function (p) {
+    var r = bs(p), rg = neisRange_();
+    r.rangeFrom = rg.from; r.rangeTo = rg.to; r.rangeCustom = rg.custom;
+    var df = neisDefRange_(); r.defFrom = df.from; r.defTo = df.to;
+    return r;
+  };
+  neisSave_ = function (p) {
+    var r = bv(p);
+    var s = JSON.parse(p.data || '{}');
+    if (s.rangeFrom !== undefined || s.rangeTo !== undefined || s.rangeReset) {
+      lock_(function () {
+        if (s.rangeReset) { setSetting_('NEIS일정시작', ''); setSetting_('NEIS일정끝', ''); return; }
+        var ok = /^\d{4}-\d{2}-\d{2}$/;
+        if (!ok.test(String(s.rangeFrom)) || !ok.test(String(s.rangeTo)) || s.rangeFrom > s.rangeTo) throw new Error('기간(시작~끝)이 올바르지 않아요.');
+        setSetting_('NEIS일정시작', s.rangeFrom); setSetting_('NEIS일정끝', s.rangeTo);
+      });
+    }
+    return r;
+  };
+})();

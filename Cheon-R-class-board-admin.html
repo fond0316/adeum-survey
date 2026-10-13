@@ -252,6 +252,15 @@ input[type=date]{min-width:0;max-width:100%}
 .cbx.cbx-open > h2::after{transform:rotate(180deg)}
 .cbx:not(.cbx-open) > h2{margin-bottom:0}
 .cbx:not(.cbx-open) > *:not(h2){display:none !important}
+.scchip{min-height:40px;padding:0 14px;border-radius:20px;border:1.5px solid var(--line);font-weight:700;background:#fff;color:var(--tx2)}
+.scchip.on{background:var(--main);border-color:var(--main);color:#fff}
+.schrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.schrow .d{flex:none;width:76px;color:var(--tx2);font-weight:700}
+.schrow .nm{flex:1;min-width:120px;word-break:keep-all}
+.schrow .nm s{color:var(--tx3)}
+.schrow .bd{flex:none;font-size:11px;font-weight:700;border-radius:8px;padding:2px 7px;background:#CDEBDD;color:#1F6F4F}
+.schrow button.mini{min-height:36px;padding:0 10px;border-radius:8px;background:var(--bg);color:var(--tx2);font-weight:700;font-size:13px}
+.schrow input{min-height:40px;flex:1;min-width:120px}
 </style>
 </head>
 <body>
@@ -538,7 +547,9 @@ input[type=date]{min-width:0;max-width:100%}
         <label class="f" style="margin-top:14px">2. 우리 학교 <span id="nsSchool" style="font-weight:400;color:var(--tx3)"></span></label>
         <div class="link"><input type="text" id="nsQ" placeholder="학교 이름 (예: ○○고등학교)" onkeydown="if(event.key==='Enter')neisSearch($('nsSearchBtn'))"><button class="btn sub" id="nsSearchBtn" onclick="neisSearch(this)">검색</button></div>
         <div id="nsList" style="margin-top:6px"></div>
-        <label class="f" style="margin-top:14px">3. 우리 반 (시간표로 N교시를 찾을 때만 써요)</label>
+        <label class="f" style="margin-top:14px">3. 우리 반 (우리 학년 학사일정과 N교시를 찾을 때 써요)</label>
+        <div class="chips" id="nsGradeChips"></div>
+        <div class="chips" id="nsClsChips" style="margin-top:6px"></div>
         <div class="link"><input type="text" id="nsGrade" maxlength="1" inputmode="numeric" placeholder="학년"><input type="text" id="nsCls" maxlength="2" inputmode="numeric" placeholder="반"></div>
         <label class="f" style="margin-top:14px">4. 접힌 띠에 보일 것</label>
         <div class="chips" id="nsStrip"><label class="chk"><input type="checkbox" data-ns="strip" value="학사일정"> 학사일정</label><label class="chk"><input type="checkbox" data-ns="strip" value="조식"> 조식</label><label class="chk"><input type="checkbox" data-ns="strip" value="점심"> 점심</label><label class="chk"><input type="checkbox" data-ns="strip" value="석식"> 석식</label></div>
@@ -552,12 +563,27 @@ input[type=date]{min-width:0;max-width:100%}
 
       <div class="box" id="ttBox">
         <h2>📅 우리 반 시간표 (N교시 제안용)</h2>
+        <p class="hint" style="background:#FFF6E0;border-radius:10px;padding:10px 12px"><b>꼭 읽어 주세요</b><br>① <b>나이스에 시간표가 있는 학교</b>는 이 표를 채우지 않아도 돼요. 나이스 것을 자동으로 가져와서 학기가 바뀌어도 알아서 따라가요. (위 <b>연결 테스트</b>에서 "나이스 시간표"가 보이면 나이스에 있는 거예요.)<br>② <b>나이스에 시간표가 없는 학교</b>만 여기에 우리 반 시간표를 올려 주세요. 이 표는 저장해 둔 그대로 쓰이기 때문에 <b>학기마다 시간표가 바뀌면 다시 붙여넣고 저장</b>해야 해요.<br>③ 나이스와 이 표를 <b>둘 다 올릴 필요는 없어요.</b> 둘 다 있으면 나이스가 우선이에요.</p>
         <p class="hint">나이스에 시간표가 없는 학교에서도 공지 제목의 과목으로 <b>N교시</b>를 제안해요. <b>평소 요일 패턴</b>만 넣어요. 학생 화면에는 보이지 않아요. 나이스에 시간표가 있으면 그걸 먼저 써요.</p>
         <p class="hint" style="background:var(--bg);border-radius:10px;padding:10px 12px"><b>쓰는 법</b>: 엑셀에서 우리 반 시간표를 드래그해 복사(Ctrl+C) → 아래 표의 <b>아무 칸이나 눌러서</b> 붙여넣기(Ctrl+V)하면 한 번에 채워져요. 직접 한 칸씩 써도 돼요.</p>
         <div id="ttGrid" style="margin-top:10px;overflow-x:auto"></div>
         <p class="hint" style="margin-top:6px">칸은 <b>과목 이름만</b> 써요 (예: <b>수학</b>). 붙여넣을 때 담당 선생님 이름은 자동으로 빠져요. 공지 제목의 "과학"은 <b>과A·과B</b>, "체육"은 <b>체A</b>, "사회"는 <b>사B</b> 같은 약칭 칸과도 맞춰요.</p>
         <div class="row" style="margin-top:12px"><button class="btn" onclick="ttSave(this)">시간표 저장</button></div>
         <div class="msg" id="ttMsg"></div>
+      </div>
+
+      <div class="box" id="schBox">
+        <h2>📆 학사일정 (달력 점 · 알림판)</h2>
+        <p class="hint">나이스 학사일정을 <b>기간 전체를 한 번에</b> 받아와서 학생 달력에 <b>초록 점</b>으로 보여줘요. 주말·공휴일·휴업일에는 점이 안 찍혀요. 나이스를 그대로 따르되, 아래 목록에서 <b>이름 수정 · 숨기기 · 우리 반 일정 추가</b>를 할 수 있어요.</p>
+        <label class="f">불러올 기간 <span id="schRgTxt" style="font-weight:400;color:var(--tx3)"></span></label>
+        <div class="chips" id="schRgChips"></div>
+        <div class="row" id="schRgCustom" style="margin-top:8px;display:none"><input type="date" id="schFrom"> <span>~</span> <input type="date" id="schTo"></div>
+        <div class="row" style="margin-top:12px"><button class="btn" onclick="schFetch(this)">기간 저장하고 불러오기</button></div>
+        <div class="msg" id="schMsg"></div>
+        <div id="schInfo" class="hint" style="margin-top:6px"></div>
+        <div id="schList" style="max-height:420px;overflow-y:auto"></div>
+        <label class="f" style="margin-top:14px">우리 반 일정 추가</label>
+        <div class="row"><input type="date" id="schAddD" style="flex:none"><input type="text" id="schAddN" maxlength="40" placeholder="일정 이름 (예: 학급 체육대회)" style="flex:1;min-width:140px"><button class="btn sub" onclick="schAdd(this)">추가</button></div>
       </div>
     </section>
 
@@ -2588,7 +2614,7 @@ function renderHelp(){
 }
 
 /* ===== 🔔 GAS 코드 버전 확인 ===== */
-const NEED_GAS = 2;        // 이 화면이 필요로 하는 GAS 코드 버전 (GAS를 고칠 때 같이 올려요)
+const NEED_GAS = 3;        // 이 화면이 필요로 하는 GAS 코드 버전 (GAS를 고칠 때 같이 올려요)
 let gasVer = null;
 const gasOld = () => gasVer !== null && gasVer < NEED_GAS;
 function renderGasBanner(){
@@ -2940,6 +2966,136 @@ $('fTitle').addEventListener('input', () => { nsPerAsked = ''; });
     return sn(btn, skipDup);
   };
 })();
+
+/* ===== 학년·반 고르기 칩 · 학사일정 기간/관리 (v3) ===== */
+WRITE_ACTIONS.push('neisOvSet');
+const NS_G = ['1','2','3'], NS_C = ['1','2','3','4','5','6','7','8'];
+let nsGCustom = false, nsCCustom = false;
+function nsChipSync(){
+  const g = $('nsGrade').value.trim(), c = $('nsCls').value.trim();
+  if (g && !NS_G.includes(g)) nsGCustom = true;
+  if (c && !NS_C.includes(c)) nsCCustom = true;
+  const mk = (arr, cur, custom, fn, suf) => arr.map(v => `<button type="button" class="scchip${!custom && cur === v ? ' on' : ''}" onclick="${fn}('${v}')">${v}${suf}</button>`).join('')
+    + `<button type="button" class="scchip${custom ? ' on' : ''}" onclick="${fn}('x')">직접입력</button>`;
+  $('nsGradeChips').innerHTML = mk(NS_G, g, nsGCustom, 'nsPickG', '학년');
+  $('nsClsChips').innerHTML = mk(NS_C, c, nsCCustom, 'nsPickC', '반');
+  $('nsGrade').style.display = nsGCustom ? '' : 'none';
+  $('nsCls').style.display = nsCCustom ? '' : 'none';
+  const lk = $('nsGrade').parentNode; if (lk) lk.style.display = (nsGCustom || nsCCustom) ? '' : 'none';
+}
+function nsPickG(v){ if (v === 'x'){ nsGCustom = true; nsChipSync(); $('nsGrade').focus(); return; } nsGCustom = false; $('nsGrade').value = v; nsChipSync(); }
+function nsPickC(v){ if (v === 'x'){ nsCCustom = true; nsChipSync(); $('nsCls').focus(); return; } nsCCustom = false; $('nsCls').value = v; nsChipSync(); }
+$('nsGrade').addEventListener('input', () => { const v = $('nsGrade').value.trim(); if (NS_G.includes(v)) nsGCustom = false; nsChipSync(); });
+$('nsCls').addEventListener('input', () => { const v = $('nsCls').value.trim(); if (NS_C.includes(v)) nsCCustom = false; nsChipSync(); });
+nsChipSync();
+(function(){   // 저장된 학년·반을 불러온 뒤에 칩도 맞춰요
+  const nl = neisLoad;
+  neisLoad = async function(f){ await nl(f); if (role !== 'admin') return; nsGCustom = false; nsCCustom = false; nsChipSync(); try{ schRgLoad(f); }catch(e){} };
+})();
+(function(){   // 나이스 설정을 저장할 때 학사일정 기간도 같이 저장
+  const ns0 = neisSave;
+  neisSave = function(btn, extra){ return ns0(btn, Object.assign(schRgPayload(), extra || {})); };
+})();
+
+/* --- 기간 --- */
+let schRg = { loaded:false, mode:'all', from:'', to:'', defFrom:'', defTo:'' };
+const schLastDay = y => { const d = new Date(y, 2, 0).getDate(); return String(d).padStart(2,'0'); };
+function schRgSet(mode){
+  const sy = Number((schRg.defFrom || (new Date().getFullYear() + '-03-01')).slice(0,4));
+  schRg.mode = mode;
+  if (mode === 'all'){ schRg.from = schRg.defFrom; schRg.to = schRg.defTo; }
+  else if (mode === 's1'){ schRg.from = sy + '-03-01'; schRg.to = sy + '-08-31'; }
+  else if (mode === 's2'){ schRg.from = sy + '-09-01'; schRg.to = (sy+1) + '-02-' + schLastDay(sy+1); }
+  schRgDraw();
+}
+function schRgDraw(){
+  const ch = [['all','학년도 전체'],['s1','1학기 (3~8월)'],['s2','2학기 (9월~2월)'],['custom','직접 정하기']];
+  $('schRgChips').innerHTML = ch.map(([k,t]) => `<button type="button" class="scchip${schRg.mode === k ? ' on' : ''}" onclick="schRgSet('${k}')">${t}</button>`).join('');
+  $('schRgCustom').style.display = schRg.mode === 'custom' ? '' : 'none';
+  if (schRg.mode !== 'custom'){ $('schFrom').value = schRg.from; $('schTo').value = schRg.to; }
+  $('schRgTxt').textContent = schRg.from ? '· ' + schRg.from + ' ~ ' + schRg.to : '';
+}
+function schRgPayload(){
+  if (!schRg.loaded) return {};
+  if (schRg.mode === 'custom'){
+    const f = $('schFrom').value, t = $('schTo').value;
+    return (f && t && f <= t) ? { rangeFrom:f, rangeTo:t } : {};
+  }
+  return schRg.mode === 'all' ? { rangeReset:true } : { rangeFrom:schRg.from, rangeTo:schRg.to };
+}
+async function schRgLoad(force){
+  if (schRg.loaded && !force) return;
+  try{
+    const r = await jsonp({ action:'neisSettings', pw:PW });
+    if (r.rangeFrom === undefined) return;   // 예전 GAS면 그대로 두기
+    schRg.defFrom = r.defFrom; schRg.defTo = r.defTo; schRg.from = r.rangeFrom; schRg.to = r.rangeTo;
+    const sy = Number(r.defFrom.slice(0,4));
+    schRg.mode = !r.rangeCustom ? 'all' : (r.rangeFrom === sy + '-03-01' && r.rangeTo === sy + '-08-31') ? 's1'
+      : (r.rangeFrom === sy + '-09-01' && r.rangeTo === (sy+1) + '-02-' + schLastDay(sy+1)) ? 's2' : 'custom';
+    schRg.loaded = true;
+    if (schRg.mode === 'custom'){ $('schFrom').value = r.rangeFrom; $('schTo').value = r.rangeTo; }
+    schRgDraw();
+  }catch(e){}
+}
+$('schFrom').addEventListener('input', () => { schRg.from = $('schFrom').value; });
+$('schTo').addEventListener('input', () => { schRg.to = $('schTo').value; });
+
+/* --- 목록 · 수정/숨기기/추가 --- */
+let schItems = [], schPast = false, schEditI = -1, schTotal = 0;
+const schDow = d => '일월화수목금토'[new Date(d + 'T00:00:00').getDay()];
+const schD = d => Number(d.slice(5,7)) + '/' + Number(d.slice(8,10)) + '(' + schDow(d) + ')';
+async function schFetch(btn){
+  if (gasVer !== null && gasVer < 3){ msg('schMsg','⚠️ 먼저 GAS 코드를 최신(버전 3)으로 바꿔 주세요.'); return; }
+  if (schRg.mode === 'custom' && !(schRg.from && schRg.to && schRg.from <= schRg.to)){ msg('schMsg','기간의 시작과 끝을 올바르게 골라 주세요.'); return; }
+  if (btn) btn.disabled = true; msg('schMsg','저장하고 불러오는 중…',true);
+  try{
+    if (!(await neisSave(null))) { if (btn) btn.disabled = false; return; }
+    await schReload();
+    msg('schMsg','불러왔어요. (나이스에서 받은 날짜 수 ' + schTotal + '건)',true);
+  }catch(e){ msg('schMsg', e.message); }
+  if (btn) btn.disabled = false;
+}
+async function schReload(){
+  const r = await jsonp({ action:'neisCalList', pw:PW });
+  schItems = r.items || []; schTotal = r.total || 0; schEditI = -1;
+  $('schInfo').textContent = '기간 ' + r.from + ' ~ ' + r.to + (r.custom ? ' (직접 정한 기간)' : ' (학년도 전체)');
+  schDraw();
+}
+function schDraw(){
+  const t = today();
+  const idx = schItems.map((x,i) => i).filter(i => schPast || schItems[i].date >= t);
+  const past = schItems.filter(x => x.date < t).length;
+  let h = idx.map(i => {
+    const x = schItems[i];
+    if (schEditI === i) return `<div class="schrow"><span class="d">${schD(x.date)}</span><input type="text" id="schEditT" maxlength="40" value="${esc(x.status === '수정' ? x.text : x.name)}"><button class="mini" onclick="schSaveEdit(${i})">저장</button><button class="mini" onclick="schEditI=-1;schDraw()">취소</button></div>`;
+    let nm = esc(x.name), bd = '', btns = '';
+    if (x.status === '숨김'){ nm = '<s>' + nm + '</s>'; bd = '<span class="bd" style="background:#EEE;color:#666">숨김</span>'; btns = `<button class="mini" onclick="schAct(${i},'해제')">되돌리기</button>`; }
+    else if (x.status === '수정'){ nm = esc(x.text) + ' <small style="color:var(--tx3)">(원래: ' + esc(x.name) + ')</small>'; bd = '<span class="bd">수정됨</span>'; btns = `<button class="mini" onclick="schEditOn(${i})">다시 수정</button><button class="mini" onclick="schAct(${i},'해제')">되돌리기</button>`; }
+    else if (x.status === '추가'){ bd = '<span class="bd">우리 반 추가</span>'; btns = `<button class="mini" onclick="schAct(${i},'해제')">삭제</button>`; }
+    else btns = `<button class="mini" onclick="schEditOn(${i})">이름 수정</button><button class="mini" onclick="schAct(${i},'숨김')">숨기기</button>`;
+    return `<div class="schrow"><span class="d">${schD(x.date)}</span><span class="nm">${nm}</span>${bd}${btns}</div>`;
+  }).join('');
+  if (!h) h = '<p class="hint">앞으로 남은 학사일정이 없어요. (기간·학년·반 설정을 확인해 보세요)</p>';
+  if (past) h += `<div style="margin-top:8px"><button class="mini scchip" onclick="schPast=!schPast;schDraw()">${schPast ? '지난 일정 접기' : '지난 일정 ' + past + '건 보기'}</button></div>`;
+  $('schList').innerHTML = h;
+}
+function schEditOn(i){ schEditI = i; schDraw(); const e = $('schEditT'); if (e){ e.focus(); e.select(); } }
+async function schSet(x, status, text){
+  msg('schMsg','저장 중…',true);
+  try{
+    await jsonp({ action:'neisOvSet', pw:PW, data:JSON.stringify({ date:x.date, orig:x.name, status, text:text || '' }) });
+    await schReload(); msg('schMsg','저장했어요. 학생 달력에는 잠시 뒤(최대 30분) 반영돼요.',true);
+  }catch(e){ msg('schMsg', e.message); }
+}
+function schAct(i, st){ const x = schItems[i]; if (x) schSet(x, st, st === '해제' && x.status === '추가' ? x.name : ''); }
+function schSaveEdit(i){ const x = schItems[i], v = ($('schEditT').value || '').trim(); if (!x) return; if (!v){ msg('schMsg','바꿀 이름을 적어 주세요.'); return; } schSet(x, '수정', v); }
+async function schAdd(btn){
+  const d = $('schAddD').value, n = $('schAddN').value.trim();
+  if (!d || !n){ msg('schMsg','날짜와 일정 이름을 모두 적어 주세요.'); return; }
+  btn.disabled = true;
+  await schSet({ date:d, name:n }, '추가', n);
+  $('schAddN').value = ''; btn.disabled = false;
+}
 </script>
 <!-- 🎬 학생 화면 체험 (샘플 데이터 · 저장·전송 없음) -->
 <div id="demoOv" class="hide" style="position:fixed;inset:0;z-index:95;background:var(--bg)">
