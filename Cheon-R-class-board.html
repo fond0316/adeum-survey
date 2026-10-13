@@ -1245,6 +1245,46 @@ async function tiLoad(date){
   const rd = render;
   render = function(){ rd(); try{ if (GAS) tiLoad(); }catch(e){} };
 })();
+
+/* ===== 🏫 학교 알림판 속도 — 한 달치를 한 번에 받아 두고, 받는 동안은 '불러오는 중'으로 표시 ===== */
+const tiMonthAt = {}, tiMonthBusy = {};
+async function tiMonth(date){
+  const m = String(date).slice(0, 7), fresh = tiMonthAt[m] && Date.now() - tiMonthAt[m] < 30*60000;
+  if (fresh) return;
+  try{
+    const r = await (tiMonthBusy[m] || (tiMonthBusy[m] = jsonp({ action:'neisMonth', month:m }))).finally(() => { delete tiMonthBusy[m]; });
+    if (r && r.ok && r.enabled && r.days && !r.partial){
+      Object.keys(r.days).forEach(d => { tiCache[d] = { d:{ ok:true, enabled:true, date:d, strip:r.strip, open:r.open, schedule:r.days[d].schedule || [], meals:r.days[d].meals || {} }, at:Date.now() }; });
+      tiMonthAt[m] = Date.now();
+    } else tiMonthAt[m] = Date.now() - 25*60000;   // 못 받았으면 5분 뒤에 다시 (그동안은 날짜별로 받아요)
+  }catch(e){ tiMonthAt[m] = Date.now() - 25*60000; }
+}
+(function(){
+  const tr = tiRender;
+  tiRender = function(){
+    const box = document.getElementById('ti');
+    if (box && tiData && tiData.loading){   // 받는 동안 이전 날짜 내용이 남아 있지 않게
+      const open = tiOpen();
+      box.style.display = ''; box.className = 'ti' + (open ? ' open' : '');
+      const html = `<button type="button" class="ti-head" onclick="tiToggle()" aria-expanded="${open}"><span>🏫</span><span class="tt">${tiLab(tiData)}학교 알림판 · 불러오는 중…</span><span class="ar">▼</span></button><div class="ti-body"></div>`;
+      if (tiLast !== html){ tiLast = html; box.innerHTML = html; }
+      return;
+    }
+    tr();
+  };
+  const tl = tiLoad;
+  tiLoad = async function(date){
+    date = date || tiTarget();
+    const hit = tiCache[date];
+    if (!(hit && Date.now() - hit.at < 30*60000)){
+      if (date === tiTarget() && tiData && tiData.enabled && !tiData.loading){ tiData = { enabled:true, loading:true, date, strip:tiData.strip, open:tiData.open }; tiRender(); }
+      await tiMonth(date);
+      const nx = new Date(date + 'T00:00:00'); nx.setDate(1); nx.setMonth(nx.getMonth() + 1);
+      setTimeout(() => { try{ tiMonth(ymd(nx)); }catch(e){} }, 1500);   // 다음 달도 미리 받아 둬요
+    }
+    return tl(date);
+  };
+})();
 if (GAS){
   tiLoad();
   setInterval(() => { tiLoad(); }, 60000);   // 같은 날짜는 30분마다만 새로 받고, 날짜가 바뀌면 바로

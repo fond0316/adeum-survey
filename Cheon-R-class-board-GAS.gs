@@ -5,7 +5,7 @@
  */
 
 /** GAS 코드 버전 — 코드를 고칠 때마다 1씩 올려요. 관리 화면이 이 번호로 업데이트가 필요한지 알려줘요. */
-var GAS_VER = 3;
+var GAS_VER = 4;
 
 var TZ = 'Asia/Seoul';
 var SHEETS = {
@@ -74,6 +74,7 @@ function route_(p) {
     case 'neisTest': return neisTest_(p);
     case 'neisPeriod': return neisPeriod_(p);
     case 'neisCalDots': return neisCalDots_(p);
+    case 'neisMonth': return neisMonth_(p);
     case 'neisCalList': return neisCalList_(p);
     case 'neisOvSet': return neisOvSet_(p);
     default: return { ok: false, error: '알 수 없는 요청이에요.' };
@@ -1236,3 +1237,48 @@ function neisOvSet_(p) {
     return r;
   };
 })();
+
+
+/* ---------- 학교 알림판 한 달치 한 번에 (v4) — 날짜를 누를 때마다 기다리지 않게 ---------- */
+function neisMonth_(p) {
+  if (!neisEnabled_()) return { ok: true, enabled: false };
+  var m = String(p.month || '');
+  if (!/^\d{4}-\d{2}$/.test(m)) m = neisDate_('').slice(0, 7);
+  var y = Number(m.slice(0, 4)), mo = Number(m.slice(5, 7));
+  if (mo < 1 || mo > 12) throw new Error('달 형식이 올바르지 않아요.');
+  var last = new Date(y, mo, 0).getDate();
+  var two = function (n) { return n < 10 ? '0' + n : String(n); };
+  var from = m + '-01', to = m + '-' + two(last);
+  var strip = neisStrip_(), open = neisOpen_();
+  var need = [];
+  ['조식', '점심', '석식'].forEach(function (x) { if (neisHas_(strip, x) || neisHas_(open, x)) need.push(x); });
+  var days = {}, partial = false;
+  for (var d = 1; d <= last; d++) days[m + '-' + two(d)] = { schedule: [], meals: {} };
+  var toDate = function (ymd) { ymd = String(ymd || ''); return ymd.length === 8 ? ymd.slice(0, 4) + '-' + ymd.slice(4, 6) + '-' + ymd.slice(6, 8) : ''; };
+  // 학사일정 (우리 학년 것만 · 공휴일도 알림판에는 보여줘요)
+  var sc = neisSchool_(); sc.AA_FROM_YMD = neisYmd_(from); sc.AA_TO_YMD = neisYmd_(to);
+  var g = Number(getSetting_('NEIS학년')) || 0, gf = ['', 'ONE', 'TW', 'THREE'];
+  var srows = neisFetch_('SchoolSchedule', sc, 7200);
+  if (srows.length >= 100) partial = true;
+  srows.forEach(function (r) {
+    var dt = toDate(r.AA_YMD); if (!days[dt]) return;
+    if (g >= 1 && g <= 3) {
+      var mine = r[gf[g] + '_GRADE_EVENT_YN'];
+      var any = r.ONE_GRADE_EVENT_YN === 'Y' || r.TW_GRADE_EVENT_YN === 'Y' || r.THREE_GRADE_EVENT_YN === 'Y';
+      if (mine === 'N' && any) return;
+    }
+    var nm = String(r.EVENT_NM || '').trim();
+    if (nm && days[dt].schedule.indexOf(nm) < 0) days[dt].schedule.push(nm);
+  });
+  var ov = neisOvRows_();
+  Object.keys(days).forEach(function (dt) { days[dt].schedule = neisApplyOv_(dt, days[dt].schedule, ov); });
+  // 급식
+  need.forEach(function (nm) {
+    var mc = neisSchool_(); mc.MMEAL_SC_CODE = NEIS_MEAL[nm]; mc.MLSV_FROM_YMD = neisYmd_(from); mc.MLSV_TO_YMD = neisYmd_(to);
+    var mrows = neisFetch_('mealServiceDietInfo', mc, 7200);
+    if (mrows.length >= 100) partial = true;
+    Object.keys(days).forEach(function (dt) { days[dt].meals[nm] = []; });
+    mrows.forEach(function (r) { var dt = toDate(r.MLSV_YMD); if (days[dt]) days[dt].meals[nm] = neisMenu_(r.DDISH_NM); });
+  });
+  return { ok: true, enabled: true, month: m, strip: strip, open: open, days: days, partial: partial };
+}
