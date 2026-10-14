@@ -296,6 +296,11 @@ input[type=file]{display:none;}
 .hub-tab{flex:1;min-width:0;min-height:52px;padding:7px 0 6px;border-radius:12px;background:white;border:1.5px solid #e5e7eb;color:#6b7280;font-family:inherit;cursor:pointer;text-align:center;}
 .hub-tab b{display:block;font-size:14px;font-weight:700;}
 .hub-tab b::before{content:attr(data-ic) ' ';}
+.hub-badge.hub-cnt{background:#E4DFF3;color:#5E4F94;}
+.hub-badge.hub-cnt.zero{background:#F3F4F6;color:#9ca3af;}
+.hub-rowtv{margin-top:10px;padding-top:10px;border-top:1px dashed #e5e7eb;}
+.hub-rowtv-msg{font-size:12px;color:#374151;margin-bottom:8px;line-height:1.6;}
+.hub-rowtv-msg.err{color:#B91C1C;}
 .hub-sumrow{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;padding:8px 12px;margin-bottom:6px;border:1px solid #e5e7eb;border-radius:10px;background:white;font-family:inherit;font-size:13px;text-align:left;cursor:pointer;}
 .hub-sumrow .nm{flex:1;min-width:0;font-weight:700;color:#111;}
 .hub-sumrow .lt{font-size:11px;color:#9ca3af;}
@@ -1115,7 +1120,7 @@ input[type=file]{display:none;}
     <div class="admin-gasurl-card" id="hubPwCard" style="border:2px solid #FDE68A;">
       <div class="ag-title">🔑 관리자 암호</div>
       <div class="info-box" style="margin-bottom:12px;">💾 저장하기와 제출 현황·주제별 보기를 쓸 때 필요해요. 학생이 마음대로 항목을 바꾸거나 다른 학생 답변을 보지 못하게 막는 암호예요.<br>한 번 입력하면 이 창을 닫을 때까지 기억해요. (GAS 파일 맨 위 ADMIN_PW에 적은 값)</div>
-      <input type="password" id="hubSrvPw" autocomplete="off" placeholder="관리자 암호"/>
+      <input type="password" id="hubSrvPw" autocomplete="off" placeholder="관리자 암호" style="width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--gray-200);border-radius:8px;font-size:16px;font-family:inherit;color:var(--gray-800);outline:none;box-sizing:border-box;"/>
     </div>
 
     <div class="admin-gasurl-card" id="studentLinkCard" style="display:none;border:2px solid var(--primary-mid);">
@@ -3454,6 +3459,7 @@ function hubAdminInit(){
   hubConnSet(!GAS_URL);
   hubDraft = { items: hubClone(hubItems), study: hubClone(hubStudy), forms: hubClone(hubForms) };
   hubDirty = false; hubTouched = false; hubMsg(''); hubPwRestore(); hubAdminRender();
+  hubSumAuto();
   if(GAS_URL){
     jsonpGAS({ action:'getHubItems' }).then(d=>{
       if(!hubDirty && !hubTouched && d && Array.isArray(d.items) && d.items.length){
@@ -3465,7 +3471,7 @@ function hubAdminInit(){
   }
 }
 function hubRowHtml(it, kind, i, n){
-  const badge = kind==='hub' ? '<span class="hub-badge ar-' + it.area + '">' + HUB_AREAS[it.area] + '</span> <span class="hub-badge ' + it.type + '">' + HUB_TYPES[it.type] + '</span>' + (it.closed ? ' <span class="hub-badge off">마감</span>' : (it.due ? ' <span class="hub-badge submit">~' + hubEsc(hubDueText(it.due)) + '</span>' : '')) : '';
+  const badge = kind==='hub' ? '<span class="hub-badge ar-' + it.area + '">' + HUB_AREAS[it.area] + '</span> <span class="hub-badge ' + it.type + '">' + HUB_TYPES[it.type] + '</span>' + (it.closed ? ' <span class="hub-badge off">마감</span>' : (it.due ? ' <span class="hub-badge submit">~' + hubEsc(hubDueText(it.due)) + '</span>' : '')) + hubCntBadge(it) : '';
   return '<div class="hub-arow' + (it.visible ? '' : ' off') + '">'
     + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">'
     + '<span style="font-size:22px;">' + hubEsc(it.icon) + '</span>'
@@ -3477,8 +3483,11 @@ function hubRowHtml(it, kind, i, n){
     + '<button class="hub-ib" aria-label="아래로" onclick="hubMove(\'' + kind + '\',' + i + ',1)">↓</button>'
     + '<button class="hub-ib" aria-label="수정" onclick="hubOpenEdit(\'' + kind + '\',' + i + ')">✏️</button>'
     + '<button class="hub-ib" aria-label="표시 전환" onclick="hubToggle(\'' + kind + '\',' + i + ')">' + (it.visible ? '👁' : '🙈') + '</button>'
+    + (kind==='hub' && it.type==='submit' ? '<button class="hub-ib" aria-label="제출 현황" title="제출 현황 보기" onclick="hubRowTv(\'' + hubEsc(it.id) + '\')">📊</button>' : '')
     + (kind==='hub' ? '<button class="hub-ib" aria-label="삭제" onclick="hubDelete(' + i + ')">🗑️</button>' : '')
-    + '</div></div>';
+    + '</div>'
+    + (kind==='hub' && it.type==='submit' && hubRowTvOpen === String(it.id) ? '<div class="hub-rowtv" data-id="' + hubEsc(it.id) + '"></div>' : '')
+    + '</div>';
 }
 function hubAdminRender(){
   const a = document.getElementById('hubAdminList'), b = document.getElementById('hubStudyAdminList');
@@ -3494,8 +3503,58 @@ function hubAdminRender(){
   const btn = document.getElementById('hubSaveBtn');
   if(btn) btn.textContent = hubDirty ? '💾 저장하기 (변경됨)' : '💾 저장하기';
   hubTvFill();
+  hubRowTvPaint();
 }
 let hubATab = 'auto';
+let hubSumCache = {}, hubRowTvOpen = '', hubRowTvCache = {};
+function hubCntBadge(it){
+  if(!it || it.type !== 'submit') return '';
+  const c = hubSumCache[String(it.id)];
+  if(!c) return '';
+  return ' <span class="hub-badge hub-cnt' + (c.count ? '' : ' zero') + '">' + (c.count ? (c.count + '명 제출') : '아직 없어요') + '</span>';
+}
+function hubSumStore(items){
+  hubSumCache = {};
+  (items || []).forEach(x=>{ hubSumCache[String(x.id)] = { count: Number(x.count) || 0, last: x.last || '' }; });
+}
+// 관리자 화면을 열 때 암호가 이미 있으면 조용히 제출 인원을 불러와 각 주제 카드에 보여줘요
+async function hubSumAuto(){
+  if(!GAS_URL) return;
+  const pw = hubGetPw(); if(!pw) return;
+  try{
+    const res = await postGASRead({ type:'adminTopicSummary', pw: pw });
+    if(res && res.status === 'ok'){ hubSumStore(res.items); hubAdminRender(); }
+  }catch(e){}
+}
+function hubRowTvPaint(){
+  document.querySelectorAll('#hubAdminList .hub-rowtv').forEach(el=>{
+    const id = el.getAttribute('data-id'), res = hubRowTvCache[id];
+    el.innerHTML = '';
+    if(!res){ const m = document.createElement('div'); m.className = 'hub-rowtv-msg'; m.textContent = '불러오는 중…'; el.appendChild(m); return; }
+    if(res.error){ const m = document.createElement('div'); m.className = 'hub-rowtv-msg err'; m.textContent = res.error; el.appendChild(m); return; }
+    const m = document.createElement('div'); m.className = 'hub-rowtv-msg';
+    m.textContent = '✅ ' + (res.rows || []).length + '명 제출' + ((res.rows || []).length ? '' : ' — 아직 아무도 안 냈어요');
+    el.appendChild(m);
+    const box = document.createElement('div'); el.appendChild(box);
+    hubTvBuild(res, box);
+  });
+}
+async function hubRowTv(id){
+  id = String(id);
+  if(hubRowTvOpen === id){ hubRowTvOpen = ''; hubAdminRender(); return; }
+  hubRowTvOpen = id; delete hubRowTvCache[id]; hubAdminRender();
+  if(!GAS_URL){ hubRowTvCache[id] = { error:'GAS URL이 설정되지 않았어요. 위쪽 "🔗 연결 설정"에서 GAS를 먼저 연결해 주세요.' }; hubRowTvPaint(); return; }
+  const pw = hubGetPw();
+  if(!pw){ hubRowTvCache[id] = { error:'관리자 암호를 먼저 입력해 주세요. (연결 설정을 열어 드렸어요)' }; hubRowTvPaint(); hubPwNeed(); return; }
+  let res;
+  try{ res = await postGASRead({ type:'adminTopicView', itemId: id, pw: pw }); }
+  catch(e){ hubRowTvCache[id] = { error:'❌ 불러오지 못했어요. 인터넷 연결과 GAS "수정 배포" 상태를 확인해 주세요.' }; hubRowTvPaint(); return; }
+  if(!res || res.status === 'auth'){ hubRowTvCache[id] = { error:'🔒 ' + ((res && res.message) || '관리자 암호가 달라요.') }; hubRowTvPaint(); hubPwNeed(); return; }
+  if(res.status !== 'ok'){ hubRowTvCache[id] = { error:'⚠️ ' + (res.message || '불러오지 못했어요. 저장하기를 먼저 눌러 보세요.') }; hubRowTvPaint(); return; }
+  hubRowTvCache[id] = res;
+  hubSumCache[id] = { count: (res.rows || []).length, last: (hubSumCache[id] && hubSumCache[id].last) || '' };
+  if(hubRowTvOpen === id) hubAdminRender();
+}
 const HUB_AREA_IC = { auto:'🌱', career:'💡', etc:'🎈' };
 function hubSetATab(k){ hubATab = k; hubAdminRender(); }
 function hubArr(kind){ return kind==='study' ? hubDraft.study : hubDraft.items; }
@@ -3734,7 +3793,7 @@ async function hubSumLoad(){
   catch(e){ hubSumMsg('❌ 불러오지 못했어요. 인터넷 연결과 GAS "수정 배포" 상태를 확인해 주세요.', 'err'); return; }
   if(!res || res.status === 'auth'){ hubSumMsg('🔒 ' + ((res && res.message) || '관리자 암호가 달라요.'), 'err'); hubPwNeed(); return; }
   if(res.status !== 'ok'){ hubSumMsg('⚠️ ' + (res.message || '불러오지 못했어요.'), 'warn'); return; }
-  hubSumRender(res.items || []);
+  hubSumStore(res.items); hubSumRender(res.items || []); hubAdminRender();
 }
 function hubSumRender(items){
   const out = document.getElementById('hubSumOut'); if(!out) return;
@@ -3785,8 +3844,12 @@ async function hubTvLoad(){
 function hubTvRender(res){
   const out = document.getElementById('hubTvOut');
   out.innerHTML = '';
-  const qs = res.questions || [], rows = res.rows || [];
+  const rows = res.rows || [];
   hubTvMsg('✅ ' + res.item.areaLabel + ' · ' + res.item.name + ' — ' + rows.length + '명 제출');
+  hubTvBuild(res, out);
+}
+function hubTvBuild(res, out){
+  const qs = res.questions || [], rows = res.rows || [];
   if(!rows.length){ return; }
   const heads = ['반','번호','이름','제출시각'].concat(qs);
   const wrap = document.createElement('div'); wrap.className = 'hub-tv-wrap';
