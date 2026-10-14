@@ -3005,6 +3005,13 @@ function loadStudentInfoToForm() {
       <input type="text" id="hubFLink" inputmode="url" placeholder="https://..."/>
       <input type="text" id="hubFLinkLabel" maxlength="30" placeholder="버튼 이름 (비우면 기본 문구)" style="margin-top:6px;"/>
     </div>
+    <div class="form-group" id="hubGFiles">
+      <label>📎 첨부 (PDF · 사진) <span style="font-weight:400;color:var(--gray-400);font-size:11px;">(학생 화면에 자동으로 보여요)</span></label>
+      <div id="hubFileList"></div>
+      <input type="file" id="hubFileInput" accept=".pdf,application/pdf,image/*" multiple style="display:none;" onchange="hubFilePick(this)"/>
+      <button type="button" class="btn btn-secondary btn-sm" id="hubFileBtn" onclick="document.getElementById('hubFileInput').click()">＋ PDF·사진 올리기</button>
+      <div id="hubFileSt" class="hub-hint" style="margin-top:6px;"></div>
+    </div>
     <div class="form-group" id="hubGQs">
       <label>제출 질문 <span style="font-weight:400;color:var(--gray-400);font-size:11px;">(학생이 요약본에 답하는 칸)</span></label>
       <div id="hubQEditor"></div>
@@ -3063,6 +3070,7 @@ let hubItems = [], hubStudy = [];
 let hubDraft = null, hubDirty = false;
 let hubEditCtx = { kind:'hub', idx:-1 };
 const HUB_MY_KEY = 'class_hub_my_v1';   // 이 기기 학생의 작성 중/제출한 내용
+let hubFiles = {}, hubEditFiles = [], hubUploading = 0;
 let hubForms = {}, hubMy = {}, hubEditQs = [], hubEditId = '', hubCurItem = '', hubSubmitting = false, hubTouched = false;
 let hubTab = 'auto', hubTabTouched = false, hubAreaTouched = false;
 
@@ -3133,8 +3141,22 @@ function hubApply(d){
     Object.keys(d.forms).forEach(k=>{ f[k] = (d.forms[k] || []).map(hubNormQ); });
   }
   hubForms = f;
+  const fl = {};
+  if(d && Array.isArray(d.files)){
+    d.files.forEach(r=>{ const fx = hubNormFile(r); if(!fx) return; const k = String(r.itemId); (fl[k] = fl[k] || []).push(fx); });
+  } else if(d && d.files && typeof d.files === 'object'){
+    Object.keys(d.files).forEach(k=>{ const a = (d.files[k] || []).map(hubNormFile).filter(Boolean); if(a.length) fl[k] = a; });
+  }
+  hubFiles = fl;
 }
-function hubCache(){ try{ localStorage.setItem(HUB_KEY, JSON.stringify({ items:hubItems, study:hubStudy, forms:hubForms })); }catch(e){} }
+const HUB_FILE_ID_RE = /^[A-Za-z0-9_-]{10,}$/;
+function hubNormFile(r){
+  if(!r) return null;
+  const id = String(r.id || '').trim();
+  if(!HUB_FILE_ID_RE.test(id)) return null;
+  return { id:id, name:String(r.name || '첨부파일').slice(0,80), kind: r.kind === 'pdf' ? 'pdf' : 'image' };
+}
+function hubCache(){ try{ localStorage.setItem(HUB_KEY, JSON.stringify({ items:hubItems, study:hubStudy, forms:hubForms, files:hubFiles })); }catch(e){} }
 function hubLoadLocal(){
   let d = null;
   try{ d = JSON.parse(localStorage.getItem(HUB_KEY) || 'null'); }catch(e){}
@@ -3234,6 +3256,34 @@ function goHub(){
   showScreen('hub'); updateStepBar(0); renderHub();
   window.scrollTo(0,0);
 }
+function hubFileView(f){
+  const wrap = document.createElement('div');
+  wrap.className = 'hub-file';
+  wrap.style.cssText = 'margin-top:14px;';
+  const view = 'https://drive.google.com/file/d/' + encodeURIComponent(f.id) + '/view';
+  if(f.kind === 'pdf'){
+    const t = document.createElement('div');
+    t.style.cssText = 'font-size:13px;font-weight:700;color:#374151;margin-bottom:6px;';
+    t.textContent = '📄 ' + f.name;
+    const fr = document.createElement('iframe');
+    fr.src = 'https://drive.google.com/file/d/' + encodeURIComponent(f.id) + '/preview';
+    fr.title = f.name; fr.loading = 'lazy';
+    fr.style.cssText = 'width:100%;height:480px;border:1.5px solid #e5e7eb;border-radius:12px;background:#f9fafb;';
+    const a = document.createElement('a');
+    a.className = 'hub-linkbtn'; a.href = view; a.target = '_blank'; a.rel = 'noopener noreferrer';
+    a.textContent = '📄 PDF 크게 보기 (새 창)';
+    wrap.appendChild(t); wrap.appendChild(fr); wrap.appendChild(a);
+  } else {
+    const a = document.createElement('a');
+    a.href = view; a.target = '_blank'; a.rel = 'noopener noreferrer';
+    const im = document.createElement('img');
+    im.src = 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(f.id) + '&sz=w1600';
+    im.alt = f.name; im.loading = 'lazy';
+    im.style.cssText = 'width:100%;height:auto;border-radius:12px;border:1.5px solid #e5e7eb;display:block;';
+    a.appendChild(im); wrap.appendChild(a);
+  }
+  return wrap;
+}
 function openHubItem(id){
   const it = hubItems.find(x=>String(x.id)===String(id));
   if(!it) return;
@@ -3243,10 +3293,13 @@ function openHubItem(id){
   document.getElementById('hubItemName').textContent = it.name;
   document.getElementById('hubItemDesc').textContent = it.desc;
   const body = document.getElementById('hubItemBody');
+  const itFiles = (hubFiles[it.id] || []).map(hubNormFile).filter(Boolean);
   if(it.body.trim()){ body.className = 'hub-body'; body.textContent = it.body; }
+  else if(itFiles.length){ body.className = 'hub-body'; body.textContent = ''; }
   else { body.className = 'hub-body muted'; body.textContent = '아직 등록된 안내가 없어요. 선생님이 곧 올려주실 거예요.'; }
   const extra = document.getElementById('hubItemExtra');
   extra.innerHTML = '';
+  itFiles.forEach(f=>extra.appendChild(hubFileView(f)));
   if(hubSafeUrl(it.link)){
     const a = document.createElement('a');
     a.className = 'hub-linkbtn';
@@ -3457,14 +3510,14 @@ function hubConnSet(open){
 function hubAdminInit(){
   hubAccInit();
   hubConnSet(!GAS_URL);
-  hubDraft = { items: hubClone(hubItems), study: hubClone(hubStudy), forms: hubClone(hubForms) };
+  hubDraft = { items: hubClone(hubItems), study: hubClone(hubStudy), forms: hubClone(hubForms), files: hubClone(hubFiles) };
   hubDirty = false; hubTouched = false; hubMsg(''); hubPwRestore(); hubAdminRender();
   hubSumAuto();
   if(GAS_URL){
     jsonpGAS({ action:'getHubItems' }).then(d=>{
       if(!hubDirty && !hubTouched && d && Array.isArray(d.items) && d.items.length){
         hubApply(d); hubCache(); renderHub(); applyStudyMenu();
-        hubDraft = { items: hubClone(hubItems), study: hubClone(hubStudy), forms: hubClone(hubForms) };
+        hubDraft = { items: hubClone(hubItems), study: hubClone(hubStudy), forms: hubClone(hubForms), files: hubClone(hubFiles) };
         hubAdminRender();
       }
     }).catch(()=>{});
@@ -3570,6 +3623,7 @@ function hubDelete(i){
   const it = hubDraft.items[i]; if(!it) return;
   if(!confirm("'" + it.name + "' 항목을 삭제할까요?\n(저장하기를 눌러야 실제로 반영돼요)")) return;
   if(hubDraft.forms) delete hubDraft.forms[it.id];
+  if(hubDraft.files) delete hubDraft.files[it.id];
   hubDraft.items.splice(i,1); hubDirty = true; hubTouched = true; hubAdminRender();
 }
 
@@ -3596,6 +3650,10 @@ function hubOpenEdit(kind, idx){
   if(!hubDraft.forms) hubDraft.forms = {};
   hubEditQs = hubClone(hubDraft.forms[hubEditId] || []).map(hubNormQ);
   if(!hubEditQs.length) hubEditQs = hubDefaultForm();
+  if(!hubDraft.files) hubDraft.files = {};
+  hubEditFiles = hubClone(hubDraft.files[hubEditId] || []);
+  document.getElementById('hubFileSt').textContent = '';
+  hubFileRender();
   document.getElementById('hubFErr').style.display = 'none';
   hubTypeChange();
   document.getElementById('hubEditModal').classList.add('show');
@@ -3609,6 +3667,7 @@ function hubTypeChange(){
   const showExtra = !isMenu && type !== 'study';
   document.getElementById('hubGBody').style.display = showExtra ? '' : 'none';
   document.getElementById('hubGLink').style.display = showExtra ? '' : 'none';
+  document.getElementById('hubGFiles').style.display = showExtra ? '' : 'none';
   const isSubmit = !isMenu && type === 'submit';
   document.getElementById('hubGQs').style.display = isSubmit ? '' : 'none';
   document.getElementById('hubGClosed').style.display = isSubmit ? 'flex' : 'none';
@@ -3640,6 +3699,90 @@ function hubQAdd(){ hubEditQs.push(hubNormQ({ label:'', type:'short', required:f
 function hubQMove(i, d){ const j = i + d; if(j < 0 || j >= hubEditQs.length) return; const t = hubEditQs[i]; hubEditQs[i] = hubEditQs[j]; hubEditQs[j] = t; hubQRender(); }
 function hubQDel(i){ hubEditQs.splice(i,1); hubQRender(); }
 
+// ── 관리자: 첨부(PDF·사진) 올리기 ──
+const HUB_PDF_MAX = 9 * 1024 * 1024;
+function hubFileRender(){
+  const el = document.getElementById('hubFileList');
+  if(!el) return;
+  el.innerHTML = hubEditFiles.map((f,i)=>
+    '<div class="hub-qrow" style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">'
+    + '<span style="font-size:20px;">' + (f.kind==='pdf' ? '📄' : '🖼️') + '</span>'
+    + '<span style="flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + hubEsc(f.name) + '</span>'
+    + '<button type="button" class="hub-ib" aria-label="위로" onclick="hubFileMove(' + i + ',-1)">↑</button>'
+    + '<button type="button" class="hub-ib" aria-label="아래로" onclick="hubFileMove(' + i + ',1)">↓</button>'
+    + '<button type="button" class="hub-ib" aria-label="삭제" onclick="hubFileDel(' + i + ')">🗑️</button></div>'
+  ).join('');
+}
+function hubFileMove(i, d){ const j = i + d; if(j < 0 || j >= hubEditFiles.length) return; const t = hubEditFiles[i]; hubEditFiles[i] = hubEditFiles[j]; hubEditFiles[j] = t; hubFileRender(); }
+function hubFileDel(i){ hubEditFiles.splice(i,1); hubFileRender(); }
+function hubFileSt(t, bad){ const el = document.getElementById('hubFileSt'); if(el){ el.textContent = t; el.style.color = bad ? '#dc2626' : ''; } }
+function hubReadB64(blob){
+  return new Promise((resolve, reject)=>{
+    const r = new FileReader();
+    r.onload = ()=>{ const u = String(r.result || ''); const k = u.indexOf(','); resolve(k >= 0 ? u.slice(k+1) : ''); };
+    r.onerror = ()=>reject(new Error('READ'));
+    r.readAsDataURL(blob);
+  });
+}
+function hubImgToJpeg(file){
+  return new Promise((resolve, reject)=>{
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = ()=>{
+      try{
+        const MAX = 1600;
+        let w = img.naturalWidth, h = img.naturalHeight;
+        if(!w || !h){ reject(new Error('IMG')); return; }
+        const sc = Math.min(1, MAX / Math.max(w, h));
+        w = Math.round(w * sc); h = Math.round(h * sc);
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        c.toBlob(b=>{ URL.revokeObjectURL(url); b ? resolve(b) : reject(new Error('IMG')); }, 'image/jpeg', 0.85);
+      }catch(e){ URL.revokeObjectURL(url); reject(e); }
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); reject(new Error('IMG')); };
+    img.src = url;
+  });
+}
+async function hubFilePick(inp){
+  const files = Array.prototype.slice.call(inp.files || []);
+  inp.value = '';
+  if(!files.length) return;
+  if(!GAS_URL){ hubFileSt('GAS를 먼저 연결해 주세요. (위쪽 "🔗 연결 설정")', true); return; }
+  if(!hubGetPw()){ hubFileSt('관리자 암호가 필요해요. 모달 뒤쪽 "🔗 연결 설정"에 관리자 암호를 입력한 뒤 다시 올려 주세요.', true); hubPwNeed(); return; }
+  const btn = document.getElementById('hubFileBtn');
+  hubUploading++; btn.disabled = true;
+  try{
+    for(const f of files){
+      if(hubEditFiles.length >= 12){ hubFileSt('첨부는 항목당 최대 12개까지예요.', true); break; }
+      const isPdf = f.type === 'application/pdf' || /\.pdf$/i.test(f.name);
+      const isImg = /^image\//.test(f.type);
+      if(!isPdf && !isImg){ hubFileSt('"' + f.name + '" — PDF나 사진만 올릴 수 있어요.', true); continue; }
+      hubFileSt('⏳ "' + f.name + '" 올리는 중…', false);
+      let blob = f, mime = 'application/pdf', name = f.name;
+      try{
+        if(isPdf){
+          if(f.size > HUB_PDF_MAX){ hubFileSt('"' + f.name + '" — PDF는 9MB까지 올릴 수 있어요. 용량을 줄이거나 사진으로 올려 주세요.', true); continue; }
+        } else {
+          blob = await hubImgToJpeg(f); mime = 'image/jpeg'; name = f.name.replace(/\.[^.]+$/, '') + '.jpg';
+        }
+        const data = await hubReadB64(blob);
+        const res = await postGASRead({ type:'uploadHubFile', pw:hubGetPw(), name:name, mime:mime, data:data });
+        if(res && res.status === 'auth'){ hubFileSt('🔒 관리자 암호가 달라요. "🔗 연결 설정"의 관리자 암호를 확인해 주세요.', true); hubPwNeed(); break; }
+        if(!res || res.status !== 'ok'){ hubFileSt('❌ "' + f.name + '" — ' + ((res && res.message) || '올리지 못했어요. GAS를 새 버전으로 수정 배포했는지 확인해 주세요.'), true); continue; }
+        const nf = hubNormFile({ id:res.fileId, name:res.name || name, kind:res.kind });
+        if(nf){ hubEditFiles.push(nf); hubFileRender(); }
+        hubFileSt(res.shared === false ? '⚠️ 올렸지만 "링크 공유"가 막혀 있어서 학생들이 못 볼 수 있어요. 드라이브의 "학급자율활동_첨부" 폴더 공유 설정을 확인해 주세요.' : '✅ 올렸어요. 아래 "적용"과 목록의 "저장하기"를 눌러야 학생에게 보여요.', res.shared === false);
+      }catch(e){
+        hubFileSt('❌ "' + f.name + '" — ' + (e && e.message === 'IMG' ? '이 사진 형식은 읽을 수 없어요. (JPG/PNG 권장)' : '올리는 중 오류가 났어요. 인터넷 연결과 GAS 수정 배포를 확인해 주세요.'), true);
+      }
+    }
+  } finally {
+    hubUploading--; if(!hubUploading) btn.disabled = false;
+  }
+}
 function hubCloseEdit(){ document.getElementById('hubEditModal').classList.remove('show'); }
 document.addEventListener('keydown', function(e){
   if(e.key !== 'Escape') return;
@@ -3658,6 +3801,7 @@ function hubApplyEdit(){
     if(!hubEditQs.length){ err.textContent = '제출 질문을 1개 이상 만들어 주세요.'; err.style.display = 'block'; return; }
     if(hubEditQs.some(q=>!String(q.label || '').trim())){ err.textContent = '비어 있는 질문이 있어요. 질문을 입력하거나 🗑️로 지워 주세요.'; err.style.display = 'block'; return; }
   }
+  if(hubUploading){ err.textContent = '파일을 올리는 중이에요. 잠시만 기다렸다가 다시 눌러 주세요.'; err.style.display = 'block'; return; }
   const arr = hubArr(hubEditCtx.kind);
   const old = hubEditCtx.idx >= 0 ? arr[hubEditCtx.idx] : null;
   const obj = hubNormItem({
@@ -3679,6 +3823,9 @@ function hubApplyEdit(){
   if(!isMenu){
     if(type === 'submit') hubDraft.forms[obj.id] = hubEditQs.map(hubNormQ);
     else delete hubDraft.forms[obj.id];
+    if(!hubDraft.files) hubDraft.files = {};
+    if(type !== 'study' && hubEditFiles.length) hubDraft.files[obj.id] = hubClone(hubEditFiles);
+    else delete hubDraft.files[obj.id];
   }
   hubDirty = true; hubCloseEdit(); hubAdminRender();
 }
@@ -3689,6 +3836,13 @@ function hubFormRows(){
   hubItems.forEach(it=>{
     if(it.type !== 'submit') return;
     (hubForms[it.id] || []).forEach(q=>rows.push({ itemId:it.id, id:q.id, label:q.label, type:q.type, required:!!q.required, hint:q.hint }));
+  });
+  return rows;
+}
+function hubFileRows(){
+  const rows = [];
+  hubItems.forEach(it=>{
+    (hubFiles[it.id] || []).forEach(f=>rows.push({ itemId:it.id, id:f.id, name:f.name, kind:f.kind }));
   });
   return rows;
 }
@@ -3707,19 +3861,26 @@ async function hubSave(){
     }
   });
   hubForms = nf;
+  const nfl = {};
+  hubItems.forEach(it=>{
+    if(it.type === 'study') return;
+    const a = ((hubDraft.files && hubDraft.files[it.id]) || []).map(hubNormFile).filter(Boolean).slice(0,12);
+    if(a.length) nfl[it.id] = a;
+  });
+  hubFiles = nfl;
   hubCache(); renderHub(); applyStudyMenu();
-  hubDraft = { items: hubClone(hubItems), study: hubClone(hubStudy), forms: hubClone(hubForms) };
+  hubDraft = { items: hubClone(hubItems), study: hubClone(hubStudy), forms: hubClone(hubForms), files: hubClone(hubFiles) };
   hubDirty = false; hubAdminRender();
   if(!GAS_URL){ hubMsg('⚠️ GAS URL이 설정되지 않아 이 기기에만 저장됐어요. 위쪽에서 GAS를 연결한 뒤 다시 저장해 주세요.','warn'); return; }
   const saveId = 's' + Date.now();
-  const payload = { type:'saveHubItems', saveId: saveId, pw: hubGetPw(), items: hubItems.map(hubToRow), study: hubStudy.map(hubToRow), forms: hubFormRows() };
+  const payload = { type:'saveHubItems', saveId: saveId, pw: hubGetPw(), items: hubItems.map(hubToRow), study: hubStudy.map(hubToRow), forms: hubFormRows(), files: hubFileRows() };
   const btn = document.getElementById('hubSaveBtn');
   const label = btn.textContent;
   btn.textContent = '저장 중…';
   try{
     // 1) 시트 쪽 GAS가 새 버전인지 먼저 확인 (옛 버전이면 엉뚱한 시트에 기록될 수 있어서 저장 중단)
     const probe = await jsonpGAS({ action:'getHubItems' });
-    if(!probe || !Array.isArray(probe.items) || !Array.isArray(probe.forms)){
+    if(!probe || !Array.isArray(probe.items) || !Array.isArray(probe.forms) || !Array.isArray(probe.files)){
       hubMsg('⚠️ GAS가 아직 새 버전이 아니에요. .gs 코드를 교체하고 "수정 배포"한 뒤 다시 저장해 주세요. (이 기기에는 저장됨)','warn');
       return;
     }
