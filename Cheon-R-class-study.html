@@ -1119,7 +1119,7 @@ input[type=file]{display:none;}
 
     <div class="admin-gasurl-card" id="hubPwCard" style="border:2px solid #FDE68A;">
       <div class="ag-title">🔑 관리자 암호</div>
-      <div class="info-box" style="margin-bottom:12px;">💾 저장하기와 제출 현황·주제별 보기를 쓸 때 필요해요. 학생이 마음대로 항목을 바꾸거나 다른 학생 답변을 보지 못하게 막는 암호예요.<br>한 번 입력하면 이 창을 닫을 때까지 기억해요. (GAS 파일 맨 위 ADMIN_PW에 적은 값)</div>
+      <div class="info-box" style="margin-bottom:12px;">💾 저장하기와 제출 현황을 볼 때 필요해요. 학생이 마음대로 항목을 바꾸거나 다른 학생 답변을 보지 못하게 막는 암호예요.<br>한 번 입력하면 이 창을 닫을 때까지 기억해요. (GAS 파일 맨 위 ADMIN_PW에 적은 값)</div>
       <input type="password" id="hubSrvPw" autocomplete="off" placeholder="관리자 암호" style="width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--gray-200);border-radius:8px;font-size:16px;font-family:inherit;color:var(--gray-800);outline:none;box-sizing:border-box;"/>
     </div>
 
@@ -1194,12 +1194,12 @@ input[type=file]{display:none;}
       <div class="card-title" style="margin-top:22px;">📚 학급자율스터디 안 메뉴</div>
       <div style="font-size:11px;color:var(--gray-400);margin-bottom:10px;line-height:1.6;">이름·설명·순서·표시 여부를 바꿀 수 있어요. (기능은 그대로예요)</div>
       <div id="hubStudyAdminList"></div>
-      <div class="card-title" style="margin-top:22px;">📋 주제별 보기</div>
-      <div style="font-size:11px;color:var(--gray-400);margin-bottom:10px;line-height:1.6;">주제를 고르면 제출한 학생의 답변을 표로 볼 수 있어요. 학생 개인 글이니 화면을 다른 사람에게 보여주지 않게 조심해 주세요.</div>
-      <button class="btn btn-secondary btn-sm" style="min-height:44px;width:100%;margin-bottom:10px;" onclick="hubSumLoad()">📊 주제별 제출 현황 불러오기</button>
+      <div class="card-title" style="margin-top:22px;">📊 주제별 제출 현황</div>
+      <div style="font-size:11px;color:var(--gray-400);margin-bottom:10px;line-height:1.6;">주제별로 몇 명이 냈는지 보고, 주제를 누르면 학생별 답변을 표로 볼 수 있어요. (위 항목 카드의 📊 버튼으로도 볼 수 있어요.) 학생 개인 글이니 화면을 다른 사람에게 보여주지 않게 조심해 주세요.</div>
+      <button class="btn btn-secondary btn-sm" style="min-height:44px;width:100%;margin-bottom:10px;" onclick="hubSumLoad()">🔄 제출 현황 불러오기 (새로고침)</button>
       <div id="hubSumMsg" style="font-size:12px;line-height:1.6;margin-bottom:8px;display:none;"></div>
       <div id="hubSumOut"></div>
-      <div style="display:flex;gap:8px;align-items:center;">
+      <div style="display:none;gap:8px;align-items:center;">
         <select id="hubTvSel" style="flex:1;min-width:0;"></select>
         <button class="btn btn-secondary btn-sm" style="min-height:44px;" onclick="hubTvLoad()">불러오기</button>
       </div>
@@ -3430,7 +3430,7 @@ function hubAccInit(){
   if(hubAccDone) return; hubAccDone = true;
   const root = document.getElementById('adminContainer'); if(!root) return;
   const hubCard = document.getElementById('hubAdminList'); const hc = hubCard && hubCard.closest('.card');
-  // 항목 관리 카드 안: 스터디 안 메뉴 / 주제별 보기 (항목 관리 본문은 그대로 펼침)
+  // 항목 관리 카드 안: 스터디 안 메뉴 / 주제별 제출 현황 (항목 관리 본문은 그대로 펼침)
   if(hc) hc.querySelectorAll('.card-title').forEach((t, i)=>{ if(i > 0) hubAccMake(t, true); });
   // 그 밖의 설정 카드: 학년도 / 제출 마감 / 전체 초기화 / 분기 기간
   root.querySelectorAll(':scope > .container > .card, :scope > .container > .admin-action-card, :scope > .container > .hub-acc').forEach(c=>{
@@ -3523,7 +3523,7 @@ async function hubSumAuto(){
   const pw = hubGetPw(); if(!pw) return;
   try{
     const res = await postGASRead({ type:'adminTopicSummary', pw: pw });
-    if(res && res.status === 'ok'){ hubSumStore(res.items); hubAdminRender(); }
+    if(res && res.status === 'ok'){ hubSumStore(res.items); hubSumRender(res.items || []); hubAdminRender(); }
   }catch(e){}
 }
 function hubRowTvPaint(){
