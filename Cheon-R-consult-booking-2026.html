@@ -295,6 +295,14 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
 .parent-notice{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-sm);padding:12px 14px;margin:2px 0 14px;}
 .foot-mail{color:var(--gray-400);text-decoration:underline;cursor:pointer;background:none;border:none;font:inherit;padding:0;}
 
+.hdet{background:var(--white);border-radius:14px;box-shadow:var(--shadow);margin-bottom:10px;overflow:hidden;}
+.hdet summary{padding:15px 16px;font-size:14px;font-weight:700;color:var(--gray-800);cursor:pointer;min-height:44px;list-style:none;}
+.hdet summary::-webkit-details-marker{display:none;}
+.hdet summary::after{content:'▾';float:right;color:var(--gray-400);}
+.hdet[open] summary::after{content:'▴';}
+.hdet .hb{padding:0 16px 16px;font-size:13px;color:var(--gray-600);line-height:1.9;}
+.hdet .hb ol{margin:0;padding-left:18px;}
+.hdet .hb p{margin:0;background:#FEF9C3;border-radius:10px;padding:12px 14px;font-size:12px;color:#92400E;line-height:1.8;}
 /* ── 앱 소개 · 체험해보기 (추가) ── */
 .intro-wrap{max-width:480px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 28px) 18px calc(env(safe-area-inset-bottom) + 28px);}
 .intro-stage{background:var(--white);border-radius:20px;padding:26px 20px 20px;min-height:340px;box-shadow:var(--shadow);text-align:center;touch-action:pan-y;user-select:none;}
@@ -615,7 +623,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
   <div class="admin-header">
     <div class="admin-header-title">⚙️ 관리자 화면 · <span style="font-size:11px;opacity:.7;">Made by Cheon_R</span></div>
     <div style="display:flex;gap:8px;align-items:center;">
-      <button class="admin-logout" onclick="openGuideModal()">📖 가이드</button>
+      <button class="admin-logout" onclick="switchAdminTab('guide')">📖 가이드</button>
       <button class="admin-logout" onclick="adminLogout()">로그아웃</button>
     </div>
   </div>
@@ -624,6 +632,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
     <button class="admin-nav-btn" onclick="switchAdminTab('settings')" id="aTab-settings">⚙️ 기본 설정</button>
     <button class="admin-nav-btn" onclick="switchAdminTab('slots')" id="aTab-slots">📅 날짜/시간</button>
     <button class="admin-nav-btn" onclick="switchAdminTab('bookings')" id="aTab-bookings">📋 예약 현황</button>
+    <button class="admin-nav-btn" onclick="switchAdminTab('guide')" id="aTab-guide">📘 가이드</button>
     <button class="admin-nav-btn" onclick="switchAdminTab('review')" id="aTab-review" style="display:none;">💬 후기</button>
     <button class="admin-nav-btn" onclick="switchAdminTab('owner')" id="aTab-owner" style="display:none;">👑 관리자</button>
   </div>
@@ -944,6 +953,46 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
     </div>
 
     <!-- 후기·개선점 -->
+    <!-- 📘 사용 가이드 (탭 · 클래스보드 형식 · 추가) -->
+    <div class="admin-section" id="adminSec-guide">
+      <div class="admin-card">
+        <div class="admin-card-title">📘 학부모 상담 예약 사용 가이드</div>
+        <p class="reg-hint" style="margin:0 0 10px;">처음 설정할 때 이 순서대로 해 주세요. 궁금한 항목을 눌러서 펼쳐 보세요.</p>
+        <div class="mini-grid">
+          <button class="btn btn-secondary" onclick="showIntro('adminScreen')" style="font-size:13px;padding:11px;">📖 앱 소개 다시 보기</button>
+          <button class="btn btn-secondary" onclick="openDemo()" style="font-size:13px;padding:11px;">🎬 체험해보기</button>
+        </div>
+      </div>
+      <details class="hdet" open><summary>1️⃣ GAS 연결하기 (구글 시트 연결)</summary><div class="hb"><ol>
+          <li><b>개인 구글 계정(@gmail.com)</b> 로그인 → <b>구글 스프레드시트</b> 접속 → <b>새 스프레드시트 만들기</b> → 상단 메뉴 <b>확장 프로그램 → Apps Script</b></li>
+          <li>기존 코드 전체 삭제 후 배포용 GAS 코드 붙여넣기 → 저장</li>
+          <li>함수 선택칸에서 <b>setupTrigger</b> 선택 → ▶ 실행 (처음 1회)</li>
+          <li>"확인하지 않은 앱" 경고 → <b>고급 → (프로젝트)(으)로 이동 → 허용</b> (내가 만든 코드라 나오는 정상 화면)</li>
+          <li>상단 메뉴 <b>배포 → 새 배포</b> 클릭</li>
+          <li>유형: <b>웹 앱</b> / 실행: <b>나</b> / 액세스: <b>모든 사용자</b> → 배포</li>
+          <li>웹앱 URL(…/exec) 복사</li>
+          <li>관리자 화면 <b>🔗 연결·QR 탭</b>에 URL 붙여넣고 <b>연결 확인 후 저장</b></li>
+        </ol></div></details>
+      <details class="hdet"><summary>2️⃣ 기본 정보 설정하기</summary><div class="hb"><ol>
+          <li><b>⚙️ 기본 설정 탭</b>으로 이동</li>
+          <li>선생님 이름 · 직함 입력 후 저장</li>
+          <li>비밀번호는 첫 로그인 때 바꾸셨어요 (필요하면 여기서 다시 변경)</li>
+          <li>공지 문구 입력 후 저장 (선택)</li>
+        </ol></div></details>
+      <details class="hdet"><summary>3️⃣ 날짜 · 시간 추가하기</summary><div class="hb"><ol>
+          <li><b>📅 날짜/시간 탭</b>으로 이동</li>
+          <li><b>+ 날짜 추가</b> 버튼으로 상담 날짜 추가</li>
+          <li>각 날짜마다 시작 · 종료 시간 입력 후 <b>추가</b></li>
+        </ol></div></details>
+      <details class="hdet"><summary>4️⃣ 학부모에게 배포하기</summary><div class="hb"><ol>
+          <li><b>🔗 연결·QR 탭</b>으로 이동</li>
+          <li><b>QR 이미지 저장·복사</b> 또는 <b>링크 복사</b></li>
+          <li>가정통신문·알림장·단체방에 붙여 넣어 학부모님께 공유</li>
+        </ol></div></details>
+      <details class="hdet"><summary>💡 코드 고친 뒤 다시 배포할 때</summary><div class="hb"><p>💡 GAS 코드 수정 후 재배포할 때는 <b>새 배포</b>가 아닌 <b>배포 관리 → 수정</b>으로 해야 URL이 유지돼요.
+      </p></div></details>
+    </div>
+
     <div class="admin-section" id="adminSec-review">
       <div class="admin-card">
         <div class="admin-card-title">💬 후기·개선점 남기기</div>
