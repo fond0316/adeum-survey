@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#9B8EC4">
+<title>ACTIVITY CHECK · 담임 관리</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{--main:#9B8EC4;--mainD:#6F62A3;--bg:#F4F2FA;--card:#fff;--tx:#2E2A3F;--tx2:#5E5873;--tx3:#8C87A0;--line:#E4E0F0;
+  --c1:#DCD6F5;--c1t:#433A8C;--c2:#CDEBDD;--c2t:#1F5C45;--c3:#FBE3CF;--c3t:#7A3F10;--ok:#2F8F63;--warn:#B7791F;--err:#C0392B}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;line-height:1.5;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);-webkit-tap-highlight-color:transparent}
+button,input,textarea,select{font-family:inherit;font-size:15px;color:inherit}
+button{cursor:pointer;border:0;background:none}
+.hide{display:none!important}
+.center{max-width:520px;margin:0 auto;padding:22px 14px 40px}
+.box,.card{background:#fff;border-radius:18px;padding:18px;box-shadow:0 2px 10px rgba(80,60,130,.07);margin-bottom:12px}
+h2{font-size:19px;margin-bottom:6px;color:var(--mainD)}
+h3{font-size:16px;margin-bottom:8px}
+.hint{font-size:12.5px;color:var(--tx3);line-height:1.6;margin-top:6px}
+label.f{display:block;font-size:13px;font-weight:700;color:var(--tx2);margin:14px 0 6px}
+label.f small{font-weight:500;color:var(--tx3)}
+input[type=text],input[type=password],input[type=url],input[type=number],textarea,select.sel,select.mini{width:100%;min-height:44px;padding:9px 12px;border:1.5px solid var(--line);border-radius:12px;background:#fff;outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--main)}
+textarea{min-height:90px;resize:vertical;line-height:1.55}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.btn{min-height:44px;padding:0 18px;border-radius:12px;font-weight:700;background:var(--main);color:#fff}
+.btn.sub{background:#fff;color:var(--mainD);border:1.5px solid var(--line)}
+.btn.sm{min-height:38px;padding:0 12px;font-size:13.5px}
+.btn.red{background:#fff;color:var(--err);border:1.5px solid #EBC9C4}
+.btn[disabled]{opacity:.5}
+.msg{font-size:13.5px;margin-top:8px;min-height:18px}.msg.ok{color:var(--ok)}.msg.no{color:var(--err)}
+.alink{color:var(--mainD);text-decoration:underline;background:none;font-size:13px}
+.agree{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:14px;min-height:44px}
+.agree input{width:22px;height:22px;flex:none;margin-top:1px}
+details.agd{margin-top:8px;font-size:13px}
+details.agd summary{cursor:pointer;color:var(--mainD);font-weight:600;min-height:36px;display:flex;align-items:center}
+.agb{background:#FAF9FD;border-radius:12px;padding:10px 12px;color:var(--tx2);line-height:1.65}
+.agb ul{padding-left:18px}.agb li{margin-bottom:6px}
+.help{background:#FFF8E6;border-radius:12px;padding:10px 12px;margin-top:10px;font-size:13px}
+.help .th{font-weight:800}.help .ts{color:var(--tx3);font-size:12px;margin-bottom:6px}
+details.tsi{background:#fff;border-radius:10px;margin-top:6px;padding:0 10px}
+details.tsi summary{cursor:pointer;min-height:40px;display:flex;align-items:center;font-weight:600;font-size:13px}
+details.tsi .tb{padding:0 0 10px;font-size:13px;color:var(--tx2)}
+details.tsi ol{padding-left:18px}.tsi li{margin-bottom:4px}
+.tw{background:#F4F2FA;border-radius:8px;padding:6px 10px;margin-top:6px;font-size:12.5px}
+/* 메인 */
+.top{display:flex;align-items:center;gap:8px;padding:12px 14px;background:#fff;position:sticky;top:0;z-index:20;box-shadow:0 1px 6px rgba(80,60,130,.08)}
+.top b{font-size:17px;color:var(--mainD);font-weight:800}
+.top small{color:var(--tx3);font-size:12px}
+.top .sp{flex:1}
+.top b,.top .btn{white-space:nowrap}
+@media(max-width:480px){.top small{display:none}}
+#nav{display:flex;gap:6px;overflow-x:auto;padding:10px 12px 6px;background:var(--bg);position:sticky;top:61px;z-index:19}
+#nav button{flex:none;min-height:44px;padding:0 14px;border-radius:22px;background:#fff;border:1.5px solid var(--line);font-weight:700;font-size:14px;color:var(--tx2);white-space:nowrap}
+#nav button.on{background:var(--main);border-color:var(--main);color:#fff}
+.wrap{max-width:980px;margin:0 auto;padding:6px 12px 40px}
+.pane{display:none}.pane.on{display:block}
+.grid2{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:760px){.grid2{grid-template-columns:1fr 1fr}}
+.tag{display:inline-block;font-size:12px;font-weight:700;border-radius:12px;padding:2px 10px}
+.t1{background:var(--c1);color:var(--c1t)}.t2{background:var(--c2);color:var(--c2t)}.t3{background:var(--c3);color:var(--c3t)}
+.badge{font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.b-none{background:#EEEBF5;color:var(--tx3)}.b-no{background:#E3EAF3;color:#4B6384}.b-sum{background:#FCEFD2;color:var(--warn)}.b-done{background:#D8F0E3;color:var(--ok)}
+.banner{background:#FFF1E0;border:1.5px solid #F2C68E;border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:13.5px}
+.chip{min-height:40px;padding:0 14px;border-radius:22px;border:1.5px solid var(--line);background:#fff;font-weight:600;font-size:14px;color:var(--tx2)}
+.chip.on{background:var(--main);border-color:var(--main);color:#fff}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+/* 항목 */
+.it{display:flex;gap:8px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--line)}
+.it:last-child{border-bottom:0}
+.it .t{flex:1;min-width:0}.it .t b{display:block;font-size:14.5px;word-break:keep-all}.it .t small{display:block;color:var(--tx3);font-size:12px}
+.it.off{opacity:.5}
+.ib{min-width:40px;min-height:40px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font-size:14px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{background:#F0EDF9;padding:6px;text-align:left;white-space:nowrap}
+.tbl td{padding:4px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl input[type=text],.tbl select{min-height:38px;padding:4px 8px;font-size:13.5px;border-radius:8px}
+.scroll{overflow-x:auto}
+/* 현황 */
+.stu{border:1.5px solid var(--line);border-radius:14px;margin-bottom:8px;background:#fff;overflow:hidden}
+.stu>.h{width:100%;display:flex;gap:8px;align-items:center;padding:12px;text-align:left;min-height:56px;flex-wrap:wrap}
+.stu>.h b{font-size:15px}.stu>.h .sp{flex:1}
+.stu .bd{padding:0 12px 12px;border-top:1px dashed var(--line)}
+.ir{padding:10px 0;border-bottom:1px solid var(--line)}
+.ir:last-child{border-bottom:0}
+.ir .hd{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ir .hd b{font-size:14px}
+.rec{background:#FAF9FD;border-radius:10px;padding:8px 10px;margin-top:6px;font-size:13.5px;line-height:1.6}
+.rec .sm{color:var(--tx2);white-space:pre-wrap;word-break:break-all}
+.tc{display:flex;gap:6px;align-items:center;margin-top:6px;flex-wrap:wrap}
+.tc input[type=text]{flex:1;min-width:140px;min-height:38px;padding:4px 10px}
+.tc label{display:flex;gap:6px;align-items:center;font-size:13px;font-weight:700;min-height:38px}
+.tc input[type=checkbox]{width:20px;height:20px}
+.bars{display:flex;align-items:flex-end;gap:4px;height:90px;margin-top:8px}
+.bars div{flex:1;background:var(--main);border-radius:4px 4px 0 0;min-height:2px;position:relative}
+.bars span{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:9.5px;color:var(--tx3);white-space:nowrap}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+@media(min-width:600px){.tiles{grid-template-columns:repeat(4,1fr)}}
+.tile{background:#F4F2FA;border-radius:12px;padding:10px;text-align:center}.tile b{display:block;font-size:22px;color:var(--mainD)}.tile small{color:var(--tx3);font-size:12px}
+.sw{display:flex;align-items:center;gap:10px;min-height:44px}
+.sw input{width:22px;height:22px}
+.rv-star{font-size:34px;color:#D8D2EE;min-width:44px;min-height:44px}.rv-star.on{color:#F2B33D}
+.ov{position:fixed;inset:0;background:rgba(40,30,70,.45);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px}
+.ov .in{background:#fff;border-radius:18px;padding:18px;max-width:560px;width:100%;max-height:86vh;overflow:auto;font-size:13.5px;line-height:1.7}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#2E2A3F;color:#fff;padding:11px 20px;border-radius:24px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:99;max-width:90vw;text-align:center}
+#toast.on{opacity:1}
+footer{text-align:center;font-size:12.5px;color:var(--tx3);margin:26px 0 10px;line-height:1.8}
+footer a{color:var(--mainD)}
+.step{display:flex;gap:10px;margin-top:10px}.step i{flex:none;width:26px;height:26px;border-radius:13px;background:var(--main);color:#fff;font-style:normal;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:13px}
+.step div{flex:1;font-size:13.5px}
+code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
+</style>
+</head>
+<body>
+
+<!-- 0-1) 앱 소개 -->
+<div id="scrIntro" class="center hide">
+  <div class="box">
+    <div style="text-align:center;font-size:12px;color:var(--tx3);letter-spacing:.5px;margin-bottom:6px">ACTIVITY CHECK</div>
+    <div id="introStage" style="background:var(--bg);border-radius:16px;padding:16px 14px;min-height:320px;color:#3B3358"></div>
+    <div id="introDots" style="display:flex;justify-content:center;gap:6px;margin:12px 0 10px"></div>
+    <div id="introBtns" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+</div>
+
+<!-- 0) 사용자 사전 등록 -->
+<div id="scrPre" class="center hide">
+  <div class="box">
+    <div class="row" style="margin:0 0 10px"><button class="btn sub sm" data-a="showIntro">📖 앱 소개</button><button class="btn sub sm" data-a="openDemo">🎬 체험해보기</button></div>
+    <h2>📝 사용자 등록</h2>
+    <p class="hint">처음 한 번만 입력하면 돼요. 입력한 정보는 사용 현황 파악을 위해 개발자에게 전달돼요. (다음 단계에서 구글 시트를 연결하면 등록이 자동으로 완료돼요)</p>
+    <label class="f">학교 위치·종류 <small>(필수)</small></label>
+    <div class="row" style="flex-wrap:nowrap;margin-top:0"><select id="preRegion" class="sel" style="flex:1"><option value="">지역</option><option>서울</option><option>부산</option><option>대구</option><option>인천</option><option>광주</option><option>대전</option><option>울산</option><option>세종</option><option>경기</option><option>강원</option><option>충북</option><option>충남</option><option>전북</option><option>전남</option><option>경북</option><option>경남</option><option>제주</option></select><select id="preLevel" class="sel" style="flex:1"><option value="">학교급</option><option>초등학교</option><option>중학교</option><option>고등학교</option><option>특수·기타</option></select></div>
+    <p class="hint">학교 이름과 학급은 받지 않아요. 지역과 학교급만 골라 주세요.</p>
+    <label class="f">아이디 <small>(필수)</small></label><input type="text" id="preName" maxlength="20"><p class="hint"><b>실명이 아닌 아이디를 권해요.</b></p>
+    <label class="agree"><input type="checkbox" id="preAgree"><span><b>[필수]</b> 개인정보 수집·이용에 동의합니다</span></label>
+    <details class="agd"><summary>자세히 보기 ▾</summary><div class="agb"><ul>
+      <li><b>수집 항목</b>: 학교의 지역·학교급(필수), 아이디(필수 · 실명이 아닌 아이디 권장), 앱 사용 기록(접속한 날짜·횟수), 남겨 주신 후기·개선점. <b>학교 이름과 학급은 받지 않아요.</b></li>
+      <li><b>이용 목적</b>: 이용 현황 파악, 문의 응대, 앱 개선, 개발자의 활동 기록 정리. 소개 자료에는 <b>숫자 통계로만</b> 쓰고, 개인이 드러나게 쓰지 않아요. (후기 인용은 후기를 쓰실 때 따로 허락하신 경우에만)</li>
+      <li><b>저장 장소</b>: 개발자의 구글 시트예요. 구글 서버에 저장되고, 구글 서버는 해외에 있을 수 있어요. 개발자 본인만 열어 봐요. 제3자에게 제공하지 않아요.</li>
+      <li><b>보유 기간</b>: 앱을 운영하는 동안. 삭제를 요청하시면 지체 없이 삭제해요.</li>
+      <li><b>거부할 권리</b>: 동의하지 않을 수 있어요. 다만 동의하지 않으면 사용자 등록을 할 수 없어서 앱을 쓸 수 없어요.</li>
+      <li><b>열람·정정·삭제 요청</b>: ⚙️ 설정 탭의 [✉️ 문의하기] 또는 fond7509@naver.com 으로 요청해 주세요.</li>
+      <li><b>학생 정보</b>: <b>학생의 이름·학번·PIN·활동 기록은 개발자에게 전달되지 않아요.</b> 선생님 본인의 구글 시트에만 저장돼요. 학생이 앱을 열면 <b>'학급 코드 + 1'</b>(몇 번 열렸는지 숫자)만 세고, 학생이 직접 남기는 후기는 <b>이름·학번 없이, 학생이 동의 체크를 한 경우에만</b> 받아요. 초·중학교는 학생 집계·후기에서 제외돼요.</li>
+    </ul><p style="margin:6px 0 0"><a href="#" data-a="priv" style="color:var(--mainD);font-weight:700">📄 개인정보 처리방침 전체 보기</a></p></div></details>
+    <div class="row"><button class="btn" data-a="savePre">다음 → 구글 시트 연결</button></div>
+    <div class="msg" id="preMsg"></div>
+  </div>
+</div>
+
+<!-- 1) 시트 연결 -->
+<div id="scrConnect" class="center hide">
+  <div class="box">
+    <h2>🔗 내 구글 시트 연결</h2>
+    <div class="hint" id="preInfoLine" style="margin:0 0 6px"></div>
+    <p class="hint" style="margin-top:0">학생 기록은 <b>선생님의 구글 시트</b>에만 저장돼요. 아래 3단계를 따라 해 주세요. (PC 크롬 권장)</p>
+    <div class="step"><i>1</i><div>구글 드라이브에서 <b>새 스프레드시트</b>를 만들고, 메뉴 <b>확장 프로그램 → Apps Script</b>를 열어요.</div></div>
+    <div class="step"><i>2</i><div>기본 코드(<code class="k">function myFunction…</code>)를 <b>전부 지우고</b> 아래 버튼으로 복사한 코드를 붙여넣은 뒤 💾 저장해요.
+      <div class="row" style="margin-top:6px"><button class="btn sm" data-a="copyGas">📋 코드 전체 복사</button></div>
+      <details class="agd"><summary>복사가 안 될 때: 코드 직접 복사하기</summary><textarea id="gasCodeBox" readonly style="min-height:120px;font-size:12px" onclick="this.select()"></textarea></details></div></div>
+    <div class="step"><i>3</i><div>오른쪽 위 <b>배포 → 새 배포 → 유형: 웹 앱</b> → <b>실행 사용자: 나</b> / <b>액세스 권한: 모든 사용자</b> → 배포. 권한 허용 후 나오는 <b>웹 앱 URL</b>(…/exec)을 아래에 붙여넣어요.</div></div>
+    <label class="f">웹 앱 URL</label>
+    <input type="text" id="gasIn" placeholder="https://script.google.com/macros/s/…/exec">
+    <div class="row"><button class="btn" data-a="connect">연결하기</button></div>
+    <div class="msg" id="conMsg"></div>
+    <div class="help hide" id="conHelp"></div>
+    <p class="hint">⚠️ 나중에 코드를 고칠 땐 <b>새 배포가 아니라 배포 관리 → ✏️ 수정 → 새 버전</b>으로 배포해야 주소가 그대로예요.</p>
+  </div>
+</div>
+
+<!-- 2) 로그인 -->
+<div id="scrLogin" class="center hide">
+  <div class="box">
+    <h2>🔐 담임 로그인</h2>
+    <p class="hint" style="margin-top:0">처음이라면 초기 비밀번호는 <b>activitycheck</b> 예요. 들어오면 바로 내 비밀번호로 바꾸게 돼요.</p>
+    <label class="f">비밀번호</label><input type="password" id="pwIn" autocomplete="current-password">
+    <div class="row"><button class="btn" data-a="login">로그인</button><button class="alink" data-a="resetGas">연결 주소 변경</button></div>
+    <div class="msg" id="loginMsg"></div>
+    <div class="help hide" id="loginHelp"></div>
+  </div>
+</div>
+
+<!-- 첫 비밀번호 변경 -->
+<div id="scrPw" class="center hide">
+  <div class="box">
+    <h2>🔑 내 비밀번호 정하기</h2>
+    <p class="hint" style="margin-top:0">처음 한 번만 정하면 돼요. 초기 비밀번호는 다른 사람이 알 수 있으니 꼭 바꿔 주세요. (4자 이상)</p>
+    <label class="f">새 비밀번호</label><input type="password" id="npw1" autocomplete="new-password">
+    <label class="f">한 번 더</label><input type="password" id="npw2" autocomplete="new-password">
+    <div class="row"><button class="btn" data-a="changeFirstPw">정하고 시작하기</button></div>
+    <div class="msg" id="npwMsg"></div>
+  </div>
+</div>
+
+<!-- 등록 (자동 등록 실패 시) -->
+<div id="scrReg" class="center hide">
+  <div class="box">
+    <h2>📝 사용자 등록</h2>
+    <label class="f">학교 위치·종류</label>
+    <div class="row" style="flex-wrap:nowrap;margin-top:0"><select id="regRegion" class="sel" style="flex:1"><option value="">지역</option><option>서울</option><option>부산</option><option>대구</option><option>인천</option><option>광주</option><option>대전</option><option>울산</option><option>세종</option><option>경기</option><option>강원</option><option>충북</option><option>충남</option><option>전북</option><option>전남</option><option>경북</option><option>경남</option><option>제주</option></select><select id="regLevel" class="sel" style="flex:1"><option value="">학교급</option><option>초등학교</option><option>중학교</option><option>고등학교</option><option>특수·기타</option></select></div>
+    <label class="f">아이디</label><input type="text" id="regName" maxlength="20">
+    <label class="agree"><input type="checkbox" id="regAgree"><span><b>[필수]</b> 개인정보 수집·이용에 동의합니다 <a href="#" data-a="priv" style="color:var(--mainD)">(내용 보기)</a></span></label>
+    <div class="row"><button class="btn" data-a="doRegister">등록하기</button></div>
+    <div class="msg" id="regMsg"></div>
+  </div>
+</div>
+
+<!-- 승인 대기 / 차단 -->
+<div id="scrGate" class="center hide">
+  <div class="box" style="text-align:center">
+    <div id="gateIc" style="font-size:44px"></div><h2 id="gateTitle" style="margin-top:6px"></h2>
+    <p class="hint" id="gateText"></p>
+    <div class="row" style="justify-content:center"><button class="btn" data-a="recheck">다시 확인</button><button class="btn sub" data-a="mailContact">✉️ 문의하기</button></div>
+    <div class="msg" id="gateMsg"></div>
+  </div>
+</div>
+
+<div id="scrLoading" class="center hide"><div class="box" style="text-align:center"><div style="font-size:34px">⏳</div><div class="msg" id="loadMsg" style="font-size:15px"></div></div></div>
+
+<footer id="ftGlobal">Made by Cheon_R<br><a href="#" data-a="mailContact">문의: fond7509@naver.com</a></footer>
+
+<!-- 메인 -->
+<div id="scrMain" class="hide">
+  <div class="top"><b>ACTIVITY CHECK</b><small id="topSub"></small><div class="sp"></div><button class="btn sub sm" data-a="refresh">↻</button><button class="btn sub sm" data-a="logout">로그아웃</button></div>
+  <div id="nav"></div>
+  <div class="wrap">
+    <div id="gasBanner" class="banner hide"></div>
+
+    <!-- ⚙️ 설정 -->
+    <div class="pane" id="p-set">
+      <div class="card">
+        <h3>🔗 링크 공유</h3>
+        <label class="f" style="margin-top:0">학생용 링크 <small>(학생들에게 이 링크/QR을 알려 주세요)</small></label>
+        <input type="text" id="stuLink" readonly onclick="this.select()">
+        <div class="row"><button class="btn sm" data-a="copyStuRich">🔗 링크 복사 (글자로)</button><button class="btn sm sub" data-a="copyStuText">주소 복사</button><button class="btn sm sub" data-a="openStu">열어 보기</button></div>
+        <p class="hint">「ACTIVITY CHECK_made by Cheon R」 글자에 링크가 걸려서 복사돼요. 단톡방·e학습터에 붙여 넣으면 깔끔해요. QR은 주소 복사 후 아무 QR 만들기 사이트에 붙여 넣어요.</p>
+        <div class="msg" id="linkMsg"></div>
+      </div>
+      <div class="card">
+        <h3>🏫 학급 설정</h3>
+        <div class="grid2"><div><label class="f" style="margin-top:0">학급 이름</label><input type="text" id="setCls" maxlength="30" placeholder="예) 1학년 3반"></div>
+        <div><label class="f" style="margin-top:0">학년도</label><input type="text" id="setYear" maxlength="4" inputmode="numeric"></div></div>
+        <div class="row"><button class="btn sm" data-a="saveCls">저장</button></div>
+        <div class="msg" id="clsMsg"></div>
+        <label class="f">비밀번호 변경</label>
+        <div class="grid2"><input type="password" id="chPw1" placeholder="새 비밀번호 (4자 이상)" autocomplete="new-password"><input type="password" id="chPw2" placeholder="한 번 더" autocomplete="new-password"></div>
+        <div class="row"><button class="btn sm sub" data-a="changePw">비밀번호 변경</button></div>
+        <div class="msg" id="pwMsg"></div>
+      </div>
+      <div class="card">
+        <h3>🧹 새 학년도 시작</h3>
+        <p class="hint" style="margin-top:0">학생 <b>기록만</b> 모두 지워요. 항목과 명단은 그대로예요. 지우기 전에 [📊 현황] 탭에서 엑셀로 저장해 두세요.</p>
+        <div class="row"><button class="btn sm red" data-a="yearReset">학생 기록 모두 지우기</button></div>
+        <div class="msg" id="yrMsg"></div>
+      </div>
+      <div class="card">
+        <h3>🛠️ 연결 정보</h3>
+        <div class="hint" style="margin-top:0">설치 ID: <code class="k" id="instId"></code> · GAS 버전: <span id="gasVerTxt"></span></div>
+        <div class="hint">GAS 주소: <span id="gasUrlTxt" style="word-break:break-all"></span></div>
+        <div class="row"><button class="btn sm sub" data-a="copyGas">📋 GAS 코드 복사 (업데이트용)</button><button class="btn sm sub" data-a="resetGas">연결 주소 변경</button><button class="btn sm sub" data-a="mailContact">✉️ 문의하기</button><button class="btn sm sub" data-a="priv">📄 개인정보 처리방침</button><button class="btn sm sub" data-a="showIntro">📖 앱 소개</button><button class="btn sm sub" data-a="openDemo">🎬 학생 화면 체험</button></div>
+      </div>
+    </div>
+
+    <!-- 📋 항목 -->
+    <div class="pane" id="p-items">
+      <div class="card">
+        <h3>📥 엑셀로 한 번에 불러오기</h3>
+        <p class="hint" style="margin-top:0">양식을 받아 채우거나, 이미 있는 엑셀·표를 그대로 올리거나 붙여 넣으면 돼요. 한글(hwp) 표는 <b>표를 복사해서 아래 칸에 붙여넣기</b> 하세요.</p>
+        <div class="row"><button class="btn sm sub" data-a="tplDown">📄 엑셀 양식 받기</button><button class="btn sm" data-a="pickFile">📂 엑셀 파일 선택</button><input type="file" id="fileIn" accept=".xlsx,.xls,.csv" class="hide"></div>
+        <label class="f">또는 여기에 붙여넣기</label>
+        <textarea id="pasteIn" placeholder="분류 / 항목명 / 작성 유의사항 순서로 붙여넣어요. 예)&#10;자율	학교폭력예방교육	(소감문 작성)&#10;진로	진로탐색 활동	보고서 제출"></textarea>
+        <div class="row"><button class="btn sm" data-a="parsePaste">붙여넣은 내용 분석</button></div>
+        <div class="msg" id="impMsg"></div>
+        <div id="impBox" class="hide">
+          <div class="scroll"><table class="tbl" id="impTbl"></table></div>
+          <div class="row"><label style="display:flex;gap:6px;align-items:center;min-height:40px"><input type="radio" name="impMode" value="append" checked style="width:20px;height:20px"> 지금 항목에 추가</label>
+            <label style="display:flex;gap:6px;align-items:center;min-height:40px"><input type="radio" name="impMode" value="replace" style="width:20px;height:20px"> 전체 교체</label></div>
+          <div class="row"><button class="btn" data-a="doImport">✅ 등록하기</button><button class="btn sub" data-a="cancelImp">취소</button></div>
+          <div class="msg" id="impMsg2"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 id="formTitle">➕ 항목 추가</h3>
+        <div class="grid2">
+          <div><label class="f" style="margin-top:0">분류</label><select id="fCat" class="sel"><option>자율</option><option>진로</option><option>교과</option></select></div>
+          <div><label class="f" style="margin-top:0">보고서 종류 <small>(링크 버튼 이름)</small></label><select id="fRtype" class="sel"><option>없음</option><option>해성에듀</option><option>학급자율활동앱</option><option>직접링크</option></select></div>
+        </div>
+        <label class="f">항목명</label><input type="text" id="fTitle" maxlength="60" placeholder="예) 학교폭력 예방교육">
+        <label class="f">작성 유의사항 <small>(선택)</small></label><input type="text" id="fNote" maxlength="300" placeholder="예) 소감문 1장 작성">
+        <label class="f">기본 링크 <small>(선택 · 학생 화면에 열기 버튼으로 나와요)</small></label><input type="url" id="fUrl" maxlength="300" placeholder="https://…">
+        <div class="row"><button class="btn" data-a="saveItem">저장</button><button class="btn sub hide" id="fCancel" data-a="cancelEdit">수정 취소</button></div>
+        <div class="msg" id="itMsg"></div>
+      </div>
+      <div class="card"><h3>📋 항목 목록 <span class="hint" id="itCnt"></span></h3><div id="itList"></div></div>
+    </div>
+
+    <!-- 👥 명단 -->
+    <div class="pane" id="p-stu">
+      <div class="card">
+        <h3>👥 학생 명단</h3>
+        <p class="hint" style="margin-top:0">한 줄에 <b>학번 이름</b> (띄어쓰기/탭 구분). 엑셀·나이스 명단을 복사해서 붙여넣거나 엑셀 파일로 올려도 돼요. 이미 PIN을 만든 학생은 명단을 다시 저장해도 PIN이 유지돼요.</p>
+        <textarea id="stuTa" style="min-height:160px" placeholder="10101 김하나&#10;10102 이도윤"></textarea>
+        <div class="row"><button class="btn" data-a="saveStu">💾 명단 저장</button><button class="btn sub" data-a="pickStuFile">📂 엑셀로 채우기</button><input type="file" id="stuFile" accept=".xlsx,.xls,.csv" class="hide"></div>
+        <div class="msg" id="stuMsg"></div>
+      </div>
+      <div class="card"><h3>🔐 PIN 현황 <span class="hint" id="pinCnt"></span></h3><div id="pinList"></div></div>
+    </div>
+
+    <!-- 📊 현황 -->
+    <div class="pane" id="p-stat">
+      <div class="card">
+        <div class="chips" style="margin-top:0"><button class="chip on" data-a="statMode" data-m="stu">👤 학생별</button><button class="chip" data-a="statMode" data-m="item">📋 항목별</button></div>
+        <div class="row"><div class="grid2" style="flex:1"><input type="text" id="statQ" placeholder="학번·이름 검색" class="hide"></div><button class="btn sm sub" data-a="exportXlsx">📤 엑셀로 저장</button></div>
+        <div id="itemSel" class="hide"><select id="statItem" class="sel" style="margin-top:8px"></select>
+          <div class="chips" id="itemFilt"></div></div>
+      </div>
+      <div id="statBody"></div>
+    </div>
+
+    <!-- 💬 후기 -->
+    <div class="pane" id="p-rv">
+      <div class="card">
+        <h3>💬 후기·개선점 남기기</h3>
+        <p class="hint" style="margin-top:0">선생님의 한마디가 앱을 더 좋게 만들어요. 별점만 눌러도 괜찮아요 😊</p>
+        <label class="f">별점 <small>(필수)</small></label><div id="rvStars"></div>
+        <label class="f">좋았던 점 <small>(여러 개 선택)</small></label><div class="chips" id="rvChips"></div>
+        <input type="text" id="rvOther" class="hide" maxlength="30" placeholder="기타 좋았던 점" style="margin-top:8px">
+        <div id="rvLowBox" class="hide"><label class="f">아쉬웠던 점</label><div class="chips" id="rvLows"></div><input type="text" id="rvLowOther" class="hide" maxlength="30" placeholder="기타 아쉬운 점" style="margin-top:8px"></div>
+        <label class="f">한줄 후기 <small>(선택)</small></label><input type="text" id="rvOne" maxlength="80">
+        <label class="f">개선점 <small>(선택)</small></label><div class="chips" id="rvKinds"></div>
+        <textarea id="rvImp" maxlength="200" style="margin-top:8px" placeholder="이런 기능이 있으면 좋겠어요 / 이런 오류가 있었어요"></textarea>
+        <label class="f">소개자료·포트폴리오에 후기를 써도 될까요?</label><div class="chips" id="rvOk"></div>
+        <div class="row"><button class="btn" id="rvSend" data-a="sendReview">보내기</button></div>
+        <div class="msg" id="rvMsg"></div>
+      </div>
+    </div>
+
+    <!-- 👑 -->
+    <div class="pane" id="p-own">
+      <div class="card"><h3>👑 이용 현황</h3><div class="tiles" id="ownTiles"></div><div class="bars" id="ownBars" style="margin-bottom:22px"></div>
+        <h3 style="margin-top:14px">🧑‍🎓 학생 이용 (학급 코드 + 1)</h3><div class="tiles" id="ownStuTiles"></div><div class="bars" id="ownStuBars" style="margin-bottom:22px"></div></div>
+      <div class="card"><h3>설정</h3>
+        <div class="sw"><input type="checkbox" id="swAppr" data-a="swAppr"><label for="swAppr">승인제 (켜면 승인한 선생님만 사용)</label></div>
+        <div class="sw"><input type="checkbox" id="swRv" data-a="swRv"><label for="swRv">후기 받기</label></div>
+        <div class="hint" id="ownRvCnt"></div>
+        <div class="msg" id="ownMsg"></div>
+        <div class="row"><button class="btn sm" data-a="showReviews">💬 받은 후기 보기</button></div>
+        <div id="rvList"></div>
+      </div>
+      <div class="card"><h3>사용자 <span class="hint" id="ownCnt"></span></h3><div id="ownUsers"></div></div>
+    </div>
+
+    <!-- 📘 가이드 -->
+    <div class="pane" id="p-help">
+      <div class="card"><h3>📘 이렇게 쓰세요</h3>
+        <div class="step"><i>1</i><div><b>📋 항목</b>에서 우리 학교 활동을 등록해요. 엑셀·표 붙여넣기로 한 번에 하고, 필요한 건 추가·수정·삭제·순서 변경해요.</div></div>
+        <div class="step"><i>2</i><div><b>👥 명단</b>에 학번·이름을 넣어요. 학생은 첫 접속 때 <b>학번+이름+PIN(숫자 4자리)</b>을 직접 만들어요.</div></div>
+        <div class="step"><i>3</i><div><b>⚙️ 설정</b>의 학생용 링크를 학생들에게 공유해요. 학생은 활동마다 <b>참여 여부 → 보고서 → 링크 → 요약</b>을 적어요.</div></div>
+        <div class="step"><i>4</i><div><b>📊 현황</b>에서 학생별/항목별로 보고, 확인 표시와 한마디를 남겨요. <b>생기부 참고용 복사</b>로 한 학생 기록을 글로 복사할 수 있어요.</div></div>
+        <div class="step"><i>5</i><div><b>교과</b> 항목은 학생이 수행평가·탐구 주제를 <b>자기 진로와 연결</b>해 여러 개 적을 수 있어요. 진로 희망은 학생 화면 위쪽에 있고, 선생님 화면에도 보여요.</div></div>
+        <p class="hint">📱 학생 화면 아래쪽 <b>❓ 사용법</b> 버튼에 학생용 가이드가 들어 있어요. 설정 탭의 <b>🎬 학생 화면 체험</b>으로 학생이 보는 화면을 미리 볼 수 있어요.</p>
+        <p class="hint">PIN을 잊은 학생은 [👥 명단 → PIN 현황]에서 초기화해 주세요. PIN을 5번 틀리면 10분 동안 잠시 막혀요.</p>
+      </div>
+      <div class="card"><h3>🆘 설치·연결이 안 될 때</h3><div id="tsList"></div></div>
+    </div>
+    <footer>Made by Cheon_R<br><a href="#" data-a="mailContact">문의: fond7509@naver.com</a></footer>
+  </div>
+</div>
+
+<!-- 개인정보 처리방침 -->
+<div class="ov hide" id="privOv" data-a="closeOv"><div class="in">
+  <h3>📄 개인정보 처리방침</h3>
+  <ul style="padding-left:18px">
+    <li><b>수집 항목</b>: 학교 지역·학교급, 아이디, 앱 사용 기록(접속일·횟수), 후기·개선점.</li>
+    <li><b>이용 목적</b>: 이용 현황 파악, 문의 응대, 앱 개선. 소개 자료에는 숫자 통계로만 쓰고 개인이 드러나게 쓰지 않아요.</li>
+    <li><b>보관·제3자 제공</b>: 개발자의 구글 시트에 앱 운영 기간 동안 보관하며 제3자에게 제공하지 않아요. 삭제를 요청하면 지체 없이 삭제해요.</li>
+    <li><b>학생 정보</b>: 학생의 이름·학번·PIN·활동 기록은 <b>선생님 본인의 구글 시트에만</b> 저장되고 개발자에게 전달되지 않아요. 학생이 앱을 열면 '학급 코드 + 1'(열린 횟수)만 세고, 학생 후기는 이름·학번 없이 학생이 동의 체크를 한 경우에만 받아요. 초·중학교는 제외돼요.</li>
+    <li><b>열람·정정·삭제 요청</b>: fond7509@naver.com</li>
+  </ul>
+  <div class="row"><button class="btn sub" data-a="closeOv">닫기</button></div>
+</div></div>
+<div class="ov hide" id="contactOv" data-a="closeOv"><div class="in">
+  <h3>✉️ 문의하기</h3>
+  <p class="hint" style="margin-top:0">메일 주소: <b>fond7509@naver.com</b></p>
+  <div class="row"><button class="btn" data-a="openMailApp">메일 앱 열기</button><button class="btn sub" data-a="openGmail">Gmail로 쓰기</button><button class="btn sub" data-a="copyMail">주소 복사</button></div>
+  <div class="row"><button class="btn sub" data-a="closeOv">닫기</button></div>
+</div></div>
+<div id="demoOv" class="hide" style="position:fixed;inset:0;z-index:95;background:var(--bg)">
+  <iframe id="demoFrame" title="학생 화면 체험해보기" src="about:blank" style="width:100%;height:100%;border:0;background:var(--bg)"></iframe>
+</div>
+<div id="toast"></div>
+
+<script>
+const P = 'Cheon-R-activity-check';
+const APP = 'activity';
+const K = { intro:'ac_intro_v1', gas:'ac_gas_v1', pw:'ac_admin_pw_v1', owner:'ac_owner_v1', reg:'ac_reg_info_v1', pre:'ac_prereg_v1', preId:'ac_preid_v1', rv:'ac_review_v1' };
+const REGISTRY_URL = 'https://script.google.com/macros/s/AKfycbzrgeAlZhEGyvp7vo_j0hgesVoIoI6T_GMayKJCfvOFaV5Sb3wO1xvackSeQLc3HQxsnQ/exec';
+const CONTACT_EMAIL = 'fond7509@naver.com';
+const NEED_GAS_VER = 1;
+const DEFAULT_PW = 'activitycheck';
+const NONAME = '(이름 없음)';
+const GAS_CODE = "/**\n * ACTIVITY CHECK (학생 활동 자체점검) GAS 백엔드 — Made by Cheon_R\n * 모든 요청은 JSONP(doGet + callback) 방식\n * 재배포 시 반드시 [배포 관리] → [수정] → 새 버전 (새 배포 금지)\n */\n\n/** GAS 코드 버전 — 코드를 고칠 때마다 1씩 올려요. 관리 화면이 이 번호로 업데이트가 필요한지 알려줘요. */\nvar GAS_VER = 1;\n\nvar TZ = 'Asia/Seoul';\nvar DEFAULT_PW = 'activitycheck';   // 초기 비밀번호 — 첫 로그인 때 변경 강제\nvar CATS = ['자율', '진로', '교과'];\nvar RTYPES = ['해성에듀', '학급자율활동앱', '직접링크', '없음'];\nvar MAX_FAIL = 5;                   // 학생 PIN을 이만큼 틀리면 10분 동안 잠깐 막아요\n\nvar SHEETS = {\n  settings: { name: '설정', headers: ['항목', '값'] },\n  students: { name: '학생명단', headers: ['학번', '이름', 'PIN', '진로희망', 'PIN설정시각'] },\n  items: { name: '항목', headers: ['ID', '분류', '항목명', '작성유의사항', '보고서종류', '기본링크', '담임제공', '순서', '사용'] },\n  records: { name: '기록', headers: ['학번', '항목ID', '번호', '참여', '보고서', '링크', '주제', '진로연결', '요약', '수정시각', '교사확인', '교사메모'] }\n};\nvar DEFAULT_SETTINGS = [['학년도', String(new Date().getFullYear())], ['학급명', '우리 반'], ['관리자비번', DEFAULT_PW]];\n\n/* ---------- 진입점 ---------- */\nfunction doGet(e) {\n  var p = (e && e.parameter) || {};\n  var cb = p.callback || 'callback';\n  var out;\n  try {\n    setup_();\n    out = route_(p);\n  } catch (err) {\n    out = { ok: false, error: String(err && err.message || err) };\n  }\n  return ContentService\n    .createTextOutput(cb + '(' + JSON.stringify(out) + ')')\n    .setMimeType(ContentService.MimeType.JAVASCRIPT);\n}\n\nfunction route_(p) {\n  switch (p.action) {\n    case 'ping': return { ok: true, className: getSetting_('학급명'), year: year_(), gasVer: GAS_VER };\n    case 'sCheck': return sCheck_(p);\n    case 'sSetPin': return sSetPin_(p);\n    case 'sLoad': return sLoad_(p);\n    case 'sSave': return sSave_(p);\n    case 'sDelete': return sDelete_(p);\n    case 'sCareer': return sCareer_(p);\n    case 'login': return login_(p);\n    case 'adminLoad': return adminLoad_(p);\n    case 'saveItem': return saveItem_(p);\n    case 'saveItems': return saveItems_(p);\n    case 'deleteItem': return deleteItem_(p);\n    case 'reorderItems': return reorderItems_(p);\n    case 'saveStudents': return saveStudents_(p);\n    case 'resetPin': return resetPin_(p);\n    case 'saveSettings': return saveSettings_(p);\n    case 'tReview': return tReview_(p);\n    case 'yearReset': return yearReset_(p);\n    default: return { ok: false, error: '알 수 없는 요청이에요.' };\n  }\n}\n\n/* ---------- 시트 준비 (탭이 없으면 헤더 포함 자동 생성) ---------- */\nfunction setup_() {\n  var cache = CacheService.getScriptCache(), key = 'setup:' + GAS_VER;\n  if (cache.get(key)) return;\n  setupSheets_();\n  cache.put(key, '1', 21600);\n}\nfunction setupSheets_() {\n  var ss = SpreadsheetApp.getActiveSpreadsheet();\n  Object.keys(SHEETS).forEach(function (k) {\n    var def = SHEETS[k];\n    var sh = ss.getSheetByName(def.name);\n    if (!sh) {\n      sh = ss.insertSheet(def.name);\n      sh.getRange(1, 1, 1, def.headers.length).setValues([def.headers]).setFontWeight('bold');\n      sh.getRange(1, 1, 1000, def.headers.length).setNumberFormat('@'); // 학번·날짜 자동변환 방지\n      sh.setFrozenRows(1);\n      if (k === 'settings') sh.getRange(2, 1, DEFAULT_SETTINGS.length, 2).setValues(DEFAULT_SETTINGS);\n    }\n  });\n}\n/** 탭 헤더가 지워졌을 때 수동 실행용 */\nfunction 헤더복구() {\n  var ss = SpreadsheetApp.getActiveSpreadsheet();\n  Object.keys(SHEETS).forEach(function (k) {\n    var def = SHEETS[k], sh = ss.getSheetByName(def.name);\n    if (sh) sh.getRange(1, 1, 1, def.headers.length).setValues([def.headers]).setFontWeight('bold');\n  });\n  setupSheets_();\n}\n\n/* ---------- 공통 유틸 ---------- */\nfunction sh_(k) { return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEETS[k].name); }\nfunction now_() { return Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm:ss'); }\nfunction isDate_(v) { return Object.prototype.toString.call(v) === '[object Date]' && !isNaN(v.getTime()); }\nfunction str_(v) {\n  if (isDate_(v)) return Utilities.formatDate(v, TZ, 'yyyy-MM-dd HH:mm:ss');\n  return v === null || v === undefined ? '' : String(v).trim();\n}\nfunction ensureRows_(sh, upTo) {\n  var max = sh.getMaxRows();\n  if (upTo > max) sh.insertRowsAfter(max, upTo - max + 100);\n}\n/** 행을 글자 형식으로 고정해서 쓰기 (자동 변환 방지) */\nfunction writeRow_(sh, rowNum, row) {\n  ensureRows_(sh, rowNum);\n  sh.getRange(rowNum, 1, 1, row.length).setNumberFormat('@').setValues([row]);\n}\nfunction rows_(k) {\n  var sh = sh_(k), last = sh.getLastRow();\n  if (last < 2) return [];\n  var n = SHEETS[k].headers.length;\n  return sh.getRange(2, 1, last - 1, n).getValues().map(function (r) { return r.map(str_); });\n}\nfunction getSetting_(key) {\n  var r = rows_('settings').filter(function (x) { return x[0] === key; })[0];\n  return r ? r[1] : '';\n}\nfunction setSetting_(key, val) {\n  var sh = sh_('settings'), data = rows_('settings');\n  for (var i = 0; i < data.length; i++) {\n    if (data[i][0] === key) { sh.getRange(i + 2, 2).setValue(String(val)); return; }\n  }\n  sh.appendRow([key, String(val)]);\n}\nfunction installId_() {\n  var v = getSetting_('설치ID');\n  if (!v) { v = Utilities.getUuid(); setSetting_('설치ID', v); }\n  return v;\n}\nfunction year_() { return getSetting_('학년도') || Utilities.formatDate(new Date(), TZ, 'yyyy'); }\nfunction lock_(fn) {\n  var lock = LockService.getScriptLock();\n  lock.waitLock(10000);\n  try { return fn(); } finally { lock.releaseLock(); }\n}\n/** 시트에서 수식으로 실행되지 않게 + 길이 제한 */\nfunction cut_(v, n) {\n  var t = String(v === null || v === undefined ? '' : v).replace(/\\r\\n?/g, '\\n').trim().substring(0, n);\n  return /^[=+\\-@]/.test(t) ? \"'\" + t : t;\n}\nfunction okUrl_(u) { return /^https?:\\/\\/\\S+$/i.test(u) && u.length <= 300; }\nfunction hex_(bytes) {\n  return bytes.map(function (b) { b = (b < 0 ? b + 256 : b); return ('0' + b.toString(16)).slice(-2); }).join('');\n}\nfunction hashPin_(sid, pin) {\n  return hex_(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, installId_() + ':' + sid + ':' + pin));\n}\n\n/* ---------- 담임 로그인 ---------- */\nfunction auth_(pw) {\n  pw = String(pw || '');\n  return pw && pw === getSetting_('관리자비번') ? 'admin' : '';\n}\nfunction need_(p) {\n  if (auth_(p.pw) !== 'admin') throw new Error('권한이 없어요. 비밀번호를 확인해 주세요.');\n}\nfunction login_(p) {\n  var role = auth_(p.pw);\n  if (!role) return { ok: true, role: '' };\n  return { ok: true, role: role, gasVer: GAS_VER, installId: installId_(), className: getSetting_('학급명'),\n    mustChange: String(p.pw) === DEFAULT_PW };\n}\n\n/* ---------- 항목 · 기록 변환 ---------- */\nfunction itemObj_(r) {\n  return { id: r[0], cat: r[1], title: r[2], note: r[3], rtype: r[4] || '없음', url: r[5], prov: r[6] === 'Y', order: Number(r[7]) || 0, on: r[8] !== 'N' };\n}\nfunction sortItems_(list) {\n  return list.sort(function (a, b) { return (CATS.indexOf(a.cat) - CATS.indexOf(b.cat)) || (a.order - b.order); });\n}\nfunction recObj_(r) {\n  return { sid: r[0], iid: r[1], n: Number(r[2]) || 1, part: r[3], report: r[4], link: r[5], topic: r[6], career: r[7], summary: r[8], at: r[9], tchk: r[10] === 'Y', tmemo: r[11] };\n}\nfunction findRec_(data, sid, iid, n) {\n  for (var i = 0; i < data.length; i++) if (data[i][0] === sid && data[i][1] === iid && data[i][2] === String(n)) return i;\n  return -1;\n}\n\n/* ---------- 학생용 ---------- */\nfunction normName_(s) { return String(s || '').replace(/\\s+/g, ''); }\nfunction stuRow_(sid) {\n  sid = String(sid || '').trim();\n  var data = rows_('students');\n  for (var i = 0; i < data.length; i++) if (data[i][0] === sid) return { row: i + 2, v: data[i] };\n  return null;\n}\n/** 학번+이름 확인 (PIN을 처음 만들 수 있는지도 알려줘요) */\nfunction sCheck_(p) {\n  var st = stuRow_(p.sid);\n  if (!st || normName_(st.v[1]) !== normName_(p.name)) return { ok: false, error: '학번과 이름이 맞지 않아요. 담임선생님께 확인해 주세요.' };\n  return { ok: true, name: st.v[1], needPin: !st.v[2] };\n}\nfunction sSetPin_(p) {\n  var st = stuRow_(p.sid), pin = String(p.pin || '');\n  if (!st || normName_(st.v[1]) !== normName_(p.name)) return { ok: false, error: '학번과 이름이 맞지 않아요.' };\n  if (!/^\\d{4}$/.test(pin)) return { ok: false, error: 'PIN은 숫자 4자리로 만들어 주세요.' };\n  return lock_(function () {\n    var cur = stuRow_(p.sid);\n    if (cur.v[2]) return { ok: false, error: '이미 PIN이 만들어져 있어요. 기억나지 않으면 담임선생님께 PIN 초기화를 부탁해 주세요.' };\n    var sh = sh_('students');\n    sh.getRange(cur.row, 3).setNumberFormat('@').setValue(hashPin_(cur.v[0], pin));\n    sh.getRange(cur.row, 5).setNumberFormat('@').setValue(now_());\n    return { ok: true, name: cur.v[1] };\n  });\n}\n/** PIN 확인 — 여러 번 틀리면 10분 동안 막아요 */\nfunction stuAuth_(sid, pin) {\n  sid = String(sid || '').trim(); pin = String(pin || '');\n  var cache = CacheService.getScriptCache(), ck = 'bad_' + sid;\n  var bad = Number(cache.get(ck)) || 0;\n  if (bad >= MAX_FAIL) throw new Error('PIN을 여러 번 틀려서 잠시 막았어요. 10분 뒤에 다시 해 보거나 담임선생님께 PIN 초기화를 부탁해 주세요.');\n  var st = stuRow_(sid);\n  if (!st) throw new Error('명단에 없는 학번이에요.');\n  if (!st.v[2]) { var e = new Error('PIN을 먼저 만들어 주세요.'); throw e; }\n  if (st.v[2] !== hashPin_(sid, pin)) {\n    cache.put(ck, String(bad + 1), 600);\n    throw new Error('PIN이 맞지 않아요.' + (bad + 1 >= MAX_FAIL ? ' 잠시 뒤에 다시 해 주세요.' : ''));\n  }\n  if (bad) cache.remove(ck);\n  return st;\n}\nfunction sLoad_(p) {\n  var st = stuRow_(p.sid);\n  if (st && !st.v[2] && normName_(st.v[1]) === normName_(p.name || st.v[1])) return { ok: true, needPin: true, name: st.v[1] };\n  st = stuAuth_(p.sid, p.pin);\n  var sid = st.v[0];\n  var items = sortItems_(rows_('items').filter(function (r) { return r[0] && r[8] !== 'N'; }).map(itemObj_));\n  var recs = rows_('records').filter(function (r) { return r[0] === sid; }).map(recObj_);\n  return { ok: true, name: st.v[1], career: st.v[3], className: getSetting_('학급명'), year: year_(), items: items, records: recs, gasVer: GAS_VER };\n}\nfunction sSave_(p) {\n  var st = stuAuth_(p.sid, p.pin), sid = st.v[0];\n  var d = JSON.parse(p.data || '{}');\n  var item = rows_('items').filter(function (r) { return r[0] === String(d.itemId) && r[8] !== 'N'; })[0];\n  if (!item) throw new Error('없어진 항목이에요. 화면을 새로고침해 주세요.');\n  var n = item[1] === '교과' ? Math.max(1, Math.min(9, parseInt(d.n, 10) || 1)) : 1;\n  var part = (d.part === 'yes' || d.part === 'no') ? d.part : '';\n  var report = (d.report === 'done' || d.report === 'todo') ? d.report : '';\n  var link = String(d.link || '').trim();\n  if (link && !okUrl_(link)) throw new Error('링크는 https://로 시작하는 300자 이내 주소여야 해요.');\n  var topic = cut_(d.topic, 60), career = cut_(d.career, 80), summary = cut_(d.summary, 400);\n  return lock_(function () {\n    var sh = sh_('records'), data = rows_('records'), idx = findRec_(data, sid, item[0], n);\n    var memo = idx >= 0 ? data[idx][11] : '';\n    var at = now_();\n    writeRow_(sh, idx >= 0 ? idx + 2 : sh.getLastRow() + 1, [sid, item[0], String(n), part, report, link, topic, career, summary, at, '', memo]);   // 학생이 고치면 교사확인은 풀려요\n    return { ok: true, rec: { sid: sid, iid: item[0], n: n, part: part, report: report, link: link, topic: topic, career: career, summary: summary, at: at, tchk: false, tmemo: memo } };\n  });\n}\nfunction sDelete_(p) {\n  var st = stuAuth_(p.sid, p.pin), sid = st.v[0], iid = String(p.iid || ''), n = parseInt(p.n, 10) || 1;\n  return lock_(function () {\n    var data = rows_('records'), idx = findRec_(data, sid, iid, n);\n    if (idx >= 0) sh_('records').deleteRow(idx + 2);\n    return { ok: true };\n  });\n}\nfunction sCareer_(p) {\n  var st = stuAuth_(p.sid, p.pin), career = cut_(p.career, 80);\n  return lock_(function () {\n    sh_('students').getRange(stuRow_(st.v[0]).row, 4).setNumberFormat('@').setValue(career);\n    return { ok: true, career: career };\n  });\n}\n\n/* ---------- 담임용 ---------- */\nfunction adminLoad_(p) {\n  need_(p);\n  var items = sortItems_(rows_('items').filter(function (r) { return r[0]; }).map(itemObj_));\n  var students = rows_('students').filter(function (r) { return r[0]; }).map(function (r) { return { sid: r[0], name: r[1], hasPin: !!r[2], career: r[3] }; });\n  var records = rows_('records').filter(function (r) { return r[0]; }).map(recObj_);\n  return { ok: true, role: 'admin', gasVer: GAS_VER, className: getSetting_('학급명'), year: year_(), items: items, students: students, records: records, installId: installId_() };\n}\nfunction cleanItem_(it) {\n  var cat = String(it.cat || '');\n  if (CATS.indexOf(cat) < 0) throw new Error('분류는 자율·진로·교과 중에서 골라 주세요.');\n  var title = cut_(it.title, 60);\n  if (!title) throw new Error('항목명이 비어 있어요.');\n  var rtype = RTYPES.indexOf(it.rtype) >= 0 ? it.rtype : '없음';\n  var url = String(it.url || '').trim();\n  if (url && !okUrl_(url)) throw new Error('\"' + title + '\"의 링크는 https://로 시작하는 300자 이내 주소여야 해요.');\n  return { cat: cat, title: title, note: cut_(it.note, 300), rtype: rtype, url: url, prov: it.prov ? 'Y' : '', on: it.on === false ? 'N' : '' };\n}\nfunction maxOrder_(data) {\n  var m = 0;\n  data.forEach(function (r) { m = Math.max(m, Number(r[7]) || 0); });\n  return m;\n}\nfunction saveItem_(p) {\n  need_(p);\n  var it = JSON.parse(p.data || '{}'), c = cleanItem_(it);\n  return lock_(function () {\n    var sh = sh_('items'), data = rows_('items'), idx = -1, id = String(it.id || '');\n    if (id) for (var i = 0; i < data.length; i++) if (data[i][0] === id) { idx = i; break; }\n    if (id && idx < 0) throw new Error('수정할 항목을 찾지 못했어요.');\n    if (idx < 0) id = 'I' + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36);\n    var order = idx >= 0 ? (Number(data[idx][7]) || 0) : maxOrder_(data) + 1;\n    writeRow_(sh, idx >= 0 ? idx + 2 : sh.getLastRow() + 1, [id, c.cat, c.title, c.note, c.rtype, c.url, c.prov, String(order), c.on]);\n    return { ok: true, id: id };\n  });\n}\n/** 엑셀·붙여넣기로 한꺼번에 — mode: append(추가) / replace(처음 묶음에서 기존 항목을 모두 지움) */\nfunction saveItems_(p) {\n  need_(p);\n  var d = JSON.parse(p.data || '{}'), list = d.items || [];\n  if (!Array.isArray(list) || list.length > 20) throw new Error('한 번에 20개까지만 올릴 수 있어요.');\n  var cleaned = list.map(cleanItem_);\n  return lock_(function () {\n    var sh = sh_('items');\n    if (d.mode === 'replace') {\n      var last = sh.getLastRow();\n      if (last >= 2) sh.deleteRows(2, last - 1);\n    }\n    var data = rows_('items'), order = maxOrder_(data), rows = [];\n    cleaned.forEach(function (c, i) {\n      rows.push(['I' + Date.now().toString(36) + i + Math.floor(Math.random() * 1296).toString(36), c.cat, c.title, c.note, c.rtype, c.url, c.prov, String(++order), c.on]);\n    });\n    if (rows.length) {\n      ensureRows_(sh, sh.getLastRow() + rows.length);\n      sh.getRange(sh.getLastRow() + 1, 1, rows.length, 9).setNumberFormat('@').setValues(rows);\n    }\n    return { ok: true, count: rows.length };\n  });\n}\nfunction deleteItem_(p) {\n  need_(p);\n  var id = String(p.id || '');\n  return lock_(function () {\n    var data = rows_('items');\n    for (var i = 0; i < data.length; i++) if (data[i][0] === id) { sh_('items').deleteRow(i + 2); return { ok: true }; }\n    throw new Error('삭제할 항목을 찾지 못했어요.');\n  });\n}\nfunction reorderItems_(p) {\n  need_(p);\n  var list = JSON.parse(p.data || '[]');\n  if (!Array.isArray(list) || list.length > 100) throw new Error('순서 정보가 올바르지 않아요.');\n  return lock_(function () {\n    var sh = sh_('items'), data = rows_('items');\n    list.forEach(function (o) {\n      for (var i = 0; i < data.length; i++) if (data[i][0] === String(o.id)) { sh.getRange(i + 2, 8).setNumberFormat('@').setValue(String(parseInt(o.order, 10) || 0)); break; }\n    });\n    return { ok: true };\n  });\n}\n/** 명단 저장 — 이미 있는 학생의 PIN·진로희망은 그대로 지켜요 */\nfunction saveStudents_(p) {\n  need_(p);\n  var list = JSON.parse(p.data || '[]');\n  if (!Array.isArray(list) || list.length > 60) throw new Error('명단은 60명까지 저장할 수 있어요.');\n  return lock_(function () {\n    var sh = sh_('students'), old = {};\n    rows_('students').forEach(function (r) { old[r[0]] = r; });\n    var vals = list.map(function (s) {\n      var sid = cut_(s.sid, 10), o = old[sid] || [];\n      return [sid, cut_(s.name, 20), o[2] || '', o[3] || '', o[4] || ''];\n    });\n    var last = sh.getLastRow();\n    if (last >= 2) sh.getRange(2, 1, last - 1, 5).clearContent();\n    if (vals.length) { ensureRows_(sh, vals.length + 1); sh.getRange(2, 1, vals.length, 5).setNumberFormat('@').setValues(vals); }\n    return { ok: true, count: vals.length };\n  });\n}\nfunction resetPin_(p) {\n  need_(p);\n  var sid = String(p.sid || '').trim();\n  return lock_(function () {\n    var st = stuRow_(sid);\n    if (!st) throw new Error('학생을 찾지 못했어요.');\n    sh_('students').getRange(st.row, 3, 1, 3).setNumberFormat('@').setValues([['', st.v[3], '']]);\n    CacheService.getScriptCache().remove('bad_' + sid);\n    return { ok: true };\n  });\n}\nfunction saveSettings_(p) {\n  need_(p);\n  var s = JSON.parse(p.data || '{}');\n  return lock_(function () {\n    if (s.year !== undefined) setSetting_('학년도', cut_(s.year, 4));\n    if (s.className !== undefined) setSetting_('학급명', cut_(s.className, 30));\n    if (s.newPw) {\n      if (String(s.newPw) === DEFAULT_PW) throw new Error('초기 비밀번호와 다른 비밀번호로 정해 주세요.');\n      if (String(s.newPw).length < 4) throw new Error('비밀번호는 4자 이상으로 정해 주세요.');\n      setSetting_('관리자비번', s.newPw);\n    }\n    return { ok: true };\n  });\n}\n/** 담임 점검: 확인 표시 + 한마디 */\nfunction tReview_(p) {\n  need_(p);\n  var sid = String(p.sid || '').trim(), iid = String(p.iid || ''), n = String(parseInt(p.n, 10) || 1);\n  var chk = p.chk === '1' ? 'Y' : '', memo = cut_(p.memo, 200);\n  if (!stuRow_(sid)) throw new Error('학생을 찾지 못했어요.');\n  return lock_(function () {\n    var sh = sh_('records'), data = rows_('records'), idx = findRec_(data, sid, iid, n);\n    if (idx < 0) writeRow_(sh, sh.getLastRow() + 1, [sid, iid, n, '', '', '', '', '', '', now_(), chk, memo]);\n    else sh.getRange(idx + 2, 11, 1, 2).setNumberFormat('@').setValues([[chk, memo]]);\n    return { ok: true };\n  });\n}\n/** 학년도 초기화: 학생 기록만 지워요 (항목·명단은 그대로) */\nfunction yearReset_(p) {\n  need_(p);\n  return lock_(function () {\n    var sh = sh_('records'), last = sh.getLastRow();\n    if (last >= 2) sh.deleteRows(2, last - 1);\n    return { ok: true, count: Math.max(0, last - 1) };\n  });\n}\n";
+const CATS = ['자율','진로','교과'];
+const CATCLS = { '자율':'t1', '진로':'t2', '교과':'t3' };
+const CATE = { '자율':'🌱', '진로':'💡', '교과':'📚' };
+const RTYPES = ['없음','해성에듀','학급자율활동앱','직접링크'];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const nm = x => String(x||'') === NONAME ? '' : String(x||'');
+function lsGet(k,d){ try{ const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); }catch(e){ return d; } }
+function lsSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove('on'), 2400); }
+function msg(id, text, ok){ const el = $(id); if (!el) return; el.textContent = text || ''; el.className = 'msg ' + (ok ? 'ok' : 'no'); }
+function readSchool(p){ const r = $(p+'Region').value, l = $(p+'Level').value; return (r && l) ? r + ' · ' + l : ''; }
+function setSchool(p, v){ const a = String(v||'').split(' · '); $(p+'Region').value = ''; $(p+'Level').value = ''; if (a.length === 2){ $(p+'Region').value = a[0]; $(p+'Level').value = a[1]; } }
+function baseUrl(){ return location.href.split('?')[0].split('#')[0].replace(/[^/]*$/, ''); }
+
+const SCREENS = ['scrIntro','scrPre','scrConnect','scrLogin','scrMain','scrReg','scrGate','scrPw','scrLoading'];
+let curScreen = '';
+function show(id){ curScreen = id; SCREENS.forEach(x => $(x).classList.toggle('hide', x !== id)); $('ftGlobal').classList.toggle('hide', id === 'scrMain'); window.scrollTo(0,0); }
+
+(function(){ const g = new URLSearchParams(location.search).get('gas'); if (g) lsSet(K.gas, g.trim()); })();
+let GAS = lsGet(K.gas, '');
+let PW = ''; try{ PW = sessionStorage.getItem(K.pw) || ''; }catch(e){}
+let DATA = { items:[], students:[], records:[] };
+let installId = '', isOwner = false, loginInfo = {}, reviewOn = false, curTab = 'set';
+
+/* ===== JSONP ===== */
+let seq = 0;
+const WRITE = ['saveItem','saveItems','deleteItem','reorderItems','saveStudents','saveSettings','tReview','yearReset','resetPin'];
+function jsonp(params, base){
+  base = base || GAS;
+  const waitMs = WRITE.includes(params.action) ? 40000 : 22000;
+  return new Promise((resolve, reject) => {
+    if (!base) return reject(new Error('GAS 주소가 설정되지 않았어요. 먼저 연결해 주세요.'));
+    const cb = '__ad' + Date.now() + (seq++), s = document.createElement('script');
+    const t = setTimeout(() => { done(); reject(new Error('서버 응답이 없어요. 접속자가 많아서 잠시 느려졌을 수도 있어요. 1~2분 뒤에 다시 해 보세요. 계속 안 되면 GAS 주소와 배포 권한(모든 사용자)을 확인해 주세요.')); }, waitMs);
+    function done(){ clearTimeout(t); delete window[cb]; s.remove(); }
+    window[cb] = r => { done(); r && r.ok ? resolve(r) : reject(new Error((r && r.error) || '요청에 실패했어요.')); };
+    s.src = base + (base.includes('?') ? '&' : '?') + new URLSearchParams({ ...params, callback:cb, _:Date.now() });
+    s.onerror = () => { done(); reject(new Error('서버에 연결하지 못했어요. 조금 있다 다시 해 보세요. 계속 안 되면 주소를 확인해 주세요.')); };
+    document.body.appendChild(s);
+  });
+}
+const reg = p => jsonp({ ...p, app:APP }, REGISTRY_URL);   // 등록부로 가는 모든 요청에는 app 값이 들어가요
+const api = (action, extra) => jsonp({ action, pw:PW, ...(extra||{}) });
+
+/* ===== 설치·연결 문제 해결 ===== */
+const TS = [
+ { k:'noresp', i:'🔌', t:'"서버 응답이 없어요" · "서버에 연결하지 못했어요"가 떠요', s:[
+   '접속자가 많을 때는 잠시 끊길 수 있어요. 1~2분 뒤에 다시 눌러 보세요.',
+   '주소가 <b>https://script.google.com/macros/s/…/exec</b> 로 <b>끝까지</b> 복사됐는지 봐 주세요. (/dev 로 끝나면 테스트용이라 안 돼요)',
+   '<b>배포 → 배포 관리 → ✏️(수정)</b>에서 <b>실행 사용자: 나</b> / <b>액세스 권한: 모든 사용자</b>인지 확인해요.',
+   '코드를 붙여넣고 <b>저장만 하고 배포를 안 했다면</b> 배포를 해야 주소가 생겨요.',
+   '크롬 <b>시크릿 창</b>에서 열어 보세요. (여러 구글 계정 때문일 수 있어요)',
+   '학교 와이파이가 막는 경우가 있어요. 폰 데이터로 바꿔 보세요.' ] },
+ { k:'perm', i:'🛡️', t:'권한 창에서 "확인되지 않은 앱"이라며 막혀요', s:[
+   '내 구글 계정을 고른 뒤 왼쪽 아래 <b>고급</b>을 눌러요.',
+   '<b>(안전하지 않음)으로 이동</b> → <b>허용</b>. 내가 만든 코드라 구글이 검수하지 않았다는 뜻이라 정상이에요.' ] },
+ { k:'workspace', i:'🏫', t:'학교(업무용) 구글 계정이라 "모든 사용자" 배포가 안 돼요', s:[
+   '학교 계정은 관리자 설정 때문에 외부 접속이 막힐 수 있어요.',
+   '<b>개인 구글 계정(@gmail.com)</b>으로 스프레드시트와 Apps Script를 새로 만들어 해 보세요.' ] },
+ { k:'paste', i:'📋', t:'코드를 붙여넣었더니 오류가 나요', s:[
+   '기본 코드를 <b>Ctrl+A → Delete</b>로 전부 지운 뒤 붙여넣어요.',
+   '코드를 두 번 붙여넣지 않았는지 확인해요.',
+   '붙여넣은 뒤 💾 <b>저장</b>까지 눌러요.' ], w:'Apps Script 편집은 PC(크롬)에서 하는 걸 권해요.' },
+ { k:'newdeploy', i:'🔁', t:'배포를 새로 했더니 주소가 바뀌었어요', s:[
+   '코드를 고칠 땐 <b>배포 관리 → ✏️ 수정 → 버전: 새 버전 → 배포</b>예요. 새 배포를 하면 주소가 바뀌어요.',
+   '새 주소를 [연결 주소 변경]에 넣고, ⚙️ 설정의 <b>학생용 링크를 다시 공유</b>해 주세요.' ] },
+ { k:'pw', i:'🔑', t:'비밀번호가 맞지 않아요', s:[
+   '처음 설치했다면 초기 비밀번호는 <b>activitycheck</b> 예요. (영문 소문자)',
+   '바꾼 뒤 잊었다면 내 구글 시트 <b>\'설정\' 탭 → 관리자비번</b> 칸에서 확인할 수 있어요.' ] },
+ { k:'student', i:'🧑‍🎓', t:'학생이 "명단에 없는 학번"이라고 해요', s:[
+   '👥 명단 탭에 학번이 맞게 들어갔는지, <b>명단 저장</b>을 눌렀는지 확인해요.',
+   '학생이 관리자 링크가 아니라 ⚙️ 설정의 <b>학생용 링크</b>로 들어왔는지 확인해요.' ] },
+ { k:'stale', i:'🔔', t:'업데이트했는데 🔔 알림이 계속 떠요', s:[
+   '새 코드 붙여넣기 → 💾 저장 → <b>배포 관리 → ✏️ 수정 → 새 버전 → 배포</b>까지 해야 반영돼요.',
+   '배포 1분쯤 뒤에 [↻]를 누르거나 Ctrl+F5로 새로 불러와요.' ] }
+];
+function tsHtml(keys, openFirst){
+  const list = keys ? keys.map(k => TS.find(x => x.k === k)).filter(Boolean) : TS;
+  return list.map((x,n) => `<details class="tsi"${openFirst && n === 0 ? ' open' : ''}><summary>${x.i}&nbsp;${x.t}</summary><div class="tb"><ol>${x.s.map(t => `<li>${t}</li>`).join('')}</ol>${x.w ? `<div class="tw">${x.w}</div>` : ''}</div></details>`).join('');
+}
+function showHelpBox(id, keys, on){ const el = $(id); if (!on){ el.classList.add('hide'); el.innerHTML = ''; return; } el.innerHTML = `<div class="th">🔧 이렇게 확인해 보세요</div><div class="ts">해당하는 걸 눌러 순서대로 해 보세요</div>${tsHtml(keys, true)}`; el.classList.remove('hide'); }
+
+/* ===== 📖 앱 소개 · 🎬 체험해보기 (처음 오신 선생님이 등록 전에 어떤 앱인지 볼 수 있게) ===== */
+const pill = (t,c) => `<span style="display:inline-block;background:${c[0]};color:${c[1]};border-radius:12px;padding:3px 10px;font-size:12px;font-weight:700;margin:0 4px 4px 0">${t}</span>`;
+const INTRO = [
+  { t:'학생이 직접 점검하고, 선생님은 모아서 봐요', d:'학교 활동을 자율·진로·교과로 나눠 두면, 학생이 스스로 참여 여부와 활동 요약을 기록해요. 생기부 쓸 때 일일이 찾지 않아도 돼요.',
+    v:'<div style="margin:14px 0">' + pill('🌱 자율',['#DCD6F5','#433A8C']) + pill('💡 진로',['#CDEBDD','#1F5C45']) + pill('📚 교과',['#FBE3CF','#7A3F10']) + '<div style="background:#fff;border-radius:10px;padding:9px 11px;margin-top:6px;font-size:12.5px;display:flex;justify-content:space-between;gap:8px"><b>학교폭력 예방교육</b><span style="color:#2F8F63;font-weight:700">완료</span></div><div style="background:#fff;border-radius:10px;padding:9px 11px;margin-top:6px;font-size:12.5px;display:flex;justify-content:space-between;gap:8px"><b>진로 체험의 날</b><span style="color:#B7791F;font-weight:700">요약 미작성</span></div></div>' },
+  { t:'활동 목록은 엑셀로 한 번에', d:'학교 활동 표를 엑셀로 올리거나 표를 복사해 붙여넣으면 분류별로 자동 정리돼요. 추가·수정·삭제·순서 변경도 자유로워요.',
+    v:'<div style="margin:14px 0"><div style="background:#fff;border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.8;color:#6B6680">자율 &nbsp;학교폭력 예방교육 &nbsp;(소감문 1장)<br>진로 &nbsp;진로 체험의 날 &nbsp;(체험 보고서)<br>교과 &nbsp;수학 수행평가 탐구</div><div style="text-align:center;color:#9B8EC4;font-size:12px;margin:6px 0">↓ 붙여넣으면 분류별로 나눠 줘요</div><div style="display:flex;gap:6px;flex-wrap:wrap">' + pill('🌱 자율 1',['#DCD6F5','#433A8C']) + pill('💡 진로 1',['#CDEBDD','#1F5C45']) + pill('📚 교과 1',['#FBE3CF','#7A3F10']) + '</div></div>' },
+  { t:'학생은 이렇게 적어요', d:'활동마다 참여함/안 함 → 보고서 작성 여부 → 관련 링크 → 간단한 요약. 교과 활동은 수행평가·탐구 주제를 자기 진로와 연결해서 여러 개 적을 수 있어요. 폰·태블릿·디벗 모두 편하게 쓰도록 만들었어요.',
+    v:'<div style="margin:14px 0;display:flex;flex-direction:column;gap:7px">' + ['🙋 참여함','✍️ 보고서 작성','🔗 관련 링크 (해성에듀·학급자율활동 앱·내 결과물)','📝 활동 요약','🎯 교과: 주제 + 진로 연결'].map(t => `<div style="background:#fff;border-radius:10px;padding:8px 11px;font-size:12.5px">${t}</div>`).join('') + '</div>' },
+  { t:'생기부 쓸 때 한눈에', d:'학생별·항목별로 모아 보고, 확인(✅)과 한마디를 남길 수 있어요. 학생 한 명의 기록을 생기부 참고용 글로 복사하고, 엑셀로 저장할 수 있어요. 학생 PIN은 학생이 직접 만들고, 잊으면 선생님이 초기화해요.',
+    v:'<div style="margin:14px 0"><div style="background:#fff;border-radius:10px;padding:10px 12px;font-size:12.5px"><b>10101 김하나</b> <span style="background:#EEEBF5;border-radius:10px;padding:1px 8px;font-size:11.5px">점검 5/7</span><div style="margin-top:6px;color:#5E5873">건축사무소를 방문해 설계 과정을 듣고…</div><div style="margin-top:6px;color:#2F8F63;font-weight:700">✅ 확인 · “체험 내용이 구체적이에요”</div></div><div style="margin-top:8px;text-align:center"><span style="background:#9B8EC4;color:#fff;border-radius:12px;padding:6px 14px;font-size:12px;font-weight:700">📋 생기부 참고용 복사</span></div></div>' },
+  { t:'시작은 세 단계예요', d:'차근차근 따라 하면 돼요. 학생 이름·학번·기록은 선생님 본인의 구글 시트에만 저장돼요. 개발자에게는 전달되지 않아요.',
+    v:'<div style="margin:14px 0;display:flex;flex-direction:column;gap:10px">' + ['사용자 등록 (지역·학교급)','내 구글 시트 연결 (복사해서 붙여넣기)','학생용 링크를 단톡방·QR로 공유'].map((t,i) => `<div style="display:flex;gap:10px;align-items:center"><div style="width:24px;height:24px;border-radius:12px;background:#9B8EC4;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;flex:none">${i+1}</div><div style="font-size:13px">${t}</div></div>`).join('') + '</div>' }
+];
+let introI = 0;
+function showIntro(){ introI = 0; renderIntro(); show('scrIntro'); }
+function renderIntro(){
+  const x = INTRO[introI], last = introI === INTRO.length - 1;
+  $('introStage').innerHTML = `<div style="font-size:18px;font-weight:800;line-height:1.4">${esc(x.t)}</div><div style="font-size:13.5px;color:var(--tx2);line-height:1.65;margin-top:6px">${esc(x.d)}</div>${x.v}`;
+  $('introDots').innerHTML = INTRO.map((_,k) => `<button type="button" aria-label="${k+1}번 카드로 이동" data-a="introGo" data-k="${k}" style="width:30px;height:30px;background:none;border:0;padding:0;display:flex;align-items:center;justify-content:center"><span style="width:${k===introI?18:7}px;height:7px;border-radius:4px;background:${k===introI?'#9B8EC4':'#D8D2EE'};display:block"></span></button>`).join('');
+  const next = last ? '<button class="btn" style="flex:2" data-a="introStart">사용자 등록하고 시작하기</button>' : '<button class="btn" style="flex:2" data-a="introNext">다음 →</button>';
+  const prev = introI > 0 ? '<button class="btn sub" style="flex:1" data-a="introPrev">← 이전</button>' : '';
+  $('introBtns').innerHTML = `<div style="display:flex;gap:8px">${prev}${next}</div><button class="btn sub" data-a="openDemo">🎬 체험해보기 (등록 없이)</button>`
+    + (last ? '' : '<div style="text-align:center"><button class="alink" style="min-height:40px" data-a="introStart">건너뛰고 바로 등록</button></div>');
+}
+(function(){ let x0 = null;   // 카드를 좌우로 밀어서도 넘길 수 있어요
+  document.addEventListener('touchstart', e => { x0 = (curScreen === 'scrIntro' && e.target.closest('#introStage')) ? e.touches[0].clientX : null; }, { passive:true });
+  document.addEventListener('touchend', e => { if (x0 === null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(dx) > 60){ if (dx < 0) introNext(); else introPrev(); } }, { passive:true });
+})();
+function introPrev(){ introI = Math.max(introI - 1, 0); renderIntro(); }
+function introNext(){ introI = Math.min(introI + 1, INTRO.length - 1); renderIntro(); }
+function introStart(){ lsSet(K.intro, true); showPre(); }
+function openDemo(){ $('demoFrame').src = P + '.html?demo=1'; $('demoOv').classList.remove('hide'); document.body.style.overflow = 'hidden'; }
+function closeDemo(){ $('demoOv').classList.add('hide'); $('demoFrame').src = 'about:blank'; document.body.style.overflow = ''; }
+window.addEventListener('message', e => {   // 체험 화면(학생 앱)이 보내는 [등록하러 가기] [닫기]
+  const f = $('demoFrame'); if (!f || e.source !== f.contentWindow) return;
+  const a = e.data && e.data.acDemo;
+  if (a === 'close') closeDemo();
+  else if (a === 'register'){ closeDemo(); if (curScreen === 'scrIntro') introStart(); }
+});
+
+/* ===== 사전 등록 · 연결 · 로그인 ===== */
+function showPre(){
+  const i = lsGet(K.pre, null) || lsGet(K.reg, {});
+  $('preName').value = nm(i.name); setSchool('pre', i.school); $('preAgree').checked = !!i.agree;
+  msg('preMsg',''); show('scrPre');
+}
+function savePre(){
+  const info = { name:$('preName').value.trim(), school:readSchool('pre'), cls:'' };
+  if (!info.school){ msg('preMsg','학교의 지역과 학교급을 골라 주세요.'); return; }
+  if (!info.name){ msg('preMsg','아이디를 입력해 주세요.'); return; }
+  if (!$('preAgree').checked){ msg('preMsg','개인정보 수집·이용에 동의해 주세요. (필수)'); return; }
+  info.agree = true; lsSet(K.pre, info);
+  if (REGISTRY_URL){
+    let pid = lsGet(K.preId, '');
+    if (!pid){ pid = 'pre-' + (window.crypto && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 10)); lsSet(K.preId, pid); }
+    reg({ action:'register', id:pid, name:info.name || NONAME, school:info.school, cls:'', agree:'1' }).catch(()=>{});
+  }
+  showConnect();
+}
+function showConnect(){
+  const i = lsGet(K.pre, null);
+  $('preInfoLine').innerHTML = i ? '👤 ' + esc([nm(i.name), i.school].filter(Boolean).join(' · ')) + ' <a href="#" data-a="showPre" style="color:var(--mainD)">수정</a>' : '';
+  $('gasCodeBox').value = GAS_CODE; $('gasIn').value = GAS || '';
+  show('scrConnect');
+}
+function clearPre(){ lsDel(K.pre); lsDel(K.preId); }
+async function connect(){
+  const url = $('gasIn').value.trim();
+  if (!/^https:\/\/script\.google\.com\/.+\/exec/.test(url)){ msg('conMsg','…/exec 로 끝나는 웹 앱 URL을 넣어 주세요.'); return; }
+  const old = GAS; GAS = url; msg('conMsg','연결 확인 중…',true); showHelpBox('conHelp', 0, false);
+  try{ await jsonp({ action:'ping' }); lsSet(K.gas, url); msg('conMsg','연결됐어요!',true); setTimeout(() => show('scrLogin'), 400); }
+  catch(e){ GAS = old; msg('conMsg', e.message); showHelpBox('conHelp', ['noresp','perm','workspace','newdeploy'], true); }
+}
+async function login(){
+  const pw = $('pwIn').value.trim();
+  if (!pw){ msg('loginMsg','비밀번호를 입력해 주세요.'); return; }
+  msg('loginMsg','확인 중…',true); showHelpBox('loginHelp', 0, false);
+  try{
+    const r = await jsonp({ action:'login', pw });
+    if (!r.role){ msg('loginMsg','비밀번호가 맞지 않아요.'); showHelpBox('loginHelp', ['pw','noresp'], true); return; }
+    PW = pw; try{ sessionStorage.setItem(K.pw, pw); }catch(e){}
+    await afterLogin(r);
+  }catch(e){ msg('loginMsg', e.message); showHelpBox('loginHelp', ['noresp','pw'], true); }
+}
+function logout(){ PW = ''; try{ sessionStorage.removeItem(K.pw); }catch(e){} $('pwIn').value = ''; msg('loginMsg',''); show('scrLogin'); }
+
+async function afterLogin(r){
+  loginInfo = r; installId = r.installId || '';
+  if (r.mustChange){ $('npw1').value = ''; $('npw2').value = ''; msg('npwMsg',''); return show('scrPw'); }
+  if (!REGISTRY_URL || !installId){ isOwner = !REGISTRY_URL; return enterMain(); }
+  let st;
+  try{ const res = await reg({ action:'check', id:installId, old:lsGet(K.preId,''), cb:classCode(GAS) }); st = res.status; saveRegInfo(res); if (st !== 'unregistered') clearPre(); }
+  catch(e){ isOwner = lsGet(K.owner,'') === installId; return enterMain(); }
+  return handleStatus(st);
+}
+let autoRegTried = false;
+async function autoRegister(pre){
+  show('scrLoading'); msg('loadMsg','사용자 등록 중…',true);
+  try{
+    const r = await reg({ action:'register', id:installId, old:lsGet(K.preId,''), name:pre.name || NONAME, school:pre.school, cls:'', agree: pre.agree ? '1' : '', cb:classCode(GAS) });
+    lsSet(K.reg, { name:nm(pre.name), school:pre.school, cls:'' }); clearPre(); return handleStatus(r.status);
+  }catch(e){
+    $('regName').value = nm(pre.name); setSchool('reg', pre.school);
+    msg('regMsg','자동 등록에 실패했어요. 아래 [등록하기]를 눌러 주세요. (' + e.message + ')'); show('scrReg');
+  }
+}
+function handleStatus(st){
+  isOwner = (st === 'owner');
+  if (isOwner) lsSet(K.owner, installId);
+  if (st === 'owner' || st === 'ok') return enterMain();
+  if (st === 'unregistered'){
+    const pre = lsGet(K.pre, null);
+    if (pre && pre.name && pre.school && pre.agree && !autoRegTried){ autoRegTried = true; return autoRegister(pre); }
+    const info = lsGet(K.reg, null) || pre || {};
+    $('regAgree').checked = false; $('regName').value = nm(info.name); setSchool('reg', info.school);
+    msg('regMsg',''); return show('scrReg');
+  }
+  if (st === 'pending') return gate('⏳', '승인 대기 중이에요', '개발자가 승인하면 사용할 수 있어요. 승인 후 [다시 확인]을 눌러 주세요.');
+  if (st === 'blocked') return gate('⛔', '사용이 중지되었어요', '이 학급의 ACTIVITY CHECK 사용이 중지되었어요. 궁금한 점은 문의해 주세요.');
+  enterMain();
+}
+function gate(ic, title, text){ $('gateIc').textContent = ic; $('gateTitle').textContent = title; $('gateText').textContent = text; msg('gateMsg',''); show('scrGate'); }
+function saveRegInfo(res){ if (res && res.name) lsSet(K.reg, { name:nm(res.name), school:res.school, cls:res.cls }); reviewOn = !!(res && res.review === true); }
+async function recheck(btn){
+  btn.disabled = true; msg('gateMsg','확인 중…',true);
+  try{ const res = await reg({ action:'check', id:installId, cb:classCode(GAS) }); saveRegInfo(res); await handleStatus(res.status); }
+  catch(e){ msg('gateMsg', e.message); }
+  btn.disabled = false;
+}
+async function doRegister(btn){
+  const info = { name:$('regName').value.trim(), school:readSchool('reg'), cls:'' };
+  if (!info.school){ msg('regMsg','학교의 지역과 학교급을 골라 주세요.'); return; }
+  if (!info.name){ msg('regMsg','아이디를 입력해 주세요.'); return; }
+  if (!$('regAgree').checked){ msg('regMsg','개인정보 수집·이용에 동의해 주세요. (필수)'); return; }
+  btn.disabled = true; msg('regMsg','등록 중…',true);
+  try{
+    const r = await reg({ action:'register', id:installId, old:lsGet(K.preId,''), name:info.name || NONAME, school:info.school, cls:'', agree:'1', cb:classCode(GAS) });
+    lsSet(K.reg, info); clearPre(); await handleStatus(r.status);
+  }catch(e){ msg('regMsg', e.message); }
+  btn.disabled = false;
+}
+async function changeFirstPw(btn){
+  const a = $('npw1').value.trim(), b = $('npw2').value.trim();
+  if (a.length < 4){ msg('npwMsg','4자 이상으로 정해 주세요.'); return; }
+  if (a === DEFAULT_PW){ msg('npwMsg','초기 비밀번호와 다른 비밀번호로 정해 주세요.'); return; }
+  if (a !== b){ msg('npwMsg','두 비밀번호가 달라요.'); return; }
+  btn.disabled = true; msg('npwMsg','변경 중…',true);
+  try{
+    await api('saveSettings', { data:JSON.stringify({ newPw:a }) });
+    PW = a; try{ sessionStorage.setItem(K.pw, a); }catch(e){}
+    await afterLogin({ ...loginInfo, mustChange:false });
+  }catch(e){ msg('npwMsg', e.message); }
+  btn.disabled = false;
+}
+function classCode(url){   // 선생님 GAS 주소 → 짧은 반 코드 (주소 자체는 전달되지 않아요)
+  url = String(url || '').trim(); let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0, c; i < url.length; i++){ c = url.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+}
+function mailSubject(){ const info = lsGet(K.reg, {}); return '[ACTIVITY CHECK 문의] ' + [info.school, nm(info.name)].filter(Boolean).join(' '); }
+
+/* ===== 메인 ===== */
+async function enterMain(){
+  show('scrLoading'); msg('loadMsg','불러오는 중…',true);
+  try{ await refresh(); }
+  catch(e){ if (/권한이 없어요/.test(e.message)) return logout(); msg('loadMsg', e.message); return setTimeout(() => show('scrLogin'), 2500); }
+  show('scrMain');
+  const tabs = [['set','⚙️ 설정'],['items','📋 항목'],['stu','👥 명단'],['stat','📊 현황']];
+  if (reviewOn) tabs.push(['rv','💬 후기']);
+  if (isOwner && REGISTRY_URL) tabs.push(['own','👑 사용자']);
+  tabs.push(['help','📘 가이드']);
+  $('nav').innerHTML = tabs.map(([k,t]) => `<button data-a="tab" data-t="${k}">${t}</button>`).join('');
+  const first = (DATA.items.length ? 'stat' : 'items');
+  goTab(tabs.some(t => t[0] === curTab) && curTab !== 'set' ? curTab : first);
+  renderRv(); $('tsList').innerHTML = tsHtml(null, false);
+}
+async function refresh(){
+  const r = await api('adminLoad');
+  DATA = r; installId = r.installId || installId;
+  renderAll();
+}
+function goTab(t){
+  curTab = t;
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  document.querySelectorAll('.pane').forEach(p => p.classList.toggle('on', p.id === 'p-' + t));
+  if (t === 'own') loadOwner();
+  window.scrollTo(0,0);
+}
+function renderAll(){
+  $('topSub').textContent = (DATA.className || '') + (DATA.year ? ' · ' + DATA.year + '학년도' : '');
+  $('setCls').value = DATA.className || ''; $('setYear').value = DATA.year || '';
+  const stu = baseUrl() + P + '.html?gas=' + encodeURIComponent(GAS);
+  $('stuLink').value = stu;
+  $('instId').textContent = installId || '-'; $('gasVerTxt').textContent = DATA.gasVer ? 'v' + DATA.gasVer : '확인 불가';
+  $('gasUrlTxt').textContent = GAS;
+  const old = !DATA.gasVer || DATA.gasVer < NEED_GAS_VER, b = $('gasBanner');
+  b.classList.toggle('hide', !old);
+  if (old) b.innerHTML = '🔔 <b>GAS 코드 업데이트가 필요해요.</b> [⚙️ 설정 → GAS 코드 복사]로 새 코드를 복사해 Apps Script에 붙여넣고, <b>배포 관리 → ✏️ 수정 → 새 버전</b>으로 배포해 주세요.';
+  renderItems(); renderStu(); renderStat();
+}
+
+/* ===== 공통: 기록 · 상태 ===== */
+const recKey = (sid, iid, n) => sid + '|' + iid + '|' + n;
+function recsOf(sid, iid){ return DATA.records.filter(r => r.sid === sid && r.iid === iid && (r.part || r.summary)).sort((a,b) => a.n - b.n); }
+function statusOfRecs(rs){
+  if (rs.some(x => x.part === 'yes' && x.summary)) return 'done';
+  if (rs.some(x => x.part === 'yes')) return 'sum';
+  if (rs.some(x => x.part === 'no')) return 'no';
+  return 'none';
+}
+const BADGE = { none:['미점검','b-none'], no:['참여 안 함','b-no'], sum:['요약 미작성','b-sum'], done:['완료','b-done'] };
+const badge = s => `<span class="badge ${BADGE[s][1]}">${BADGE[s][0]}</span>`;
+function itemsByCat(){ const m = {}; CATS.forEach(c => m[c] = DATA.items.filter(i => i.cat === c)); return m; }
+
+/* ===== 항목 ===== */
+let editId = null;
+function renderItems(){
+  const m = itemsByCat();
+  $('itCnt').textContent = `(${DATA.items.length}개)`;
+  $('itList').innerHTML = DATA.items.length ? CATS.map(c => !m[c].length ? '' :
+    `<div style="margin:12px 0 4px"><span class="tag ${CATCLS[c]}">${CATE[c]} ${c} ${m[c].length}</span></div>` +
+    m[c].map((it, k) => `<div class="it ${it.on ? '' : 'off'}">
+      <div class="t"><b>${esc(it.title)}</b>${it.note ? `<small>${esc(it.note)}</small>` : ''}${it.url ? `<small>🔗 ${esc(it.rtype)} · ${esc(it.url)}</small>` : (it.rtype !== '없음' ? `<small>🔗 ${esc(it.rtype)}</small>` : '')}</div>
+      <button class="ib" data-a="mv" data-id="${esc(it.id)}" data-d="-1" ${k === 0 ? 'disabled style="opacity:.3"' : ''}>↑</button>
+      <button class="ib" data-a="mv" data-id="${esc(it.id)}" data-d="1" ${k === m[c].length - 1 ? 'disabled style="opacity:.3"' : ''}>↓</button>
+      <button class="ib" data-a="toggleOn" data-id="${esc(it.id)}" title="${it.on ? '학생에게 보임' : '숨김'}">${it.on ? '👁️' : '🚫'}</button>
+      <button class="ib" data-a="editItem" data-id="${esc(it.id)}">✏️</button>
+      <button class="ib" data-a="delItem" data-id="${esc(it.id)}">🗑️</button></div>`).join('')).join('')
+    : '<div class="hint" style="text-align:center;padding:16px">아직 항목이 없어요. 위에서 엑셀로 불러오거나 하나씩 추가해 보세요.</div>';
+}
+function itemFromForm(){ return { id:editId || '', cat:$('fCat').value, title:$('fTitle').value.trim(), note:$('fNote').value.trim(), rtype:$('fRtype').value, url:$('fUrl').value.trim(), prov:!!$('fUrl').value.trim() }; }
+async function saveItem(btn){
+  const it = itemFromForm();
+  if (!it.title){ msg('itMsg','항목명을 입력해 주세요.'); return; }
+  if (it.url && !/^https?:\/\/\S+$/i.test(it.url)){ msg('itMsg','링크는 https://로 시작하는 주소여야 해요.'); return; }
+  if (editId){ const o = DATA.items.find(x => x.id === editId); if (o) it.on = o.on; }
+  btn.disabled = true; msg('itMsg','저장 중…',true);
+  try{ await api('saveItem', { data:JSON.stringify(it) }); cancelEdit(); await refresh(); msg('itMsg','저장했어요.',true); }
+  catch(e){ msg('itMsg', e.message); }
+  btn.disabled = false;
+}
+function editItem(id){
+  const it = DATA.items.find(x => x.id === id); if (!it) return;
+  editId = id; $('fCat').value = it.cat; $('fTitle').value = it.title; $('fNote').value = it.note; $('fRtype').value = it.rtype; $('fUrl').value = it.url;
+  $('formTitle').textContent = '✏️ 항목 수정'; $('fCancel').classList.remove('hide'); $('fTitle').scrollIntoView({ block:'center', behavior:'smooth' });
+}
+function cancelEdit(){ editId = null; ['fTitle','fNote','fUrl'].forEach(i => $(i).value = ''); $('fRtype').value = '없음'; $('formTitle').textContent = '➕ 항목 추가'; $('fCancel').classList.add('hide'); }
+async function delItem(id){
+  const it = DATA.items.find(x => x.id === id); if (!it) return;
+  if (!confirm(`"${it.title}" 항목을 삭제할까요?\n이 항목에 쓴 학생 기록은 화면에서 안 보이게 돼요. (잠시 숨기려면 👁️를 누르세요)`)) return;
+  try{ await api('deleteItem', { id }); await refresh(); toast('삭제했어요'); }catch(e){ toast(e.message); }
+}
+async function toggleOn(id){
+  const it = DATA.items.find(x => x.id === id); if (!it) return;
+  try{ await api('saveItem', { data:JSON.stringify({ ...it, on:!it.on }) }); await refresh(); toast(it.on ? '학생에게 숨겼어요' : '학생에게 보여요'); }catch(e){ toast(e.message); }
+}
+async function moveItem(id, d){
+  const it = DATA.items.find(x => x.id === id); if (!it) return;
+  const list = DATA.items.filter(x => x.cat === it.cat), i = list.indexOf(it), j = i + d;
+  if (j < 0 || j >= list.length) return;
+  list.splice(i, 1); list.splice(j, 0, it);
+  try{ await api('reorderItems', { data:JSON.stringify(list.map((x,k) => ({ id:x.id, order:k + 1 }))) }); await refresh(); }catch(e){ toast(e.message); }
+}
+
+/* ===== 엑셀·붙여넣기 불러오기 ===== */
+let IMP = [];
+function normCat(s){ s = String(s || ''); for (const c of CATS) if (s.includes(c)) return c; return ''; }
+function cleanTitle(s){ return String(s || '').replace(/^[\s\-–•·○●▪■□◆◇ㆍ※▶>•]+/, '').replace(/^\(?\d{1,2}[.)]\s*/, '').replace(/\s+/g, ' ').trim(); }
+function splitNote(t){ const m = t.match(/^(.*?)\s*[\(（]([^()（）]*)[\)）]\s*$/); return (m && m[1].trim()) ? [m[1].trim(), m[2].trim()] : [t, '']; }
+function guessRtype(s, url){ s = String(s || ''); if (/해성/.test(s)) return '해성에듀'; if (/학급.*자율|자율활동/.test(s)) return '학급자율활동앱'; if (/링크|url|http/i.test(s) || url) return '직접링크'; return '없음'; }
+function parseTable(rows){
+  rows = rows.map(r => r.map(c => String(c == null ? '' : c).trim())).filter(r => r.some(c => c));
+  if (!rows.length) return [];
+  const h = rows[0], hi = re => h.findIndex(c => re.test(c));
+  let map = null, start = 0;
+  const cC = hi(/분류|구분|영역/);
+  let tC = hi(/항목명|활동명/); if (tC < 0) tC = hi(/항목|활동/);
+  if (h.length > 1 && (cC >= 0 || tC >= 0) && tC !== cC){
+    map = { cat:cC, title:tC, note:hi(/유의|비고|설명|내용/), rtype:hi(/보고서|종류/), url:hi(/링크|주소|url/i) }; start = 1;
+  }
+  const out = []; let cur = '';
+  for (let i = start; i < rows.length; i++){
+    const r = rows[i]; let cat = '', title = '', note = '', rt = '', url = '';
+    if (map){
+      cat = normCat(r[map.cat]) || ''; if (!cat && map.cat >= 0 && r[map.cat]) cat = normCat(r[map.cat]);
+      if (cat) cur = cat; else cat = cur;
+      title = r[map.title] || ''; note = map.note >= 0 ? r[map.note] || '' : ''; rt = map.rtype >= 0 ? r[map.rtype] || '' : ''; url = map.url >= 0 ? r[map.url] || '' : '';
+    } else {
+      const cells = r.filter(c => c);
+      if (cells.length === 1 && normCat(cells[0]) && cells[0].length <= 14 && !/[,，]/.test(cells[0]) && cleanTitle(cells[0]).replace(/[^가-힣]/g, '').length <= 6){ cur = normCat(cells[0]); continue; }
+      if (cells.length >= 2 && normCat(cells[0]) && cells[0].length <= 8){ cat = normCat(cells[0]); cur = cat; title = cells[1]; note = cells[2] || ''; rt = cells[3] || ''; url = cells[4] || ''; }
+      else { cat = cur; title = cells[0]; note = cells[1] || ''; rt = cells[2] || ''; url = cells[3] || ''; }
+    }
+    if (!/^https?:/i.test(url)) { if (/^https?:/i.test(rt)) { url = rt; rt = ''; } else url = ''; }
+    title = cleanTitle(title); if (!title) continue;
+    if (!note){ const sp = splitNote(title); title = sp[0]; note = sp[1]; }
+    out.push({ cat:cat || '자율', title:title.substring(0,60), note:note.substring(0,300), rtype:guessRtype(rt, url), url, inc:true, unsure:!cat });
+  }
+  return out;
+}
+function showImp(list){
+  IMP = list;
+  if (!list.length){ msg('impMsg','읽을 수 있는 항목을 찾지 못했어요. 분류 / 항목명 / 작성유의사항 순서인지 확인해 주세요.'); $('impBox').classList.add('hide'); return; }
+  msg('impMsg', `${list.length}개 항목을 찾았어요. 아래에서 확인·수정한 뒤 등록해 주세요. (분류를 못 찾은 줄은 노란색)`, true);
+  $('impTbl').innerHTML = '<tr><th></th><th>분류</th><th>항목명</th><th>작성유의사항</th><th>링크 종류</th></tr>' + list.map((x,i) => `<tr${x.unsure ? ' style="background:#FFF8E6"' : ''}>
+    <td><input type="checkbox" data-imp="${i}" data-f="inc" ${x.inc ? 'checked' : ''} style="width:20px;height:20px"></td>
+    <td><select data-imp="${i}" data-f="cat">${CATS.map(c => `<option${c === x.cat ? ' selected' : ''}>${c}</option>`).join('')}</select></td>
+    <td><input type="text" data-imp="${i}" data-f="title" value="${esc(x.title)}" style="min-width:160px"></td>
+    <td><input type="text" data-imp="${i}" data-f="note" value="${esc(x.note)}" style="min-width:160px"></td>
+    <td><select data-imp="${i}" data-f="rtype">${RTYPES.map(c => `<option${c === x.rtype ? ' selected' : ''}>${c}</option>`).join('')}</select></td></tr>`).join('');
+  $('impBox').classList.remove('hide'); msg('impMsg2','');
+}
+document.addEventListener('input', e => { const t = e.target; if (t.dataset && t.dataset.imp !== undefined){ const x = IMP[Number(t.dataset.imp)]; if (x) x[t.dataset.f] = t.type === 'checkbox' ? t.checked : t.value; } });
+document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.imp !== undefined){ const x = IMP[Number(t.dataset.imp)]; if (x) x[t.dataset.f] = t.type === 'checkbox' ? t.checked : t.value; } });
+function parsePaste(){
+  const txt = $('pasteIn').value; if (!txt.trim()){ msg('impMsg','붙여넣은 내용이 없어요.'); return; }
+  const rows = txt.split(/\r?\n/).map(l => l.includes('\t') ? l.split('\t') : [l]);
+  showImp(parseTable(rows));
+}
+function readFileRows(file){
+  return new Promise((resolve, reject) => {
+    if (typeof XLSX === 'undefined') return reject(new Error('엑셀 도구를 불러오지 못했어요. 인터넷 연결을 확인하거나, 표를 복사해 붙여넣기로 올려 주세요.'));
+    const fr = new FileReader();
+    fr.onload = () => { try{
+      const wb = XLSX.read(fr.result, { type:'array' });
+      const ws = wb.Sheets[wb.SheetNames.find(n => !/안내/.test(n)) || wb.SheetNames[0]];
+      resolve(XLSX.utils.sheet_to_json(ws, { header:1, defval:'', blankrows:false }));
+    }catch(err){ reject(new Error('파일을 읽지 못했어요. 엑셀(.xlsx) 또는 CSV 파일인지 확인해 주세요.')); } };
+    fr.onerror = () => reject(new Error('파일을 읽지 못했어요.'));
+    fr.readAsArrayBuffer(file);
+  });
+}
+async function onItemFile(f){ if (!f) return; try{ showImp(parseTable(await readFileRows(f))); }catch(e){ msg('impMsg', e.message); } $('fileIn').value = ''; }
+function tplDown(){
+  const rows = [['분류','항목명','작성유의사항','보고서종류','링크'],
+    ['자율','(예시) 학교폭력 예방교육','소감문 1장 작성','학급자율활동앱',''],
+    ['진로','(예시) 진로 체험의 날','체험 후 활동 보고서','해성에듀',''],
+    ['교과','(예시) 수학 수행평가 탐구','진로와 연결해 주제 정하기','없음','']];
+  if (typeof XLSX === 'undefined'){
+    const csv = '﻿' + rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\r\n');
+    return dl(new Blob([csv], { type:'text/csv;charset=utf-8' }), 'ACTIVITY_CHECK_항목양식.csv');
+  }
+  const wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet(rows); ws['!cols'] = [{wch:8},{wch:34},{wch:34},{wch:16},{wch:30}];
+  XLSX.utils.book_append_sheet(wb, ws, '항목');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['작성 방법'],['1. 분류는 자율 / 진로 / 교과 중 하나로 적어요. (위 칸과 같으면 비워 둬도 돼요)'],['2. 항목명은 꼭 적어요. 작성유의사항·링크는 비워 둬도 돼요.'],['3. 보고서종류: 해성에듀 / 학급자율활동앱 / 직접링크 / 없음 (링크 칸에 주소를 적으면 학생 화면에 열기 버튼이 생겨요)'],['4. 예시 줄은 지우고 우리 학교 활동을 적은 뒤 앱에서 불러와요.']]), '안내');
+  XLSX.writeFile(wb, 'ACTIVITY_CHECK_항목양식.xlsx');
+}
+function dl(blob, name){ const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); }
+async function doImport(btn){
+  const mode = document.querySelector('input[name=impMode]:checked').value;
+  let list = IMP.filter(x => x.inc && x.title.trim()).map(x => ({ cat:x.cat, title:x.title.trim(), note:x.note.trim(), rtype:x.rtype, url:x.url || '', prov:!!x.url }));
+  if (mode === 'append'){ const have = new Set(DATA.items.map(i => i.cat + '|' + i.title)); const before = list.length; list = list.filter(x => !have.has(x.cat + '|' + x.title)); if (before !== list.length) toast(`이미 있는 ${before - list.length}개는 건너뛰었어요`); }
+  const bad = list.find(x => x.url && !/^https?:\/\/\S+$/i.test(x.url)); if (bad){ msg('impMsg2', `"${bad.title}"의 링크 주소가 올바르지 않아요.`); return; }
+  if (!list.length){ msg('impMsg2','등록할 항목이 없어요.'); return; }
+  if (mode === 'replace' && !confirm(`지금 항목 ${DATA.items.length}개를 모두 지우고 ${list.length}개로 바꿀까요?`)) return;
+  btn.disabled = true;
+  try{
+    for (let i = 0; i < list.length; i += 5){
+      msg('impMsg2', `등록 중… (${Math.min(i + 5, list.length)}/${list.length})`, true);
+      await api('saveItems', { data:JSON.stringify({ mode: (mode === 'replace' && i === 0) ? 'replace' : 'append', items:list.slice(i, i + 5) }) });
+    }
+    IMP = []; $('impBox').classList.add('hide'); $('pasteIn').value = ''; msg('impMsg', `${list.length}개 항목을 등록했어요 🎉`, true);
+    await refresh();
+  }catch(e){ msg('impMsg2', e.message + ' (일부만 등록됐을 수 있어요. 목록을 확인해 주세요)'); await refresh().catch(()=>{}); }
+  btn.disabled = false;
+}
+
+/* ===== 명단 ===== */
+function renderStu(){
+  $('stuTa').value = DATA.students.map(s => s.sid + ' ' + s.name).join('\n');
+  const made = DATA.students.filter(s => s.hasPin).length;
+  $('pinCnt').textContent = `(PIN 만든 학생 ${made} / ${DATA.students.length}명)`;
+  $('pinList').innerHTML = DATA.students.length ? DATA.students.map(s => `<div class="it"><div class="t"><b>${esc(s.sid)} ${esc(s.name)}</b>${s.career ? `<small>🎯 ${esc(s.career)}</small>` : ''}</div>
+    <span class="badge ${s.hasPin ? 'b-done' : 'b-none'}">${s.hasPin ? 'PIN 있음' : 'PIN 없음'}</span>
+    ${s.hasPin ? `<button class="btn sm sub" data-a="resetPin" data-sid="${esc(s.sid)}">초기화</button>` : ''}</div>`).join('') : '<div class="hint">명단을 저장하면 여기에 나와요.</div>';
+}
+function parseStudents(txt){
+  const out = [], seen = new Set();
+  txt.split(/\r?\n/).forEach(l => {
+    const p = l.trim().split(/[\t,]+|\s{1,}/).filter(Boolean); if (p.length < 2) return;
+    const sid = p[0].replace(/\D/g, ''); if (!sid || seen.has(sid)) return; seen.add(sid);
+    out.push({ sid, name:p.slice(1).join('') });
+  });
+  return out;
+}
+async function saveStu(btn){
+  const list = parseStudents($('stuTa').value);
+  if (!list.length){ msg('stuMsg','한 줄에 "학번 이름" 형식으로 적어 주세요.'); return; }
+  if (list.length > 60){ msg('stuMsg','60명까지 저장할 수 있어요.'); return; }
+  const gone = DATA.students.filter(s => !list.some(x => x.sid === s.sid));
+  if (gone.length && !confirm(`명단에서 빠지는 학생이 ${gone.length}명 있어요. (${gone.slice(0,3).map(s => s.name).join(', ')}${gone.length > 3 ? ' …' : ''})\n그래도 저장할까요?`)) return;
+  btn.disabled = true; msg('stuMsg','저장 중…',true);
+  try{ await api('saveStudents', { data:JSON.stringify(list) }); await refresh(); msg('stuMsg', `${list.length}명 저장했어요.`, true); }
+  catch(e){ msg('stuMsg', e.message); }
+  btn.disabled = false;
+}
+async function onStuFile(f){
+  if (!f) return;
+  try{
+    const rows = await readFileRows(f); let c = 0;
+    const txt = rows.filter(r => r.filter(x => String(x).trim()).length >= 2).map(r => { const cells = r.map(x => String(x).trim()).filter(Boolean); return /\d/.test(cells[0]) ? cells[0] + ' ' + cells[1] : null; }).filter(Boolean).join('\n');
+    if (!txt) throw new Error('학번과 이름 열을 찾지 못했어요. 첫 두 열이 학번, 이름인지 확인해 주세요.');
+    $('stuTa').value = txt; msg('stuMsg','불러왔어요. 확인한 뒤 [명단 저장]을 눌러 주세요.', true);
+  }catch(e){ msg('stuMsg', e.message); }
+  $('stuFile').value = '';
+}
+async function resetPin(sid){
+  const s = DATA.students.find(x => x.sid === sid); if (!s || !confirm(`${s.name} 학생의 PIN을 초기화할까요?\n학생이 다음 접속 때 새 PIN을 만들어요. (기록은 그대로예요)`)) return;
+  try{ await api('resetPin', { sid }); await refresh(); toast('초기화했어요'); }catch(e){ toast(e.message); }
+}
+
+/* ===== 현황 ===== */
+let statMode = 'stu', openStu = null, itemFilt = 'all', statItem = '';
+function recHtml(sid, it){
+  const rs = recsOf(sid, it.id), st = statusOfRecs(rs);
+  let h = `<div class="ir"><div class="hd"><span class="tag ${CATCLS[it.cat]}">${CATE[it.cat]}</span><b>${esc(it.title)}</b>${badge(st)}</div>`;
+  rs.forEach(r => {
+    h += `<div class="rec">`;
+    if (r.part === 'yes'){
+      h += `🙋 참여 · ${r.report === 'done' ? '✍️ 보고서 작성' : r.report === 'todo' ? '보고서 아직' : '보고서 미표시'}`;
+      if (r.topic) h += `<br><b>주제</b> ${esc(r.topic)}`;
+      if (r.career) h += `<br><b>진로 연결</b> ${esc(r.career)}`;
+      if (r.link) h += `<br>🔗 <a href="${esc(r.link)}" target="_blank" rel="noopener noreferrer" style="color:var(--mainD);word-break:break-all">${esc(r.link)}</a>`;
+      h += r.summary ? `<div class="sm" style="margin-top:4px">${esc(r.summary)}</div>` : `<div style="color:var(--warn);margin-top:4px">요약을 아직 안 적었어요</div>`;
+    } else if (r.part === 'no') h += '참여 안 함';
+    else h += '(학생 기록 없음 · 선생님 메모만 있어요)';
+    h += `<div class="tc"><label><input type="checkbox" data-tchk ${r.tchk ? 'checked' : ''}> ✅ 확인</label><input type="text" data-tmemo maxlength="200" value="${esc(r.tmemo)}" placeholder="선생님 한마디 (학생에게 보여요)"><button class="btn sm sub" data-a="tSave" data-sid="${esc(sid)}" data-iid="${esc(it.id)}" data-n="${r.n}">저장</button></div></div>`;
+  });
+  return h + '</div>';
+}
+function renderStat(){
+  $('statQ').classList.toggle('hide', statMode !== 'stu'); $('itemSel').classList.toggle('hide', statMode !== 'item');
+  document.querySelectorAll('[data-a="statMode"]').forEach(b => b.classList.toggle('on', b.dataset.m === statMode));
+  const body = $('statBody');
+  if (!DATA.students.length){ body.innerHTML = '<div class="card hint" style="text-align:center">👥 명단 탭에서 학생 명단을 먼저 저장해 주세요.</div>'; return; }
+  if (!DATA.items.length){ body.innerHTML = '<div class="card hint" style="text-align:center">📋 항목 탭에서 활동 항목을 먼저 등록해 주세요.</div>'; return; }
+  const items = DATA.items.filter(i => i.on);
+  if (statMode === 'stu'){
+    const q = $('statQ').value.trim();
+    body.innerHTML = DATA.students.filter(s => !q || (s.sid + s.name).includes(q)).map(s => {
+      let chk = 0, sum = 0;
+      items.forEach(it => { const st = statusOfRecs(recsOf(s.sid, it.id)); if (st !== 'none') chk++; if (st === 'sum') sum++; });
+      const open = openStu === s.sid;
+      return `<div class="stu"><button class="h" data-a="toggleStu" data-sid="${esc(s.sid)}"><b>${esc(s.sid)} ${esc(s.name)}</b><span class="badge b-none">점검 ${chk}/${items.length}</span>${sum ? `<span class="badge b-sum">요약 미작성 ${sum}</span>` : ''}${s.career ? `<span style="font-size:12.5px;color:var(--tx2)">🎯 ${esc(s.career)}</span>` : ''}<span class="sp"></span>${open ? '▲' : '▼'}</button>
+        ${open ? `<div class="bd"><div class="row"><button class="btn sm" data-a="copyStu" data-sid="${esc(s.sid)}">📋 생기부 참고용 복사</button></div>` + CATS.map(c => items.filter(i => i.cat === c).map(it => recHtml(s.sid, it)).join('')).join('') + '</div>' : ''}</div>`;
+    }).join('') || '<div class="card hint">검색 결과가 없어요.</div>';
+  } else {
+    const sel = $('statItem');
+    sel.innerHTML = CATS.map(c => `<optgroup label="${CATE[c]} ${c}">${items.filter(i => i.cat === c).map(i => `<option value="${esc(i.id)}"${i.id === statItem ? ' selected' : ''}>${esc(i.title)}</option>`).join('')}</optgroup>`).join('');
+    if (!items.some(i => i.id === statItem)) statItem = items[0] ? items[0].id : '';
+    sel.value = statItem;
+    const FL = [['all','전체'],['yes','참여'],['no','참여 안 함'],['none','미점검'],['sum','요약 미작성']];
+    $('itemFilt').innerHTML = FL.map(([k,t]) => `<button class="chip ${itemFilt === k ? 'on' : ''}" data-a="itemFilt" data-k="${k}">${t}</button>`).join('');
+    const it = items.find(i => i.id === statItem); if (!it){ body.innerHTML = ''; return; }
+    const cnt = { done:0, sum:0, no:0, none:0 };
+    const rows = DATA.students.map(s => { const st = statusOfRecs(recsOf(s.sid, it.id)); cnt[st]++; return { s, st }; });
+    const f = rows.filter(x => itemFilt === 'all' || (itemFilt === 'yes' ? (x.st === 'done' || x.st === 'sum') : x.st === itemFilt));
+    // 항목별 보기: 학생마다 기록 + 확인 도구
+    body.innerHTML = `<div class="card"><div class="hint" style="margin:0 0 6px">참여 ${cnt.done + cnt.sum} · 참여 안 함 ${cnt.no} · 미점검 ${cnt.none} · 요약 미작성 ${cnt.sum}</div>` +
+      (f.map(({ s }) => `<div style="margin-top:8px;font-weight:800;font-size:14px">${esc(s.sid)} ${esc(s.name)}${s.career ? ` <span style="font-weight:500;color:var(--tx2);font-size:12.5px">🎯 ${esc(s.career)}</span>` : ''}</div>` + recHtml(s.sid, it)).join('') || '<div class="hint">해당하는 학생이 없어요.</div>') + '</div>';
+  }
+}
+async function tSave(btn){
+  const { sid, iid, n } = btn.dataset, box = btn.closest('.tc');
+  const chk = box.querySelector('[data-tchk]').checked, memo = box.querySelector('[data-tmemo]').value.trim();
+  btn.disabled = true;
+  try{
+    await api('tReview', { sid, iid, n, chk: chk ? '1' : '', memo });
+    const r = DATA.records.find(x => x.sid === sid && x.iid === iid && String(x.n) === String(n)); if (r){ r.tchk = chk; r.tmemo = memo; }
+    toast('저장했어요 ✅');
+  }catch(e){ toast(e.message); }
+  btn.disabled = false;
+}
+function stuText(sid){
+  const s = DATA.students.find(x => x.sid === sid); if (!s) return '';
+  let t = `[${s.sid} ${s.name}]${s.career ? ' 진로희망: ' + s.career : ''}\n`;
+  CATS.forEach(c => {
+    const lines = [];
+    DATA.items.filter(i => i.cat === c && i.on).forEach(it => {
+      recsOf(sid, it.id).forEach(r => {
+        if (r.part !== 'yes') return;
+        let l = `- ${it.title}: 참여${r.report === 'done' ? '(보고서 작성)' : ''}`;
+        if (r.topic) l += ` / 주제: ${r.topic}`;
+        if (r.career) l += ` / 진로연결: ${r.career}`;
+        if (r.summary) l += `\n  ${r.summary.replace(/\n/g, ' ')}`;
+        if (r.tmemo) l += `\n  (교사메모) ${r.tmemo}`;
+        lines.push(l);
+      });
+    });
+    if (lines.length) t += `\n■ ${c}\n` + lines.join('\n') + '\n';
+  });
+  return t.trim();
+}
+async function copyText(t, okMsg){
+  try{ await navigator.clipboard.writeText(t); toast(okMsg || '복사했어요'); }
+  catch(e){ const ta = document.createElement('textarea'); ta.value = t; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); toast(okMsg || '복사했어요'); }catch(_){ toast('복사하지 못했어요. 직접 선택해서 복사해 주세요.'); } ta.remove(); }
+}
+function exportXlsx(){
+  const stLabel = { none:'미점검', no:'참여 안 함', sum:'참여(요약 미작성)', done:'참여(요약 작성)' };
+  const rows = [['학번','이름','진로희망','분류','항목','상태','보고서','링크','주제','진로연결','요약','교사확인','교사메모']];
+  DATA.students.forEach(s => DATA.items.filter(i => i.on).forEach(it => {
+    const rs = recsOf(s.sid, it.id);
+    if (!rs.length) rows.push([s.sid, s.name, s.career, it.cat, it.title, '미점검', '', '', '', '', '', '', '']);
+    rs.forEach(r => rows.push([s.sid, s.name, s.career, it.cat, it.title, stLabel[r.part === 'yes' ? (r.summary ? 'done' : 'sum') : r.part === 'no' ? 'no' : 'none'], r.report === 'done' ? '작성' : r.report === 'todo' ? '아직' : '', r.link, r.topic, r.career, r.summary, r.tchk ? '확인' : '', r.tmemo]));
+  }));
+  const name = `ACTIVITY_CHECK_${DATA.year || ''}_${(DATA.className || '').replace(/\s+/g, '')}.xlsx`;
+  if (typeof XLSX === 'undefined'){ const csv = '﻿' + rows.map(r => r.map(c => '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"').join(',')).join('\r\n'); return dl(new Blob([csv], { type:'text/csv;charset=utf-8' }), name.replace('.xlsx', '.csv')); }
+  const wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet(rows); ws['!cols'] = [{wch:8},{wch:8},{wch:14},{wch:6},{wch:26},{wch:14},{wch:8},{wch:24},{wch:24},{wch:30},{wch:50},{wch:8},{wch:24}];
+  XLSX.utils.book_append_sheet(wb, ws, '활동기록'); XLSX.writeFile(wb, name);
+}
+
+/* ===== 설정 ===== */
+async function copyStuRich(){
+  const url = $('stuLink').value, label = 'ACTIVITY CHECK_made by Cheon R';
+  try{ await navigator.clipboard.write([new ClipboardItem({ 'text/html':new Blob([`<a href="${esc(url)}">${label}</a>`], { type:'text/html' }), 'text/plain':new Blob([label + ' ' + url], { type:'text/plain' }) })]); msg('linkMsg','복사했어요! 붙여넣으면 글자에 링크가 걸려 있어요.', true); }
+  catch(e){ await copyText(url); msg('linkMsg','이 브라우저는 글자 링크 복사를 지원하지 않아 주소를 복사했어요.', true); }
+}
+async function saveCls(btn){
+  const year = $('setYear').value.trim(), cls = $('setCls').value.trim();
+  if (!/^\d{4}$/.test(year)){ msg('clsMsg','학년도는 숫자 4자리로 적어 주세요.'); return; }
+  btn.disabled = true; msg('clsMsg','저장 중…',true);
+  try{ await api('saveSettings', { data:JSON.stringify({ year, className:cls }) }); await refresh(); msg('clsMsg','저장했어요.', true); }
+  catch(e){ msg('clsMsg', e.message); }
+  btn.disabled = false;
+}
+async function changePw(btn){
+  const a = $('chPw1').value.trim(), b = $('chPw2').value.trim();
+  if (a.length < 4){ msg('pwMsg','4자 이상으로 정해 주세요.'); return; }
+  if (a === DEFAULT_PW){ msg('pwMsg','초기 비밀번호와 다른 비밀번호로 정해 주세요.'); return; }
+  if (a !== b){ msg('pwMsg','두 비밀번호가 달라요.'); return; }
+  btn.disabled = true;
+  try{ await api('saveSettings', { data:JSON.stringify({ newPw:a }) }); PW = a; try{ sessionStorage.setItem(K.pw, a); }catch(e){} $('chPw1').value = ''; $('chPw2').value = ''; msg('pwMsg','바꿨어요.', true); }
+  catch(e){ msg('pwMsg', e.message); }
+  btn.disabled = false;
+}
+async function yearReset(btn){
+  if (!confirm('학생 기록을 모두 지울까요? 되돌릴 수 없어요.\n(📊 현황에서 엑셀로 저장해 두셨나요?)')) return;
+  const t = prompt('확인을 위해 "삭제"라고 입력해 주세요.'); if (t !== '삭제') return;
+  btn.disabled = true;
+  try{ const r = await api('yearReset'); await refresh(); msg('yrMsg', `기록 ${r.count}줄을 지웠어요.`, true); }catch(e){ msg('yrMsg', e.message); }
+  btn.disabled = false;
+}
+
+/* ===== 후기 ===== */
+const RV_CHIPS = ['학생 활동을 한곳에 모아 볼 수 있어요','생기부 쓸 때 찾아보기 편해요','엑셀로 항목을 한 번에 불러올 수 있어요','학생 점검 현황을 한눈에 볼 수 있어요','설치·연결이 쉬웠어요','학생 화면이 쓰기 편해요'];   // 등록부 GAS의 REVIEW_ACTIVITY.chips 와 순서 동일
+const RV_LOWS = ['사용법이 어려웠어요','설치·연결이 어려웠어요','기능이 부족해요','오류가 있었어요','학생들이 잘 안 써요'];   // 별점 3점 이하일 때만 (GAS의 lows 와 순서 동일)
+const RV_KINDS = ['기능 요청','오류','디자인','기타'];
+const RV_OK = [['name','아이디 공개해도 돼요'],['anon','아이디 없이 써도 돼요'],['no','쓰지 말아주세요']];
+let rvRate = 0, rvPick = [], rvLow = [], rvOtherOn = false, rvLowOtherOn = false, rvKind = '', rvOk = 'no', rvSending = false;
+function renderRv(){
+  $('rvStars').innerHTML = [1,2,3,4,5].map(i => `<button type="button" class="rv-star ${i <= rvRate ? 'on' : ''}" aria-label="${i}점" data-a="rvSet" data-i="${i}">★</button>`).join('');
+  $('rvChips').innerHTML = RV_CHIPS.map((t,i) => `<button type="button" class="chip ${rvPick.includes(i) ? 'on' : ''}" data-a="rvTog" data-i="${i}">${esc(t)}</button>`).join('') + `<button type="button" class="chip ${rvOtherOn ? 'on' : ''}" data-a="rvTog" data-i="-1">기타</button>`;
+  const lowOn = rvRate >= 1 && rvRate <= 3;
+  $('rvLowBox').classList.toggle('hide', !lowOn);
+  $('rvLows').innerHTML = RV_LOWS.map((t,i) => `<button type="button" class="chip ${rvLow.includes(i) ? 'on' : ''}" data-a="rvLowTog" data-i="${i}">${esc(t)}</button>`).join('') + `<button type="button" class="chip ${rvLowOtherOn ? 'on' : ''}" data-a="rvLowTog" data-i="-1">기타</button>`;
+  $('rvLowOther').classList.toggle('hide', !(lowOn && rvLowOtherOn)); $('rvOther').classList.toggle('hide', !rvOtherOn);
+  $('rvKinds').innerHTML = RV_KINDS.map(t => `<button type="button" class="chip ${rvKind === t ? 'on' : ''}" data-a="rvKind" data-k="${t}">${t}</button>`).join('');
+  $('rvOk').innerHTML = RV_OK.map(([k,t]) => `<button type="button" class="chip ${rvOk === k ? 'on' : ''}" data-a="rvOkSet" data-k="${k}">${t}</button>`).join('');
+}
+async function sendReview(btn){
+  if (rvSending) return;
+  const imp = $('rvImp').value.trim(), lowOn = rvRate >= 1 && rvRate <= 3;
+  if (!rvRate){ msg('rvMsg','별점을 눌러 주세요.'); return; }
+  rvSending = true; btn.disabled = true; msg('rvMsg','보내는 중…',true);
+  try{
+    await reg({ action:'review', id:installId, rate:rvRate, c:rvPick.join(','), lc: lowOn ? rvLow.join(',') : '', lo: lowOn && rvLowOtherOn ? $('rvLowOther').value.trim() : '', other: rvOtherOn ? $('rvOther').value.trim() : '', one:$('rvOne').value.trim(), ik:rvKind, imp, ok:rvOk });
+    rvRate = 0; rvPick = []; rvLow = []; rvLowOtherOn = false; rvOtherOn = false; rvKind = ''; rvOk = 'no';
+    ['rvOther','rvLowOther','rvOne','rvImp'].forEach(i => $(i).value = '');
+    renderRv(); msg('rvMsg','💜 소중한 의견 감사합니다! 다음에 또 의견이 생기면 언제든 남겨 주세요.', true);
+  }catch(e){ msg('rvMsg','보내지 못했어요. 입력한 내용은 그대로 있어요. (' + e.message + ')'); }
+  rvSending = false; btn.disabled = false;
+}
+
+/* ===== 👑 사용자 관리 (아듬샘 전용) ===== */
+async function loadOwner(){
+  if (!isOwner) return;
+  try{
+    const r = await reg({ action:'ownerList', id:installId });
+    const s = r.stats || {};
+    $('ownTiles').innerHTML = [['오늘', s.today],['누적 사용자', s.users],['누적 접속', s.visits],['이번 주', s.week]].map(([t,v]) => `<div class="tile"><b>${v == null ? '-' : v}</b><small>${t}</small></div>`).join('');
+    const days = s.days || [], mx = Math.max(1, ...days.map(d => d.n));
+    $('ownBars').innerHTML = days.map(d => `<div style="height:${Math.round(d.n / mx * 100)}%" title="${d.d}: ${d.n}명"><span>${d.d.substring(3)}</span></div>`).join('');
+    try{
+      const st = await reg({ action:'ownerStu', id:installId });
+      $('ownStuTiles').innerHTML = [['오늘 열림', st.today],['누적 열림', st.visits]].map(([t,v]) => `<div class="tile"><b>${v == null ? '-' : v}</b><small>${t}</small></div>`).join('');
+      const sd = st.days || [], sm = Math.max(1, ...sd.map(d => d.s));
+      $('ownStuBars').innerHTML = sd.map(d => `<div style="height:${Math.round(d.s / sm * 100)}%" title="${d.d}: ${d.s}번"><span>${d.d.substring(3)}</span></div>`).join('');
+    }catch(e){ $('ownStuTiles').innerHTML = '<div class="hint">학생 집계를 불러오지 못했어요. 등록부 코드를 최신으로 바꿨는지 확인해 주세요.</div>'; }
+    $('swAppr').checked = !!r.approval; $('swRv').checked = !!(r.review && r.review.on);
+    $('ownRvCnt').textContent = r.review ? `교사 후기 ${r.review.reviews}건 · 개선점 ${r.review.improves}건 / 학생 후기 ${r.review.sreviews || 0}건 · 개선점 ${r.review.simproves || 0}건` : '';
+    $('ownCnt').textContent = `(${r.users.length}명)`;
+    $('ownUsers').innerHTML = r.users.length ? r.users.slice().reverse().map(u => `<div class="it"><div class="t"><b>${esc(u.name)}</b><small>${esc(u.school)} · 등록 ${esc(u.reg)} · 최근 ${esc(u.last)} · ${u.conn ? '시트 연결됨' : '미연결'}</small></div>
+      ${r.approval ? `<label class="sw" style="font-size:12px"><input type="checkbox" data-a="ownU" data-id="${esc(u.id)}" data-f="ok" ${u.ok ? 'checked' : ''}>승인</label>` : ''}
+      <label class="sw" style="font-size:12px"><input type="checkbox" data-a="ownU" data-id="${esc(u.id)}" data-f="block" ${u.block ? 'checked' : ''}>차단</label></div>`).join('') : '<div class="hint">아직 사용자가 없어요.</div>';
+  }catch(e){ msg('ownMsg', e.message); }
+}
+async function ownSwitch(kind, on){
+  try{ await reg({ action: kind === 'appr' ? 'ownerApproval' : 'ownerReview', id:installId, on: on ? '1' : '' }); msg('ownMsg','저장했어요.', true); if (kind === 'rv') reviewOn = on; }
+  catch(e){ msg('ownMsg', e.message); loadOwner(); }
+}
+async function ownUser(id, field, value){
+  try{ await reg({ action:'ownerUser', id:installId, target:id, field, value: value ? '1' : '' }); msg('ownMsg','저장했어요.', true); }
+  catch(e){ msg('ownMsg', e.message); loadOwner(); }
+}
+async function showReviews(btn){
+  btn.disabled = true;
+  try{
+    const r = await reg({ action:'ownerReviews', id:installId, mark:'1' });
+    const card = (x, who) => `<div class="rec" style="margin-top:8px"><b>${'★'.repeat(x.rate)}${'☆'.repeat(5 - x.rate)}</b> ${x.nw ? '<span class="badge b-sum">NEW</span>' : ''} <span class="hint">${who} ${esc(x.t)} · ${esc(x.school)} ${esc(x.cls || '')}</span>
+      ${x.chips.length ? `<div>👍 ${x.chips.map(esc).join(' · ')}${x.other ? ' · ' + esc(x.other) : ''}</div>` : ''}${x.lows.length ? `<div>😢 ${x.lows.map(esc).join(' · ')}${x.lowOther ? ' · ' + esc(x.lowOther) : ''}</div>` : ''}
+      ${x.one ? `<div>“${esc(x.one)}”</div>` : ''}${x.imp ? `<div>🛠️ [${esc(x.kind)}] ${esc(x.imp)}</div>` : ''}<div class="hint">소개자료 사용: ${esc(x.consent || '사용 불가')}</div></div>`;
+    const sHtml = (r.s || []).length ? '<h3 style="margin-top:14px">🧑‍🎓 학생 후기</h3>' + r.s.map(x => card(x, '학생')).join('') : '<div class="hint" style="margin-top:10px">아직 학생 후기가 없어요.</div>';
+    $('rvList').innerHTML = (r.t.length ? '<h3 style="margin-top:6px">👩‍🏫 교사 후기</h3>' : '') + (r.t.length ? r.t.map(x => `<div class="rec" style="margin-top:8px"><b>${'★'.repeat(x.rate)}${'☆'.repeat(5 - x.rate)}</b> ${x.nw ? '<span class="badge b-sum">NEW</span>' : ''} <span class="hint">${esc(x.t)} · ${esc(x.name)} · ${esc(x.school)}</span>
+      ${x.chips.length ? `<div>👍 ${x.chips.map(esc).join(' · ')}${x.other ? ' · ' + esc(x.other) : ''}</div>` : ''}${x.lows.length ? `<div>😢 ${x.lows.map(esc).join(' · ')}${x.lowOther ? ' · ' + esc(x.lowOther) : ''}</div>` : ''}
+      ${x.one ? `<div>“${esc(x.one)}”</div>` : ''}${x.imp ? `<div>🛠️ [${esc(x.kind)}] ${esc(x.imp)}</div>` : ''}<div class="hint">소개자료 사용: ${esc(x.consent || '사용 불가')}</div></div>`).join('') : '<div class="hint">아직 교사 후기가 없어요.</div>') + sHtml;
+  }catch(e){ msg('ownMsg', e.message); }
+  btn.disabled = false;
+}
+
+/* ===== 클릭 처리 ===== */
+const ACT = {
+  priv: () => $('privOv').classList.remove('hide'),
+  closeOv: (el, e) => { if (el.classList.contains('ov') && e.target !== el) return; document.querySelectorAll('.ov').forEach(o => o.classList.add('hide')); },
+  mailContact: () => $('contactOv').classList.remove('hide'),
+  openMailApp: () => { location.href = 'mailto:' + CONTACT_EMAIL + '?subject=' + encodeURIComponent(mailSubject()); },
+  openGmail: () => window.open('https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(CONTACT_EMAIL) + '&su=' + encodeURIComponent(mailSubject()), '_blank'),
+  copyMail: () => copyText(CONTACT_EMAIL, '메일 주소를 복사했어요'),
+  showPre, savePre, connect, login, logout,
+  showIntro, openDemo, introNext, introPrev, introStart, introGo: el => { introI = Math.max(0, Math.min(Number(el.dataset.k), INTRO.length - 1)); renderIntro(); },
+  resetGas: () => { $('gasCodeBox').value = GAS_CODE; $('gasIn').value = GAS; show('scrConnect'); },
+  changeFirstPw: el => changeFirstPw(el), doRegister: el => doRegister(el), recheck: el => recheck(el),
+  copyGas: () => copyText(GAS_CODE, 'GAS 코드를 복사했어요 📋'),
+  refresh: () => refresh().then(() => toast('새로 불러왔어요')).catch(e => toast(e.message)),
+  tab: el => goTab(el.dataset.t),
+  copyStuText: () => copyText($('stuLink').value, '주소를 복사했어요'), copyStuRich, openStu: () => window.open($('stuLink').value, '_blank'),
+  saveCls: el => saveCls(el), changePw: el => changePw(el), yearReset: el => yearReset(el),
+  tplDown, pickFile: () => $('fileIn').click(), parsePaste, doImport: el => doImport(el), cancelImp: () => { IMP = []; $('impBox').classList.add('hide'); msg('impMsg',''); },
+  saveItem: el => saveItem(el), cancelEdit, editItem: el => editItem(el.dataset.id), delItem: el => delItem(el.dataset.id), toggleOn: el => toggleOn(el.dataset.id), mv: el => moveItem(el.dataset.id, Number(el.dataset.d)),
+  saveStu: el => saveStu(el), pickStuFile: () => $('stuFile').click(), resetPin: el => resetPin(el.dataset.sid),
+  statMode: el => { statMode = el.dataset.m; renderStat(); }, itemFilt: el => { itemFilt = el.dataset.k; renderStat(); },
+  toggleStu: el => { openStu = openStu === el.dataset.sid ? null : el.dataset.sid; renderStat(); },
+  copyStu: el => copyText(stuText(el.dataset.sid), '생기부 참고용으로 복사했어요 📋'), tSave: el => tSave(el), exportXlsx,
+  rvSet: el => { rvRate = Number(el.dataset.i); if (rvRate > 3){ rvLow = []; rvLowOtherOn = false; } renderRv(); },
+  rvTog: el => { const i = Number(el.dataset.i); if (i < 0) rvOtherOn = !rvOtherOn; else rvPick = rvPick.includes(i) ? rvPick.filter(x => x !== i) : [...rvPick, i].sort(); renderRv(); },
+  rvLowTog: el => { const i = Number(el.dataset.i); if (i < 0) rvLowOtherOn = !rvLowOtherOn; else rvLow = rvLow.includes(i) ? rvLow.filter(x => x !== i) : [...rvLow, i].sort(); renderRv(); },
+  rvKind: el => { rvKind = rvKind === el.dataset.k ? '' : el.dataset.k; renderRv(); }, rvOkSet: el => { rvOk = el.dataset.k; renderRv(); }, sendReview: el => sendReview(el),
+  swAppr: el => ownSwitch('appr', el.checked), swRv: el => ownSwitch('rv', el.checked), ownU: el => ownUser(el.dataset.id, el.dataset.f, el.checked), showReviews: el => showReviews(el)
+};
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-a]'); if (!el) return;
+  if (el.tagName === 'INPUT') return;   // 체크박스는 change에서
+  if (el.tagName === 'A') e.preventDefault();
+  const f = ACT[el.dataset.a]; if (f) f(el, e);
+});
+document.addEventListener('change', e => { const el = e.target; if (el.tagName === 'INPUT' && el.dataset.a && ACT[el.dataset.a]) ACT[el.dataset.a](el, e); });
+$('fileIn').addEventListener('change', e => onItemFile(e.target.files[0]));
+$('stuFile').addEventListener('change', e => onStuFile(e.target.files[0]));
+$('statItem').addEventListener('change', e => { statItem = e.target.value; renderStat(); });
+$('statQ').addEventListener('input', renderStat);
+['pwIn'].forEach(i => $(i).addEventListener('keydown', e => { if (e.key === 'Enter') login(); }));
+$('gasIn').addEventListener('keydown', e => { if (e.key === 'Enter') connect(); });
+
+/* ===== 시작 ===== */
+(async function init(){
+  renderRv();
+  if (!GAS){ return lsGet(K.pre, null) ? showConnect() : (lsGet(K.intro, false) ? showPre() : showIntro()); }
+  if (PW){
+    show('scrLoading'); msg('loadMsg','불러오는 중…',true);
+    try{ const r = await jsonp({ action:'login', pw:PW }); if (r.role){ return afterLogin(r); } }catch(e){}
+  }
+  show('scrLogin');
+})();
+</script>
+</body>
+</html>
