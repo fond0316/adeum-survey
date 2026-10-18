@@ -696,13 +696,22 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
       </div>
 
       <div class="admin-card">
-        <div class="admin-card-title">🔒 예약 마감 설정</div>
+        <div class="admin-card-title">🔒 예약 오픈 · 마감 설정</div>
         <div class="toggle-wrap">
           <label class="toggle">
             <input type="checkbox" id="bookingToggle" onchange="adminSaveBookingToggle()">
             <span class="toggle-slider"></span>
           </label>
           <span class="toggle-label" id="bookingToggleLabel">예약 진행 중</span>
+        </div>
+        <div class="form-group" style="margin-top:18px;">
+          <label class="form-label">🕘 자동 오픈 시각 (선택)</label>
+          <input class="form-input" type="datetime-local" id="setOpenAt">
+          <div style="font-size:11px;color:var(--gray-400);margin-top:6px;line-height:1.6;">정한 시각 전에는 예약을 받지 않고, 학부모에게는 "○월 ○일 ○시부터 받아요"라고 안내돼요. 비워 두면 바로 열려 있어요. (위 스위치는 켜 두세요)</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button class="btn btn-primary" onclick="adminSaveOpenAt()" style="font-size:13px;padding:11px;">오픈 시각 저장</button>
+          <button class="btn btn-secondary" onclick="adminClearOpenAt()" style="font-size:13px;padding:11px;">오픈 시각 해제</button>
         </div>
         <div class="form-group" style="margin-top:18px;">
           <label class="form-label">⏰ 자동 마감 시각 (선택)</label>
@@ -726,6 +735,18 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
         </div>
       </div>
 
+
+      <div class="admin-card">
+        <div class="admin-card-title">📝 신청 후 확정 모드</div>
+        <div class="toggle-wrap">
+          <label class="toggle">
+            <input type="checkbox" id="confirmToggle" onchange="adminSaveConfirmToggle()">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label" id="confirmToggleLabel">꺼짐 · 신청하면 바로 예약 완료</span>
+        </div>
+        <div style="font-size:12px;color:var(--gray-500);line-height:1.7;margin-top:8px;">켜면 학부모에게 <b>"신청 완료"</b>로 보여요. 예약 현황에서 <b>✅ 확정</b>을 누르면 학부모가 '내 예약 확인'에서 <b>예약 확정</b>을 볼 수 있어요. (시간은 신청 즉시 선점돼요)</div>
+      </div>
 
       <div class="admin-card">
         <div class="admin-card-title">ℹ️ 앱 정보 · 문의</div>
@@ -802,6 +823,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
           <summary>🔎 인식된 시간표 확인 · 수정</summary>
           <div style="font-size:12px;color:var(--gray-500);line-height:1.7;margin-bottom:8px;">칸을 누르면 <b>수업 ↔ 공강</b>이 바뀌어요. 시작 시각이 비어 있으면 직접 넣어 주세요.</div>
           <div id="ttEditor"></div>
+          <button type="button" class="btn btn-secondary" onclick="ttForget()" style="font-size:12px;padding:8px;margin-bottom:12px;">🗑️ 저장된 시간표 지우기</button>
         </details>
 
         <div id="ttCandWrap" style="display:none;">
@@ -946,6 +968,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
           <button class="filter-btn active" id="filter-all" onclick="setFilter('all')">전체</button>
           <button class="filter-btn" id="filter-face" onclick="setFilter('face')">📅 대면</button>
           <button class="filter-btn" id="filter-phone" onclick="setFilter('phone')">📞 전화</button>
+          <button class="filter-btn" id="filter-pending" onclick="setFilter('pending')">📝 신청만</button>
         </div>
         <div style="display:flex;gap:6px;margin-bottom:14px;">
           <button class="sort-btn active" id="sort-date" onclick="setSort('date')">날짜순</button>
@@ -1274,7 +1297,7 @@ const DEFAULT_GAS_URL = '';
 
 // URL 파라미터로 GAS URL이 전달된 경우 자동 세팅 (배포용) — 형식이 정확할 때만 저장
 const GAS_URL_RE = /^https:\/\/script\.google\.com\/(?:a\/macros\/[A-Za-z0-9.\-]+|macros)\/s\/[A-Za-z0-9_\-]+\/exec$/;
-const NEED_GAS   = 5;   // 이 HTML이 요구하는 GAS 코드 버전 (GAS 파일의 GAS_VER와 비교)
+const NEED_GAS   = 7;   // 이 HTML이 요구하는 GAS 코드 버전 (GAS 파일의 GAS_VER와 비교)
 const PW_MIN     = 6;   // 새 비밀번호 최소 길이 (GAS의 PW_MIN과 같게)
 function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
 function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
@@ -1488,6 +1511,19 @@ function applySettingsUI() {
     ci.textContent = `⏰ 접수 마감: ${parseInt(mm)}월 ${parseInt(dd)}일 ${t||''}`;
     ci.style.display = '';
   } else { ci.style.display = 'none'; }
+  // 예약 시작 전 안내 (자동 오픈 시각이 아직 안 됐을 때) — 그 외에는 원래 마감 문구로 되돌림
+  { const cm = document.getElementById('bookingClosedMsg');
+    if (cm) {
+      const cp = cm.querySelector('p'), ci2 = cm.querySelector('.empty-icon');
+      if (cp && ci2) {
+        if (cm.dataset.o === undefined) { cm.dataset.o = cp.innerHTML; cm.dataset.i = ci2.textContent; }
+        if (s.bookingEnabled === false && s.notYetOpen && s.openAt) {
+          const [od,ot] = String(s.openAt).split('T'); const [,om,odd] = (od||'').split('-');
+          ci2.textContent = '⏳';
+          cp.innerHTML = '예약은 <b>' + parseInt(om) + '월 ' + parseInt(odd) + '일 ' + esc(ot||'') + '</b>부터 받아요.<br>그때 다시 접속해 주세요.';
+        } else { ci2.textContent = cm.dataset.i; cp.innerHTML = cm.dataset.o; }
+      }
+    } }
   // 전화상담 카드 숨기기/보이기
   const typePhone = document.getElementById('typePhone');
   if (typePhone) typePhone.style.display = s.phoneEnabled ? '' : 'none';
@@ -1503,6 +1539,14 @@ function applySettingsUI() {
     document.getElementById('bookingToggleLabel').textContent =
       !a.bookingEnabled ? '🔒 예약 마감됨 (켜면 다시 받아요)' : (a.effectiveOpen ? '✅ 예약 받는 중' : '⏰ 자동 마감 시각이 지나 마감됨');
     document.getElementById('setCloseAt').value        = a.closeAt || '';
+    // 자동 오픈 시각 (추가)
+    { const oe = document.getElementById('setOpenAt'); if (oe) oe.value = a.openAt || ''; }
+    { const ce = document.getElementById('confirmToggle'); if (ce) { ce.checked = !!a.confirmMode;
+        document.getElementById('confirmToggleLabel').textContent = a.confirmMode ? '켜짐 · 신청 후 선생님이 확정' : '꺼짐 · 신청하면 바로 예약 완료'; } }
+    if (a.bookingEnabled && a.notYetOpen) {
+      const [od,ot] = String(a.openAt || '').split('T'); const [,om,odd] = (od||'').split('-');
+      document.getElementById('bookingToggleLabel').textContent = '⏳ 예약 시작 전 (' + parseInt(om) + '월 ' + parseInt(odd) + '일 ' + (ot||'') + '에 자동으로 열려요)';
+    }
   }
 }
 
@@ -1726,6 +1770,13 @@ async function submitBooking() {
     document.getElementById('successDesc').innerHTML = state.consultType==='phone'
       ? '선생님이 예약 시간에 맞춰 전화 드릴 예정이에요.<br>연락처를 확인해 두세요.'
       : '상담 당일 잊지 말고 방문해 주세요.<br>변경이 필요하시면 담임 선생님께 연락해 주세요.';
+    { // 신청 후 확정 모드: 접수 문구 (꺼져 있으면 기존 문구 그대로)
+      const tt = document.querySelector('#successScreen .success-title');
+      if (res.pending) {
+        if (tt) tt.textContent = '신청이 접수됐어요!';
+        document.getElementById('successDesc').innerHTML = '선생님이 확인하면 <b>예약 확정</b>으로 바뀌어요.<br>나중에 <b>\'내 예약 확인\'</b>에서 꼭 확인해 주세요.';
+      } else if (tt) tt.textContent = '예약이 완료됐어요!';
+    }
     stopPolling();
     showScreen('successScreen');
 
@@ -1749,11 +1800,11 @@ async function doCheckBooking() {
   result.innerHTML = '<div style="text-align:center;padding:14px;color:var(--gray-400);font-size:13px;">⏳ 확인 중...</div>';
   result.style.display='';
 
-  let b = null;
+  let b = null, ckRes = null;
   try {
     const res = await gasGet({ action:'checkBooking', student:name, last4 });
     if (res.result !== 'success') throw new Error(res.message||'확인 실패');
-    b = res.found ? res.booking : null;
+    b = res.found ? res.booking : null; ckRes = res;
   } catch(e) {
     result.innerHTML = `<div style="text-align:center;padding:16px;color:#DC2626;font-size:13px;">❌ 확인하지 못했어요. 잠시 뒤 다시 시도해 주세요.</div>`;
     return;
@@ -1763,13 +1814,16 @@ async function doCheckBooking() {
     const typeLabel = b.type==='전화' ? '📞 전화 상담' : '📅 대면 상담';
     result.innerHTML = `
       <div style="background:var(--primary-light);border-radius:10px;padding:16px;">
-        <div style="font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:10px;">✅ 예약이 확인됐어요!</div>
+        <div style="font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:10px;">${ckRes && ckRes.status==='신청' ? '📝 신청이 접수됐어요' : (ckRes && ckRes.status==='확정' && appSettings.confirmMode ? '✅ 예약이 확정됐어요!' : '✅ 예약이 확인됐어요!')}</div>
         <div style="font-size:13px;color:var(--gray-700);line-height:2;">
           <div>상담 방식 &nbsp;<strong>${typeLabel}</strong></div>
           <div>날짜 &nbsp;<strong>${esc(b.date)}</strong></div>
           <div>시간 &nbsp;<strong>${esc(b.time)}</strong></div>
         </div>
+        ${ckRes && ckRes.status==='신청' ? '<div style="margin-top:10px;font-size:12px;color:var(--gray-500);line-height:1.6;">선생님이 확인하면 <b>예약 확정</b>으로 바뀌어요. 나중에 다시 확인해 주세요.</div>' : ''}
       </div>`;
+  } else if (ckRes && ckRes.released) {
+    result.innerHTML = `<div style="text-align:center;padding:16px;color:var(--gray-600);font-size:14px;line-height:1.8;">💬 예약이 확정되지 않았어요<br><span style="font-size:12px;">담임 선생님께서 연락 주실 거예요</span></div>`;
   } else {
     result.innerHTML = `<div style="text-align:center;padding:16px;color:var(--gray-400);font-size:14px;line-height:1.7;">📭 예약 내역이 없어요<br><span style="font-size:12px;">이름과 연락처 뒤 4자리를 다시 확인해 주세요</span></div>`;
   }
@@ -1982,7 +2036,7 @@ async function adminSaveSettings(partial, toastMsg) {
     // ★ 서버가 저장 성공을 확인해 준 값으로만 화면 갱신
     adminCfg = res.settings;
     appSettings = { ...appSettings, teacherName:adminCfg.teacherName, teacherRole:adminCfg.teacherRole, notice:adminCfg.notice,
-                    phoneEnabled:adminCfg.phoneEnabled, closeAt:adminCfg.closeAt, bookingEnabled:adminCfg.effectiveOpen };
+                    phoneEnabled:adminCfg.phoneEnabled, closeAt:adminCfg.closeAt, bookingEnabled:adminCfg.effectiveOpen, confirmMode:adminCfg.confirmMode };
     applySettingsUI();
     showToast(toastMsg || '✅ 저장됐어요!');
   } catch(err) {
@@ -1995,9 +2049,19 @@ async function adminSaveSettings(partial, toastMsg) {
 function adminSaveCloseAt() {
   const v = document.getElementById('setCloseAt').value;
   if (!v) { alert('마감할 날짜와 시각을 선택해 주세요.'); return; }
+  { const o = (document.getElementById('setOpenAt') && document.getElementById('setOpenAt').value) || (adminCfg && adminCfg.openAt) || ''; if (o && v.replace('T',' ') <= o.replace('T',' ')) { alert('마감 시각은 오픈 시각보다 뒤여야 해요.\n오픈 시각을 먼저 확인해 주세요.'); return; } }
   if (v.replace('T',' ') <= nowKstStr() && !confirm('이미 지난 시각이에요.\n저장하면 바로 마감돼요. 계속할까요?')) return;
   adminSaveSettings({ closeAt:v }, '⏰ 자동 마감 시각이 저장됐어요!');
 }
+function adminSaveOpenAt() {
+  const v = document.getElementById('setOpenAt').value;
+  if (!v) { alert('열릴 날짜와 시각을 선택해 주세요.'); return; }
+  const c = document.getElementById('setCloseAt').value || (adminCfg && adminCfg.closeAt) || '';
+  if (c && v.replace('T',' ') >= c.replace('T',' ')) { alert('오픈 시각은 마감 시각보다 앞이어야 해요.\n마감 시각을 먼저 확인해 주세요.'); return; }
+  if (adminCfg && adminCfg.bookingEnabled === false) { if (!confirm('지금 위 스위치가 꺼져(마감) 있어요.\n오픈 시각이 되어도 스위치를 켜기 전에는 열리지 않아요. 계속 저장할까요?')) return; }
+  adminSaveSettings({ openAt:v }, '🕘 자동 오픈 시각이 저장됐어요!');
+}
+function adminClearOpenAt() { adminSaveSettings({ openAt:'' }, '🕘 자동 오픈 시각을 해제했어요'); }
 function adminClearCloseAt() { adminSaveSettings({ closeAt:'' }, '⏰ 자동 마감 시각을 해제했어요'); }
 
 function adminSaveTeacherInfo() {
@@ -2012,6 +2076,10 @@ function adminSaveNotice() {
 function adminSaveBookingToggle() {
   const enabled = document.getElementById('bookingToggle').checked;   // 켜짐 = 예약 받는 중
   adminSaveSettings({ bookingEnabled: enabled }, enabled ? '✅ 예약이 열렸어요!' : '🔒 예약이 마감됐어요!');
+}
+function adminSaveConfirmToggle() {
+  const on = document.getElementById('confirmToggle').checked;
+  adminSaveSettings({ confirmMode: on }, on ? '📝 신청 후 확정 모드가 켜졌어요!' : '신청하면 바로 예약 완료로 돌아갔어요');
 }
 function adminSavePhoneToggle() {
   const enabled = document.getElementById('phoneToggle').checked;
@@ -2163,7 +2231,7 @@ async function adminRefreshAll() {
   adminCfg = res.settings; needGasUpdate = (res.gasVer||0) < NEED_GAS; updateGasVerNotice();
   appSlots = res.slots; appBookings = res.bookings; bookingCache = res.bookings;
   appSettings = { ...appSettings, teacherName:adminCfg.teacherName, teacherRole:adminCfg.teacherRole, notice:adminCfg.notice,
-                  phoneEnabled:adminCfg.phoneEnabled, closeAt:adminCfg.closeAt, bookingEnabled:adminCfg.effectiveOpen };
+                  phoneEnabled:adminCfg.phoneEnabled, closeAt:adminCfg.closeAt, bookingEnabled:adminCfg.effectiveOpen, confirmMode:adminCfg.confirmMode };
   applySettingsUI(); renderDateGrid(); renderDaySlotList(); updateRetentionBanner();
 }
 // 상담 시간이 모두 지났는데 예약(학부모 개인정보)이 남아 있으면 삭제 안내 (동의서 약속: 상담이 끝나면 삭제)
@@ -2214,10 +2282,12 @@ function renderBookings() {
     dateKey:   b['날짜키']||b.dateKey||'',
     memo:      b['상담내용']||b.memo||'',
     createdAt: b['신청일시']||b.createdAt||'',
+    status:    (b['상태']||b.status||'')==='신청' ? '신청' : '확정',
   }));
 
   if (bookingFilter==='face')  all=all.filter(b=>b.type!=='전화'&&b.type!=='phone');
   if (bookingFilter==='phone') all=all.filter(b=>b.type==='전화'||b.type==='phone');
+  if (bookingFilter==='pending') all=all.filter(b=>b.status==='신청');
   if (!all.length) { wrap.innerHTML='<div class="empty-state"><div class="empty-icon">🔍</div><p>해당 조건의 예약이 없어요</p></div>'; return; }
 
   // '10월 5일' 같은 글자가 아니라 날짜키(2026-10-05)로 정렬 (글자로 하면 10월이 9월보다, 12일이 5일보다 앞에 옴)
@@ -2233,19 +2303,40 @@ function renderBookings() {
       : `<span style="font-size:11px;background:#F5F3FF;color:#8B5CF6;border-radius:6px;padding:2px 8px;font-weight:700;">📅 대면</span>`;
     return `<div style="background:var(--gray-50);border-radius:10px;padding:14px;margin-bottom:8px;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
-        <div style="display:flex;align-items:center;gap:8px;">${typeTag}<strong style="font-size:14px;">${esc(b.student)}</strong></div>
+        <div style="display:flex;align-items:center;gap:8px;">${typeTag}<strong style="font-size:14px;">${esc(b.student)}</strong>${b.status==='신청' ? '<span style="font-size:11px;background:#FEF3C7;color:#B45309;border-radius:6px;padding:2px 8px;font-weight:700;">📝 신청</span>' : (appSettings.confirmMode ? '<span style="font-size:11px;background:#DCFCE7;color:#15803D;border-radius:6px;padding:2px 8px;font-weight:700;">✅ 확정</span>' : '')}</div>
         <span style="font-size:11px;color:var(--gray-400);">${esc(b.createdAt)}</span>
       </div>
       <div style="font-size:13px;color:var(--primary-dark);font-weight:600;margin-bottom:4px;">📅 ${esc(b.dateLabel)} &nbsp;🕐 ${esc(b.time)}</div>
       <div style="font-size:13px;color:var(--gray-600);">👤 ${esc(b.parent)} &nbsp;·&nbsp; 📞 <span style="color:var(--primary);">${esc(b.contact)}</span></div>
       ${b.memo?`<div style="font-size:12px;color:var(--gray-500);margin-top:6px;padding-top:6px;border-top:1px solid var(--gray-200);">💬 ${esc(b.memo)}</div>`:''}
-      <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--gray-200);">
+      <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--gray-200);display:flex;gap:8px;flex-wrap:wrap;">
+        ${b.status==='신청' ? `<button onclick="adminConfirmBooking('${esc(b.slotId)}')" style="background:var(--primary);border:1px solid var(--primary);color:#fff;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:'Pretendard',sans-serif;font-weight:700;">✅ 확정</button>` : ''}
         <button onclick="adminCancelBooking('${esc(b.slotId)}')" style="background:none;border:1px solid #EF4444;color:#EF4444;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:'Pretendard',sans-serif;font-weight:600;">예약 취소</button>
       </div>
     </div>`;
   }).join('');
 
-  wrap.innerHTML = `<div style="margin-top:4px;font-size:12px;color:var(--gray-400);margin-bottom:10px;">총 ${all.length}건</div>`+html;
+  const pendCnt = bookingCache.filter(x=>(x['상태']||x.status||'')==='신청').length;
+  const allBtn = pendCnt ? ` &nbsp;<button onclick="adminConfirmAll()" style="background:var(--primary);border:none;color:#fff;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:'Pretendard',sans-serif;font-weight:700;">✅ 신청 ${pendCnt}건 전체 확정</button>` : '';
+  wrap.innerHTML = `<div style="margin-top:4px;font-size:12px;color:var(--gray-400);margin-bottom:10px;">총 ${all.length}건${allBtn}</div>`+html;
+}
+
+async function adminConfirmBooking(slotId) {
+  try {
+    const res = adminCheck(await gasAdmin('confirmBooking', { slotId }));
+    if (res.result!=='success') throw new Error(res.message||'실패');
+    if (res.bookings) { bookingCache = res.bookings; renderBookings(); }
+    showToast('✅ 예약이 확정됐어요!');
+  } catch(e) { showToast('❌ 확정 실패: '+e.message); }
+}
+async function adminConfirmAll() {
+  if (!confirm('신청 상태인 예약을 모두 확정할까요?')) return;
+  try {
+    const res = adminCheck(await gasAdmin('confirmAll', {}));
+    if (res.result!=='success') throw new Error(res.message||'실패');
+    if (res.bookings) { bookingCache = res.bookings; renderBookings(); }
+    showToast('✅ ' + (res.count||0) + '건이 확정됐어요!');
+  } catch(e) { showToast('❌ 확정 실패: '+e.message); }
 }
 
 async function adminCancelBooking(slotId) {
@@ -2384,6 +2475,7 @@ async function ttOnFile(input){
     ttRenderEditor();
     const wrap=document.getElementById('ttEditorWrap'); wrap.style.display='';
     wrap.open = manual || missing || tt.from==='image';
+    wrap.open = true;   // 읽은 시간표는 항상 펼쳐서 바로 보여 줌
     if (manual) ttSetStatus('시간표 모양을 자동으로 읽지 못했어요. 아래 표에서 교시별 시작 시각과 수업 있는 칸을 직접 채워 주세요.','warn');
     else if (missing) ttSetStatus('시간표는 읽었는데 일부 교시의 시작 시각을 못 찾았어요. 아래 표에서 비어 있는 시각을 넣어 주세요.','warn');
     else if (guessy) ttSetStatus('이미지를 읽었어요. 노란색으로 표시된 시작 시각은 글자가 또렷하지 않아 추정한 값이니 꼭 확인해 주세요.','warn');
@@ -2563,6 +2655,7 @@ function ttRenderEditor(){
   });
   h+='</table><div style="display:flex;gap:8px;"><button class="btn btn-secondary" style="font-size:12px;padding:8px;" onclick="ttAddPeriod()">+ 교시 추가</button><button class="btn btn-secondary" style="font-size:12px;padding:8px;" onclick="ttDelPeriod()">− 마지막 교시 삭제</button></div>';
   box.innerHTML=h;
+  if (typeof ttPersist === 'function') ttPersist();   // 올린 시간표를 이 기기에 저장 (다음에 열어도 보이게)
 }
 function ttSetStart(i,v){
   // "0820" · "8:20" · "08:20" 모두 받아서 HH:MM으로 맞춤 (잘못된 값은 비움)
@@ -5593,6 +5686,36 @@ document.addEventListener('click', e => {
   const card = t.parentElement; if (!card || !card.classList.contains('admin-card') || card.closest('#adminSec-guide')) return;
   if (e.target.closest('button,a,input,select,textarea')) return;
   card.classList.toggle('cl');
+});
+</script>
+
+<script>
+/* 올린 시간표를 이 기기에 저장해 두고, 다음에 열어도 보이게 (선생님 본인 시간표 · 이 기기 브라우저에만 저장, 서버로 안 보내요) */
+const TT_SAVED_KEY = 'consult_tt_saved_v1';
+function ttPersist(){
+  try{
+    if (tt && tt.periods) lsSet(TT_SAVED_KEY, JSON.stringify({ periods:tt.periods, busy:tt.busy, from:tt.from }));   // tt가 없을 때(시작 직후 등)는 건드리지 않음 — 지우기는 ttForget에서만
+  }catch(e){}
+}
+function ttForget(){
+  if (!confirm('이 기기에 저장된 시간표를 지울까요?\n(이미 저장한 상담 날짜·시간은 그대로예요)')) return;
+  tt = null; ttUnchecked.clear(); lsDel(TT_SAVED_KEY); ttRenderEditor();
+  const w = document.getElementById('ttEditorWrap'); if (w) { w.style.display = 'none'; w.open = false; }
+  ttSetStatus('', ''); const st = document.getElementById('ttStatus'); if (st) st.style.display = 'none';
+  ttRender();
+}
+window.addEventListener('DOMContentLoaded', () => {
+  try{
+    const raw = lsGet(TT_SAVED_KEY); if (!raw || tt) return;
+    const m = JSON.parse(raw);
+    if (!m || !Array.isArray(m.periods) || !m.periods.length || !m.busy) return;
+    TT_DAYS.forEach(d => { if (!m.busy[d]) m.busy[d] = {}; });
+    tt = { periods:m.periods, busy:m.busy, from:m.from || 'manual' };
+    ttRenderEditor();
+    const w = document.getElementById('ttEditorWrap'); if (w) { w.style.display = ''; w.open = true; }
+    ttSetStatus('📌 이 기기에 저장해 둔 시간표예요. 새 파일을 올리면 바뀌어요.', 'ok');
+    ttRender();
+  }catch(e){}
 });
 </script>
 </body>
