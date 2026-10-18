@@ -129,6 +129,9 @@ textarea.form-input{resize:none;height:76px;line-height:1.6;}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(17,24,39,.5);z-index:200;align-items:flex-end;justify-content:center;}
 .modal-overlay.open{display:flex;}
 .modal-sheet{background:var(--white);border-radius:22px 22px 0 0;width:100%;max-width:480px;padding:26px 22px 40px;animation:slideUp .3s ease;}
+/* 확인 창이 길어져도(상담 내용 300자 등) 위쪽이 잘리지 않고 창 안에서 스크롤 */
+.modal-sheet{max-height:90vh;max-height:90dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+#modalMemo,#modalStudent,#modalParent{overflow-wrap:anywhere;}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .modal-handle{width:40px;height:4px;background:var(--gray-200);border-radius:2px;margin:0 auto 20px;}
 .modal-title{font-size:18px;font-weight:700;margin-bottom:4px;}
@@ -1867,6 +1870,7 @@ async function doLogin() {
   btn.disabled = true; btn.textContent = '확인 중...';
   try {
     // 처음 설치: 웹앱 주소부터 연결
+    const wasNoGas = !GAS_URL;
     if (!GAS_URL) {
       const u = document.getElementById('loginGasInput').value.trim();
       if (!GAS_URL_RE.test(u)) { showLoginErr('웹앱 주소(https://script.google.com/…/exec)를 정확히 붙여넣어 주세요.'); return; }
@@ -1883,6 +1887,7 @@ async function doLogin() {
     if (res.result === 'error' && /unknown action/.test(res.message||'')) { showLoginErr('GAS 코드가 예전 버전이에요. 최신 코드로 "배포 관리 → 수정" 배포해 주세요.'); return; }
     if (res.result !== 'success') { showLoginErr('비밀번호가 올바르지 않아요.'); return; }
     lsSet(GAS_URL_KEY, GAS_URL);   // 로그인에 성공한 주소만 저장
+    if (wasNoGas) loadAll();   // 처음 연결한 직후: 메인 화면의 연결 상태(빨간 안내)·예약 화면·실시간 동기화를 바로 갱신
     adminPw = pw; adminCfg = res.settings; needGasUpdate = (res.gasVer||0) < NEED_GAS; adminInstallId = res.installId || '';
     if (res.mustChange) { document.getElementById('forcePwError').style.display='none'; showScreen('adminPwChangeScreen'); return; }
     await afterAdminAuth();
