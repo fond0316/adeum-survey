@@ -1119,8 +1119,8 @@ input[type=file]{display:none;}
 
     <div class="admin-gasurl-card" id="hubPwCard" style="border:2px solid #FDE68A;">
       <div class="ag-title">🔑 관리자 암호</div>
-      <div class="info-box" style="margin-bottom:12px;">💾 저장하기와 제출 현황을 볼 때 필요해요. 학생이 마음대로 항목을 바꾸거나 다른 학생 답변을 보지 못하게 막는 암호예요.<br>한 번 입력하면 이 창을 닫을 때까지 기억해요. (GAS 파일 맨 위 ADMIN_PW에 적은 값)</div>
-      <input type="password" id="hubSrvPw" autocomplete="off" placeholder="관리자 암호" style="width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--gray-200);border-radius:8px;font-size:16px;font-family:inherit;color:var(--gray-800);outline:none;box-sizing:border-box;"/>
+      <div class="info-box" style="margin-bottom:12px;">✅ 관리자 로그인 때 입력한 비밀번호가 자동으로 들어가 있어요. 평소엔 건드릴 필요 없어요.<br>💾 저장하기·제출 현황은 이 값을 시트(GAS)의 ADMIN_PW와 맞춰 보는 용도예요. GAS에 다른 암호를 적었을 때만 여기에 직접 입력하고 Enter를 눌러 주세요.</div>
+      <input type="password" id="hubSrvPw" autocomplete="off" placeholder="관리자 암호" onkeydown="if(event.key==='Enter'){event.preventDefault();if(hubGetPw()){showToast('✅ 관리자 암호를 기억했어요');this.blur();}else{showToast('⚠️ 암호를 입력해 주세요');}}" onchange="hubGetPw()" style="width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--gray-200);border-radius:8px;font-size:16px;font-family:inherit;color:var(--gray-800);outline:none;box-sizing:border-box;"/>
     </div>
 
     <div class="admin-gasurl-card" id="studentLinkCard" style="display:none;border:2px solid var(--primary-mid);">
@@ -2678,6 +2678,8 @@ function closeModal(){document.getElementById('pwModal').classList.remove('show'
 function checkPw(){
   if(document.getElementById('pwInput').value===ADMIN_PW){
     document.getElementById('pwError').style.display='none';
+    // 로그인에 쓴 비밀번호를 서버용 관리자 암호로도 자동 사용 (이 창을 닫을 때까지만 기억)
+    try{ sessionStorage.setItem('class_hub_srvpw', document.getElementById('pwInput').value); }catch(e){}
     closeModal();
     document.getElementById('mainContainer').style.display='none';
     document.getElementById('adminContainer').style.display='block';
