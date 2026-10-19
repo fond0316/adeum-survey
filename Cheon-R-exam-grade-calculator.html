@@ -218,6 +218,11 @@
   .dx-row .stars{ color:#F2C94C; letter-spacing:1px; } .dx-row .stars i{ color:#D8D3E8; font-style:normal; }
   .dx-dot{ display:inline-block; min-width:18px; height:18px; line-height:18px; border-radius:9px; background:#EB5757; color:#fff; font-size:11px; padding:0 5px; margin-left:4px; }
   .dx-toast{ position:fixed; left:50%; bottom:max(24px, env(safe-area-inset-bottom)); transform:translateX(-50%); background:#2E2A3D; color:#fff; padding:11px 16px; border-radius:12px; font-size:13px; z-index:2000; display:none; max-width:90%; }
+.sw{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--bg);cursor:pointer}
+.sw .tg{width:52px;height:30px;border-radius:15px;background:#C9C6D4;position:relative;flex:none;transition:.2s}
+.sw .tg::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s}
+.sw.on .tg{background:var(--main)}.sw.on .tg::after{left:25px}
+.sw b{font-size:15px}.sw small{display:block;font-size:12px;color:var(--sub);margin-top:2px}
   .dx-switch{ display:flex; align-items:center; gap:10px; margin:8px 0; font-size:13px; }
   .dx-switch input{ width:24px; height:24px; accent-color:var(--main); }
 </style>
@@ -480,8 +485,7 @@
       </div>
       <div class="card">
         <h2>💬 후기 받기 · 받은 후기</h2>
-        <label class="dx-switch"><input type="checkbox" id="dxOwnToggle"><span id="dxOwnToggleLbl">후기 받기</span></label>
-        <div class="dx-hint" id="dxOwnRvCount"></div>
+        <div class="sw" id="dxOwnSw" style="margin:8px 0;" data-dx="own-toggle"><span class="tg"></span><div><b id="dxOwnToggleLbl">후기 받기</b><small id="dxOwnRvCount"></small></div></div>
         <button class="btn ghost small" data-dx="own-reviews" style="margin-top:8px;">받은 후기 보기 <span id="dxOwnRvNew"></span></button>
         <div id="dxOwnRvList" style="margin-top:12px;"></div>
       </div>
@@ -1597,8 +1601,8 @@
     var st=own.stats||{}, rv=own.review||{};
     g('dxStatCards').innerHTML=[['오늘',st.today],['누적 사용자',st.users],['누적 접속',st.visits],['이번 주',st.week]].map(function(p){ return '<div class="dx-stat-card"><b>'+(Number(p[1])||0)+'</b><span>'+p[0]+'</span></div>'; }).join('');
     drawChart(g('dxChart'), st.days||[]);
-    g('dxOwnToggle').checked=!!rv.on; g('dxOwnToggleLbl').textContent = rv.on?'후기 받는 중':'후기 받기 꺼짐';
-    g('dxOwnRvCount').textContent='받은 후기 '+(rv.reviews||0)+'건 · 개선점 '+(rv.improves||0)+'건';
+    g('dxOwnSw').classList.toggle('on', !!rv.on); g('dxOwnToggleLbl').textContent = '후기 받기 '+(rv.on?'ON':'OFF');
+    g('dxOwnRvCount').textContent='받은 후기 '+(rv.reviews||0)+'건 · 개선점 '+(rv.improves||0)+'건'+(rv.on?' (끄면 후기 버튼이 사라져요)':' · 지금은 받지 않아요');
     var nw=Math.max(0,(rv.reviews||0)-(rv.seenT||0)); g('dxOwnRvNew').innerHTML = nw?'<span class="dx-dot">'+nw+'</span>':'';
     g('dxOwnApproval').textContent = own.approval ? '🔒 승인제 ON — 승인한 사용자만 쓸 수 있어요. (켜고 끄기는 등록부 시트의 설정 탭에서)' : '🔓 승인제 OFF — 등록하면 바로 쓸 수 있어요. 문제가 있는 사용자만 차단하세요.';
     var us=own.users||[]; g('dxOwnUserCnt').textContent='('+us.length+'명)';
@@ -1643,10 +1647,13 @@
     }).catch(function(e){ setMsg('dxOwnMsg',e.message); });
   }
   function ownerToggleReview(){
-    var el=g('dxOwnToggle'), on=el.checked;
+    if(!own || !own.review){ setMsg('dxOwnMsg','아직 등록부 정보를 불러오지 못했어요.'); return; }
+    var on=!own.review.on;
+    if(!confirm(on?'후기 받기를 다시 켤까요?\n후기 버튼이 다시 보여요.':'후기 받기를 그만할까요?\n후기 버튼이 사라지고 새 후기는 들어오지 않아요. 이미 받은 후기는 시트에 그대로 남아요.')) return;
+    own.review.on=on; ownerRender(); setMsg('dxOwnMsg','저장 중…',true);
     regCall({action:'ownerReview', id:installId, on:on?'1':''}).then(function(){
-      if(own && own.review) own.review.on=on; reviewOn=on; ownerRender(); applyUi(); toast(on?'💬 후기 받기를 켰어요':'💬 후기 받기를 껐어요');
-    }).catch(function(e){ el.checked=!on; setMsg('dxOwnMsg',e.message); });
+      reviewOn=on; ownerRender(); applyUi(); setMsg('dxOwnMsg', on?'후기 받기를 켰어요.':'후기 받기를 껐어요.', true);
+    }).catch(function(e){ own.review.on=!on; ownerRender(); setMsg('dxOwnMsg','저장하지 못해 되돌렸어요: '+e.message); });
   }
   function stars(n){ n=Math.max(0,Math.min(5,+n||0)); return '<span class="stars">'+'★'.repeat(n)+'<i>'+'★'.repeat(5-n)+'</i></span>'; }
   function ownerOpenReviews(){
@@ -1690,12 +1697,12 @@
       case 'own-login': ownerLogin(); break;
       case 'own-load': ownerLoad(); break;
       case 'own-img': ownerSaveImg(); break;
+      case 'own-toggle': ownerToggleReview(); break;
       case 'own-reviews': ownerOpenReviews(); break;
       case 'own-user': ownerSetUser(v); break;
     }
   });
   document.addEventListener('keydown', function(e){ if(e.key==='Enter' && e.target && e.target.id==='dxOwnPw'){ e.preventDefault(); ownerLogin(); } });
-  document.addEventListener('change', function(e){ if(e.target && e.target.id==='dxOwnToggle') ownerToggleReview(); });
 
   boot();
 })();

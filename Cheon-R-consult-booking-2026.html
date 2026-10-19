@@ -188,6 +188,12 @@ textarea.form-input{resize:none;height:76px;line-height:1.6;}
 .sort-btn.active{background:var(--gray-700);border-color:var(--gray-700);color:#fff;font-weight:700;}
 
 /* ── 토글 ── */
+.sw{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--bg);cursor:pointer}
+.sw .tg{width:52px;height:30px;border-radius:15px;background:#C9C6D4;position:relative;flex:none;transition:.2s}
+.sw .tg::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s}
+.sw.on .tg{background:var(--primary)}.sw.on .tg::after{left:25px}
+.sw b{font-size:15px}.sw small{display:block;font-size:12px;color:var(--gray-500);margin-top:2px}
+/* 후기 받기 스위치(클래스보드 형식) */
 .toggle-wrap{display:flex;align-items:center;gap:10px;}
 .toggle{position:relative;width:44px;height:24px;cursor:pointer;}
 .toggle input{opacity:0;width:0;height:0;}
@@ -1140,12 +1146,8 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
       </div>
       <div class="admin-card">
         <div class="admin-card-title">💬 후기 받기 · 받은 후기</div>
-        <div class="toggle-wrap" style="margin-bottom:10px;">
-          <label class="toggle"><input type="checkbox" id="ownRvToggle" onchange="ownerToggleReview()"><span class="toggle-slider"></span></label>
-          <span class="toggle-label" id="ownRvLabel">후기 받기</span>
-        </div>
-        <div style="font-size:12px;color:var(--gray-500);margin-bottom:10px;" id="ownRvCount"></div>
-        <button class="btn btn-secondary" onclick="ownerOpenReviews()" style="font-size:13px;padding:11px;">받은 후기 보기 <span id="ownRvNew"></span></button>
+        <div class="sw" id="ownRvSw" style="margin-bottom:10px;" onclick="ownerToggleReview()"><span class="tg"></span><div><b id="ownRvLabel">후기 받기</b><small id="ownRvCount"></small></div></div>
+      <button class="btn btn-secondary" onclick="ownerOpenReviews()" style="font-size:13px;padding:11px;">받은 후기 보기 <span id="ownRvNew"></span></button>
         <div id="ownRvList" style="margin-top:12px;"></div>
       </div>
       <div class="admin-card">
@@ -5565,8 +5567,8 @@ function ownerRender(){
   const st = own.stats || {}, rv = own.review || {};
   gid('ownStatCards').innerHTML = [['오늘', st.today], ['누적 사용자', st.users], ['누적 접속', st.visits], ['이번 주', st.week]].map(([l, v]) => `<div class="stat-card"><b>${Number(v) || 0}</b><span>${l}</span></div>`).join('');
   drawOwnChart(gid('ownChart'), st.days || []);
-  gid('ownRvToggle').checked = !!rv.on; gid('ownRvLabel').textContent = rv.on ? '후기 받는 중' : '후기 받기 꺼짐';
-  gid('ownRvCount').textContent = '받은 후기 ' + (rv.reviews || 0) + '건 · 개선점 ' + (rv.improves || 0) + '건';
+  gid('ownRvSw').classList.toggle('on', !!rv.on); gid('ownRvLabel').textContent = '후기 받기 ' + (rv.on ? 'ON' : 'OFF');
+  gid('ownRvCount').textContent = '받은 후기 ' + (rv.reviews || 0) + '건 · 개선점 ' + (rv.improves || 0) + '건' + (rv.on ? ' (끄면 후기 버튼이 사라져요)' : ' · 지금은 받지 않아요');
   const nw = Math.max(0, (rv.reviews || 0) - (rv.seenT || 0)); gid('ownRvNew').innerHTML = nw ? '<span class="nw-dot">' + nw + '</span>' : '';
   gid('ownApproval').textContent = own.approval ? '🔒 승인제 ON — 승인한 사용자만 관리자 기능을 쓸 수 있어요. (끄고 켜기는 등록부 시트의 설정 탭에서)' : '🔓 승인제 OFF — 등록하면 바로 쓸 수 있어요. 문제가 있는 사용자만 차단하세요.';
   gid('ownUserCnt').textContent = '(' + (own.users || []).length + '명)';
@@ -5609,9 +5611,12 @@ async function ownerSetUser(i, field){
   catch(e){ setMsg('ownMsg', e.message); }
 }
 async function ownerToggleReview(){
-  const on = gid('ownRvToggle').checked;
-  try{ await regCall({ action:'ownerReview', id:adminInstallId, on: on ? '1' : '' }); if (own && own.review) own.review.on = on; reviewOn = on; ownerRender(); showToast(on ? '💬 후기 받기를 켰어요' : '💬 후기 받기를 껐어요'); }
-  catch(e){ gid('ownRvToggle').checked = !on; setMsg('ownMsg', e.message); }
+  if (!own || !own.review){ setMsg('ownMsg','아직 등록부 정보를 불러오지 못했어요.'); return; }
+  const on = !own.review.on;
+  if (!confirm(on ? '후기 받기를 다시 켤까요?\n후기 버튼이 다시 보여요.' : '후기 받기를 그만할까요?\n후기 버튼이 사라지고 새 후기는 들어오지 않아요. 이미 받은 후기는 시트에 그대로 남아요.')) return;
+  own.review.on = on; ownerRender(); setMsg('ownMsg','저장 중…',true);
+  try{ await regCall({ action:'ownerReview', id:adminInstallId, on: on ? '1' : '' }); reviewOn = on; ownerRender(); setMsg('ownMsg', on ? '후기 받기를 켰어요.' : '후기 받기를 껐어요.', true); }
+  catch(e){ own.review.on = !on; ownerRender(); setMsg('ownMsg','저장하지 못해 되돌렸어요: ' + e.message); }
 }
 function rcStars(n){ return '<span class="stars">' + '★'.repeat(n) + '<i>' + '★'.repeat(Math.max(0, 5 - n)) + '</i></span>'; }
 async function ownerOpenReviews(){
