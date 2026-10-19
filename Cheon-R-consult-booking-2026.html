@@ -5559,7 +5559,7 @@ const INTRO = [
   { t:'⏰ 시간표만 올리면 상담 시간 완성', d:'시간표(엑셀·캡처)를 올리면 공강 시간이 상담 시간으로 <b>바로</b> 만들어져요.<br>뺄 날만 체크 해제하고 저장하면 끝! 방과 후 시간도 넣을 수 있어요.',
     v:'<div class="iv-row">📂 <b>시간표 올리기</b><span class="iv-tag">엑셀·이미지</span></div><div class="iv-row">📆 <b>10/21 (화)</b><span class="iv-tag">공강 3개</span></div><div class="iv-row">📆 <b>10/22 (수)</b><span class="iv-tag">공강 4개</span></div><div class="iv-row" style="color:var(--gray-400);">✅ 선택한 시간 저장 · 직접 추가도 가능</div>' },
   { t:'📋 예약 현황을 한눈에', d:'누가 언제 예약했는지 날짜·학생순으로 보여요. 중복 예약은 막혀요.<br>원하면 "신청 → 확정"으로 선생님이 한 번 더 확인할 수도 있어요.',
-    v:'<div class="iv-row">👩 <b>김○○ 학부모</b><span class="iv-tag">10/21 16:00</span></div><div class="iv-row">👨 <b>이○○ 학부모</b><span class="iv-tag">10/21 16:20</span></div>' },
+    v:'<div class="iv-row">👩 <b>김○○ 학부모</b><span class="iv-tag" style="background:#DCFCE7;color:#15803D;">✅ 확정</span></div><div class="iv-row">👨 <b>이○○ 학부모</b><span class="iv-tag" style="background:#FEF3C7;color:#B45309;">📝 신청</span></div><div class="iv-row" style="color:var(--gray-500);font-size:12px;line-height:1.6;"><span>📌 선생님이 ✅ 확정을 눌러야 학부모에게 "예약 확정"이 보여요 (선택 기능)</span></div>' },
   { t:'🛠️ 내 구글 시트에 안전하게 저장', d:'예약 정보는 선생님 본인의 구글 시트에만 저장돼요.<br>처음 한 번, 안내에 따라 3분이면 연결할 수 있어요.',
     v:'<div class="iv-row">1️⃣ <b>사용자 등록</b></div><div class="iv-row">2️⃣ <b>구글 시트에 코드 붙여넣기</b></div><div class="iv-row">3️⃣ <b>링크·QR 공유하면 끝</b></div>' }
 ];
@@ -5613,7 +5613,7 @@ function dmInit(){
   const slots = {}; days.forEach(x => { slots[x.id] = ['16:00','16:20','16:40','17:00'].map(t => ({ t, by:null })); });
   slots.d0[1].by = '김○○'; slots.d0[2].by = null;
   dm = { days, slots, tab:'p', step:1, day:null, time:null, done:false,
-         bookings:[{ day:'d0', t:'16:20', st:'김○○', pa:'어머니' }] };
+         bookings:[{ day:'d0', t:'16:20', st:'김○○', pa:'어머니', ok:true }] };
 }
 function openDemo(){ dmInit(); gid('demoOv').classList.add('open'); dmTab('p'); }
 function closeDemo(){ gid('demoOv').classList.remove('open'); dm = null; }
@@ -5628,8 +5628,12 @@ function dmRenderP(){
   const B = gid('dmBody');
   if (dm.done){
     const dd = dmDayOf(dm.day);
-    B.innerHTML = '<div class="dm-card" style="text-align:center;"><div style="font-size:44px;">🎉</div><div class="dm-h" style="margin-top:6px;">예약이 완료됐어요!</div><div style="font-size:14px;color:var(--gray-700);line-height:1.8;"><b>'+esc(dd.label)+' '+esc(dm.time)+'</b><br>홍길동 학생 · 학부모 상담</div></div>'
-      + '<div class="dm-hint">👉 이제 <b>🧑‍🏫 관리자 화면</b> 탭에서 방금 들어온 예약을 확인해 보세요.</div>'
+    const bk = dm.bookings.find(b => b.st === '홍길동'), okd = !!(bk && bk.ok);
+    B.innerHTML = okd
+      ? '<div class="dm-card" style="text-align:center;"><div style="font-size:44px;">✅</div><div class="dm-h" style="margin-top:6px;">예약이 확정됐어요!</div><div style="font-size:14px;color:var(--gray-700);line-height:1.8;"><b>'+esc(dd.label)+' '+esc(dm.time)+'</b><br>홍길동 학생 · 학부모 상담</div><div style="margin-top:8px;font-size:12px;color:var(--gray-500);">(학부모가 \'내 예약 확인\'에서 보게 되는 화면이에요)</div></div>'
+        + '<div class="dm-hint">👏 선생님이 확정을 눌러서 학부모 화면이 <b>예약 확정</b>으로 바뀌었어요!</div>'
+      : '<div class="dm-card" style="text-align:center;"><div style="font-size:44px;">📝</div><div class="dm-h" style="margin-top:6px;">신청이 접수됐어요!</div><div style="font-size:14px;color:var(--gray-700);line-height:1.8;"><b>'+esc(dd.label)+' '+esc(dm.time)+'</b><br>홍길동 학생 · 학부모 상담</div><div style="margin-top:8px;font-size:12px;color:var(--gray-500);line-height:1.6;">선생님이 확인하면 <b>예약 확정</b>으로 바뀌어요.<br>나중에 \'내 예약 확인\'에서 확인해 주세요.</div></div>'
+        + '<div class="dm-hint">👉 아직 <b>신청</b> 상태예요. <b>🧑‍🏫 관리자 화면</b> 탭에서 <b>✅ 확정</b>을 눌러 보세요. (선생님이 눌러야 확정돼요)</div>'
       + '<button class="btn btn-primary" onclick="dmTab(\'a\')">관리자 화면 보기 →</button><button class="btn btn-secondary" style="margin-top:8px;" onclick="dmResetP()">처음부터 다시 해보기</button>';
     return;
   }
@@ -5650,7 +5654,7 @@ function dmPickDay(id){ dm.day = id; dm.time = null; dmRenderP(); }
 function dmPickTime(t){ dm.time = t; dmRenderP(); const b = gid('demoOv').querySelector('.dm-body'); setTimeout(()=>{ b.scrollTop = b.scrollHeight; }, 30); }
 function dmConfirm(){
   const o = dm.slots[dm.day].find(x => x.t === dm.time); if (!o || o.by) return;
-  o.by = '홍길동'; dm.bookings.push({ day:dm.day, t:dm.time, st:'홍길동', pa:'홍○○' }); dm.done = true; dmRenderP();
+  o.by = '홍길동'; dm.bookings.push({ day:dm.day, t:dm.time, st:'홍길동', pa:'홍○○', ok:false }); dm.done = true; dmRenderP();
 }
 function dmResetP(){
   dm.bookings = dm.bookings.filter(b => b.st !== '홍길동');
@@ -5660,9 +5664,9 @@ function dmResetP(){
 function dmRenderA(){
   const B = gid('dmBody');
   const bks = dm.bookings.slice().sort((a, b) => (a.day + a.t).localeCompare(b.day + b.t));
-  let h = '<div class="dm-hint">선생님이 보게 되는 관리자 화면이에요. 예약 취소나 시간 추가를 눌러 보세요.</div>';
+  let h = '<div class="dm-hint">선생님이 보게 되는 관리자 화면이에요. <b>📝 신청</b>은 <b>✅ 확정</b>을 눌러야 학부모에게 예약 확정으로 보여요. ("신청 후 확정 모드"를 켰을 때)</div>';
   h += '<div class="dm-card"><div class="dm-h">📋 예약 현황 <span style="color:var(--primary-dark);">'+bks.length+'건</span></div>'
-    + (bks.length ? bks.map(b => '<div class="dm-bk"><div class="m"><b>'+esc(b.st)+' 학생 · '+esc(b.pa)+'</b><span>'+esc(dmDayOf(b.day).label)+' '+esc(b.t)+(b.st==='홍길동'?' · 방금 예약':'')+'</span></div><button class="dm-mini" onclick="dmCancel(\''+b.day+'\',\''+b.t+'\')">취소</button></div>').join('') : '<div style="color:var(--gray-400);font-size:13px;padding:8px 0;">아직 예약이 없어요.</div>')
+    + (bks.length ? bks.map(b => '<div class="dm-bk"><div class="m"><b>'+esc(b.st)+' 학생 · '+esc(b.pa)+'</b><span>'+esc(dmDayOf(b.day).label)+' '+esc(b.t)+(b.st==='홍길동'?' · 방금 예약':'')+'</span></div>'+(b.ok ? '<span class="iv-tag" style="background:#DCFCE7;color:#15803D;">✅ 확정</span>' : '<span class="iv-tag" style="background:#FEF3C7;color:#B45309;">📝 신청</span><button class="dm-mini" style="background:var(--primary);color:#fff;" onclick="dmConfirmBk(\''+b.day+'\',\''+b.t+'\')">✅ 확정</button>')+'<button class="dm-mini" onclick="dmCancel(\''+b.day+'\',\''+b.t+'\')">취소</button></div>').join('') : '<div style="color:var(--gray-400);font-size:13px;padding:8px 0;">아직 예약이 없어요.</div>')
     + '</div>';
   h += '<div class="dm-card"><div class="dm-h">⏰ 상담 시간 설정</div>'
     + dm.days.map(x => '<div style="margin-bottom:10px;"><div style="font-size:13px;font-weight:700;margin-bottom:4px;">'+esc(x.label)+'</div>'
@@ -5672,6 +5676,10 @@ function dmRenderA(){
   h += '<div class="dm-card" style="text-align:center;"><div class="dm-h">🔗 학부모 링크 · QR</div><canvas id="dmQr" class="dm-qr" width="132" height="132"></canvas><div style="font-size:12px;color:var(--gray-500);margin-top:6px;">실제 화면에서는 링크 복사 · QR 저장/복사 버튼이 나와요.</div></div>';
   B.innerHTML = h;
   dmDrawQr();
+}
+function dmConfirmBk(day, t){
+  const b = dm.bookings.find(x => x.day === day && x.t === t); if (b) b.ok = true;
+  showToast('✅ 확정했어요! 학부모 화면이 "예약 확정"으로 바뀌어요'); dmRenderA();
 }
 function dmCancel(day, t){
   dm.bookings = dm.bookings.filter(b => !(b.day === day && b.t === t));
