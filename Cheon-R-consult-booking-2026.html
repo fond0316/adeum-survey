@@ -539,6 +539,20 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
     <div class="login-title">선생님 로그인</div>
     <div class="login-sub">선생님 본인의 비밀번호를 입력하세요</div>
     <div id="loginInitHint" style="background:#F4F2FA;border-radius:12px;padding:10px 12px;margin:-10px 0 14px;font-size:12.5px;line-height:1.6;color:#5b5478;text-align:left;">🔰 <b>처음 사용하시나요?</b><br>초기 비밀번호는 <b>consultbooking</b> 입니다.<br>입력 후 <b>반드시 비밀번호를 변경</b>해 주세요.</div>
+    <div id="loginInstallBox" style="display:none;background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:12px;padding:12px 14px;margin-bottom:14px;text-align:left;font-size:12.5px;line-height:1.8;color:#78350F;">
+      <b>🛠️ 처음 설치하는 방법 (약 5분)</b><br>
+      <b>① 코드 복사</b> — 아래 <b>📋 GAS 코드 복사</b> 버튼 누르기<br>
+      <b>② 새 구글 시트</b> — 개인 구글 계정(@gmail.com)으로 <b>새 스프레드시트</b> 만들기<br>
+      <b>③ 코드 붙여넣기</b> — <b>확장 프로그램 → Apps Script</b> → 기존 코드 전체 삭제 → 붙여넣기 → 저장<br>
+      <b>④ 처음 1회 실행</b> — 위쪽 함수 선택칸에서 <b>setupTrigger</b> 선택 → ▶ 실행 → 권한 허용<br>
+      <span style="color:#92400E;">("확인하지 않은 앱" 경고 → 왼쪽 아래 <b>고급 → 이동(안전하지 않음) → 허용</b>. 본인이 만든 코드라 나오는 정상 화면이에요)</span><br>
+      <b>⑤ 웹앱 배포</b> — <b>배포 → 새 배포</b> → 유형 <b>웹 앱</b> → 실행: <b>나</b> / 액세스: <b>모든 사용자</b> → 배포<br>
+      <b>⑥ 주소 복사</b> — <b>…/exec</b> 로 끝나는 웹 앱 URL 복사 → 아래 <b>웹앱 주소</b> 칸에 붙여넣기<br>
+      <b>⑦ 로그인</b> — 비밀번호 <b>consultbooking</b> 입력 후 로그인 → 새 비밀번호 정하기<br>
+      <button type="button" class="btn btn-secondary" onclick="copyGasCode('loginInstallCopyMsg')" style="font-size:13px;padding:10px;margin-top:8px;">📋 GAS 코드 복사</button>
+      <div class="reg-msg ok" id="loginInstallCopyMsg"></div>
+      <span style="color:#92400E;">⚠️ 학교·교육청 계정은 학부모 접속이 막힐 수 있어요. 개인 계정을 써 주세요.</span>
+    </div>
     <div id="loginGasBox" style="display:none;margin-bottom:14px;text-align:left;">
       <label class="form-label">🔗 웹앱 주소 (처음 한 번만)</label>
       <input class="form-input" id="loginGasInput" type="url" placeholder="https://script.google.com/macros/s/.../exec" style="font-size:13px;">
@@ -1923,6 +1937,7 @@ function showAdminLogin() {
   if (needPreReg()) { openReg('pre'); return; }   // 처음이면 사용자 등록(지역·학교급·아이디)부터
   document.getElementById('loginPwInput').value=''; document.getElementById('loginError').style.display='none'; { const ob = document.getElementById('loginOldGasBox'); if (ob) ob.style.display='none'; const fb = document.getElementById('loginForgotBox'); if (fb) fb.style.display='none'; }
   document.getElementById('loginGasBox').style.display = GAS_URL ? 'none' : '';
+  { const ib = document.getElementById('loginInstallBox'); if (ib) ib.style.display = GAS_URL ? 'none' : ''; }
   showScreen('adminLoginScreen');
 }
 function showLoginErr(msg) { const el=document.getElementById('loginError'); el.textContent=msg; el.style.display='block'; }
