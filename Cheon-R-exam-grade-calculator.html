@@ -223,6 +223,8 @@
 .sw .tg::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s}
 .sw.on .tg{background:var(--main)}.sw.on .tg::after{left:25px}
 .sw b{font-size:15px}.sw small{display:block;font-size:12px;color:var(--sub);margin-top:2px}
+  .dx-link{ display:flex; gap:8px; margin-top:8px; }
+  .dx-link input{ flex:1; min-width:0; padding:10px 12px; border:1px solid var(--border); border-radius:10px; font-size:13px; font-family:inherit; background:#fff; color:var(--tx,#333); }
   .dx-switch{ display:flex; align-items:center; gap:10px; margin:8px 0; font-size:13px; }
   .dx-switch input{ width:24px; height:24px; accent-color:var(--main); }
 </style>
@@ -488,6 +490,14 @@
         <div class="sw" id="dxOwnSw" style="margin:8px 0;" data-dx="own-toggle"><span class="tg"></span><div><b id="dxOwnToggleLbl">후기 받기</b><small id="dxOwnRvCount"></small></div></div>
         <button class="btn ghost small" data-dx="own-reviews" style="margin-top:8px;">받은 후기 보기 <span id="dxOwnRvNew"></span></button>
         <div id="dxOwnRvList" style="margin-top:12px;"></div>
+      </div>
+      <div class="card">
+        <h2>🤝 다른 선생님께 공유하기</h2>
+        <p class="dx-hint" style="margin-top:0;">이 링크만 보내면 돼요. 따로 설치하거나 시트를 연결할 게 없어요.</p>
+        <div class="dx-link"><input type="text" id="dxShareLink" readonly><button class="btn ghost small" data-dx="own-copy">복사</button></div>
+        <div class="row" style="margin-top:8px;"><button class="btn small" data-dx="own-copyrich">🔗 글자 링크로 복사 (등급계산기_made by Cheon R)</button></div>
+        <p class="dx-hint">메일·구글 문서·한글·워드에 붙여넣으면 주소 대신 <b>등급계산기_made by Cheon R</b> 글자에 링크가 걸려요. (메신저 앱은 글자 링크를 지원하지 않아 주소가 같이 보여요)</p>
+        <div class="dx-msg" id="dxShareMsg"></div>
       </div>
       <div class="card">
         <h2>👥 사용자 <span id="dxOwnUserCnt" style="font-weight:400;font-size:12px;color:var(--sub);"></span></h2>
@@ -1597,6 +1607,7 @@
     regCall({action:'ownerList', id:installId}).then(function(r){ own=r; setMsg('dxOwnMsg',''); ownerRender(); }).catch(function(e){ setMsg('dxOwnMsg',e.message); });
   }
   function ownerRender(){
+    var _sl=g('dxShareLink'); if(_sl) _sl.value=shareUrl();
     if(!own) return;
     var st=own.stats||{}, rv=own.review||{};
     g('dxStatCards').innerHTML=[['오늘',st.today],['누적 사용자',st.users],['누적 접속',st.visits],['이번 주',st.week]].map(function(p){ return '<div class="dx-stat-card"><b>'+(Number(p[1])||0)+'</b><span>'+p[0]+'</span></div>'; }).join('');
@@ -1645,6 +1656,22 @@
     regCall({action:'ownerUser', id:installId, target:u.id, field:field, value: cur?'':'1'}).then(function(){
       if(field==='block') u.block=!cur; else u.ok=!cur; ownerRender();
     }).catch(function(e){ setMsg('dxOwnMsg',e.message); });
+  }
+  function shareUrl(){ return location.href.split('#')[0].split('?')[0]; }
+  function copyShare(){
+    var el=g('dxShareLink'); el.value=shareUrl(); el.select();
+    (navigator.clipboard ? navigator.clipboard.writeText(el.value) : Promise.reject()).catch(function(){ try{ document.execCommand('copy'); }catch(_){} });
+    setMsg('dxShareMsg','복사했어요.',true);
+  }
+  function copyShareRich(){
+    var label='등급계산기_made by Cheon R', url=shareUrl(), html='<a href="'+esc(url)+'">'+esc(label)+'</a>', plain=label+' 👉 '+url;
+    function fb(){
+      var d=document.createElement('div'); d.contentEditable='true'; d.innerHTML=html; d.style.cssText='position:fixed;left:-9999px;top:0';
+      document.body.appendChild(d); var r=document.createRange(); r.selectNodeContents(d); var sel=getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      try{ document.execCommand('copy'); }catch(_){} sel.removeAllRanges(); d.remove();
+    }
+    try{ navigator.clipboard.write([ new ClipboardItem({ 'text/html':new Blob([html],{type:'text/html'}), 'text/plain':new Blob([plain],{type:'text/plain'}) }) ]).catch(fb); }catch(e){ fb(); }
+    setMsg('dxShareMsg','✅ "'+label+'" 글자 링크로 복사했어요! 메일·문서에 붙여넣어 보세요.',true);
   }
   function ownerToggleReview(){
     if(!own || !own.review){ setMsg('dxOwnMsg','아직 등록부 정보를 불러오지 못했어요.'); return; }
@@ -1698,6 +1725,8 @@
       case 'own-load': ownerLoad(); break;
       case 'own-img': ownerSaveImg(); break;
       case 'own-toggle': ownerToggleReview(); break;
+      case 'own-copy': copyShare(); break;
+      case 'own-copyrich': copyShareRich(); break;
       case 'own-reviews': ownerOpenReviews(); break;
       case 'own-user': ownerSetUser(v); break;
     }
