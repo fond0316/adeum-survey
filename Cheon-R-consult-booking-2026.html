@@ -1425,13 +1425,13 @@ function bookingOpenNow(){ return appSettings.bookingEnabled === true; }
 
 
 // ── GAS 호출 유틸 (JSONP 방식 - CORS 우회) ────────────
-function jsonp(url) {
+function jsonp(url, waitMs) {
   return new Promise((resolve, reject) => {
     const cb = 'cb_' + Date.now() + '_' + Math.floor(Math.random()*10000);
     const script = document.createElement('script');
     const timer = setTimeout(() => {
       cleanup(); reject(new Error('timeout'));
-    }, 15000);
+    }, waitMs || 15000);
     function cleanup() { clearTimeout(timer); delete window[cb]; if(script.parentNode) script.parentNode.removeChild(script); }
     window[cb] = (data) => { cleanup(); resolve(data); };
     script.onerror = () => { cleanup(); reject(new Error('Failed to fetch')); };
@@ -5210,10 +5210,10 @@ const nmOf = x => String(x || '') === NONAME ? '' : String(x || '');
 let adminInstallId = '', isOwner = false, reviewOn = false, usePub = null, regMode = 'pre', regStatusCache = '';
 let rvRate = 0, rvPick = [], rvLow = [], rvLowOtherOn = false, rvOtherOn = false, rvKind = '', rvOk = 'no', rvSending = false;
 
-async function regCall(params){
+async function regCall(params, waitMs){
   if (!REGISTRY_URL) throw new Error('등록부 주소가 없어요');
   const q = new URLSearchParams(Object.assign({ app: APP_KEY }, params)).toString();
-  const r = await jsonp(REGISTRY_URL + '?' + q);
+  const r = await jsonp(REGISTRY_URL + '?' + q, waitMs);
   if (!r || r.ok === false) throw new Error((r && r.error) || '등록부 응답 오류');
   return r;
 }
@@ -5377,20 +5377,21 @@ async function sendReview(){
   if (!rvRate && !imp){ setMsg('rvMsg', '별점을 누르거나 개선점을 적어 주세요.'); return; }
   const newName = (rvOk === 'name' && !rvHasName()) ? gid('rvName').value.trim() : '';
   if (rvOk === 'name' && !rvHasName() && !newName){ setMsg('rvMsg', '아이디 공개를 고르셨어요. 공개해도 되는 아이디를 적어 주세요.'); return; }
-  rvSending = true; gid('rvSend').disabled = true; setMsg('rvMsg', '보내는 중…', true);
+  rvSending = true; gid('rvSend').disabled = true; setMsg('rvMsg', '보내는 중… (구글에 저장하느라 조금 걸릴 수 있어요)', true);
+  const rvSlow = setTimeout(() => setMsg('rvMsg', '⏳ 구글 저장이 오래 걸리고 있어요. 닫지 말고 조금만 더 기다려 주세요 🙏 (최대 45초)', true), 8000);
   try{
     if (newName){   // 이름 공개를 허락한 경우에만, 그때 이름을 등록 정보에 저장
       const reg = jget(RK.reg, {}) || {};
-      if (reg.school){ await regCall({ action:'register', id:adminInstallId, name:newName, school:reg.school, cls:'', agree:'' }); jset(RK.reg, { ...reg, name:newName }); }
+      if (reg.school){ await regCall({ action:'register', id:adminInstallId, name:newName, school:reg.school, cls:'', agree:'' }, 45000); jset(RK.reg, { ...reg, name:newName }); }
     }
-    await regCall({ action:'review', id:adminInstallId, rate:rvRate, c:rvPick.join(','), lc: lowOn ? rvLow.join(',') : '', lo: lowOn && rvLowOtherOn ? gid('rvLowOther').value.trim() : '', other: rvOtherOn ? gid('rvOther').value.trim() : '', one:gid('rvOne').value.trim(), ik:rvKind, imp, ok:rvOk });
+    await regCall({ action:'review', id:adminInstallId, rate:rvRate, c:rvPick.join(','), lc: lowOn ? rvLow.join(',') : '', lo: lowOn && rvLowOtherOn ? gid('rvLowOther').value.trim() : '', other: rvOtherOn ? gid('rvOther').value.trim() : '', one:gid('rvOne').value.trim(), ik:rvKind, imp, ok:rvOk }, 45000);
     const st = jget(RK.rv, { n:0, shown:false, done:false }); st.done = true; jset(RK.rv, st);
     gid('rvBanner').style.display = 'none';
     rvRate = 0; rvPick = []; rvLow = []; rvLowOtherOn = false; rvOtherOn = false; rvKind = ''; rvOk = 'no';
     ['rvOther','rvLowOther','rvOne','rvImp','rvName'].forEach(id => { gid(id).value = ''; });
     renderRv(); setMsg('rvMsg', '💜 소중한 의견 감사합니다! 다음에 또 의견이 생기면 언제든 남겨 주세요.', true);
-  }catch(e){ setMsg('rvMsg', /마감/.test(e.message) ? e.message : '보내지 못했어요. 입력한 내용은 그대로 있어요. (' + e.message + ')'); if (/마감/.test(e.message)){ reviewOn = false; applyRegUi(); } }
-  rvSending = false; gid('rvSend').disabled = false;
+  }catch(e){ setMsg('rvMsg', /마감/.test(e.message) ? e.message : (e.message === 'timeout' ? '응답이 많이 늦어요. 이미 저장됐을 수도 있어요 🙏 1분쯤 뒤에 다시 눌러 주세요. 입력한 내용은 그대로 있어요.' : '보내지 못했어요. 입력한 내용은 그대로 있어요. (' + e.message + ')')); if (/마감/.test(e.message)){ reviewOn = false; applyRegUi(); } }
+  clearTimeout(rvSlow); rvSending = false; gid('rvSend').disabled = false;
 }
 function rvVisit(){   // 관리자 화면에 들어올 때 세션당 1번 방문 횟수 +1, 3회째에 한 번만 안내
   const st = jget(RK.rv, { n:0, shown:false, done:false });
