@@ -105,6 +105,9 @@ a.app:active{background:#FAF9FE}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--tx);color:#fff;border-radius:12px;padding:10px 16px;font-size:14px;z-index:30;max-width:90vw;text-align:center}
 .saving{position:fixed;top:calc(12px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:420px;background:var(--main-d);color:#fff;border-radius:14px;padding:12px 16px;font-size:14px;line-height:1.55;text-align:center;white-space:pre-line;z-index:40}
 .app .sv{font-size:11.5px;color:var(--tx2);margin-top:2px}
+.chk{display:flex;align-items:center;gap:8px;min-height:44px;margin-top:6px;font-size:14px;color:var(--tx2);cursor:pointer}
+.chk input{width:22px;height:22px;accent-color:var(--main);flex:none}
+.lockic{font-size:40px;text-align:center;margin-bottom:4px}
 </style>
 </head>
 <body>
@@ -133,6 +136,19 @@ a.app:active{background:#FAF9FE}
     </div>
   </section>
 
+  <!-- 잠금 화면 (비밀번호를 눌러야 목록이 보여요) -->
+  <section id="viewLock" class="hide">
+    <div class="box">
+      <div class="lockic">🔒</div>
+      <h3 style="text-align:center">관리자 비밀번호를 입력해 주세요</h3>
+      <p style="text-align:center">비밀번호를 누르면 저장된 앱 목록이 보여요.</p>
+      <input class="inp" id="lockInp" type="password" placeholder="관리자 비밀번호" autocomplete="off">
+      <label class="chk"><input type="checkbox" id="lockKeep" checked> 이 기기에서 로그인 유지</label>
+      <div class="err" id="lockErr"></div>
+      <button class="btn" id="lockBtn">열기</button>
+    </div>
+  </section>
+
   <!-- 메인 목록 -->
   <section id="viewMain" class="hide">
     <div class="admbar hide" id="admBar"><span>🔓 관리 모드 · 앱 추가·수정·삭제·순서 변경</span>
@@ -147,7 +163,7 @@ a.app:active{background:#FAF9FE}
 
   <div class="foot">
     Made by Cheon_R
-    <div><button id="resetGas" class="hide">연결 주소 바꾸기</button></div>
+    <div><button id="logoutBtn" class="hide">로그아웃</button><button id="resetGas" class="hide">연결 주소 바꾸기</button></div>
   </div>
 </div>
 
@@ -231,6 +247,9 @@ a.app:active{background:#FAF9FE}
 <div class="saving hide" id="saving" role="status" aria-live="polite"></div>
 
 <script>
+/* ★ 내 GAS 웹 앱 주소(…/exec)를 아래 따옴표 안에 한 번만 붙여 넣으면, 모든 기기에서 링크만 열어도 연결돼요. (비워 두면 기기마다 입력해야 해요) */
+const GAS_FIXED = 'https://script.google.com/macros/s/AKfycbxnNLeGfqyGtJcFk5uPwO8kqPFXFq9Mh8AK7HSpMpATozpjpFh3kFfWDHBFIHOVZi47/exec';
+const LS_KEEP = 'launcher_pwkeep_v1';
 const LS_GAS = 'launcher_gas_v1', LS_CACHE = 'launcher_cache_v1', LS_SET = 'launcher_settings_v1', SS_PW = 'launcher_pw_v1';
 const DEF_SET = { title: 'Cheon_R 런처', subtitle: '내가 만든 앱을 한곳에서' };
 let settings = Object.assign({}, DEF_SET);
@@ -280,14 +299,30 @@ function toast(msg){
 }
 
 /* ===== 화면 ===== */
+function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
 function showSetup(){
-  $('viewSetup').classList.remove('hide'); $('viewMain').classList.add('hide');
-  $('admBtn').classList.add('hide'); $('resetGas').classList.add('hide'); $('admBar').classList.add('hide');
+  $('viewSetup').classList.remove('hide'); $('viewMain').classList.add('hide'); $('viewLock').classList.add('hide');
+  $('admBtn').classList.add('hide'); $('resetGas').classList.add('hide'); $('admBar').classList.add('hide'); $('logoutBtn').classList.add('hide');
 }
 function showMain(){
-  $('viewSetup').classList.add('hide'); $('viewMain').classList.remove('hide');
-  $('admBtn').classList.remove('hide'); $('resetGas').classList.remove('hide');
+  $('viewSetup').classList.add('hide'); $('viewMain').classList.remove('hide'); $('viewLock').classList.add('hide');
+  $('admBtn').classList.remove('hide'); $('resetGas').classList.remove('hide'); $('logoutBtn').classList.remove('hide');
   render();
+}
+/* 잠금 화면: 비밀번호가 맞아야 목록을 받아와요 (이 기기에 남은 로그인·목록 캐시는 지워요) */
+function showLock(msg){
+  pw = ''; admin = false; apps = [];
+  try{ sessionStorage.removeItem(SS_PW); }catch(e){}
+  lsDel(LS_KEEP); lsDel(LS_CACHE);
+  $('viewSetup').classList.add('hide'); $('viewMain').classList.add('hide'); $('viewLock').classList.remove('hide');
+  $('admBtn').classList.add('hide'); $('resetGas').classList.add('hide'); $('admBar').classList.add('hide'); $('logoutBtn').classList.add('hide');
+  $('lockInp').value = ''; $('lockErr').textContent = msg || '';
+  setTimeout(() => $('lockInp').focus(), 50);
+}
+function saveLogin(v, keep){
+  pw = v;
+  try{ sessionStorage.setItem(SS_PW, v); }catch(e){}
+  if (keep) lsSet(LS_KEEP, v); else lsDel(LS_KEEP);
 }
 
 function count(t){ return t === 'all' ? apps.length : apps.filter(a => a.type === t).length; }
@@ -370,7 +405,8 @@ function setApps(list){ apps = Array.isArray(list) ? list : []; lsSet(LS_CACHE, 
 async function load(){
   $('stat').textContent = '불러오는 중…';
   try{
-    const r = await call({ action: 'list' });
+    const r = await call({ action: 'list', pw });
+    if (r && (r.code === 'pw' || r.code === 'locked')) { showLock(r.error || '비밀번호를 다시 입력해 주세요.'); return; }
     if (!r || !r.ok) throw new Error((r && r.error) || '불러오기에 실패했어요.');
     setApps(r.apps); applySettings(r.settings); $('stat').textContent = '';
   }catch(e){
@@ -391,7 +427,7 @@ async function write(params){
       throw e;
     });
     if (!r || !r.ok) {
-      if (r && (r.code === 'pw' || r.code === 'locked')) { admin = false; pw = ''; try{ sessionStorage.removeItem(SS_PW); }catch(e){} render(); }
+      if (r && (r.code === 'pw' || r.code === 'locked')) { admin = false; pw = ''; try{ sessionStorage.removeItem(SS_PW); }catch(e){} render(); showLock((r.error || '') + ' 다시 로그인해 주세요.'); }
       throw new Error((r && r.error) || '저장에 실패했어요.');
     }
     if (Array.isArray(r.apps)) setApps(r.apps);
@@ -419,7 +455,8 @@ function openPw(){ $('pwInp').value = ''; $('pwErr').textContent = ''; $('ovPw')
 function closePw(){ $('ovPw').classList.add('hide'); }
 
 $('admBtn').onclick = () => {
-  if (admin) { admin = false; pw = ''; try{ sessionStorage.removeItem(SS_PW); }catch(e){} render(); toast('관리 모드를 껐어요'); }
+  if (admin) { admin = false; render(); toast('관리 모드를 껐어요'); }
+  else if (pw) { admin = true; render(); toast('관리 모드를 켰어요'); }
   else openPw();
 };
 $('pwCancel').onclick = closePw;
@@ -529,7 +566,8 @@ $('npSave').onclick = async () => {
   try{
     await write({ action: 'setpw', newpw: a });
     pw = a; try{ sessionStorage.setItem(SS_PW, a); }catch(e){}
-    $('ovNp').classList.add('hide'); toast('비밀번호를 바꿨어요');
+    if (lsGet(LS_KEEP)) lsSet(LS_KEEP, a);
+    $('ovNp').classList.add('hide'); toast('비밀번호를 바꿨어요 (다른 기기는 새 비밀번호로 다시 로그인해야 해요)');
   }catch(e){ $('npErr').textContent = e.message; if (!admin) $('ovNp').classList.add('hide'); }
   $('npSave').disabled = false;
 };
@@ -585,31 +623,49 @@ $('gasBtn').onclick = async () => {
   $('gasBtn').disabled = true; $('setupErr').textContent = '연결 확인 중…';
   const prev = GAS; GAS = v;
   try{
-    const r = await call({ action: 'list' });
-    if (!r || !r.ok) throw new Error((r && r.error) || '연결에 실패했어요.');
-    lsSet(LS_GAS, v); setApps(r.apps); applySettings(r.settings); $('setupErr').textContent = '';
-    showMain(); toast('연결했어요');
+    const r = await call({ action: 'ping' });
+    if (!r || !r.ok) throw new Error((r && r.error) || '연결에 실패했어요. GAS를 새 코드로 “수정 배포”했는지 확인해 주세요.');
+    lsSet(LS_GAS, v); $('setupErr').textContent = '';
+    showLock(); toast('연결했어요. 비밀번호를 입력해 주세요');
   }catch(e){ GAS = prev; $('setupErr').textContent = e.message; }
   $('gasBtn').disabled = false;
 };
 $('resetGas').onclick = () => {
   if (!confirm('이 기기의 연결 주소를 지우고 다시 입력할까요? (시트 데이터는 그대로예요)')) return;
-  try{ localStorage.removeItem(LS_GAS); localStorage.removeItem(LS_CACHE); sessionStorage.removeItem(SS_PW); }catch(e){}
+  try{ localStorage.removeItem(LS_GAS); localStorage.removeItem(LS_CACHE); localStorage.removeItem(LS_KEEP); sessionStorage.removeItem(SS_PW); }catch(e){}
   GAS = ''; apps = []; admin = false; pw = ''; showSetup();
 };
+$('logoutBtn').onclick = () => { showLock(); toast('로그아웃했어요'); };
+async function doUnlock(){
+  const v = $('lockInp').value.trim(); if (!v) { $('lockErr').textContent = '비밀번호를 입력해 주세요.'; return; }
+  $('lockBtn').disabled = true; $('lockErr').textContent = '확인 중…';
+  try{
+    const r = await call({ action: 'list', pw: v });
+    if (!r || !r.ok) throw new Error((r && r.error) || '확인에 실패했어요.');
+    saveLogin(v, $('lockKeep').checked);
+    setApps(r.apps); applySettings(r.settings); admin = false; $('lockErr').textContent = '';
+    showMain(); toast('열었어요');
+  }catch(e){ $('lockErr').textContent = e.message; }
+  $('lockBtn').disabled = false;
+}
+$('lockBtn').onclick = doUnlock;
+$('lockInp').addEventListener('keydown', e => { if (e.key === 'Enter') doUnlock(); });
 $('gasInp').addEventListener('keydown', e => { if (e.key === 'Enter') $('gasBtn').click(); });
 
 /* ===== 시작 ===== */
 buildEmoji();
-GAS = lsGet(LS_GAS);
+GAS = GAS_FIXED || lsGet(LS_GAS);
 if (!GAS) { showSetup(); }
 else {
-  try{ apps = JSON.parse(lsGet(LS_CACHE) || '[]'); if (!Array.isArray(apps)) apps = []; }catch(e){ apps = []; }
-  try{ applySettings(JSON.parse(lsGet(LS_SET) || 'null')); }catch(e){}
-  try{ pw = sessionStorage.getItem(SS_PW) || ''; }catch(e){ pw = ''; }
-  admin = !!pw;
-  showMain();
-  load();
+  try{ pw = sessionStorage.getItem(SS_PW) || lsGet(LS_KEEP) || ''; }catch(e){ pw = ''; }
+  if (!pw) { showLock(); }
+  else {
+    try{ apps = JSON.parse(lsGet(LS_CACHE) || '[]'); if (!Array.isArray(apps)) apps = []; }catch(e){ apps = []; }
+    try{ applySettings(JSON.parse(lsGet(LS_SET) || 'null')); }catch(e){}
+    admin = false;
+    showMain();
+    load();
+  }
 }
 </script>
 </body>
