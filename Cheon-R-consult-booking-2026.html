@@ -1010,10 +1010,19 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
           <li>비밀번호는 첫 로그인 때 바꾸셨어요 (필요하면 여기서 다시 변경)</li>
           <li>공지 문구 입력 후 저장 (선택)</li>
         </ol></div></details>
-      <details class="hdet"><summary>3️⃣ 날짜 · 시간 추가하기</summary><div class="hb"><ol>
-          <li><b>📅 날짜/시간 탭</b>으로 이동</li>
-          <li><b>+ 날짜 추가</b> 버튼으로 상담 날짜 추가</li>
-          <li>각 날짜마다 시작 · 종료 시간 입력 후 <b>추가</b></li>
+      <details class="hdet"><summary>3️⃣ 상담 시간 만들기 (시간표 올리기)</summary><div class="hb"><ol>
+          <li><b>📅 날짜/시간 탭</b> 맨 위 <b>🗓️ 내 시간표로 상담 시간 만들기</b> 카드로 이동</li>
+          <li>상담 1회 시간 · 쉬는 시간 · 점심시간 · <b>상담 시작일~종료일</b>을 확인 (방과 후 시간도 쓰려면 체크)</li>
+          <li><b>📂 시간표 올리기</b> (엑셀 또는 캡처 이미지) → 수업이 없는 <b>공강 시간이 상담 시간 후보</b>로 바로 만들어져요<br><span style="color:var(--gray-500);">잘 안 읽히면 <b>📥 엑셀 양식</b>을 내려받아 수업 칸에 아무 글자나 적어 올려 주세요</span></li>
+          <li>후보 중 <b>공휴일 · 시험일 등 뺄 날/시간은 체크 해제</b></li>
+          <li><b>✅ 선택한 시간 저장</b> → 날짜와 시간이 한 번에 들어가요 (날짜를 하나씩 추가할 필요 없어요)</li>
+          <li>올린 시간표는 이 기기에 저장돼서 다음에 열어도 보여요. 시간표 없이 쓰려면 아래 <b>📅 상담 날짜 & 시간 설정</b>에서 <b>+ 날짜 추가</b>로 직접 넣을 수도 있어요</li>
+        </ol></div></details>
+      <details class="hdet"><summary>🔒 예약 오픈·마감 · 신청 후 확정 설정</summary><div class="hb"><ol>
+          <li><b>⚙️ 기본 설정 탭 → 🔒 예약 오픈 · 마감 설정</b>에서 <b>오픈 시각</b>과 <b>마감 시각</b>을 정하면 자동으로 열리고 닫혀요 (스위치로 직접 열고 닫을 수도 있어요)</li>
+          <li><b>📝 신청 후 확정 모드</b>를 켜면 학부모에게 <b>"신청이 접수됐어요"</b>로 보여요. 시간은 신청 즉시 선점돼요</li>
+          <li><b>📋 예약 현황</b>에서 <b>📝 신청</b> 표시를 확인하고 <b>✅ 확정</b> (또는 <b>전체 확정</b>)을 누르면, 학부모가 <b>내 예약 확인</b>에서 <b>예약 확정</b>을 볼 수 있어요</li>
+          <li>꺼 두면 신청하는 즉시 "예약이 완료됐어요"로 끝나요 (기본값)</li>
         </ol></div></details>
       <details class="hdet"><summary>4️⃣ 학부모에게 배포하기</summary><div class="hb"><ol>
           <li><b>🔗 연결·QR 탭</b>으로 이동</li>
@@ -5547,9 +5556,9 @@ const INTRO = [
     v:'<div style="text-align:center;"><span class="iv-chip">10/21 (화)</span><span class="iv-chip">10/22 (수)</span><span class="iv-chip">10/23 (목)</span><br><span class="iv-chip">16:00</span><span class="iv-chip">16:20</span><span class="iv-chip off">16:40</span><span class="iv-chip">17:00</span></div>' },
   { t:'🔗 링크·QR로 보내기만 하세요', d:'학부모님은 설치도 가입도 필요 없어요.<br>카톡으로 링크를 보내거나 QR을 가정통신문에 넣어 보세요.',
     v:'<div class="iv-row">🔗 <b>학부모 링크 복사</b><span class="iv-tag">카톡·문자</span></div><div class="iv-row">🖼️ <b>QR 저장·복사</b><span class="iv-tag">가정통신문</span></div>' },
-  { t:'⏰ 시간표로 상담 시간 만들기', d:'시간표를 넣으면 공강 시간을 찾아 상담 시간으로 만들어 줘요.<br>방과 후 시간도 선택할 수 있어요.',
-    v:'<div class="iv-row">📆 <b>10/21 (화)</b><span class="iv-tag">3개 시간</span></div><div class="iv-row">📆 <b>10/22 (수)</b><span class="iv-tag">4개 시간</span></div><div class="iv-row" style="color:var(--gray-400);">＋ 날짜·시간 직접 추가도 가능</div>' },
-  { t:'📋 예약 현황을 한눈에', d:'누가 언제 예약했는지 날짜순으로 보여요.<br>중복 예약은 막히고, 필요하면 선생님이 취소할 수 있어요.',
+  { t:'⏰ 시간표만 올리면 상담 시간 완성', d:'시간표(엑셀·캡처)를 올리면 공강 시간이 상담 시간으로 <b>바로</b> 만들어져요.<br>뺄 날만 체크 해제하고 저장하면 끝! 방과 후 시간도 넣을 수 있어요.',
+    v:'<div class="iv-row">📂 <b>시간표 올리기</b><span class="iv-tag">엑셀·이미지</span></div><div class="iv-row">📆 <b>10/21 (화)</b><span class="iv-tag">공강 3개</span></div><div class="iv-row">📆 <b>10/22 (수)</b><span class="iv-tag">공강 4개</span></div><div class="iv-row" style="color:var(--gray-400);">✅ 선택한 시간 저장 · 직접 추가도 가능</div>' },
+  { t:'📋 예약 현황을 한눈에', d:'누가 언제 예약했는지 날짜·학생순으로 보여요. 중복 예약은 막혀요.<br>원하면 "신청 → 확정"으로 선생님이 한 번 더 확인할 수도 있어요.',
     v:'<div class="iv-row">👩 <b>김○○ 학부모</b><span class="iv-tag">10/21 16:00</span></div><div class="iv-row">👨 <b>이○○ 학부모</b><span class="iv-tag">10/21 16:20</span></div>' },
   { t:'🛠️ 내 구글 시트에 안전하게 저장', d:'예약 정보는 선생님 본인의 구글 시트에만 저장돼요.<br>처음 한 번, 안내에 따라 3분이면 연결할 수 있어요.',
     v:'<div class="iv-row">1️⃣ <b>사용자 등록</b></div><div class="iv-row">2️⃣ <b>구글 시트에 코드 붙여넣기</b></div><div class="iv-row">3️⃣ <b>링크·QR 공유하면 끝</b></div>' }
@@ -5659,7 +5668,7 @@ function dmRenderA(){
     + dm.days.map(x => '<div style="margin-bottom:10px;"><div style="font-size:13px;font-weight:700;margin-bottom:4px;">'+esc(x.label)+'</div>'
       + dm.slots[x.id].map(o => '<span class="iv-chip'+(o.by?'':'')+'" style="'+(o.by?'background:var(--primary-light);':'')+'">'+o.t+(o.by?' ✔':'')+'</span>').join('')
       + '<button class="dm-mini" style="background:var(--primary-light);color:var(--primary-dark);margin-left:4px;" onclick="dmAddSlot(\''+x.id+'\')">＋ 시간 추가</button></div>').join('')
-    + '<div style="font-size:12px;color:var(--gray-400);">실제로는 시간표 파일을 올려 공강 시간을 자동으로 만들 수도 있어요.</div></div>';
+    + '<div style="font-size:12px;color:var(--gray-400);">실제로는 📅 날짜/시간 탭에서 시간표를 올리면 공강이 상담 시간 후보로 바로 만들어져요.</div></div>';
   h += '<div class="dm-card" style="text-align:center;"><div class="dm-h">🔗 학부모 링크 · QR</div><canvas id="dmQr" class="dm-qr" width="132" height="132"></canvas><div style="font-size:12px;color:var(--gray-500);margin-top:6px;">실제 화면에서는 링크 복사 · QR 저장/복사 버튼이 나와요.</div></div>';
   B.innerHTML = h;
   dmDrawQr();
