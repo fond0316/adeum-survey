@@ -557,9 +557,10 @@ input[type=date]{min-width:0;max-width:100%}
       <div class="box" id="neisBox">
         <h2>🍚 나이스 연동 (급식·학사일정·N교시)</h2>
         <p class="hint">학생 화면의 <b>학교 알림판</b> 카드에 급식·학사일정을 보여주고, 공지 제목에 <b>N교시</b>를 제안해요. 학생 정보는 쓰지 않는 공개 자료만 가져와요.</p>
+        <p class="hint" style="background:#FEF9C3;color:#92400E;border-radius:10px;padding:10px 12px"><b>🔓 처음 한 번만!</b> 나이스에 접속하려면 구글 권한 허용이 필요해요. Apps Script 편집기에서 <b>나이스권한승인</b> 함수를 한 번 <b>▶ 실행</b>하고 권한을 허용해 주세요. (자세한 순서는 📘 가이드 → 🍚 나이스 연동) 아래에 "<b>UrlFetchApp… 권한이 없습니다</b>"라고 뜨면 이 단계가 빠진 거예요. 인증키 문제가 아니에요.</p>
         <label class="f">1. 나이스 인증키 <span id="nsKeySt" style="font-weight:400;color:var(--tx3)"></span></label>
         <input type="password" id="nsKey" placeholder="open.neis.go.kr에서 받은 인증키 붙여넣기" autocomplete="off">
-        <p class="hint" style="margin-top:6px">open.neis.go.kr → 로그인 → <b>인증키 신청</b>에서 발급받아요. 키는 내 구글 시트에만 저장되고 학생 화면에는 전달되지 않아요. <b>단톡방·채팅에는 올리지 마세요.</b></p>
+        <p class="hint" style="margin-top:6px">open.neis.go.kr → 로그인 → <b>인증키 신청</b>에서 발급받아요. 키는 내 구글 시트에만 저장되고 학생 화면에는 전달되지 않아요. <b>단톡방·채팅에는 올리지 마세요.</b><br>📌 인증키를 신청할 때 <b>개발</b>로 받으면 돼요. 그 키 하나로 급식·학사일정·시간표를 모두 쓸 수 있어요.</p>
         <div class="row"><button class="btn sub" onclick="neisSave(this)">인증키 저장</button></div>
         <label class="f" style="margin-top:14px">2. 우리 학교 <span id="nsSchool" style="font-weight:400;color:var(--tx3)"></span></label>
         <div class="link"><input type="text" id="nsQ" placeholder="학교 이름 (예: ○○고등학교)" onkeydown="if(event.key==='Enter')neisSearch($('nsSearchBtn'))"><button class="btn sub" id="nsSearchBtn" onclick="neisSearch(this)">검색</button></div>
@@ -576,6 +577,7 @@ input[type=date]{min-width:0;max-width:100%}
         <div class="row" style="margin-top:12px"><button class="btn" onclick="neisSave(this)">나이스 설정 저장</button><button class="btn sub" onclick="neisTest(this)">연결 테스트</button></div>
         <div class="msg" id="nsMsg"></div>
         <div id="nsTest" class="hint"></div>
+        <div class="tsbox hide" id="nsPermHelp"></div>
       </div>
 
       <div class="box" id="ttBox">
@@ -913,6 +915,8 @@ input[type=date]{min-width:0;max-width:100%}
           <li>접힌 띠·펼친 급식에 무엇을 보일지는 설정 박스에서 고를 수 있어요. 알레르기 번호는 보여주지 않아요.</li>
           <li>[연결 테스트]로 오늘 급식·학사일정·시간표가 잘 오는지 확인해요. 주말·방학엔 비어 있을 수 있어요.</li>
           <li>GAS 코드를 <b>버전 2</b>로 바꾼 뒤 [수정 배포] 해야 해요. 처음 한 번 코드 편집기에서 <b>나이스권한승인</b> 함수를 실행해 권한을 허용해 주세요.</li>
+          <li><b>"UrlFetchApp.fetch을(를) 호출할 수 있는 권한이 없습니다"</b>라고 뜰 때: 인증키 문제가 아니라 <b>외부(나이스) 접속 권한을 아직 허용하지 않은 거예요.</b> ① 내 구글 시트 → 확장 프로그램 → <b>Apps Script</b> ② 위쪽 함수 선택 칸에서 <b>나이스권한승인</b> 고르기 ③ <b>▶ 실행</b> ④ 권한 검토 → 내 계정 → <b>고급 → (안전하지 않음)으로 이동 → 허용</b> ⑤ <b>배포 → 배포 관리 → ✏️ 수정 → 새 버전 → 배포</b> ⑥ 관리 화면에서 [연결 테스트]를 다시 눌러요. 함수 목록에 <b>나이스권한승인</b>이 안 보이면 코드가 옛 버전이니, 맨 위 🔔 알림에서 새 코드를 붙여넣고 저장한 뒤 진행해 주세요.</li>
+          <li>나이스 인증키는 신청할 때 <b>개발</b>로 받으면 돼요. 그 키 하나로 급식·학사일정·시간표를 모두 쓸 수 있고, 권한 오류가 나도 키를 다시 받을 필요는 없어요.</li>
         </ul>
       </div></details>
 
@@ -1180,6 +1184,16 @@ const TS = [
    '홈 화면에 추가한 앱이 예전 주소를 쓰고 있다면, 새 링크로 다시 추가해 주세요.' ] }
 ];
 const TS_CONN = ['noresp','perm','workspace','newdeploy'], TS_LOGIN = ['pw','noresp'];
+TS.push({ k:'neisperm', i:'🍚', t:'나이스 연결 테스트·학교 검색에서 "UrlFetchApp… 권한이 없습니다"가 떠요', s:[
+   '<b>인증키 문제가 아니에요.</b> 구글 Apps Script가 "나이스 같은 외부 사이트에 접속해도 된다"는 허락을 아직 못 받은 거예요. (나이스 기능은 새로 추가돼서 처음 설치할 때 승인한 권한에는 없어요)',
+   '내 구글 시트 → <b>확장 프로그램 → Apps Script</b>를 열어요.',
+   '코드 편집기 위쪽의 함수 선택 칸에서 <b>나이스권한승인</b>을 고르고 <b>▶ 실행</b>을 눌러요.',
+   '권한 검토 창이 뜨면 내 계정 선택 → <b>고급 → (안전하지 않음)으로 이동 → 허용</b>을 눌러요. ("확인되지 않은 앱"은 내 코드라서 뜨는 정상 화면이에요)',
+   '<b>배포 → 배포 관리 → ✏️ 수정 → 버전: 새 버전 → 배포</b>까지 해요. (새 배포가 아니라 수정!)',
+   '관리 화면 ⚙️ 탭에서 <b>연결 테스트</b>를 다시 눌러요.',
+   '함수 선택 칸에 <b>나이스권한승인</b>이 없으면 GAS 코드가 옛 버전이에요. 관리 화면 맨 위 🔔 알림 → <b>업데이트 방법 보기</b>로 새 코드를 붙여넣고 저장한 뒤 위 순서를 해 주세요.',
+   '나이스 인증키는 신청할 때 <b>개발</b>로 받으면 돼요. 그 키 하나로 급식·학사일정·시간표를 모두 쓸 수 있고, 키를 다시 받을 필요는 없어요.' ],
+   w:'학교(업무용) 구글 계정은 관리자 설정 때문에 외부 접속 허용이 막힐 수 있어요. 이때는 개인 구글 계정(@gmail.com)으로 시트를 만들어 쓰는 걸 권해요.' });
 function tsHtml(keys, openFirst){
   const list = keys ? keys.map(k => TS.find(x => x.k === k)).filter(Boolean) : TS;
   return list.map((x, n) => `<details class="tsi"${openFirst && n === 0 ? ' open' : ''}><summary>${x.i}&nbsp;${x.t}</summary><div class="tb"><ol>${x.s.map(t => `<li>${t}</li>`).join('')}</ol>${x.w ? `<div class="tw">${x.w}</div>` : ''}</div></details>`).join('');
@@ -3294,6 +3308,36 @@ const WHATS_NEW = [
 (function(){
   const h = '<b>✨ 이번 업데이트 내용</b><ul>' + WHATS_NEW.map(x => '<li>' + x + '</li>').join('') + '</ul>';
   ['gasNew','gasNewUp'].forEach(id => { const e = $(id); if (e) e.innerHTML = h; });
+})();
+
+/* ===== 🍚 나이스 '외부 접속 권한' 오류가 나면 해결 순서를 바로 보여줘요 ===== */
+const NS_PERM_RE = /UrlFetchApp|external_request|호출할 수 있는 권한/;
+function nsPermShow(on){
+  const b = $('nsPermHelp'); if (!b) return;
+  if (!on){ b.classList.add('hide'); return; }
+  const x = TS.find(t => t.k === 'neisperm');
+  b.innerHTML = '<div class="th">🔓 나이스 접속 권한을 한 번 허용해 주세요</div><div class="ts">인증키(개발/운영) 문제가 아니에요. 처음 한 번만 하면 돼요</div>'
+    + '<ol class="guide" style="margin-top:8px">' + x.s.slice(1, 6).map(t => '<li>' + t + '</li>').join('') + '</ol>'
+    + '<div class="tip" style="margin-top:8px">' + x.s[6] + '</div>'
+    + '<button class="gbtn" onclick="openGuideTs()">📖 더 자세한 해결 방법 보기</button>';
+  b.classList.remove('hide');
+}
+(function(){
+  const m0 = msg;
+  msg = function(id, text, ok){
+    m0(id, text, ok);
+    if (id === 'nsMsg'){
+      if (NS_PERM_RE.test(String(text || ''))) nsPermShow(true);
+      else if (ok && text && !/중…/.test(text)) nsPermShow(false);
+    }
+  };
+  const nt0 = neisTest;
+  neisTest = async function(btn){
+    await nt0(btn);
+    const t = $('nsTest') ? $('nsTest').textContent : '';
+    if (NS_PERM_RE.test(t)) nsPermShow(true);
+    else if (t && !/❌/.test(t)) nsPermShow(false);
+  };
 })();
 </script>
 <!-- 🎬 학생 화면 체험 (샘플 데이터 · 저장·전송 없음) -->
