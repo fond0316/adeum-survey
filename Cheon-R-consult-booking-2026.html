@@ -356,6 +356,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
 .dm-card .dm-k{font-size:12px;color:var(--gray-400);margin-bottom:3px;}
 .dm-bk{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gray-100);font-size:13px;}
 .dm-bk:last-child{border-bottom:none;}
+.dm-bk{flex-wrap:wrap;}.dm-bk .m{min-width:150px;}
 .dm-bk .m{flex:1;}
 .dm-bk .m b{display:block;font-size:14px;color:var(--gray-800);}
 .dm-bk .m span{color:var(--gray-500);font-size:12px;}
@@ -988,6 +989,11 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
     <div class="admin-section" id="adminSec-guide">
       <div class="admin-card">
         <div class="admin-card-title">📘 학부모 상담 예약 사용 가이드</div>
+        <div style="background:#FEF2F2;border:2px solid #EF4444;border-radius:12px;padding:12px 14px;margin:0 0 12px;font-size:13px;line-height:1.75;color:#7F1D1D;">
+          <b style="font-size:14px;color:#B91C1C;">🚨 꼭 확인하세요! 연결 상태 띠</b><br>
+          앱 맨 위 띠가 <span style="background:#ECFDF5;color:#059669;font-weight:700;border-radius:6px;padding:1px 7px;">✅ 연결됨 · 실시간 동기화 중</span> (초록색)일 때만 <b>선생님 구글 시트에 예약이 저장되고 정상 처리돼요.</b><br>
+          <span style="background:#FEF2F2;color:#DC2626;font-weight:700;border-radius:6px;padding:1px 7px;border:1px solid #FCA5A5;">❌ 연결 주소가 없어요 / 연결 실패</span> (빨간색)이면 <b>예약이 저장되지 않아요.</b> 학부모님께 링크·QR을 보내기 전에 꼭 초록색인지 확인해 주세요.
+        </div>
         <p class="reg-hint" style="margin:0 0 10px;">처음 설정할 때 이 순서대로 해 주세요. 궁금한 항목을 눌러서 펼쳐 보세요.</p>
         <div class="mini-grid">
           <button class="btn btn-secondary" onclick="showIntro('adminScreen')" style="font-size:13px;padding:11px;">📖 앱 소개 다시 보기</button>
@@ -1027,11 +1033,17 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
         </ol></div></details>
       <details class="hdet"><summary>4️⃣ 학부모에게 배포하기</summary><div class="hb"><ol>
           <li><b>🔗 연결·QR 탭</b>으로 이동</li>
+          <li>⚠️ 먼저 앱 맨 위 띠가 <b style="color:#059669;">초록색 "✅ 연결됨"</b>인지 확인해요. <b>빨간색이면 예약이 저장되지 않으니 배포하지 마세요.</b></li>
           <li><b>QR 이미지 저장·복사</b> 또는 <b>링크 복사</b></li>
           <li>가정통신문·알림장·단체방에 붙여 넣어 학부모님께 공유</li>
         </ol></div></details>
-      <details class="hdet"><summary>💡 코드 고친 뒤 다시 배포할 때</summary><div class="hb"><p>💡 GAS 코드 수정 후 재배포할 때는 <b>새 배포</b>가 아닌 <b>배포 관리 → 수정</b>으로 해야 URL이 유지돼요.
-      </p></div></details>
+      <details class="hdet"><summary>🔄 앱이 업데이트됐을 때 (GAS 코드 새 버전)</summary><div class="hb"><ol>
+          <li>앱 화면(HTML)은 링크로 열 때마다 <b>자동으로 최신</b>이 돼요. 하지만 <b>선생님 구글 시트 안의 GAS 코드는 자동으로 바뀌지 않아요.</b></li>
+          <li>새 기능에 GAS 코드가 필요하면 <b>🔗 연결·QR 탭</b>에 빨간 <b>"GAS 코드가 예전 버전"</b> 안내가 떠요 (이때도 학부모 예약은 계속 돼요)</li>
+          <li><b>📋 최신 코드 복사</b> → 시트의 <b>Apps Script</b>에서 기존 코드 전체 삭제 후 붙여넣기 → 저장</li>
+          <li><b>배포 → 배포 관리 → ✏️ 수정 → 버전: 새 버전 → 배포</b></li>
+          <li>💡 <b>새 배포</b>가 아니라 반드시 <b>수정</b>으로 해야 URL(학부모 링크·QR)이 그대로 유지돼요.</li>
+        </ol></div></details>
     </div>
 
     <div class="admin-section" id="adminSec-review">
@@ -5677,9 +5689,9 @@ function dmResetP(){
 function dmRenderA(){
   const B = gid('dmBody');
   const bks = dm.bookings.slice().sort((a, b) => (a.day + a.t).localeCompare(b.day + b.t));
-  let h = '<div class="dm-hint">선생님이 보게 되는 관리자 화면이에요. <b>📝 신청</b>은 <b>✅ 확정</b>을 눌러야 학부모에게 예약 확정으로 보여요. ("신청 후 확정 모드"를 켰을 때)</div>';
+  let h = '<div class="dm-hint">선생님이 보게 되는 관리자 화면이에요. <b>📝 신청</b>은 <b>✅ 확정</b>을 눌러야 학부모에게 예약 확정으로 보여요. 실수로 눌렀다면 <b>↩️ 되돌리기</b>, 취소는 한 번 더 확인 창이 떠요. ("신청 후 확정 모드"를 켰을 때)</div>';
   h += '<div class="dm-card"><div class="dm-h">📋 예약 현황 <span style="color:var(--primary-dark);">'+bks.length+'건</span></div>'
-    + (bks.length ? bks.map(b => '<div class="dm-bk"><div class="m"><b>'+esc(b.st)+' 학생 · '+esc(b.pa)+'</b><span>'+esc(dmDayOf(b.day).label)+' '+esc(b.t)+(b.st==='홍길동'?' · 방금 예약':'')+'</span></div>'+(b.ok ? '<span class="iv-tag" style="background:#DCFCE7;color:#15803D;">✅ 확정</span>' : '<span class="iv-tag" style="background:#FEF3C7;color:#B45309;">📝 신청</span><button class="dm-mini" style="background:var(--primary);color:#fff;" onclick="dmConfirmBk(\''+b.day+'\',\''+b.t+'\')">✅ 확정</button>')+'<button class="dm-mini" onclick="dmCancel(\''+b.day+'\',\''+b.t+'\')">취소</button></div>').join('') : '<div style="color:var(--gray-400);font-size:13px;padding:8px 0;">아직 예약이 없어요.</div>')
+    + (bks.length ? bks.map(b => '<div class="dm-bk"><div class="m"><b>'+esc(b.st)+' 학생 · '+esc(b.pa)+'</b><span>'+esc(dmDayOf(b.day).label)+' '+esc(b.t)+(b.st==='홍길동'?' · 방금 예약':'')+'</span></div>'+(b.ok ? '<span class="iv-tag" style="background:#DCFCE7;color:#15803D;">✅ 확정</span><button class="dm-mini" style="background:var(--gray-100);color:var(--gray-600);" onclick="dmUnconfirmBk(\''+b.day+'\',\''+b.t+'\')">↩️ 되돌리기</button>' : '<span class="iv-tag" style="background:#FEF3C7;color:#B45309;">📝 신청</span><button class="dm-mini" style="background:var(--primary);color:#fff;" onclick="dmConfirmBk(\''+b.day+'\',\''+b.t+'\')">✅ 확정</button>')+'<button class="dm-mini" onclick="dmCancel(\''+b.day+'\',\''+b.t+'\')">취소</button></div>').join('') : '<div style="color:var(--gray-400);font-size:13px;padding:8px 0;">아직 예약이 없어요.</div>')
     + '</div>';
   h += '<div class="dm-card"><div class="dm-h">⏰ 상담 시간 설정</div>'
     + dm.days.map(x => '<div style="margin-bottom:10px;"><div style="font-size:13px;font-weight:700;margin-bottom:4px;">'+esc(x.label)+'</div>'
@@ -5694,7 +5706,14 @@ function dmConfirmBk(day, t){
   const b = dm.bookings.find(x => x.day === day && x.t === t); if (b) b.ok = true;
   showToast('✅ 확정했어요! 학부모 화면이 "예약 확정"으로 바뀌어요'); dmRenderA();
 }
+function dmUnconfirmBk(day, t){
+  const b = dm.bookings.find(x => x.day === day && x.t === t); if (!b) return;
+  if (!confirm('이 예약을 "신청" 상태로 되돌릴까요?\n\n'+b.st+' 학생 · '+dmDayOf(day).label+' '+t+'\n\n(실수로 확정했을 때 쓰는 기능이에요. 예약은 그대로 남아요.)')) return;
+  b.ok = false; showToast('↩️ 신청 상태로 되돌렸어요'); dmRenderA();
+}
 function dmCancel(day, t){
+  const bk = dm.bookings.find(x => x.day === day && x.t === t);
+  if (bk && !confirm('⚠️ 이 예약을 취소할까요?\n\n'+bk.st+' 학생 · '+dmDayOf(day).label+' '+t+'\n\n취소하면 이 시간이 다시 열려요. 되돌릴 수 없어요. (실수 방지용 확인 창이에요)')) return;
   dm.bookings = dm.bookings.filter(b => !(b.day === day && b.t === t));
   const o = dm.slots[day].find(x => x.t === t); if (o) o.by = null;
   if (dm.done && dm.day === day && dm.time === t){ dm.done = false; dm.time = null; }
