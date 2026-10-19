@@ -557,6 +557,18 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
     </div>
     <button class="btn btn-primary" id="loginBtn" onclick="doLogin()" style="margin-top:14px;">로그인</button>
     <button class="btn btn-secondary" onclick="backToMain()" style="margin-top:8px;">← 돌아가기</button>
+    <button type="button" onclick="(function(){const b=document.getElementById('loginForgotBox');b.style.display=b.style.display==='none'?'':'none';})()" style="background:none;border:none;color:var(--gray-500);font-family:inherit;font-size:13px;text-decoration:underline;cursor:pointer;margin-top:12px;min-height:44px;">🔑 비밀번호가 기억 안 나요</button>
+    <div id="loginForgotBox" style="display:none;background:#F5F3FF;border:1.5px solid #C4B5FD;border-radius:12px;padding:12px 14px;margin-top:4px;text-align:left;font-size:12.5px;line-height:1.8;color:var(--gray-700);">
+      <b>🔑 비밀번호를 잊었을 때 (예약 내역·설정은 그대로 남아요)</b><br>
+      1. 아래 <b>📋 최신 코드 복사</b> 누르기<br>
+      2. 구글 시트 → <b>확장 프로그램 → Apps Script</b> → 기존 코드 전체 삭제 → 붙여넣기 → <b>저장</b><br>
+      3. 위쪽 <b>함수 선택칸</b>에서 <b>resetPassword</b> 선택 → <b>▶ 실행</b> (처음이면 권한 허용)<br>
+      4. <b>배포 → 배포 관리 → ✏️ 수정 → 버전: 새 버전 → 배포</b> (<b>새 배포 ✕</b>)<br>
+      5. 이 화면에서 비밀번호 <b>consultbooking</b> 으로 로그인 → 새 비밀번호를 정해요<br>
+      <span style="color:var(--gray-500);">※ 이 방법은 선생님 본인의 구글 시트에서만 할 수 있어요. 예약 기록까지 전부 새로 시작하려면 새 구글 시트를 만들어 처음부터 설치해 주세요.</span>
+      <button type="button" class="btn btn-secondary" onclick="copyGasCode('loginForgotCopyMsg')" style="font-size:13px;padding:10px;margin-top:8px;">📋 최신 코드 복사</button>
+      <div class="reg-msg ok" id="loginForgotCopyMsg"></div>
+    </div>
   </div>
 </div>
 
@@ -1050,6 +1062,13 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
           <li>⚠️ 먼저 이 가이드 맨 위 <b>'지금 내 연결 상태'</b>(또는 첫 화면 맨 위 연결 상태 띠)가 <b style="color:#059669;">초록색 "✅ 연결됨"</b>인지 확인해요. <b>빨간색이면 예약이 저장되지 않으니 배포하지 마세요.</b></li>
           <li><b>QR 이미지 저장·복사</b> 또는 <b>링크 복사</b></li>
           <li>가정통신문·알림장·단체방에 붙여 넣어 학부모님께 공유</li>
+        </ol></div></details>
+      <details class="hdet"><summary>🔑 비밀번호를 잊었을 때</summary><div class="hb"><ol>
+          <li>관리자 로그인 화면의 <b>🔑 비밀번호가 기억 안 나요</b>를 누르면 같은 안내가 나와요</li>
+          <li><b>📋 최신 코드 복사</b> → Apps Script에 붙여넣고 저장</li>
+          <li>함수 선택칸에서 <b>resetPassword</b> 선택 → <b>▶ 실행</b></li>
+          <li><b>배포 관리 → ✏️ 수정 → 새 버전 → 배포</b></li>
+          <li>비밀번호 <b>consultbooking</b>으로 로그인 → 새 비밀번호 설정 (예약 내역·설정은 그대로예요)</li>
         </ol></div></details>
       <details class="hdet"><summary>🔄 앱이 업데이트됐을 때 (GAS 코드 새 버전)</summary><div class="hb"><ol>
           <li>앱 화면(HTML)은 링크로 열 때마다 <b>자동으로 최신</b>이 돼요. 하지만 <b>선생님 구글 시트 안의 GAS 코드는 자동으로 바뀌지 않아요.</b></li>
@@ -1894,7 +1913,7 @@ async function closeSlotConflictModal() {
 // ══════════════════════════════════════════════════════
 function showAdminLogin() {
   if (needPreReg()) { openReg('pre'); return; }   // 처음이면 사용자 등록(지역·학교급·아이디)부터
-  document.getElementById('loginPwInput').value=''; document.getElementById('loginError').style.display='none'; { const ob = document.getElementById('loginOldGasBox'); if (ob) ob.style.display='none'; }
+  document.getElementById('loginPwInput').value=''; document.getElementById('loginError').style.display='none'; { const ob = document.getElementById('loginOldGasBox'); if (ob) ob.style.display='none'; const fb = document.getElementById('loginForgotBox'); if (fb) fb.style.display='none'; }
   document.getElementById('loginGasBox').style.display = GAS_URL ? 'none' : '';
   showScreen('adminLoginScreen');
 }
