@@ -1022,6 +1022,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
           <li><b>⚙️ 기본 설정 탭 → 🔒 예약 오픈 · 마감 설정</b>에서 <b>오픈 시각</b>과 <b>마감 시각</b>을 정하면 자동으로 열리고 닫혀요 (스위치로 직접 열고 닫을 수도 있어요)</li>
           <li><b>📝 신청 후 확정 모드</b>를 켜면 학부모에게 <b>"신청이 접수됐어요"</b>로 보여요. 시간은 신청 즉시 선점돼요</li>
           <li><b>📋 예약 현황</b>에서 <b>📝 신청</b> 표시를 확인하고 <b>✅ 확정</b> (또는 <b>전체 확정</b>)을 누르면, 학부모가 <b>내 예약 확인</b>에서 <b>예약 확정</b>을 볼 수 있어요</li>
+          <li>실수로 눌렀다면: <b>✅ 확정</b>은 <b>↩️ 확정 취소(신청으로)</b>로 되돌릴 수 있고, <b>예약 취소</b>는 한 번 더 확인 창이 떠요 (취소하면 시간이 다시 열려요)</li>
           <li>꺼 두면 신청하는 즉시 "예약이 완료됐어요"로 끝나요 (기본값)</li>
         </ol></div></details>
       <details class="hdet"><summary>4️⃣ 학부모에게 배포하기</summary><div class="hb"><ol>
@@ -1309,7 +1310,7 @@ const DEFAULT_GAS_URL = '';
 
 // URL 파라미터로 GAS URL이 전달된 경우 자동 세팅 (배포용) — 형식이 정확할 때만 저장
 const GAS_URL_RE = /^https:\/\/script\.google\.com\/(?:a\/macros\/[A-Za-z0-9.\-]+|macros)\/s\/[A-Za-z0-9_\-]+\/exec$/;
-const NEED_GAS   = 7;   // 이 HTML이 요구하는 GAS 코드 버전 (GAS 파일의 GAS_VER와 비교)
+const NEED_GAS   = 8;   // 이 HTML이 요구하는 GAS 코드 버전 (GAS 파일의 GAS_VER와 비교)
 const PW_MIN     = 6;   // 새 비밀번호 최소 길이 (GAS의 PW_MIN과 같게)
 function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
 function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
@@ -2324,7 +2325,7 @@ function renderBookings() {
       <div style="font-size:13px;color:var(--gray-600);">👤 ${esc(b.parent)} &nbsp;·&nbsp; 📞 <span style="color:var(--primary);">${esc(b.contact)}</span></div>
       ${b.memo?`<div style="font-size:12px;color:var(--gray-500);margin-top:6px;padding-top:6px;border-top:1px solid var(--gray-200);">💬 ${esc(b.memo)}</div>`:''}
       <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--gray-200);display:flex;gap:8px;flex-wrap:wrap;">
-        ${b.status==='신청' ? `<button onclick="adminConfirmBooking('${esc(b.slotId)}')" style="background:var(--primary);border:1px solid var(--primary);color:#fff;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:'Pretendard',sans-serif;font-weight:700;">✅ 확정</button>` : ''}
+        ${b.status==='신청' ? `<button onclick="adminConfirmBooking('${esc(b.slotId)}')" style="background:var(--primary);border:1px solid var(--primary);color:#fff;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:'Pretendard',sans-serif;font-weight:700;">✅ 확정</button>` : (appSettings.confirmMode ? `<button onclick="adminUnconfirmBooking('${esc(b.slotId)}')" style="background:none;border:1px solid var(--gray-300,#D1D5DB);color:var(--gray-600);border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:'Pretendard',sans-serif;font-weight:600;">↩️ 확정 취소(신청으로)</button>` : '')}
         <button onclick="adminCancelBooking('${esc(b.slotId)}')" style="background:none;border:1px solid #EF4444;color:#EF4444;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:'Pretendard',sans-serif;font-weight:600;">예약 취소</button>
       </div>
     </div>`;
@@ -2353,8 +2354,20 @@ async function adminConfirmAll() {
   } catch(e) { showToast('❌ 확정 실패: '+e.message); }
 }
 
+async function adminUnconfirmBooking(slotId) {
+  const bk = bookingCache.find(x => String(x['슬롯ID']||x.slotId||'') === String(slotId)) || {};
+  if (!confirm('이 예약을 "신청" 상태로 되돌릴까요?\n\n' + (bk['학생이름']||'') + ' · ' + (bk['날짜']||'') + ' ' + (bk['시간']||'') + '\n\n학부모 화면이 다시 "신청이 접수됐어요"로 바뀌어요. (예약 자체는 그대로예요)')) return;
+  try {
+    const res = adminCheck(await gasAdmin('unconfirmBooking', { slotId }));
+    if (res.result!=='success') throw new Error(res.message||'실패');
+    if (res.bookings) { bookingCache = res.bookings; renderBookings(); }
+    showToast('↩️ 신청 상태로 되돌렸어요');
+  } catch(e) { showToast('❌ 되돌리기 실패: '+e.message); }
+}
+
 async function adminCancelBooking(slotId) {
-  if (!confirm('이 예약을 취소할까요?')) return;
+  const bk0 = bookingCache.find(x => String(x['슬롯ID']||x.slotId||'') === String(slotId)) || {};
+  if (!confirm('⚠️ 이 예약을 취소할까요?\n\n' + (bk0['학생이름']||'') + ' · ' + (bk0['날짜']||'') + ' ' + (bk0['시간']||'') + '\n\n취소하면 이 시간이 다시 열리고, 학부모에게는 "예약이 확정되지 않았어요"로 보여요.\n되돌릴 수 없어요. 정말 취소할까요?')) return;
   try {
     const res = adminCheck(await gasAdmin('cancelBooking', { slotId }));
     if (res.result!=='success'&&res.result!=='notfound') throw new Error(res.message||'실패');
