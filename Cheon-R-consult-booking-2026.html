@@ -545,6 +545,16 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
     </div>
     <input class="form-input" id="loginPwInput" type="password" placeholder="비밀번호" style="text-align:center;letter-spacing:4px;" onkeydown="if(event.key==='Enter')doLogin()">
     <div class="login-error" id="loginError">비밀번호가 올바르지 않아요.</div>
+    <div id="loginOldGasBox" style="display:none;background:#FEF2F2;border:1.5px solid #FCA5A5;border-radius:12px;padding:12px 14px;margin-top:12px;text-align:left;font-size:12.5px;line-height:1.8;color:#7F1D1D;">
+      <b>🔄 GAS 코드를 새 버전으로 바꿔 주세요 (1~2분)</b><br>
+      1. 아래 <b>📋 최신 코드 복사</b> 누르기<br>
+      2. 구글 시트 → <b>확장 프로그램 → Apps Script</b> → 기존 코드 전체 삭제 → 붙여넣기 → 저장<br>
+      3. <b>배포 → 배포 관리 → ✏️ 수정 → 버전: 새 버전 → 배포</b> (<b>새 배포 ✕</b>)<br>
+      4. 이 화면에서 <b>예전에 쓰던 비밀번호</b>로 다시 로그인<br>
+      <span style="color:#9A3412;">✔ 예약 내역·설정은 그대로 남아 있어요. 주소(URL)도 그대로예요.</span>
+      <button class="btn btn-secondary" onclick="copyGasCode('loginCopyMsg')" style="font-size:13px;padding:10px;margin-top:8px;">📋 최신 코드 복사</button>
+      <div class="reg-msg ok" id="loginCopyMsg"></div>
+    </div>
     <button class="btn btn-primary" id="loginBtn" onclick="doLogin()" style="margin-top:14px;">로그인</button>
     <button class="btn btn-secondary" onclick="backToMain()" style="margin-top:8px;">← 돌아가기</button>
   </div>
@@ -1884,7 +1894,7 @@ async function closeSlotConflictModal() {
 // ══════════════════════════════════════════════════════
 function showAdminLogin() {
   if (needPreReg()) { openReg('pre'); return; }   // 처음이면 사용자 등록(지역·학교급·아이디)부터
-  document.getElementById('loginPwInput').value=''; document.getElementById('loginError').style.display='none';
+  document.getElementById('loginPwInput').value=''; document.getElementById('loginError').style.display='none'; { const ob = document.getElementById('loginOldGasBox'); if (ob) ob.style.display='none'; }
   document.getElementById('loginGasBox').style.display = GAS_URL ? 'none' : '';
   showScreen('adminLoginScreen');
 }
@@ -1911,7 +1921,7 @@ async function doLogin() {
         !confirm('⚠️ 평소 연결하던 시트와 다른 주소로 로그인하려고 해요.\n\n선생님이 직접 만든 링크가 아니라면 [취소]를 누르고, 앱 주소만 따로 열어서 로그인해 주세요.\n\n계속할까요?')) return;
     const res = await gasPost({ action:'adminLogin', pw });
     if (res.result === 'locked') { showLoginErr('로그인 시도가 너무 많아요. 10분 뒤 다시 해 주세요.'); return; }
-    if (res.result === 'error' && /unknown action/.test(res.message||'')) { showLoginErr('GAS 코드가 예전 버전이에요. 최신 코드로 "배포 관리 → 수정" 배포해 주세요.'); return; }
+    if (res.result === 'error' && /unknown action/.test(res.message||'')) { showLoginErr('GAS 코드가 예전 버전이에요. 최신 코드로 "배포 관리 → 수정" 배포해 주세요.'); { const ob = document.getElementById('loginOldGasBox'); if (ob) ob.style.display = ''; } return; }
     if (res.result !== 'success') { showLoginErr('비밀번호가 올바르지 않아요.'); return; }
     lsSet(GAS_URL_KEY, GAS_URL);   // 로그인에 성공한 주소만 저장
     if (wasNoGas) loadAll();   // 처음 연결한 직후: 메인 화면의 연결 상태(빨간 안내)·예약 화면·실시간 동기화를 바로 갱신
