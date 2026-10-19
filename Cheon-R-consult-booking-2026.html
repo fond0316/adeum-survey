@@ -381,7 +381,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
       <div>
         <div class="header-title">📅 학부모 상담 예약</div>
         <div class="header-meta">날짜와 시간을 선택해 예약하세요</div>
-        <div class="header-meta" style="margin-top:1px;display:flex;align-items:center;gap:6px;">Made by Cheon_R <button onclick="showAdminLogin()" style="font-size:11px;color:var(--gray-400);background:none;border:1px solid var(--gray-300);border-radius:20px;padding:2px 8px;cursor:pointer;font-family:'Pretendard',sans-serif;white-space:nowrap;">⚙️ 관리자</button></div>
+        <div class="header-meta" style="margin-top:1px;display:flex;align-items:center;gap:6px;">Made by Cheon_R <button onclick="showAdminLogin()" style="font-size:11px;color:var(--gray-400);background:none;border:1px solid var(--gray-300);border-radius:20px;padding:2px 8px;cursor:pointer;font-family:'Pretendard',sans-serif;white-space:nowrap;">⚙️ 선생님 메뉴</button></div>
       </div>
       <div class="teacher-badge">
         <div class="teacher-name" id="teacherNameBadge">담임 선생님</div>
@@ -536,8 +536,9 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
 <div class="flex-screen" id="adminLoginScreen">
   <div class="login-box">
     <div class="login-icon">🔐</div>
-    <div class="login-title">관리자 로그인</div>
-    <div class="login-sub">관리자 비밀번호를 입력하세요</div>
+    <div class="login-title">선생님 로그인</div>
+    <div class="login-sub">선생님 본인의 비밀번호를 입력하세요</div>
+    <div id="loginInitHint" style="background:#F4F2FA;border-radius:12px;padding:10px 12px;margin:-10px 0 14px;font-size:12.5px;line-height:1.6;color:#5b5478;text-align:left;">🔰 <b>처음 사용하시나요?</b><br>초기 비밀번호는 <b>consultbooking</b> 입니다.<br>입력 후 <b>반드시 비밀번호를 변경</b>해 주세요.</div>
     <div id="loginGasBox" style="display:none;margin-bottom:14px;text-align:left;">
       <label class="form-label">🔗 웹앱 주소 (처음 한 번만)</label>
       <input class="form-input" id="loginGasInput" type="url" placeholder="https://script.google.com/macros/s/.../exec" style="font-size:13px;">
@@ -601,7 +602,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
 <!-- ===================== 체험해보기 (샘플 데이터 · 저장/전송 없음 · 추가) ===================== -->
 <div class="dm-ov" id="demoOv">
   <div class="dm-top"><div class="dm-ttl">🎬 체험 모드<small>샘플 데이터예요 · 아무것도 저장되거나 전송되지 않아요</small></div><button class="dm-x" onclick="closeDemo()">닫기</button></div>
-  <div class="dm-tabs"><button class="dm-tab on" id="dmTabP" onclick="dmTab('p')">👪 학부모 화면</button><button class="dm-tab" id="dmTabA" onclick="dmTab('a')">🧑‍🏫 관리자 화면</button></div>
+  <div class="dm-tabs"><button class="dm-tab on" id="dmTabP" onclick="dmTab('p')">👪 학부모 화면</button><button class="dm-tab" id="dmTabA" onclick="dmTab('a')">🧑‍🏫 선생님 화면</button></div>
   <div class="dm-body"><div class="dm-in" id="dmBody"></div></div>
 </div>
 
@@ -625,7 +626,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
         <li><b>이용 목적</b>: 이용 현황 파악, 문의 응대, 앱 개선, 개발자의 활동 기록 정리. 소개 자료에는 <b>숫자 통계로만</b> 쓰고, 개인이 드러나게 쓰지 않아요. (후기 인용은 후기를 쓰실 때 따로 허락하신 경우에만)</li>
         <li><b>저장 장소</b>: 개발자의 구글 시트예요. 구글 서버에 저장되고, 구글 서버는 해외에 있을 수 있어요. 개발자 본인만 열어 봐요. 제3자에게 제공하지 않아요.</li>
         <li><b>보유 기간</b>: 앱을 운영하는 동안. 삭제를 요청하시면 지체 없이 삭제해요.</li>
-        <li><b>거부할 권리</b>: 동의하지 않을 수 있어요. 다만 동의하지 않으면 사용자 등록을 할 수 없어서 관리자 기능을 쓸 수 없어요.</li>
+        <li><b>거부할 권리</b>: 동의하지 않을 수 있어요. 다만 동의하지 않으면 사용자 등록을 할 수 없어서 선생님 기능을 쓸 수 없어요.</li>
         <li><b>열람·정정·삭제 요청</b>: 아래 [✉️ 문의하기] 또는 fond7509@naver.com 으로 요청해 주세요.</li>
         <li><b>학부모·학생 정보</b>: 학부모·학생의 이름·연락처·상담 내용은 개발자에게 전달되지 않아요. (선생님 본인의 구글 시트에만 저장돼요)</li>
       </ul><p style="margin:6px 0 0;font-size:12px;"><a href="#" onclick="openPriv();return false">📄 개인정보 처리방침 전체 보기</a></p></details>
@@ -653,7 +654,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
 <!-- ===================== 관리자 화면 ===================== -->
 <div class="screen" id="adminScreen">
   <div class="admin-header">
-    <div class="admin-header-title">⚙️ 관리자 화면 · <span style="font-size:11px;opacity:.7;">Made by Cheon_R</span></div>
+    <div class="admin-header-title">⚙️ 선생님 메뉴 · <span style="font-size:11px;opacity:.7;">Made by Cheon_R</span></div>
     <div style="display:flex;gap:8px;align-items:center;">
       <button class="admin-logout" onclick="adminLogout()">로그아웃</button>
     </div>
@@ -936,7 +937,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
             <div style="background:var(--gray-50);border-radius:10px;padding:14px;border-left:4px solid var(--primary);">
               <div style="font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:8px;">Step 0. 사용자 등록 (처음 1회)</div>
               <ol style="font-size:13px;color:var(--gray-600);line-height:1.9;padding-left:18px;margin:0;">
-                <li>링크를 처음 열고 맨 아래 <b>관리자</b>를 누르면 <b>사용자 등록</b> 화면이 먼저 나와요</li>
+                <li>링크를 처음 열고 맨 위 <b>⚙️ 선생님 메뉴</b>를 누르면 <b>사용자 등록</b> 화면이 먼저 나와요</li>
                 <li>학교 지역·학교급, 아이디를 입력하고 개인정보 동의 후 다음으로 넘어가요</li>
               </ol>
             </div>
@@ -1018,7 +1019,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
           <div style="margin:10px 0 4px;font-size:12px;color:#7F1D1D;">👇 <b>지금 내 연결 상태</b> (실시간)</div>
           <div class="gas-banner loading" id="guideConn" style="border-radius:10px;">확인 중...</div>
           <button class="btn btn-secondary" onclick="showScreen('mainScreen')" style="font-size:13px;padding:10px;margin-top:8px;">👀 첫 화면에서 띠 직접 보기</button>
-          <div style="margin-top:6px;font-size:11px;color:#9A3412;">※ 첫 화면에서 다시 관리자로 들어오려면 위쪽 <b>⚙️ 관리자</b> 버튼을 눌러 주세요.</div>
+          <div style="margin-top:6px;font-size:11px;color:#9A3412;">※ 첫 화면에서 다시 선생님 메뉴로 들어오려면 위쪽 <b>⚙️ 선생님 메뉴</b> 버튼을 눌러 주세요.</div>
         </div>
         <p class="reg-hint" style="margin:0 0 10px;">처음 설정할 때 이 순서대로 해 주세요. 궁금한 항목을 눌러서 펼쳐 보세요.</p>
         <div class="mini-grid">
@@ -1034,7 +1035,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
           <li>상단 메뉴 <b>배포 → 새 배포</b> 클릭</li>
           <li>유형: <b>웹 앱</b> / 실행: <b>나</b> / 액세스: <b>모든 사용자</b> → 배포</li>
           <li>웹앱 URL(…/exec) 복사</li>
-          <li>관리자 화면 <b>🔗 연결·QR 탭</b>에 URL 붙여넣고 <b>연결 확인 후 저장</b></li>
+          <li>선생님 메뉴의 <b>🔗 연결·QR 탭</b>에 URL 붙여넣고 <b>연결 확인 후 저장</b></li>
         </ol></div></details>
       <details class="hdet"><summary>2️⃣ 기본 정보 설정하기</summary><div class="hb"><ol>
           <li><b>⚙️ 기본 설정 탭</b>으로 이동</li>
@@ -1064,7 +1065,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
           <li>가정통신문·알림장·단체방에 붙여 넣어 학부모님께 공유</li>
         </ol></div></details>
       <details class="hdet"><summary>🔑 비밀번호를 잊었을 때</summary><div class="hb"><ol>
-          <li>관리자 로그인 화면의 <b>🔑 비밀번호가 기억 안 나요</b>를 누르면 같은 안내가 나와요</li>
+          <li>선생님 로그인 화면의 <b>🔑 비밀번호가 기억 안 나요</b>를 누르면 같은 안내가 나와요</li>
           <li><b>📋 최신 코드 복사</b> → Apps Script에 붙여넣고 저장</li>
           <li>함수 선택칸에서 <b>resetPassword</b> 선택 → <b>▶ 실행</b></li>
           <li><b>배포 관리 → ✏️ 수정 → 새 버전 → 배포</b></li>
@@ -1255,7 +1256,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
           <li>상단 메뉴 <b>배포 → 새 배포</b> 클릭</li>
           <li>유형: <b>웹 앱</b> / 실행: <b>나</b> / 액세스: <b>모든 사용자</b> → 배포</li>
           <li>웹앱 URL(…/exec) 복사</li>
-          <li>관리자 화면 <b>🔗 연결·QR 탭</b>에 URL 붙여넣고 <b>연결 확인 후 저장</b></li>
+          <li>선생님 메뉴의 <b>🔗 연결·QR 탭</b>에 URL 붙여넣고 <b>연결 확인 후 저장</b></li>
         </ol>
       </div>
 
@@ -1315,7 +1316,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
       <p style="margin:10px 0 2px"><b>5. 학부모·학생 정보</b></p>
       <ul style="padding-left:18px"><li>학부모·학생의 이름, 연락처, 상담 희망 내용은 개발자에게 전달되지 않아요. 각 선생님 본인의 구글 시트에만 저장되고, 선생님이 관리·삭제해요.</li></ul>
       <p style="margin:10px 0 2px"><b>6. 동의 거부 권리와 불이익</b></p>
-      <ul style="padding-left:18px"><li>동의하지 않을 수 있어요. 다만 동의하지 않으면 사용자 등록을 할 수 없어서 관리자 기능을 쓸 수 없어요.</li></ul>
+      <ul style="padding-left:18px"><li>동의하지 않을 수 있어요. 다만 동의하지 않으면 사용자 등록을 할 수 없어서 선생님 기능을 쓸 수 없어요.</li></ul>
       <p style="margin:10px 0 2px"><b>7. 열람·정정·삭제·처리정지 요청, 문의</b></p>
       <ul style="padding-left:18px"><li>앱 개발자 Cheon_R · <b>fond7509@naver.com</b></li></ul>
       <p style="margin:10px 0 0;color:var(--gray-400)">이 방침이 바뀌면 앱 안에서 알려 드려요.</p>
@@ -5214,7 +5215,7 @@ function openReg(mode){
   gid('regBack').textContent = mode === 'pre' ? '← 돌아가기' : '로그아웃';
   gid('regSub').textContent = mode === 'pre'
     ? '처음 한 번만 입력하면 돼요. 입력한 정보는 사용 현황 파악을 위해 앱 개발자에게 전달돼요. (학부모·학생 정보는 전달되지 않아요)'
-    : '관리자 기능을 쓰려면 등록이 필요해요. 처음 한 번만 하면 돼요.';
+    : '선생님 기능을 쓰려면 등록이 필요해요. 처음 한 번만 하면 돼요.';
   { const r = gid('regIntroRow'); if (r) r.style.display = mode === 'pre' ? '' : 'none'; }
   showScreen('regScreen');
 }
@@ -5699,8 +5700,8 @@ function dmRenderP(){
       ? '<div class="dm-card" style="text-align:center;"><div style="font-size:44px;">✅</div><div class="dm-h" style="margin-top:6px;">예약이 확정됐어요!</div><div style="font-size:14px;color:var(--gray-700);line-height:1.8;"><b>'+esc(dd.label)+' '+esc(dm.time)+'</b><br>홍길동 학생 · 학부모 상담</div><div style="margin-top:8px;font-size:12px;color:var(--gray-500);">(학부모가 \'내 예약 확인\'에서 보게 되는 화면이에요)</div></div>'
         + '<div class="dm-hint">👏 선생님이 확정을 눌러서 학부모 화면이 <b>예약 확정</b>으로 바뀌었어요!</div>'
       : '<div class="dm-card" style="text-align:center;"><div style="font-size:44px;">📝</div><div class="dm-h" style="margin-top:6px;">신청이 접수됐어요!</div><div style="font-size:14px;color:var(--gray-700);line-height:1.8;"><b>'+esc(dd.label)+' '+esc(dm.time)+'</b><br>홍길동 학생 · 학부모 상담</div><div style="margin-top:8px;font-size:12px;color:var(--gray-500);line-height:1.6;">선생님이 확인하면 <b>예약 확정</b>으로 바뀌어요.<br>나중에 \'내 예약 확인\'에서 확인해 주세요.</div></div>'
-        + '<div class="dm-hint">👉 아직 <b>신청</b> 상태예요. <b>🧑‍🏫 관리자 화면</b> 탭에서 <b>✅ 확정</b>을 눌러 보세요. (선생님이 눌러야 확정돼요)</div>'
-      + '<button class="btn btn-primary" onclick="dmTab(\'a\')">관리자 화면 보기 →</button><button class="btn btn-secondary" style="margin-top:8px;" onclick="dmResetP()">처음부터 다시 해보기</button>';
+        + '<div class="dm-hint">👉 아직 <b>신청</b> 상태예요. <b>🧑‍🏫 선생님 화면</b> 탭에서 <b>✅ 확정</b>을 눌러 보세요. (선생님이 눌러야 확정돼요)</div>'
+      + '<button class="btn btn-primary" onclick="dmTab(\'a\')">선생님 화면 보기 →</button><button class="btn btn-secondary" style="margin-top:8px;" onclick="dmResetP()">처음부터 다시 해보기</button>';
     return;
   }
   let h = '<div class="dm-hint">학부모님이 보게 되는 화면이에요. 직접 눌러서 예약해 보세요! (샘플이라 실제 예약은 만들어지지 않아요)</div>';
@@ -5730,7 +5731,7 @@ function dmResetP(){
 function dmRenderA(){
   const B = gid('dmBody');
   const bks = dm.bookings.slice().sort((a, b) => (a.day + a.t).localeCompare(b.day + b.t));
-  let h = '<div class="dm-hint">선생님이 보게 되는 관리자 화면이에요. <b>📝 신청</b>은 <b>✅ 확정</b>을 눌러야 학부모에게 예약 확정으로 보여요. 실수로 눌렀다면 <b>↩️ 되돌리기</b>, 취소는 한 번 더 확인 창이 떠요. ("신청 후 확정 모드"를 켰을 때)</div>';
+  let h = '<div class="dm-hint">선생님이 보게 되는 화면이에요. <b>📝 신청</b>은 <b>✅ 확정</b>을 눌러야 학부모에게 예약 확정으로 보여요. 실수로 눌렀다면 <b>↩️ 되돌리기</b>, 취소는 한 번 더 확인 창이 떠요. ("신청 후 확정 모드"를 켰을 때)</div>';
   h += '<div class="dm-card"><div class="dm-h">📋 예약 현황 <span style="color:var(--primary-dark);">'+bks.length+'건</span></div>'
     + (bks.length ? bks.map(b => '<div class="dm-bk"><div class="m"><b>'+esc(b.st)+' 학생 · '+esc(b.pa)+'</b><span>'+esc(dmDayOf(b.day).label)+' '+esc(b.t)+(b.st==='홍길동'?' · 방금 예약':'')+'</span></div>'+(b.ok ? '<span class="iv-tag" style="background:#DCFCE7;color:#15803D;">✅ 확정</span><button class="dm-mini" style="background:var(--gray-100);color:var(--gray-600);" onclick="dmUnconfirmBk(\''+b.day+'\',\''+b.t+'\')">↩️ 되돌리기</button>' : '<span class="iv-tag" style="background:#FEF3C7;color:#B45309;">📝 신청</span><button class="dm-mini" style="background:var(--primary);color:#fff;" onclick="dmConfirmBk(\''+b.day+'\',\''+b.t+'\')">✅ 확정</button>')+'<button class="dm-mini" onclick="dmCancel(\''+b.day+'\',\''+b.t+'\')">취소</button></div>').join('') : '<div style="color:var(--gray-400);font-size:13px;padding:8px 0;">아직 예약이 없어요.</div>')
     + '</div>';
