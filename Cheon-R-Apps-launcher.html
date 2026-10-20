@@ -108,6 +108,9 @@ a.app:active{background:#FAF9FE}
 .chk{display:flex;align-items:center;gap:8px;min-height:44px;margin-top:6px;font-size:14px;color:var(--tx2);cursor:pointer}
 .chk input{width:22px;height:22px;accent-color:var(--main);flex:none}
 .lockic{font-size:40px;text-align:center;margin-bottom:4px}
+.lrow{display:flex;gap:6px;margin-top:8px}
+.lrow .inp{margin-top:0;min-width:0}
+.lrow .ln{flex:0 0 32%}
 </style>
 </head>
 <body>
@@ -235,6 +238,12 @@ a.app:active{background:#FAF9FE}
     <input class="inp" id="fSheet" type="url" inputmode="url" placeholder="📊 구글 시트 링크" autocomplete="off">
     <input class="inp" id="fGas" type="url" inputmode="url" placeholder="⚙️ Apps Script(GAS) 편집기 링크" autocomplete="off">
     <input class="inp" id="fRepo" type="url" inputmode="url" placeholder="💻 코드 파일 링크 (GitHub 파일 주소)" autocomplete="off">
+    <div class="lb">🔌 앱의 GAS 웹 앱 주소 (선택)</div>
+    <input class="inp" id="fExec" type="url" inputmode="url" placeholder="https://script.google.com/…/exec" autocomplete="off">
+    <div class="dh" style="margin-top:4px">넣으면 상세창에 “연결해서 열기” 버튼이 생겨요. 앱 링크 뒤에 ?gas=주소가 자동으로 붙어요.</div>
+    <div class="lb">추가 링크 (선택, 최대 4개) 예: 학생용 · 교사용</div>
+    <div id="fLinks"></div>
+    <datalist id="lnames"><option value="학생용"><option value="교사용"><option value="관리자용"><option value="설치 가이드"></datalist>
     <div class="lb">상단 고정</div>
     <div class="seg" id="fPin"><button data-v="0">고정 안 함</button><button data-v="1">📌 맨 위에 고정</button></div>
     <div class="err" id="fErr"></div>
@@ -361,6 +370,7 @@ function render(){
     const nm = el('div', 'nm', a.name);
     if (a.pin) nm.appendChild(el('span', '', '📌'));
     nm.appendChild(el('span', 'chip ' + (a.type === '개인용' ? 'p' : 'd'), a.type));
+    if (a.exec) nm.appendChild(el('span', 'chip p', '🔌'));
     inn.appendChild(nm);
     if (a.memo) inn.appendChild(el('div', 'mm', a.memo));
     inn.appendChild(el('div', 'sv', a.saved ? '저장 ' + String(a.saved).slice(0, 16) : '저장 기록 없음'));
@@ -489,6 +499,40 @@ $('fIcon').addEventListener('input', markEmoji);
 function setPin(v){ fPin = v; [...$('fPin').children].forEach(b => b.classList.toggle('on', b.dataset.v === v)); }
 [...$('fPin').children].forEach(b => b.onclick = () => setPin(b.dataset.v));
 
+const LINK_MAX = 4;
+function buildLinkRows(){
+  const box = $('fLinks'); box.innerHTML = '';
+  for (let i = 1; i <= LINK_MAX; i++) {
+    const r = el('div', 'lrow');
+    const n = el('input', 'inp ln'); n.id = 'fL' + i + 'n'; n.maxLength = 10; n.placeholder = '이름'; n.setAttribute('list', 'lnames'); n.autocomplete = 'off';
+    const u = el('input', 'inp'); u.id = 'fL' + i + 'u'; u.type = 'url'; u.placeholder = 'https://…'; u.autocomplete = 'off';
+    r.appendChild(n); r.appendChild(u); box.appendChild(r);
+  }
+}
+function fillLinks(list){
+  for (let i = 1; i <= LINK_MAX; i++) { const x = (list && list[i - 1]) || {}; $('fL' + i + 'n').value = x.name || ''; $('fL' + i + 'u').value = x.url || ''; }
+}
+function readLinks(){
+  const p = {};
+  for (let i = 1; i <= LINK_MAX; i++) {
+    const n = $('fL' + i + 'n').value.trim(), u = $('fL' + i + 'u').value.trim();
+    if (u && !/^https?:\/\/\S+$/i.test(u)) return { error: '추가 링크는 http:// 또는 https:// 로 시작해야 해요.' };
+    p['l' + i + 'n'] = u ? (n || '링크' + i) : ''; p['l' + i + 'u'] = u;
+  }
+  return { p };
+}
+function linkParams(list){
+  const p = {};
+  for (let i = 1; i <= LINK_MAX; i++) { const x = list && list[i - 1]; p['l' + i + 'n'] = x ? (x.name || '') : ''; p['l' + i + 'u'] = x ? (x.url || '') : ''; }
+  return p;
+}
+/* 앱 링크 뒤에 ?gas=주소 붙이기 (#해시 앞에) */
+function withGas(url, g){
+  if (!g) return url;
+  const h = url.indexOf('#'), base = h >= 0 ? url.slice(0, h) : url, hash = h >= 0 ? url.slice(h) : '';
+  return base + (base.indexOf('?') >= 0 ? '&' : '?') + 'gas=' + encodeURIComponent(g) + hash;
+}
+
 function openForm(a){
   editId = a ? a.id : null;
   $('fTitle').textContent = a ? '앱 수정' : '앱 추가';
@@ -498,6 +542,7 @@ function openForm(a){
   $('fMemo').value = a ? a.memo : '';
   $('fSheet').value = a ? (a.sheet || '') : ''; $('fRepo').value = a ? (a.repo || '') : ''; $('fGas').value = a ? (a.gas || '') : '';
   setPin(a && a.pin ? '1' : '0');
+  $('fExec').value = a ? (a.exec || '') : ''; fillLinks(a ? a.links : null);
   $('fErr').textContent = '';
   setType(a ? a.type : (tab === '배포용' ? '배포용' : '개인용'));
   markEmoji();
@@ -512,7 +557,10 @@ $('fSave').onclick = async () => {
   if (!/^https?:\/\/\S+$/i.test(url)) { $('fErr').textContent = '링크는 http:// 또는 https:// 로 시작해야 해요.'; return; }
   const ex = { sheet: $('fSheet').value.trim(), repo: $('fRepo').value.trim(), gas: $('fGas').value.trim() };
   if ([ex.sheet, ex.repo, ex.gas].some(v => v && !/^https?:\/\/\S+$/i.test(v))) { $('fErr').textContent = '시트·GAS·코드 파일 링크는 http:// 또는 https:// 로 시작해야 해요.'; return; }
-  const params = { action: editId ? 'update' : 'add', name, url, type: fType, icon: $('fIcon').value.trim() || '📱', memo: $('fMemo').value.trim(), sheet: ex.sheet, repo: ex.repo, gas: ex.gas, pin: fPin };
+  const exec = $('fExec').value.trim();
+  if (exec && !GAS_RE.test(exec)) { $('fErr').textContent = '앱의 GAS 주소는 https://script.google.com/…/exec 형태여야 해요.'; return; }
+  const lk = readLinks(); if (lk.error) { $('fErr').textContent = lk.error; return; }
+  const params = Object.assign({ action: editId ? 'update' : 'add', name, url, type: fType, icon: $('fIcon').value.trim() || '📱', memo: $('fMemo').value.trim(), sheet: ex.sheet, repo: ex.repo, gas: ex.gas, pin: fPin, exec }, lk.p);
   if (editId) params.id = editId;
   $('fSave').disabled = true; $('fErr').textContent = '';
   try{ await write(params); closeForm(); toast(editId ? '수정했어요' : '등록했어요'); }
@@ -531,6 +579,8 @@ function openDetail(a){
   const body = $('dBody'); body.innerHTML = '';
   const link = (label, url) => { const x = el('a', 'btn', label); x.href = url; x.target = '_blank'; x.rel = 'noopener noreferrer'; body.appendChild(x); };
   link('🚀 앱 열기', a.url);
+  if (a.exec) link('🔗 연결해서 열기', withGas(a.url, a.exec));
+  (a.links || []).forEach(x => { if (x && x.url) link('🔹 ' + (x.name || '링크'), x.url); });
   if (a.sheet) link('📊 구글 시트 열기', a.sheet);
   if (a.gas) link('⚙️ GAS 편집기 열기', a.gas);
   if (a.repo) link('💻 코드 파일 열기', a.repo);
@@ -595,8 +645,8 @@ $('impFile').onchange = async e => {
   let n = 0;
   for (const a of todo) {
     try{
-      const r = await write({ action: 'add', name: a.name, url: a.url, type: a.type === '배포용' ? '배포용' : '개인용', icon: a.icon || '📱', memo: a.memo || '',
-        sheet: a.sheet || '', repo: a.repo || '', gas: a.gas || '', pin: a.pin ? '1' : '0' });
+      const r = await write(Object.assign({ action: 'add', name: a.name, url: a.url, type: a.type === '배포용' ? '배포용' : '개인용', icon: a.icon || '📱', memo: a.memo || '',
+        sheet: a.sheet || '', repo: a.repo || '', gas: a.gas || '', pin: a.pin ? '1' : '0', exec: a.exec || '' }, linkParams(a.links)));
       if (!r) throw new Error('잠시 후 다시 시도해 주세요.');
       n++; $('stat').textContent = '가져오는 중… ' + n + '/' + todo.length;
     }catch(err){ toast(err.message); break; }
@@ -653,7 +703,7 @@ $('lockInp').addEventListener('keydown', e => { if (e.key === 'Enter') doUnlock(
 $('gasInp').addEventListener('keydown', e => { if (e.key === 'Enter') $('gasBtn').click(); });
 
 /* ===== 시작 ===== */
-buildEmoji();
+buildEmoji(); buildLinkRows();
 GAS = GAS_FIXED || lsGet(LS_GAS);
 if (!GAS) { showSetup(); }
 else {
