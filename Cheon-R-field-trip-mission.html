@@ -646,7 +646,16 @@ function renderChar(){
 function hud(){
  var u=S.user,list=myMissions(),n=list.filter(function(m){return S.done[m.id];}).length,total=list.length,pct=total?Math.round(n/total*100):0,col=teamColor(u.team);
  return '<div class="card"><div class="hud"><div class="av" style="border-color:'+col+'">'+S.me.char+'</div><div class="hi"><b>'+esc(S.me.nick||u.name)+'</b> <span class="chip" style="background:'+col+'">'+esc(dispTeam())+'</span><div class="sub">'+levelOf(n,total)+' · 미션 '+n+'/'+total+'</div></div><div class="coin" id="coinv">🪙 '+S.me.coins+'</div></div><div class="bar"><i style="width:'+pct+'%"></i></div></div>';}
-function hudExtra(){var u=S.user;if(u.role==='teacher')return '<button class="btn ghost small" id="tback">👩‍🏫 관리자 화면으로</button>';if(u.isLeader&&u.found&&u.team!=='솔로 원정대')return '<button class="btn ghost small" id="trn">✏️ 우리 팀 이름 정하기</button>';return '';}
+function showMyTeam(){
+ var u=S.user,mem=u.members||[],lead=mem.filter(function(m){return m.leader;})[0],tn=dispTeam();
+ var list=mem.map(function(m){return (m.leader?'👑 ':'▫️ ')+esc(m.name||(m.no+'번'));}).join('<br>');
+ var solo=(u.team==='솔로 원정대')||mem.length<=1,o={icon:'👥',title:'우리 팀 확인',btns:[{t:'닫기'}]};
+ if(!u.found)o.body='명단에 없는 번호라서 <b>개인 참가</b>예요.';
+ else if(solo)o.body='지금은 <b>솔로 원정대</b>예요!';
+ else if(u.isLeader){o.icon='👑';o.body='당신은 <b>'+esc(tn)+'</b>의 <b>팀장</b>입니다!<br><span class="sub">팀 미션은 팀장이 대표로 제출해요.</span><br><br>'+list;}
+ else o.body='당신은 <b>'+esc(tn)+'</b>의 <b>팀원</b>입니다!'+(lead?'<br>팀장: 👑 <b>'+esc(lead.name||'')+'</b>':'')+'<br><br>'+list;
+ popup(o);}
+function hudExtra(){var u=S.user;if(u.role==='teacher')return '<button class="btn ghost small" id="tback">👩‍🏫 관리자 화면으로</button>';return '<button class="btn ghost small" id="tmy">👥 우리 팀 확인하기</button>'+((u.isLeader&&u.found&&u.team!=='솔로 원정대')?'<button class="btn ghost small" id="trn">✏️ 우리 팀 이름 정하기</button>':'');}
 function deadlineOf(sid){var d=S.deadlines||{};return Object.prototype.hasOwnProperty.call(d,sid)?String(d[sid]||''):(DEFAULT_DEADLINES[sid]||'');}
 function stageById(id){return STAGES.filter(function(x){return x.id===id;})[0];}
 function curPos(){var p=store.get(K_POS,'seoul');return stageById(p)?p:'seoul';}
@@ -696,6 +705,7 @@ function renderMap(){
  $('app').innerHTML=h;
  Array.prototype.forEach.call(document.querySelectorAll('.mn'),function(el){el.onclick=function(){askNode(el.getAttribute('data-s'));};});
  if($('tback'))$('tback').onclick=renderAdmin;
+ if($('tmy'))$('tmy').onclick=showMyTeam;
  if($('trn'))$('trn').onclick=function(){popup({icon:'✏️',title:'우리 팀 이름',body:'<input type="text" id="tnm2" maxlength="10" placeholder="'+esc(dispTeam())+'">',btns:[{t:'저장',pre:function(){var v=$('tnm2');return v?v.value.trim():'';},fn:function(v){if(v)saveTeamName(v);}},{t:'취소',ghost:true}]});};
  if($('bnb'))$('bnb').onclick=function(){openBox(S.boxes[0].id,S.boxes[0].mission);};
  if($('bltr'))$('bltr').onclick=showLetter;if($('brv'))$('brv').onclick=showReview;bindSnd();if($('nack'))$('nack').onclick=doAck;
