@@ -1050,8 +1050,31 @@ var SND_ON=store.get('ftm_snd_v1',true)!==false,AC=null;
 function beep(seq){if(!SND_ON)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();var t=AC.currentTime;seq.forEach(function(n){var o=AC.createOscillator(),g=AC.createGain();o.type='square';o.frequency.value=n[0];g.gain.setValueAtTime(.07,t+n[2]);g.gain.exponentialRampToValueAtTime(.001,t+n[2]+n[1]);o.connect(g);g.connect(AC.destination);o.start(t+n[2]);o.stop(t+n[2]+n[1]+.03);});}catch(e){}}
 var SFX={coin:[[[988,.08,0],[1319,.28,.08]],[40]],hop:[[[392,.07,0],[523,.07,.08],[659,.12,.16]],[25]],clear:[[[523,.1,0],[659,.1,.11],[784,.1,.22],[1047,.35,.33]],[60,40,60]],msg:[[[880,.1,0],[1175,.2,.12]],[120,60,120]],box:[[[600,.06,0],[800,.06,.07],[1000,.06,.14],[1319,.3,.21]],[50,30,80]]};
 function sfx(n){if(!SND_ON||!SFX[n])return;beep(SFX[n][0]);try{if(navigator.vibrate)navigator.vibrate(SFX[n][1]);}catch(e){}}
-function sndBtn(){return '<button class="btn ghost small" id="snd">'+(SND_ON?'🔊 효과음·진동 켜짐 (눌러서 끄기)':'🔇 효과음·진동 꺼짐 (눌러서 켜기)')+'</button>';}
-function bindSnd(){var b=$('snd');if(b)b.onclick=function(){SND_ON=!SND_ON;store.set('ftm_snd_v1',SND_ON);b.textContent=SND_ON?'🔊 효과음·진동 켜짐 (눌러서 끄기)':'🔇 효과음·진동 꺼짐 (눌러서 켜기)';if(SND_ON)sfx('coin');};}
+/* ===== 배경음악 (직접 만든 8비트 멜로디 · 기본 꺼짐) ===== */
+var BGM_MODE='off',BGM_TIMER=null,BGM_NEXT=0,BGM_STEP=0,BGM_GAIN=null;
+var BGM_TRACKS={
+ a:{eighth:0.15,lead:[64,67,64,60,62,65,62,59, 60,64,67,72,71,67,64,0, 65,69,65,62,64,67,64,60, 62,65,69,74,72,0,67,0, 64,67,71,67,64,67,71,76, 72,69,65,69,72,69,65,0, 67,71,74,71,67,62,67,71, 72,67,64,67,72,0,0,0],
+  bass:[48,55,48,55, 45,52,45,52, 41,48,41,48, 43,50,43,50, 48,55,48,55, 41,48,41,48, 43,50,43,50, 48,55,48,0]},
+ b:{eighth:0.12,lead:[69,0,72,69,76,0,74,72, 69,0,72,69,79,0,76,0, 67,0,71,67,74,0,72,71, 69,72,76,81,79,76,72,0, 69,0,72,69,76,0,74,72, 65,0,69,65,72,0,69,65, 67,71,74,79,76,74,71,67, 69,0,0,0,0,0,0,0],
+  bass:[45,52,45,52, 45,52,45,52, 43,50,43,50, 45,52,45,52, 45,52,45,52, 41,48,41,48, 43,50,43,50, 45,52,45,0]}};
+function bgmNote(m,t,d,type,vol){var o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=440*Math.pow(2,(m-69)/12);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.0001,t+d*0.95);o.connect(g);g.connect(BGM_GAIN);o.start(t);o.stop(t+d);}
+function bgmTick(){
+ var tr=BGM_TRACKS[BGM_MODE];if(!tr||!AC){return;}
+ while(BGM_NEXT<AC.currentTime+0.35){
+  var i=BGM_STEP%64,m=tr.lead[i];if(m)bgmNote(m,BGM_NEXT,tr.eighth*1.6,'square',0.05);
+  if(i%2===0){var b=tr.bass[(i/2)%32];if(b)bgmNote(b,BGM_NEXT,tr.eighth*2,'triangle',0.09);}
+  BGM_NEXT+=tr.eighth;BGM_STEP++;}}
+function bgmStop(){if(BGM_TIMER){clearInterval(BGM_TIMER);BGM_TIMER=null;}}
+function bgmStart(){
+ bgmStop();if(BGM_MODE==='off'||document.hidden)return;
+ try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();
+  if(!BGM_GAIN){BGM_GAIN=AC.createGain();BGM_GAIN.gain.value=0.5;BGM_GAIN.connect(AC.destination);}
+  BGM_NEXT=AC.currentTime+0.05;BGM_STEP=0;BGM_TIMER=setInterval(bgmTick,100);}catch(e){}}
+function bgmLabel(){return BGM_MODE==='off'?'🎵 배경음악 꺼짐 (눌러서 켜기)':'🎵 배경음악 재생 중 (눌러서 끄기)';}
+document.addEventListener('visibilitychange',function(){if(document.hidden)bgmStop();else bgmStart();});
+document.addEventListener('pointerdown',function(){if(BGM_MODE!=='off'&&!BGM_TIMER)bgmStart();},{once:false});
+function sndBtn(){return '<button class="btn ghost small" id="snd">'+(SND_ON?'🔊 효과음·진동 켜짐 (눌러서 끄기)':'🔇 효과음·진동 꺼짐 (눌러서 켜기)')+'</button><button class="btn ghost small" id="bgm">'+bgmLabel()+'</button>';}
+function bindSnd(){var bg=$('bgm');if(bg)bg.onclick=function(){BGM_MODE=BGM_MODE==='off'?'a':'off';bg.textContent=bgmLabel();bgmStart();};var b=$('snd');if(b)b.onclick=function(){SND_ON=!SND_ON;store.set('ftm_snd_v1',SND_ON);b.textContent=SND_ON?'🔊 효과음·진동 켜짐 (눌러서 끄기)':'🔇 효과음·진동 꺼짐 (눌러서 켜기)';if(SND_ON)sfx('coin');};}
 
 /* ===== 전체 공지 (학생 화면) ===== */
 function needAck(){var u=S.user;return !!(u&&u.role==='student'&&u.isLeader&&u.found&&u.team!=='솔로 원정대'&&S.notice&&S.notice.id&&!S.noticeAcked);}
