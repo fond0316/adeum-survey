@@ -332,7 +332,9 @@ function showBackAsk(){
  if(!askBack)return;askBack=false;
  if(hidDue||!$('modal').classList.contains('hide')||curTab!=='map'||!curStage)return;
  popup({icon:'✅',title:'제출됐어요!',body:'수고했어요! 🎉<br>지도로 돌아갈까요?',btns:[{t:'지도로 돌아가기 🗺️',fn:function(){go('map');}},{t:'여기 있을게요',ghost:true}]});}
-function lockOn(){if(isTeach())return false;return !(S.deadlines&&S.deadlines._lock==='0');}
+try{var _tq=new URLSearchParams(location.search).get('test');if(_tq==='1')localStorage.setItem('ftm_test','1');else if(_tq==='0')localStorage.removeItem('ftm_test');}catch(e){}
+function testOn(){try{return localStorage.getItem('ftm_test')==='1';}catch(e){return false;}}
+function lockOn(){if(isTeach()||testOn())return false;return !(S.deadlines&&S.deadlines._lock==='0');}
 function reqMs(st){return MISSIONS.filter(function(m){return m.stage===st.id&&!m.opt&&!m.hidden;});}
 function reqDone(st){return reqMs(st).every(function(m){return S.done[m.id];});}
 function blockerOf(st){if(!lockOn()||st.none)return null;var i=STAGES.indexOf(st);for(var j=0;j<i;j++){var b=STAGES[j];if(!b.none&&!reqDone(b))return b;}return null;}
@@ -660,7 +662,7 @@ function showMyTeam(){
  else if(u.isLeader){o.icon='👑';o.body='당신은 <b>'+esc(tn)+'</b>의 <b>팀장</b>입니다!<br><span class="sub">팀 미션은 팀장이 대표로 제출해요.</span><br><br>'+list;}
  else o.body='당신은 <b>'+esc(tn)+'</b>의 <b>팀원</b>입니다!'+(lead?'<br>팀장: 👑 <b>'+esc(lead.name||'')+'</b>':'')+'<br><br>'+list;
  popup(o);}
-function hudExtra(){var u=S.user;if(u.role==='teacher')return '<button class="btn ghost small" id="tback">👩‍🏫 관리자 화면으로</button><div class="sub" style="margin:8px 0 4px;text-align:center">🎬 체험용 미리보기 (시트에는 저장 안 돼요)</div><button class="btn ghost small" id="tpl">💌 편지 → 후기 → 마무리 팝업 순서대로 보기</button><button class="btn ghost small" id="tpr">📝 후기 화면만 보기</button>';return '<button class="btn ghost small" id="tmy">👥 우리 팀 확인하기</button>'+((u.isLeader&&u.found&&u.team!=='솔로 원정대')?'<button class="btn ghost small" id="trn">✏️ 우리 팀 이름 정하기</button>':'');}
+function hudExtra(){var u=S.user;if(u.role==='teacher')return '<button class="btn ghost small" id="tback">👩‍🏫 관리자 화면으로</button><div class="sub" style="margin:8px 0 4px;text-align:center">🎬 체험용 미리보기 (시트에는 저장 안 돼요)</div><button class="btn ghost small" id="tpl">💌 편지 → 후기 → 마무리 팝업 순서대로 보기</button><button class="btn ghost small" id="tpr">📝 후기 화면만 보기</button>';return (testOn()?'<div class="card" style="background:#EFE9FF"><b>🧪 테스트 모드</b><div class="sub">장소 잠금이 풀려 있어요. 미션·사진 제출과 후기는 <b>진짜로 전송</b>돼요 (끝나면 담임이 초기화해요).</div><button class="btn ghost small" id="ttrv">📝 후기 작성 테스트 (실제 전송)</button><button class="btn ghost small" id="ttlt">💌 편지 → 후기 → 마무리 순서대로</button><button class="btn ghost small" id="ttfn">🏆 마무리 팝업만 보기</button></div>':'')+'<button class="btn ghost small" id="tmy">👥 우리 팀 확인하기</button>'+((u.isLeader&&u.found&&u.team!=='솔로 원정대')?'<button class="btn ghost small" id="trn">✏️ 우리 팀 이름 정하기</button>':'');}
 function deadlineOf(sid){var d=S.deadlines||{};return Object.prototype.hasOwnProperty.call(d,sid)?String(d[sid]||''):(DEFAULT_DEADLINES[sid]||'');}
 function stageById(id){return STAGES.filter(function(x){return x.id===id;})[0];}
 function curPos(){var p=store.get(K_POS,'seoul');return stageById(p)?p:'seoul';}
@@ -711,6 +713,7 @@ function renderMap(){
  Array.prototype.forEach.call(document.querySelectorAll('.mn'),function(el){el.onclick=function(){askNode(el.getAttribute('data-s'));};});
  if($('tback'))$('tback').onclick=renderAdmin;
  if($('tmy'))$('tmy').onclick=showMyTeam;
+ if($('ttrv'))$('ttrv').onclick=showReview;if($('ttlt'))$('ttlt').onclick=showLetter;if($('ttfn'))$('ttfn').onclick=showFinale;
  if($('tpl'))$('tpl').onclick=showLetter;if($('tpr'))$('tpr').onclick=showReview;
  if($('trn'))$('trn').onclick=function(){popup({icon:'✏️',title:'우리 팀 이름',body:'<input type="text" id="tnm2" maxlength="10" placeholder="'+esc(dispTeam())+'">',btns:[{t:'저장',pre:function(){var v=$('tnm2');return v?v.value.trim():'';},fn:function(v){if(v)saveTeamName(v);}},{t:'취소',ghost:true}]});};
  if($('bnb'))$('bnb').onclick=function(){openBox(S.boxes[0].id,S.boxes[0].mission);};
@@ -861,7 +864,7 @@ function showFinale(){sfx('clear');var nm=esc((S.user&&S.user.name)||'');popup({
 function showHidden(hm){
  if(!$('modal').classList.contains('hide')){setTimeout(function(){showHidden(hm);},3000);return;}
  sfx('clear');popup({icon:'🎁',title:'히든 미션이 열렸어요!',body:'첫 미션을 해냈군요! 👏<br>특별한 <b>히든 미션</b>이 열렸어요.<br><b>에버랜드 안에서 꼭 수행해요!</b><br><span class="sub">코인·순위와는 상관없지만,<br>클리어하면 다음 주에 아듬T가 소정의 선물을 줘요!</span>',btns:[{t:'히든 미션 보러 가기 ▶',fn:function(){go('map',hm.stage);}},{t:'나중에',ghost:true}]});}
-function showLetter(){sfx('clear');var nr=needReview()||isTeach();popup({icon:'💌',title:'담임 선생님의 편지가 도착했어요!',body:letterHtml()+(nr?'<div style="text-align:center;font-weight:900;font-size:15px;margin-top:14px">자, 이제 진짜 마지막 미션을 클리어하러 갈까요? 🏁</div>':''),btns:nr?[{t:'가요! 🚀',fn:showReview}]:[{t:'고마워요, 아듬샘! 💜'}]});}
+function showLetter(){sfx('clear');var nr=needReview()||isTeach()||testOn();popup({icon:'💌',title:'담임 선생님의 편지가 도착했어요!',body:letterHtml()+(nr?'<div style="text-align:center;font-weight:900;font-size:15px;margin-top:14px">자, 이제 진짜 마지막 미션을 클리어하러 갈까요? 🏁</div>':''),btns:nr?[{t:'가요! 🚀',fn:showReview}]:[{t:'고마워요, 아듬샘! 💜'}]});}
 function markPh(id,ph){S.photoUp=S.photoUp||{};var a=S.photoUp[id]||[];(ph||[]).forEach(function(d,i){if(d)a[i]=true;});S.photoUp[id]=a;saveS();}
 function replyBar(){var u=S.user;if(!(u&&u.role==='student'&&S.done.C3)||S.replyDone)return '';
  return '<div class="banner" id="brp" style="background:#E8F0FF"><div>📩 부모님 답장이 왔나요? 오면 문자 대화 화면을 다시 올려 주세요! <span class="sub">(탭하면 카페거리 미션으로 가요)</span></div></div>';}
