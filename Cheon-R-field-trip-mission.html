@@ -822,7 +822,7 @@ var GOOD_CHIPS=['재미있었어요','신선했어요','추억 만들기 좋았�
 var BAD_CHIPS=['미션이 어려웠어요','미션이 너무 많았어요','입력·사진 올리기가 불편했어요','느리거나 오류가 있었어요','디자인이 아쉬워요'];
 var IMP_KINDS=['기능 요청','오류','디자인','기타'];
 function needReview(){return !!(S.user&&S.user.role==='student'&&S.user.found&&allReqDone()&&!S.reviewDone);}
-function reviewBar(){return needReview()?'<div class="banner" id="brv" style="background:#FFD0D8">📝 수학여행 원정대 후기를 남겨 주세요 (필수!) · 눌러서 쓰기</div>':'';}
+function reviewBar(){if(S.user&&S.user.role==='student'&&S.reviewDone&&allReqDone())return '<div class="banner" style="background:#DDF5DD">✅ 후기 제출 완료! 고마워요 💜</div>';return needReview()?'<div class="banner" id="brv" style="background:#FFD0D8">📝 수학여행 원정대 후기를 남겨 주세요 (필수!) · 눌러서 쓰기</div>':'';}
 function showReview(){
  var st={stars:0,good:[],bad:[],impKind:'',allow:'이름 없이'},md=$('modal');
  md.classList.remove('hide');
@@ -857,7 +857,7 @@ function showReview(){
    S.reviewDone=true;saveS();closePopup();if(curTab==='map'&&!curStage)renderMap();showFinale();
   }).catch(function(e){btn.disabled=false;m.className='msg err';m.textContent='못 보냈어요. 다시 눌러 주세요. ('+esc((e&&e.message)||'')+')';});};
  sync();}
-function showFinale(){sfx('clear');var nm=esc((S.user&&S.user.name)||'');popup({icon:'🏆',title:'🎉 모든 미션 클리어! 🎉',body:'<div style="text-align:center;font-size:15px;line-height:1.8"><b style="font-size:18px">이제 진짜 진짜 모든 미션 클리어!</b><br><br>'+nm+' 원정대원, 너무너무 고생 많았어요! 👏<br><br>이제 집에 돌아가면<br>궁금해하실 부모님께 이번 여행 어땠는지<br>꼭 이야기해 주기야~<br><br>주말 푹 쉬고 다음 주에 웃으며 만납시다. 🌟<br><div style="margin-top:10px;font-size:32px">🎊 🥳 🎊</div></div>',btns:[{t:'야호! 🎉'}]});}
+function showFinale(){sfx('clear');var nm=esc((S.user&&S.user.name)||'');popup({icon:'🏆',title:'🎉 모든 미션 클리어! 🎉',body:'<div style="text-align:center;font-size:15px;line-height:1.8"><b style="font-size:18px">이제 진짜 진짜 모든 미션 클리어!</b><br><br>'+nm+' 원정대원, 너무너무 고생 많았어요! 👏<br><span style="color:#2E8B3D;font-weight:900">📝 후기도 잘 도착했어요! 고마워요 💜</span><br><br>이제 집에 돌아가면<br>궁금해하실 부모님께 이번 여행 어땠는지<br>꼭 이야기해 주기야~<br><br>주말 푹 쉬고 다음 주에 웃으며 만납시다. 🌟<br><div style="margin-top:10px;font-size:32px">🎊 🥳 🎊</div></div>',btns:[{t:'야호! 🎉'}]});}
 function showHidden(hm){
  if(!$('modal').classList.contains('hide')){setTimeout(function(){showHidden(hm);},3000);return;}
  sfx('clear');popup({icon:'🎁',title:'히든 미션이 열렸어요!',body:'첫 미션을 해냈군요! 👏<br>특별한 <b>히든 미션</b>이 열렸어요.<br><b>에버랜드 안에서 꼭 수행해요!</b><br><span class="sub">코인·순위와는 상관없지만,<br>클리어하면 다음 주에 아듬T가 소정의 선물을 줘요!</span>',btns:[{t:'히든 미션 보러 가기 ▶',fn:function(){go('map',hm.stage);}},{t:'나중에',ghost:true}]});}
