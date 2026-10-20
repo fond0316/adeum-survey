@@ -648,6 +648,7 @@ function renderMap(){
  var nb=(S.boxes||[]).length,no=Object.keys(outbox).length,pos=curPos(),nextId=null,i;
  for(i=0;i<STAGES.length;i++){var pg=stageProg(STAGES[i]);if(!pg.none&&pg.ms.length&&!pg.clear){nextId=STAGES[i].id;break;}}
  var h='<div class="title" style="margin:6px 0 0"><small>EXPEDITION MAP</small><b style="font-size:27px">원정을 떠나봅시다!</b><span>블록을 콕! 눌러서 이동해요 · 옆으로 밀면 지도가 움직여요</span></div>'+hud()+hudExtra();
+ if(S.letterSeen)h+='<div class="banner" id="bltr" style="background:#FFF3C4;cursor:pointer">💌 담임 선생님 편지 다시 보기</div>';
  if(nb)h+='<div class="banner box" id="bnb">🎁 아직 안 연 상자가 '+nb+'개 있어요! 눌러서 열기</div>';
  if(no)h+='<div class="banner out" id="bno">⏳ 아직 전송 안 된 미션이 '+no+'개 있어요 (임시저장됨) · 눌러서 다시 보내기</div><div class="msg" id="obm"></div>';
  h+='<div class="mapwrap" id="mapwrap"><div id="say" class="hide"></div><div class="maphint">◀ 옆으로 밀기 ▶</div><div class="mapscroll" id="mapscroll"><div class="world" id="world" style="width:'+MAP_W+'px">';
@@ -665,6 +666,8 @@ function renderMap(){
  if($('tback'))$('tback').onclick=renderAdmin;
  if($('trn'))$('trn').onclick=function(){popup({icon:'✏️',title:'우리 팀 이름',body:'<input type="text" id="tnm2" maxlength="10" placeholder="'+esc(dispTeam())+'">',btns:[{t:'저장',pre:function(){var v=$('tnm2');return v?v.value.trim():'';},fn:function(v){if(v)saveTeamName(v);}},{t:'취소',ghost:true}]});};
  if($('bnb'))$('bnb').onclick=function(){openBox(S.boxes[0].id,S.boxes[0].mission);};
+ if($('bltr'))$('bltr').onclick=showLetter;
+ if(S.letterPending&&!S.letterSeen){S.letterSeen=true;S.letterPending=false;saveS();setTimeout(function(){if(curTab==='map'&&!curStage&&$('modal').classList.contains('hide'))showLetter();},700);}
  if($('bno'))$('bno').onclick=function(){retryOutbox();};
  scrollMapTo(pos,true);
  traveling=false;
@@ -759,8 +762,11 @@ function buildPayload(m,vals,photos){
  var items=m.fields.map(function(f){return {l:f.l,v:vals[f.k]||''};});
  return {action:'submit',stage:st.name,missionId:m.id,mission:m.title,scope:m.scope==='team'?'팀':'개인',opt:!!m.opt,
   role:u.role==='teacher'?'teacher':'student',grade:u.grade,cls:u.cls,no:u.no,name:u.name,leader:u.isLeader?'O':'',char:S.me.char,nick:S.me.nick,items:items,photos:photos};}
+function allReqDone(){return MISSIONS.every(function(m){return m.opt||!(m.scope==='me'||canTeam())||S.done[m.id];});}
+function letterHtml(){var raw=(S.user&&S.user.name||''),nm=esc(raw),c=raw.charCodeAt(raw.length-1),ga=(c>=44032&&c<=55203&&(c-44032)%28!==0)?'이':'가';return '<div style="text-align:left;font-size:14px;line-height:1.75"><b>'+nm+'에게 💌</b><br><br><b>🏆 MISSION COMPLETE!</b><br>'+nm+' 원정대원, 대단해요 아주 수고 많았습니다!!<br><br>이 여행에서 모은 웃음과 추억은 코인보다 훨씬 값질 거야. 친구들과 걷고, 먹고, 사진 찍고, 서로 챙기던 모든 순간이 아듬샘 눈에는 반짝반짝 빛났어.<br><br>낯선 곳에서도 끝까지 미션을 해내고, 친구들과 함께 웃어준 '+nm+ga+' 정말 대견하고 고마워. 피곤한 날도, 마음 같지 않은 순간도 있었을 텐데 잘 해냈어. 아주 칭찬해 ㅋㅋ 👏<br><br>돌아가면 푹 쉬고, 남은 학기도 지금처럼 서로 다정하게 양보하고 배려하며 잘 지내보자. 힘들 땐 언제든 샘한테 와서 이야기해 줘요. 아듬샘은 늘 '+nm+' 편이야, 알지?<br><br>오늘의 이 추억이 앞으로 힘들 때마다 꺼내 볼 수 있는 든든한 힘이 되길 바랍니다. 정말 고생 많았어요, 그리고 샘이 많이 아껴! 💜 화이팅! 🌟<br><div style="text-align:right;margin-top:8px"><b>– 담임 아듬샘 –</b></div></div>';}
+function showLetter(){popup({icon:'💌',title:'담임 선생님의 편지가 도착했어요!',body:letterHtml(),btns:[{t:'고마워요, 아듬샘! 💜'}]});}
 function afterSuccess(m,vals,r){
- S.done[m.id]=true;S.answers[m.id]=vals;if(r.coins!=null)S.me.coins=r.coins;saveS();
+ S.done[m.id]=true;if(!S.letterSeen&&allReqDone())S.letterPending=true;S.answers[m.id]=vals;if(r.coins!=null)S.me.coins=r.coins;saveS();
  delete draft[m.id];saveDraft();delete outbox[m.id];saveOut();photoState[m.id]=[];
  if(r.first&&r.gained)toast('미션 클리어! 🪙 +'+r.gained,2400);
  if(r.boxId){S.boxes=(S.boxes||[]).filter(function(b){return b.id!==r.boxId;});S.boxes.push({id:r.boxId,missionId:m.id,mission:m.title});saveS();}
