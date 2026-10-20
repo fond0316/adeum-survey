@@ -219,7 +219,7 @@ var STAGES=[   // 여행 일정 순서 (이름(name)은 시트에 기록되니 �
  {id:'team',icon:'🤝',name:'팀 결성식',short:'팀 결성식',reg:'1일차',c:'#C9B8FF',day:1},
  {id:'ever',icon:'🎢',name:'에버랜드',short:'에버랜드',reg:'용인',c:'#FF9EC7',day:1},
  {id:'night1',icon:'🌙',name:'1일차 밤 · 숙소',short:'1일차 밤',reg:'숙소',c:'#B8B5FF',day:1},
- {id:'seorak',icon:'🥾',name:'설악산 하산',short:'설악산 하산',reg:'설악산',sub:'보너스',c:'#8FE3C7',day:2},
+ {id:'seorak',icon:'🥾',name:'설악산 하산',short:'설악산 하산',reg:'설악산',c:'#8FE3C7',day:2},
  {id:'market',icon:'🛒',name:'강릉 중앙시장',short:'중앙시장',reg:'강릉',sub:'1인 25,000원',c:'#FFD66B',day:2},
  {id:'cafe',icon:'☕',name:'강릉 카페거리',short:'카페거리',reg:'강릉',c:'#FFB48F',day:2},
  {id:'arte',icon:'🎨',name:'아르떼뮤지엄',short:'아르떼뮤지엄',reg:'강릉',c:'#8FD3FF',day:2},
@@ -256,7 +256,7 @@ var MISSIONS=[
  {id:'A2',stage:'arte',title:'가장 오래 머문 곳',scope:'me',
   desc:'발이 안 떨어졌던 곳은 어디였나요?',
   fields:[{k:'place',l:'가장 오래 머문 곳',t:'text'},{k:'why',l:'왜 그곳에 오래 머물렀나요?',t:'area'}],photos:[]},
- {id:'S1',stage:'seorak',title:'내려놓기 한 줄',scope:'me',opt:true,
+ {id:'S1',stage:'seorak',title:'내려놓기 한 줄',scope:'me',
   desc:'하산하며 산에 두고 가고 싶은 걱정 하나를 적어요. (걸으면서 폰을 보지 말고, 쉬는 곳에서 적어요!)',
   fields:[{k:'line',l:'두고 가고 싶은 걱정 하나',t:'text'}],photos:[]},
  {id:'C3',stage:'cafe',title:'부모님께 감사한 마음 표현하기',scope:'me',
@@ -264,19 +264,19 @@ var MISSIONS=[
   rule:'💌 ① 내 사진 1장 (카페거리 또는 바닷가에서, 내 얼굴이 나오게!) (필수!)\n② 바다 풍경 사진 1장 (좋은 뷰!) (필수!)\n③ 이 두 사진과 함께 부모님(보호자)께 감사한 마음을 담은 문자를 보내요. (필수!)\n④ 문자 보낸 화면을 캡처해서 올려요.',
   fields:[{k:'to',l:'누구에게 보냈나요?',t:'select',opts:['엄마','아빠','부모님 두 분께','보호자(할머니·할아버지 등)']},{k:'msg',l:'보낸 문자 내용 (부모님께 전한 감사한 마음)',t:'area'}],
   photos:[{l:'내 사진 (카페거리 또는 바닷가)',req:true},{l:'바다 풍경 사진 (좋은 뷰)',req:true},{l:'문자 보낸 화면',req:true}]},
- {id:'C1',stage:'cafe',title:'내 취향 발견',scope:'me',opt:true,
+ {id:'C1',stage:'cafe',title:'내 취향 발견',scope:'me',
   desc:'이 거리에서 가장 끌린 가게를 찾아봐요.',
   fields:[{k:'shop',l:'가장 끌린 가게',t:'text'},{k:'why',l:'왜 끌렸나요?',t:'area'}],
   photos:[{l:'가게 사진',req:true}]},
- {id:'C2',stage:'cafe',title:'교과 연결 찾기',scope:'me',opt:true,
+ {id:'C2',stage:'cafe',title:'교과 연결 찾기',scope:'me',
   desc:'간판·건물·인테리어에서 수업 시간에 배운 것을 찾아봐요. (예: 이차함수, 대칭이동, 평행이동)',
   fields:[{k:'concept',l:'찾은 수학 개념',t:'text',ph:'예: 대칭이동'},{k:'explain',l:'어디에서, 왜 그렇게 생각했나요?',t:'area'}],
   photos:[{l:'발견 사진',req:true}]},
- {id:'W1',stage:'wheel',title:'고마웠던 친구에게 문자 보내기',scope:'me',
-  desc:'대관람차 꼭대기에서 속초 풍경 사진을 찍고, 이번 여행에서 가장 고마웠던 친구에게 마음을 문자로 전해요.',
-  rule:'💌 ① 대관람차 꼭대기에서 속초 풍경 사진을 찍어요. (필수!)\n② 이번 여행에서 가장 고마웠던 친구 한 명에게 고마운 이유를 담아 문자를 보내요. (필수!)\n③ 속초 풍경 사진과 문자 보낸 화면을 캡처해서 모두 올려요.',
+ {id:'W1',stage:'rail',title:'고마웠던 친구에게 문자 보내기',scope:'me',
+  desc:'낭만열차를 타는 동안 창밖 풍경 사진을 찍고, 이번 여행에서 가장 고마웠던 친구에게 마음을 문자로 전해요.',
+  rule:'💌 ① 낭만열차를 타는 동안 창밖 풍경 사진을 찍어요. (필수!)\n② 이번 여행에서 가장 고마웠던 친구 한 명에게 고마운 이유를 담아 문자를 보내요. (필수!)\n③ 풍경 사진과 문자 보낸 화면을 캡처해서 모두 올려요.',
   fields:[{k:'who',l:'고마웠던 친구 이름',t:'text'},{k:'why',l:'어떤 점이 고마웠나요?',t:'area'},{k:'msg',l:'친구에게 보낸 문자 내용',t:'area'}],
-  photos:[{l:'위에서 본 속초 풍경 사진',req:true},{l:'문자 보낸 화면',req:true}]},
+  photos:[{l:'낭만열차에서 본 풍경 사진',req:true},{l:'문자 보낸 화면',req:true}]},
  {id:'M1',stage:'market',title:'소중한 사람 선물 고르기',scope:'me',
   desc:'25,000원 안에서 소중한 사람을 위한 선물을 골라요.',
   fields:[{k:'to',l:'누구를 위한 선물인가요?',t:'text'},{k:'why',l:'왜 이 선물을 골랐나요?',t:'area'}],
@@ -290,9 +290,10 @@ var MISSIONS=[
  {id:'M4',stage:'market',title:'강릉 먹거리·특산물 3가지',scope:'me',
   desc:'시장에서 찾은 강릉의 먹거리나 특산물 3가지를 조사해요.',
   fields:[{k:'i1',l:'1번 (이름과 특징)',t:'text'},{k:'i2',l:'2번 (이름과 특징)',t:'text'},{k:'i3',l:'3번 (이름과 특징)',t:'text'}],photos:[]},
- {id:'R1',stage:'rail',title:'옆 친구에게 15초 영상편지',scope:'me',
-  desc:'레일바이크를 타면서 옆 친구에게 15초 영상편지를 찍어요. (영상은 앱에 올리지 않아요)',
-  fields:[{k:'who',l:'영상편지를 받은 친구 이름',t:'text'},{k:'video',l:'15초 영상편지 촬영',t:'select',opts:['촬영 완료','아직 못 찍었어요']}],photos:[]},
+ {id:'R1',stage:'wheel',title:'릴레이 영상편지: 왼쪽 친구에게 남기기',scope:'me',
+  desc:'대관람차 안에서, 지금 이 순간 내 왼쪽에 앉아 있는 친구에게 10초 내외의 짧은 영상편지를 남겨요! 왼쪽에 아무도 없으면 건너편(맞은편) 친구에게 남겨요. 영상편지를 받은 친구도 자기 왼쪽 친구에게 이어서 남기면 릴레이가 돼요. 릴레이로 진행되니까 영상편지를 못 받는 친구는 없어야 해요! 모두가 꼭 한 번씩 받도록 이어 주세요 💌',
+  rule:'📸 영상은 앱에 올리지 않아요! 영상편지를 그 친구에게 카톡으로 보내고, 보낸 카톡 화면을 캡처해서 인증샷으로 올려요. (필수!)',
+  fields:[{k:'pos',l:'누구에게 남겼나요?',t:'select',opts:['내 왼쪽 친구','왼쪽에 아무도 없어서 건너편 친구']},{k:'who',l:'영상편지를 받은 친구 이름',t:'text'}],photos:[{l:'영상편지를 보낸 카톡 캡처',req:true}]},
  {id:'N1',stage:'night1',title:'1일차 하루 마무리 체크',scope:'me',
   desc:'자기 전에 오늘 하루를 돌아봐요. 우리 팀 약속은 잘 지켰나요?',
   fields:[{k:'promise',l:'오늘 우리 팀 약속을 지켰나요?',t:'select',opts:['지켰어요!','절반 정도','아쉬웠어요']},{k:'best',l:'오늘 가장 좋았던 순간',t:'text'},{k:'tomorrow',l:'내일 다짐 한 줄',t:'text'}],photos:[]},
@@ -537,7 +538,7 @@ function renderAdmin(){
  inAdmin=true;chatTeacher=false;if(chatTimer){clearInterval(chatTimer);chatTimer=null;}
  setTabs(false);pollMsgs();
  $('app').innerHTML=startTitle('담임 관리자 모드')+
- '<div class="card"><h2>📱 학생용 링크 · QR</h2><div class="sub">이 링크를 단톡방이나 QR로 학생들에게 보내 주세요. 카톡에서는 미리보기 이미지가 떠요.</div><input type="text" id="stuLink" readonly style="margin-top:8px"><button class="btn small" id="cpl">링크 복사</button><button class="btn ghost small" id="cpr">글자 링크로 복사 (수학여행 원정대_made by Cheon R)</button><button class="btn go small" id="qrb">QR 코드 만들기</button><div id="qrbox" class="hide" style="text-align:center"><canvas id="qrc" style="width:100%;max-width:300px;border:3px solid var(--ink);border-radius:8px;margin-top:10px"></canvas><button class="btn ghost small" id="qrd">QR 이미지 저장 (단톡방에 올리기)</button></div><div class="msg" id="lkm"></div><details style="margin-top:8px"><summary>🔧 연결 주소(웹 앱 URL) 바꾸기</summary><div class="gb"><button class="btn ghost small" id="gchg">주소 다시 입력하기</button></div></details></div>'+
+ '<div class="card"><h2>🧪 테스트 링크</h2><div class="sub">미리 써 볼 학생에게 보낼 링크예요. 테스트용은 장소 잠금이 풀리고 후기를 바로 써 볼 수 있어요 (편지는 안 떠요). 끝나면 해제 링크를 한 번 열게 해 주세요.</div><label for="tstOn">테스트 링크</label><input type="text" id="tstOn" readonly><button class="btn small" id="cpt1">테스트 링크 복사</button><label for="tstOff">테스트 해제 링크</label><input type="text" id="tstOff" readonly><button class="btn ghost small" id="cpt0">테스트 해제 링크 복사</button><button class="btn go small" id="areal">🧪 00번 담임으로 직접 테스트 (실제 전송)</button><div class="sub">아듬샘이 학생처럼 미션·후기를 진짜로 보내 봐요. 시트에는 학년·반·번호 0, 이름 “담임”으로 저장돼요 (순위표에는 안 나와요).</div><div class="msg" id="tsm"></div></div><div class="card"><h2>📱 학생용 링크 · QR</h2><div class="sub">이 링크를 단톡방이나 QR로 학생들에게 보내 주세요. 카톡에서는 미리보기 이미지가 떠요.</div><input type="text" id="stuLink" readonly style="margin-top:8px"><button class="btn small" id="cpl">링크 복사</button><button class="btn ghost small" id="cpr">글자 링크로 복사 (수학여행 원정대_made by Cheon R)</button><button class="btn go small" id="qrb">QR 코드 만들기</button><div id="qrbox" class="hide" style="text-align:center"><canvas id="qrc" style="width:100%;max-width:300px;border:3px solid var(--ink);border-radius:8px;margin-top:10px"></canvas><button class="btn ghost small" id="qrd">QR 이미지 저장 (단톡방에 올리기)</button></div><div class="msg" id="lkm"></div><details style="margin-top:8px"><summary>🔧 연결 주소(웹 앱 URL) 바꾸기</summary><div class="gb"><button class="btn ghost small" id="gchg">주소 다시 입력하기</button></div></details></div>'+
  '<div class="card"><h2>🎮 직접 체험하기</h2><div class="sub">학생처럼 미션을 해 볼 수 있어요. (순위표에는 안 나와요. 시트에는 학년·반·번호가 0으로 기록돼요)</div><button class="btn" id="aplay">체험 시작</button></div>'+
  '<div class="card"><h2>📊 학생 현황</h2><div class="sub">팀별 진행도와 코인을 한눈에 봐요.</div><button class="btn ghost small" id="astat">현황 불러오기</button><div id="abody"></div></div>'+
  '<div class="card"><h2>📋 제출 현황판</h2><div class="sub">학생 × 미션 표로 누가 어디까지 냈는지 한눈에 봐요. 안 낸 친구는 팀장에게 쪽지로 알릴 수 있어요.</div><button class="btn ghost small" id="asb">현황판 열기</button></div>'+
@@ -546,10 +547,11 @@ function renderAdmin(){
  '<div class="card"><h2>💌 팀장 쪽지함</h2><div class="sub">팀장들에게 쪽지를 보내고 답장을 받아요. 앱이 열려 있으면 20~60초 안에 팝업으로 떠요.</div><button class="btn ghost small" id="amsg">쪽지함 열기'+(unreadCount()>0?' (새 쪽지 '+unreadCount()+')':'')+'</button></div>'+
  '<div class="card"><h2>📢 전체 공지</h2><div class="sub">학생 전체 화면에 한 줄 공지를 띄워요. (단체톡과 별개로 앱 안에서도 보여요)</div><button class="btn ghost small" id="anot">공지 쓰기</button></div>'+
  '<div class="card"><h2>⏰ 제출 기한</h2><div class="sub">장소별 "언제까지 제출" 문구를 적으면 학생 화면에 표시돼요.</div><button class="btn ghost small" id="adl">기한 문구 수정</button></div>'+
+ '<div class="card"><h2>📋 미션·질문 목록</h2><div class="sub">학생들이 보는 미션 설명과 질문을 장소 순서대로 한눈에 볼 수 있어요. (보기만 가능해요)</div><button class="btn ghost small" id="amq">목록 보기</button></div>'+
  '<div class="card"><h2>🧹 초기화</h2><div class="sub">다음 여행에도 그대로 쓸 수 있게 비워요. (드라이브에 올라간 사진은 지워지지 않아요)</div><button class="btn ghost small" id="rgame">게임 기록 초기화</button><div class="sub">제출·코인·상자·팀 이름을 비워요. 팀 배정은 그대로 둬요.</div><button class="btn ghost small" id="rteam">팀 배정 비우기</button><div class="sub">명단과 팀 이름을 비워요. 이후 시트의 팀배정 탭에 새로 붙여넣으세요.</div></div>'+
  '<div class="card"><h2>🔑 입장코드</h2><button class="btn ghost small" id="acd">코드 바꾸기</button></div>'+
  backBtn('aout','🚪 나가기')+footer();
- bindLinkCard();$('amsg').onclick=renderTeacherChat;$('asb').onclick=renderSubBoard;$('agal').onclick=function(){GAL.mid='';renderGallery();};$('anot').onclick=renderNotice;$('adl').onclick=renderDeadlines;$('aplay').onclick=startTeacherPlay;$('ateam').onclick=renderTeamEdit;$('rgame').onclick=function(){confirmReset('game','게임 기록 초기화','<div class="dl"><div>🗑️ <b>지워져요</b>: 제출 내용 · 코인 · 상자 · 팀 이름 · 쪽지</div><div>✅ <b>그대로예요</b>: 팀 배정(명단) · 제출 기한 문구 · 드라이브 사진</div></div>');};$('rteam').onclick=function(){confirmReset('teams','팀 배정 비우기','<div class="dl"><div>🗑️ <b>지워져요</b>: 팀 배정(명단) · 팀 이름</div><div>✅ <b>그대로예요</b>: 제출 · 코인 · 상자 기록</div></div>');};$('astat').onclick=loadStatus;$('acd').onclick=function(){renderSetCode(false);};
+ bindLinkCard();$('amsg').onclick=renderTeacherChat;$('asb').onclick=renderSubBoard;$('agal').onclick=function(){GAL.mid='';renderGallery();};$('anot').onclick=renderNotice;$('adl').onclick=renderDeadlines;$('amq').onclick=renderMissionList;$('aplay').onclick=function(){S.realTest=false;saveS();startTeacherPlay();};$('ateam').onclick=renderTeamEdit;$('rgame').onclick=function(){confirmReset('game','게임 기록 초기화','<div class="dl"><div>🗑️ <b>지워져요</b>: 제출 내용 · 코인 · 상자 · 팀 이름 · 쪽지</div><div>✅ <b>그대로예요</b>: 팀 배정(명단) · 제출 기한 문구 · 드라이브 사진</div></div>');};$('rteam').onclick=function(){confirmReset('teams','팀 배정 비우기','<div class="dl"><div>🗑️ <b>지워져요</b>: 팀 배정(명단) · 팀 이름</div><div>✅ <b>그대로예요</b>: 제출 · 코인 · 상자 기록</div></div>');};$('astat').onclick=loadStatus;$('acd').onclick=function(){renderSetCode(false);};
  $('aout').onclick=function(){try{sessionStorage.removeItem('ftm_admin_code');}catch(e){}S.user=null;saveS();renderStart();};}
 function loadStatus(){
  var body=$('abody'),btn=$('astat');btn.disabled=true;body.innerHTML='<div class="msg" id="stm">불러오는 중…</div>';
@@ -662,7 +664,7 @@ function showMyTeam(){
  else if(u.isLeader){o.icon='👑';o.body='당신은 <b>'+esc(tn)+'</b>의 <b>팀장</b>입니다!<br><span class="sub">팀 미션은 팀장이 대표로 제출해요.</span><br><br>'+list;}
  else o.body='당신은 <b>'+esc(tn)+'</b>의 <b>팀원</b>입니다!'+(lead?'<br>팀장: 👑 <b>'+esc(lead.name||'')+'</b>':'')+'<br><br>'+list;
  popup(o);}
-function hudExtra(){var u=S.user;if(u.role==='teacher')return '<button class="btn ghost small" id="tback">👩‍🏫 관리자 화면으로</button><div class="sub" style="margin:8px 0 4px;text-align:center">🎬 체험용 미리보기 (시트에는 저장 안 돼요)</div><button class="btn ghost small" id="tpl">💌 편지 → 후기 → 마무리 팝업 순서대로 보기</button><button class="btn ghost small" id="tpr">📝 후기 화면만 보기</button>';return (testOn()?'<div class="card" style="background:#EFE9FF"><b>🧪 테스트 모드</b><div class="sub">장소 잠금이 풀려 있어요. 미션·사진 제출과 후기는 <b>진짜로 전송</b>돼요 (끝나면 담임이 초기화해요).</div><button class="btn ghost small" id="ttrv">📝 후기 작성 테스트 (실제 전송)</button><button class="btn ghost small" id="ttlt">💌 편지 → 후기 → 마무리 순서대로</button><button class="btn ghost small" id="ttfn">🏆 마무리 팝업만 보기</button></div>':'')+'<button class="btn ghost small" id="tmy">👥 우리 팀 확인하기</button>'+((u.isLeader&&u.found&&u.team!=='솔로 원정대')?'<button class="btn ghost small" id="trn">✏️ 우리 팀 이름 정하기</button>':'');}
+function hudExtra(){var u=S.user;if(u.role==='teacher')return '<button class="btn ghost small" id="tback">👩‍🏫 관리자 화면으로</button><div class="sub" style="margin:8px 0 4px;text-align:center">'+(S.realTest?'🧪 실제 전송 테스트 중 (미션·후기가 시트에 "담임"으로 저장돼요)':'🎬 체험용 미리보기 (시트에는 저장 안 돼요)')+'</div><button class="btn ghost small" id="tpl">💌 편지 → 후기 → 마무리 팝업 순서대로 보기</button><button class="btn ghost small" id="tpr">📝 후기 화면만 보기</button>';return (testOn()?'<div class="card" style="background:#EFE9FF"><b>🧪 테스트 모드</b><div class="sub">장소 잠금이 풀려 있어요. 미션·사진 제출과 후기는 <b>진짜로 전송</b>돼요 (끝나면 담임이 초기화해요).</div><button class="btn ghost small" id="ttrv">📝 후기 작성 테스트 (실제 전송)</button></div>':'')+'<button class="btn ghost small" id="tmy">👥 우리 팀 확인하기</button>'+((u.isLeader&&u.found&&u.team!=='솔로 원정대')?'<button class="btn ghost small" id="trn">✏️ 우리 팀 이름 정하기</button>':'');}
 function deadlineOf(sid){var d=S.deadlines||{};return Object.prototype.hasOwnProperty.call(d,sid)?String(d[sid]||''):(DEFAULT_DEADLINES[sid]||'');}
 function stageById(id){return STAGES.filter(function(x){return x.id===id;})[0];}
 function curPos(){var p=store.get(K_POS,'seoul');return stageById(p)?p:'seoul';}
@@ -713,7 +715,7 @@ function renderMap(){
  Array.prototype.forEach.call(document.querySelectorAll('.mn'),function(el){el.onclick=function(){askNode(el.getAttribute('data-s'));};});
  if($('tback'))$('tback').onclick=renderAdmin;
  if($('tmy'))$('tmy').onclick=showMyTeam;
- if($('ttrv'))$('ttrv').onclick=showReview;if($('ttlt'))$('ttlt').onclick=showLetter;if($('ttfn'))$('ttfn').onclick=showFinale;
+ if($('ttrv'))$('ttrv').onclick=showReview;
  if($('tpl'))$('tpl').onclick=showLetter;if($('tpr'))$('tpr').onclick=showReview;
  if($('trn'))$('trn').onclick=function(){popup({icon:'✏️',title:'우리 팀 이름',body:'<input type="text" id="tnm2" maxlength="10" placeholder="'+esc(dispTeam())+'">',btns:[{t:'저장',pre:function(){var v=$('tnm2');return v?v.value.trim():'';},fn:function(v){if(v)saveTeamName(v);}},{t:'취소',ghost:true}]});};
  if($('bnb'))$('bnb').onclick=function(){openBox(S.boxes[0].id,S.boxes[0].mission);};
@@ -853,23 +855,23 @@ function showReview(){
   if(!st.stars){m.className='msg err';m.textContent='별점을 골라 주세요.';return;}
   if(!st.good.length&&!ge){m.className='msg err';m.textContent='좋았던 점을 하나 이상 골라 주세요.';return;}
   if(!ln){m.className='msg err';m.textContent='한 줄 후기를 적어 주세요.';return;}
-  if(isTeach()){closePopup();showFinale();return;}
+  if(isTeach()&&!S.realTest){closePopup();showFinale();return;}
   var btn=$('rv_go');btn.disabled=true;m.className='msg';m.textContent='보내는 중…';
   postJson(Object.assign({action:'review',stars:st.stars,good:st.good,goodEtc:ge,bad:st.stars<=2?st.bad:[],line:ln,impKind:st.impKind,impText:$('rv_it').value.trim(),allow:st.allow},idParams()),40000).then(function(r){
    if(!r||!r.ok)throw new Error((r&&r.error)||'x');
    S.reviewDone=true;saveS();closePopup();if(curTab==='map'&&!curStage)renderMap();showFinale();
   }).catch(function(e){btn.disabled=false;m.className='msg err';m.textContent='못 보냈어요. 다시 눌러 주세요. ('+esc((e&&e.message)||'')+')';});};
  sync();}
-function showFinale(){sfx('clear');var nm=esc((S.user&&S.user.name)||'');popup({icon:'🏆',title:'🎉 모든 미션 클리어! 🎉',body:'<div style="text-align:center;font-size:15px;line-height:1.8"><b style="font-size:18px">이제 진짜 진짜 모든 미션 클리어!</b><br><br>'+nm+' 원정대원, 너무너무 고생 많았어요! 👏<br><span style="color:#2E8B3D;font-weight:900">📝 후기도 잘 도착했어요! 고마워요 💜</span><br><br>이제 집에 돌아가면<br>궁금해하실 부모님께 이번 여행 어땠는지<br>꼭 이야기해 주기야~<br><br>주말 푹 쉬고 다음 주에 웃으며 만납시다. 🌟<br><div style="margin-top:10px;font-size:32px">🎊 🥳 🎊</div></div>',btns:[{t:'야호! 🎉'}]});}
+function showFinale(){sfx('clear');if(testOn()&&!isTeach()){popup({icon:'✅',title:'후기가 잘 전송됐어요!',body:'테스트 완료! 고마워요 💜',btns:[{t:'확인'}]});return;}var nm=esc((S.user&&S.user.name)||'');popup({icon:'🏆',title:'🎉 모든 미션 클리어! 🎉',body:'<div style="text-align:center;font-size:15px;line-height:1.8"><b style="font-size:18px">이제 진짜 진짜 모든 미션 클리어!</b><br><br>'+nm+' 원정대원, 너무너무 고생 많았어요! 👏<br><span style="color:#2E8B3D;font-weight:900">📝 후기도 잘 도착했어요! 고마워요 💜</span><br><br>이제 집에 돌아가면<br>궁금해하실 부모님께 이번 여행 어땠는지<br>꼭 이야기해 주기야~<br><br>주말 푹 쉬고 다음 주에 웃으며 만납시다. 🌟<br><div style="margin-top:10px;font-size:32px">🎊 🥳 🎊</div></div>',btns:[{t:'야호! 🎉'}]});}
 function showHidden(hm){
  if(!$('modal').classList.contains('hide')){setTimeout(function(){showHidden(hm);},3000);return;}
  sfx('clear');popup({icon:'🎁',title:'히든 미션이 열렸어요!',body:'첫 미션을 해냈군요! 👏<br>특별한 <b>히든 미션</b>이 열렸어요.<br><b>에버랜드 안에서 꼭 수행해요!</b><br><span class="sub">코인·순위와는 상관없지만,<br>클리어하면 다음 주에 아듬T가 소정의 선물을 줘요!</span>',btns:[{t:'히든 미션 보러 가기 ▶',fn:function(){go('map',hm.stage);}},{t:'나중에',ghost:true}]});}
-function showLetter(){sfx('clear');var nr=needReview()||isTeach()||testOn();popup({icon:'💌',title:'담임 선생님의 편지가 도착했어요!',body:letterHtml()+(nr?'<div style="text-align:center;font-weight:900;font-size:15px;margin-top:14px">자, 이제 진짜 마지막 미션을 클리어하러 갈까요? 🏁</div>':''),btns:nr?[{t:'가요! 🚀',fn:showReview}]:[{t:'고마워요, 아듬샘! 💜'}]});}
+function showLetter(){sfx('clear');var nr=needReview()||isTeach();popup({icon:'💌',title:'담임 선생님의 편지가 도착했어요!',body:letterHtml()+(nr?'<div style="text-align:center;font-weight:900;font-size:15px;margin-top:14px">자, 이제 진짜 마지막 미션을 클리어하러 갈까요? 🏁</div>':''),btns:nr?[{t:'가요! 🚀',fn:showReview}]:[{t:'고마워요, 아듬샘! 💜'}]});}
 function markPh(id,ph){S.photoUp=S.photoUp||{};var a=S.photoUp[id]||[];(ph||[]).forEach(function(d,i){if(d)a[i]=true;});S.photoUp[id]=a;saveS();}
 function replyBar(){var u=S.user;if(!(u&&u.role==='student'&&S.done.C3)||S.replyDone)return '';
  return '<div class="banner" id="brp" style="background:#E8F0FF"><div>📩 부모님 답장이 왔나요? 오면 문자 대화 화면을 다시 올려 주세요! <span class="sub">(탭하면 카페거리 미션으로 가요)</span></div></div>';}
 function afterSuccess(m,vals,r){
- S.done[m.id]=true;if(!S.letterSeen&&allReqDone())S.letterPending=true;S.answers[m.id]=vals;if(r.coins!=null)S.me.coins=r.coins;saveS();
+ S.done[m.id]=true;if(!S.letterSeen&&allReqDone()&&!testOn())S.letterPending=true;S.answers[m.id]=vals;if(r.coins!=null)S.me.coins=r.coins;saveS();
  delete draft[m.id];saveDraft();delete outbox[m.id];saveOut();photoState[m.id]=[];
  if(m.hidden){if(r.first){toast('🎁 히든 미션 클리어! 선물은 다음 주에 드려요',3000);sfx('clear');}}else if(r.first&&r.gained){toast('미션 클리어! 🪙 +'+r.gained,2400);sfx('coin');}
  if(!m.hidden){var hm=MISSIONS.filter(function(x){return x.hidden&&x.stage===m.stage;})[0];if(hm&&!S.hiddenSeen&&hiddenOpen(hm)){hidDue=true;S.hiddenSeen=true;saveS();setTimeout(function(){showHidden(hm);},1200);}}
@@ -950,9 +952,9 @@ function renderGuide(){
  var first=!store.get(K_GUIDE,false);
  $('app').innerHTML='<div class="title" style="margin:6px 0 0"><b style="font-size:24px">📖 원정대 가이드</b><span>시작하기 전에 읽어 보세요!</span></div>'+
  '<details open><summary>🎒 1. 이렇게 시작해요</summary><div class="gb"><ol><li><b>학생 입장</b> → 내 반과 번호를 고르면 이름을 확인해요. 맞으면 <b>내 팀(숙소팀)이 팝업으로 알려줘요!</b> 우리 팀 팀장이 누구인지 확인하고 팀원을 찾아 모여요.</li><li>캐릭터를 고르고 별명을 붙여요.</li><li><b>🗺️ 지도</b>를 옆으로 밀어 장소 블록을 콕 눌러요. "여기로 이동할까요?"에서 [네!]를 누르면 내 캐릭터가 뿅! 하고 이동해요. 도착하면 미션을 시작할 수 있어요. 순서는 상관없어요!</li></ol></div></details>'+
- '<details><summary>🎯 2. 미션 종류</summary><div class="gb"><ul><li><b>개인 미션</b>: 모두가 각자 제출해요.</li><li><b>팀 미션</b>: 팀 대표(팀장)가 한 번만 제출해요. 팀원은 🔒로 보여요.</li><li><b>선택 미션</b>: 하면 보너스 코인! 안 해도 괜찮아요.</li><li><b>🎁 히든 미션</b>: 에버랜드 첫 미션(점심 전)을 끝내면 열려요. 에버랜드 안에서 꼭 수행! 등수·코인과 상관없이 클리어하면 다음 주에 아듬T가 소정의 선물을 줘요.</li><li><b>🌙 밤 미션</b>: 1일차·2일차 밤, 자기 전에 숙소에서 하루를 돌아봐요.</li><li>장소에 도착했을 때 해도 되고, 쉬는 시간에 몰아서 해도 돼요. 장소마다 <b>⏰ 제출 기한</b>이 있으면 꼭 확인해요!</li></ul></div></details>'+
+ '<details><summary>🎯 2. 미션 종류</summary><div class="gb"><ul><li><b>개인 미션</b>: 모두가 각자 제출해요.</li><li><b>팀 미션</b>: 팀 대표(팀장)가 한 번만 제출해요. 팀원은 🔒로 보여요.</li><li><b>🎁 히든 미션</b>: 에버랜드 첫 미션(점심 전)을 끝내면 열려요. 에버랜드 안에서 꼭 수행! 등수·코인과 상관없이 클리어하면 다음 주에 아듬T가 소정의 선물을 줘요.</li><li><b>🌙 밤 미션</b>: 1일차·2일차 밤, 자기 전에 숙소에서 하루를 돌아봐요.</li><li>장소에 도착했을 때 해도 되고, 쉬는 시간에 몰아서 해도 돼요. 장소마다 <b>⏰ 제출 기한</b>이 있으면 꼭 확인해요!</li></ul></div></details>'+
  '<details><summary>📸 3. 사진 올리기</summary><div class="gb"><ul><li>[사진] 버튼을 누르면 바로 찍거나 앨범에서 고를 수 있어요. 자동으로 작게 줄여서 올라가요.</li><li>사진에는 <b>얼굴이 나오는 친구의 허락</b>을 받아요. 모르는 사람 얼굴은 나오지 않게 해요.</li></ul></div></details>'+
- '<details><summary>🪙 4. 코인 · 상자 · 순위</summary><div class="gb"><ul><li>미션을 처음 제출하면 코인을 받아요. (개인 10 · 선택 15 · 팀 15)</li><li>제출하면 <b>🎁 상자 5개</b>가 나와요. 하나를 골라 열어요! 꽝(💨)도 있고 ✨코인 2배도 있어요. 새로고침해도 다시 뽑을 수 없어요.</li><li>못 열어도 괜찮아요. 지도에 "안 연 상자"가 남아 있어요.</li><li><b>🏆 순위</b>는 팀원 1인당 평균 코인이에요. 다른 팀 점수도 25초마다 갱신돼요.</li><li>🎁 <b>1등 한 팀</b>에게는 여행 다녀온 후 <b>아듬T가 소정의 상품</b>을 드려요!</li><li>🎁 <b>1등 팀</b>에게는 여행을 다녀온 뒤 아듬T가 <b>소정의 상품</b>을 드려요!</li></ul></div></details>'+
+ '<details><summary>🪙 4. 코인 · 상자 · 순위</summary><div class="gb"><ul><li>미션을 처음 제출하면 코인을 받아요. (개인 10 · 팀 15)</li><li>제출하면 <b>🎁 상자 5개</b>가 나와요. 하나를 골라 열어요! 꽝(💨)도 있고 ✨코인 2배도 있어요. 새로고침해도 다시 뽑을 수 없어요.</li><li>못 열어도 괜찮아요. 지도에 "안 연 상자"가 남아 있어요.</li><li><b>🏆 순위</b>는 팀원 1인당 평균 코인이에요. 다른 팀 점수도 25초마다 갱신돼요.</li><li>🎁 <b>1등 한 팀</b>에게는 여행 다녀온 후 <b>아듬T가 소정의 상품</b>을 드려요!</li><li>🎁 <b>1등 팀</b>에게는 여행을 다녀온 뒤 아듬T가 <b>소정의 상품</b>을 드려요!</li></ul></div></details>'+
  '<details><summary>🐢 5. 느리거나 안 올라가요</summary><div class="gb"><ul><li>구글 시트가 느릴 때가 있어요. <b>"조금만 기다려 주세요"</b>가 보이면 화면을 닫지 말고 기다려요.</li><li>실패해도 <b>쓴 내용은 임시저장</b>돼요. 앱을 닫아도 남아 있어요.</li><li>지도 화면에 <b>"다시 보내기"</b>가 뜨면 눌러요. 인터넷이 잘 되는 곳에서 해 보세요.</li><li>이미 낸 미션도 <b>다시 제출</b>해서 고칠 수 있어요. (코인은 처음 한 번만)</li></ul></div></details>'+
  '<details><summary>👑 팀장이라면</summary><div class="gb"><ul><li>팀 미션(팀 결성식 등)은 <b>팀장이 한 번만</b> 제출해요.</li><li>아래 <b>💌 쪽지</b> 탭에서 담임선생님과 쪽지를 주고받아요. 팀장과 담임선생님만 볼 수 있어요.</li><li>새 쪽지가 오면 앱이 열려 있을 때 <b>20~60초 안에 팝업</b>이 떠요. 앱을 켜 두세요!</li></ul></div></details>'+
  '<details><summary>🛡️ 6. 안전이 먼저예요!</summary><div class="gb"><ul><li>걷거나 이동할 때, 놀이기구·레일바이크 탑승 중, 산에서 내려올 때는 <b>폰을 보지 않아요.</b></li><li>미션은 쉬는 곳에서 천천히 해도 돼요. 위험하게 찍지 않아요.</li><li>가게 사장님·상인분께는 정중하게 묻고, 사진은 꼭 허락받아요.</li><li>선생님 안내와 집합 시간이 미션보다 먼저예요.</li></ul></div></details>'+
@@ -1186,6 +1188,22 @@ function galThumbs(){
   ((r&&r.thumbs)?Object.keys(r.thumbs):[]).forEach(function(fid){var a=$('gp_'+fid);if(a)a.innerHTML='<img src="'+r.thumbs[fid]+'" alt="">';});
  }).catch(function(){}).then(function(){GAL.thb=false;if(GAL.q.length&&$('gbody'))galThumbs();});}
 
+/* ===== 미션·질문 목록 (담임, 보기 전용) ===== */
+function renderMissionList(){
+ inAdmin=true;setTabs(false);
+ var h=startTitle('미션·질문 목록')+'<div class="sub" style="text-align:center">장소 순서대로예요. 총 '+MISSIONS.length+'개 (히든 포함)</div>';
+ STAGES.forEach(function(st){
+  var ms=MISSIONS.filter(function(m){return m.stage===st.id;});if(st.none||!ms.length)return;
+  h+='<div class="card"><h2>'+esc(st.icon+' '+st.name)+'</h2>';
+  ms.forEach(function(m){
+   h+='<div style="border-top:2px dashed #cfc8ea;padding:10px 0"><b>'+esc(m.id)+' · '+esc(m.title)+'</b> '+(m.scope==='team'?'<span class="pill team">팀 미션</span> ':'')+(m.hidden?'<span class="pill opt">히든</span> ':'')+(m.opt?'<span class="pill opt">선택</span>':'')+
+    '<div class="sub">'+esc(m.desc||'')+'</div>'+(m.rule?'<div class="rule" style="font-size:13px;margin:6px 0">'+esc(m.rule).replace(/\n/g,'<br>')+'</div>':'');
+   if(m.fields&&m.fields.length)h+='<div style="font-size:13px;margin-top:4px"><b>✏️ 질문</b><ol style="margin:4px 0 4px 18px;padding:0">'+m.fields.map(function(f){return '<li>'+esc(f.l)+(f.t==='select'&&f.opts&&!f.rand?' <span class="sub">('+f.opts.map(esc).join(' / ')+')</span>':'')+(f.rand?' <span class="sub">(랜덤 뽑기)</span>':'')+'</li>';}).join('')+'</ol></div>';
+   if(m.photos&&m.photos.length)h+='<div style="font-size:13px"><b>📷 사진</b><ul style="margin:4px 0 0 18px;padding:0">'+m.photos.map(function(q){return '<li>'+esc(q.l)+(q.req?' (필수)':' (선택)')+'</li>';}).join('')+'</ul></div>';
+   h+='</div>';});
+  h+='</div>';});
+ $('app').innerHTML=h+backBtn('bk','‹ 관리자 화면')+footer();$('bk').onclick=renderAdmin;}
+
 /* ===== 제출 기한 설정 (담임) ===== */
 function renderDeadlines(){
  inAdmin=true;setTabs(false);
@@ -1248,6 +1266,9 @@ function qrPoster(url){
 function bindLinkCard(){
  var el=$('stuLink');if(!el)return;
  el.value=studentLink();
+ $('areal').onclick=function(){S.realTest=true;saveS();startTeacherPlay();};
+ $('tstOn').value=studentLink()+'&test=1';$('tstOff').value=studentLink()+'&test=0';
+ [['cpt1','tstOn','테스트 링크'],['cpt0','tstOff','테스트 해제 링크']].forEach(function(a){$(a[0]).onclick=function(){var t=$(a[1]);t.select();copyText(t.value).then(function(){var m=$('tsm');m.className='msg ok';m.textContent='✅ '+a[2]+'를 복사했어요. 카톡에 붙여넣어 학생에게 보내세요!';});};});
  var lm=$('lkm');
  function note(t,ok){lm.className='msg '+(ok?'ok':'err');lm.textContent=t;}
  if(location.protocol==='file:')note('⚠️ 지금은 내 컴퓨터 파일로 열려 있어요. 깃허브에 올린 주소에서 열어야 학생용 링크가 제대로 만들어져요.');
