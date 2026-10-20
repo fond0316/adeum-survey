@@ -9,7 +9,7 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="🌟 수학여행 원정대">
 <meta property="og:description" content="미션을 깨고 코인을 모아 최강 원정대가 되자!">
-<meta property="og:image" content="https://fond0316.github.io/adeum-survey/Cheon-R-og.png">
+<meta property="og:image" content="https://fond0316.github.io/adeum-survey/Cheon-R-og2.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
@@ -150,7 +150,7 @@ footer a{color:var(--ink);font-weight:900}
 #hero .hb{position:absolute;left:-26px;top:-84px;width:52px;height:52px;font-size:40px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff)}
 #hero .hb.hop{animation:hop 1s ease}
 @keyframes hop{0%{transform:translateY(0)}20%{transform:translateY(-34px)}45%{transform:translateY(0)}60%{transform:translateY(-22px)}80%{transform:translateY(0)}90%{transform:translateY(-8px)}100%{transform:translateY(0)}}
-#hero .bub{position:absolute;left:-22px;top:-122px;width:44px;text-align:center;background:var(--gold);border:3px solid var(--ink);border-radius:6px;font-size:12px;font-weight:900;color:var(--ink);opacity:0}
+#hero .bub{position:absolute;left:30px;top:-100px;white-space:nowrap;padding:3px 7px;text-align:center;background:var(--gold);border:3px solid var(--ink);border-radius:6px;font-size:12px;font-weight:900;color:var(--ink);opacity:0}
 #hero .bub.show{animation:bub 1.2s ease}
 @keyframes bub{0%{opacity:0;transform:translateY(8px) scale(.6)}20%{opacity:1;transform:translateY(0) scale(1.15)}80%{opacity:1}100%{opacity:0;transform:translateY(-8px)}}
 #say{position:absolute;left:10px;right:10px;top:10px;z-index:6;background:#fff;border:3px solid var(--ink);border-radius:6px;box-shadow:0 4px 0 var(--ink);padding:9px 12px;text-align:center;font-size:14px;font-weight:700;animation:up .25s steps(4)}
@@ -233,8 +233,8 @@ var MISSIONS=[
   photos:[{l:'인증샷 1',req:true},{l:'인증샷 2',req:true},{l:'인증샷 3',req:true}]},
  {id:'E2',stage:'ever',title:'아듬샘을 찾아라! (보스 포착)',scope:'me',
   desc:'컨셉을 뽑고 아듬샘을 찾아 같이 사진 찍기!',
-  rule:'📌 나 + 친구 1명 이상(누구든) 얼굴이 나와야 인정! 포착형은 아듬샘이 눈치채기 전에 찍어야 하고, 브이 인정형은 아듬샘이 브이 한 순간만 인정해요. 단서는 단체톡 공지를 확인하세요.',
-  fields:[{k:'concept',l:'뽑은 컨셉',t:'select',opts:CONCEPTS,rand:true},{k:'where',l:'어디서 만났나요?',t:'text',o:1},{k:'note',l:'한마디',t:'text',o:1}],
+  rule:'📌 사진 규칙 (꼭 읽어요!)\n① 한 장의 사진 안에 [아듬샘 + 나 + 친구 1명 이상] 모두의 얼굴이 나와야 인정돼요. 나와 친구끼리만 찍은 사진, 아듬샘만 찍은 사진은 인정되지 않아요!\n② 포착형은 아듬샘이 눈치채기 전에 찍어야 해요. 아듬샘이 카메라를 보고 있으면 안 돼요.\n③ 브이 인정형은 아듬샘이 브이를 한 순간만 인정해요.\n④ 단서는 단체톡 공지를 확인하세요.',
+  fields:[{k:'concept',l:'뽑은 컨셉',t:'select',opts:CONCEPTS,rand:true},{k:'where',l:'어디서 만났나요?',t:'text'},{k:'note',l:'한마디',t:'text'}],
   photos:[{l:'아듬샘과 함께 사진',req:true}]},
  {id:'A1',stage:'arte',title:'내가 큐레이터라면',scope:'me',
   desc:'가장 인상 깊은 작품을 골라 관람객에게 소개해요.',
@@ -249,7 +249,7 @@ var MISSIONS=[
  {id:'C1',stage:'cafe',title:'내 취향 발견',scope:'me',opt:true,
   desc:'이 거리에서 가장 끌린 가게를 찾아봐요.',
   fields:[{k:'shop',l:'가장 끌린 가게',t:'text'},{k:'why',l:'왜 끌렸나요?',t:'area'}],
-  photos:[{l:'가게 사진',req:false}]},
+  photos:[{l:'가게 사진',req:true}]},
  {id:'C2',stage:'cafe',title:'교과 연결 찾기',scope:'me',opt:true,
   desc:'간판·건물·인테리어에서 수업 시간에 배운 것을 찾아봐요. (예: 이차함수, 대칭이동, 평행이동)',
   fields:[{k:'concept',l:'찾은 수학 개념',t:'text',ph:'예: 대칭이동'},{k:'explain',l:'어디에서, 왜 그렇게 생각했나요?',t:'area'}],
@@ -257,14 +257,14 @@ var MISSIONS=[
  {id:'W1',stage:'wheel',title:'꼭대기에서 보낸 문자',scope:'me',
   desc:'대관람차 꼭대기에서 속초 풍경 사진을 찍고, 고마운 사람에게 문자를 보내요.',
   fields:[{k:'to',l:'누구에게 보냈나요?',t:'text'},{k:'msg',l:'보낸 문자 내용',t:'area'}],
-  photos:[{l:'위에서 본 속초 사진',req:true},{l:'문자 보낸 화면 (선택)',req:false}]},
+  photos:[{l:'위에서 본 속초 사진',req:true},{l:'문자 보낸 화면',req:true}]},
  {id:'M1',stage:'market',title:'소중한 사람 선물 고르기',scope:'me',
   desc:'25,000원 안에서 소중한 사람을 위한 선물을 골라요.',
   fields:[{k:'to',l:'누구를 위한 선물인가요?',t:'text'},{k:'why',l:'왜 이 선물을 골랐나요?',t:'area'}],
-  photos:[{l:'영수증',req:true},{l:'선물 사진 (선택)',req:false}]},
+  photos:[{l:'영수증',req:true},{l:'선물 사진',req:true}]},
  {id:'M2',stage:'market',title:'25,000원 챌린지',scope:'me',
   desc:'오늘 내 소비를 돌아봐요.',
-  fields:[{k:'good',l:'가장 만족스러웠던 소비',t:'text'},{k:'goodwhy',l:'만족한 이유',t:'area'},{k:'bad',l:'아쉬웠던 소비 (없으면 "없음")',t:'text'},{k:'badwhy',l:'아쉬운 이유',t:'area',o:1},{k:'rule',l:'내 소비 기준 한 줄',t:'text',o:1}],photos:[]},
+  fields:[{k:'good',l:'가장 만족스러웠던 소비',t:'text'},{k:'goodwhy',l:'만족한 이유',t:'area'},{k:'bad',l:'아쉬웠던 소비 (없으면 "없음")',t:'text'},{k:'badwhy',l:'아쉬운 이유',t:'area'},{k:'rule',l:'내 소비 기준 한 줄',t:'text'}],photos:[]},
  {id:'M3',stage:'market',title:'상인분께 질문하기',scope:'me',
   desc:'상인분께 정중하게 질문 1개를 드리고 답을 기록해요. (사진은 꼭 허락받고 찍어요)',
   fields:[{k:'q',l:'내가 드린 질문',t:'text'},{k:'a',l:'상인분의 답',t:'area'}],photos:[]},
@@ -276,16 +276,16 @@ var MISSIONS=[
   fields:[{k:'who',l:'고마웠던 친구 이름',t:'text'},{k:'why',l:'이유',t:'area'},{k:'video',l:'15초 영상편지 촬영',t:'select',opts:['촬영 완료','아직 못 찍었어요']}],photos:[]},
  {id:'N1',stage:'night1',title:'1일차 하루 마무리 체크',scope:'me',
   desc:'자기 전에 오늘 하루를 돌아봐요. 우리 팀 약속은 잘 지켰나요?',
-  fields:[{k:'promise',l:'오늘 우리 팀 약속을 지켰나요?',t:'select',opts:['지켰어요!','절반 정도','아쉬웠어요']},{k:'best',l:'오늘 가장 좋았던 순간',t:'text'},{k:'tomorrow',l:'내일 다짐 한 줄',t:'text',o:1}],photos:[]},
+  fields:[{k:'promise',l:'오늘 우리 팀 약속을 지켰나요?',t:'select',opts:['지켰어요!','절반 정도','아쉬웠어요']},{k:'best',l:'오늘 가장 좋았던 순간',t:'text'},{k:'tomorrow',l:'내일 다짐 한 줄',t:'text'}],photos:[]},
  {id:'N2',stage:'night2',title:'2일차 하루 마무리 체크',scope:'me',
   desc:'자기 전에 오늘 하루를 돌아봐요. 우리 팀 약속은 잘 지켰나요?',
-  fields:[{k:'promise',l:'오늘 우리 팀 약속을 지켰나요?',t:'select',opts:['지켰어요!','절반 정도','아쉬웠어요']},{k:'best',l:'오늘 가장 좋았던 순간',t:'text'},{k:'tomorrow',l:'내일 다짐 한 줄',t:'text',o:1}],photos:[]},
+  fields:[{k:'promise',l:'오늘 우리 팀 약속을 지켰나요?',t:'select',opts:['지켰어요!','절반 정도','아쉬웠어요']},{k:'best',l:'오늘 가장 좋았던 순간',t:'text'},{k:'tomorrow',l:'내일 다짐 한 줄',t:'text'}],photos:[]},
  {id:'B1',stage:'back',title:'이번 여행 소감',scope:'me',
   desc:'집으로 돌아오는 버스에서, 이번 여행을 돌아보며 소감을 남겨요.',
-  fields:[{k:'best',l:'가장 기억에 남는 순간',t:'text'},{k:'learn',l:'이번 여행에서 새롭게 알게 된 것·느낀 점',t:'area'},{k:'line',l:'친구들·선생님께 한마디',t:'text',o:1}],photos:[]},
+  fields:[{k:'best',l:'가장 기억에 남는 순간',t:'text'},{k:'learn',l:'이번 여행에서 새롭게 알게 된 것·느낀 점',t:'area'},{k:'line',l:'친구들·선생님께 한마디',t:'text'}],photos:[]},
  {id:'R2',stage:'rail',title:'우리 팀 미션 돌아보기',scope:'team',
   desc:'출발 때 정한 우리 팀 미션, 어땠나요? 팀 대표가 한 번만 적어요.',
-  fields:[{k:'review',l:'팀 미션 달성했나요?',t:'select',opts:['달성했어요!','절반 정도','아쉬웠어요']},{k:'line',l:'한 줄 돌아보기',t:'text',o:1}],photos:[]}
+  fields:[{k:'review',l:'팀 미션 달성했나요?',t:'select',opts:['달성했어요!','절반 정도','아쉬웠어요']},{k:'line',l:'한 줄 돌아보기',t:'text'}],photos:[]}
 ];
 var TOTAL=MISSIONS.length;
 
@@ -659,7 +659,7 @@ function renderMap(){
   var pg=stageProg(st),cp=companionFor(st.id);
   h+='<button class="mn'+(pg.clear?' clear':'')+(st.id===nextId?' next':'')+(st.id===pos?' sel':'')+'" data-s="'+st.id+'" style="left:'+st.x+'px;top:'+st.y+'px;--c:'+st.c+'"><span class="nd"><span>'+st.icon+'</span>'+(pg.clear?'<i class="ck">✔</i>':'')+'</span><span class="lb"><b>'+esc(st.short)+'</b><small>'+esc(st.reg)+(pg.none?'':' · '+(pg.lockedOnly?'팀 대표':(pg.dn+'/'+pg.ms.length)))+(cp?' 👥':'')+'</small></span></button>';});
  var ps=stageById(pos);
- h+='<div id="hero" style="left:'+ps.x+'px;top:'+ps.y+'px"><span class="bub">뿅!</span><div class="hb">'+esc(S.me.char)+'</div></div></div></div></div><div style="height:30px"></div>'+footer();
+ h+='<div id="hero" style="left:'+ps.x+'px;top:'+ps.y+'px"><span class="bub">뿅~💖</span><div class="hb">'+esc(S.me.char)+'</div></div></div></div></div><div style="height:30px"></div>'+footer();
  $('app').innerHTML=h;
  Array.prototype.forEach.call(document.querySelectorAll('.mn'),function(el){el.onclick=function(){askNode(el.getAttribute('data-s'));};});
  if($('tback'))$('tback').onclick=renderAdmin;
@@ -723,7 +723,7 @@ function missionCard(m){
  if(m.scope==='team'&&!canTeam()){
   var ld=(u.members||[]).filter(function(x){return x.leader;}).map(function(x){return x.name;}).join(', ');
   return h+'<div class="lock">🔒 팀 대표('+esc(ld||'팀장')+')가 제출하는 미션이에요.'+(S.done[m.id]?' ✅ 제출 완료!':'')+'</div></div>';}
- if(m.rule)h+='<div class="rule">'+esc(m.rule)+'</div>';
+ if(m.rule)h+='<div class="rule">'+esc(m.rule).replace(/\n/g,'<br>')+'</div>';
  var a=Object.assign({},S.answers[m.id]||{},(draft[m.id]&&draft[m.id].v)||{});
  m.fields.forEach(function(f){
   var id='f_'+m.id+'_'+f.k,v=a[f.k]||'';
@@ -840,7 +840,7 @@ function renderGuide(){
  $('app').innerHTML='<div class="title" style="margin:6px 0 0"><b style="font-size:24px">📖 원정대 가이드</b><span>시작하기 전에 읽어 보세요!</span></div>'+
  '<details open><summary>🎒 1. 이렇게 시작해요</summary><div class="gb"><ol><li><b>학생 입장</b> → 내 반과 번호를 고르면 이름을 확인해요. 맞으면 <b>내 팀(숙소팀)이 팝업으로 알려줘요!</b> 우리 팀 팀장이 누구인지 확인하고 팀원을 찾아 모여요.</li><li>캐릭터를 고르고 별명을 붙여요.</li><li><b>🗺️ 지도</b>를 옆으로 밀어 장소 블록을 콕 눌러요. "여기로 이동할까요?"에서 [네!]를 누르면 내 캐릭터가 뿅! 하고 이동해요. 도착하면 미션을 시작할 수 있어요. 순서는 상관없어요!</li></ol></div></details>'+
  '<details><summary>🎯 2. 미션 종류</summary><div class="gb"><ul><li><b>개인 미션</b>: 모두가 각자 제출해요.</li><li><b>팀 미션</b>: 팀 대표(팀장)가 한 번만 제출해요. 팀원은 🔒로 보여요.</li><li><b>선택 미션</b>: 하면 보너스 코인! 안 해도 괜찮아요.</li><li><b>🌙 밤 미션</b>: 1일차·2일차 밤, 자기 전에 숙소에서 하루를 돌아봐요.</li><li>장소에 도착했을 때 해도 되고, 쉬는 시간에 몰아서 해도 돼요. 장소마다 <b>⏰ 제출 기한</b>이 있으면 꼭 확인해요!</li></ul></div></details>'+
- '<details><summary>📸 3. 사진 올리기</summary><div class="gb"><ul><li>[사진] 버튼을 누르면 바로 찍거나 앨범에서 고를 수 있어요. 자동으로 작게 줄여서 올라가요.</li><li>사진에는 <b>얼굴이 나오는 친구의 허락</b>을 받아요. 모르는 사람 얼굴은 나오지 않게 해요.</li><li><b>아듬샘 찾기</b>: 컨셉을 뽑고, 나 + 친구 1명 이상 얼굴이 나와야 해요. 포착형은 선생님이 눈치채기 전에! 단서는 단체톡에 올라와요.</li></ul></div></details>'+
+ '<details><summary>📸 3. 사진 올리기</summary><div class="gb"><ul><li>[사진] 버튼을 누르면 바로 찍거나 앨범에서 고를 수 있어요. 자동으로 작게 줄여서 올라가요.</li><li>사진에는 <b>얼굴이 나오는 친구의 허락</b>을 받아요. 모르는 사람 얼굴은 나오지 않게 해요.</li><li><b>아듬샘 찾기</b>: 컨셉을 뽑고, <b>한 사진 안에 아듬샘 + 나 + 친구 1명 이상</b>의 얼굴이 모두 나와야 해요. (나와 친구끼리만, 또는 아듬샘만 찍은 사진은 인정 안 돼요!) 포착형은 선생님이 눈치채기 전에! 단서는 단체톡에 올라와요.</li></ul></div></details>'+
  '<details><summary>🪙 4. 코인 · 상자 · 순위</summary><div class="gb"><ul><li>미션을 처음 제출하면 코인을 받아요. (개인 10 · 선택 15 · 팀 15)</li><li>제출하면 <b>🎁 상자 5개</b>가 나와요. 하나를 골라 열어요! 꽝(💨)도 있고 ✨코인 2배도 있어요. 새로고침해도 다시 뽑을 수 없어요.</li><li>못 열어도 괜찮아요. 지도에 "안 연 상자"가 남아 있어요.</li><li><b>🏆 순위</b>는 팀원 1인당 평균 코인이에요. 다른 팀 점수도 25초마다 갱신돼요.</li><li>🎁 <b>1등 한 팀</b>에게는 여행 다녀온 후 <b>아듬T가 소정의 상품</b>을 드려요!</li><li>🎁 <b>1등 팀</b>에게는 여행을 다녀온 뒤 아듬T가 <b>소정의 상품</b>을 드려요!</li></ul></div></details>'+
  '<details><summary>🐢 5. 느리거나 안 올라가요</summary><div class="gb"><ul><li>구글 시트가 느릴 때가 있어요. <b>"조금만 기다려 주세요"</b>가 보이면 화면을 닫지 말고 기다려요.</li><li>실패해도 <b>쓴 내용은 임시저장</b>돼요. 앱을 닫아도 남아 있어요.</li><li>지도 화면에 <b>"다시 보내기"</b>가 뜨면 눌러요. 인터넷이 잘 되는 곳에서 해 보세요.</li><li>이미 낸 미션도 <b>다시 제출</b>해서 고칠 수 있어요. (코인은 처음 한 번만)</li></ul></div></details>'+
  '<details><summary>👑 팀장이라면</summary><div class="gb"><ul><li>팀 미션(팀 결성식 등)은 <b>팀장이 한 번만</b> 제출해요.</li><li>아래 <b>💌 쪽지</b> 탭에서 담임선생님과 쪽지를 주고받아요. 팀장과 담임선생님만 볼 수 있어요.</li><li>새 쪽지가 오면 앱이 열려 있을 때 <b>20~60초 안에 팝업</b>이 떠요. 앱을 켜 두세요!</li></ul></div></details>'+
