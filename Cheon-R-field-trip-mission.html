@@ -326,14 +326,15 @@ function teamColor(t){if(TEAM_COLORS[t])return TEAM_COLORS[t];var h=0,s=String(t
 function dispTeam(){return (S.user&&S.user.teamName)||teamLabel(S.user&&S.user.team);}
 function canTeam(){var u=S.user;return !!u&&(!u.teamHasLeader||u.isLeader);}
 function myMissions(){return MISSIONS.filter(function(m){return !m.hidden&&(m.scope==='me'||canTeam());});}
-function lockOn(){return !(S.deadlines&&S.deadlines._lock==='0');}
+function isTeach(){return !!(S.user&&S.user.role==='teacher');}
+function lockOn(){if(isTeach())return false;return !(S.deadlines&&S.deadlines._lock==='0');}
 function reqMs(st){return MISSIONS.filter(function(m){return m.stage===st.id&&!m.opt&&!m.hidden;});}
 function reqDone(st){return reqMs(st).every(function(m){return S.done[m.id];});}
 function blockerOf(st){if(!lockOn()||st.none)return null;var i=STAGES.indexOf(st);for(var j=0;j<i;j++){var b=STAGES[j];if(!b.none&&!reqDone(b))return b;}return null;}
 function showLockPop(bl){
  var left=reqMs(bl).filter(function(m){return !S.done[m.id];}),teamOnly=left.length&&left.every(function(m){return m.scope==='team';});
  popup({icon:'🔒',title:'아직 열리지 않았어요!',body:'<b>'+esc(bl.icon+' '+bl.short)+'</b>의 필수 미션을 먼저 끝내야<br>이 장소가 열려요.<br><span class="sub">'+(teamOnly?'팀 미션이라 팀 대표(팀장)가 제출하면 열려요. 제출했다면 [다시 확인]을 눌러보세요.':'남은 필수 미션: '+left.length+'개')+'</span>',btns:[{t:esc(bl.short)+' 미션하러 가기 ▶',fn:function(){askNode(bl.id);}},{t:'다시 확인 🔄',ghost:true,fn:function(){syncState().then(function(){if(curTab==='map'&&!curStage)renderMap();});}},{t:'닫기',ghost:true}]});}
-function hiddenOpen(m){return MISSIONS.every(function(x){return x.stage!==m.stage||x.hidden||x.opt||!(x.scope==='me'||canTeam())||S.done[x.id];});}
+function hiddenOpen(m){if(isTeach())return true;return MISSIONS.every(function(x){return x.stage!==m.stage||x.hidden||x.opt||!(x.scope==='me'||canTeam())||S.done[x.id];});}
 function levelOf(n,total){var p=total?n/total:0;if(n===0)return '출발 대기 🧳';if(p>=1)return '수학여행 마스터 👑';if(p>=.75)return '여행 달인 🏅';if(p>=.5)return '모험가 🎒';if(p>=.25)return '탐험가 🧭';return '여행 새싹 🌱';}
 function toast(t,ms){var el=$('toast');el.textContent=t;el.classList.remove('hide');el.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(function(){el.style.opacity=0;setTimeout(function(){el.classList.add('hide');},300);},ms||2200);}
 
