@@ -169,6 +169,13 @@ footer a{color:var(--ink);font-weight:900}
 .rchip{min-height:42px;padding:4px 10px;border:3px solid var(--ink);border-radius:6px;background:#fff;font:inherit;font-weight:900;font-size:13px;cursor:pointer;box-shadow:0 2px 0 var(--ink);color:var(--ink)}
 .rchip.on{background:var(--gold)}
 .dlrow{margin:10px 0}
+.sbwrap{overflow:auto;border:3px solid var(--ink);border-radius:6px;background:#fff;max-height:62vh;margin:8px 0}
+.sbt{border-collapse:collapse;font-size:12px}.sbt th,.sbt td{border:1px solid #cfc8e8;padding:4px 6px;text-align:center;white-space:nowrap}
+.sbt th:first-child,.sbt td:first-child{position:sticky;left:0;background:#fff;text-align:left;z-index:1}.sbt thead th{position:sticky;top:0;background:var(--soft);z-index:2}.sbt thead th:first-child{z-index:3}
+.sbt .tr td{background:var(--soft);font-weight:800}.sbt .y{color:#1f9d55;font-weight:900}.sbt .m{color:#e5484d;font-weight:900}.sbt .o{color:#b5b0c8}
+.gcard{margin:10px 0}.gph{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.gph a{display:flex;align-items:center;justify-content:center;aspect-ratio:1;border:3px solid var(--ink);border-radius:6px;background:var(--soft);overflow:hidden;text-decoration:none;font-size:22px;color:var(--ink)}.gph img{width:100%;height:100%;object-fit:cover}
+.nbar{display:flex;gap:8px;align-items:flex-start;background:#FFF3C4;border:3px solid var(--ink);border-radius:8px;box-shadow:0 3px 0 var(--ink);padding:10px 12px;margin:12px 0;font-weight:800;font-size:14px}
 
 /* ===== 게임 폰트 (갈무리) : 제목·버튼·숫자·블록 이름·팝업 제목 / 긴 글은 Pretendard 유지 ===== */
 :root{--game:Galmuri11,Pretendard,-apple-system,BlinkMacSystemFont,'Malgun Gothic',sans-serif}
@@ -194,7 +201,7 @@ var params=new URLSearchParams(location.search);
 var GAS=params.get('gas')||localStorage.getItem(K_GAS)||GAS_DEFAULT;
 if(params.get('gas')){try{localStorage.setItem(K_GAS,params.get('gas'));}catch(e){}}
 var ENABLED_CLASSES=[4];   // 지금은 4반만 열려 있어요. 나중에 다른 반도 쓰려면 숫자를 추가하세요
-var CHARS=[{e:'🦊',n:'여우'},{e:'🐯',n:'호랑이'},{e:'🐻',n:'곰'},{e:'🐼',n:'판다'},{e:'🐰',n:'토끼'},{e:'🐸',n:'개구리'},{e:'🦁',n:'사자'},{e:'🐧',n:'펭귄'}];
+var CHARS=[{e:'🦊',n:'여우'},{e:'🐯',n:'호랑이'},{e:'🐻',n:'곰'},{e:'🐼',n:'판다'},{e:'🐰',n:'토끼'},{e:'🐸',n:'개구리'},{e:'🦁',n:'사자'},{e:'🐧',n:'펭귄'},{e:'🐶',n:'강아지'},{e:'🐱',n:'고양이'},{e:'🐹',n:'햄스터'},{e:'🐨',n:'코알라'},{e:'🐵',n:'원숭이'},{e:'🐔',n:'병아리'},{e:'🦄',n:'유니콘'},{e:'🐙',n:'문어'},{e:'🦖',n:'공룡'},{e:'🐳',n:'고래'},{e:'🦋',n:'나비'},{e:'🐢',n:'거북이'}];
 var TEAM_COLORS={'레드팀':'#E5484D','블루팀':'#3B6FE0','그린팀':'#2FA866','오렌지팀':'#F08A1C','퍼플팀':'#8A55D6','스카이팀':'#14A6C9','솔로 원정대':'#B8860B','담임 체험':'#7F6FB8'};
 var COMPANION={seorak:{team:'퍼플팀',who:'이지민'},rail:{team:'오렌지팀',who:'박소영'}};   // 솔로 원정대(14번)가 잠시 같이 움직이는 팀
 var K_POS='ftm_pos_v2',MAP_H=400,MAP_W=0,K_MSEEN='ftm_msgseen_v1';
@@ -254,10 +261,11 @@ var MISSIONS=[
   desc:'간판·건물·인테리어에서 수업 시간에 배운 것을 찾아봐요. (예: 이차함수, 대칭이동, 평행이동)',
   fields:[{k:'concept',l:'찾은 수학 개념',t:'text',ph:'예: 대칭이동'},{k:'explain',l:'어디에서, 왜 그렇게 생각했나요?',t:'area'}],
   photos:[{l:'발견 사진',req:true}]},
- {id:'W1',stage:'wheel',title:'꼭대기에서 보낸 문자',scope:'me',
-  desc:'대관람차 꼭대기에서 속초 풍경 사진을 찍고, 고마운 사람에게 문자를 보내요.',
-  fields:[{k:'to',l:'누구에게 보냈나요?',t:'text'},{k:'msg',l:'보낸 문자 내용',t:'area'}],
-  photos:[{l:'위에서 본 속초 사진',req:true},{l:'문자 보낸 화면',req:true}]},
+ {id:'W1',stage:'wheel',title:'부모님께 감사한 마음 표현하기',scope:'me',
+  desc:'대관람차 꼭대기에서 속초 풍경 사진을 찍고, 부모님께 감사한 마음을 문자로 전해요.',
+  rule:'💌 ① 대관람차 꼭대기에서 속초 풍경 사진을 찍어요. (필수!)\n② 그 사진과 함께 부모님(보호자)께 감사한 마음을 담은 문자를 보내요. (필수!)\n③ 속초 풍경 사진과 문자 보낸 화면을 캡처해서 모두 올려요.\n📩 부모님 답장이 오면 그 화면도 올려요. (답장은 선택! 아직 안 왔다면 먼저 제출하고, 나중에 [다시 제출하기]에서 답장 사진만 추가로 올려도 돼요.)',
+  fields:[{k:'to',l:'누구에게 보냈나요?',t:'select',opts:['엄마','아빠','부모님 두 분께','보호자(할머니·할아버지 등)']},{k:'msg',l:'보낸 문자 내용 (부모님께 전한 감사한 마음)',t:'area'}],
+  photos:[{l:'위에서 본 속초 사진',req:true},{l:'문자 보낸 화면',req:true},{l:'부모님 답장 화면',req:false}]},
  {id:'M1',stage:'market',title:'소중한 사람 선물 고르기',scope:'me',
   desc:'25,000원 안에서 소중한 사람을 위한 선물을 골라요.',
   fields:[{k:'to',l:'누구를 위한 선물인가요?',t:'text'},{k:'why',l:'왜 이 선물을 골랐나요?',t:'area'}],
@@ -334,8 +342,8 @@ function applyState(r){
  u.key=r.key;u.team=r.team;u.teamName=r.teamName||'';u.found=r.found;u.teamHasLeader=r.teamHasLeader;u.isLeader=r.isLeader;u.members=r.members;
  if(r.me){S.me.coins=r.me.coins;if(r.me.char){S.me.char=r.me.char;S.me.nick=r.me.nick||S.me.nick;}}
  var d={};(r.done||[]).forEach(function(id){d[id]=true;});S.done=d;
- S.boxes=r.boxes||[];S.deadlines=r.deadlines||{};saveS();}
-function applyTeam(r){var u=S.user;u.team=r.team;u.teamName=r.teamName||'';u.found=r.found;u.teamHasLeader=r.teamHasLeader;u.isLeader=r.isLeader;u.members=r.members;S.deadlines=r.deadlines||{};saveS();}
+ S.boxes=r.boxes||[];S.deadlines=r.deadlines||{};S.notice=r.notice||null;S.noticeAcked=!!r.noticeAcked;if(r.reviewDone)S.reviewDone=true;else if(r.reviewDone===false)S.reviewDone=false;saveS();setTimeout(checkNotice,0);}
+function applyTeam(r){var u=S.user;u.team=r.team;u.teamName=r.teamName||'';u.found=r.found;u.teamHasLeader=r.teamHasLeader;u.isLeader=r.isLeader;u.members=r.members;S.deadlines=r.deadlines||{};S.notice=r.notice||null;S.noticeAcked=!!r.noticeAcked;saveS();setTimeout(checkNotice,0);}
 function teamSig(){var u=S.user||{};return [u.team,u.teamName,u.isLeader?1:0,u.teamHasLeader?1:0,(u.members||[]).map(function(m){return m.no+(m.leader?'L':'')+(m.name||'');}).join(',')].join('|');}
 var lastSync=0;
 function syncState(bg){   // bg=true: 팀 정보만 조용히 확인 (화면의 입력 내용은 건드리지 않음)
@@ -505,13 +513,16 @@ function renderAdmin(){
  '<div class="card"><h2>📱 학생용 링크 · QR</h2><div class="sub">이 링크를 단톡방이나 QR로 학생들에게 보내 주세요. 카톡에서는 미리보기 이미지가 떠요.</div><input type="text" id="stuLink" readonly style="margin-top:8px"><button class="btn small" id="cpl">링크 복사</button><button class="btn ghost small" id="cpr">글자 링크로 복사 (수학여행 원정대_made by Cheon R)</button><button class="btn go small" id="qrb">QR 코드 만들기</button><div id="qrbox" class="hide" style="text-align:center"><canvas id="qrc" style="width:100%;max-width:300px;border:3px solid var(--ink);border-radius:8px;margin-top:10px"></canvas><button class="btn ghost small" id="qrd">QR 이미지 저장 (단톡방에 올리기)</button></div><div class="msg" id="lkm"></div><details style="margin-top:8px"><summary>🔧 연결 주소(웹 앱 URL) 바꾸기</summary><div class="gb"><button class="btn ghost small" id="gchg">주소 다시 입력하기</button></div></details></div>'+
  '<div class="card"><h2>🎮 직접 체험하기</h2><div class="sub">학생처럼 미션을 해 볼 수 있어요. (순위표에는 안 나와요. 시트에는 학년·반·번호가 0으로 기록돼요)</div><button class="btn" id="aplay">체험 시작</button></div>'+
  '<div class="card"><h2>📊 학생 현황</h2><div class="sub">팀별 진행도와 코인을 한눈에 봐요.</div><button class="btn ghost small" id="astat">현황 불러오기</button><div id="abody"></div></div>'+
+ '<div class="card"><h2>📋 제출 현황판</h2><div class="sub">학생 × 미션 표로 누가 어디까지 냈는지 한눈에 봐요. 안 낸 친구는 팀장에게 쪽지로 알릴 수 있어요.</div><button class="btn ghost small" id="asb">현황판 열기</button></div>'+
+ '<div class="card"><h2>🖼️ 사진 모아보기</h2><div class="sub">학생들이 올린 사진을 미션별로 앱에서 바로 봐요.</div><button class="btn ghost small" id="agal">사진 보기</button></div>'+
  '<div class="card"><h2>👥 팀 편집</h2><div class="sub">학생별 팀과 팀장을 바꿀 수 있어요. [저장] 전에 바뀐 내용을 확인하는 창이 떠요. 저장하면 학생 앱에 약 1분 안에 \'팀 정보가 바뀌었어요!\' 팝업과 함께 반영돼요. (앱이 닫혀 있었다면 다시 열 때 반영)</div><button class="btn ghost small" id="ateam">팀 편집하기</button></div>'+
  '<div class="card"><h2>💌 팀장 쪽지함</h2><div class="sub">팀장들에게 쪽지를 보내고 답장을 받아요. 앱이 열려 있으면 20~60초 안에 팝업으로 떠요.</div><button class="btn ghost small" id="amsg">쪽지함 열기'+(unreadCount()>0?' (새 쪽지 '+unreadCount()+')':'')+'</button></div>'+
+ '<div class="card"><h2>📢 전체 공지</h2><div class="sub">학생 전체 화면에 한 줄 공지를 띄워요. (단체톡과 별개로 앱 안에서도 보여요)</div><button class="btn ghost small" id="anot">공지 쓰기</button></div>'+
  '<div class="card"><h2>⏰ 제출 기한</h2><div class="sub">장소별 "언제까지 제출" 문구를 적으면 학생 화면에 표시돼요.</div><button class="btn ghost small" id="adl">기한 문구 수정</button></div>'+
  '<div class="card"><h2>🧹 초기화</h2><div class="sub">다음 여행에도 그대로 쓸 수 있게 비워요. (드라이브에 올라간 사진은 지워지지 않아요)</div><button class="btn ghost small" id="rgame">게임 기록 초기화</button><div class="sub">제출·코인·상자·팀 이름을 비워요. 팀 배정은 그대로 둬요.</div><button class="btn ghost small" id="rteam">팀 배정 비우기</button><div class="sub">명단과 팀 이름을 비워요. 이후 시트의 팀배정 탭에 새로 붙여넣으세요.</div></div>'+
  '<div class="card"><h2>🔑 입장코드</h2><button class="btn ghost small" id="acd">코드 바꾸기</button></div>'+
  backBtn('aout','🚪 나가기')+footer();
- bindLinkCard();$('amsg').onclick=renderTeacherChat;$('adl').onclick=renderDeadlines;$('aplay').onclick=startTeacherPlay;$('ateam').onclick=renderTeamEdit;$('rgame').onclick=function(){confirmReset('game','게임 기록 초기화','<div class="dl"><div>🗑️ <b>지워져요</b>: 제출 내용 · 코인 · 상자 · 팀 이름 · 쪽지</div><div>✅ <b>그대로예요</b>: 팀 배정(명단) · 제출 기한 문구 · 드라이브 사진</div></div>');};$('rteam').onclick=function(){confirmReset('teams','팀 배정 비우기','<div class="dl"><div>🗑️ <b>지워져요</b>: 팀 배정(명단) · 팀 이름</div><div>✅ <b>그대로예요</b>: 제출 · 코인 · 상자 기록</div></div>');};$('astat').onclick=loadStatus;$('acd').onclick=function(){renderSetCode(false);};
+ bindLinkCard();$('amsg').onclick=renderTeacherChat;$('asb').onclick=renderSubBoard;$('agal').onclick=function(){GAL.mid='';renderGallery();};$('anot').onclick=renderNotice;$('adl').onclick=renderDeadlines;$('aplay').onclick=startTeacherPlay;$('ateam').onclick=renderTeamEdit;$('rgame').onclick=function(){confirmReset('game','게임 기록 초기화','<div class="dl"><div>🗑️ <b>지워져요</b>: 제출 내용 · 코인 · 상자 · 팀 이름 · 쪽지</div><div>✅ <b>그대로예요</b>: 팀 배정(명단) · 제출 기한 문구 · 드라이브 사진</div></div>');};$('rteam').onclick=function(){confirmReset('teams','팀 배정 비우기','<div class="dl"><div>🗑️ <b>지워져요</b>: 팀 배정(명단) · 팀 이름</div><div>✅ <b>그대로예요</b>: 제출 · 코인 · 상자 기록</div></div>');};$('astat').onclick=loadStatus;$('acd').onclick=function(){renderSetCode(false);};
  $('aout').onclick=function(){try{sessionStorage.removeItem('ftm_admin_code');}catch(e){}S.user=null;saveS();renderStart();};}
 function loadStatus(){
  var body=$('abody'),btn=$('astat');btn.disabled=true;body.innerHTML='<div class="msg" id="stm">불러오는 중…</div>';
@@ -602,7 +613,7 @@ function renderChar(){
  setTabs(false);var sel=S.me.char||'';
  $('app').innerHTML='<div class="title"><b style="font-size:26px">나의 캐릭터 고르기</b><span>원정대 순위표에 이 캐릭터로 나와요</span></div><div class="card"><div class="chars" id="chs">'+
  CHARS.map(function(c){return '<div class="ch" data-e="'+c.e+'">'+c.e+'<small>'+c.n+'</small></div>';}).join('')+'</div>'+
- '<label>별명 (선택, 8글자까지)</label><input type="text" id="nick" maxlength="8" placeholder="'+esc(S.user.name)+'" value="'+esc(S.me.nick||'')+'">'+
+ '<input type="hidden" id="nick" value="">'+
  '<button class="btn" id="cgo">이 캐릭터로 출발! ✨</button><div class="msg" id="cmsg"></div></div>';
  Array.prototype.forEach.call(document.querySelectorAll('.ch'),function(el){el.onclick=function(){sel=el.getAttribute('data-e');Array.prototype.forEach.call(document.querySelectorAll('.ch'),function(x){x.classList.toggle('on',x===el);});};});
  $('cgo').onclick=function(){
@@ -647,7 +658,7 @@ function dayX(idx){return 90+idx*175;}
 function renderMap(){
  var nb=(S.boxes||[]).length,no=Object.keys(outbox).length,pos=curPos(),nextId=null,i;
  for(i=0;i<STAGES.length;i++){var pg=stageProg(STAGES[i]);if(!pg.none&&pg.ms.length&&!pg.clear){nextId=STAGES[i].id;break;}}
- var h='<div class="title" style="margin:6px 0 0"><small>EXPEDITION MAP</small><b style="font-size:27px">원정을 떠나봅시다!</b><span>블록을 콕! 눌러서 이동해요 · 옆으로 밀면 지도가 움직여요</span></div>'+hud()+hudExtra();
+ var h='<div class="title" style="margin:6px 0 0"><small>EXPEDITION MAP</small><b style="font-size:27px">원정을 떠나봅시다!</b><span>블록을 콕! 눌러서 이동해요 · 옆으로 밀면 지도가 움직여요</span></div>'+noticeBar()+reviewBar()+replyBar()+hud()+hudExtra()+sndBtn();
  if(S.letterSeen)h+='<div class="banner" id="bltr" style="background:#FFF3C4;cursor:pointer">💌 담임 선생님 편지 다시 보기</div>';
  if(nb)h+='<div class="banner box" id="bnb">🎁 아직 안 연 상자가 '+nb+'개 있어요! 눌러서 열기</div>';
  if(no)h+='<div class="banner out" id="bno">⏳ 아직 전송 안 된 미션이 '+no+'개 있어요 (임시저장됨) · 눌러서 다시 보내기</div><div class="msg" id="obm"></div>';
@@ -666,7 +677,9 @@ function renderMap(){
  if($('tback'))$('tback').onclick=renderAdmin;
  if($('trn'))$('trn').onclick=function(){popup({icon:'✏️',title:'우리 팀 이름',body:'<input type="text" id="tnm2" maxlength="10" placeholder="'+esc(dispTeam())+'">',btns:[{t:'저장',pre:function(){var v=$('tnm2');return v?v.value.trim():'';},fn:function(v){if(v)saveTeamName(v);}},{t:'취소',ghost:true}]});};
  if($('bnb'))$('bnb').onclick=function(){openBox(S.boxes[0].id,S.boxes[0].mission);};
- if($('bltr'))$('bltr').onclick=showLetter;
+ if($('bltr'))$('bltr').onclick=showLetter;if($('brv'))$('brv').onclick=showReview;
+ if($('brp'))$('brp').onclick=function(){go('map','wheel');};bindSnd();if($('nack'))$('nack').onclick=doAck;
+ if(!S.introSeen&&!S.letterPending){S.introSeen=true;saveS();setTimeout(function(){if(curTab==='map'&&!curStage&&$('modal').classList.contains('hide'))showIntro();},600);}
  if(S.letterPending&&!S.letterSeen){S.letterSeen=true;S.letterPending=false;saveS();setTimeout(function(){if(curTab==='map'&&!curStage&&$('modal').classList.contains('hide'))showLetter();},700);}
  if($('bno'))$('bno').onclick=function(){retryOutbox();};
  scrollMapTo(pos,true);
@@ -680,7 +693,7 @@ function moveHero(id,anim){
  var st=stageById(id),h=$('hero');if(!h)return;
  h.style.left=st.x+'px';h.style.top=st.y+'px';
  if(anim){var hb=h.querySelector('.hb'),b=h.querySelector('.bub');
-  hb.classList.remove('hop');b.classList.remove('show');void hb.offsetWidth;hb.classList.add('hop');b.classList.add('show');}}
+  hb.classList.remove('hop');b.classList.remove('show');void hb.offsetWidth;hb.classList.add('hop');b.classList.add('show');sfx('hop');}}
 function say(html,ms){var el=$('say');if(!el)return;el.innerHTML=html;el.classList.remove('hide');clearTimeout(say.t);say.t=setTimeout(function(){el.classList.add('hide');},ms||2200);}
 function infoHtml(st){
  var pg=stageProg(st),cn=compNote(st.id,false);
@@ -735,9 +748,9 @@ function missionCard(m){
   else if(f.t==='select'){h+='<select id="'+id+'"><option value="">선택하세요</option>'+f.opts.map(function(o){return '<option'+(o===v?' selected':'')+'>'+esc(o)+'</option>';}).join('')+'</select>';
    if(f.rand)h+='<button type="button" class="btn ghost small" data-rand="'+id+'">🎲 컨셉 랜덤 뽑기</button>';}
   else h+='<input type="text" id="'+id+'" value="'+esc(v)+'" placeholder="'+esc(f.ph||'')+'">';});
- (m.photos||[]).forEach(function(p,i){h+='<div class="photo"><div class="pv" id="pv_'+m.id+'_'+i+'">📷</div><label><span class="pb">'+esc(p.l)+(p.req?'':' (선택)')+'</span><input type="file" accept="image/*" id="ph_'+m.id+'_'+i+'"></label></div>';});
+ (m.photos||[]).forEach(function(p,i){h+='<div class="photo"><div class="pv" id="pv_'+m.id+'_'+i+'">📷</div><label><span class="pb">'+esc(p.l)+(p.req?'':' (선택)')+((S.photoUp&&S.photoUp[m.id]&&S.photoUp[m.id][i])?' ✅ 올림 (새로 올리면 바뀌어요)':'')+'</span><input type="file" accept="image/*" id="ph_'+m.id+'_'+i+'"></label></div>';});
  var queued=!!outbox[m.id];
- h+='<button class="btn" id="sb_'+m.id+'">'+(S.done[m.id]?'다시 제출하기':'제출하기')+'</button><div class="msg'+(S.done[m.id]&&!queued?' ok':(queued?' err':''))+'" id="mg_'+m.id+'">'+(queued?'⏳ 전송이 안 돼서 임시저장돼 있어요. 제출하기를 다시 눌러 주세요.':(S.done[m.id]?'✅ 제출 완료!':(draft[m.id]?'📝 임시저장된 내용이 있어요.':'')))+'</div></div>';
+ h+='<div class="sub" style="margin:6px 0">✏️ 잘못 냈어도 괜찮아요! 고쳐서 <b>[다시 제출하기]</b>를 누르면 <b>가장 최신 내용</b>으로 저장돼요. (사진은 바꾸고 싶을 때만 다시 올리면 돼요. 코인은 처음 한 번만 받아요.)</div><button class="btn" id="sb_'+m.id+'">'+(S.done[m.id]?'다시 제출하기':'제출하기')+'</button><div class="msg'+(S.done[m.id]&&!queued?' ok':(queued?' err':''))+'" id="mg_'+m.id+'">'+(queued?'⏳ 전송이 안 돼서 임시저장돼 있어요. 제출하기를 다시 눌러 주세요.':(S.done[m.id]?'✅ 제출 완료!':(draft[m.id]?'📝 임시저장된 내용이 있어요.':'')))+'</div></div>';
  return h;}
 
 function bindMission(m){
@@ -764,11 +777,56 @@ function buildPayload(m,vals,photos){
   role:u.role==='teacher'?'teacher':'student',grade:u.grade,cls:u.cls,no:u.no,name:u.name,leader:u.isLeader?'O':'',char:S.me.char,nick:S.me.nick,items:items,photos:photos};}
 function allReqDone(){return MISSIONS.every(function(m){return m.opt||!(m.scope==='me'||canTeam())||S.done[m.id];});}
 function letterHtml(){var raw=(S.user&&S.user.name||''),nm=esc(raw),c=raw.charCodeAt(raw.length-1),ga=(c>=44032&&c<=55203&&(c-44032)%28!==0)?'이':'가';return '<div style="text-align:left;font-size:14px;line-height:1.75"><b>'+nm+'에게 💌</b><br><br><b>🏆 MISSION COMPLETE!</b><br>'+nm+' 원정대원, 대단해요 아주 수고 많았습니다!!<br><br>이 여행에서 모은 웃음과 추억은 코인보다 훨씬 값질 거야. 친구들과 걷고, 먹고, 사진 찍고, 서로 챙기던 모든 순간이 아듬샘 눈에는 반짝반짝 빛났어.<br><br>낯선 곳에서도 끝까지 미션을 해내고, 친구들과 함께 웃어준 '+nm+ga+' 정말 대견하고 고마워. 피곤한 날도, 마음 같지 않은 순간도 있었을 텐데 잘 해냈어. 아주 칭찬해 ㅋㅋ 👏<br><br>돌아가면 푹 쉬고, 남은 학기도 지금처럼 서로 다정하게 양보하고 배려하며 잘 지내보자. 힘들 땐 언제든 샘한테 와서 이야기해 줘요. 아듬샘은 늘 '+nm+' 편이야, 알지?<br><br>오늘의 이 추억이 앞으로 힘들 때마다 꺼내 볼 수 있는 든든한 힘이 되길 바랍니다. 정말 고생 많았어요, 그리고 샘이 많이 아껴! 💜 화이팅! 🌟<br><div style="text-align:right;margin-top:8px"><b>– 담임 아듬샘 –</b></div></div>';}
-function showLetter(){popup({icon:'💌',title:'담임 선생님의 편지가 도착했어요!',body:letterHtml(),btns:[{t:'고마워요, 아듬샘! 💜'}]});}
+function showIntro(){popup({icon:'🚀',title:'이제 출발해볼까요?',body:'<div style="text-align:left;font-size:14px;line-height:1.7"><b>🗺️ 이렇게 해요</b><br>• 지도의 블록을 콕! 눌러 장소로 이동하고, 거기서 미션을 수행해요.<br>• <b>개인 미션</b>은 모두가 각자 제출해요. <b>팀 미션</b>은 팀 대표(팀장)만 제출해요.<br>• 미션을 처음 제출하면 🪙 코인과 🎁 랜덤 상자를 받아요.<br>• 코인은 팀 평균으로 순위가 정해지고, <b>1등 팀은 여행 후 아듬T의 소정의 상품</b>이 있어요!<br><br><b>📸 사진 규칙</b><br>• 사진 미션은 <b>얼굴이 또렷이</b> 나오게 찍어요.<br>• 아듬샘 찾기는 <b>아듬샘 + 나 + 친구 1명 이상</b>이 한 사진에 나와야 해요!<br><br><b>✏️ 잘못 냈다면?</b><br>• 고쳐서 [다시 제출하기]를 누르면 최신 내용으로 저장돼요.<br><br><b>⏰ 제출 기한</b>은 각 장소 화면에 적혀 있어요. 막히면 [가이드] 탭이나 [쪽지]를 이용해요.<br><br>모두 안전하게, 즐겁게 다녀와요! 💜</div>',btns:[{t:'출발! 🚀'}]});}
+
+/* ===== 앱 후기 (학생, 필수) ===== */
+var GOOD_CHIPS=['재미있었어요','신선했어요','추억 만들기 좋았어요','친구와 더 친해졌어요','미션 깨는 게 즐거웠어요','게임 같아서 좋았어요','사진 찍는 게 좋았어요','코인·순위가 재밌었어요'];
+var BAD_CHIPS=['미션이 어려웠어요','미션이 너무 많았어요','입력·사진 올리기가 불편했어요','느리거나 오류가 있었어요','디자인이 아쉬워요'];
+var IMP_KINDS=['기능 요청','오류','디자인','기타'];
+function needReview(){return !!(S.user&&S.user.role==='student'&&S.user.found&&allReqDone()&&!S.reviewDone);}
+function reviewBar(){return needReview()?'<div class="banner" id="brv" style="background:#FFD0D8">📝 수학여행 원정대 후기를 남겨 주세요 (필수!) · 눌러서 쓰기</div>':'';}
+function showReview(){
+ var st={stars:0,good:[],bad:[],impKind:'',allow:'이름 없이'},md=$('modal');
+ md.classList.remove('hide');
+ function chips(arr,key,single){return '<div class="rchips">'+arr.map(function(c){return '<button type="button" class="rchip" data-k="'+key+'" data-v="'+esc(c)+'">'+esc(c)+'</button>';}).join('')+'</div>';}
+ md.innerHTML='<div class="mb" style="text-align:left"><div style="text-align:center;font-size:44px">📝</div><h2 style="text-align:center">수학여행 원정대 후기</h2><div class="sub" style="text-align:center">앱을 써 보니 어땠나요? 솔직하게 남겨 주세요! (모두 필수예요)</div>'+
+  '<label>전체 별점 *</label><div class="rchips" id="rv_st">'+[1,2,3,4,5].map(function(i){return '<button type="button" class="rchip" data-s="'+i+'" style="font-size:20px">'+'⭐'.repeat(i)+'</button>';}).join('')+'</div>'+
+  '<label>좋았던 점 * (여러 개 골라도 돼요)</label>'+chips(GOOD_CHIPS,'good')+'<input type="text" id="rv_ge" maxlength="60" placeholder="기타 좋았던 점 (직접 쓰기, 선택)">'+
+  '<div id="rv_badbox" class="hide"><label>아쉬웠던 점 (여러 개 가능)</label>'+chips(BAD_CHIPS,'bad')+'</div>'+
+  '<label>한 줄 후기 *</label><textarea id="rv_line" rows="3" maxlength="200" placeholder="이번 수학여행과 원정대 앱, 한 줄로 소감을 남겨 주세요"></textarea>'+
+  '<label>고쳤으면 하는 점 (선택)</label>'+chips(IMP_KINDS,'imp')+'<input type="text" id="rv_it" maxlength="200" placeholder="내용을 적어 주세요 (선택)">'+
+  '<label>이 후기를 소개자료에 써도 될까요?</label><div class="rchips"><button type="button" class="rchip on" data-k="allow" data-v="이름 없이">이름 없이 써도 돼요</button><button type="button" class="rchip" data-k="allow" data-v="쓰지 말아주세요">쓰지 말아주세요</button></div>'+
+  '<div class="sub">후기는 담임 선생님만 볼 수 있어요. 수집 목적은 앱 개선이에요. 수정·삭제 요청은 fond7509@naver.com 으로 해 주세요.</div>'+
+  '<button class="btn" id="rv_go">후기 보내기 💌</button><div class="msg" id="rv_m"></div></div>';
+ function sync(){
+  Array.prototype.forEach.call(md.querySelectorAll('#rv_st .rchip'),function(b){b.classList.toggle('on',Number(b.getAttribute('data-s'))<=st.stars&&st.stars>0&&Number(b.getAttribute('data-s'))===st.stars);});
+  Array.prototype.forEach.call(md.querySelectorAll('.rchip[data-k]'),function(b){var k=b.getAttribute('data-k'),v=b.getAttribute('data-v');
+   b.classList.toggle('on',(k==='good'||k==='bad')?st[k].indexOf(v)>-1:(k==='imp'?st.impKind===v:st.allow===v));});
+  $('rv_badbox').classList.toggle('hide',!(st.stars>0&&st.stars<=2));}
+ Array.prototype.forEach.call(md.querySelectorAll('#rv_st .rchip'),function(b){b.onclick=function(){st.stars=Number(b.getAttribute('data-s'));if(st.stars>2)st.bad=[];sync();};});
+ Array.prototype.forEach.call(md.querySelectorAll('.rchip[data-k]'),function(b){b.onclick=function(){var k=b.getAttribute('data-k'),v=b.getAttribute('data-v');
+  if(k==='good'||k==='bad'){var i=st[k].indexOf(v);if(i>-1)st[k].splice(i,1);else st[k].push(v);}
+  else if(k==='imp')st.impKind=(st.impKind===v?'':v);else st.allow=v;sync();};});
+ $('rv_go').onclick=function(){
+  var m=$('rv_m'),ge=$('rv_ge').value.trim(),ln=$('rv_line').value.trim();
+  if(!st.stars){m.className='msg err';m.textContent='별점을 골라 주세요.';return;}
+  if(!st.good.length&&!ge){m.className='msg err';m.textContent='좋았던 점을 하나 이상 골라 주세요.';return;}
+  if(!ln){m.className='msg err';m.textContent='한 줄 후기를 적어 주세요.';return;}
+  var btn=$('rv_go');btn.disabled=true;m.className='msg';m.textContent='보내는 중…';
+  postJson(Object.assign({action:'review',stars:st.stars,good:st.good,goodEtc:ge,bad:st.stars<=2?st.bad:[],line:ln,impKind:st.impKind,impText:$('rv_it').value.trim(),allow:st.allow},idParams()),40000).then(function(r){
+   if(!r||!r.ok)throw new Error((r&&r.error)||'x');
+   S.reviewDone=true;saveS();closePopup();if(curTab==='map'&&!curStage)renderMap();showFinale();
+  }).catch(function(e){btn.disabled=false;m.className='msg err';m.textContent='못 보냈어요. 다시 눌러 주세요. ('+esc((e&&e.message)||'')+')';});};
+ sync();}
+function showFinale(){sfx('clear');var nm=esc((S.user&&S.user.name)||'');popup({icon:'🏆',title:'🎉 모든 미션 클리어! 🎉',body:'<div style="text-align:center;font-size:15px;line-height:1.8"><b style="font-size:18px">이제 진짜 진짜 모든 미션 클리어!</b><br><br>'+nm+' 원정대원, 너무너무 고생 많았어요! 👏<br><br>이제 집에 돌아가면<br>궁금해하실 부모님께 이번 여행 어땠는지<br>꼭 이야기해 주기야~<br><br>주말 푹 쉬고 다음 주에 웃으며 만납시다. 🌟<br><div style="margin-top:10px;font-size:32px">🎊 🥳 🎊</div></div>',btns:[{t:'야호! 🎉'}]});}
+function showLetter(){sfx('clear');var nr=needReview();popup({icon:'💌',title:'담임 선생님의 편지가 도착했어요!',body:letterHtml()+(nr?'<div style="text-align:center;font-weight:900;font-size:15px;margin-top:14px">자, 이제 진짜 마지막 미션을 클리어하러 갈까요? 🏁</div>':''),btns:nr?[{t:'가요! 🚀',fn:showReview}]:[{t:'고마워요, 아듬샘! 💜'}]});}
+function markPh(id,ph){S.photoUp=S.photoUp||{};var a=S.photoUp[id]||[];(ph||[]).forEach(function(d,i){if(d)a[i]=true;});S.photoUp[id]=a;saveS();}
+function replyBar(){var u=S.user;if(!(u&&u.role==='student'&&S.done.W1)||S.replySkip||(S.photoUp&&S.photoUp.W1&&S.photoUp.W1[2]))return '';
+ return '<div class="banner" id="brp" style="background:#E8F0FF"><div>📩 부모님 답장이 왔나요? 답장 화면을 올려 주세요! <span class="sub">(탭하면 대관람차 미션으로 가요)</span></div></div>';}
 function afterSuccess(m,vals,r){
  S.done[m.id]=true;if(!S.letterSeen&&allReqDone())S.letterPending=true;S.answers[m.id]=vals;if(r.coins!=null)S.me.coins=r.coins;saveS();
  delete draft[m.id];saveDraft();delete outbox[m.id];saveOut();photoState[m.id]=[];
- if(r.first&&r.gained)toast('미션 클리어! 🪙 +'+r.gained,2400);
+ if(r.first&&r.gained){toast('미션 클리어! 🪙 +'+r.gained,2400);sfx('coin');}
  if(r.boxId){S.boxes=(S.boxes||[]).filter(function(b){return b.id!==r.boxId;});S.boxes.push({id:r.boxId,missionId:m.id,mission:m.title});saveS();}
  return r;}
 function submit(m){
@@ -783,7 +841,7 @@ function submit(m){
  postJson(payload,75000).then(function(r){
   stop();
   if(!r||!r.ok)throw new Error((r&&r.error)||'server');
-  afterSuccess(m,vals,r);
+  afterSuccess(m,vals,r);markPh(m.id,ph);
   msg.className='msg ok';msg.textContent='✅ 제출 완료!';btn.textContent='다시 제출하기';
   if(r.boxId)setTimeout(function(){openBox(r.boxId,m.title);},500);
  }).catch(function(e){
@@ -799,7 +857,7 @@ function retryOutbox(){
  if(m){m.className='msg';m.textContent='다시 보내는 중… (구글 시트가 느리면 조금 걸려요)';}
  var chain=Promise.resolve(),okc=0;
  ids.forEach(function(id){chain=chain.then(function(){
-  return postJson(outbox[id],75000).then(function(r){if(r&&r.ok){var mm=MISSIONS.filter(function(x){return x.id===id;})[0];afterSuccess(mm,S.answers[id]||{},r);okc++;}}).catch(function(){});});});
+  return postJson(outbox[id],75000).then(function(r){if(r&&r.ok){var mm=MISSIONS.filter(function(x){return x.id===id;})[0];afterSuccess(mm,S.answers[id]||{},r);markPh(id,outbox[id]&&outbox[id].photos);okc++;}}).catch(function(){});});});
  chain.then(function(){toast(okc?('✅ '+okc+'개 전송 완료!'):'아직 안 됐어요. 조금 뒤에 다시 눌러 주세요',2600);if(curTab==='map'&&!curStage)renderMap();});}
 window.addEventListener('online',function(){if(S.user&&Object.keys(outbox).length)retryOutbox();});
 
@@ -816,7 +874,7 @@ function openBox(id,title){
    var cs=r.codes;Array.prototype.forEach.call(document.querySelectorAll('.bx'),function(b,idx){var c=cs[idx],t=BOX_TXT[c]||['🎁',''];b.textContent=t[0];if(idx+1!==Number(r.pick))b.classList.add('dim');else b.classList.add('pick');b.onclick=null;});
    var c0=cs[Number(r.pick)-1],tx=BOX_TXT[c0]||['🎁',''];
    m.className='msg ok';m.innerHTML='<span style="font-size:20px">'+tx[0]+' '+esc(tx[1])+(c0==='D'?' (+'+r.gained+')':'')+'</span><br>현재 코인 🪙 '+r.coins;
-   S.me.coins=r.coins;S.boxes=(S.boxes||[]).filter(function(b){return b.id!==id;});saveS();
+   sfx('box');S.me.coins=r.coins;S.boxes=(S.boxes||[]).filter(function(b){return b.id!==id;});saveS();
    var cb=$('bxc');cb.classList.remove('hide');cb.onclick=function(){md.classList.add('hide');md.innerHTML='';go(curTab,curStage);};
   }).catch(function(){stop();busy=false;el.classList.remove('pick');m.className='msg err';m.textContent='상자가 안 열렸어요 😢 구글 시트가 느려요. 다른 상자나 같은 상자를 다시 눌러 주세요. (상자는 사라지지 않아요)';var cb=$('bxc');cb.classList.remove('hide');cb.onclick=function(){md.classList.add('hide');md.innerHTML='';go(curTab,curStage);};});};});}
 
@@ -835,7 +893,7 @@ function loadBoard(){
    var col=teamColor(t.team),mine=t.team===myTeam;
    h+='<div class="card rk'+(mine?' mine':'')+'"><div class="rn">'+(medals[i]||(i+1))+'</div><div style="flex:1;min-width:0"><div><span class="dot" style="background:'+col+'"></span><b>'+esc(t.label||teamLabel(t.team))+'</b>'+(mine?' <span class="pill">내 팀</span>':'')+'</div>'+
    '<div class="coin" style="font-size:20px">🪙 평균 '+t.avg+'</div><div class="bar"><i style="width:'+t.progress+'%"></i></div><div class="sub">진행도 '+t.progress+'%</div>'+
-   '<div class="mem">'+t.members.map(function(m){return '<span>'+(m.char||'❔')+' '+esc(m.nick)+' '+m.coins+'</span>';}).join('')+'</div></div></div>';});
+   (mine||(S.user&&S.user.role==='teacher')?'<div class="sub" style="margin-top:8px"><b>👥 팀원 진행 현황</b> (미션 완료 수 · 코인)</div>'+t.members.map(function(m){var d=m.done||0,pc=Math.round(d/TOTAL*100);return '<div style="display:flex;align-items:center;gap:8px;margin:6px 0;font-size:13px"><span style="width:92px;flex:none;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+(m.char||'❔')+' '+esc(m.nick)+(m.leader?' 👑':'')+'</span><div class="bar" style="flex:1;margin:0"><i style="width:'+pc+'%"></i></div><span style="flex:none;width:92px;text-align:right">'+d+'/'+TOTAL+' · 🪙'+m.coins+(m.started?'':' 💤')+'</span></div>';}).join('')+'<div class="sub">💤 = 아직 접속 안 한 친구 · 👑 = 팀 대표</div>':'<div class="mem">'+t.members.map(function(m){return '<span>'+(m.char||'❔')+' '+esc(m.nick)+' '+m.coins+'</span>';}).join('')+'</div>')+'</div></div>';});
   body.innerHTML=h||'<div class="card sub">아직 순위 정보가 없어요.</div>';
   var u=$('rupd');if(u)u.textContent='업데이트 '+r.updated+' · 25초마다 자동 갱신';
  }).catch(function(){stop();var u=$('rupd');if(u)u.textContent='순위를 못 불러왔어요. 구글 시트가 느린 것 같아요. 잠시 뒤 다시 시도해요.';});}
@@ -890,7 +948,7 @@ function notifyMsgs(role){
  var sn=getSeen(),inc=incoming(role).filter(function(m){return m.id>sn&&m.id>MSG.popped;});
  if(!inc.length||!$('modal').classList.contains('hide'))return;
  var last=inc[inc.length-1];MSG.popped=last.id;
- try{if(navigator.vibrate)navigator.vibrate([120,60,120]);}catch(e){}
+ sfx('msg');
  popup({icon:'💌',title:'새 쪽지가 왔어요!',body:'<div class="dl"><div><b>'+esc(senderLabel(last,role))+'</b></div><div>'+esc(last.text)+'</div></div>'+(inc.length>1?'<div class="sub">안 읽은 쪽지 '+inc.length+'개</div>':''),
   btns:[{t:'쪽지함 열기 ▶',fn:function(){if(role==='leader'){flushDrafts();go('chat');}else renderTeacherChat();}},{t:'나중에',ghost:true}]});}
 function redrawChat(role){
@@ -936,6 +994,150 @@ function renderTeacherChat(){
  var f=function(){pollMsgs().then(function(){var inc=incoming('teacher');if(inc.length)setSeen(inc[inc.length-1].id);redrawChat('teacher');});};
  f();chatTimer=setInterval(function(){if(!document.hidden)pollMsgs();},8000);}
 setInterval(function(){if(!document.hidden&&msgRole()&&Date.now()-MSG.t>18000&&!chatTimer)pollMsgs();},20000);
+
+
+/* ===== 효과음 · 진동 ===== */
+var SND_ON=store.get('ftm_snd_v1',true)!==false,AC=null;
+function beep(seq){if(!SND_ON)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();var t=AC.currentTime;seq.forEach(function(n){var o=AC.createOscillator(),g=AC.createGain();o.type='square';o.frequency.value=n[0];g.gain.setValueAtTime(.07,t+n[2]);g.gain.exponentialRampToValueAtTime(.001,t+n[2]+n[1]);o.connect(g);g.connect(AC.destination);o.start(t+n[2]);o.stop(t+n[2]+n[1]+.03);});}catch(e){}}
+var SFX={coin:[[[988,.08,0],[1319,.28,.08]],[40]],hop:[[[392,.07,0],[523,.07,.08],[659,.12,.16]],[25]],clear:[[[523,.1,0],[659,.1,.11],[784,.1,.22],[1047,.35,.33]],[60,40,60]],msg:[[[880,.1,0],[1175,.2,.12]],[120,60,120]],box:[[[600,.06,0],[800,.06,.07],[1000,.06,.14],[1319,.3,.21]],[50,30,80]]};
+function sfx(n){if(!SND_ON||!SFX[n])return;beep(SFX[n][0]);try{if(navigator.vibrate)navigator.vibrate(SFX[n][1]);}catch(e){}}
+function sndBtn(){return '<button class="btn ghost small" id="snd">'+(SND_ON?'🔊 효과음·진동 켜짐 (눌러서 끄기)':'🔇 효과음·진동 꺼짐 (눌러서 켜기)')+'</button>';}
+function bindSnd(){var b=$('snd');if(b)b.onclick=function(){SND_ON=!SND_ON;store.set('ftm_snd_v1',SND_ON);b.textContent=SND_ON?'🔊 효과음·진동 켜짐 (눌러서 끄기)':'🔇 효과음·진동 꺼짐 (눌러서 켜기)';if(SND_ON)sfx('coin');};}
+
+/* ===== 전체 공지 (학생 화면) ===== */
+function needAck(){var u=S.user;return !!(u&&u.role==='student'&&u.isLeader&&u.found&&u.team!=='솔로 원정대'&&S.notice&&S.notice.id&&!S.noticeAcked);}
+function noticeBar(){var n=S.notice;if(!(n&&n.text))return '';var u=S.user||{},lead=u.role==='student'&&u.isLeader&&u.found&&u.team!=='솔로 원정대';
+ return '<div class="nbar" id="nbar" style="flex-direction:column"><div style="display:flex;gap:8px"><span>📢</span><span>'+esc(n.text)+'</span></div>'+(lead?(S.noticeAcked?'<div class="sub" style="color:#1f9d55">✅ 팀장 확인 완료! 팀원들에게 전달해 주세요.</div>':'<button class="btn small" id="nack">✅ 팀장 확인했어요 (팀원에게 전달할게요)</button>'):'')+'</div>';}
+function doAck(){
+ var n=S.notice;if(!n)return;
+ postJson(Object.assign({action:'noticeack',nid:n.id},idParams()),30000).then(function(r){
+  if(!r||!r.ok)throw new Error((r&&r.error)||'x');
+  S.noticeAcked=true;saveS();sfx('coin');toast('✅ 확인했어요! 팀원들에게 전달해 주세요',2600);
+  if(curTab==='map'&&!curStage)renderMap();
+ }).catch(function(e){toast('확인이 안 보내졌어요. 다시 눌러 주세요 ('+((e&&e.message)||'')+')',3200);});}
+function checkNotice(){
+ if(!S.user||S.user.role!=='student')return;
+ var n=S.notice;if(!n||!n.id||n.id===S.noticeSeen)return;
+ if(!$('modal').classList.contains('hide')){setTimeout(checkNotice,4000);return;}
+ S.noticeSeen=n.id;saveS();sfx('msg');
+ var btns=needAck()?[{t:'✅ 팀장 확인했어요 (팀원에게 전달할게요)',fn:function(){doAck();}},{t:'나중에 확인할게요',ghost:true,fn:function(){if(curTab==='map'&&!curStage)renderMap();}}]:[{t:'확인했어요!',fn:function(){if(curTab==='map'&&!curStage)renderMap();}}];
+ popup({icon:'📢',title:'아듬샘 공지',body:'<div class="dl" style="font-size:16px">'+esc(n.text)+'</div>'+(needAck()?'<div class="sub">팀장은 확인 버튼을 눌러 주세요. 아듬샘이 확인 여부를 볼 수 있어요.</div>':''),btns:btns});}
+
+/* ===== 전체 공지 (담임 설정) ===== */
+function renderNotice(){
+ inAdmin=true;setTabs(false);
+ $('app').innerHTML=startTitle('전체 공지')+'<div class="card"><h2>📢 전체 공지</h2><div class="msg" id="ntm">불러오는 중…</div></div>'+backBtn('bk','‹ 관리자 화면')+footer();
+ $('bk').onclick=renderAdmin;
+ jsonp({action:'config'},30000).then(function(r){
+  if(!r||!r.ok)throw new Error('x');
+  var cur=(r.notice&&r.notice.text)||'';
+  $('app').innerHTML=startTitle('전체 공지')+'<div class="card"><h2>📢 전체 공지</h2><div class="sub">학생 화면 지도 위에 띠로 계속 보이고, 새 공지는 앱이 열려 있으면 약 1분 안에 팝업으로도 떠요.</div>'+
+   '<div class="sub" style="margin-top:8px">지금 올라간 공지: <b id="ncur">'+(cur?esc(cur):'(없음)')+'</b></div>'+
+   '<label for="ntx">새 공지 (120자까지)</label><textarea id="ntx" maxlength="120" rows="3" placeholder="예: 10분 뒤 버스 탑승! 1번 버스 앞에 모여요">'+esc(cur)+'</textarea>'+
+   '<button class="btn" id="nsend">📢 공지 올리기</button><button class="btn ghost small" id="nclr">공지 내리기</button><div class="msg" id="ntm2"></div></div>'+
+   '<div class="card"><h2>✅ 팀장 확인 현황</h2><div class="sub">올라간 공지를 팀장이 [확인했어요]를 눌렀는지 봐요.</div><button class="btn ghost small" id="nrf">🔄 새로고침</button><div id="nstat"></div></div>'+backBtn('bk','‹ 관리자 화면')+footer();
+  $('bk').onclick=renderAdmin;$('nrf').onclick=loadAck;loadAck();
+  var ACKT=[];
+  function loadAck(){
+   var b=$('nstat');b.innerHTML='<div class="msg">불러오는 중…</div>';
+   jsonp({action:'noticestatus',code:adminCode()},30000).then(function(x){
+    if(!x||!x.ok)throw new Error('x');
+    if(!x.notice){b.innerHTML='<div class="sub">올라간 공지가 없어요.</div>';return;}
+    var ok=x.teams.filter(function(t){return t.acked;}).length;ACKT=x.teams.filter(function(t){return !t.acked;});
+    b.innerHTML='<div style="margin-top:8px"><b>'+ok+' / '+x.teams.length+'팀 확인</b></div>'+x.teams.map(function(t){return '<div style="margin:6px 0">'+(t.acked?'✅':'⏳')+' <b>'+esc(t.label)+'</b> · 팀장 '+esc(t.leader)+' <span class="sub">'+(t.acked?esc(t.t)+' 확인':'아직')+'</span></div>';}).join('')+
+     (ACKT.length?'<button class="btn small" id="nrem">📩 아직 안 한 팀장 '+ACKT.length+'명에게 쪽지</button><div class="msg" id="nrm"></div>':'<div class="msg ok">🎉 모든 팀장이 확인했어요!</div>');
+    if($('nrem'))$('nrem').onclick=function(){popup({icon:'📩',title:'이렇게 보낼까요?',body:'<div class="dl">공지 확인 부탁해요! 📢 「'+esc(x.notice.text.slice(0,60))+'」<br><br>받는 팀장: '+ACKT.map(function(t){return esc(t.label)+' '+esc(t.leader);}).join(', ')+'</div>',btns:[{t:'네, 보낼게요',fn:function(){
+     var m=$('nrm'),ok2=0,fail=0,ch=Promise.resolve();m.className='msg';m.textContent='보내는 중…';
+     ACKT.forEach(function(t){ch=ch.then(function(){return postJson({action:'msgsend',role:'teacher',to:t.team,text:'공지 확인 부탁해요! 📢 「'+x.notice.text.slice(0,100)+'」 앱 지도 화면에서 [팀장 확인했어요]를 눌러 주세요.'},40000).then(function(r){if(r&&r.ok)ok2++;else fail++;}).catch(function(){fail++;});});});
+     ch.then(function(){m.className='msg '+(fail?'err':'ok');m.textContent=(ok2?'✅ '+ok2+'팀에 보냈어요! ':'')+(fail?'😢 '+fail+'팀은 못 보냈어요.':'');});}},{t:'아니요',ghost:true}]});};
+   }).catch(function(e){b.innerHTML='<div class="msg err">불러오지 못했어요. '+esc(noGasMsg(e))+'</div>';});}
+  function save(text,title,icon){
+   postJson({action:'adminsetconfig',code:adminCode(),notice:text},40000).then(function(x){
+    if(!x||!x.ok)throw new Error((x&&x.error)||'x');
+    renderAdmin();popup({icon:icon,title:title,body:text?'<div class="dl">'+esc(text)+'</div>학생 앱에는 약 1분 안에 반영돼요.':'학생 화면에서 공지 띠가 사라져요.',btns:[{t:'확인'}]});
+   }).catch(function(e){var m=$('ntm2');if(m){m.className='msg err';m.textContent='저장하지 못했어요. 다시 눌러 주세요. ('+esc((e&&e.message)||'')+')';}});}
+  $('nsend').onclick=function(){var t=$('ntx').value.trim();if(!t){toast('공지 내용을 적어 주세요',2200);return;}
+   popup({icon:'📢',title:'이 공지를 올릴까요?',body:'<div class="dl">'+esc(t)+'</div>모든 학생 화면에 떠요.',btns:[{t:'네, 올릴게요',fn:function(){save(t,'공지를 올렸어요','✅');}},{t:'다시 볼게요',ghost:true}]});};
+  $('nclr').onclick=function(){if(!cur){toast('내릴 공지가 없어요',2200);return;}popup({icon:'🧹',title:'공지를 내릴까요?',body:'학생 화면에서 공지 띠가 사라져요.',btns:[{t:'네, 내릴게요',fn:function(){save('','공지를 내렸어요','✅');}},{t:'아니요',ghost:true}]});};
+ }).catch(function(e){var m=$('ntm');if(m){m.className='msg err';m.textContent=noGasMsg(e);}});}
+
+/* ===== 제출 현황판 (담임) ===== */
+var SB=null;
+function sbDone(s,m){return m.scope==='team'?((SB.teamDone[s.team]||[]).indexOf(m.id)>-1):(s.done.indexOf(m.id)>-1);}
+function sbName(s){return s.name||(s.n+'번');}
+function renderSubBoard(){
+ inAdmin=true;setTabs(false);
+ $('app').innerHTML=startTitle('제출 현황판')+'<div class="card"><h2>📋 제출 현황판</h2><div class="msg" id="sbm">불러오는 중…</div></div>'+backBtn('bk','‹ 관리자 화면')+footer();
+ $('bk').onclick=renderAdmin;
+ var stop=slowNote(function(t){var m=$('sbm');if(m){m.className='msg slow';m.textContent=t;}});
+ jsonp({action:'adminsubs',code:adminCode()},45000).then(function(r){
+  stop();if(!r||!r.ok)throw new Error((r&&r.error)||'x');SB=r;drawSubBoard();
+ }).catch(function(e){stop();var m=$('sbm');if(m){m.className='msg err';m.textContent=noGasMsg(e);}});}
+function drawSubBoard(){
+ var ms=MISSIONS,req=ms.filter(function(m){return !m.opt;}).length,teams=[],byTeam={};
+ SB.students.forEach(function(s){if(!byTeam[s.team]){byTeam[s.team]=[];teams.push(s.team);}byTeam[s.team].push(s);});
+ var h='<div class="card"><h2>📋 제출 현황판</h2><div class="sub">✔ 제출함 · ✖ 아직(필수) · · 아직(선택) · 💤 아직 접속 안 함 · 👑 팀 대표 · 업데이트 '+esc(SB.updated)+'</div><button class="btn ghost small" id="sbref">🔄 새로고침</button>'+
+  '<div class="sbwrap"><table class="sbt"><thead><tr><th>이름</th>'+ms.map(function(m){return '<th>'+m.id+(m.scope==='team'?'<br>팀':'')+'</th>';}).join('')+'<th>필수</th><th>후기</th></tr></thead><tbody>';
+ teams.forEach(function(t){
+  h+='<tr class="tr"><td colspan="'+(ms.length+3)+'">'+esc((SB.teamNames&&SB.teamNames[t])||t)+'</td></tr>';
+  byTeam[t].sort(function(a,b){return a.n-b.n;}).forEach(function(s){
+   var cnt=0;
+   h+='<tr><td>'+(s.leader?'👑':'')+esc(sbName(s))+(s.started?'':' 💤')+'</td>'+ms.map(function(m){var d=sbDone(s,m);if(d&&!m.opt)cnt++;return d?'<td class="y">✔</td>':(m.opt?'<td class="o">·</td>':'<td class="m">✖</td>');}).join('')+'<td><b>'+cnt+'/'+req+'</b></td>'+(s.review?'<td class="y">✔</td>':'<td class="m">✖</td>')+'</tr>';});});
+ h+='<tr class="tr"><td>미션별 완료</td>'+ms.map(function(m){var c=0;SB.students.forEach(function(s){if(sbDone(s,m))c++;});return '<td>'+c+'</td>';}).join('')+'<td></td><td>'+SB.students.filter(function(s){return s.review;}).length+'</td></tr></tbody></table></div>'+
+  '<div class="sub">'+ms.map(function(m){return '<b>'+m.id+'</b> '+esc(m.title)+(m.opt?'(선택)':'');}).join(' · ')+'</div></div>'+
+  '<div class="card"><h2>📩 안 낸 친구, 팀장에게 쪽지</h2><div class="sub">쪽지는 팀장에게만 갈 수 있어서, 아직 안 낸 친구 이름을 적어 팀장에게 보내요. (팀장이 없는 솔로 원정대는 제외)</div>'+
+  '<label for="sbm_sel">미션 고르기</label><select id="sbm_sel"><option value="">선택하세요</option>'+ms.map(function(m){return '<option value="'+m.id+'">'+m.id+' · '+esc(m.title)+(m.opt?' (선택)':'')+'</option>';}).join('')+'</select><div id="sbmiss"></div></div>';
+ $('app').innerHTML=startTitle('제출 현황판')+h+backBtn('bk','‹ 관리자 화면')+footer();
+ $('bk').onclick=renderAdmin;$('sbref').onclick=renderSubBoard;
+ $('sbm_sel').onchange=function(){drawMissing(this.value,teams,byTeam);};}
+function missText(m,names,isTeam){return isTeam?('우리 팀 미션 「'+m.title+'」이 아직 제출 전이에요. 팀 대표가 제출해 주세요! 🙏'):('「'+m.title+'」 아직 안 낸 친구: '+names.join(', ')+' — 확인 부탁해요! 🙏');}
+function drawMissing(mid,teams,byTeam){
+ var box=$('sbmiss');if(!mid){box.innerHTML='';return;}
+ var m=MISSIONS.filter(function(x){return x.id===mid;})[0],isTeam=m.scope==='team',rows=[];
+ teams.forEach(function(t){
+  var mem=byTeam[t],miss=isTeam?(sbDone(mem[0],m)?[]:['팀']):mem.filter(function(s){return !sbDone(s,m);}).map(sbName);
+  if(!miss.length)return;
+  var hasL=t!=='솔로 원정대'&&mem.some(function(s){return s.leader;});
+  rows.push({team:t,names:miss,hasL:hasL,text:missText(m,miss,isTeam)});});
+ if(!rows.length){box.innerHTML='<div class="msg ok" style="margin-top:10px">🎉 모두 제출했어요!</div>';return;}
+ var sendable=rows.filter(function(r){return r.hasL;});
+ box.innerHTML=rows.map(function(r,i){return '<div class="card" style="margin:10px 0"><b>'+esc((SB.teamNames&&SB.teamNames[r.team])||r.team)+'</b> <span class="sub">'+(isTeam?'팀 미션 미제출':r.names.length+'명 미제출')+'</span><div class="sub">'+(isTeam?'':esc(r.names.join(', ')))+'</div>'+(r.hasL?'<button class="btn small" data-i="'+i+'">📩 팀장에게 쪽지</button>':'<div class="sub">팀장이 없어 쪽지를 보낼 수 없어요</div>')+'</div>';}).join('')+
+  (sendable.length>1?'<button class="btn" id="sball">📩 위 팀 모두에게 한꺼번에 보내기 ('+sendable.length+'팀)</button>':'')+'<div class="msg" id="sbsm"></div>';
+ function send(list){
+  var ok=0,fail=0,chain=Promise.resolve(),m2=$('sbsm');m2.className='msg';m2.textContent='보내는 중…';
+  list.forEach(function(r){chain=chain.then(function(){return postJson({action:'msgsend',role:'teacher',to:r.team,text:r.text},40000).then(function(x){if(x&&x.ok)ok++;else fail++;}).catch(function(){fail++;});});});
+  chain.then(function(){m2.className='msg '+(fail?'err':'ok');m2.textContent=(ok?'✅ '+ok+'팀에 보냈어요! ':'')+(fail?'😢 '+fail+'팀은 못 보냈어요. 다시 눌러 주세요.':'');if(ok)sfx('coin');});}
+ function ask(list){popup({icon:'📩',title:'이렇게 보낼까요?',body:'<div class="dl">'+list.map(function(r){return '<div><b>'+esc(tlabel?tlabel(r.team):r.team)+' 팀장</b><br>'+esc(r.text)+'</div>';}).join('<hr>')+'</div>',btns:[{t:'네, 보낼게요',fn:function(){send(list);}},{t:'아니요',ghost:true}]});}
+ Array.prototype.forEach.call(box.querySelectorAll('button[data-i]'),function(b){b.onclick=function(){ask([rows[Number(b.getAttribute('data-i'))]]);};});
+ if($('sball'))$('sball').onclick=function(){ask(sendable);};}
+
+/* ===== 사진 모아보기 (담임) ===== */
+var GAL={mid:'',items:[],total:0,q:[],busy:false};
+function renderGallery(){
+ inAdmin=true;setTabs(false);GAL={mid:GAL.mid||'',items:[],total:0,q:[],busy:false};
+ $('app').innerHTML=startTitle('사진 모아보기')+'<div class="card"><h2>🖼️ 사진 모아보기</h2><div class="sub">미션별로 학생들이 올린 사진을 최신순으로 봐요. 사진을 누르면 원본이 새 창에서 열려요. (아듬샘 구글 계정으로 로그인된 브라우저에서만 원본이 보여요)</div>'+
+  '<label for="gsel">미션</label><select id="gsel"><option value="">전체 미션</option>'+MISSIONS.filter(function(m){return m.photos&&m.photos.length;}).map(function(m){return '<option value="'+m.id+'"'+(GAL.mid===m.id?' selected':'')+'>'+m.id+' · '+esc(m.title)+'</option>';}).join('')+'</select></div><div id="gbody"></div><div class="msg" id="gmsg"></div><button class="btn ghost hide" id="gmore">더 보기</button>'+backBtn('bk','‹ 관리자 화면')+footer();
+ $('bk').onclick=renderAdmin;
+ $('gsel').onchange=function(){GAL.mid=this.value;renderGallery();};
+ $('gmore').onclick=function(){galLoad();};
+ galLoad();}
+function galLoad(){
+ if(GAL.busy)return;GAL.busy=true;var m=$('gmsg');m.className='msg';m.textContent='불러오는 중…';
+ jsonp({action:'admingallery',code:adminCode(),mission:GAL.mid,offset:GAL.items.length,limit:12},45000).then(function(r){
+  GAL.busy=false;if(!r||!r.ok)throw new Error((r&&r.error)||'x');
+  GAL.total=r.total;var start=GAL.items.length;GAL.items=GAL.items.concat(r.items);
+  var h='';r.items.forEach(function(it){
+   h+='<div class="card gcard"><div><b>'+esc(it.mid+' · '+it.mission)+'</b></div><div class="sub">'+esc(it.scope==='팀'?(it.team+' (팀)'):((it.c||'')+'반 '+(it.n||'')+'번 '+it.name+' · '+it.team))+' · '+esc(it.t)+'</div><div class="gph">'+it.photos.map(function(p){var id='gp_'+p.fid;if(p.fid)GAL.q.push(p.fid);return '<a href="'+esc(p.url)+'" target="_blank" rel="noopener" id="'+id+'">📷</a>';}).join('')+'</div></div>';});
+  $('gbody').insertAdjacentHTML('beforeend',h);
+  m.textContent=GAL.items.length?('총 '+GAL.total+'건 중 '+GAL.items.length+'건'):'올라온 사진이 아직 없어요.';
+  $('gmore').classList.toggle('hide',GAL.items.length>=GAL.total);
+  galThumbs();
+ }).catch(function(e){GAL.busy=false;m.className='msg err';m.textContent=noGasMsg(e);});}
+function galThumbs(){
+ if(GAL.thb||!GAL.q.length)return;GAL.thb=true;var ids=GAL.q.splice(0,6);
+ jsonp({action:'adminthumbs',code:adminCode(),ids:ids.join(',')},60000).then(function(r){
+  ((r&&r.thumbs)?Object.keys(r.thumbs):[]).forEach(function(fid){var a=$('gp_'+fid);if(a)a.innerHTML='<img src="'+r.thumbs[fid]+'" alt="">';});
+ }).catch(function(){}).then(function(){GAL.thb=false;if(GAL.q.length&&$('gbody'))galThumbs();});}
 
 /* ===== 제출 기한 설정 (담임) ===== */
 function renderDeadlines(){
