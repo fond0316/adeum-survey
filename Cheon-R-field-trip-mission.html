@@ -175,6 +175,7 @@ footer a{color:var(--ink);font-weight:900}
 .title b,.title small,.btn,.coin,.chip,.pill,h2,.mn .lb,.mn .lb b,#say,#tabs button,#toast,.shead b,.cb,.nb,.rchip,.sign,#hero .bub,summary,.bw,.back,.hi b,.banner,.maphint{font-family:var(--game)}
 .title b{letter-spacing:0}
 .btn{letter-spacing:0}
+.pw{-webkit-text-security:disc;text-security:disc}
 </style>
 </head>
 <body>
@@ -470,7 +471,7 @@ function welcome(r){
 function renderTeacherCode(){
  if(!GAS){renderGasSetup('start');return;}
  setTabs(false);
- $('app').innerHTML=startTitle('담임 선생님 입장')+'<div class="card"><h2>👩‍🏫 입장코드</h2><input type="password" id="acode" placeholder="입장코드" autocomplete="off"><button class="btn" id="ago">입장</button><div class="msg" id="amsg"></div></div>'+backBtn('bk')+footer();
+ $('app').innerHTML=startTitle('담임 선생님 입장')+'<div class="card"><h2>👩‍🏫 입장코드</h2><input type="text" class="pw" id="acode" placeholder="입장코드" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="btn" id="ago">입장</button><div class="msg" id="amsg"></div></div>'+backBtn('bk')+footer();
  $('bk').onclick=renderStart;
  $('ago').onclick=function(){
   var code=$('acode').value.trim(),m=$('amsg'),btn=$('ago');
@@ -484,7 +485,7 @@ function renderTeacherCode(){
 
 function renderSetCode(must){
  setTabs(false);
- $('app').innerHTML=startTitle(must?'처음이에요! 나만의 입장코드를 정해 주세요':'입장코드 바꾸기')+'<div class="card"><h2>🔑 새 입장코드</h2><label>새 코드 (4글자 이상)</label><input type="password" id="nc1" autocomplete="off"><label>한 번 더</label><input type="password" id="nc2" autocomplete="off"><button class="btn" id="ncgo">저장</button><div class="msg" id="ncm"></div></div>'+(must?'':backBtn('bk','‹ 돌아가기'))+footer();
+ $('app').innerHTML=startTitle(must?'처음이에요! 나만의 입장코드를 정해 주세요':'입장코드 바꾸기')+'<div class="card"><h2>🔑 새 입장코드</h2><label>새 코드 (4글자 이상)</label><input type="text" class="pw" id="nc1" autocomplete="off" autocapitalize="off" spellcheck="false"><label>한 번 더</label><input type="text" class="pw" id="nc2" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="btn" id="ncgo">저장</button><div class="msg" id="ncm"></div></div>'+(must?'':backBtn('bk','‹ 돌아가기'))+footer();
  if(!must)$('bk').onclick=renderAdmin;
  $('ncgo').onclick=function(){
   var a=$('nc1').value.trim(),b=$('nc2').value.trim(),m=$('ncm'),btn=$('ncgo');
