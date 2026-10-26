@@ -129,9 +129,6 @@ textarea.form-input{resize:none;height:76px;line-height:1.6;}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(17,24,39,.5);z-index:200;align-items:flex-end;justify-content:center;}
 .modal-overlay.open{display:flex;}
 .modal-sheet{background:var(--white);border-radius:22px 22px 0 0;width:100%;max-width:480px;padding:26px 22px 40px;animation:slideUp .3s ease;}
-/* 확인 창이 길어져도(상담 내용 300자 등) 위쪽이 잘리지 않고 창 안에서 스크롤 */
-.modal-sheet{max-height:90vh;max-height:90dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
-#modalMemo,#modalStudent,#modalParent{overflow-wrap:anywhere;}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .modal-handle{width:40px;height:4px;background:var(--gray-200);border-radius:2px;margin:0 auto 20px;}
 .modal-title{font-size:18px;font-weight:700;margin-bottom:4px;}
@@ -188,12 +185,6 @@ textarea.form-input{resize:none;height:76px;line-height:1.6;}
 .sort-btn.active{background:var(--gray-700);border-color:var(--gray-700);color:#fff;font-weight:700;}
 
 /* ── 토글 ── */
-.sw{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--bg);cursor:pointer}
-.sw .tg{width:52px;height:30px;border-radius:15px;background:#C9C6D4;position:relative;flex:none;transition:.2s}
-.sw .tg::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s}
-.sw.on .tg{background:var(--primary)}.sw.on .tg::after{left:25px}
-.sw b{font-size:15px}.sw small{display:block;font-size:12px;color:var(--gray-500);margin-top:2px}
-/* 후기 받기 스위치(클래스보드 형식) */
 .toggle-wrap{display:flex;align-items:center;gap:10px;}
 .toggle{position:relative;width:44px;height:24px;cursor:pointer;}
 .toggle input{opacity:0;width:0;height:0;}
@@ -284,9 +275,6 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
 .rv-banner .btn{padding:10px;font-size:13px;min-height:44px;}
 .qr-box{text-align:center;margin:4px 0 12px;}
 .qr-box canvas{width:220px;height:220px;max-width:100%;border:1px solid var(--gray-200);border-radius:10px;background:#fff;}
-.tri-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
-.tri-grid .btn{font-size:13px;padding:11px 4px;}
-.qr-view-img{display:block;width:100%;max-width:360px;margin:0 auto 12px;border:1px solid var(--gray-200);border-radius:12px;background:#fff;-webkit-touch-callout:default;user-select:auto;}
 .mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .stat-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;}
 .stat-card{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:10px;padding:10px 4px;text-align:center;}
@@ -303,72 +291,6 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
 .nw-dot{display:inline-block;min-width:18px;height:18px;line-height:18px;border-radius:9px;background:#EF4444;color:#fff;font-size:11px;text-align:center;margin-left:4px;padding:0 4px;}
 .parent-notice{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-sm);padding:12px 14px;margin:2px 0 14px;}
 .foot-mail{color:var(--gray-400);text-decoration:underline;cursor:pointer;background:none;border:none;font:inherit;padding:0;}
-
-.hdet{background:var(--white);border-radius:14px;box-shadow:var(--shadow);margin-bottom:10px;overflow:hidden;}
-.hdet summary{padding:15px 16px;font-size:14px;font-weight:700;color:var(--gray-800);cursor:pointer;min-height:44px;list-style:none;}
-.hdet summary::-webkit-details-marker{display:none;}
-.hdet summary::after{content:'▾';float:right;color:var(--gray-400);}
-.hdet[open] summary::after{content:'▴';}
-.hdet .hb{padding:0 16px 16px;font-size:13px;color:var(--gray-600);line-height:1.9;}
-.hdet .hb ol{margin:0;padding-left:18px;}
-.hdet .hb p{margin:0;background:#FEF9C3;border-radius:10px;padding:12px 14px;font-size:12px;color:#92400E;line-height:1.8;}
-/* 관리자 카드 접었다 펴기 (추가) */
-.admin-section:not(#adminSec-guide) .admin-card > .admin-card-title{cursor:pointer;min-height:28px;user-select:none;}
-.admin-section:not(#adminSec-guide) .admin-card > .admin-card-title::after{content:'▾';margin-left:auto;color:var(--gray-400);font-size:15px;transition:transform .2s;}
-.admin-card.cl > .admin-card-title::after{transform:rotate(-90deg);}
-.admin-card.cl > .admin-card-title{margin-bottom:0;}
-.admin-card.cl > *:not(.admin-card-title){display:none !important;}
-/* ── 앱 소개 · 체험해보기 (추가) ── */
-.intro-wrap{max-width:480px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 28px) 18px calc(env(safe-area-inset-bottom) + 28px);}
-.intro-stage{background:var(--white);border-radius:20px;padding:26px 20px 20px;min-height:340px;box-shadow:var(--shadow);text-align:center;touch-action:pan-y;user-select:none;}
-.intro-t{font-size:19px;font-weight:800;color:var(--gray-800);margin:6px 0 8px;line-height:1.35;}
-.intro-d{font-size:13.5px;color:var(--gray-600);line-height:1.7;margin:0 0 14px;}
-.intro-v{background:var(--bg);border-radius:14px;padding:14px 12px;font-size:13px;color:var(--gray-700);text-align:left;}
-.intro-dots{display:flex;justify-content:center;gap:7px;margin:16px 0 14px;}
-.intro-dot{width:8px;height:8px;border-radius:50%;background:var(--gray-300);cursor:pointer;border:none;padding:0;}
-.intro-dot.on{background:var(--primary);width:22px;border-radius:4px;}
-.intro-btns .btn{margin-top:8px;}
-.intro-foot{text-align:center;margin-top:34px;font-size:13px;color:var(--gray-400);line-height:2;}
-.intro-foot a{color:var(--primary-dark);text-decoration:underline;}
-.intro-skip{display:block;margin:12px auto 0;background:none;border:none;color:var(--gray-400);font:inherit;font-size:12.5px;text-decoration:underline;cursor:pointer;padding:8px;min-height:44px;}
-.iv-chip{display:inline-block;background:var(--white);border:1.5px solid var(--primary-mid);border-radius:10px;padding:7px 11px;margin:3px;font-weight:700;color:var(--primary-dark);font-size:12.5px;}
-.iv-chip.off{color:var(--gray-300);border-color:var(--gray-200);text-decoration:line-through;}
-.iv-row{display:flex;align-items:center;gap:8px;background:var(--white);border-radius:10px;padding:9px 11px;margin:5px 0;font-size:12.5px;}
-.iv-row b{color:var(--gray-800);}
-.iv-tag{margin-left:auto;font-size:11px;font-weight:700;color:var(--primary-dark);background:var(--primary-light);border-radius:8px;padding:3px 8px;}
-.reg-intro-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
-.dm-ov{display:none;position:fixed;inset:0;z-index:300;background:var(--bg);flex-direction:column;}
-.dm-ov.open{display:flex;}
-.dm-top{background:var(--primary);color:#fff;padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;display:flex;align-items:center;gap:10px;}
-.dm-top .dm-ttl{flex:1;font-size:13px;font-weight:700;line-height:1.4;}
-.dm-top .dm-ttl small{display:block;font-weight:500;opacity:.9;font-size:11.5px;}
-.dm-x{background:rgba(255,255,255,.22);color:#fff;border:none;border-radius:10px;min-width:44px;min-height:44px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;}
-.dm-tabs{display:flex;background:var(--white);border-bottom:1px solid var(--gray-200);}
-.dm-tab{flex:1;min-height:46px;border:none;background:none;font:inherit;font-size:14px;font-weight:700;color:var(--gray-400);cursor:pointer;border-bottom:3px solid transparent;}
-.dm-tab.on{color:var(--primary-dark);border-bottom-color:var(--primary);}
-.dm-body{flex:1;overflow-y:auto;padding:16px 16px calc(env(safe-area-inset-bottom) + 28px);}
-.dm-in{max-width:480px;margin:0 auto;}
-.dm-h{font-size:15px;font-weight:800;color:var(--gray-800);margin:2px 0 10px;}
-.dm-dates{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-.dm-date{background:var(--white);border:2px solid var(--gray-200);border-radius:12px;padding:12px 4px;text-align:center;cursor:pointer;font-family:inherit;min-height:64px;}
-.dm-date .a{font-size:12px;color:var(--gray-400);font-weight:600;}
-.dm-date .b{font-size:20px;font-weight:800;color:var(--gray-800);}
-.dm-date.on{border-color:var(--primary);background:var(--primary-light);}
-.dm-times{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
-.dm-time{background:var(--white);border:2px solid var(--gray-200);border-radius:12px;padding:13px 6px;text-align:center;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;min-height:48px;color:var(--gray-800);}
-.dm-time.on{border-color:var(--primary);background:var(--primary-light);color:var(--primary-dark);}
-.dm-time:disabled{background:var(--gray-100);color:var(--gray-300);cursor:not-allowed;}
-.dm-card{background:var(--white);border-radius:14px;padding:14px;box-shadow:var(--shadow);margin-bottom:12px;}
-.dm-card .dm-k{font-size:12px;color:var(--gray-400);margin-bottom:3px;}
-.dm-bk{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gray-100);font-size:13px;}
-.dm-bk:last-child{border-bottom:none;}
-.dm-bk{flex-wrap:wrap;}.dm-bk .m{min-width:150px;}
-.dm-bk .m{flex:1;}
-.dm-bk .m b{display:block;font-size:14px;color:var(--gray-800);}
-.dm-bk .m span{color:var(--gray-500);font-size:12px;}
-.dm-mini{border:none;background:var(--danger-light);color:var(--danger);border-radius:9px;padding:8px 11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;min-height:36px;}
-.dm-hint{background:rgba(155,142,196,.14);border-radius:10px;padding:10px 12px;font-size:12.5px;color:var(--primary-dark);line-height:1.6;margin-bottom:12px;}
-.dm-qr{display:block;margin:6px auto;border:1px solid var(--gray-200);border-radius:8px;background:#fff;}
 </style>
 </head>
 <body>
@@ -387,7 +309,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
       <div>
         <div class="header-title">📅 학부모 상담 예약</div>
         <div class="header-meta">날짜와 시간을 선택해 예약하세요</div>
-        <div class="header-meta" style="margin-top:1px;display:flex;align-items:center;gap:6px;">Made by Cheon_R <button onclick="showAdminLogin()" style="font-size:11px;color:var(--gray-400);background:none;border:1px solid var(--gray-300);border-radius:20px;padding:2px 8px;cursor:pointer;font-family:'Pretendard',sans-serif;white-space:nowrap;">⚙️ 선생님 메뉴</button></div>
+        <div class="header-meta" style="margin-top:1px;display:flex;align-items:center;gap:6px;">Made by Cheon_R <button onclick="showAdminLogin()" style="font-size:11px;color:var(--gray-400);background:none;border:1px solid var(--gray-300);border-radius:20px;padding:2px 8px;cursor:pointer;font-family:'Pretendard',sans-serif;white-space:nowrap;">⚙️ 관리자</button></div>
       </div>
       <div class="teacher-badge">
         <div class="teacher-name" id="teacherNameBadge">담임 선생님</div>
@@ -426,7 +348,6 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
     <div id="bookingCheckingMsg" class="empty-state gate-msg">
       <div class="empty-icon">⏳</div>
       <p id="bookingCheckingText">예약 상태를 확인하고 있어요...</p>
-      <div id="nogasIntroBtns" style="display:none;margin-top:16px;"><div style="font-size:12.5px;color:var(--gray-500);margin-bottom:8px;">상담 예약을 받으려는 선생님이신가요?</div><div class="mini-grid"><button class="btn btn-secondary" onclick="showIntro('mainScreen')" style="font-size:13px;padding:11px;">📖 앱 소개</button><button class="btn btn-secondary" onclick="openDemo()" style="font-size:13px;padding:11px;">🎬 체험해보기</button></div></div>
     </div>
     <div id="closeAtInfo" style="display:none;background:rgba(155,142,196,0.12);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;font-weight:600;color:var(--primary-dark);text-align:center;"></div>
 
@@ -523,7 +444,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
     </div>
   </div>
 
-  <div class="footer">© 2026 · Made by Cheon_R<br><span style="display:block;margin:4px 0 2px;">예약 변경·취소는 <b>담임 선생님</b>께 연락해 주세요</span><button class="foot-mail" onclick="openContact()">✉️ 앱 오류 신고 (개발자)</button></div>
+  <div class="footer">© 2026 · Made by Cheon_R<br><button class="foot-mail" onclick="openContact()">✉️ 앱 문의 · fond7509@naver.com</button></div>
 
 </div>
 
@@ -542,23 +463,8 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
 <div class="flex-screen" id="adminLoginScreen">
   <div class="login-box">
     <div class="login-icon">🔐</div>
-    <div class="login-title">선생님 로그인</div>
-    <div class="login-sub">선생님 본인의 비밀번호를 입력하세요</div>
-    <div id="loginInitHint" style="background:#F4F2FA;border-radius:12px;padding:10px 12px;margin:-10px 0 14px;font-size:12.5px;line-height:1.6;color:#5b5478;text-align:left;">🔰 <b>처음 사용하시나요?</b><br>초기 비밀번호는 <b>consultbooking</b> 입니다.<br>입력 후 <b>반드시 비밀번호를 변경</b>해 주세요.</div>
-    <div id="loginInstallBox" style="display:none;background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:12px;padding:12px 14px;margin-bottom:14px;text-align:left;font-size:12.5px;line-height:1.8;color:#78350F;">
-      <b>🛠️ 처음 설치하는 방법 (약 5분)</b><br>
-      <b>① 코드 복사</b> — 아래 <b>📋 GAS 코드 복사</b> 버튼 누르기<br>
-      <b>② 새 구글 시트</b> — 개인 구글 계정(@gmail.com)으로 <b>새 스프레드시트</b> 만들기<br>
-      <b>③ 코드 붙여넣기</b> — <b>확장 프로그램 → Apps Script</b> → 기존 코드 전체 삭제 → 붙여넣기 → 저장<br>
-      <b>④ 처음 1회 실행</b> — 위쪽 함수 선택칸에서 <b>setupTrigger</b> 선택 → ▶ 실행 → 권한 허용<br>
-      <span style="color:#92400E;">("확인하지 않은 앱" 경고 → 왼쪽 아래 <b>고급 → 이동(안전하지 않음) → 허용</b>. 본인이 만든 코드라 나오는 정상 화면이에요)</span><br>
-      <b>⑤ 웹앱 배포</b> — <b>배포 → 새 배포</b> → 유형 <b>웹 앱</b> → 실행: <b>나</b> / 액세스: <b>모든 사용자</b> → 배포<br>
-      <b>⑥ 주소 복사</b> — <b>…/exec</b> 로 끝나는 웹 앱 URL 복사 → 아래 <b>웹앱 주소</b> 칸에 붙여넣기<br>
-      <b>⑦ 로그인</b> — 비밀번호 <b>consultbooking</b> 입력 후 로그인 → 새 비밀번호 정하기<br>
-      <button type="button" class="btn btn-secondary" onclick="copyGasCode('loginInstallCopyMsg')" style="font-size:13px;padding:10px;margin-top:8px;">📋 GAS 코드 복사</button>
-      <div class="reg-msg ok" id="loginInstallCopyMsg"></div>
-      <span style="color:#92400E;">⚠️ 학교·교육청 계정은 학부모 접속이 막힐 수 있어요. 개인 계정을 써 주세요.</span>
-    </div>
+    <div class="login-title">관리자 로그인</div>
+    <div class="login-sub">관리자 비밀번호를 입력하세요</div>
     <div id="loginGasBox" style="display:none;margin-bottom:14px;text-align:left;">
       <label class="form-label">🔗 웹앱 주소 (처음 한 번만)</label>
       <input class="form-input" id="loginGasInput" type="url" placeholder="https://script.google.com/macros/s/.../exec" style="font-size:13px;">
@@ -566,30 +472,8 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
     </div>
     <input class="form-input" id="loginPwInput" type="password" placeholder="비밀번호" style="text-align:center;letter-spacing:4px;" onkeydown="if(event.key==='Enter')doLogin()">
     <div class="login-error" id="loginError">비밀번호가 올바르지 않아요.</div>
-    <div id="loginOldGasBox" style="display:none;background:#FEF2F2;border:1.5px solid #FCA5A5;border-radius:12px;padding:12px 14px;margin-top:12px;text-align:left;font-size:12.5px;line-height:1.8;color:#7F1D1D;">
-      <b>🔄 GAS 코드를 새 버전으로 바꿔 주세요 (1~2분)</b><br>
-      1. 아래 <b>📋 최신 코드 복사</b> 누르기<br>
-      2. 구글 시트 → <b>확장 프로그램 → Apps Script</b> → 기존 코드 전체 삭제 → 붙여넣기 → 저장<br>
-      3. <b>배포 → 배포 관리 → ✏️ 수정 → 버전: 새 버전 → 배포</b> (<b>새 배포 ✕</b>)<br>
-      4. 이 화면에서 <b>예전에 쓰던 비밀번호</b>로 다시 로그인<br>
-      <span style="color:#9A3412;">✔ 예약 내역·설정은 그대로 남아 있어요. 주소(URL)도 그대로예요.</span>
-      <button class="btn btn-secondary" onclick="copyGasCode('loginCopyMsg')" style="font-size:13px;padding:10px;margin-top:8px;">📋 최신 코드 복사</button>
-      <div class="reg-msg ok" id="loginCopyMsg"></div>
-    </div>
     <button class="btn btn-primary" id="loginBtn" onclick="doLogin()" style="margin-top:14px;">로그인</button>
     <button class="btn btn-secondary" onclick="backToMain()" style="margin-top:8px;">← 돌아가기</button>
-    <button type="button" onclick="(function(){const b=document.getElementById('loginForgotBox');b.style.display=b.style.display==='none'?'':'none';})()" style="background:none;border:none;color:var(--gray-500);font-family:inherit;font-size:13px;text-decoration:underline;cursor:pointer;margin-top:12px;min-height:44px;">🔑 비밀번호가 기억 안 나요</button>
-    <div id="loginForgotBox" style="display:none;background:#F5F3FF;border:1.5px solid #C4B5FD;border-radius:12px;padding:12px 14px;margin-top:4px;text-align:left;font-size:12.5px;line-height:1.8;color:var(--gray-700);">
-      <b>🔑 비밀번호를 잊었을 때 (예약 내역·설정은 그대로 남아요)</b><br>
-      1. 아래 <b>📋 최신 코드 복사</b> 누르기<br>
-      2. 구글 시트 → <b>확장 프로그램 → Apps Script</b> → 기존 코드 전체 삭제 → 붙여넣기 → <b>저장</b><br>
-      3. 위쪽 <b>함수 선택칸</b>에서 <b>resetPassword</b> 선택 → <b>▶ 실행</b> (처음이면 권한 허용)<br>
-      4. <b>배포 → 배포 관리 → ✏️ 수정 → 버전: 새 버전 → 배포</b> (<b>새 배포 ✕</b>)<br>
-      5. 이 화면에서 비밀번호 <b>consultbooking</b> 으로 로그인 → 새 비밀번호를 정해요<br>
-      <span style="color:var(--gray-500);">※ 이 방법은 선생님 본인의 구글 시트에서만 할 수 있어요. 예약 기록까지 전부 새로 시작하려면 새 구글 시트를 만들어 처음부터 설치해 주세요.</span>
-      <button type="button" class="btn btn-secondary" onclick="copyGasCode('loginForgotCopyMsg')" style="font-size:13px;padding:10px;margin-top:8px;">📋 최신 코드 복사</button>
-      <div class="reg-msg ok" id="loginForgotCopyMsg"></div>
-    </div>
   </div>
 </div>
 
@@ -599,7 +483,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
     <div class="login-icon">🔑</div>
     <div class="login-title">비밀번호를 새로 정해 주세요</div>
     <div class="login-sub">초기 비밀번호로 로그인하셨어요.<br>다른 사람이 알 수 없도록 지금 바꿔 주세요.</div>
-    <input class="form-input" id="forcePwNew" type="password" placeholder="새 비밀번호 (6자 이상)" style="text-align:center;margin-bottom:8px;">
+    <input class="form-input" id="forcePwNew" type="password" placeholder="새 비밀번호 (4자 이상)" style="text-align:center;margin-bottom:8px;">
     <input class="form-input" id="forcePwConfirm" type="password" placeholder="새 비밀번호 확인" style="text-align:center;" onkeydown="if(event.key==='Enter')doForcePwChange()">
     <div class="login-error" id="forcePwError"></div>
     <button class="btn btn-primary" id="forcePwBtn" onclick="doForcePwChange()" style="margin-top:14px;">변경하고 시작하기</button>
@@ -608,37 +492,18 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
 </div>
 
 
-
-<!-- ===================== 앱 소개 (슬라이드 · 추가) ===================== -->
-<div class="screen" id="introScreen">
-  <div class="intro-wrap">
-    <div class="intro-stage" id="introStage"></div>
-    <div class="intro-dots" id="introDots"></div>
-    <div class="intro-btns" id="introBtns"></div>
-    <div class="intro-foot">Made by Cheon_R<br><a href="mailto:fond7509@naver.com?subject=%5B%ED%95%99%EB%B6%80%EB%AA%A8%20%EC%83%81%EB%8B%B4%20%EC%98%88%EC%95%BD%5D%20%EB%AC%B8%EC%9D%98">문의: fond7509@naver.com</a></div>
-  </div>
-</div>
-
-<!-- ===================== 체험해보기 (샘플 데이터 · 저장/전송 없음 · 추가) ===================== -->
-<div class="dm-ov" id="demoOv">
-  <div class="dm-top"><div class="dm-ttl">🎬 체험 모드<small>샘플 데이터예요 · 아무것도 저장되거나 전송되지 않아요</small></div><button class="dm-x" onclick="closeDemo()">닫기</button></div>
-  <div class="dm-tabs"><button class="dm-tab on" id="dmTabP" onclick="dmTab('p')">👪 학부모 화면</button><button class="dm-tab" id="dmTabA" onclick="dmTab('a')">🧑‍🏫 선생님 화면</button></div>
-  <div class="dm-body"><div class="dm-in" id="dmBody"></div></div>
-</div>
-
 <!-- ===================== 사용자 등록 (처음 1회 · 시트 연결 전에 먼저 받아요) ===================== -->
 <div class="screen" id="regScreen">
   <div class="reg-wrap">
     <div class="card">
       <div style="text-align:center;font-size:36px;margin-bottom:8px;">📝</div>
       <div class="login-title" style="text-align:center;">사용자 등록</div>
-      <div class="reg-intro-row" id="regIntroRow" style="display:none;"><button class="btn btn-secondary" onclick="showIntro('regScreen')" style="font-size:13px;padding:11px;">📖 앱 소개</button><button class="btn btn-secondary" onclick="openDemo()" style="font-size:13px;padding:11px;">🎬 체험해보기</button></div>
       <p class="reg-hint" id="regSub" style="text-align:center;margin:0 0 16px;">처음 한 번만 입력하면 돼요. 입력한 정보는 사용 현황 파악을 위해 앱 개발자에게 전달돼요. (학부모·학생 정보는 전달되지 않아요)</p>
       <label class="form-label">학교 위치·종류 <small style="font-weight:400;color:var(--gray-400);">(필수)</small></label>
       <div class="reg-row"><select id="regRegion" class="form-input"><option value="">지역</option><option>서울</option><option>부산</option><option>대구</option><option>인천</option><option>광주</option><option>대전</option><option>울산</option><option>세종</option><option>경기</option><option>강원</option><option>충북</option><option>충남</option><option>전북</option><option>전남</option><option>경북</option><option>경남</option><option>제주</option></select><select id="regLevel" class="form-input"><option value="">학교급</option><option>초등학교</option><option>중학교</option><option>고등학교</option><option>특수·기타</option></select></div>
       <p class="reg-hint">학교 이름과 학급은 받지 않아요. 지역과 학교급만 골라 주세요.</p>
       <label class="form-label" style="margin-top:14px;">아이디 <small style="font-weight:400;color:var(--gray-400);">(필수)</small></label>
-      <input class="form-input" id="regName" type="text" maxlength="20" onkeydown="if(event.key==='Enter')regSubmit()">
+      <input class="form-input" id="regName" type="text" maxlength="20" placeholder="예: 수학쌤" onkeydown="if(event.key==='Enter')regSubmit()">
       <p class="reg-hint"><b>실명이 아닌 아이디를 권해요.</b></p>
       <label class="agree"><input type="checkbox" id="regAgree"><span><b>[필수]</b> 개인정보 수집·이용에 동의합니다</span></label>
       <details class="agd"><summary>자세히 보기 ▾</summary><ul>
@@ -646,7 +511,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
         <li><b>이용 목적</b>: 이용 현황 파악, 문의 응대, 앱 개선, 개발자의 활동 기록 정리. 소개 자료에는 <b>숫자 통계로만</b> 쓰고, 개인이 드러나게 쓰지 않아요. (후기 인용은 후기를 쓰실 때 따로 허락하신 경우에만)</li>
         <li><b>저장 장소</b>: 개발자의 구글 시트예요. 구글 서버에 저장되고, 구글 서버는 해외에 있을 수 있어요. 개발자 본인만 열어 봐요. 제3자에게 제공하지 않아요.</li>
         <li><b>보유 기간</b>: 앱을 운영하는 동안. 삭제를 요청하시면 지체 없이 삭제해요.</li>
-        <li><b>거부할 권리</b>: 동의하지 않을 수 있어요. 다만 동의하지 않으면 사용자 등록을 할 수 없어서 선생님 기능을 쓸 수 없어요.</li>
+        <li><b>거부할 권리</b>: 동의하지 않을 수 있어요. 다만 동의하지 않으면 사용자 등록을 할 수 없어서 관리자 기능을 쓸 수 없어요.</li>
         <li><b>열람·정정·삭제 요청</b>: 아래 [✉️ 문의하기] 또는 fond7509@naver.com 으로 요청해 주세요.</li>
         <li><b>학부모·학생 정보</b>: 학부모·학생의 이름·연락처·상담 내용은 개발자에게 전달되지 않아요. (선생님 본인의 구글 시트에만 저장돼요)</li>
       </ul><p style="margin:6px 0 0;font-size:12px;"><a href="#" onclick="openPriv();return false">📄 개인정보 처리방침 전체 보기</a></p></details>
@@ -674,26 +539,22 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
 <!-- ===================== 관리자 화면 ===================== -->
 <div class="screen" id="adminScreen">
   <div class="admin-header">
-    <div class="admin-header-title">⚙️ 선생님 메뉴 · <span style="font-size:11px;opacity:.7;">Made by Cheon_R</span></div>
+    <div class="admin-header-title">⚙️ 관리자 화면 · <span style="font-size:11px;opacity:.7;">Made by Cheon_R</span></div>
     <div style="display:flex;gap:8px;align-items:center;">
+      <button class="admin-logout" onclick="openGuideModal()">📖 가이드</button>
       <button class="admin-logout" onclick="adminLogout()">로그아웃</button>
     </div>
   </div>
   <div class="admin-nav">
-    <button class="admin-nav-btn active" onclick="switchAdminTab('gasurl')" id="aTab-gasurl">🔗 연결·QR</button>
+    <button class="admin-nav-btn active" onclick="switchAdminTab('gasurl')" id="aTab-gasurl">🔗 GAS 연결</button>
     <button class="admin-nav-btn" onclick="switchAdminTab('settings')" id="aTab-settings">⚙️ 기본 설정</button>
     <button class="admin-nav-btn" onclick="switchAdminTab('slots')" id="aTab-slots">📅 날짜/시간</button>
     <button class="admin-nav-btn" onclick="switchAdminTab('bookings')" id="aTab-bookings">📋 예약 현황</button>
-    <button class="admin-nav-btn" onclick="switchAdminTab('guide')" id="aTab-guide">📘 가이드</button>
     <button class="admin-nav-btn" onclick="switchAdminTab('review')" id="aTab-review" style="display:none;">💬 후기</button>
     <button class="admin-nav-btn" onclick="switchAdminTab('owner')" id="aTab-owner" style="display:none;">👑 관리자</button>
   </div>
   <div class="admin-body">
     <div id="useLine" style="display:none;font-size:12px;color:var(--gray-500);text-align:right;margin-bottom:8px;"></div>
-    <div class="rv-banner" id="retentionBanner" style="display:none;background:#FFFBEB;border-color:#FCD34D;">
-      <p style="color:#92400E;">🗂️ 상담 시간이 모두 지났어요. 학부모님께 "상담이 끝나면 삭제"한다고 안내했으니, 필요한 기록을 옮겨 두신 뒤 예약 정보를 지워 주세요.</p>
-      <div class="rv-bb"><button class="btn btn-primary" onclick="switchAdminTab('settings');document.getElementById('clearCard').scrollIntoView({behavior:'smooth'})">초기화하러 가기</button><button class="btn btn-secondary" onclick="document.getElementById('retentionBanner').style.display='none'">나중에</button></div>
-    </div>
     <div class="rv-banner" id="rvBanner" style="display:none;">
       <p>💜 지금까지 써 보셨는데 어떠셨어요? 1분이면 되는 후기를 남겨 주시면 앱을 더 좋게 만드는 데 큰 힘이 돼요.</p>
       <div class="rv-bb"><button class="btn btn-primary" onclick="rvBannerClose(true)">후기 남기기</button><button class="btn btn-secondary" onclick="rvBannerClose(false)">다음에</button></div>
@@ -736,29 +597,20 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
       <div class="admin-card">
         <div class="admin-card-title">📢 공지 문구 설정</div>
         <div class="form-group">
-          <label class="form-label">상단 공지 (줄바꿈 가능 · 비워두면 표시 안 됨 · 최대 500자)</label>
-          <textarea class="form-input" id="setNotice" maxlength="500" placeholder="예: 상담기간: 5월 6일~10일&#10;1인 1회 예약 가능합니다" style="height:100px;"></textarea>
+          <label class="form-label">상단 공지 (줄바꿈 가능 · 비워두면 표시 안 됨)</label>
+          <textarea class="form-input" id="setNotice" placeholder="예: 상담기간: 5월 6일~10일&#10;1인 1회 예약 가능합니다" style="height:100px;"></textarea>
         </div>
         <button class="btn btn-primary" onclick="adminSaveNotice()">저장</button>
       </div>
 
       <div class="admin-card">
-        <div class="admin-card-title">🔒 예약 오픈 · 마감 설정</div>
+        <div class="admin-card-title">🔒 예약 마감 설정</div>
         <div class="toggle-wrap">
           <label class="toggle">
             <input type="checkbox" id="bookingToggle" onchange="adminSaveBookingToggle()">
             <span class="toggle-slider"></span>
           </label>
           <span class="toggle-label" id="bookingToggleLabel">예약 진행 중</span>
-        </div>
-        <div class="form-group" style="margin-top:18px;">
-          <label class="form-label">🕘 자동 오픈 시각 (선택)</label>
-          <input class="form-input" type="datetime-local" id="setOpenAt">
-          <div style="font-size:11px;color:var(--gray-400);margin-top:6px;line-height:1.6;">정한 시각 전에는 예약을 받지 않고, 학부모에게는 "○월 ○일 ○시부터 받아요"라고 안내돼요. 비워 두면 바로 열려 있어요. (위 스위치는 켜 두세요)</div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <button class="btn btn-primary" onclick="adminSaveOpenAt()" style="font-size:13px;padding:11px;">오픈 시각 저장</button>
-          <button class="btn btn-secondary" onclick="adminClearOpenAt()" style="font-size:13px;padding:11px;">오픈 시각 해제</button>
         </div>
         <div class="form-group" style="margin-top:18px;">
           <label class="form-label">⏰ 자동 마감 시각 (선택)</label>
@@ -784,18 +636,6 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
 
 
       <div class="admin-card">
-        <div class="admin-card-title">📝 신청 후 확정 모드</div>
-        <div class="toggle-wrap">
-          <label class="toggle">
-            <input type="checkbox" id="confirmToggle" onchange="adminSaveConfirmToggle()">
-            <span class="toggle-slider"></span>
-          </label>
-          <span class="toggle-label" id="confirmToggleLabel">꺼짐 · 신청하면 바로 예약 완료</span>
-        </div>
-        <div style="font-size:12px;color:var(--gray-500);line-height:1.7;margin-top:8px;">켜면 학부모에게 <b>"신청 완료"</b>로 보여요. 예약 현황에서 <b>✅ 확정</b>을 누르면 학부모가 '내 예약 확인'에서 <b>예약 확정</b>을 볼 수 있어요. (시간은 신청 즉시 선점돼요)</div>
-      </div>
-
-      <div class="admin-card">
         <div class="admin-card-title">ℹ️ 앱 정보 · 문의</div>
         <div class="form-group">
           <label class="form-label">내 설치 ID</label>
@@ -806,13 +646,9 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
           <button class="btn btn-secondary" onclick="openContact()" style="font-size:13px;padding:11px;">✉️ 문의하기</button>
           <button class="btn btn-secondary" onclick="openPriv()" style="font-size:13px;padding:11px;">📄 개인정보 처리방침</button>
         </div>
-        <div class="mini-grid" style="margin-top:8px;">
-          <button class="btn btn-secondary" onclick="showIntro('adminScreen')" style="font-size:13px;padding:11px;">📖 앱 소개 다시 보기</button>
-          <button class="btn btn-secondary" onclick="openDemo()" style="font-size:13px;padding:11px;">🎬 체험해보기</button>
-        </div>
       </div>
 
-      <div class="admin-card" id="clearCard">
+      <div class="admin-card">
         <div class="admin-card-title">🗑️ 데이터 초기화</div>
         <div class="info-box"><p>상담기간이 끝나고 새로 시작할 때 사용하세요.</p></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
@@ -827,7 +663,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
     <div class="admin-section" id="adminSec-slots">
       <div class="admin-card" id="ttCard">
         <div class="admin-card-title">🗓️ 내 시간표로 상담 시간 만들기</div>
-        <div class="info-box"><p>시간표(엑셀 또는 캡처 이미지)를 올리면 <b>수업이 없는 시간(공강)</b>을 찾아 상담 시간 후보로 만들어요.<br>파일은 이 기기 안에서만 읽고, 서버로 보내지 않아요.<br><span style="font-size:12px;opacity:.85;">💡 엑셀이 가장 정확해요. 이미지는 글자가 크고 또렷할수록 잘 읽혀요.</span></p></div>
+        <div class="info-box"><p>시간표(엑셀 또는 캡처 이미지)를 올리면 <b>수업이 없는 시간(공강)</b>을 찾아 상담 시간 후보로 만들어요.<br>파일은 이 기기 안에서만 읽고, 서버로 보내지 않아요. 읽은 시간표는 이 기기에 기억돼요.<br><span style="font-size:12px;opacity:.85;">💡 엑셀이 가장 정확해요. 이미지는 글자가 크고 또렷할수록 잘 읽혀요.</span></p></div>
 
         <div class="tt-grid2">
           <div class="form-group"><label class="form-label">상담 1회 시간 (분)</label>
@@ -851,26 +687,18 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
           <div class="form-group"><label class="form-label">상담 종료일</label>
             <input class="form-input" type="date" id="ttTo" onchange="ttSettingsChanged()"></div>
         </div>
-        <div class="reg-hint" style="margin:-6px 0 10px;">📌 공휴일·재량휴업일·시험일은 자동으로 빠지지 않아요. 아래 후보에서 그날 체크를 해제해 주세요.</div>
-        <label class="tt-check"><input type="checkbox" id="ttAfterOn" onchange="ttSettingsChanged()"> 방과 후 시간도 상담 시간으로 만들게요</label>
-        <div class="tt-grid2" id="ttAfterBox" style="display:none;">
-          <div class="form-group"><label class="form-label">방과 후 시작</label>
-            <input class="form-input" type="time" id="ttAfterStart" value="16:30" onchange="ttSettingsChanged()"></div>
-          <div class="form-group"><label class="form-label">방과 후 끝</label>
-            <input class="form-input" type="time" id="ttAfterEnd" value="18:00" onchange="ttSettingsChanged()"></div>
-        </div>
 
         <input type="file" id="ttFile" accept=".xlsx,.xls,.csv,image/*" style="display:none" onchange="ttOnFile(this)">
         <button class="btn btn-primary" onclick="document.getElementById('ttFile').click()">📂 시간표 올리기 (엑셀 · 이미지)</button>
         <button class="btn btn-secondary" onclick="ttDownloadTemplate()" style="margin-top:8px;font-size:13px;padding:11px;">📥 시간표 엑셀 양식 내려받기</button>
         <div class="reg-hint" style="margin-top:6px;">학교 시간표 파일이 잘 안 읽히면, 양식을 내려받아 수업 칸에 아무 글자나 적어서 올려 주세요.</div>
         <div class="tt-status" id="ttStatus"></div>
+        <div id="ttSavedInfo" style="display:none;margin-top:10px;padding:12px 14px;border-radius:10px;background:var(--gray-50);border:1px solid var(--gray-200);font-size:13px;line-height:1.7;color:var(--gray-700);"></div>
 
         <details class="tt-details" id="ttEditorWrap" style="display:none;">
           <summary>🔎 인식된 시간표 확인 · 수정</summary>
           <div style="font-size:12px;color:var(--gray-500);line-height:1.7;margin-bottom:8px;">칸을 누르면 <b>수업 ↔ 공강</b>이 바뀌어요. 시작 시각이 비어 있으면 직접 넣어 주세요.</div>
           <div id="ttEditor"></div>
-          <button type="button" class="btn btn-secondary" onclick="ttForget()" style="font-size:12px;padding:8px;margin-bottom:12px;">🗑️ 저장된 시간표 지우기</button>
         </details>
 
         <div id="ttCandWrap" style="display:none;">
@@ -893,45 +721,10 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
 
     <!-- GAS URL 설정 -->
     <div class="admin-section active" id="adminSec-gasurl">
-        <div id="gasVerNotice" class="info-box" style="display:none;margin-bottom:14px;background:#FEF2F2;border-left-color:#EF4444;"><p style="color:#B91C1C;">⚠️ 연결된 GAS 코드가 예전 버전이에요.<br>최신 코드를 붙여넣고 <b>배포 관리 → 수정</b>으로 다시 배포해 주세요.</p>
-          <button class="btn btn-secondary" onclick="copyGasCode('gasCopyMsg1')" style="font-size:13px;padding:10px;margin-top:8px;">📋 최신 코드 복사</button><div class="reg-msg ok" id="gasCopyMsg1"></div></div>
-      <div class="admin-card" id="studentLinkCard" style="display:none;border:2px solid var(--primary-mid);">
-        <div class="admin-card-title">📤 학부모 배포용 QR · 링크</div>
-        <div class="qr-box"><canvas id="qrCanvas" width="440" height="440"></canvas><div class="reg-hint" style="text-align:center;">📱 학부모님이 카메라로 비추면 바로 예약 화면이 열려요</div></div>
-        <div class="tri-grid">
-          <button class="btn btn-primary" onclick="saveQrPng()">🖼️ QR 저장</button>
-          <button class="btn btn-primary" onclick="copyQrImage()">📋 QR 복사</button>
-          <button class="btn btn-secondary" onclick="openQrView()">🔍 크게 보기</button>
-        </div>
-        <div id="qrMsg" class="reg-msg ok"></div>
-        <p class="reg-hint" style="margin:2px 0 0;">💡 저장·복사되는 이미지에는 제목과 선생님 이름이 함께 들어가요. <b>한글·가정통신문·카톡 PC</b>에는 [QR 복사] 후 붙여넣기가 편해요. 휴대폰 카톡 안에서 열었다면 [크게 보기]에서 이미지를 길게 눌러 저장해 주세요.</p>
-
-        <div style="margin-top:16px;padding-top:14px;border-top:1px dashed var(--gray-200);">
-          <label class="form-label">🔗 학부모 링크</label>
-          <div id="studentLinkDisplay" style="font-size:12px;color:var(--gray-700);background:var(--gray-50);border-radius:8px;padding:10px 12px;word-break:break-all;border:1px solid var(--gray-200);margin-bottom:10px;"></div>
-          <div class="mini-grid">
-            <button class="btn btn-secondary" onclick="copyStudentLink()" style="font-size:13px;padding:11px;">📋 링크 복사</button>
-            <button class="btn btn-secondary" onclick="copyRichLink()" style="font-size:13px;padding:11px;">🔗 링크 글자로 복사</button>
-          </div>
-          <div id="studentLinkCopyMsg" style="font-size:12px;color:var(--success);margin-top:8px;display:none;">✅ 복사됐어요!</div>
-          <div class="form-group" style="margin-top:12px;"><label class="form-label">링크 글자 <small style="font-weight:400;color:var(--gray-400);">([링크 글자로 복사] 때 보이는 글자)</small></label>
-            <input class="form-input" id="linkTxt" type="text" maxlength="40" oninput="linkTxtChanged()"></div>
-          <a id="linkPrevA" href="#" onclick="return false" style="display:inline-block;font-size:13px;color:var(--primary-dark);margin-bottom:4px;"></a>
-        </div>
-
-        <div id="shareBox" style="display:none;margin-top:18px;padding-top:16px;border-top:1px dashed var(--gray-200);">
-          <label class="form-label">🤝 다른 선생님께 공유용 링크 (시트 연결 없음)</label>
-          <div id="shareLinkDisplay" style="font-size:12px;color:var(--gray-700);background:var(--gray-50);border-radius:8px;padding:10px 12px;word-break:break-all;border:1px solid var(--gray-200);margin-bottom:10px;"></div>
-          <button class="btn btn-secondary" onclick="copyShareLink()" style="font-size:13px;padding:11px;margin-bottom:8px;">📋 링크 복사</button>
-          <button class="btn btn-primary" onclick="copyShareRich()" style="font-size:13px;padding:11px;">🔗 글자 링크로 복사 (학부모상담예약_made by Cheon R)</button>
-          <p class="reg-hint" style="margin-top:8px;">메일·구글 문서·한글·워드에 붙여넣으면 주소 대신 <b>학부모상담예약_made by Cheon R</b> 글자에 링크가 걸려요. (카톡은 글자 링크를 지원하지 않아 주소가 같이 보여요)</p>
-          <p class="reg-hint">다른 선생님은 이 링크로 들어가서 설치 가이드를 따라 본인 시트를 연결하면 돼요.</p>
-          <div id="shareMsg" class="reg-msg ok"></div>
-        </div>
-      </div>
-
       <div class="admin-card">
         <div class="admin-card-title">🔗 GAS 웹앱 URL 설정</div>
+        <div id="gasVerNotice" class="info-box" style="display:none;background:#FEF2F2;border-left-color:#EF4444;"><p style="color:#B91C1C;">⚠️ 연결된 GAS 코드가 예전 버전이에요.<br>최신 코드를 붙여넣고 <b>배포 관리 → 수정</b>으로 다시 배포해 주세요.</p>
+          <button class="btn btn-secondary" onclick="copyGasCode('gasCopyMsg1')" style="font-size:13px;padding:10px;margin-top:8px;">📋 최신 코드 복사</button><div class="reg-msg ok" id="gasCopyMsg1"></div></div>
         <div class="info-box"><p>Google Apps Script 웹앱 URL을 여기서 변경할 수 있어요.<br>학부모는 이 화면을 볼 수 없으니 안전하게 관리하세요.</p></div>
         <div class="form-group">
           <label class="form-label">현재 연결된 URL</label>
@@ -945,6 +738,34 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
         <button class="btn btn-primary" onclick="adminSaveGasUrl()" style="margin-bottom:10px;">🔗 연결 확인 후 저장</button>
         <button class="btn btn-danger" onclick="adminDisconnectGasUrl()" style="font-size:13px;">🔌 연결 끊기</button>
       </div>
+      <div class="admin-card" id="studentLinkCard" style="display:none;border:2px solid var(--primary-mid);">
+        <div class="admin-card-title">📤 학부모 배포용 링크</div>
+        <div class="info-box" style="margin-bottom:14px;"><p>아래 링크를 복사해서 학부모님들께 공유하세요.<br>이 링크로 접속하면 선생님 시트로 자동 연결됩니다.</p></div>
+        <div id="studentLinkDisplay" style="font-size:12px;color:var(--gray-700);background:var(--gray-50);border-radius:8px;padding:10px 12px;word-break:break-all;border:1px solid var(--gray-200);margin-bottom:12px;"></div>
+        <button class="btn btn-primary" onclick="copyStudentLink()">📋 링크 복사</button>
+        <div id="studentLinkCopyMsg" style="font-size:12px;color:var(--success);margin-top:8px;display:none;">✅ 복사됐어요!</div>
+
+        <div class="qr-box"><canvas id="qrCanvas" width="440" height="440"></canvas><div class="reg-hint" style="text-align:center;">📱 QR을 학부모님께 보여 주거나 가정통신문에 넣을 수 있어요</div></div>
+        <div class="form-group"><label class="form-label">링크 글자 <small style="font-weight:400;color:var(--gray-400);">(하이퍼링크로 복사할 때 보이는 글자)</small></label>
+          <input class="form-input" id="linkTxt" type="text" maxlength="40" oninput="linkTxtChanged()"></div>
+        <a id="linkPrevA" href="#" onclick="return false" style="display:inline-block;font-size:13px;color:var(--primary-dark);margin-bottom:10px;"></a>
+        <div class="mini-grid" style="margin-top:2px;">
+          <button class="btn btn-secondary" onclick="copyRichLink()" style="font-size:13px;padding:11px;">🔗 링크 글자로 복사</button>
+          <button class="btn btn-secondary" onclick="saveQrPng()" style="font-size:13px;padding:11px;">🖼️ QR 이미지 저장</button>
+        </div>
+        <div id="qrMsg" class="reg-msg ok"></div>
+
+        <div id="shareBox" style="display:none;margin-top:18px;padding-top:16px;border-top:1px dashed var(--gray-200);">
+          <label class="form-label">🤝 다른 선생님께 공유용 링크 (시트 연결 없음)</label>
+          <div id="shareLinkDisplay" style="font-size:12px;color:var(--gray-700);background:var(--gray-50);border-radius:8px;padding:10px 12px;word-break:break-all;border:1px solid var(--gray-200);margin-bottom:10px;"></div>
+          <button class="btn btn-secondary" onclick="copyShareLink()" style="font-size:13px;padding:11px;margin-bottom:8px;">📋 링크 복사</button>
+          <button class="btn btn-primary" onclick="copyShareRich()" style="font-size:13px;padding:11px;">🔗 글자 링크로 복사 (학부모상담예약_made by Cheon R)</button>
+          <p class="reg-hint" style="margin-top:8px;">메일·구글 문서·한글·워드에 붙여넣으면 주소 대신 <b>학부모상담예약_made by Cheon R</b> 글자에 링크가 걸려요. (카톡은 글자 링크를 지원하지 않아 주소가 같이 보여요)</p>
+          <p class="reg-hint">다른 선생님은 이 링크로 들어가서 설치 가이드를 따라 본인 시트를 연결하면 돼요.</p>
+          <div id="shareMsg" class="reg-msg ok"></div>
+        </div>
+      </div>
+
       <!-- 설치 가이드 아코디언 -->
       <div class="admin-card" style="border:1px solid var(--gray-200);">
         <div onclick="toggleGuide()" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;">
@@ -957,7 +778,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
             <div style="background:var(--gray-50);border-radius:10px;padding:14px;border-left:4px solid var(--primary);">
               <div style="font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:8px;">Step 0. 사용자 등록 (처음 1회)</div>
               <ol style="font-size:13px;color:var(--gray-600);line-height:1.9;padding-left:18px;margin:0;">
-                <li>링크를 처음 열고 맨 위 <b>⚙️ 선생님 메뉴</b>를 누르면 <b>사용자 등록</b> 화면이 먼저 나와요</li>
+                <li>링크를 처음 열고 맨 아래 <b>관리자</b>를 누르면 <b>사용자 등록</b> 화면이 먼저 나와요</li>
                 <li>학교 지역·학교급, 아이디를 입력하고 개인정보 동의 후 다음으로 넘어가요</li>
               </ol>
             </div>
@@ -965,13 +786,11 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
             <div style="background:var(--gray-50);border-radius:10px;padding:14px;border-left:4px solid var(--primary);">
               <div style="font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:8px;">Step 1. GAS 파일 복사하기</div>
               <ol style="font-size:13px;color:var(--gray-600);line-height:1.9;padding-left:18px;margin:0;">
-                <li><b>개인 구글 계정(@gmail.com)</b> 로그인 → <b>구글 스프레드시트</b> 접속 → <b>새 스프레드시트 만들기</b></li>
+                <li><b>구글 계정</b> 로그인 → <b>구글 스프레드시트</b> 접속 → <b>새 스프레드시트 만들기</b></li>
                 <li>상단 메뉴 <b>확장 프로그램 → Apps Script</b> 클릭</li>
                 <li>기존 코드 전체 삭제 후 아래 <b>코드 전체 복사</b> 버튼으로 복사한 코드 붙여넣기 → 저장</li>
-                <li>편집기 위쪽 함수 선택칸에서 <b>setupTrigger</b> 선택 → ▶ 실행 (처음 1회)</li>
-                <li><b>권한 검토</b> → 내 계정 선택 → <b>"Google에서 확인하지 않은 앱"</b> 화면이 나오면 왼쪽 아래 <b>고급</b> → <b>(프로젝트 이름)(으)로 이동(안전하지 않음)</b> → <b>허용</b></li>
+                <li>편집기 위쪽 함수 선택칸에서 <b>setupTrigger</b> 선택 → ▶ 실행 (처음 1회, 권한 허용)</li>
               </ol>
-              <div class="reg-hint" style="margin-top:6px;">😮 "확인하지 않은 앱" 경고는 선생님 본인이 만든 코드라서 나오는 정상 화면이에요. 이 코드는 선생님 시트에만 접근해요.<br>⚠️ 학교·교육청 구글 계정은 관리자 설정 때문에 학부모 접속이 막힐 수 있어요. 개인 계정을 써 주세요.</div>
               <button class="btn btn-secondary" onclick="copyGasCode('gasCopyMsg2')" style="font-size:13px;padding:10px;margin-top:10px;">📋 코드 전체 복사</button><div class="reg-msg ok" id="gasCopyMsg2"></div>
             </div>
 
@@ -979,12 +798,10 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
               <div style="font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:8px;">Step 2. 웹앱으로 배포하기</div>
               <ol style="font-size:13px;color:var(--gray-600);line-height:1.9;padding-left:18px;margin:0;">
                 <li>상단 메뉴 <b>배포 → 새 배포</b> 클릭</li>
-                <li>유형 선택(톱니바퀴) → <b>웹 앱</b></li>
-                <li>다음 사용자 인증 정보로 실행: <b>나</b></li>
-                <li>액세스 권한이 있는 사용자: <b>모든 사용자</b> ("Google 계정이 있는 모든 사용자" 아님!)</li>
-                <li><b>배포</b> 클릭 → 권한 허용 (경고가 나오면 위 Step 1의 5번처럼)</li>
-                <li><b>웹 앱 URL</b>(…/exec 로 끝나는 주소) 복사</li>
-                <li>💡 확인: 복사한 주소를 브라우저에 붙여넣었을 때 <b>"정상 작동 중"</b> 글자가 보이면 성공이에요</li>
+                <li>유형 선택 → <b>웹 앱</b></li>
+                <li>액세스 권한: <b>모든 사용자</b>로 설정</li>
+                <li><b>배포</b> 클릭 → 권한 허용</li>
+                <li>웹앱 URL 복사</li>
               </ol>
             </div>
 
@@ -994,7 +811,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
                 <li>위 <b>새 GAS 웹앱 URL</b> 칸에 복사한 URL 붙여넣기</li>
                 <li><b>연결 확인 후 저장</b> 버튼 클릭</li>
                 <li>✅ 연결 성공 메시지 확인 (로그인 화면에서 연결했다면 <b>처음 비밀번호는 consultbooking</b> — 바로 새 비밀번호로 바꾸는 화면이 떠요)</li>
-                <li>생성된 <b>학부모 배포용 QR</b>을 <b>저장·복사</b>하거나 링크를 복사해 학부모님들께 공유</li>
+                <li>생성된 <b>학부모 배포용 링크</b>를 <b>링크 글자로 복사</b>하거나 <b>QR 이미지 저장</b>으로 학부모님들께 공유</li>
               </ol>
             </div>
 
@@ -1015,12 +832,10 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
           <button class="filter-btn active" id="filter-all" onclick="setFilter('all')">전체</button>
           <button class="filter-btn" id="filter-face" onclick="setFilter('face')">📅 대면</button>
           <button class="filter-btn" id="filter-phone" onclick="setFilter('phone')">📞 전화</button>
-          <button class="filter-btn" id="filter-pending" onclick="setFilter('pending')">📝 신청만</button>
         </div>
         <div style="display:flex;gap:6px;margin-bottom:14px;">
           <button class="sort-btn active" id="sort-date" onclick="setSort('date')">날짜순</button>
           <button class="sort-btn" id="sort-time" onclick="setSort('time')">시간순</button>
-          <button class="sort-btn" id="sort-student" onclick="setSort('student')">학생순</button>
         </div>
         <button class="btn btn-secondary" onclick="adminLoadBookings()" style="margin-bottom:14px;">🔄 새로고침</button>
         <div id="bookingTableWrap"><div class="empty-state"><div class="empty-icon">📋</div><p>새로고침을 눌러 불러오세요</p></div></div>
@@ -1028,85 +843,6 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
     </div>
 
     <!-- 후기·개선점 -->
-    <!-- 📘 사용 가이드 (탭 · 클래스보드 형식 · 추가) -->
-    <div class="admin-section" id="adminSec-guide">
-      <div class="admin-card">
-        <div class="admin-card-title">📘 학부모 상담 예약 사용 가이드</div>
-        <div style="background:#FEF2F2;border:2px solid #EF4444;border-radius:12px;padding:12px 14px;margin:0 0 12px;font-size:13px;line-height:1.75;color:#7F1D1D;">
-          <b style="font-size:14px;color:#B91C1C;">🚨 꼭 확인하세요! 연결 상태 띠</b><br>
-          학부모에게 보이는 <b>첫 화면(예약 화면)의 맨 위</b>에 <b>연결 상태 띠</b>가 있어요. 이 띠가 <b style="color:#059669;">초록색 "✅ 연결됨"</b>일 때만 <b>선생님 구글 시트에 예약이 저장되고 정상 처리돼요.</b><br>
-          <b style="color:#DC2626;">빨간색 "❌ 연결 주소가 없어요 / 연결 실패"</b>이면 <b>예약이 저장되지 않아요.</b> 링크·QR을 보내기 전에 꼭 초록색인지 확인해 주세요.
-          <div style="margin:10px 0 4px;font-size:12px;color:#7F1D1D;">👇 <b>지금 내 연결 상태</b> (실시간)</div>
-          <div class="gas-banner loading" id="guideConn" style="border-radius:10px;">확인 중...</div>
-          <button class="btn btn-secondary" onclick="showScreen('mainScreen')" style="font-size:13px;padding:10px;margin-top:8px;">👀 첫 화면에서 띠 직접 보기</button>
-          <div style="margin-top:6px;font-size:11px;color:#9A3412;">※ 첫 화면에서 다시 선생님 메뉴로 들어오려면 위쪽 <b>⚙️ 선생님 메뉴</b> 버튼을 눌러 주세요.</div>
-        </div>
-        <p class="reg-hint" style="margin:0 0 10px;">처음 설정할 때 이 순서대로 해 주세요. 궁금한 항목을 눌러서 펼쳐 보세요.</p>
-        <div class="mini-grid">
-          <button class="btn btn-secondary" onclick="showIntro('adminScreen')" style="font-size:13px;padding:11px;">📖 앱 소개 다시 보기</button>
-          <button class="btn btn-secondary" onclick="openDemo()" style="font-size:13px;padding:11px;">🎬 체험해보기</button>
-        </div>
-      </div>
-      <details class="hdet" open><summary>1️⃣ GAS 연결하기 (구글 시트 연결)</summary><div class="hb"><ol>
-          <li><b>개인 구글 계정(@gmail.com)</b> 로그인 → <b>구글 스프레드시트</b> 접속 → <b>새 스프레드시트 만들기</b> → 상단 메뉴 <b>확장 프로그램 → Apps Script</b></li>
-          <li>기존 코드 전체 삭제 후 배포용 GAS 코드 붙여넣기 → 저장</li>
-          <li>함수 선택칸에서 <b>setupTrigger</b> 선택 → ▶ 실행 (처음 1회)</li>
-          <li>"확인하지 않은 앱" 경고 → <b>고급 → (프로젝트)(으)로 이동 → 허용</b> (내가 만든 코드라 나오는 정상 화면)</li>
-          <li>상단 메뉴 <b>배포 → 새 배포</b> 클릭</li>
-          <li>유형: <b>웹 앱</b> / 실행: <b>나</b> / 액세스: <b>모든 사용자</b> → 배포</li>
-          <li>웹앱 URL(…/exec) 복사</li>
-          <li>선생님 메뉴의 <b>🔗 연결·QR 탭</b>에 URL 붙여넣고 <b>연결 확인 후 저장</b></li>
-        </ol></div></details>
-      <details class="hdet"><summary>2️⃣ 기본 정보 설정하기</summary><div class="hb"><ol>
-          <li><b>⚙️ 기본 설정 탭</b>으로 이동</li>
-          <li>선생님 이름 · 직함 입력 후 저장</li>
-          <li>비밀번호는 첫 로그인 때 바꾸셨어요 (필요하면 여기서 다시 변경)</li>
-          <li>공지 문구 입력 후 저장 (선택)</li>
-        </ol></div></details>
-      <details class="hdet"><summary>3️⃣ 상담 시간 만들기 (시간표 올리기)</summary><div class="hb"><ol>
-          <li><b>📅 날짜/시간 탭</b> 맨 위 <b>🗓️ 내 시간표로 상담 시간 만들기</b> 카드로 이동</li>
-          <li>상담 1회 시간 · 쉬는 시간 · 점심시간 · <b>상담 시작일~종료일</b>을 확인 (방과 후 시간도 쓰려면 체크)</li>
-          <li><b>📂 시간표 올리기</b> (엑셀 또는 캡처 이미지) → 수업이 없는 <b>공강 시간이 상담 시간 후보</b>로 바로 만들어져요<br><span style="color:var(--gray-500);">잘 안 읽히면 <b>📥 엑셀 양식</b>을 내려받아 수업 칸에 아무 글자나 적어 올려 주세요</span></li>
-          <li>후보 중 <b>공휴일 · 시험일 등 뺄 날/시간은 체크 해제</b></li>
-          <li><b>✅ 선택한 시간 저장</b> → 날짜와 시간이 한 번에 들어가요 (날짜를 하나씩 추가할 필요 없어요)</li>
-          <li>올린 시간표는 이 기기에 저장돼서 다음에 열어도 보여요. 시간표 없이 쓰려면 아래 <b>📅 상담 날짜 & 시간 설정</b>에서 <b>+ 날짜 추가</b>로 직접 넣을 수도 있어요</li>
-        </ol></div></details>
-      <details class="hdet"><summary>🔒 예약 오픈·마감 · 신청 후 확정 설정</summary><div class="hb"><ol>
-          <li><b>⚙️ 기본 설정 탭 → 🔒 예약 오픈 · 마감 설정</b>에서 <b>오픈 시각</b>과 <b>마감 시각</b>을 정하면 자동으로 열리고 닫혀요 (스위치로 직접 열고 닫을 수도 있어요)</li>
-          <li><b>📝 신청 후 확정 모드</b>를 켜면 학부모에게 <b>"신청이 접수됐어요"</b>로 보여요. 시간은 신청 즉시 선점돼요</li>
-          <li><b>📋 예약 현황</b>에서 <b>📝 신청</b> 표시를 확인하고 <b>✅ 확정</b> (또는 <b>전체 확정</b>)을 누르면, 학부모가 <b>내 예약 확인</b>에서 <b>예약 확정</b>을 볼 수 있어요</li>
-          <li>실수로 눌렀다면: <b>✅ 확정</b>은 <b>↩️ 확정 취소(신청으로)</b>로 되돌릴 수 있고, <b>예약 취소</b>는 한 번 더 확인 창이 떠요 (취소하면 시간이 다시 열려요)</li>
-          <li>꺼 두면 신청하는 즉시 "예약이 완료됐어요"로 끝나요 (기본값)</li>
-        </ol></div></details>
-      <details class="hdet"><summary>4️⃣ 학부모에게 배포하기</summary><div class="hb"><ol>
-          <li><b>🔗 연결·QR 탭</b>으로 이동</li>
-          <li>⚠️ 먼저 이 가이드 맨 위 <b>'지금 내 연결 상태'</b>(또는 첫 화면 맨 위 연결 상태 띠)가 <b style="color:#059669;">초록색 "✅ 연결됨"</b>인지 확인해요. <b>빨간색이면 예약이 저장되지 않으니 배포하지 마세요.</b></li>
-          <li><b>QR 이미지 저장·복사</b> 또는 <b>링크 복사</b></li>
-          <li>가정통신문·알림장·단체방에 붙여 넣어 학부모님께 공유</li>
-        </ol></div></details>
-      <details class="hdet"><summary>🔑 비밀번호를 잊었을 때</summary><div class="hb"><ol>
-          <li>선생님 로그인 화면의 <b>🔑 비밀번호가 기억 안 나요</b>를 누르면 같은 안내가 나와요</li>
-          <li><b>📋 최신 코드 복사</b> → Apps Script에 붙여넣고 저장</li>
-          <li>함수 선택칸에서 <b>resetPassword</b> 선택 → <b>▶ 실행</b></li>
-          <li><b>배포 관리 → ✏️ 수정 → 새 버전 → 배포</b></li>
-          <li>비밀번호 <b>consultbooking</b>으로 로그인 → 새 비밀번호 설정 (예약 내역·설정은 그대로예요)</li>
-        </ol></div></details>
-      <details class="hdet"><summary>🆕 예약 기록까지 전부 새로 시작할 때</summary><div class="hb"><ol>
-          <li>가장 안전한 방법은 <b>새 구글 스프레드시트를 하나 더 만드는 거예요.</b> (옛 시트를 지우지 마세요)</li>
-          <li>위 <b>1️⃣ GAS 연결하기</b> 순서를 그대로 한 번 더 해요 (코드 붙여넣기 → <b>setupTrigger</b> 실행 → <b>새 배포</b> → 새 웹앱 URL 복사)</li>
-          <li><b>🔗 연결·QR 탭</b>에 <b>새 URL</b>을 붙여넣고 <b>연결 확인 후 저장</b> → 처음 설치처럼 시작돼요 (첫 비밀번호 <b>consultbooking</b> → 새로 정하기)</li>
-          <li>⚠️ <b>학부모 링크·QR도 새 URL로 다시 만들어 보내야 해요.</b> 이미 나간 옛 링크는 옛 시트로 계속 연결돼요</li>
-          <li>🔒 옛 시트에는 <b>학부모 이름·연락처</b>가 남아 있어요. 필요 없으면 시트를 정리(삭제)해 주세요</li>
-        </ol></div></details>
-      <details class="hdet"><summary>🔄 앱이 업데이트됐을 때 (GAS 코드 새 버전)</summary><div class="hb"><ol>
-          <li>앱 화면(HTML)은 링크로 열 때마다 <b>자동으로 최신</b>이 돼요. 하지만 <b>선생님 구글 시트 안의 GAS 코드는 자동으로 바뀌지 않아요.</b></li>
-          <li>새 기능에 GAS 코드가 필요하면 <b>🔗 연결·QR 탭</b>에 빨간 <b>"GAS 코드가 예전 버전"</b> 안내가 떠요 (이때도 학부모 예약은 계속 돼요)</li>
-          <li><b>📋 최신 코드 복사</b> → 시트의 <b>Apps Script</b>에서 기존 코드 전체 삭제 후 붙여넣기 → 저장</li>
-          <li><b>배포 → 배포 관리 → ✏️ 수정 → 버전: 새 버전 → 배포</b></li>
-          <li>💡 <b>새 배포</b>가 아니라 반드시 <b>수정</b>으로 해야 URL(학부모 링크·QR)이 그대로 유지돼요.</li>
-        </ol></div></details>
-    </div>
-
     <div class="admin-section" id="adminSec-review">
       <div class="admin-card">
         <div class="admin-card-title">💬 후기·개선점 남기기</div>
@@ -1146,8 +882,12 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
       </div>
       <div class="admin-card">
         <div class="admin-card-title">💬 후기 받기 · 받은 후기</div>
-        <div class="sw" id="ownRvSw" style="margin-bottom:10px;" onclick="ownerToggleReview()"><span class="tg"></span><div><b id="ownRvLabel">후기 받기</b><small id="ownRvCount"></small></div></div>
-      <button class="btn btn-secondary" onclick="ownerOpenReviews()" style="font-size:13px;padding:11px;">받은 후기 보기 <span id="ownRvNew"></span></button>
+        <div class="toggle-wrap" style="margin-bottom:10px;">
+          <label class="toggle"><input type="checkbox" id="ownRvToggle" onchange="ownerToggleReview()"><span class="toggle-slider"></span></label>
+          <span class="toggle-label" id="ownRvLabel">후기 받기</span>
+        </div>
+        <div style="font-size:12px;color:var(--gray-500);margin-bottom:10px;" id="ownRvCount"></div>
+        <button class="btn btn-secondary" onclick="ownerOpenReviews()" style="font-size:13px;padding:11px;">받은 후기 보기 <span id="ownRvNew"></span></button>
         <div id="ownRvList" style="margin-top:12px;"></div>
       </div>
       <div class="admin-card">
@@ -1265,14 +1005,13 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
       <div style="background:var(--primary-light);border-radius:12px;padding:14px;border-left:4px solid var(--primary);">
         <div style="font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:8px;">Step 1. GAS 연결하기</div>
         <ol style="font-size:13px;color:var(--gray-600);line-height:2;padding-left:18px;margin:0;">
-          <li><b>개인 구글 계정(@gmail.com)</b> 로그인 → <b>구글 스프레드시트</b> 접속 → <b>새 스프레드시트 만들기</b> → 상단 메뉴 <b>확장 프로그램 → Apps Script</b></li>
+          <li><b>구글 계정</b> 로그인 → <b>구글 스프레드시트</b> 접속 → <b>새 스프레드시트 만들기</b> → 상단 메뉴 <b>확장 프로그램 → Apps Script</b></li>
           <li>기존 코드 전체 삭제 후 배포용 GAS 코드 붙여넣기 → 저장</li>
           <li>함수 선택칸에서 <b>setupTrigger</b> 선택 → ▶ 실행 (처음 1회)</li>
-          <li>"확인하지 않은 앱" 경고 → <b>고급 → (프로젝트)(으)로 이동 → 허용</b> (내가 만든 코드라 나오는 정상 화면)</li>
           <li>상단 메뉴 <b>배포 → 새 배포</b> 클릭</li>
-          <li>유형: <b>웹 앱</b> / 실행: <b>나</b> / 액세스: <b>모든 사용자</b> → 배포</li>
-          <li>웹앱 URL(…/exec) 복사</li>
-          <li>선생님 메뉴의 <b>🔗 연결·QR 탭</b>에 URL 붙여넣고 <b>연결 확인 후 저장</b></li>
+          <li>유형: <b>웹 앱</b> / 액세스: <b>모든 사용자</b> → 배포 → 권한 허용</li>
+          <li>웹앱 URL 복사</li>
+          <li>관리자 화면 <b>🔗 GAS 연결 탭</b>에 URL 붙여넣고 <b>연결 확인 후 저장</b></li>
         </ol>
       </div>
 
@@ -1298,9 +1037,9 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
       <div style="background:var(--primary-light);border-radius:12px;padding:14px;border-left:4px solid var(--primary);">
         <div style="font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:8px;">Step 4. 학부모에게 배포하기</div>
         <ol style="font-size:13px;color:var(--gray-600);line-height:2;padding-left:18px;margin:0;">
-          <li><b>🔗 연결·QR 탭</b>으로 이동</li>
-          <li><b>QR 이미지 저장·복사</b> 또는 <b>링크 복사</b></li>
-          <li>가정통신문·알림장·단체방에 붙여 넣어 학부모님께 공유</li>
+          <li><b>🔗 GAS 연결 탭</b>으로 이동</li>
+          <li><b>학부모 배포용 링크 복사</b> 버튼 클릭</li>
+          <li>복사된 링크를 학부모들에게 공유</li>
         </ol>
       </div>
 
@@ -1332,7 +1071,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
       <p style="margin:10px 0 2px"><b>5. 학부모·학생 정보</b></p>
       <ul style="padding-left:18px"><li>학부모·학생의 이름, 연락처, 상담 희망 내용은 개발자에게 전달되지 않아요. 각 선생님 본인의 구글 시트에만 저장되고, 선생님이 관리·삭제해요.</li></ul>
       <p style="margin:10px 0 2px"><b>6. 동의 거부 권리와 불이익</b></p>
-      <ul style="padding-left:18px"><li>동의하지 않을 수 있어요. 다만 동의하지 않으면 사용자 등록을 할 수 없어서 선생님 기능을 쓸 수 없어요.</li></ul>
+      <ul style="padding-left:18px"><li>동의하지 않을 수 있어요. 다만 동의하지 않으면 사용자 등록을 할 수 없어서 관리자 기능을 쓸 수 없어요.</li></ul>
       <p style="margin:10px 0 2px"><b>7. 열람·정정·삭제·처리정지 요청, 문의</b></p>
       <ul style="padding-left:18px"><li>앱 개발자 Cheon_R · <b>fond7509@naver.com</b></li></ul>
       <p style="margin:10px 0 0;color:var(--gray-400)">이 방침이 바뀌면 앱 안에서 알려 드려요.</p>
@@ -1354,16 +1093,6 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
   </div>
 </div>
 
-<!-- ===================== QR 크게 보기 ===================== -->
-<div class="modal-overlay" id="qrViewModal" onclick="if(event.target===this)closeQrView()">
-  <div class="modal-sheet" style="max-height:92vh;overflow-y:auto;text-align:center;">
-    <div class="modal-handle"></div>
-    <img id="qrViewImg" class="qr-view-img" alt="학부모 상담 예약 QR">
-    <p id="qrViewHint" style="font-size:13px;color:var(--gray-500);line-height:1.7;margin-bottom:14px;">이 화면을 학부모님께 보여 드리거나, 이미지를 <b>길게 눌러</b> 저장·복사할 수 있어요.</p>
-    <button class="btn btn-secondary" onclick="closeQrView()">닫기</button>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1379,16 +1108,12 @@ const DEFAULT_GAS_URL = '';
 
 // URL 파라미터로 GAS URL이 전달된 경우 자동 세팅 (배포용) — 형식이 정확할 때만 저장
 const GAS_URL_RE = /^https:\/\/script\.google\.com\/(?:a\/macros\/[A-Za-z0-9.\-]+|macros)\/s\/[A-Za-z0-9_\-]+\/exec$/;
-const NEED_GAS   = 8;   // 이 HTML이 요구하는 GAS 코드 버전 (GAS 파일의 GAS_VER와 비교)
-const PW_MIN     = 6;   // 새 비밀번호 최소 길이 (GAS의 PW_MIN과 같게)
+const NEED_GAS   = 4;   // 이 HTML이 요구하는 GAS 코드 버전 (GAS 파일의 GAS_VER와 비교)
 function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
 function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
-function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
-// 링크(?gas=)로 들어온 주소는 이 화면에서만 쓰고 저장하지 않음
-// → 다른 선생님 링크나 낯선 링크를 열어도 내 관리자 연결이 몰래 바뀌지 않아요
 const _paramGasUrl = (new URLSearchParams(window.location.search).get('gas') || '').trim();
-const _paramOk     = !!_paramGasUrl && GAS_URL_RE.test(_paramGasUrl);
-let GAS_URL = _paramOk ? _paramGasUrl : (lsGet(GAS_URL_KEY) || DEFAULT_GAS_URL);
+if (_paramGasUrl && GAS_URL_RE.test(_paramGasUrl)) { lsSet(GAS_URL_KEY, _paramGasUrl); }
+let GAS_URL = lsGet(GAS_URL_KEY) || DEFAULT_GAS_URL;
 if (GAS_URL && !GAS_URL_RE.test(GAS_URL)) GAS_URL = '';   // 저장된 값이 이상하면 무시
 
 // 앱 상태 (메모리) — 비밀번호는 절대 보관하지 않음 (서버에서만 확인)
@@ -1425,13 +1150,13 @@ function bookingOpenNow(){ return appSettings.bookingEnabled === true; }
 
 
 // ── GAS 호출 유틸 (JSONP 방식 - CORS 우회) ────────────
-function jsonp(url, waitMs) {
+function jsonp(url) {
   return new Promise((resolve, reject) => {
     const cb = 'cb_' + Date.now() + '_' + Math.floor(Math.random()*10000);
     const script = document.createElement('script');
     const timer = setTimeout(() => {
       cleanup(); reject(new Error('timeout'));
-    }, waitMs || 15000);
+    }, 15000);
     function cleanup() { clearTimeout(timer); delete window[cb]; if(script.parentNode) script.parentNode.removeChild(script); }
     window[cb] = (data) => { cleanup(); resolve(data); };
     script.onerror = () => { cleanup(); reject(new Error('Failed to fetch')); };
@@ -1459,12 +1184,7 @@ function adminCheck(res) {
   if (res && res.result==='denied') { adminLogout(); showToast('🔒 다시 로그인해 주세요'); throw new Error('인증이 필요해요'); }
   if (res && res.result==='locked') throw new Error('로그인 시도가 너무 많아요. 10분 뒤 다시 해 주세요.');
   if (res && res.result==='busy')   throw new Error('다른 요청을 처리 중이에요. 잠시 뒤 다시 해 주세요.');
-  if (res && res.result==='mustChange') { showForcePwChange(); throw new Error('비밀번호를 먼저 바꿔 주세요'); }
   return res;
-}
-function showForcePwChange() {
-  document.getElementById('forcePwError').style.display='none';
-  showScreen('adminPwChangeScreen');
 }
 
 // ── 설정 저장 중 플래그 (폴링이 저장 중인 설정을 덮어쓰는 race condition 방지) ──
@@ -1506,8 +1226,7 @@ async function pollSlots() {
     }
 
     // 슬롯 최신화 (선택 중인 날짜/시간은 state의 키로 유지)
-    // 바뀐 게 있을 때만 다시 그림 (입력 중인 칸·선택 표시가 30초마다 지워지지 않게)
-    if (res.slots && JSON.stringify(res.slots) !== JSON.stringify(appSlots)) {
+    if (res.slots) {
       appSlots = res.slots;
       renderDateGrid();
       if (state.currentStep === 3) renderTimeGrid();
@@ -1515,19 +1234,13 @@ async function pollSlots() {
     }
   } catch(e) {}  // 조용히 실패
 }
-// 화면을 안 보고 있을 때(다른 탭·화면 꺼짐)는 폴링을 쉬고, 돌아오면 바로 한 번 갱신
-let _pollWanted = false;
-function _pollRun() {
-  if (_pollingTimer) { clearInterval(_pollingTimer); _pollingTimer = null; }
-  if (_pollWanted && !document.hidden) _pollingTimer = setInterval(pollSlots, 30000);  // 30초
+function startPolling() {
+  if (_pollingTimer) clearInterval(_pollingTimer);
+  _pollingTimer = setInterval(pollSlots, 30000);  // 30초
 }
-function startPolling() { _pollWanted = true;  _pollRun(); }
-function stopPolling()  { _pollWanted = false; _pollRun(); }
-document.addEventListener('visibilitychange', () => {
-  if (!_pollWanted) return;
-  _pollRun();
-  if (!document.hidden) pollSlots();
-});
+function stopPolling() {
+  if (_pollingTimer) { clearInterval(_pollingTimer); _pollingTimer = null; }
+}
 
 function applyAllData(data) {
   syncServerTime(data.serverNow);
@@ -1543,7 +1256,6 @@ function setBanner(type, msg) {
   const b = document.getElementById('gasBanner');
   b.className = 'gas-banner ' + type;
   document.getElementById('gasBannerText').textContent = msg;
-  { const gc = document.getElementById('guideConn'); if (gc) { gc.className = 'gas-banner ' + type; gc.textContent = msg; } }   // 가이드 안에도 같은 연결 상태를 보여 줌
   const sub = document.getElementById('gasBannerSub');
   if (type === 'ok') {
     sub.textContent = '✔ 이 상태일 때만 예약이 저장돼요';
@@ -1594,19 +1306,6 @@ function applySettingsUI() {
     ci.textContent = `⏰ 접수 마감: ${parseInt(mm)}월 ${parseInt(dd)}일 ${t||''}`;
     ci.style.display = '';
   } else { ci.style.display = 'none'; }
-  // 예약 시작 전 안내 (자동 오픈 시각이 아직 안 됐을 때) — 그 외에는 원래 마감 문구로 되돌림
-  { const cm = document.getElementById('bookingClosedMsg');
-    if (cm) {
-      const cp = cm.querySelector('p'), ci2 = cm.querySelector('.empty-icon');
-      if (cp && ci2) {
-        if (cm.dataset.o === undefined) { cm.dataset.o = cp.innerHTML; cm.dataset.i = ci2.textContent; }
-        if (s.bookingEnabled === false && s.notYetOpen && s.openAt) {
-          const [od,ot] = String(s.openAt).split('T'); const [,om,odd] = (od||'').split('-');
-          ci2.textContent = '⏳';
-          cp.innerHTML = '예약은 <b>' + parseInt(om) + '월 ' + parseInt(odd) + '일 ' + esc(ot||'') + '</b>부터 받아요.<br>그때 다시 접속해 주세요.';
-        } else { ci2.textContent = cm.dataset.i; cp.innerHTML = cm.dataset.o; }
-      }
-    } }
   // 전화상담 카드 숨기기/보이기
   const typePhone = document.getElementById('typePhone');
   if (typePhone) typePhone.style.display = s.phoneEnabled ? '' : 'none';
@@ -1618,18 +1317,10 @@ function applySettingsUI() {
     document.getElementById('setNotice').value         = (a.notice || '').replace(/\\n/g, '\n');
     document.getElementById('phoneToggle').checked     = !!a.phoneEnabled;
     document.getElementById('phoneToggleLabel').textContent = a.phoneEnabled ? '전화 상담 활성화됨' : '전화 상담 비활성화';
-    document.getElementById('bookingToggle').checked        = !!a.bookingEnabled;   // 켜짐 = 예약 받는 중
+    document.getElementById('bookingToggle').checked        = !a.bookingEnabled;
     document.getElementById('bookingToggleLabel').textContent =
-      !a.bookingEnabled ? '🔒 예약 마감됨 (켜면 다시 받아요)' : (a.effectiveOpen ? '✅ 예약 받는 중' : '⏰ 자동 마감 시각이 지나 마감됨');
+      !a.bookingEnabled ? '예약 마감됨' : (a.effectiveOpen ? '예약 진행 중' : '⏰ 자동 마감 시각이 지나 마감됨');
     document.getElementById('setCloseAt').value        = a.closeAt || '';
-    // 자동 오픈 시각 (추가)
-    { const oe = document.getElementById('setOpenAt'); if (oe) oe.value = a.openAt || ''; }
-    { const ce = document.getElementById('confirmToggle'); if (ce) { ce.checked = !!a.confirmMode;
-        document.getElementById('confirmToggleLabel').textContent = a.confirmMode ? '켜짐 · 신청 후 선생님이 확정' : '꺼짐 · 신청하면 바로 예약 완료'; } }
-    if (a.bookingEnabled && a.notYetOpen) {
-      const [od,ot] = String(a.openAt || '').split('T'); const [,om,odd] = (od||'').split('-');
-      document.getElementById('bookingToggleLabel').textContent = '⏳ 예약 시작 전 (' + parseInt(om) + '월 ' + parseInt(odd) + '일 ' + (ot||'') + '에 자동으로 열려요)';
-    }
   }
 }
 
@@ -1817,11 +1508,6 @@ async function submitBooking() {
       alert('이미 지난 시간이에요. 다른 시간을 선택해 주세요.');
       await closeSlotConflictModal(); return;
     }
-    if (res.result === 'gone') {
-      resetBtn(); closeConfirmModal();
-      alert('선택하신 시간이 선생님 일정 변경으로 없어졌어요. 다른 시간을 선택해 주세요.');
-      await closeSlotConflictModal(); return;
-    }
     if (res.result === 'phoneOff') {
       resetBtn(); closeConfirmModal(); alert('지금은 전화 상담을 받지 않아요.'); return;
     }
@@ -1853,13 +1539,6 @@ async function submitBooking() {
     document.getElementById('successDesc').innerHTML = state.consultType==='phone'
       ? '선생님이 예약 시간에 맞춰 전화 드릴 예정이에요.<br>연락처를 확인해 두세요.'
       : '상담 당일 잊지 말고 방문해 주세요.<br>변경이 필요하시면 담임 선생님께 연락해 주세요.';
-    { // 신청 후 확정 모드: 접수 문구 (꺼져 있으면 기존 문구 그대로)
-      const tt = document.querySelector('#successScreen .success-title');
-      if (res.pending) {
-        if (tt) tt.textContent = '신청이 접수됐어요!';
-        document.getElementById('successDesc').innerHTML = '선생님이 확인하면 <b>예약 확정</b>으로 바뀌어요.<br>나중에 <b>\'내 예약 확인\'</b>에서 꼭 확인해 주세요.';
-      } else if (tt) tt.textContent = '예약이 완료됐어요!';
-    }
     stopPolling();
     showScreen('successScreen');
 
@@ -1883,11 +1562,11 @@ async function doCheckBooking() {
   result.innerHTML = '<div style="text-align:center;padding:14px;color:var(--gray-400);font-size:13px;">⏳ 확인 중...</div>';
   result.style.display='';
 
-  let b = null, ckRes = null;
+  let b = null;
   try {
     const res = await gasGet({ action:'checkBooking', student:name, last4 });
     if (res.result !== 'success') throw new Error(res.message||'확인 실패');
-    b = res.found ? res.booking : null; ckRes = res;
+    b = res.found ? res.booking : null;
   } catch(e) {
     result.innerHTML = `<div style="text-align:center;padding:16px;color:#DC2626;font-size:13px;">❌ 확인하지 못했어요. 잠시 뒤 다시 시도해 주세요.</div>`;
     return;
@@ -1897,16 +1576,13 @@ async function doCheckBooking() {
     const typeLabel = b.type==='전화' ? '📞 전화 상담' : '📅 대면 상담';
     result.innerHTML = `
       <div style="background:var(--primary-light);border-radius:10px;padding:16px;">
-        <div style="font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:10px;">${ckRes && ckRes.status==='신청' ? '📝 신청이 접수됐어요' : (ckRes && ckRes.status==='확정' && appSettings.confirmMode ? '✅ 예약이 확정됐어요!' : '✅ 예약이 확인됐어요!')}</div>
+        <div style="font-size:13px;font-weight:700;color:var(--primary-dark);margin-bottom:10px;">✅ 예약이 확인됐어요!</div>
         <div style="font-size:13px;color:var(--gray-700);line-height:2;">
           <div>상담 방식 &nbsp;<strong>${typeLabel}</strong></div>
           <div>날짜 &nbsp;<strong>${esc(b.date)}</strong></div>
           <div>시간 &nbsp;<strong>${esc(b.time)}</strong></div>
         </div>
-        ${ckRes && ckRes.status==='신청' ? '<div style="margin-top:10px;font-size:12px;color:var(--gray-500);line-height:1.6;">선생님이 확인하면 <b>예약 확정</b>으로 바뀌어요. 나중에 다시 확인해 주세요.</div>' : ''}
       </div>`;
-  } else if (ckRes && ckRes.released) {
-    result.innerHTML = `<div style="text-align:center;padding:16px;color:var(--gray-600);font-size:14px;line-height:1.8;">💬 예약이 확정되지 않았어요<br><span style="font-size:12px;">담임 선생님께서 연락 주실 거예요</span></div>`;
   } else {
     result.innerHTML = `<div style="text-align:center;padding:16px;color:var(--gray-400);font-size:14px;line-height:1.7;">📭 예약 내역이 없어요<br><span style="font-size:12px;">이름과 연락처 뒤 4자리를 다시 확인해 주세요</span></div>`;
   }
@@ -1937,9 +1613,8 @@ async function closeSlotConflictModal() {
 // ══════════════════════════════════════════════════════
 function showAdminLogin() {
   if (needPreReg()) { openReg('pre'); return; }   // 처음이면 사용자 등록(지역·학교급·아이디)부터
-  document.getElementById('loginPwInput').value=''; document.getElementById('loginError').style.display='none'; { const ob = document.getElementById('loginOldGasBox'); if (ob) ob.style.display='none'; const fb = document.getElementById('loginForgotBox'); if (fb) fb.style.display='none'; }
+  document.getElementById('loginPwInput').value=''; document.getElementById('loginError').style.display='none';
   document.getElementById('loginGasBox').style.display = GAS_URL ? 'none' : '';
-  { const ib = document.getElementById('loginInstallBox'); if (ib) ib.style.display = GAS_URL ? 'none' : ''; }
   showScreen('adminLoginScreen');
 }
 function showLoginErr(msg) { const el=document.getElementById('loginError'); el.textContent=msg; el.style.display='block'; }
@@ -1951,24 +1626,17 @@ async function doLogin() {
   btn.disabled = true; btn.textContent = '확인 중...';
   try {
     // 처음 설치: 웹앱 주소부터 연결
-    const wasNoGas = !GAS_URL;
     if (!GAS_URL) {
       const u = document.getElementById('loginGasInput').value.trim();
       if (!GAS_URL_RE.test(u)) { showLoginErr('웹앱 주소(https://script.google.com/…/exec)를 정확히 붙여넣어 주세요.'); return; }
       const t = await jsonp(u + '?action=getAll');
       if (t.result !== 'success') throw new Error('연결 확인 실패');
-      GAS_URL = u;
+      GAS_URL = u; lsSet(GAS_URL_KEY, u);
     }
-    // 링크로 들어온 주소가 평소 쓰던 주소와 다르면, 비밀번호를 보내기 전에 한 번 확인 (낯선 링크로 비밀번호가 새지 않게)
-    const savedUrl = lsGet(GAS_URL_KEY);
-    if (savedUrl && savedUrl !== GAS_URL &&
-        !confirm('⚠️ 평소 연결하던 시트와 다른 주소로 로그인하려고 해요.\n\n선생님이 직접 만든 링크가 아니라면 [취소]를 누르고, 앱 주소만 따로 열어서 로그인해 주세요.\n\n계속할까요?')) return;
     const res = await gasPost({ action:'adminLogin', pw });
     if (res.result === 'locked') { showLoginErr('로그인 시도가 너무 많아요. 10분 뒤 다시 해 주세요.'); return; }
-    if (res.result === 'error' && /unknown action/.test(res.message||'')) { showLoginErr('GAS 코드가 예전 버전이에요. 최신 코드로 "배포 관리 → 수정" 배포해 주세요.'); { const ob = document.getElementById('loginOldGasBox'); if (ob) ob.style.display = ''; } return; }
+    if (res.result === 'error' && /unknown action/.test(res.message||'')) { showLoginErr('GAS 코드가 예전 버전이에요. 최신 코드로 "배포 관리 → 수정" 배포해 주세요.'); return; }
     if (res.result !== 'success') { showLoginErr('비밀번호가 올바르지 않아요.'); return; }
-    lsSet(GAS_URL_KEY, GAS_URL);   // 로그인에 성공한 주소만 저장
-    if (wasNoGas) loadAll();   // 처음 연결한 직후: 메인 화면의 연결 상태(빨간 안내)·예약 화면·실시간 동기화를 바로 갱신
     adminPw = pw; adminCfg = res.settings; needGasUpdate = (res.gasVer||0) < NEED_GAS; adminInstallId = res.installId || '';
     if (res.mustChange) { document.getElementById('forcePwError').style.display='none'; showScreen('adminPwChangeScreen'); return; }
     await afterAdminAuth();
@@ -1983,8 +1651,7 @@ async function enterAdmin() {
   switchAdminTab('gasurl');  // 항상 GAS 연결 탭부터 시작
   updateGasVerNotice();
   applyRegUi(); rvVisit();
-  try { await adminRefreshAll(); }
-  catch(e) { showToast('⚠️ 최신 정보를 불러오지 못했어요: ' + e.message); }
+  await adminRefreshAll();
 }
 function updateGasVerNotice() { document.getElementById('gasVerNotice').style.display = needGasUpdate ? '' : 'none'; }
 async function doForcePwChange() {
@@ -1992,7 +1659,7 @@ async function doForcePwChange() {
   const err = document.getElementById('forcePwError'), btn = document.getElementById('forcePwBtn');
   const bad = m => { err.textContent=m; err.style.display='block'; };
   err.style.display='none';
-  if (nw.length < PW_MIN) { bad('새 비밀번호는 ' + PW_MIN + '자 이상이어야 해요.'); return; }
+  if (nw.length < 4)  { bad('새 비밀번호는 4자 이상이어야 해요.'); return; }
   if (nw !== cf)      { bad('비밀번호 확인이 일치하지 않아요.'); return; }
   btn.disabled = true; btn.textContent = '변경 중...';
   try {
@@ -2022,7 +1689,7 @@ function closeGuideModal() { document.getElementById('guideModal').classList.rem
 // GAS URL 연결 끊기
 function adminDisconnectGasUrl() {
   if (!confirm('GAS 연결을 끊을까요?\n연결을 끊으면 앱이 작동하지 않아요.')) return;
-  lsDel(GAS_URL_KEY);
+  localStorage.removeItem(GAS_URL_KEY);
   GAS_URL = '';
   stopPolling();
   document.getElementById('currentGasUrlDisplay').textContent = '(미설정)';
@@ -2101,15 +1768,11 @@ function showStudentLinkCard(gasUrl) {
 
 function copyStudentLink() {
   const link = document.getElementById('studentLinkDisplay').textContent;
-  const msg = document.getElementById('studentLinkCopyMsg');
-  const show = (t) => { msg.textContent = t; msg.style.display = 'block'; setTimeout(() => { msg.style.display = 'none'; }, 2500); };
-  const fallback = () => {   // 카톡 안 브라우저 등 clipboard API가 막힌 곳
-    const ta = document.createElement('textarea'); ta.value = link; ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
-    document.body.appendChild(ta); ta.focus(); ta.select(); let ok = false; try { ok = document.execCommand('copy'); } catch(e) {}
-    ta.remove(); show(ok ? '✅ 복사됐어요!' : '⚠️ 자동 복사가 안 돼요. 위 주소를 길게 눌러 복사해 주세요.');
-  };
-  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(link).then(() => show('✅ 복사됐어요!')).catch(fallback);
-  else fallback();
+  navigator.clipboard.writeText(link).then(() => {
+    const msg = document.getElementById('studentLinkCopyMsg');
+    msg.style.display = 'block';
+    setTimeout(() => { msg.style.display = 'none'; }, 2500);
+  });
 }
 
 // ── 관리자 설정 저장 (모두 GAS POST) ─────────────────
@@ -2122,7 +1785,7 @@ async function adminSaveSettings(partial, toastMsg) {
     // ★ 서버가 저장 성공을 확인해 준 값으로만 화면 갱신
     adminCfg = res.settings;
     appSettings = { ...appSettings, teacherName:adminCfg.teacherName, teacherRole:adminCfg.teacherRole, notice:adminCfg.notice,
-                    phoneEnabled:adminCfg.phoneEnabled, closeAt:adminCfg.closeAt, bookingEnabled:adminCfg.effectiveOpen, confirmMode:adminCfg.confirmMode };
+                    phoneEnabled:adminCfg.phoneEnabled, closeAt:adminCfg.closeAt, bookingEnabled:adminCfg.effectiveOpen };
     applySettingsUI();
     showToast(toastMsg || '✅ 저장됐어요!');
   } catch(err) {
@@ -2135,19 +1798,9 @@ async function adminSaveSettings(partial, toastMsg) {
 function adminSaveCloseAt() {
   const v = document.getElementById('setCloseAt').value;
   if (!v) { alert('마감할 날짜와 시각을 선택해 주세요.'); return; }
-  { const o = (document.getElementById('setOpenAt') && document.getElementById('setOpenAt').value) || (adminCfg && adminCfg.openAt) || ''; if (o && v.replace('T',' ') <= o.replace('T',' ')) { alert('마감 시각은 오픈 시각보다 뒤여야 해요.\n오픈 시각을 먼저 확인해 주세요.'); return; } }
   if (v.replace('T',' ') <= nowKstStr() && !confirm('이미 지난 시각이에요.\n저장하면 바로 마감돼요. 계속할까요?')) return;
   adminSaveSettings({ closeAt:v }, '⏰ 자동 마감 시각이 저장됐어요!');
 }
-function adminSaveOpenAt() {
-  const v = document.getElementById('setOpenAt').value;
-  if (!v) { alert('열릴 날짜와 시각을 선택해 주세요.'); return; }
-  const c = document.getElementById('setCloseAt').value || (adminCfg && adminCfg.closeAt) || '';
-  if (c && v.replace('T',' ') >= c.replace('T',' ')) { alert('오픈 시각은 마감 시각보다 앞이어야 해요.\n마감 시각을 먼저 확인해 주세요.'); return; }
-  if (adminCfg && adminCfg.bookingEnabled === false) { if (!confirm('지금 위 스위치가 꺼져(마감) 있어요.\n오픈 시각이 되어도 스위치를 켜기 전에는 열리지 않아요. 계속 저장할까요?')) return; }
-  adminSaveSettings({ openAt:v }, '🕘 자동 오픈 시각이 저장됐어요!');
-}
-function adminClearOpenAt() { adminSaveSettings({ openAt:'' }, '🕘 자동 오픈 시각을 해제했어요'); }
 function adminClearCloseAt() { adminSaveSettings({ closeAt:'' }, '⏰ 자동 마감 시각을 해제했어요'); }
 
 function adminSaveTeacherInfo() {
@@ -2160,12 +1813,8 @@ function adminSaveNotice() {
   adminSaveSettings({ notice: document.getElementById('setNotice').value.trim() }, '📢 공지가 저장됐어요!');
 }
 function adminSaveBookingToggle() {
-  const enabled = document.getElementById('bookingToggle').checked;   // 켜짐 = 예약 받는 중
+  const enabled = !document.getElementById('bookingToggle').checked;
   adminSaveSettings({ bookingEnabled: enabled }, enabled ? '✅ 예약이 열렸어요!' : '🔒 예약이 마감됐어요!');
-}
-function adminSaveConfirmToggle() {
-  const on = document.getElementById('confirmToggle').checked;
-  adminSaveSettings({ confirmMode: on }, on ? '📝 신청 후 확정 모드가 켜졌어요!' : '신청하면 바로 예약 완료로 돌아갔어요');
 }
 function adminSavePhoneToggle() {
   const enabled = document.getElementById('phoneToggle').checked;
@@ -2180,7 +1829,7 @@ async function adminSavePassword() {
   msg.style.display='block';
   if (!GAS_URL) { msg.style.color='#D97706'; msg.textContent='⚠️ GAS URL 연결 후 사용 가능해요!'; return; }
   if (!cur)  { msg.style.color='#EF4444'; msg.textContent='현재 비밀번호를 입력해 주세요.'; return; }
-  if (nw.length < PW_MIN) { msg.style.color='#EF4444'; msg.textContent='새 비밀번호는 ' + PW_MIN + '자 이상이어야 해요.'; return; }
+  if (nw.length < 4) { msg.style.color='#EF4444'; msg.textContent='새 비밀번호는 4자 이상이어야 해요.'; return; }
   if (nw!==cf){ msg.style.color='#EF4444'; msg.textContent='새 비밀번호가 일치하지 않아요.'; return; }
   try {
     // 현재 비밀번호 확인과 변경 모두 서버가 처리 (성공 확인 뒤에만 화면에 반영)
@@ -2203,7 +1852,7 @@ async function adminClearBookings() {
     const res = adminCheck(await gasAdmin('clearBookings'));
     if (res.result !== 'success') throw new Error(res.message||res.result);
     appSlots = res.slots || appSlots; appBookings = []; bookingCache = [];
-    renderDateGrid(); renderDaySlotList(); renderBookings(); updateRetentionBanner();
+    renderDateGrid(); renderDaySlotList(); renderBookings();
     showToast('🗑️ 예약이 모두 삭제됐어요');
   } catch(e) { showToast('❌ 실패: '+e.message); }
 }
@@ -2214,7 +1863,7 @@ async function adminClearAll() {
     const res = adminCheck(await gasAdmin('clearAll'));
     if (res.result !== 'success') throw new Error(res.message||res.result);
     appSlots = []; appBookings = []; bookingCache = [];
-    renderDateGrid(); renderDaySlotList(); renderBookings(); updateRetentionBanner();
+    renderDateGrid(); renderDaySlotList(); renderBookings();
     showToast('🗑️ 전체 초기화 완료!');
   } catch(e) { showToast('❌ 실패: '+e.message); }
 }
@@ -2224,10 +1873,6 @@ function renderDaySlotList() {
   const wrap = document.getElementById('daySlotList');
   if (!wrap) return;
   if (!appSlots.length) { wrap.innerHTML='<div class="empty-state"><div class="empty-icon">📅</div><p>추가된 날짜가 없어요</p></div>'; return; }
-  // 다시 그려도 입력 중이던 시작/종료 시각은 날짜별로 그대로 유지
-  const keep = {};
-  wrap.querySelectorAll('input[data-dk]').forEach(el => { if (el.value) keep[el.dataset.dk + '|' + el.dataset.k] = el.value; });
-  const focusedId = document.activeElement && wrap.contains(document.activeElement) ? document.activeElement.dataset.dk + '|' + document.activeElement.dataset.k : '';
   wrap.innerHTML = appSlots.map((d,di) => {
     const slotsHtml = d.slots.length
       ? `<div class="slot-grid">${d.slots.map((s,si)=>`
@@ -2244,16 +1889,15 @@ function renderDaySlotList() {
       ${slotsHtml}
       <div style="display:flex;gap:12px;align-items:flex-end;margin-top:14px;">
         <div style="flex:1;"><label style="font-size:11px;color:var(--gray-500);font-weight:600;display:block;margin-bottom:5px;">시작</label>
-          <input type="time" id="slotStart-${di}" data-dk="${esc(d.dateKey)}" data-k="s" value="${esc(keep[d.dateKey+'|s']||'')}" style="width:100%;padding:11px 6px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:13px;outline:none;font-family:'Pretendard',sans-serif;color:var(--gray-700);background:#fff;"></div>
+          <input type="time" id="slotStart-${di}" style="width:100%;padding:11px 6px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:13px;outline:none;font-family:'Pretendard',sans-serif;color:var(--gray-700);background:#fff;"></div>
         <div style="flex:1;"><label style="font-size:11px;color:var(--gray-500);font-weight:600;display:block;margin-bottom:5px;">종료</label>
-          <input type="time" id="slotEnd-${di}" data-dk="${esc(d.dateKey)}" data-k="e" value="${esc(keep[d.dateKey+'|e']||'')}" style="width:100%;padding:11px 6px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:13px;outline:none;font-family:'Pretendard',sans-serif;color:var(--gray-700);background:#fff;"></div>
+          <input type="time" id="slotEnd-${di}" style="width:100%;padding:11px 6px;border:1.5px solid var(--gray-200);border-radius:8px;font-size:13px;outline:none;font-family:'Pretendard',sans-serif;color:var(--gray-700);background:#fff;"></div>
         <div style="flex:0 0 52px;padding-top:16px;">
           <button onclick="addSlot(${di})" style="width:52px;padding:11px 0;background:rgba(155,142,196,0.18);border:1.5px solid rgba(155,142,196,0.5);border-radius:8px;font-size:13px;font-weight:700;color:var(--primary-dark);cursor:pointer;font-family:'Pretendard',sans-serif;">추가</button>
         </div>
       </div>
     </div>`;
   }).join('');
-  if (focusedId) { const [dk,k] = focusedId.split('|'); const el = [...wrap.querySelectorAll('input[data-dk]')].find(x => x.dataset.dk===dk && x.dataset.k===k); if (el) el.focus(); }
 }
 
 function openAddDayModal()  { document.getElementById('newDayInput').value=''; document.getElementById('addDayModal').classList.add('open'); }
@@ -2317,15 +1961,8 @@ async function adminRefreshAll() {
   adminCfg = res.settings; needGasUpdate = (res.gasVer||0) < NEED_GAS; updateGasVerNotice();
   appSlots = res.slots; appBookings = res.bookings; bookingCache = res.bookings;
   appSettings = { ...appSettings, teacherName:adminCfg.teacherName, teacherRole:adminCfg.teacherRole, notice:adminCfg.notice,
-                  phoneEnabled:adminCfg.phoneEnabled, closeAt:adminCfg.closeAt, bookingEnabled:adminCfg.effectiveOpen, confirmMode:adminCfg.confirmMode };
-  applySettingsUI(); renderDateGrid(); renderDaySlotList(); updateRetentionBanner();
-}
-// 상담 시간이 모두 지났는데 예약(학부모 개인정보)이 남아 있으면 삭제 안내 (동의서 약속: 상담이 끝나면 삭제)
-function updateRetentionBanner() {
-  const el = document.getElementById('retentionBanner'); if (!el) return;
-  const all = appSlots.flatMap(d => d.slots.map(s => ({ d:d.dateKey, t:s.time })));
-  const allPast = all.length > 0 && all.every(x => slotEndedNow(x.d, x.t));
-  el.style.display = (allPast && (bookingCache||[]).length > 0) ? '' : 'none';
+                  phoneEnabled:adminCfg.phoneEnabled, closeAt:adminCfg.closeAt, bookingEnabled:adminCfg.effectiveOpen };
+  applySettingsUI(); renderDateGrid(); renderDaySlotList(); if (tt) ttRender();
 }
 async function adminRefreshSlots() {
   const list = document.getElementById('daySlotList');
@@ -2347,7 +1984,7 @@ async function adminLoadBookings() {
     if (res.result!=='success') throw new Error(res.message||res.result);
     appBookings  = res.data;
     bookingCache = res.data;
-    renderBookings(); updateRetentionBanner();
+    renderBookings();
   } catch(e) { wrap.innerHTML=`<div class="empty-state"><div class="empty-icon">❌</div><p>불러오기 실패: ${esc(e.message)}</p></div>`; }
 }
 
@@ -2368,19 +2005,14 @@ function renderBookings() {
     dateKey:   b['날짜키']||b.dateKey||'',
     memo:      b['상담내용']||b.memo||'',
     createdAt: b['신청일시']||b.createdAt||'',
-    status:    (b['상태']||b.status||'')==='신청' ? '신청' : '확정',
   }));
 
   if (bookingFilter==='face')  all=all.filter(b=>b.type!=='전화'&&b.type!=='phone');
   if (bookingFilter==='phone') all=all.filter(b=>b.type==='전화'||b.type==='phone');
-  if (bookingFilter==='pending') all=all.filter(b=>b.status==='신청');
   if (!all.length) { wrap.innerHTML='<div class="empty-state"><div class="empty-icon">🔍</div><p>해당 조건의 예약이 없어요</p></div>'; return; }
 
-  // '10월 5일' 같은 글자가 아니라 날짜키(2026-10-05)로 정렬 (글자로 하면 10월이 9월보다, 12일이 5일보다 앞에 옴)
-  if (bookingSort==='date') all.sort((a,b)=>a.dateKey.localeCompare(b.dateKey)||a.time.localeCompare(b.time));
-  else                       all.sort((a,b)=>a.time.localeCompare(b.time)||a.dateKey.localeCompare(b.dateKey));
-  // 학생순: 이름 가나다순 → 같은 이름이면 날짜·시간순
-  if (bookingSort==='student') all.sort((a,b)=>String(a.student).localeCompare(String(b.student),'ko')||a.dateKey.localeCompare(b.dateKey)||a.time.localeCompare(b.time));
+  if (bookingSort==='date') all.sort((a,b)=>a.dateLabel.localeCompare(b.dateLabel)||a.time.localeCompare(b.time));
+  else                       all.sort((a,b)=>a.time.localeCompare(b.time)||a.dateLabel.localeCompare(b.dateLabel));
 
   const html = all.map(b => {
     const isPhone  = b.type==='전화'||b.type==='phone';
@@ -2389,56 +2021,23 @@ function renderBookings() {
       : `<span style="font-size:11px;background:#F5F3FF;color:#8B5CF6;border-radius:6px;padding:2px 8px;font-weight:700;">📅 대면</span>`;
     return `<div style="background:var(--gray-50);border-radius:10px;padding:14px;margin-bottom:8px;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
-        <div style="display:flex;align-items:center;gap:8px;">${typeTag}<strong style="font-size:14px;">${esc(b.student)}</strong>${b.status==='신청' ? '<span style="font-size:11px;background:#FEF3C7;color:#B45309;border-radius:6px;padding:2px 8px;font-weight:700;">📝 신청</span>' : (appSettings.confirmMode ? '<span style="font-size:11px;background:#DCFCE7;color:#15803D;border-radius:6px;padding:2px 8px;font-weight:700;">✅ 확정</span>' : '')}</div>
+        <div style="display:flex;align-items:center;gap:8px;">${typeTag}<strong style="font-size:14px;">${esc(b.student)}</strong></div>
         <span style="font-size:11px;color:var(--gray-400);">${esc(b.createdAt)}</span>
       </div>
       <div style="font-size:13px;color:var(--primary-dark);font-weight:600;margin-bottom:4px;">📅 ${esc(b.dateLabel)} &nbsp;🕐 ${esc(b.time)}</div>
       <div style="font-size:13px;color:var(--gray-600);">👤 ${esc(b.parent)} &nbsp;·&nbsp; 📞 <span style="color:var(--primary);">${esc(b.contact)}</span></div>
       ${b.memo?`<div style="font-size:12px;color:var(--gray-500);margin-top:6px;padding-top:6px;border-top:1px solid var(--gray-200);">💬 ${esc(b.memo)}</div>`:''}
-      <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--gray-200);display:flex;gap:8px;flex-wrap:wrap;">
-        ${b.status==='신청' ? `<button onclick="adminConfirmBooking('${esc(b.slotId)}')" style="background:var(--primary);border:1px solid var(--primary);color:#fff;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:'Pretendard',sans-serif;font-weight:700;">✅ 확정</button>` : (appSettings.confirmMode ? `<button onclick="adminUnconfirmBooking('${esc(b.slotId)}')" style="background:none;border:1px solid var(--gray-300,#D1D5DB);color:var(--gray-600);border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:'Pretendard',sans-serif;font-weight:600;">↩️ 확정 취소(신청으로)</button>` : '')}
+      <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--gray-200);">
         <button onclick="adminCancelBooking('${esc(b.slotId)}')" style="background:none;border:1px solid #EF4444;color:#EF4444;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:'Pretendard',sans-serif;font-weight:600;">예약 취소</button>
       </div>
     </div>`;
   }).join('');
 
-  const pendCnt = bookingCache.filter(x=>(x['상태']||x.status||'')==='신청').length;
-  const allBtn = pendCnt ? ` &nbsp;<button onclick="adminConfirmAll()" style="background:var(--primary);border:none;color:#fff;border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:'Pretendard',sans-serif;font-weight:700;">✅ 신청 ${pendCnt}건 전체 확정</button>` : '';
-  wrap.innerHTML = `<div style="margin-top:4px;font-size:12px;color:var(--gray-400);margin-bottom:10px;">총 ${all.length}건${allBtn}</div>`+html;
-}
-
-async function adminConfirmBooking(slotId) {
-  try {
-    const res = adminCheck(await gasAdmin('confirmBooking', { slotId }));
-    if (res.result!=='success') throw new Error(res.message||'실패');
-    if (res.bookings) { bookingCache = res.bookings; renderBookings(); }
-    showToast('✅ 예약이 확정됐어요!');
-  } catch(e) { showToast('❌ 확정 실패: '+e.message); }
-}
-async function adminConfirmAll() {
-  if (!confirm('신청 상태인 예약을 모두 확정할까요?')) return;
-  try {
-    const res = adminCheck(await gasAdmin('confirmAll', {}));
-    if (res.result!=='success') throw new Error(res.message||'실패');
-    if (res.bookings) { bookingCache = res.bookings; renderBookings(); }
-    showToast('✅ ' + (res.count||0) + '건이 확정됐어요!');
-  } catch(e) { showToast('❌ 확정 실패: '+e.message); }
-}
-
-async function adminUnconfirmBooking(slotId) {
-  const bk = bookingCache.find(x => String(x['슬롯ID']||x.slotId||'') === String(slotId)) || {};
-  if (!confirm('이 예약을 "신청" 상태로 되돌릴까요?\n\n' + (bk['학생이름']||'') + ' · ' + (bk['날짜']||'') + ' ' + (bk['시간']||'') + '\n\n학부모 화면이 다시 "신청이 접수됐어요"로 바뀌어요. (예약 자체는 그대로예요)')) return;
-  try {
-    const res = adminCheck(await gasAdmin('unconfirmBooking', { slotId }));
-    if (res.result!=='success') throw new Error(res.message||'실패');
-    if (res.bookings) { bookingCache = res.bookings; renderBookings(); }
-    showToast('↩️ 신청 상태로 되돌렸어요');
-  } catch(e) { showToast('❌ 되돌리기 실패: '+e.message); }
+  wrap.innerHTML = `<div style="margin-top:4px;font-size:12px;color:var(--gray-400);margin-bottom:10px;">총 ${all.length}건</div>`+html;
 }
 
 async function adminCancelBooking(slotId) {
-  const bk0 = bookingCache.find(x => String(x['슬롯ID']||x.slotId||'') === String(slotId)) || {};
-  if (!confirm('⚠️ 이 예약을 취소할까요?\n\n' + (bk0['학생이름']||'') + ' · ' + (bk0['날짜']||'') + ' ' + (bk0['시간']||'') + '\n\n취소하면 이 시간이 다시 열리고, 학부모에게는 "예약이 확정되지 않았어요"로 보여요.\n되돌릴 수 없어요. 정말 취소할까요?')) return;
+  if (!confirm('이 예약을 취소할까요?')) return;
   try {
     const res = adminCheck(await gasAdmin('cancelBooking', { slotId }));
     if (res.result!=='success'&&res.result!=='notfound') throw new Error(res.message||'실패');
@@ -2461,9 +2060,6 @@ function showScreen(id) {
 function goHome() {
   ['inputStudent','inputParent','inputContact','inputMemo'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   { const ag=document.getElementById('inputAgree'); if(ag) ag.checked=false; }
-  // 예약 성공 뒤 '처리 중...'으로 멈춰 있던 확정 버튼을 되돌림 (형제 예약 등 두 번째 예약이 막히던 문제)
-  { const cb=document.getElementById('confirmBtn'); if(cb){ cb.disabled=false; cb.textContent='예약 확정'; } }
-  document.querySelectorAll('.consult-type-card').forEach(c=>c.classList.remove('selected'));
   state = { currentStep:1, consultType:null, selectedDate:null, selectedTime:null };
   goStep(1); showScreen('mainScreen'); loadAll(); // loadAll 내부에서 startPolling() 호출됨
 }
@@ -2494,6 +2090,8 @@ const TT_LIBS = {
   ocr:  'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js',
 };
 let tt = null;               // { periods:[{n,start}], busy:{월:{1:true}}, from:'excel'|'image'|'manual' }
+const TT_MODEL_KEY = 'consultTtModel_v1';   // 읽은 시간표를 이 기기(브라우저)에만 기억 — 서버로 보내지 않음
+let ttMeta = { name:'', at:'' };              // 어떤 파일을, 언제 올렸는지
 let ttUnchecked = new Set(); // 아듬샘이 뺀 후보 'YYYY-MM-DD 08:20-08:40'
 let ttCands = [];            // [{dateKey,label,items:[{key,start,end,exists}]}]
 let ttSaving = false;
@@ -2525,15 +2123,11 @@ function ttReadSettings(){
     lunchStart: document.getElementById('ttLunchStart').value || '12:10',
     lunchEnd: document.getElementById('ttLunchEnd').value || '13:10',
     from: document.getElementById('ttFrom').value, to: document.getElementById('ttTo').value,
-    afterOn: document.getElementById('ttAfterOn').checked,
-    afterStart: document.getElementById('ttAfterStart').value || '16:30',
-    afterEnd: document.getElementById('ttAfterEnd').value || '18:00',
   };
 }
 function ttSettingsChanged(){
   const S=ttReadSettings();
-  lsSet(TT_KEY, JSON.stringify({unit:S.unit,classLen:S.classLen,gap:S.gap,lunchOn:S.lunchOn,lunchStart:S.lunchStart,lunchEnd:S.lunchEnd,afterOn:S.afterOn,afterStart:S.afterStart,afterEnd:S.afterEnd}));
-  document.getElementById('ttAfterBox').style.display = S.afterOn ? '' : 'none';
+  lsSet(TT_KEY, JSON.stringify({unit:S.unit,classLen:S.classLen,gap:S.gap,lunchOn:S.lunchOn,lunchStart:S.lunchStart,lunchEnd:S.lunchEnd}));
   ttRender();
 }
 function ttInitCard(){
@@ -2544,15 +2138,13 @@ function ttInitCard(){
   if (S.lunchStart) document.getElementById('ttLunchStart').value=S.lunchStart;
   if (S.lunchEnd) document.getElementById('ttLunchEnd').value=S.lunchEnd;
   if (S.lunchOn===false) document.getElementById('ttLunchOn').checked=false;
-  if (S.afterStart) document.getElementById('ttAfterStart').value=S.afterStart;
-  if (S.afterEnd) document.getElementById('ttAfterEnd').value=S.afterEnd;
-  if (S.afterOn) { document.getElementById('ttAfterOn').checked=true; document.getElementById('ttAfterBox').style.display=''; }
   // 기본 날짜 범위: 다음 주 월~금
   const t=new Date(Date.parse(nowKstStr().slice(0,10)+'T00:00:00Z'));
   const add=((8-t.getUTCDay())%7)||7;
   const mon=new Date(t.getTime()+add*86400000), fri=new Date(mon.getTime()+4*86400000);
   document.getElementById('ttFrom').value=mon.toISOString().slice(0,10);
   document.getElementById('ttTo').value=fri.toISOString().slice(0,10);
+  ttRestoreSaved();
 }
 
 // ── 파일 받기 ──
@@ -2567,13 +2159,12 @@ async function ttOnFile(input){
     let model = isImg ? await ttHandleImage(file) : await ttHandleExcel(file);
     let manual = false;
     if (!model) { model = ttManualModel(); manual = true; }
-    tt = model; ttUnchecked.clear();
+    tt = model; ttUnchecked.clear(); ttMeta = { name:file.name, at:nowKstStr() };
     const missing = tt.periods.some(p=>isNaN(ttToMin(p.start)));
     const guessy = tt.periods.some(p=>p.guess);
     ttRenderEditor();
     const wrap=document.getElementById('ttEditorWrap'); wrap.style.display='';
     wrap.open = manual || missing || tt.from==='image';
-    wrap.open = true;   // 읽은 시간표는 항상 펼쳐서 바로 보여 줌
     if (manual) ttSetStatus('시간표 모양을 자동으로 읽지 못했어요. 아래 표에서 교시별 시작 시각과 수업 있는 칸을 직접 채워 주세요.','warn');
     else if (missing) ttSetStatus('시간표는 읽었는데 일부 교시의 시작 시각을 못 찾았어요. 아래 표에서 비어 있는 시각을 넣어 주세요.','warn');
     else if (guessy) ttSetStatus('이미지를 읽었어요. 노란색으로 표시된 시작 시각은 글자가 또렷하지 않아 추정한 값이니 꼭 확인해 주세요.','warn');
@@ -2753,7 +2344,6 @@ function ttRenderEditor(){
   });
   h+='</table><div style="display:flex;gap:8px;"><button class="btn btn-secondary" style="font-size:12px;padding:8px;" onclick="ttAddPeriod()">+ 교시 추가</button><button class="btn btn-secondary" style="font-size:12px;padding:8px;" onclick="ttDelPeriod()">− 마지막 교시 삭제</button></div>';
   box.innerHTML=h;
-  if (typeof ttPersist === 'function') ttPersist();   // 올린 시간표를 이 기기에 저장 (다음에 열어도 보이게)
 }
 function ttSetStart(i,v){
   // "0820" · "8:20" · "08:20" 모두 받아서 HH:MM으로 맞춤 (잘못된 값은 비움)
@@ -2768,30 +2358,22 @@ function ttDelPeriod(){ if (tt.periods.length<=1) return; const p=tt.periods.pop
 
 // ── 후보 만들기: 공강 교시마다 [시작, 시작+수업길이]를 점심 제외 후 N분 단위로 쪼갬 (상담 사이에 쉬는 시간 gap분을 둠, 교시 사이는 이어붙이지 않음) ──
 function ttComputeCands(){
+  if (!tt) return [];
   const S=ttReadSettings();
-  if (!tt && !S.afterOn) return [];
   if (!S.from || !S.to || S.from>S.to) return [];
-  const M = tt || { periods:[], busy:{} };   // 시간표 없이 방과 후 시간만 만들 수도 있음
   const lS=ttToMin(S.lunchStart), lE=ttToMin(S.lunchEnd);
   const useLunch = S.lunchOn && isFinite(lS) && isFinite(lE) && lE>lS;
   const perDay={};
   TT_DAYS.forEach(d=>{
     perDay[d]=[];
-    M.periods.forEach(p=>{
-      if (M.busy[d] && M.busy[d][p.n]) return;
+    tt.periods.forEach(p=>{
+      if (tt.busy[d][p.n]) return;
       const s=ttToMin(p.start); if (isNaN(s)) return;
       const e=s+S.classLen;
       let segs=[[s,e]];
       if (useLunch) { segs=[]; if (s<lS) segs.push([s,Math.min(e,lS)]); if (e>lE) segs.push([Math.max(s,lE),e]); }
       segs.forEach(([a,b])=>{ for (let t=a;t+S.unit<=b;t+=S.unit+S.gap) perDay[d].push([t,t+S.unit]); });
     });
-    // 방과 후 시간 (수업 여부와 상관없이 매일)
-    const aS=ttToMin(S.afterStart), aE=ttToMin(S.afterEnd);
-    if (S.afterOn && isFinite(aS) && isFinite(aE) && aE>aS) for (let t=aS;t+S.unit<=aE;t+=S.unit+S.gap) perDay[d].push([t,t+S.unit]);
-    // 겹치는 시간 정리 (시작 시각 순, 앞 상담과 겹치면 뺌)
-    perDay[d].sort((x,y)=>x[0]-y[0]);
-    const kept=[]; perDay[d].forEach(x=>{ const last=kept[kept.length-1]; if (!last || x[0]>=last[1]) kept.push(x); });
-    perDay[d]=kept;
   });
   const out=[], nowStr=nowKstStr();
   const t0=Date.parse(S.from+'T00:00:00Z'), t1=Date.parse(S.to+'T00:00:00Z');
@@ -2811,9 +2393,43 @@ function ttComputeCands(){
   }
   return out;
 }
+function ttPersist(){
+  if (!tt) return;
+  lsSet(TT_MODEL_KEY, JSON.stringify({ tt:{ periods:tt.periods, busy:tt.busy, from:tt.from }, meta:ttMeta }));
+}
+function ttShowSaved(){
+  const el=document.getElementById('ttSavedInfo'); if (!el) return;
+  if (!tt) { el.style.display='none'; el.innerHTML=''; return; }
+  const free=TT_DAYS.map(d=>d+' '+tt.periods.filter(p=>!tt.busy[d][p.n]).length).join(' · ');
+  const when=ttMeta.at ? (+ttMeta.at.slice(5,7))+'월 '+(+ttMeta.at.slice(8,10))+'일' : '';
+  const src=({excel:'엑셀',image:'이미지',manual:'직접 입력'})[tt.from]||'';
+  el.innerHTML='<div style="font-weight:700;">📌 지금 적용 중인 시간표</div>'
+    +'<div>'+esc([ttMeta.name||'이름 없는 시간표', src, when?when+' 올림':''].filter(Boolean).join(' · '))+'</div>'
+    +'<div style="color:var(--gray-500);">교시 '+tt.periods.length+'개 · 요일별 공강 칸 수: '+esc(free)+'</div>'
+    +'<div style="font-size:12px;color:var(--gray-500);">아래 [인식된 시간표 확인 · 수정]에서 보고 고칠 수 있어요. 새 파일을 올리면 바뀌어요.</div>'
+    +'<button type="button" class="btn btn-secondary" onclick="ttClearSaved()" style="margin-top:8px;font-size:12px;padding:8px;">🗑️ 저장된 시간표 지우기</button>';
+  el.style.display='block';
+}
+function ttRestoreSaved(){
+  let s=null; try{ s=JSON.parse(lsGet(TT_MODEL_KEY)||'null'); }catch(e){}
+  if (!s || !s.tt || !Array.isArray(s.tt.periods) || !s.tt.periods.length || !s.tt.busy) return;
+  TT_DAYS.forEach(d=>{ if (!s.tt.busy[d]) s.tt.busy[d]={}; });
+  tt=s.tt; ttMeta=s.meta||{name:'',at:''};
+  ttRenderEditor();
+  const wrap=document.getElementById('ttEditorWrap'); wrap.style.display=''; wrap.open=true;
+  ttRender();
+}
+function ttClearSaved(){
+  if (!confirm('저장된 시간표를 지울까요?\n(이미 저장한 상담 시간은 그대로 남아요)')) return;
+  try{ localStorage.removeItem(TT_MODEL_KEY); }catch(e){}
+  tt=null; ttMeta={name:'',at:''}; ttUnchecked.clear();
+  document.getElementById('ttEditorWrap').style.display='none';
+  ttRenderEditor(); ttRender(); ttSetStatus('');
+}
 function ttRender(){
+  ttPersist(); ttShowSaved();
   const wrap=document.getElementById('ttCandWrap');
-  if (!tt && !ttReadSettings().afterOn) { wrap.style.display='none'; return; }
+  if (!tt) { wrap.style.display='none'; return; }
   ttCands=ttComputeCands();
   const S=ttReadSettings();
   wrap.style.display='';
@@ -2875,10 +2491,6 @@ window.addEventListener('DOMContentLoaded', () => {
   } else {
     setBanner('err', '❌ 연결 주소가 없어요 · 선생님이 보내 주신 링크로 접속해 주세요');
     setGate('nogas');
-    if (!_paramGasUrl) {   // 학부모가 잘못된 ?gas= 링크로 온 경우는 제외 · 선생님(링크 없이 접속)에게만 소개/체험 노출
-      { const b = document.getElementById('nogasIntroBtns'); if (b) b.style.display = ''; }
-      if (!jget(INTRO_KEY, false)) showIntro();
-    }
   }
 });
 </script>
@@ -5210,10 +4822,10 @@ const nmOf = x => String(x || '') === NONAME ? '' : String(x || '');
 let adminInstallId = '', isOwner = false, reviewOn = false, usePub = null, regMode = 'pre', regStatusCache = '';
 let rvRate = 0, rvPick = [], rvLow = [], rvLowOtherOn = false, rvOtherOn = false, rvKind = '', rvOk = 'no', rvSending = false;
 
-async function regCall(params, waitMs){
+async function regCall(params){
   if (!REGISTRY_URL) throw new Error('등록부 주소가 없어요');
   const q = new URLSearchParams(Object.assign({ app: APP_KEY }, params)).toString();
-  const r = await jsonp(REGISTRY_URL + '?' + q, waitMs);
+  const r = await jsonp(REGISTRY_URL + '?' + q);
   if (!r || r.ok === false) throw new Error((r && r.error) || '등록부 응답 오류');
   return r;
 }
@@ -5232,8 +4844,7 @@ function openReg(mode){
   gid('regBack').textContent = mode === 'pre' ? '← 돌아가기' : '로그아웃';
   gid('regSub').textContent = mode === 'pre'
     ? '처음 한 번만 입력하면 돼요. 입력한 정보는 사용 현황 파악을 위해 앱 개발자에게 전달돼요. (학부모·학생 정보는 전달되지 않아요)'
-    : '선생님 기능을 쓰려면 등록이 필요해요. 처음 한 번만 하면 돼요.';
-  { const r = gid('regIntroRow'); if (r) r.style.display = mode === 'pre' ? '' : 'none'; }
+    : '관리자 기능을 쓰려면 등록이 필요해요. 처음 한 번만 하면 돼요.';
   showScreen('regScreen');
 }
 function regBack(){ if (regMode === 'pre') backToMain(); else adminLogout(); }
@@ -5377,21 +4988,20 @@ async function sendReview(){
   if (!rvRate && !imp){ setMsg('rvMsg', '별점을 누르거나 개선점을 적어 주세요.'); return; }
   const newName = (rvOk === 'name' && !rvHasName()) ? gid('rvName').value.trim() : '';
   if (rvOk === 'name' && !rvHasName() && !newName){ setMsg('rvMsg', '아이디 공개를 고르셨어요. 공개해도 되는 아이디를 적어 주세요.'); return; }
-  rvSending = true; gid('rvSend').disabled = true; setMsg('rvMsg', '보내는 중… (구글에 저장하느라 조금 걸릴 수 있어요)', true);
-  const rvSlow = setTimeout(() => setMsg('rvMsg', '⏳ 구글 저장이 오래 걸리고 있어요. 닫지 말고 조금만 더 기다려 주세요 🙏 (최대 45초)', true), 8000);
+  rvSending = true; gid('rvSend').disabled = true; setMsg('rvMsg', '보내는 중…', true);
   try{
     if (newName){   // 이름 공개를 허락한 경우에만, 그때 이름을 등록 정보에 저장
       const reg = jget(RK.reg, {}) || {};
-      if (reg.school){ await regCall({ action:'register', id:adminInstallId, name:newName, school:reg.school, cls:'', agree:'' }, 45000); jset(RK.reg, { ...reg, name:newName }); }
+      if (reg.school){ await regCall({ action:'register', id:adminInstallId, name:newName, school:reg.school, cls:'', agree:'' }); jset(RK.reg, { ...reg, name:newName }); }
     }
-    await regCall({ action:'review', id:adminInstallId, rate:rvRate, c:rvPick.join(','), lc: lowOn ? rvLow.join(',') : '', lo: lowOn && rvLowOtherOn ? gid('rvLowOther').value.trim() : '', other: rvOtherOn ? gid('rvOther').value.trim() : '', one:gid('rvOne').value.trim(), ik:rvKind, imp, ok:rvOk }, 45000);
+    await regCall({ action:'review', id:adminInstallId, rate:rvRate, c:rvPick.join(','), lc: lowOn ? rvLow.join(',') : '', lo: lowOn && rvLowOtherOn ? gid('rvLowOther').value.trim() : '', other: rvOtherOn ? gid('rvOther').value.trim() : '', one:gid('rvOne').value.trim(), ik:rvKind, imp, ok:rvOk });
     const st = jget(RK.rv, { n:0, shown:false, done:false }); st.done = true; jset(RK.rv, st);
     gid('rvBanner').style.display = 'none';
     rvRate = 0; rvPick = []; rvLow = []; rvLowOtherOn = false; rvOtherOn = false; rvKind = ''; rvOk = 'no';
     ['rvOther','rvLowOther','rvOne','rvImp','rvName'].forEach(id => { gid(id).value = ''; });
     renderRv(); setMsg('rvMsg', '💜 소중한 의견 감사합니다! 다음에 또 의견이 생기면 언제든 남겨 주세요.', true);
-  }catch(e){ setMsg('rvMsg', /마감/.test(e.message) ? e.message : (e.message === 'timeout' ? '응답이 많이 늦어요. 이미 저장됐을 수도 있어요 🙏 1분쯤 뒤에 다시 눌러 주세요. 입력한 내용은 그대로 있어요.' : '보내지 못했어요. 입력한 내용은 그대로 있어요. (' + e.message + ')')); if (/마감/.test(e.message)){ reviewOn = false; applyRegUi(); } }
-  clearTimeout(rvSlow); rvSending = false; gid('rvSend').disabled = false;
+  }catch(e){ setMsg('rvMsg', /마감/.test(e.message) ? e.message : '보내지 못했어요. 입력한 내용은 그대로 있어요. (' + e.message + ')'); if (/마감/.test(e.message)){ reviewOn = false; applyRegUi(); } }
+  rvSending = false; gid('rvSend').disabled = false;
 }
 function rvVisit(){   // 관리자 화면에 들어올 때 세션당 1번 방문 횟수 +1, 3회째에 한 번만 안내
   const st = jget(RK.rv, { n:0, shown:false, done:false });
@@ -5470,59 +5080,27 @@ function copyShareRich(){
     navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type:'text/html' }), 'text/plain': new Blob([plain], { type:'text/plain' }) })]).then(ok).catch(fallback);
   } else fallback();
 }
-// QR 안내 이미지(제목 + QR + 선생님 이름) 만들기 — 저장·복사·크게 보기가 같은 이미지를 씀
-function buildQrPoster(){
-  if (!qrUrl) return null;
+function saveQrPng(){
+  if (!qrUrl){ qrFlash('먼저 GAS를 연결해 주세요'); return; }
   const W = 720, top = 110, H = W + top + 70, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
   const ctx = cv.getContext('2d');
-  if (!drawQrOn(cv, qrUrl, top)) return null;
+  if (!drawQrOn(cv, qrUrl, top)) { qrFlash('주소가 너무 길어 QR을 만들 수 없어요'); return; }
   // 위: 제목 / 아래: 선생님 이름 (QR은 흰 바탕 위에 그대로 두어 스캔이 잘 되게)
   const name = (appSettings && appSettings.teacherName || '').trim(), role = (appSettings && appSettings.teacherRole || '').trim();
   ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, top);
   ctx.fillStyle = '#7B6BA8'; ctx.textAlign = 'center'; ctx.font = '700 40px Pretendard, sans-serif';
-  ctx.fillText('📅 ' + APP_TITLE, W / 2, 62, W - 40);
+  ctx.fillText('📅 ' + APP_TITLE, W / 2, 62);
   ctx.fillStyle = '#6B7280'; ctx.font = '400 24px Pretendard, sans-serif';
-  ctx.fillText('QR을 카메라로 비춰 주세요', W / 2, 98, W - 40);
+  ctx.fillText('QR을 카메라로 비춰 주세요', W / 2, 98);
   ctx.fillStyle = '#fff'; ctx.fillRect(0, top + W, W, H - top - W);
   ctx.fillStyle = '#374151'; ctx.font = '600 28px Pretendard, sans-serif';
-  ctx.fillText([name, role].filter(Boolean).join(' · ') || ' ', W / 2, top + W + 40, W - 40);
-  return cv;
-}
-// 카톡·네이버·인스타 등 앱 안 브라우저는 파일 내려받기·이미지 복사가 잘 안 돼서 '길게 눌러 저장'으로 안내
-function isInAppBrowser(){ return /KAKAOTALK|NAVER\(|Instagram|FBAN|FBAV|Line\/|everytimeApp|DaumApps/i.test(navigator.userAgent || ''); }
-function openQrView(hint){
-  const cv = buildQrPoster();
-  if (!cv){ qrFlash(qrUrl ? '주소가 너무 길어 QR을 만들 수 없어요' : '먼저 GAS를 연결해 주세요'); return; }
-  gid('qrViewImg').src = cv.toDataURL('image/png');
-  gid('qrViewHint').innerHTML = hint || '이 화면을 학부모님께 보여 드리거나, 이미지를 <b>길게 눌러</b> 저장·복사할 수 있어요.';
-  gid('qrViewModal').classList.add('open');
-}
-function closeQrView(){ gid('qrViewModal').classList.remove('open'); }
-const LONGPRESS_HINT = '📱 이 브라우저에서는 바로 저장이 안 돼요.<br>아래 이미지를 <b>길게 눌러 "이미지 저장"</b> 또는 <b>"복사"</b>를 골라 주세요.';
-function saveQrPng(){
-  const cv = buildQrPoster();
-  if (!cv){ qrFlash(qrUrl ? '주소가 너무 길어 QR을 만들 수 없어요' : '먼저 GAS를 연결해 주세요'); return; }
-  if (isInAppBrowser()) { openQrView(LONGPRESS_HINT); return; }
+  ctx.fillText([name, role].filter(Boolean).join(' · ') || ' ', W / 2, top + W + 40);
   const done = (blob) => {
-    if (!blob){ openQrView(LONGPRESS_HINT); return; }
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '학부모상담예약_QR.png';
-    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-    qrFlash('QR 이미지를 저장했어요 ✅ (다운로드 폴더를 확인해 주세요)');
+    if (!blob){ window.open(cv.toDataURL('image/png'), '_blank'); return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'consult-booking-QR.png';
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); qrFlash('QR 이미지를 저장했어요 ✅');
   };
-  try { if (cv.toBlob) cv.toBlob(done, 'image/png'); else done(null); } catch(e){ done(null); }
-}
-function copyQrImage(){
-  const cv = buildQrPoster();
-  if (!cv){ qrFlash(qrUrl ? '주소가 너무 길어 QR을 만들 수 없어요' : '먼저 GAS를 연결해 주세요'); return; }
-  const fallback = () => openQrView('📋 이 브라우저는 이미지 자동 복사를 지원하지 않아요.<br>아래 이미지를 <b>길게 눌러(PC는 오른쪽 클릭) "이미지 복사"</b>를 골라 주세요.');
-  if (isInAppBrowser() || !window.ClipboardItem || !navigator.clipboard || !navigator.clipboard.write) { fallback(); return; }
-  try {
-    // 사파리는 클릭 직후에 바로 write를 불러야 해서 이미지는 Promise로 넘김
-    const blobP = new Promise((res, rej) => cv.toBlob(b => b ? res(b) : rej(new Error('blob')), 'image/png'));
-    navigator.clipboard.write([new ClipboardItem({ 'image/png': blobP })])
-      .then(() => qrFlash('QR 이미지를 복사했어요 ✅ 한글·문서·카톡 PC에 붙여넣기(Ctrl+V) 하세요'))
-      .catch(fallback);
-  } catch(e) { fallback(); }
+  if (cv.toBlob) cv.toBlob(done, 'image/png'); else done(null);
 }
 
 // ── GAS 코드 복사 (설치 가이드 · 코드 업데이트용: 이 앱 파일 옆의 .gs 를 읽어와요) ──
@@ -5568,8 +5146,8 @@ function ownerRender(){
   const st = own.stats || {}, rv = own.review || {};
   gid('ownStatCards').innerHTML = [['오늘', st.today], ['누적 사용자', st.users], ['누적 접속', st.visits], ['이번 주', st.week]].map(([l, v]) => `<div class="stat-card"><b>${Number(v) || 0}</b><span>${l}</span></div>`).join('');
   drawOwnChart(gid('ownChart'), st.days || []);
-  gid('ownRvSw').classList.toggle('on', !!rv.on); gid('ownRvLabel').textContent = '후기 받기 ' + (rv.on ? 'ON' : 'OFF');
-  gid('ownRvCount').textContent = '받은 후기 ' + (rv.reviews || 0) + '건 · 개선점 ' + (rv.improves || 0) + '건' + (rv.on ? ' (끄면 후기 버튼이 사라져요)' : ' · 지금은 받지 않아요');
+  gid('ownRvToggle').checked = !!rv.on; gid('ownRvLabel').textContent = rv.on ? '후기 받는 중' : '후기 받기 꺼짐';
+  gid('ownRvCount').textContent = '받은 후기 ' + (rv.reviews || 0) + '건 · 개선점 ' + (rv.improves || 0) + '건';
   const nw = Math.max(0, (rv.reviews || 0) - (rv.seenT || 0)); gid('ownRvNew').innerHTML = nw ? '<span class="nw-dot">' + nw + '</span>' : '';
   gid('ownApproval').textContent = own.approval ? '🔒 승인제 ON — 승인한 사용자만 관리자 기능을 쓸 수 있어요. (끄고 켜기는 등록부 시트의 설정 탭에서)' : '🔓 승인제 OFF — 등록하면 바로 쓸 수 있어요. 문제가 있는 사용자만 차단하세요.';
   gid('ownUserCnt').textContent = '(' + (own.users || []).length + '명)';
@@ -5612,12 +5190,9 @@ async function ownerSetUser(i, field){
   catch(e){ setMsg('ownMsg', e.message); }
 }
 async function ownerToggleReview(){
-  if (!own || !own.review){ setMsg('ownMsg','아직 등록부 정보를 불러오지 못했어요.'); return; }
-  const on = !own.review.on;
-  if (!confirm(on ? '후기 받기를 다시 켤까요?\n후기 버튼이 다시 보여요.' : '후기 받기를 그만할까요?\n후기 버튼이 사라지고 새 후기는 들어오지 않아요. 이미 받은 후기는 시트에 그대로 남아요.')) return;
-  own.review.on = on; ownerRender(); setMsg('ownMsg','저장 중…',true);
-  try{ await regCall({ action:'ownerReview', id:adminInstallId, on: on ? '1' : '' }); reviewOn = on; ownerRender(); setMsg('ownMsg', on ? '후기 받기를 켰어요.' : '후기 받기를 껐어요.', true); }
-  catch(e){ own.review.on = !on; ownerRender(); setMsg('ownMsg','저장하지 못해 되돌렸어요: ' + e.message); }
+  const on = gid('ownRvToggle').checked;
+  try{ await regCall({ action:'ownerReview', id:adminInstallId, on: on ? '1' : '' }); if (own && own.review) own.review.on = on; reviewOn = on; ownerRender(); showToast(on ? '💬 후기 받기를 켰어요' : '💬 후기 받기를 껐어요'); }
+  catch(e){ gid('ownRvToggle').checked = !on; setMsg('ownMsg', e.message); }
 }
 function rcStars(n){ return '<span class="stars">' + '★'.repeat(n) + '<i>' + '★'.repeat(Math.max(0, 5 - n)) + '</i></span>'; }
 async function ownerOpenReviews(){
@@ -5634,206 +5209,6 @@ async function ownerOpenReviews(){
   }catch(e){ box.innerHTML = '<div class="reg-msg">' + esc(e.message) + '</div>'; }
 }
 
-</script>
-
-<script>
-/* ═══ 앱 소개(슬라이드) · 체험해보기 — 추가 기능 (기존 함수 변경 없음) ═══ */
-const INTRO_KEY = 'consult_intro_v1';
-const INTRO = [
-  { t:'📅 학부모 상담 예약,<br>링크 하나로 끝!', d:'전화·문자로 일정 조율하던 시간을 줄여 드려요.<br>학부모님은 날짜와 시간만 고르면 예약이 완료돼요.',
-    v:'<div style="text-align:center;"><span class="iv-chip">10/21 (화)</span><span class="iv-chip">10/22 (수)</span><span class="iv-chip">10/23 (목)</span><br><span class="iv-chip">16:00</span><span class="iv-chip">16:20</span><span class="iv-chip off">16:40</span><span class="iv-chip">17:00</span></div>' },
-  { t:'🔗 링크·QR로 보내기만 하세요', d:'학부모님은 설치도 가입도 필요 없어요.<br>카톡으로 링크를 보내거나 QR을 가정통신문에 넣어 보세요.',
-    v:'<div class="iv-row">🔗 <b>학부모 링크 복사</b><span class="iv-tag">카톡·문자</span></div><div class="iv-row">🖼️ <b>QR 저장·복사</b><span class="iv-tag">가정통신문</span></div>' },
-  { t:'⏰ 시간표만 올리면 상담 시간 완성', d:'시간표(엑셀·캡처)를 올리면 공강 시간이 상담 시간으로 <b>바로</b> 만들어져요.<br>뺄 날만 체크 해제하고 저장하면 끝! 방과 후 시간도 넣을 수 있어요.',
-    v:'<div class="iv-row">📂 <b>시간표 올리기</b><span class="iv-tag">엑셀·이미지</span></div><div class="iv-row">📆 <b>10/21 (화)</b><span class="iv-tag">공강 3개</span></div><div class="iv-row">📆 <b>10/22 (수)</b><span class="iv-tag">공강 4개</span></div><div class="iv-row" style="color:var(--gray-400);">✅ 선택한 시간 저장 · 직접 추가도 가능</div>' },
-  { t:'📋 예약 현황을 한눈에', d:'누가 언제 예약했는지 날짜·학생순으로 보여요. 중복 예약은 막혀요.<br>원하면 "신청 → 확정"으로 선생님이 한 번 더 확인할 수도 있어요.',
-    v:'<div class="iv-row">👩 <b>김○○ 학부모</b><span class="iv-tag" style="background:#DCFCE7;color:#15803D;">✅ 확정</span></div><div class="iv-row">👨 <b>이○○ 학부모</b><span class="iv-tag" style="background:#FEF3C7;color:#B45309;">📝 신청</span></div><div class="iv-row" style="color:var(--gray-500);font-size:12px;line-height:1.6;"><span>📌 선생님이 ✅ 확정을 눌러야 학부모에게 "예약 확정"이 보여요 (선택 기능)</span></div>' },
-  { t:'🛠️ 내 구글 시트에 안전하게 저장', d:'예약 정보는 선생님 본인의 구글 시트에만 저장돼요.<br>처음 한 번, 안내에 따라 3분이면 연결할 수 있어요.',
-    v:'<div class="iv-row">1️⃣ <b>사용자 등록</b></div><div class="iv-row">2️⃣ <b>구글 시트에 코드 붙여넣기</b></div><div class="iv-row">3️⃣ <b>링크·QR 공유하면 끝</b></div>' }
-];
-let introIdx = 0, introFrom = null;
-function showIntro(from){
-  introFrom = from || null; introIdx = 0;
-  renderIntro(); showScreen('introScreen');
-  try{ window.scrollTo(0,0); }catch(e){}
-}
-function renderIntro(){
-  const s = INTRO[introIdx], last = introIdx === INTRO.length - 1;
-  gid('introStage').innerHTML = '<div class="intro-t">'+s.t+'</div><p class="intro-d">'+s.d+'</p><div class="intro-v">'+s.v+'</div>';
-  gid('introDots').innerHTML = INTRO.map((_, i) => '<button class="intro-dot'+(i===introIdx?' on':'')+'" aria-label="'+(i+1)+'번째" onclick="introGo('+i+')"></button>').join('');
-  let b = '';
-  if (!last){
-    b += '<button class="btn btn-primary" onclick="introNext()">다음 →</button>';
-    if (introIdx > 0) b += '<button class="btn btn-secondary" onclick="introPrev()">← 이전</button>';
-  } else if (introFrom){
-    b += '<button class="btn btn-primary" onclick="introClose()">← 돌아가기</button>';
-    b += '<button class="btn btn-secondary" onclick="openDemo()">🎬 체험해보기</button>';
-    b += '<button class="btn btn-secondary" onclick="introPrev()">← 이전</button>';
-  } else {
-    b += '<button class="btn btn-primary" onclick="introStart()">사용자 등록하고 시작하기</button>';
-    b += '<button class="btn btn-secondary" onclick="openDemo()">🎬 체험해보기 (등록 없이)</button>';
-    b += '<button class="btn btn-secondary" onclick="introPrev()">← 이전</button>';
-  }
-  if (!introFrom && !last) b += '<button class="intro-skip" onclick="introStart()">건너뛰고 바로 등록</button>';
-  gid('introBtns').innerHTML = b;
-}
-function introGo(i){ introIdx = Math.max(0, Math.min(INTRO.length - 1, i)); renderIntro(); }
-function introPrev(){ introGo(introIdx - 1); }
-function introNext(){ introGo(introIdx + 1); }
-function introClose(){ jset(INTRO_KEY, true); showScreen(introFrom || 'mainScreen'); introFrom = null; }
-function introStart(){ jset(INTRO_KEY, true); introFrom = null; showAdminLogin(); }   // 등록 전이면 사용자 등록 → 시트 연결 순서 그대로
-(function(){
-  let x0 = null, y0 = null;
-  document.addEventListener('touchstart', e => { const st = gid('introStage'); if (st && st.contains(e.target) && e.touches.length === 1){ x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; } else x0 = null; }, { passive:true });
-  document.addEventListener('touchend', e => {
-    if (x0 === null) return;
-    const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0; x0 = null;
-    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) { if (dx < 0) introNext(); else introPrev(); }
-  }, { passive:true });
-})();
-
-/* ── 체험해보기: 화면 안에서만 도는 샘플 (네트워크·저장 없음) ── */
-let dm = null;
-function dmFmt(d){ return (d.getMonth()+1)+'월 '+d.getDate()+'일 ('+'일월화수목금토'[d.getDay()]+')'; }
-function dmInit(){
-  const days = []; const d = new Date(); d.setHours(12,0,0,0);
-  while (days.length < 3){ d.setDate(d.getDate()+1); if (d.getDay()!==0 && d.getDay()!==6) days.push({ id:'d'+days.length, label:dmFmt(d), dow:'일월화수목금토'[d.getDay()], num:d.getDate() }); }
-  const slots = {}; days.forEach(x => { slots[x.id] = ['16:00','16:20','16:40','17:00'].map(t => ({ t, by:null })); });
-  slots.d0[1].by = '김○○'; slots.d0[2].by = null;
-  dm = { days, slots, tab:'p', step:1, day:null, time:null, done:false,
-         bookings:[{ day:'d0', t:'16:20', st:'김○○', pa:'어머니', ok:true }] };
-}
-function openDemo(){ dmInit(); gid('demoOv').classList.add('open'); dmTab('p'); }
-function closeDemo(){ gid('demoOv').classList.remove('open'); dm = null; }
-function dmTab(t){
-  dm.tab = t;
-  gid('dmTabP').classList.toggle('on', t==='p'); gid('dmTabA').classList.toggle('on', t==='a');
-  t==='p' ? dmRenderP() : dmRenderA();
-  gid('demoOv').querySelector('.dm-body').scrollTop = 0;
-}
-function dmDayOf(id){ return dm.days.find(x => x.id === id); }
-function dmRenderP(){
-  const B = gid('dmBody');
-  if (dm.done){
-    const dd = dmDayOf(dm.day);
-    const bk = dm.bookings.find(b => b.st === '홍길동'), okd = !!(bk && bk.ok);
-    B.innerHTML = okd
-      ? '<div class="dm-card" style="text-align:center;"><div style="font-size:44px;">✅</div><div class="dm-h" style="margin-top:6px;">예약이 확정됐어요!</div><div style="font-size:14px;color:var(--gray-700);line-height:1.8;"><b>'+esc(dd.label)+' '+esc(dm.time)+'</b><br>홍길동 학생 · 학부모 상담</div><div style="margin-top:8px;font-size:12px;color:var(--gray-500);">(학부모가 \'내 예약 확인\'에서 보게 되는 화면이에요)</div></div>'
-        + '<div class="dm-hint">👏 선생님이 확정을 눌러서 학부모 화면이 <b>예약 확정</b>으로 바뀌었어요!</div>'
-      : '<div class="dm-card" style="text-align:center;"><div style="font-size:44px;">📝</div><div class="dm-h" style="margin-top:6px;">신청이 접수됐어요!</div><div style="font-size:14px;color:var(--gray-700);line-height:1.8;"><b>'+esc(dd.label)+' '+esc(dm.time)+'</b><br>홍길동 학생 · 학부모 상담</div><div style="margin-top:8px;font-size:12px;color:var(--gray-500);line-height:1.6;">선생님이 확인하면 <b>예약 확정</b>으로 바뀌어요.<br>나중에 \'내 예약 확인\'에서 확인해 주세요.</div></div>'
-        + '<div class="dm-hint">👉 아직 <b>신청</b> 상태예요. <b>🧑‍🏫 선생님 화면</b> 탭에서 <b>✅ 확정</b>을 눌러 보세요. (선생님이 눌러야 확정돼요)</div>'
-      + '<button class="btn btn-primary" onclick="dmTab(\'a\')">선생님 화면 보기 →</button><button class="btn btn-secondary" style="margin-top:8px;" onclick="dmResetP()">처음부터 다시 해보기</button>';
-    return;
-  }
-  let h = '<div class="dm-hint">학부모님이 보게 되는 화면이에요. 직접 눌러서 예약해 보세요! (샘플이라 실제 예약은 만들어지지 않아요)</div>';
-  h += '<div class="dm-h">① 날짜를 골라 주세요</div><div class="dm-dates">'
-    + dm.days.map(x => '<button class="dm-date'+(dm.day===x.id?' on':'')+'" onclick="dmPickDay(\''+x.id+'\')"><div class="a">'+x.dow+'</div><div class="b">'+x.num+'</div></button>').join('') + '</div>';
-  if (dm.day){
-    h += '<div class="dm-h" style="margin-top:18px;">② 시간을 골라 주세요</div><div class="dm-times">'
-      + dm.slots[dm.day].map(o => '<button class="dm-time'+(dm.time===o.t?' on':'')+'" '+(o.by?'disabled':'')+' onclick="dmPickTime(\''+o.t+'\')">'+o.t+(o.by?'<br><small>예약됨</small>':'')+'</button>').join('') + '</div>';
-  }
-  if (dm.day && dm.time){
-    h += '<div class="dm-h" style="margin-top:18px;">③ 정보를 확인해 주세요</div><div class="dm-card"><div class="dm-k">학생 이름</div><div style="font-weight:700;margin-bottom:8px;">홍길동</div><div class="dm-k">학부모 성함 · 연락처</div><div style="font-weight:700;">홍○○ · 010-****-1234</div></div>'
-      + '<button class="btn btn-primary" onclick="dmConfirm()">예약 확정</button>';
-  }
-  B.innerHTML = h;
-}
-function dmPickDay(id){ dm.day = id; dm.time = null; dmRenderP(); }
-function dmPickTime(t){ dm.time = t; dmRenderP(); const b = gid('demoOv').querySelector('.dm-body'); setTimeout(()=>{ b.scrollTop = b.scrollHeight; }, 30); }
-function dmConfirm(){
-  const o = dm.slots[dm.day].find(x => x.t === dm.time); if (!o || o.by) return;
-  o.by = '홍길동'; dm.bookings.push({ day:dm.day, t:dm.time, st:'홍길동', pa:'홍○○', ok:false }); dm.done = true; dmRenderP();
-}
-function dmResetP(){
-  dm.bookings = dm.bookings.filter(b => b.st !== '홍길동');
-  Object.keys(dm.slots).forEach(k => dm.slots[k].forEach(o => { if (o.by === '홍길동') o.by = null; }));
-  dm.day = null; dm.time = null; dm.done = false; dmRenderP();
-}
-function dmRenderA(){
-  const B = gid('dmBody');
-  const bks = dm.bookings.slice().sort((a, b) => (a.day + a.t).localeCompare(b.day + b.t));
-  let h = '<div class="dm-hint">선생님이 보게 되는 화면이에요. <b>📝 신청</b>은 <b>✅ 확정</b>을 눌러야 학부모에게 예약 확정으로 보여요. 실수로 눌렀다면 <b>↩️ 되돌리기</b>, 취소는 한 번 더 확인 창이 떠요. ("신청 후 확정 모드"를 켰을 때)</div>';
-  h += '<div class="dm-card"><div class="dm-h">📋 예약 현황 <span style="color:var(--primary-dark);">'+bks.length+'건</span></div>'
-    + (bks.length ? bks.map(b => '<div class="dm-bk"><div class="m"><b>'+esc(b.st)+' 학생 · '+esc(b.pa)+'</b><span>'+esc(dmDayOf(b.day).label)+' '+esc(b.t)+(b.st==='홍길동'?' · 방금 예약':'')+'</span></div>'+(b.ok ? '<span class="iv-tag" style="background:#DCFCE7;color:#15803D;">✅ 확정</span><button class="dm-mini" style="background:var(--gray-100);color:var(--gray-600);" onclick="dmUnconfirmBk(\''+b.day+'\',\''+b.t+'\')">↩️ 되돌리기</button>' : '<span class="iv-tag" style="background:#FEF3C7;color:#B45309;">📝 신청</span><button class="dm-mini" style="background:var(--primary);color:#fff;" onclick="dmConfirmBk(\''+b.day+'\',\''+b.t+'\')">✅ 확정</button>')+'<button class="dm-mini" onclick="dmCancel(\''+b.day+'\',\''+b.t+'\')">취소</button></div>').join('') : '<div style="color:var(--gray-400);font-size:13px;padding:8px 0;">아직 예약이 없어요.</div>')
-    + '</div>';
-  h += '<div class="dm-card"><div class="dm-h">⏰ 상담 시간 설정</div>'
-    + dm.days.map(x => '<div style="margin-bottom:10px;"><div style="font-size:13px;font-weight:700;margin-bottom:4px;">'+esc(x.label)+'</div>'
-      + dm.slots[x.id].map(o => '<span class="iv-chip'+(o.by?'':'')+'" style="'+(o.by?'background:var(--primary-light);':'')+'">'+o.t+(o.by?' ✔':'')+'</span>').join('')
-      + '<button class="dm-mini" style="background:var(--primary-light);color:var(--primary-dark);margin-left:4px;" onclick="dmAddSlot(\''+x.id+'\')">＋ 시간 추가</button></div>').join('')
-    + '<div style="font-size:12px;color:var(--gray-400);">실제로는 📅 날짜/시간 탭에서 시간표를 올리면 공강이 상담 시간 후보로 바로 만들어져요.</div></div>';
-  h += '<div class="dm-card" style="text-align:center;"><div class="dm-h">🔗 학부모 링크 · QR</div><canvas id="dmQr" class="dm-qr" width="132" height="132"></canvas><div style="font-size:12px;color:var(--gray-500);margin-top:6px;">실제 화면에서는 링크 복사 · QR 저장/복사 버튼이 나와요.</div></div>';
-  B.innerHTML = h;
-  dmDrawQr();
-}
-function dmConfirmBk(day, t){
-  const b = dm.bookings.find(x => x.day === day && x.t === t); if (b) b.ok = true;
-  showToast('✅ 확정했어요! 학부모 화면이 "예약 확정"으로 바뀌어요'); dmRenderA();
-}
-function dmUnconfirmBk(day, t){
-  const b = dm.bookings.find(x => x.day === day && x.t === t); if (!b) return;
-  if (!confirm('이 예약을 "신청" 상태로 되돌릴까요?\n\n'+b.st+' 학생 · '+dmDayOf(day).label+' '+t+'\n\n(실수로 확정했을 때 쓰는 기능이에요. 예약은 그대로 남아요.)')) return;
-  b.ok = false; showToast('↩️ 신청 상태로 되돌렸어요'); dmRenderA();
-}
-function dmCancel(day, t){
-  const bk = dm.bookings.find(x => x.day === day && x.t === t);
-  if (bk && !confirm('⚠️ 이 예약을 취소할까요?\n\n'+bk.st+' 학생 · '+dmDayOf(day).label+' '+t+'\n\n취소하면 이 시간이 다시 열려요. 되돌릴 수 없어요. (실수 방지용 확인 창이에요)')) return;
-  dm.bookings = dm.bookings.filter(b => !(b.day === day && b.t === t));
-  const o = dm.slots[day].find(x => x.t === t); if (o) o.by = null;
-  if (dm.done && dm.day === day && dm.time === t){ dm.done = false; dm.time = null; }
-  dmRenderA();
-}
-function dmAddSlot(day){
-  const arr = dm.slots[day]; const last = arr[arr.length - 1].t.split(':'); let m = (+last[0]) * 60 + (+last[1]) + 20;
-  if (m > 18*60 + 40) { showToast('샘플에서는 여기까지만 추가돼요'); return; }
-  arr.push({ t:String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0'), by:null }); dmRenderA();
-}
-function dmDrawQr(){
-  const cv = gid('dmQr'); if (!cv) return; const c = cv.getContext('2d'), n = 21, u = 6;
-  c.fillStyle = '#fff'; c.fillRect(0,0,132,132); c.fillStyle = '#4B4270';
-  let r = 7; const rnd = () => (r = (r * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
-  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (rnd() > .52) c.fillRect(3 + x*u, 3 + y*u, u-1, u-1);
-  [[0,0],[14,0],[0,14]].forEach(([x,y]) => { c.fillStyle='#fff'; c.fillRect(3+x*u-1,3+y*u-1,7*u+1,7*u+1); c.fillStyle='#4B4270'; c.fillRect(3+x*u,3+y*u,7*u-1,7*u-1); c.fillStyle='#fff'; c.fillRect(3+(x+1)*u,3+(y+1)*u,5*u-1,5*u-1); c.fillStyle='#4B4270'; c.fillRect(3+(x+2)*u,3+(y+2)*u,3*u-1,3*u-1); });
-}
-</script>
-
-<script>
-/* 관리자 카드 접었다 펴기 — 제목을 누르면 접혀요 (내용·ID는 그대로, 화면에서만 숨김) */
-document.addEventListener('click', e => {
-  const t = e.target.closest && e.target.closest('.admin-card-title'); if (!t) return;
-  const card = t.parentElement; if (!card || !card.classList.contains('admin-card') || card.closest('#adminSec-guide')) return;
-  if (e.target.closest('button,a,input,select,textarea')) return;
-  card.classList.toggle('cl');
-});
-</script>
-
-<script>
-/* 올린 시간표를 이 기기에 저장해 두고, 다음에 열어도 보이게 (선생님 본인 시간표 · 이 기기 브라우저에만 저장, 서버로 안 보내요) */
-const TT_SAVED_KEY = 'consult_tt_saved_v1';
-function ttPersist(){
-  try{
-    if (tt && tt.periods) lsSet(TT_SAVED_KEY, JSON.stringify({ periods:tt.periods, busy:tt.busy, from:tt.from }));   // tt가 없을 때(시작 직후 등)는 건드리지 않음 — 지우기는 ttForget에서만
-  }catch(e){}
-}
-function ttForget(){
-  if (!confirm('이 기기에 저장된 시간표를 지울까요?\n(이미 저장한 상담 날짜·시간은 그대로예요)')) return;
-  tt = null; ttUnchecked.clear(); lsDel(TT_SAVED_KEY); ttRenderEditor();
-  const w = document.getElementById('ttEditorWrap'); if (w) { w.style.display = 'none'; w.open = false; }
-  ttSetStatus('', ''); const st = document.getElementById('ttStatus'); if (st) st.style.display = 'none';
-  ttRender();
-}
-window.addEventListener('DOMContentLoaded', () => {
-  try{
-    const raw = lsGet(TT_SAVED_KEY); if (!raw || tt) return;
-    const m = JSON.parse(raw);
-    if (!m || !Array.isArray(m.periods) || !m.periods.length || !m.busy) return;
-    TT_DAYS.forEach(d => { if (!m.busy[d]) m.busy[d] = {}; });
-    tt = { periods:m.periods, busy:m.busy, from:m.from || 'manual' };
-    ttRenderEditor();
-    const w = document.getElementById('ttEditorWrap'); if (w) { w.style.display = ''; w.open = true; }
-    ttSetStatus('📌 이 기기에 저장해 둔 시간표예요. 새 파일을 올리면 바뀌어요.', 'ok');
-    ttRender();
-  }catch(e){}
-});
 </script>
 </body>
 </html>
