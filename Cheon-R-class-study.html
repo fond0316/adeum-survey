@@ -3113,11 +3113,15 @@ function hubDaysLeft(due){
 function hubSanId(s){ return String(s).replace(/[^A-Za-z0-9_-]/g, ''); }
 function hubNormQ(q){
   q = q || {};
-  const t = ['short','long','check'].indexOf(q.type) >= 0 ? q.type : 'short';
+  const t = ['short','long','check','choice'].indexOf(q.type) >= 0 ? q.type : 'short';
   const id = hubSanId(q.id || ('q' + Date.now().toString(36) + Math.floor(Math.random()*1296).toString(36))) || 'q0';
+  // 객관식 선택지: 배열 또는 줄바꿈 문자열 모두 받음 (한 줄에 하나, 최대 12개)
+  let opts = Array.isArray(q.options) ? q.options : String(q.options || '').split('\n');
+  opts = opts.map(o=>String(o).trim().slice(0,80)).filter(o=>o).slice(0,12);
   return { id: id, label: String(q.label || '').slice(0,300), type: t,
     required: (q.required === true || String(q.required) === 'true' || String(q.required) === 'O'),
-    hint: String(q.hint || '').slice(0,300) };
+    hint: String(q.hint || '').slice(0,300),
+    options: t === 'choice' ? opts : [] };
 }
 function hubDefaultForm(){
   return [
@@ -3343,6 +3347,14 @@ function hubFormHtml(it){
     h += '<div class="hub-q">';
     if(q.type === 'check'){
       h += '<label class="hub-chk" for="' + idA + '"><input type="checkbox" id="' + idA + '" data-q="' + hubEsc(q.id) + '"' + (v === true ? ' checked' : '') + '/><span>' + hubEsc(q.label) + (q.required ? ' <b class="req">*</b>' : '') + '</span></label>';
+    } else if(q.type === 'choice'){
+      h += '<div class="hub-lb" id="' + idA + '_lb">' + hubEsc(q.label) + (q.required ? ' <b class="req">*</b>' : '') + '</div>';
+      if(q.hint) h += '<div class="hub-hint">' + hubEsc(q.hint) + '</div>';
+      h += '<div role="radiogroup" aria-labelledby="' + idA + '_lb" id="' + idA + '" style="display:flex;flex-direction:column;gap:8px;">';
+      (q.options || []).forEach((o, oi)=>{
+        h += '<label class="hub-chk" for="' + idA + '_' + oi + '"><input type="radio" id="' + idA + '_' + oi + '" name="' + idA + '" data-q="' + hubEsc(q.id) + '" value="' + hubEsc(o) + '"' + (v === o ? ' checked' : '') + '/><span>' + hubEsc(o) + '</span></label>';
+      });
+      h += '</div>';
     } else {
       h += '<label class="hub-lb" for="' + idA + '">' + hubEsc(q.label) + (q.required ? ' <b class="req">*</b>' : '') + '</label>';
       if(q.hint) h += '<div class="hub-hint">' + hubEsc(q.hint) + '</div>';
@@ -3383,7 +3395,11 @@ async function hubSubmit(itemId){
   const answers = [];
   for(const q of qs){
     const el = document.getElementById('hubA_' + hubSanId(q.id));
-    let v = el ? (q.type === 'check' ? el.checked : el.value.trim()) : (q.type === 'check' ? false : '');
+    let v;
+    if(q.type === 'choice'){
+      const sel = el ? el.querySelector('input[type=radio]:checked') : null;
+      v = sel ? sel.value : '';
+    } else v = el ? (q.type === 'check' ? el.checked : el.value.trim()) : (q.type === 'check' ? false : '');
     if(q.required && (q.type === 'check' ? v !== true : v === '')){ setErr("'" + q.label + "' 항목을 채워 주세요."); if(el) el.focus(); return; }
     answers.push({ id:q.id, label:q.label, type:q.type, value:v });
   }
@@ -3678,7 +3694,7 @@ function hubTypeChange(){
   document.getElementById('hubFLinkLabel').placeholder = type==='submit' ? '버튼 이름 (비우면 "파일 제출하러 가기")' : '버튼 이름 (비우면 "바로가기")';
 }
 // ── 관리자: 제출 질문 편집기 (모달 안) ──
-const HUB_QTYPES = { short:'한 줄 답변', long:'여러 줄 답변', check:'체크 (예/아니오)' };
+const HUB_QTYPES = { short:'한 줄 답변', long:'여러 줄 답변', check:'체크 (예/아니오)', choice:'객관식 (하나 고르기)' };
 function hubQRender(){
   const el = document.getElementById('hubQEditor');
   if(!el) return;
@@ -3687,6 +3703,7 @@ function hubQRender(){
     return '<div class="hub-qrow">'
       + '<textarea rows="2" maxlength="300" placeholder="질문 (예: 활동 제목) — 길게 써도 돼요" oninput="hubQSet(' + i + ',\'label\',this.value)" style="min-height:64px;resize:vertical;">' + hubEsc(q.label) + '</textarea>'
       + '<textarea rows="2" maxlength="300" placeholder="안내 문구 (선택)" oninput="hubQSet(' + i + ',\'hint\',this.value)" style="margin-top:6px;min-height:52px;resize:vertical;">' + hubEsc(q.hint) + '</textarea>'
+      + (q.type === 'choice' ? '<textarea rows="4" placeholder="선택지 (한 줄에 하나씩, 최대 12개)&#10;예)&#10;매우 만족&#10;보통&#10;아쉬움" oninput="hubQSetOpts(' + i + ',this.value)" style="margin-top:6px;min-height:92px;resize:vertical;">' + hubEsc((q.options || []).join('\n')) + '</textarea>' : '')
       + '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;">'
       + '<select onchange="hubQSet(' + i + ',\'type\',this.value)" style="flex:1;min-width:120px;">' + opts + '</select>'
       + '<label style="display:flex;align-items:center;gap:6px;min-height:44px;font-size:13px;margin:0;"><input type="checkbox"' + (q.required ? ' checked' : '') + ' onchange="hubQSet(' + i + ',\'required\',this.checked)" style="width:20px;height:20px;"/>필수</label>'
@@ -3696,7 +3713,12 @@ function hubQRender(){
       + '</div></div>';
   }).join('') || '<div class="hub-empty" style="padding:14px;">질문이 없어요. 아래 ＋ 질문 추가를 눌러주세요.</div>';
 }
-function hubQSet(i, k, v){ if(hubEditQs[i]) hubEditQs[i][k] = v; }
+function hubQSet(i, k, v){
+  if(!hubEditQs[i]) return;
+  hubEditQs[i][k] = v;
+  if(k === 'type') hubQRender();   // 객관식으로 바꾸면 선택지 입력칸이 나타나요
+}
+function hubQSetOpts(i, v){ if(hubEditQs[i]) hubEditQs[i].options = String(v).split('\n'); }
 function hubQAdd(){ hubEditQs.push(hubNormQ({ label:'', type:'short', required:false, hint:'' })); hubQRender(); }
 function hubQMove(i, d){ const j = i + d; if(j < 0 || j >= hubEditQs.length) return; const t = hubEditQs[i]; hubEditQs[i] = hubEditQs[j]; hubEditQs[j] = t; hubQRender(); }
 function hubQDel(i){ hubEditQs.splice(i,1); hubQRender(); }
@@ -3802,6 +3824,7 @@ function hubApplyEdit(){
   if(!isMenu && type === 'submit'){
     if(!hubEditQs.length){ err.textContent = '제출 질문을 1개 이상 만들어 주세요.'; err.style.display = 'block'; return; }
     if(hubEditQs.some(q=>!String(q.label || '').trim())){ err.textContent = '비어 있는 질문이 있어요. 질문을 입력하거나 🗑️로 지워 주세요.'; err.style.display = 'block'; return; }
+    if(hubEditQs.some(q=>q.type === 'choice' && hubNormQ(q).options.length < 2)){ err.textContent = '객관식 질문은 선택지가 2개 이상 필요해요. (한 줄에 하나씩 적어 주세요)'; err.style.display = 'block'; return; }
   }
   if(hubUploading){ err.textContent = '파일을 올리는 중이에요. 잠시만 기다렸다가 다시 눌러 주세요.'; err.style.display = 'block'; return; }
   const arr = hubArr(hubEditCtx.kind);
@@ -3837,7 +3860,7 @@ function hubFormRows(){
   const rows = [];
   hubItems.forEach(it=>{
     if(it.type !== 'submit') return;
-    (hubForms[it.id] || []).forEach(q=>rows.push({ itemId:it.id, id:q.id, label:q.label, type:q.type, required:!!q.required, hint:q.hint }));
+    (hubForms[it.id] || []).forEach(q=>rows.push({ itemId:it.id, id:q.id, label:q.label, type:q.type, required:!!q.required, hint:q.hint, options:(q.type === 'choice' ? (q.options || []).join('\n') : '') }));
   });
   return rows;
 }
@@ -3884,6 +3907,11 @@ async function hubSave(){
     const probe = await jsonpGAS({ action:'getHubItems' });
     if(!probe || !Array.isArray(probe.items) || !Array.isArray(probe.forms) || !Array.isArray(probe.files)){
       hubMsg('⚠️ GAS가 아직 새 버전이 아니에요. .gs 코드를 교체하고 "수정 배포"한 뒤 다시 저장해 주세요. (이 기기에는 저장됨)','warn');
+      return;
+    }
+    // 객관식 질문이 있는데 GAS가 선택지 저장을 모르는 옛 버전이면 선택지가 사라지므로 저장 중단
+    if(!probe.choiceOk && Object.keys(hubForms).some(k=>(hubForms[k] || []).some(q=>q.type === 'choice'))){
+      hubMsg('⚠️ GAS가 객관식을 아직 몰라요. 새 .gs 코드로 교체하고 "수정 배포"한 뒤 다시 저장해 주세요. (이 기기에는 저장됨)','warn');
       return;
     }
     // 2) 저장: 응답을 읽어 확인, 응답을 못 읽으면 저장번호로 재확인
