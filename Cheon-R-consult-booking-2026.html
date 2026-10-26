@@ -615,6 +615,15 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
           <span class="toggle-label" id="bookingToggleLabel">예약 진행 중</span>
         </div>
         <div class="form-group" style="margin-top:18px;">
+          <label class="form-label">🟢 예약 시작 시각 (선택)</label>
+          <input class="form-input" type="datetime-local" id="setOpenAt">
+          <div style="font-size:11px;color:var(--gray-400);margin-top:6px;line-height:1.6;">정한 시각이 되면 자동으로 예약이 열려요. 그 전에는 학부모님께 "아직 접수 전"으로 보여요. 비워 두면 바로 열려 있어요.</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button class="btn btn-primary" onclick="adminSaveOpenAt()" style="font-size:13px;padding:11px;">시작 시각 저장</button>
+          <button class="btn btn-secondary" onclick="adminClearOpenAt()" style="font-size:13px;padding:11px;">시작 시각 해제</button>
+        </div>
+        <div class="form-group" style="margin-top:18px;">
           <label class="form-label">⏰ 자동 마감 시각 (선택)</label>
           <input class="form-input" type="datetime-local" id="setCloseAt">
           <div style="font-size:11px;color:var(--gray-400);margin-top:6px;line-height:1.6;">정한 시각이 되면 자동으로 마감돼요. 비워 두면 직접 마감할 때까지 열려 있어요.</div>
@@ -1328,6 +1337,13 @@ function applySettingsUI() {
   }
   else           { wrap.style.display = 'none'; }
   // 마감 게이트: true=열림 / false=마감 / null=확인 중
+  { const cm = document.querySelector('#bookingClosedMsg p');
+    if (cm) {
+      if (s.notYetOpen && s.openAt) {
+        const [od,ot] = String(s.openAt).split('T'); const [,om,odd] = (od||'').split('-');
+        cm.innerHTML = `아직 예약 접수 전이에요.<br>${parseInt(om)}월 ${parseInt(odd)}일 ${ot||''}부터 신청할 수 있어요.`;
+      } else cm.innerHTML = '현재 예약이 마감됐어요.<br>담임 선생님께 문의해 주세요.';
+    } }
   setGate(s.bookingEnabled === true ? 'open' : (s.bookingEnabled === false ? 'closed' : 'checking'));
   // 자동 마감 시각 안내 (열려 있을 때만)
   const ci = document.getElementById('closeAtInfo');
@@ -1352,6 +1368,8 @@ function applySettingsUI() {
     document.getElementById('bookingToggleLabel').textContent =
       !a.bookingEnabled ? '예약 마감됨' : (a.effectiveOpen ? '예약 진행 중' : '⏰ 자동 마감 시각이 지나 마감됨');
     document.getElementById('setCloseAt').value        = a.closeAt || '';
+    const so = document.getElementById('setOpenAt'); if (so) so.value = a.openAt || '';
+    if (a.bookingEnabled && !a.effectiveOpen && a.notYetOpen) document.getElementById('bookingToggleLabel').textContent = '🟢 예약 시작 시각 전 (아직 접수 전)';
     const ct = document.getElementById('confirmToggle');
     if (ct) { ct.checked = !!a.confirmMode; document.getElementById('confirmToggleLabel').textContent = a.confirmMode ? '켜짐 · 선생님이 확정해야 확정' : '꺼짐 · 예약하면 바로 확정'; }
   }
@@ -1845,7 +1863,7 @@ async function adminSaveSettings(partial, toastMsg) {
     // ★ 서버가 저장 성공을 확인해 준 값으로만 화면 갱신
     adminCfg = res.settings;
     appSettings = { ...appSettings, teacherName:adminCfg.teacherName, teacherRole:adminCfg.teacherRole, notice:adminCfg.notice,
-                    phoneEnabled:adminCfg.phoneEnabled, closeAt:adminCfg.closeAt, bookingEnabled:adminCfg.effectiveOpen };
+                    phoneEnabled:adminCfg.phoneEnabled, closeAt:adminCfg.closeAt, openAt:adminCfg.openAt, notYetOpen:adminCfg.notYetOpen, bookingEnabled:adminCfg.effectiveOpen };
     applySettingsUI();
     showToast(toastMsg || '✅ 저장됐어요!');
   } catch(err) {
@@ -1862,6 +1880,12 @@ function adminSaveCloseAt() {
   adminSaveSettings({ closeAt:v }, '⏰ 자동 마감 시각이 저장됐어요!');
 }
 function adminClearCloseAt() { adminSaveSettings({ closeAt:'' }, '⏰ 자동 마감 시각을 해제했어요'); }
+function adminSaveOpenAt() {
+  const v = document.getElementById('setOpenAt').value;
+  if (!v) { alert('예약을 시작할 날짜와 시각을 선택해 주세요.'); return; }
+  adminSaveSettings({ openAt:v }, '🟢 예약 시작 시각이 저장됐어요!');
+}
+function adminClearOpenAt() { adminSaveSettings({ openAt:'' }, '🟢 예약 시작 시각을 해제했어요'); }
 
 function adminSaveTeacherInfo() {
   const n = document.getElementById('setTeacherName').value.trim();
@@ -2026,7 +2050,7 @@ async function adminRefreshAll() {
   adminCfg = res.settings; needGasUpdate = (res.gasVer||0) < NEED_GAS; updateGasVerNotice();
   appSlots = res.slots; appBookings = res.bookings; bookingCache = res.bookings;
   appSettings = { ...appSettings, teacherName:adminCfg.teacherName, teacherRole:adminCfg.teacherRole, notice:adminCfg.notice,
-                  phoneEnabled:adminCfg.phoneEnabled, closeAt:adminCfg.closeAt, bookingEnabled:adminCfg.effectiveOpen };
+                  phoneEnabled:adminCfg.phoneEnabled, closeAt:adminCfg.closeAt, openAt:adminCfg.openAt, notYetOpen:adminCfg.notYetOpen, bookingEnabled:adminCfg.effectiveOpen };
   applySettingsUI(); renderDateGrid(); renderDaySlotList(); if (tt) ttRender();
 }
 async function adminRefreshSlots() {
