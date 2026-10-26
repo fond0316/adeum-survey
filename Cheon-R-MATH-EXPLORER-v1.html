@@ -530,19 +530,19 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
       <div class="mx-sec" id="mx-sec-good" style="order:1">
         <div class="mx-lbl">좋았던 점 <span style="font-weight:500;color:#9ca3af">(여러 개 선택 가능)</span></div>
         <div class="mx-chips" id="mx-rv-chips"></div>
-        <input class="mx-in" id="mx-rv-etc" type="text" maxlength="30" placeholder="직접 적어주세요 (30자, 이름·연락처는 빼고)" style="display:none;margin-top:8px" autocomplete="off">
+        <input class="mx-in" id="mx-rv-etc" type="text" maxlength="50" placeholder="직접 적어주세요 (50자, 이름·연락처는 빼고)" style="display:none;margin-top:8px" autocomplete="off">
       </div>
 
       <div class="mx-sec" id="mx-sec-one" style="order:2">
         <div class="mx-lbl">한줄 후기 <span style="font-weight:500;color:#9ca3af">(선택)</span></div>
-        <textarea class="mx-rvta" id="mx-rv-one" maxlength="80" placeholder="자유롭게 남겨주세요 (80자)"></textarea>
+        <textarea class="mx-rvta" id="mx-rv-one" maxlength="300" placeholder="자유롭게 남겨주세요 (300자)"></textarea>
         <div class="mx-hint">⚠ 이름·연락처 같은 개인정보는 적지 마세요.</div>
       </div>
 
       <div class="mx-sec" id="mx-sec-imp" style="order:3">
         <div class="mx-lbl" id="mx-rv-implbl">💡 이런 점이 바뀌면 좋겠어요 <span style="font-weight:500;color:#9ca3af">(선택)</span></div>
         <div class="mx-chips" id="mx-rv-warns"></div>
-        <textarea class="mx-rvta" id="mx-rv-imp" maxlength="100" placeholder="더 적고 싶은 점이 있으면 적어주세요 (100자)" style="min-height:64px;margin-top:8px"></textarea>
+        <textarea class="mx-rvta" id="mx-rv-imp" maxlength="500" placeholder="더 적고 싶은 점이 있으면 적어주세요 (500자)" style="min-height:90px;margin-top:8px"></textarea>
         <div class="mx-hint">개발자에게만 전달돼요. 소개 자료에는 쓰지 않아요. 이름·연락처는 적지 마세요.</div>
       </div>
 
@@ -11391,9 +11391,9 @@ async function mxrSend(){
   const fields = {
     name:(u.name||''), role:u.role, school:u.school||'', grade:u.grade||'', dev:mxDev(),
     stars:String(mxr.stars),
-    etc:     mxr.etc ? $mx('mx-rv-etc').value.trim().slice(0,30) : '',
-    oneline: $mx('mx-rv-one').value.trim().slice(0,80),
-    improve: $mx('mx-rv-imp').value.trim().slice(0,100),
+    etc:     mxr.etc ? $mx('mx-rv-etc').value.trim().slice(0,50) : '',
+    oneline: $mx('mx-rv-one').value.trim().slice(0,300),
+    improve: $mx('mx-rv-imp').value.trim().slice(0,500),
     consent: mxr.consent
   };
   // 한글은 주소에 그대로 실으면 글자당 9자로 늘어남 → UTF-8 base64 한 덩어리(d)로 보내 길이를 절반 이하로 줄임
@@ -11401,7 +11401,7 @@ async function mxrSend(){
   const p = { action:'review', d: mxB64u(JSON.stringify(fields)) };
   // 그래도 너무 길면 미리 안내 (주소에 실어 보내는 방식이라 한도가 있음)
   const qsLen = Object.keys(p).map(k=>encodeURIComponent(k)+'='+encodeURIComponent(p[k])).join('&').length;
-  if(MX_GAS_URL.length + qsLen + 48 > 2000){ msg.textContent = '글이 조금 길어요. 한줄 후기나 개선사항을 조금만 줄여 주세요'; return; }
+  if(MX_GAS_URL.length + qsLen + 48 > 6000){ msg.textContent = '글이 조금 길어요. 한줄 후기나 개선사항을 조금만 줄여 주세요'; return; }
   mxr.sending = true; const btn = $mx('mx-rv-send'); btn.disabled = true; btn.textContent = '보내는 중...';
   try{
     const r = await mxJsonp(p, 10000);
