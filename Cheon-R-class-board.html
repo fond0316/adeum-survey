@@ -228,6 +228,26 @@ mark{background:#FEF3C7;color:inherit;border-radius:3px;padding:0 1px}
 #imgOv img{max-width:96vw;max-height:88vh;border-radius:10px;background:#fff}
 #imgOv span{color:#fff;font-size:13px}
 
+/* 📖 우리 반 시간표 띠 + 주간 시간표 창 (로즈핑크) */
+#ttStrip{display:none;margin-top:10px;width:100%;min-height:48px;border-radius:12px;align-items:center;gap:10px;padding:0 10px;font-size:14px;font-weight:500;color:#72243E;background:#FBEAF0;border:0.5px solid #F4C0D1;text-align:left;cursor:pointer}
+#ttStrip.show{display:flex}
+#ttStrip .sm{font-weight:400;font-size:13px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ttStrip .ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:none;font-size:17px;background:#F4C0D1}
+body.board #ttStrip{display:none!important}
+.ttm{max-width:460px}
+.ttm .tgl{display:flex;gap:6px;margin:10px 0 12px}
+.ttm .tgl button{flex:1;min-height:44px;border-radius:10px;border:1px solid #F4C0D1;background:#fff;color:#72243E;font-size:14px;font-weight:600;font-family:inherit}
+.ttm .tgl button.on{background:#FBEAF0;border-color:#ED93B1}
+.ttm table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px}
+.ttm th,.ttm td{border:1px solid var(--line);padding:8px 2px;text-align:center;word-break:keep-all;overflow-wrap:anywhere}
+.ttm th{background:#F7F5FC;color:var(--tx2);font-weight:600}
+.ttm th:first-child,.ttm td:first-child{width:34px;color:var(--tx3);font-size:12px}
+.ttm td.hl,.ttm th.hl{background:#FBEAF0;color:#72243E;font-weight:700}
+.ttm th.hl{border-bottom:2px solid #ED93B1}
+.ttm.focus td:not(.hl):not(:first-child){color:var(--tx3)}
+.ttm .upd{margin-top:10px;font-size:12px;color:var(--tx3);text-align:center}
+.ttm .cls{width:100%;min-height:48px;margin-top:12px;border-radius:12px;background:var(--main);color:#fff;font-size:16px;font-weight:700;font-family:inherit}
+
 /* 🏫 학교 알림판 카드 (나이스 연동 — 급식·학사일정) */
 .ti{margin-top:10px;background:#E9F6EF;border:1px solid #D7ECE1;border-radius:14px;color:#1F5C45;overflow:hidden}
 .ti-head{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;padding:8px 14px;text-align:left;font-size:14px;font-weight:700;color:#1F5C45}
@@ -263,6 +283,7 @@ body.board .ti-row .tag{font-size:15px}
 
   <div id="urgent"></div>
   <div class="ti" id="ti" style="display:none"></div>
+  <button type="button" id="ttStrip" onclick="ttOpen()" aria-label="우리 반 시간표 보기"></button>
 
   <div class="main">
     <section class="panel cal-panel">
@@ -383,6 +404,11 @@ body.board .ti-row .tag{font-size:15px}
   <div class="modal det" id="detBox"></div>
 </div>
 
+<!-- 우리 반 시간표 -->
+<div class="ov" id="ttOv" onclick="if(event.target===this)closeOv('ttOv')">
+  <div class="modal ttm" id="ttBox"></div>
+</div>
+
 <!-- 긴급/호출 팝업 -->
 <div class="ov" id="popOv">
   <div class="modal pop" id="popBox"></div>
@@ -466,6 +492,7 @@ function demoApi(p){
     if (a === 'who') return DEMO_ROSTER[p.sid] ? resolve({ ok:true, sid:p.sid, name:DEMO_ROSTER[p.sid] }) : reject(new Error('체험에서는 학번 10101~10105만 쓸 수 있어요.'));
     if (a === 'search'){ const q = String(p.q || '').toLowerCase(); return resolve({ ok:true, more:false, results:demoNotices().filter(n => (n.title + ' ' + n.body).toLowerCase().includes(q)) }); }
     if (a === 'request') return resolve({ ok:true });
+    if (a === 'ttPublic') return resolve({ ok:true, enabled:true, updated:'2026-03-02', grid:[['국어','수학','영어','과학','사회'],['수학','영어','국어','체육','국어'],['영어','과학','수학','국어','수학'],['과학','국어','체육','수학','영어'],['사회','체육','과학','영어','과학'],['체육','음악','자율','미술','창체'],['창체','','','','']] });
     if (a === 'neisToday') return resolve({ ok:true, enabled:true, date:p.date, strip:'학사일정,점심', open:'점심', schedule:['체험 학사일정 예시'], meals:{ '점심':['잡곡밥','된장찌개','제육볶음','배추김치','과일'] } });
     if (a === 'neisCalDots'){ const t0 = new Date(), f = n => { const d = new Date(t0); d.setDate(d.getDate()+n); return ymd(d); }; return resolve({ ok:true, enabled:true, dots:[f(2), f(9)] }); }
     return reject(new Error('체험에서는 쓸 수 없는 기능이에요.'));
@@ -1338,6 +1365,60 @@ async function schLoad(force){
 if (GAS){
   schLoad();
   setInterval(() => { schLoad(); }, 5*60000);   // 30분마다만 새로 받아요
+}
+
+/* ===== 📖 우리 반 시간표 (학생 화면 · 읽기 전용) — 비어 있거나 못 불러오면 띠를 숨겨요 ===== */
+let ttPub = null, ttMode = 'today';
+const TT_DAYS = ['월','화','수','목','금'];
+function ttDayIdx(){ const w = new Date().getDay(); return (w >= 1 && w <= 5) ? w - 1 : 0; }   // 주말엔 월요일을 보여줘요
+function ttStripRender(){
+  const el = document.getElementById('ttStrip');
+  if (!el) return;
+  if (BOARD || !ttPub || !ttPub.enabled || !ttPub.grid){ el.classList.remove('show'); return; }
+  const c = ttDayIdx(), w = new Date().getDay(), wk = (w >= 1 && w <= 5);
+  const items = [];
+  ttPub.grid.forEach((row, i) => { const v = String((row && row[c]) || '').trim(); if (v) items.push((i+1) + ' ' + esc(v)); });
+  el.innerHTML = '<span class="ic">📖</span>' + (wk ? '오늘' : '월요일') + '(' + TT_DAYS[c] + ')<span class="sm">' + (items.join(' · ') || '수업 없음') + '</span><span class="ic">›</span>';
+  el.classList.add('show');
+}
+function ttOpen(){
+  if (!ttPub || !ttPub.grid) return;
+  const c = ttDayIdx(), g = ttPub.grid;
+  let last = 0;
+  g.forEach((row, i) => { if ((row || []).some(v => String(v || '').trim())) last = i + 1; });
+  last = Math.max(last, 1);
+  let h = '<h2>📖 우리 반 시간표</h2><div class="tgl"><button type="button" data-m="today" class="' + (ttMode === 'today' ? 'on' : '') + '" onclick="ttSetMode(\'today\')">오늘 강조</button><button type="button" data-m="week" class="' + (ttMode === 'week' ? 'on' : '') + '" onclick="ttSetMode(\'week\')">주간 전체</button></div>';
+  h += '<table><thead><tr><th></th>' + TT_DAYS.map((d, i) => '<th data-c="' + i + '">' + d + '</th>').join('') + '</tr></thead><tbody>';
+  for (let r = 0; r < last; r++) h += '<tr><td>' + (r+1) + '</td>' + [0,1,2,3,4].map(i => '<td data-c="' + i + '">' + esc(String((g[r] || [])[i] || '')) + '</td>').join('') + '</tr>';
+  h += '</tbody></table>';
+  if (ttPub.updated) h += '<div class="upd">최종 수정 ' + esc(String(ttPub.updated).replace(/-/g, '.')) + '</div>';
+  h += '<button type="button" class="cls" onclick="closeOv(\'ttOv\')">닫기</button>';
+  document.getElementById('ttBox').innerHTML = h;
+  ttApplyMode();
+  document.getElementById('ttOv').classList.add('show');
+}
+function ttApplyMode(){
+  const box = document.getElementById('ttBox'); if (!box) return;
+  const c = ttDayIdx(), on = ttMode === 'today';
+  box.classList.toggle('focus', on);
+  box.querySelectorAll('[data-c]').forEach(x => x.classList.toggle('hl', on && Number(x.getAttribute('data-c')) === c));
+  box.querySelectorAll('.tgl button').forEach(b => b.classList.toggle('on', b.getAttribute('data-m') === ttMode));
+}
+function ttSetMode(m){ ttMode = m; ttApplyMode(); }
+async function ttPubLoad(){
+  try{
+    const r = await jsonp({ action:'ttPublic' });
+    ttPub = r;
+  }catch(e){ /* 못 불러와도 공지 화면은 그대로 — 띠만 안 보여요 (옛 GAS면 여기로 와요) */ }
+  ttStripRender();
+}
+(function(){   // 교실 화면 모드를 켜고 끌 때 띠도 같이 숨기고/보여요
+  const ab2 = applyBoard;
+  applyBoard = function(){ ab2(); try{ ttStripRender(); }catch(e){} };
+})();
+if (GAS){
+  ttPubLoad();
+  setInterval(() => { ttPubLoad(); }, 30*60000);
 }
 
 /* ===== ✨ 공지 꾸미기: {굵게:글자} {밑줄:글자} {빨강:글자} {파랑:글자} {형광:글자} {별} (내용 칸에서만) ===== */

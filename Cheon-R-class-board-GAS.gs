@@ -5,7 +5,7 @@
  */
 
 /** GAS 코드 버전 — 코드를 고칠 때마다 1씩 올려요. 관리 화면이 이 번호로 업데이트가 필요한지 알려줘요. */
-var GAS_VER = 4;
+var GAS_VER = 5;
 
 var TZ = 'Asia/Seoul';
 var SHEETS = {
@@ -67,6 +67,7 @@ function route_(p) {
     case 'photoCleanup': return photoCleanup_(p);
     case 'ttLoad': return ttLoad_(p);
     case 'ttSave': return ttSave_(p);
+    case 'ttPublic': return ttPublic_(p);   // 학생 화면용 — 로그인 없이 읽기만
     case 'neisToday': return neisToday_(p);
     case 'neisSettings': return neisSettings_(p);
     case 'neisSave': return neisSave_(p);
@@ -1010,6 +1011,11 @@ function ttLoad_(p) {
   need_(p, ['admin']);
   return { ok: true, grid: ttGrid_() };
 }
+/** 학생 화면용 시간표 — 로그인 없이 읽기 전용 (과목명만 들어 있어요). 비어 있으면 enabled:false */
+function ttPublic_(p) {
+  if (!ttHas_()) return { ok: true, enabled: false };
+  return { ok: true, enabled: true, grid: ttGrid_(), updated: getSetting_('시간표수정일') || '' };
+}
 function ttSave_(p) {
   need_(p, ['admin']);
   var d = JSON.parse(p.data || '{}');
@@ -1023,7 +1029,9 @@ function ttSave_(p) {
   return lock_(function () {
     var sh = sh_('timetable');
     sh.getRange(1, 1, 1, 6).setValues([SHEETS.timetable.headers]).setFontWeight('bold');
+    var before = JSON.stringify(ttGrid_());
     sh.getRange(2, 1, 7, 6).setNumberFormat('@').setValues(out);
+    if (JSON.stringify(ttGrid_()) !== before) setSetting_('시간표수정일', Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd'));   // 내용이 실제로 바뀐 때만 수정일 갱신
     return { ok: true };
   });
 }
