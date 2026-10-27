@@ -1011,10 +1011,30 @@ function ttLoad_(p) {
   need_(p, ['admin']);
   return { ok: true, grid: ttGrid_() };
 }
-/** 학생 화면용 시간표 — 로그인 없이 읽기 전용 (과목명만 들어 있어요). 비어 있으면 enabled:false */
+/** 학생 화면용 시간표 — 로그인 없이 읽기 전용 (과목명만). 나이스 연동이 되어 있으면 나이스 시간표(이번 주, 주말엔 다음 주)를 먼저, 없으면 수기 시간표. 둘 다 비면 enabled:false */
 function ttPublic_(p) {
+  if (neisEnabled_()) {
+    try {
+      var dow = Number(Utilities.formatDate(new Date(), TZ, 'u'));   // 1=월 … 7=일
+      var shift = dow >= 6 ? (8 - dow) : -(dow - 1);                 // 평일엔 이번 주 월요일, 주말엔 다음 주 월요일
+      var g = [], any = false, i, r;
+      for (r = 0; r < 7; r++) g.push(['', '', '', '', '']);
+      for (i = 0; i < 5; i++) {
+        var d = Utilities.formatDate(new Date(Date.now() + (shift + i) * 86400000), TZ, 'yyyy-MM-dd');
+        var seen = {};
+        neisPeriods_(d).forEach(function (x) {
+          var n = Number(x.perio);
+          if (n >= 1 && n <= 7) {
+            var cur = g[n - 1][i];
+            if (!seen[n + '|' + x.name]) { seen[n + '|' + x.name] = 1; g[n - 1][i] = cur ? cur + '/' + x.name : x.name; any = true; }
+          }
+        });
+      }
+      if (any) return { ok: true, enabled: true, grid: g, updated: '', source: 'neis' };
+    } catch (e) { /* 나이스가 안 되면 아래 수기 시간표로 */ }
+  }
   if (!ttHas_()) return { ok: true, enabled: false };
-  return { ok: true, enabled: true, grid: ttGrid_(), updated: getSetting_('시간표수정일') || '' };
+  return { ok: true, enabled: true, grid: ttGrid_(), updated: getSetting_('시간표수정일') || '', source: 'sheet' };
 }
 function ttSave_(p) {
   need_(p, ['admin']);

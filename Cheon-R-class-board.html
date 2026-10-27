@@ -1391,7 +1391,8 @@ function ttOpen(){
   h += '<table><thead><tr><th></th>' + TT_DAYS.map((d, i) => '<th data-c="' + i + '">' + d + '</th>').join('') + '</tr></thead><tbody>';
   for (let r = 0; r < last; r++) h += '<tr><td>' + (r+1) + '</td>' + [0,1,2,3,4].map(i => '<td data-c="' + i + '">' + esc(String((g[r] || [])[i] || '')) + '</td>').join('') + '</tr>';
   h += '</tbody></table>';
-  if (ttPub.updated) h += '<div class="upd">최종 수정 ' + esc(String(ttPub.updated).replace(/-/g, '.')) + '</div>';
+  if (ttPub.source === 'neis') h += '<div class="upd">나이스 시간표 기준 · ' + (new Date().getDay() % 6 === 0 ? '다음 주' : '이번 주') + '</div>';
+  else if (ttPub.updated) h += '<div class="upd">최종 수정 ' + esc(String(ttPub.updated).replace(/-/g, '.')) + '</div>';
   h += '<button type="button" class="cls" onclick="closeOv(\'ttOv\')">닫기</button>';
   document.getElementById('ttBox').innerHTML = h;
   ttApplyMode();
