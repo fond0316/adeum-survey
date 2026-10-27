@@ -233,7 +233,7 @@ mark{background:#FEF3C7;color:inherit;border-radius:3px;padding:0 1px}
 #ttStrip.show{display:flex}
 #ttStrip .sm{font-weight:400;font-size:13px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #ttStrip .ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:none;font-size:17px;background:#F4C0D1}
-body.board #ttStrip{display:none!important}
+body.board #ttStrip{min-height:52px;font-size:15px}
 .ttm{max-width:460px}
 .ttm .tgl{display:flex;gap:6px;margin:10px 0 12px}
 .ttm .tgl button{flex:1;min-height:44px;border-radius:10px;border:1px solid #F4C0D1;background:#fff;color:#72243E;font-size:14px;font-weight:600;font-family:inherit}
@@ -1374,7 +1374,7 @@ function ttDayIdx(){ const w = new Date().getDay(); return (w >= 1 && w <= 5) ? 
 function ttStripRender(){
   const el = document.getElementById('ttStrip');
   if (!el) return;
-  if (BOARD || !ttPub || !ttPub.enabled || !ttPub.grid){ el.classList.remove('show'); return; }
+  if (!ttPub || !ttPub.enabled || !ttPub.grid){ el.classList.remove('show'); return; }
   const c = ttDayIdx(), w = new Date().getDay(), wk = (w >= 1 && w <= 5);
   const items = [];
   ttPub.grid.forEach((row, i) => { const v = String((row && row[c]) || '').trim(); if (v) items.push((i+1) + ' ' + esc(v)); });
