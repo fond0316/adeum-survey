@@ -331,6 +331,8 @@ canvas{width:100%;height:440px;display:block}
 
 .mx-rvbtn{white-space:nowrap;min-height:44px;padding:0 20px;border:1.5px solid #B8D4F8;border-radius:999px;background:#fff;color:#1A5FB4;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.05);}
 .mx-rvbtn:active{background:#EBF3FF;}
+.mx-rvh{flex-shrink:0;min-height:44px;padding:0 14px;font-size:13px;}
+@media (max-width:700px){.mx-rvh .mx-rvt{display:none}.mx-rvh{min-width:44px;padding:0 10px;font-size:18px}}
 #mx-rv{position:fixed;inset:0;z-index:1050;background:rgba(17,24,39,.5);display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));}
 #mx-rv.mx-open{display:flex;}
 .mx-rvcard{margin:auto;width:100%;max-width:460px;background:#fff;border-radius:20px;padding:24px 22px 18px;box-shadow:0 8px 32px rgba(0,0,0,.25);}
@@ -645,7 +647,7 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
       <div class="lc-vnum">v1</div>
       <div class="lc-name">다항함수</div>
       <div class="lc-desc">방정식 · 부등식<br>그래프로 직접 탐구</div>
-      <div class="lc-badge" style="background:#dbeafe;color:#1e40af;">공통수학 1 · 미적분</div>
+      <div class="lc-badge" style="background:#dbeafe;color:#1e40af;">공통수학1·2 · 미적분Ⅰ (심화: 미적분Ⅱ)</div>
     </div>
 
     <!-- V2 -->
@@ -708,8 +710,9 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
       <span class="logo-v">v1</span>
     </div>
     <span class="made">Made by Cheon_R</span>
+    <button type="button" class="mx-rvbtn mx-rvh" onclick="mxrOpen()" aria-label="후기 남기기">💬<span class="mx-rvt"> 후기 남기기</span></button>
     <div class="hsp"></div>
-    <span class="hbadge">공통수학 1 · 미적분 | 다항함수 · 방정식 · 부등식</span>
+    <span class="hbadge">공통수학1·2 · 미적분Ⅰ (심화: 미적분Ⅱ) | 다항함수 · 방정식 · 부등식</span>
   </div>
   <!-- v1 콘텐츠 래퍼 -->
   <div id="v1-wrap" style="flex:1;display:flex;flex-direction:column;">
@@ -1052,13 +1055,13 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
             <line x1="10" y1="100" x2="160" y2="100" stroke="#ccc" stroke-width="1.5"/>
             <line x1="85" y1="10" x2="85" y2="120" stroke="#ccc" stroke-width="1.5"/>
             <!-- a>0 파란 포물선 -->
-            <path d="M30,95 Q85,20 140,95" fill="none" stroke="#1A5FB4" stroke-width="2.5"/>
-            <circle cx="85" cy="20" r="4" fill="#1A5FB4"/>
-            <text x="90" y="18" font-size="10" fill="#1A5FB4" font-family="sans-serif">꼭짓점(p,q)</text>
-            <text x="12" y="112" font-size="10" fill="#1A5FB4" font-family="sans-serif">a&gt;0 ∪</text>
+            <path d="M30,25 Q85,85 140,25" fill="none" stroke="#1A5FB4" stroke-width="2.5"/>
+            <circle cx="85" cy="55" r="4" fill="#1A5FB4"/>
+            <text x="92" y="72" font-size="10" fill="#1A5FB4" font-family="sans-serif">꼭짓점(p,q)</text>
+            <text x="12" y="14" font-size="10" fill="#1A5FB4" font-family="sans-serif">a&gt;0 ∪</text>
             <!-- a<0 빨간 포물선 (작게) -->
-            <path d="M30,30 Q85,85 140,30" fill="none" stroke="#C0392B" stroke-width="2" stroke-dasharray="5,3"/>
-            <text x="108" y="28" font-size="10" fill="#C0392B" font-family="sans-serif">a&lt;0 ∩</text>
+            <path d="M45,115 Q85,75 125,115" fill="none" stroke="#C0392B" stroke-width="2" stroke-dasharray="5,3"/>
+            <text x="128" y="112" font-size="10" fill="#C0392B" font-family="sans-serif">a&lt;0 ∩</text>
           </svg>
         </div>
       </div>
@@ -1088,10 +1091,10 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
       <table class="ct">
         <thead><tr><th>조건</th><th>D&gt;0 (α&lt;β)</th><th>D=0 (중근 α)</th><th>D&lt;0</th><th style="color:var(--rd)">⚠️ 함정</th></tr></thead>
         <tbody>
-          <tr><td><strong>a&gt;0, f&gt;0</strong></td><td>x&lt;α 또는 x&gt;β</td><td>x≠α인 모든 실수</td><td>모든 실수</td><td class="trap">a&gt;0은 아래로 볼록</td></tr>
-          <tr><td><strong>a&gt;0, f&lt;0</strong></td><td>α&lt;x&lt;β</td><td>해 없음</td><td>해 없음</td><td class="trap">해 없는 경우 존재!</td></tr>
-          <tr><td><strong>a&lt;0, f&gt;0</strong></td><td>α&lt;x&lt;β</td><td>해 없음</td><td>해 없음</td><td class="trap">a&lt;0이면 방향 반대!</td></tr>
-          <tr><td><strong>a&lt;0, f&lt;0</strong></td><td>x&lt;α 또는 x&gt;β</td><td>x≠α인 모든 실수</td><td>모든 실수</td><td class="trap">해집합 뒤집힘</td></tr>
+          <tr><td><strong>a&gt;0, f&gt;0</strong></td><td>x&lt;α 또는 x&gt;β</td><td>x≠α인 모든 실수</td><td>모든 실수</td><td class="trap">아래로 볼록 → f&gt;0은 바깥쪽 (D=0이면 x=α만 빠져요)</td></tr>
+          <tr><td><strong>a&gt;0, f&lt;0</strong></td><td>α&lt;x&lt;β</td><td>해 없음</td><td>해 없음</td><td class="trap">아래로 볼록 → f&lt;0은 안쪽 (D≤0이면 해가 없어요!)</td></tr>
+          <tr><td><strong>a&lt;0, f&gt;0</strong></td><td>α&lt;x&lt;β</td><td>해 없음</td><td>해 없음</td><td class="trap">위로 볼록 → f&gt;0은 안쪽 (a&gt;0일 때와 반대!)</td></tr>
+          <tr><td><strong>a&lt;0, f&lt;0</strong></td><td>x&lt;α 또는 x&gt;β</td><td>x≠α인 모든 실수</td><td>모든 실수</td><td class="trap">위로 볼록 → f&lt;0은 바깥쪽 (a&gt;0일 때와 반대!)</td></tr>
         </tbody>
       </table>
     </div>
@@ -1216,9 +1219,9 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
           <table class="ct">
             <thead><tr><th>항목</th><th>내용</th><th style="color:var(--rd)">⚠️ 함정</th></tr></thead>
             <tbody>
-              <tr><td><strong>a &gt; 0</strong></td><td>양 끝 위로 ↑↑, 최솟값 존재 가능</td><td class="trap">최솟값이 반드시 있진 않음</td></tr>
-              <tr><td><strong>a &lt; 0</strong></td><td>양 끝 아래로 ↓↓, 최댓값 존재 가능</td><td class="trap">양 끝 방향 동일! (이차와 다름)</td></tr>
-              <tr><td><strong>극값 개수</strong></td><td>극값 최대 3개 (극대1 극소2 또는 반대)</td><td class="trap">극값 1개이거나 없을 수도 있음</td></tr>
+              <tr><td><strong>a &gt; 0</strong></td><td>양 끝 위로 ↑↑, 최솟값 항상 존재</td><td class="trap">최댓값은 없음 (위로 끝없이 커져요)</td></tr>
+              <tr><td><strong>a &lt; 0</strong></td><td>양 끝 아래로 ↓↓, 최댓값 항상 존재</td><td class="trap">양 끝 방향 동일! (삼차와 다름)</td></tr>
+              <tr><td><strong>극값 개수</strong></td><td>극값 1개 또는 3개 (3개면 극대1 극소2 또는 반대)</td><td class="trap">극값이 0개이거나 2개인 사차함수는 없어요!</td></tr>
               <tr><td><strong>변곡점</strong></td><td>f''(x)=0이고 볼록 방향 바뀌는 점</td><td class="trap">변곡점 최대 2개</td></tr>
             </tbody>
           </table>
@@ -1229,17 +1232,17 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
             <line x1="10" y1="75" x2="160" y2="75" stroke="#ccc" stroke-width="1.5"/>
             <line x1="85" y1="10" x2="85" y2="125" stroke="#ccc" stroke-width="1.5"/>
             <!-- a>0 사차 W형 -->
-            <path d="M15,110 C25,110 35,25 60,40 S80,90 85,75 S105,20 130,35 S148,110 155,110" fill="none" stroke="#1A5FB4" stroke-width="2.5"/>
+            <path d="M15,110 C25,110 35,25 60,40 S80,90 85,75 S105,20 130,35 S148,110 155,110" fill="none" stroke="#1A5FB4" stroke-width="2.5" transform="translate(0,150) scale(1,-1)"/>
             <!-- 극대 -->
             <circle cx="85" cy="75" r="4" fill="none" stroke="#2D7D46" stroke-width="2"/>
-            <text x="88" y="73" font-size="9" fill="#2D7D46" font-family="sans-serif">극대</text>
+            <text x="88" y="66" font-size="9" fill="#2D7D46" font-family="sans-serif">극대</text>
             <!-- 극소 좌 -->
-            <circle cx="45" cy="35" r="4" fill="none" stroke="#C0392B" stroke-width="2"/>
-            <text x="22" y="32" font-size="9" fill="#C0392B" font-family="sans-serif">극소</text>
+            <circle cx="45" cy="115" r="4" fill="none" stroke="#C0392B" stroke-width="2"/>
+            <text x="22" y="121" font-size="9" fill="#C0392B" font-family="sans-serif">극소</text>
             <!-- 극소 우 -->
-            <circle cx="125" cy="32" r="4" fill="none" stroke="#C0392B" stroke-width="2"/>
-            <text x="128" y="30" font-size="9" fill="#C0392B" font-family="sans-serif">극소</text>
-            <text x="12" y="128" font-size="10" fill="#1A5FB4" font-family="sans-serif">a&gt;0 W형</text>
+            <circle cx="125" cy="118" r="4" fill="none" stroke="#C0392B" stroke-width="2"/>
+            <text x="128" y="121" font-size="9" fill="#C0392B" font-family="sans-serif">극소</text>
+            <text x="12" y="18" font-size="10" fill="#1A5FB4" font-family="sans-serif">a&gt;0 W형</text>
           </svg>
         </div>
       </div>
@@ -1253,9 +1256,9 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
         <thead><tr><th>개념</th><th>정의/조건</th><th>사차에서 특징</th><th style="color:var(--rd)">⚠️ 함정</th></tr></thead>
         <tbody>
           <tr><td><strong>f'(x)</strong></td><td>3차 다항식</td><td>실근 최대 3개 → 극값 최대 3개</td><td class="trap">f'(x)의 실근 개수 = 극값 후보 개수</td></tr>
-          <tr><td><strong>극대·극소</strong></td><td>f'(x) 부호 변화</td><td>극소2·극대1 또는 극소1·극대2 패턴</td><td class="trap">f'(x) 중근이면 극값 아님!</td></tr>
+          <tr><td><strong>극대·극소</strong></td><td>f'(x) 부호 변화</td><td>극소2·극대1 또는 극소1·극대2 패턴</td><td class="trap">f'(x)=0이어도 좌우 부호가 안 바뀌면(이중근 등) 극값 아님!</td></tr>
           <tr><td><strong>f''(x)</strong></td><td>2차 다항식</td><td>변곡점 최대 2개</td><td class="trap">f''(a)=0만으론 변곡점 확정 불가</td></tr>
-          <tr><td><strong>대칭성</strong></td><td>b=0일 때 y축 대칭</td><td><span class="fml">y=ax⁴+cx²+e</span> 꼴</td><td class="trap">b≠0이면 y축 대칭 아님!</td></tr>
+          <tr><td><strong>대칭성</strong></td><td>b=0, d=0일 때 y축 대칭</td><td><span class="fml">y=ax⁴+cx²+e</span> 꼴</td><td class="trap">b≠0 또는 d≠0이면 y축 대칭 아님!</td></tr>
         </tbody>
       </table>
     </div>
@@ -1269,24 +1272,25 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
           <div style="font-size:12px;font-weight:700;color:var(--bl);margin-bottom:4px">W형 (극값 3개)</div>
           <svg width="100%" height="65" viewBox="0 0 120 65" xmlns="http://www.w3.org/2000/svg">
             <line x1="5" y1="40" x2="115" y2="40" stroke="#B8D4F8" stroke-width="1"/>
-            <path d="M5,60 C15,60 25,10 40,20 S55,50 60,40 S75,8 90,18 S108,58 115,58" fill="none" stroke="#1A5FB4" stroke-width="2"/>
+            <path d="M5,60 C15,60 25,10 40,20 S55,50 60,40 S75,8 90,18 S108,58 115,58" fill="none" stroke="#1A5FB4" stroke-width="2" transform="translate(0,65) scale(1,-1)"/>
           </svg>
           <div style="font-size:11px;color:var(--bl)">f'(x) 실근 3개 (서로 다름)</div>
         </div>
         <div style="flex:1;min-width:130px;background:var(--gn-bg);border:1px solid var(--gn-lt);border-radius:var(--r);padding:10px 12px">
-          <div style="font-size:12px;font-weight:700;color:var(--gn);margin-bottom:4px">S+U형 (극값 2개)</div>
+          <div style="font-size:12px;font-weight:700;color:var(--gn);margin-bottom:4px">U형 변형 (극값 1개)</div>
           <svg width="100%" height="65" viewBox="0 0 120 65" xmlns="http://www.w3.org/2000/svg">
             <line x1="5" y1="40" x2="115" y2="40" stroke="#A8DDB8" stroke-width="1"/>
-            <path d="M5,60 C15,60 28,10 45,20 S60,45 60,40 S75,8 115,8" fill="none" stroke="#2D7D46" stroke-width="2"/>
+            <path d="M5,8 C18,30 28,32 40,32 C52,32 62,60 85,60 C100,60 108,30 115,8" fill="none" stroke="#2D7D46" stroke-width="2"/>
+            <circle cx="40" cy="32" r="3" fill="none" stroke="#2D7D46" stroke-width="1.5"/>
           </svg>
-          <div style="font-size:11px;color:var(--gn)">f'(x) 실근 2개 (중근 포함)</div>
+          <div style="font-size:11px;color:var(--gn)">f'(x) 중근+단근 · 중근인 점(○)은 극값 아님</div>
         </div>
         <div style="flex:1;min-width:130px;background:var(--am-bg);border:1px solid var(--am-lt);border-radius:var(--r);padding:10px 12px">
           <div style="font-size:12px;font-weight:700;color:var(--am);margin-bottom:4px">U형 (극값 1개)</div>
           <svg width="100%" height="65" viewBox="0 0 120 65" xmlns="http://www.w3.org/2000/svg">
             <line x1="5" y1="40" x2="115" y2="40" stroke="#FFD97A" stroke-width="1"/>
-            <path d="M5,60 C20,60 40,5 60,5 S95,55 115,60" fill="none" stroke="#8B5E00" stroke-width="2"/>
-            <circle cx="60" cy="5" r="3" fill="#8B5E00"/>
+            <path d="M5,60 C20,60 40,5 60,5 S95,55 115,60" fill="none" stroke="#8B5E00" stroke-width="2" transform="translate(0,65) scale(1,-1)"/>
+            <circle cx="60" cy="60" r="3" fill="#8B5E00"/>
           </svg>
           <div style="font-size:11px;color:var(--am)">f'(x) 실근 1개 (극소만)</div>
         </div>
@@ -1625,6 +1629,17 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
               </div>
             </div>
             <div style="font-size:11.5px;color:var(--tx3);margin-bottom:8px;line-height:1.6">슬라이더로 점을 하나씩 옮겨봐! 지나간 점은 연하게 남아서 쌓여.</div>
+            <details style="margin-bottom:8px;font-size:12px;color:var(--tx2);line-height:1.8">
+              <summary style="cursor:pointer;font-weight:700;color:var(--pu);padding:4px 0">❓ 트레이서가 뭐예요?</summary>
+              <div style="padding:6px 10px;background:var(--sur);border-radius:8px;margin-top:4px">
+                <b>x₀ 하나가 f(g(x))의 값이 되기까지의 여행</b>을 화살표로 보여주는 기능이에요.<br>
+                <b style="color:var(--rd)">①</b> x₀에서 위·아래로 이동 → <b>g(x₀)</b>를 구해요 (g 먼저!)<br>
+                <b style="color:rgba(139,94,0,0.9)">②</b> 옆으로 이동해 점선 <b>y = x</b>에 닿아요 — g의 출력값을 f의 입력값으로 옮기는 '환승' 단계예요.<br>
+                <b style="color:var(--bl)">③</b> 위·아래로 이동 → <b>f(g(x₀))</b>를 구해요<br>
+                <b style="color:var(--gn)">④</b> 처음 x₀ 위치로 돌아오면, 그 점이 <b>합성함수 그래프 위의 점</b> (x₀, f(g(x₀)))이에요.<br>
+                <b>사용법:</b> [트레이서 켜기] 후 x₀ 슬라이더를 움직여 보세요. [▶ 자동 스윕]은 x₀를 자동으로 쭉 움직여서, 지나간 점들이 합성함수 그래프 모양으로 쌓이게 해 줘요.
+              </div>
+            </details>
             <div class="cw" id="comp-x0-wrap" style="display:none;margin-bottom:0">
               <div class="cw-top"><span class="cw-name">x₀</span>
                 <input class="cw-num" type="number" id="comp-x0n" value="-1" step="0.1"
@@ -1707,9 +1722,9 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
             <tbody>
               <tr><td><strong>존재 조건</strong></td><td>일대일함수(단조증가 또는 단조감소)</td><td class="trap">2차 이상은 정의역을 제한해야 성립</td></tr>
               <tr><td><strong>정의역·치역</strong></td><td>f의 정의역 ↔ f⁻¹의 치역, f의 치역 ↔ f⁻¹의 정의역</td><td class="trap">서로 뒤바뀜 — 안 외우면 문제 못 풀어짐</td></tr>
-              <tr><td><strong>합성</strong></td><td>f∘f⁻¹ = f⁻¹∘f = 항등함수</td><td class="trap">정의역 제한 있으면 그 범위 안에서만 성립</td></tr>
-              <tr><td><strong>미분</strong></td><td>f(a)=b일 때 (f⁻¹)′(b) = 1/f′(a)</td><td class="trap">a부터 못 찾으면 시작 불가</td></tr>
-              <tr><td><strong>f, f⁻¹의 교점</strong></td><td>f(x)=x의 해 = f, f⁻¹의 교점 (1차·2차 범위에선 이 교점이 유일하며 항상 y=x 위)</td><td class="trap">3차 이상 감소함수부터는 y=x 밖에도 교점이 생길 수 있음 (내년 심화 주제)</td></tr>
+              <tr><td><strong>합성</strong></td><td>f⁻¹∘f = X의 항등함수, f∘f⁻¹ = Y의 항등함수</td><td class="trap">정의역 제한 있으면 그 범위 안에서만 성립</td></tr>
+              <tr><td><strong>미분</strong></td><td>f(a)=b일 때 (f⁻¹)′(b) = 1/f′(a) (단, f′(a)≠0)</td><td class="trap">a부터 못 찾으면 시작 불가</td></tr>
+              <tr><td><strong>f, f⁻¹의 교점</strong></td><td>f(x)=x의 해는 f, f⁻¹의 교점 (f가 증가함수이면 f와 f⁻¹의 교점은 모두 y=x 위에 있어요)</td><td class="trap">증가함수일 때만! 감소함수는 y=x 밖에도 교점이 생길 수 있어요 (예: f(x)=−x+b는 f=f⁻¹)</td></tr>
             </tbody>
           </table>
         </div>
@@ -1917,7 +1932,7 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
         <!-- 카드 3: 연립부등식 관점 -->
         <div class="pcard" style="background:var(--pu-bg);border-bottom:3px solid var(--pu-lt);">
           <div class="pcard-icon">🔗</div>
-          <div class="pcard-title">연립부등식의 눈으로 보면</div>
+          <div class="pcard-title">두 그래프의 위치 관계로 보면</div>
           <div class="pcard-eq" id="iv-sys"></div>
           <div class="pcard-desc">y = f(x)와 y = 0 (x축)을 비교하는 거야.<br>f(x) &gt; 0이면 f(x)의 그래프가 x축보다 위에 있다는 뜻!</div>
           <div class="pcard-key" style="border-color:var(--pu-lt);color:var(--pu)">📍 두 그래프의 위아래 관계 = 부등식의 해</div>
@@ -1973,7 +1988,7 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
           <div class="pcard-icon">🎯</div>
           <div class="pcard-title">방정식의 눈으로 보면</div>
           <div class="pcard-eq" id="pv-eq"></div>
-          <div class="pcard-desc">y = 0으로 놓으면 방정식이 돼.<br>그 해가 바로 그래프의 x절편이야.</div>
+          <div class="pcard-desc">y = 0으로 놓으면 방정식이 돼.<br>그 실근이 바로 그래프의 x절편이야. (허근은 x절편이 아니야)</div>
           <div class="pcard-key" style="border-color:var(--gn-lt);color:var(--gn)">📍 파란 점 = 방정식의 해 = x절편</div>
         </div>
 
@@ -2034,7 +2049,7 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
         </div>
         <div class="pcard" style="background:var(--pu-bg);border-bottom:3px solid var(--pu-lt);">
           <div class="pcard-icon">🔗</div>
-          <div class="pcard-title">연립부등식의 눈으로 보면</div>
+          <div class="pcard-title">두 그래프의 위치 관계로 보면</div>
           <div class="pcard-eq" id="ilv-sys"></div>
           <div class="pcard-desc">두 함수의 그래프 위아래 관계를 묻는 거야.<br>f(x) &gt; g(x)는 이차가 일차보다 위에 있는 구간이야.</div>
           <div class="pcard-key" style="border-color:var(--pu-lt);color:var(--pu)">📍 교점 x좌표가 해집합의 경계점</div>
@@ -2127,7 +2142,7 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
     </div>
     <div style="padding:10px 14px;border-bottom:1px solid var(--bor);display:grid;grid-template-columns:1fr;gap:5px" id="c4-law-btns">
       <button class="law-btn" onclick="setC4Law(0)">① 개형 케이스 (W형/U형/단조)</button>
-      <button class="law-btn" onclick="setC4Law(1)">② 1:√2 법칙</button>
+      <button class="law-btn" onclick="setC4Law(1)">② √3:1 법칙</button>
       <button class="law-btn" onclick="setC4Law(2)">③ 이중접선</button>
     </div>
     <div id="c4LawStats" style="padding:12px 16px;border-bottom:1px solid var(--bor);background:var(--bg);font-size:13px;line-height:1.9;font-family:'JetBrains Mono',monospace;min-height:48px">
@@ -2446,6 +2461,32 @@ function polyStr(c,deg){
   return(t(a,4,true)||'0')+t(b,3)+t(cc,2)+t(d,1)+t(e,0);
 }
 
+// 합성함수 f(g(x)) 전개식 (오름차순 계수로 다항식 합성)
+function compExpandStr(){
+  const mul=(A,B)=>{const R=new Array(A.length+B.length-1).fill(0);A.forEach((x,i)=>B.forEach((y,j)=>{R[i+j]+=x*y;}));return R;};
+  const asc=o=>o.deg===1?[o.c[1],o.c[0]]:[o.c[2],o.c[1],o.c[0]];
+  const F=asc(SComp.f), G=asc(SComp.g);
+  let R=[0], P=[1];
+  F.forEach((fc,k)=>{
+    if(k>0)P=mul(P,G);
+    P.forEach((v,i)=>{ while(R.length<=i)R.push(0); R[i]+=fc*v; });
+  });
+  R=R.map(v=>Math.abs(v)<1e-9?0:Math.round(v*1e6)/1e6);
+  let d=R.length-1; while(d>0&&R[d]===0)d--;
+  if(d===0)return fmtNum(R[0]);
+  // 소수 계수(예: 0.125)가 반올림으로 틀려 보이지 않도록 최대 4자리까지 표시
+  const sup={2:'²',3:'³',4:'⁴'};
+  let out='';
+  for(let p=d;p>=0;p--){
+    const v=R[p]; if(v===0)continue;
+    const av=Math.abs(v), vs=String(parseFloat(av.toFixed(4)));
+    out+=(out===''?(v<0?'−':''):(v<0?' − ':' + '));
+    if(p===0)out+=vs;
+    else out+=(av===1?'':vs)+'x'+(p>1?sup[p]:'');
+  }
+  return out||'0';
+}
+
 function vertexStr(c){
   const[a,b,cc]=c;
   const p=-b/(2*a),q=cc-b*b/(4*a);
@@ -2481,7 +2522,65 @@ function findRoots(c,deg){
       roots.push(r);
     }
   }
+  // 3·4차 중근 보정: 부호가 안 바뀌는 접점은 f'(x)=0인 점 중 f(x)≈0인 곳
+  if(deg>=3){
+    const dc=deg===3?[3*c[0],2*c[1],c[2]]:[4*c[0],3*c[1],2*c[2],c[3]];
+    findRoots(dc,deg-1).forEach(x0=>{
+      if(Math.abs(evalP(c,deg,x0))<1e-4&&!roots.some(rr=>Math.abs(rr-x0)<0.001))roots.push(parseFloat(x0.toFixed(3)));
+    });
+  }
   return roots.sort((a,b)=>a-b);
+}
+
+// 부등식 해집합 문자열: 등호 포함이면 접점(고립점)도 해에 넣고, 맞닿은 닫힌 구간은 합침
+function ineqSolution(intvs,bounds,isStrict){
+  const L=-28.9,H=28.9;
+  let items=intvs.map(([lo,hi])=>({lo,hi,pt:false})).sort((a,b)=>a.lo-b.lo);
+  if(!isStrict){
+    bounds.forEach(b=>{
+      if(!items.some(it=>Math.abs(it.lo-b)<1e-9||Math.abs(it.hi-b)<1e-9))items.push({lo:b,hi:b,pt:true});
+    });
+    items.sort((a,b)=>a.lo-b.lo);
+    const m=[];
+    items.forEach(it=>{
+      const last=m[m.length-1];
+      if(last&&it.lo-last.hi<1e-9){last.hi=Math.max(last.hi,it.hi);last.pt=last.pt&&it.pt;}
+      else m.push({...it});
+    });
+    items=m;
+  }
+  if(!items.length)return{text:'해 없음 (∅)',type:'no'};
+  if(items.length===1&&items[0].lo<=L&&items[0].hi>=H)return{text:'모든 실수',type:'all'};
+  const text=items.map(it=>{
+    const loV=parseFloat(it.lo.toFixed(2)),hiV=parseFloat(it.hi.toFixed(2));
+    if(it.pt&&!(it.lo<=L)&&!(it.hi>=H))return`x = ${loV}`;
+    if(it.lo<=L&&it.hi>=H)return'모든 실수';
+    if(it.lo<=L)return isStrict?`x < ${hiV}`:`x ≤ ${hiV}`;
+    if(it.hi>=H)return isStrict?`x > ${loV}`:`x ≥ ${loV}`;
+    return isStrict?`${loV} < x < ${hiV}`:`${loV} ≤ x ≤ ${hiV}`;
+  }).join(' 또는 ');
+  return{text,type:'ok'};
+}
+
+// f(x)=0의 근 찾기(부호 변화 + 접점) — 최대·최소 탭 교점 표시용
+function findZeros(fn,a=-8,b=8,n=2000){
+  const zs=[],dx=(b-a)/n;
+  const add=r=>{if(!zs.some(z=>Math.abs(z-r)<0.002))zs.push(r);};
+  let px=a,py=fn(a);
+  if(py===0)add(a);
+  for(let i=1;i<=n;i++){
+    const x=a+i*dx,y=fn(x);
+    if(y===0)add(x);
+    else if(py!==0&&py*y<0){
+      let lo=px,hi=x,flo=py;
+      for(let j=0;j<50;j++){const m=(lo+hi)/2,fm=fn(m);if(flo*fm<=0)hi=m;else{lo=m;flo=fm;}}
+      add((lo+hi)/2);
+    }
+    px=x;py=y;
+  }
+  findCriticals(fn,'d1',a,b,n).forEach(x0=>{if(Math.abs(fn(x0))<1e-6)add(x0);});
+  if(zs.length>50)return[];   // f≡g (겹침)
+  return zs.sort((p,q)=>p-q);
 }
 
 function factorStr(c,deg,roots){
@@ -2493,7 +2592,36 @@ function factorStr(c,deg,roots){
   if(deg===2&&roots.length===1)return`${aS}(x ${rf(roots[0])})²`;
   if(deg===3&&roots.length===3)return`${aS}`+roots.map(r=>`(x ${rf(r)})`).join('');
   if(deg===4&&roots.length===4)return`${aS}`+roots.map(r=>`(x ${rf(r)})`).join('');
-  return roots.map(r=>`(x ${rf(r)})`).join('')+' × (나머지)';
+  // 실근 일부만 있는 경우(예: 4차인데 x축과 2점에서 만남): 실근 인수들 × 남은 식 으로 표시
+  let _P=c.slice(0,deg+1);
+  const _sp={2:'²',3:'³',4:'⁴'};
+  let _rootPart='';
+  roots.forEach(r=>{
+    let mult=0;
+    while(_P.length>1&&mult<4){
+      const Q=[_P[0]];for(let i=1;i<_P.length-1;i++)Q.push(_P[i]+Q[i-1]*r);
+      const rem=_P[_P.length-1]+Q[Q.length-1]*r;
+      if(mult>=1&&Math.abs(rem)>5e-2*Math.max(1,Math.abs(_P[0])))break;
+      _P=Q;mult++;
+    }
+    _rootPart+=`(x ${rf(r)})`+(mult>1?_sp[mult]:'');
+  });
+  const _k=_P.length-1;
+  if(_k===0)return`${aS}${_rootPart}`;
+  if(_k>=1&&_P[0]!==0){
+    const _m=_P.map(v=>v/_P[0]);
+    const _sup={2:'²',3:'³',4:'⁴'};
+    let _o='';
+    for(let q=_k;q>=0;q--){
+      const v=Math.round(_m[_k-q]*100)/100; if(v===0)continue;
+      const av=Math.abs(v);
+      _o+=(_o===''?'':(v<0?' − ':' + '))+(_o===''&&v<0?'−':'');
+      _o+=(q===0?String(av):(av===1?'':String(av))+'x'+(q>1?_sup[q]:''));
+    }
+    const _note=(_k===2&&_m[1]*_m[1]-4*_m[2]<0)?'  ← 이 이차식은 실근이 없어요(허근)':'';
+    return`${aS}${_rootPart}(${_o})${_note}`;
+  }
+  return _rootPart+' × (나머지)';
 }
 
 // ═══════════════════════════════
@@ -3166,18 +3294,9 @@ function renderT3(){
     }
   }
 
-  if(!intvs.length){
-    solText='해 없음 (∅)'; solType='no';
-  } else if(intvs.some(([a,b])=>a<=-28.9&&b>=28.9)&&intvs.length===1){
-    solText='모든 실수'; solType='all';
-  } else {
-    solText=intvs.map(([lo,hi])=>{
-      const loV=parseFloat(lo.toFixed(2)),hiV=parseFloat(hi.toFixed(2));
-      if(lo<=-28.9&&hi>=28.9) return '모든 실수';
-      if(lo<=-28.9) return isStrict?`x < ${hiV}`:`x ≤ ${hiV}`;
-      if(hi>=28.9)  return isStrict?`x > ${loV}`:`x ≥ ${loV}`;
-      return isStrict?`${loV} < x < ${hiV}`:`${loV} ≤ x ≤ ${hiV}`;
-    }).join(' 또는 ');
+  {
+    const _sol=ineqSolution(intvs,(lin3.show&&s.deg===2)?linearInts3:roots,isStrict);
+    solText=_sol.text; solType=_sol.type;
   }
 
   const[yMin,yMax]=getYRange(s.c,s.deg);
@@ -3376,9 +3495,9 @@ const QZ_BANK = [
   {
     id:1, diff:'하', unit:'나머지정리',
     q:'x에 대한 다항식 f(x) = x³ + 3x + 2가 있다. f(x)를 (x−2)로 나눌 때 나머지를 구하면?',
-    opts:['12','14','16','18','20'],
-    ans:2,
-    sol:'나머지정리: (x−2)로 나눈 나머지 = f(2). f(2) = 2³ + 3×2 + 2 = 8 + 6 + 2 = 16. 정답: ③'
+    opts:['14','16','18','20','22'],
+    ans:1,
+    sol:'나머지정리: (x−2)로 나눈 나머지 = f(2). f(2) = 2³ + 3×2 + 2 = 8 + 6 + 2 = 16. 정답: ②'
   },
   {
     id:2, diff:'하', unit:'이차부등식',
@@ -3404,16 +3523,16 @@ const QZ_BANK = [
   {
     id:5, diff:'하', unit:'근과 계수의 관계',
     q:'두 수 α, β가 이차방정식 x² − 4x + 2 = 0의 근일 때, α² + β²의 값은?',
-    opts:['8','10','12','14','16'],
-    ans:2,
-    sol:'근과 계수의 관계: α+β = 4, αβ = 2. α²+β² = (α+β)² − 2αβ = 16 − 4 = 12. 정답: ③'
+    opts:['6','8','10','12','14'],
+    ans:3,
+    sol:'근과 계수의 관계: α+β = 4, αβ = 2. α²+β² = (α+β)² − 2αβ = 16 − 4 = 12. 정답: ④'
   },
   {
     id:6, diff:'하', unit:'연립이차방정식',
     q:'연립방정식 2x − y = 6, 3x² − xy − 7y = 26을 만족시키는 x, y에 대하여 x + y의 값은?',
-    opts:['4','5','6','7','8'],
-    ans:2,
-    sol:'y = 2x−6을 대입하면 3x²−x(2x−6)−7(2x−6)=26 → x²−8x+16=0 → (x−4)²=0 → x=4, y=2. x+y = 6. 정답: ③'
+    opts:['6','7','8','9','10'],
+    ans:0,
+    sol:'y = 2x−6을 대입하면 3x²−x(2x−6)−7(2x−6)=26 → x²−8x+16=0 → (x−4)²=0 → x=4, y=2. x+y = 6. 정답: ①'
   },
   {
     id:7, diff:'하', unit:'다항식 계산',
@@ -3427,9 +3546,9 @@ const QZ_BANK = [
   {
     id:8, diff:'중', unit:'이차방정식 판별식',
     q:'상수 a에 대하여 x에 대한 방정식 x² + 6x + a − 3 = 0이 중근을 가질 때, a의 값은?',
-    opts:['10','11','12','13','14'],
-    ans:2,
-    sol:'중근 조건 D=0. D/4 = 3² − (a−3) = 9 − a + 3 = 12 − a = 0 → a = 12. [검증] x²+6x+9=0 → (x+3)²=0 → 중근 x=−3 ✓. 정답: ③'
+    opts:['8','9','10','11','12'],
+    ans:4,
+    sol:'중근 조건 D=0. D/4 = 3² − (a−3) = 9 − a + 3 = 12 − a = 0 → a = 12. [검증] x²+6x+9=0 → (x+3)²=0 → 중근 x=−3 ✓. 정답: ⑤'
   },
   {
     id:9, diff:'중', unit:'이차부등식',
@@ -3448,30 +3567,30 @@ const QZ_BANK = [
   {
     id:11, diff:'중', unit:'연립이차부등식',
     q:'연립부등식 |x−k| ≤ 3, x²−9x+14 < 0을 동시에 만족시키는 정수 x의 개수가 3이 되도록 하는 모든 정수 k의 값의 합은?',
-    opts:['7','8','9','10','11'],
-    ans:2,
-    sol:'x²−9x+14<0 → (x−2)(x−7)<0 → 2<x<7. 이 범위의 정수: 3,4,5,6. |x−k|≤3은 k−3≤x≤k+3. 교집합 정수가 3개 되는 k: k=2일 때 3,4,5 ✓, k=7일 때 4,5,6 ✓. 모든 정수 k의 합=2+7=9. 정답: ③'
+    opts:['9','10','11','12','13'],
+    ans:0,
+    sol:'x²−9x+14<0 → (x−2)(x−7)<0 → 2<x<7. 이 범위의 정수: 3,4,5,6. |x−k|≤3은 k−3≤x≤k+3. 교집합 정수가 3개 되는 k: k=2일 때 3,4,5 ✓, k=7일 때 4,5,6 ✓. 모든 정수 k의 합=2+7=9. 정답: ①'
   },
   {
     id:12, diff:'중', unit:'나머지정리',
     q:'최고차항의 계수가 1인 이차다항식 P(x)를 (x−1)로 나눈 나머지가 5이고, (x+2)로 나눈 나머지가 2이다. P(x)를 (x−1)(x+2)로 나눈 나머지를 ax+b라 할 때, a+b의 값은?',
-    opts:['3','4','5','6','7'],
-    ans:2,
-    sol:'나머지정리: P(1)=a+b=5, P(−2)=−2a+b=2. 두 식 빼면 3a=3 → a=1, b=4. a+b=5. 정답: ③'
+    opts:['2','3','4','5','6'],
+    ans:3,
+    sol:'나머지정리: P(1)=a+b=5, P(−2)=−2a+b=2. 두 식 빼면 3a=3 → a=1, b=4. a+b=5. 정답: ④'
   },
   {
     id:13, diff:'중', unit:'이차방정식 판별식',
     q:'x에 대한 사차방정식 (2x²+kx)² + 6(2x²+kx) + 8 = 0의 서로 다른 실근의 개수가 2가 되도록 하는 자연수 k의 값은?',
-    opts:['3','4','5','6','7'],
-    ans:2,
-    sol:'X=2x²+kx로 치환하면 X²+6X+8=0 → (X+2)(X+4)=0 → X=−2 또는 X=−4. 2x²+kx+2=0의 판별식 D₁=k²−16, 2x²+kx+4=0의 판별식 D₂=k²−32. 실근 총 2개 → D₁>0, D₂<0 → 16<k²<32 → 자연수 k=5. [검증] k=5: D₁=9>0 (2개), D₂=−7<0 (0개) ✓. 정답: ③'
+    opts:['4','5','6','7','8'],
+    ans:1,
+    sol:'X=2x²+kx로 치환하면 X²+6X+8=0 → (X+2)(X+4)=0 → X=−2 또는 X=−4. 2x²+kx+2=0의 판별식 D₁=k²−16, 2x²+kx+4=0의 판별식 D₂=k²−32. 실근 총 2개 → D₁>0, D₂<0 → 16<k²<32 → 자연수 k=5. [검증] k=5: D₁=9>0 (2개), D₂=−7<0 (0개) ✓. 정답: ②'
   },
   {
     id:14, diff:'중', unit:'인수분해',
     q:'다항식 x(x−6)(x²−6x+11)+10이 (x²−6x+a)(x²−6x+b)로 인수분해될 때, 두 상수 a<b에 대하여 a+2b의 값은?',
-    opts:['19','20','21','22','23'],
-    ans:2,
-    sol:'X=x²−6x로 치환하면 X(X+11)+10=X²+11X+10=(X+1)(X+10). 따라서 a=1, b=10. a+2b=1+20=21. [검증] X=−1: (−1+1)(−1+10)=0 ✓, X=−10: (−10+1)(−10+10)=0 ✓. 정답: ③'
+    opts:['17','18','19','20','21'],
+    ans:4,
+    sol:'X=x²−6x로 치환하면 X(X+11)+10=X²+11X+10=(X+1)(X+10). 따라서 a=1, b=10. a+2b=1+20=21. [검증] X=−1: (−1+1)(−1+10)=0 ✓, X=−10: (−10+1)(−10+10)=0 ✓. 정답: ⑤'
   },
   {
     id:15, diff:'중', unit:'연립일차부등식',
@@ -3485,9 +3604,9 @@ const QZ_BANK = [
   {
     id:16, diff:'상', unit:'이차함수 최대최소',
     q:'양수 a에 대하여 0 ≤ x ≤ a에서 이차함수 f(x) = −2x² + 16x − 7의 최댓값과 최솟값의 합이 0이 되도록 하는 양수 a를 모두 구하여 더한 값은?',
-    opts:['8','9','10','11','12'],
-    ans:2,
-    sol:'f(x)=−2(x−4)²+25. 꼭짓점 x=4, f(4)=25, f(0)=−7. ① 0<a≤4: 최솟값=f(0)=−7, 최댓값=f(a). 합=0 → f(a)=7 → −2a²+16a−7=7 → a²−8a+7=0 → (a−1)(a−7)=0 → a=1 (a≤4 ✓). ② a>4: 최댓값=f(4)=25, 최솟값=f(a). 합=0 → f(a)=−25 → −2a²+16a−7=−25 → a²−8a−9=0 → (a−9)(a+1)=0 → a=9 ✓. 합=1+9=10. 정답: ③'
+    opts:['9','10','11','12','13'],
+    ans:1,
+    sol:'f(x)=−2(x−4)²+25. 꼭짓점 x=4, f(4)=25, f(0)=−7. ① 0<a≤4: 최솟값=f(0)=−7, 최댓값=f(a). 합=0 → f(a)=7 → −2a²+16a−7=7 → a²−8a+7=0 → (a−1)(a−7)=0 → a=1 (a≤4 ✓). ② a>4: 최댓값=f(4)=25. 최솟값은 f(0)=−7과 f(a) 중 작은 값인데, f(8)=−7이므로 4<a≤8이면 최솟값=−7(합 18≠0), a>8이면 최솟값=f(a). 합=0 → f(a)=−25 → −2a²+16a−7=−25 → a²−8a−9=0 → (a−9)(a+1)=0 → a=9 (a>8 ✓). 합=1+9=10. 정답: ②'
   },
   {
     id:17, diff:'상', unit:'나머지정리',
@@ -3506,16 +3625,16 @@ const QZ_BANK = [
   {
     id:19, diff:'상', unit:'이차방정식 근과 계수',
     q:'상수 k에 대하여 x에 대한 이차방정식 x² + kx + k − 3 = 0이 서로 다른 두 실근 α, β를 갖는다. αβ = 2일 때, α² + β²의 값은?',
-    opts:['17','19','21','23','25'],
-    ans:2,
-    sol:'근과 계수의 관계: α+β=−k, αβ=k−3. αβ=2이면 k−3=2 → k=5. α+β=−5. α²+β²=(α+β)²−2αβ=25−4=21. [검증] 판별식 D=k²−4(k−3)=25−8=17>0 ✓ (서로 다른 두 실근). 정답: ③'
+    opts:['13','15','17','19','21'],
+    ans:4,
+    sol:'근과 계수의 관계: α+β=−k, αβ=k−3. αβ=2이면 k−3=2 → k=5. α+β=−5. α²+β²=(α+β)²−2αβ=25−4=21. [검증] 판별식 D=k²−4(k−3)=25−8=17>0 ✓ (서로 다른 두 실근). 정답: ⑤'
   },
   {
     id:20, diff:'상', unit:'이차함수 최대최소',
     q:'두 자연수 a, b에 대하여 1 ≤ x ≤ a에서 이차함수 f(x) = (x−b)² + b의 최댓값을 M, 최솟값을 m이라 하자. M ≤ 13이고 m ≥ 1을 만족시키는 모든 순서쌍 (a, b)의 개수는?',
-    opts:['20','21','22','23','24'],
-    ans:2,
-    sol:'f(x)=(x−b)²+b, 꼭짓점 (b, b). 최솟값 m=b (b가 범위 안에 있을 때) 또는 f(1), f(a) 중 작은 값. m≥1이면 b≥1. M≤13 조건과 결합하여 (a,b) 쌍 나열. 가능한 쌍: (1,1)~(7,4) 범위에서 체계적으로 확인 → 총 22쌍. 정답: ③'
+    opts:['21','22','23','24','25'],
+    ans:1,
+    sol:'f(x)=(x−b)²+b, 꼭짓점 (b, b). f(x)=(x−b)²+b ≥ b ≥ 1이므로 m≥1은 b가 자연수이면 항상 성립. 아래로 볼록이라 최댓값 M은 양 끝값 f(1), f(a) 중 큰 값. f(1)=b²−b+1≤13 → b≤4. f(a)=(a−b)²+b≤13 → (a−b)²≤13−b. b=1: a≤4 → 4개, b=2: a≤5 → 5개, b=3: a≤6 → 6개, b=4: a≤7 → 7개 (a≥1). 합 4+5+6+7=22쌍. 정답: ②'
   },
   {
     id:21, diff:'상', unit:'다항식 나눗셈',
@@ -3527,32 +3646,32 @@ const QZ_BANK = [
   {
     id:22, diff:'상', unit:'이차부등식 응용',
     q:'이차부등식 x² + (a−2)x + 1 > 0이 모든 실수 x에 대하여 성립하도록 하는 정수 a의 개수는?',
-    opts:['1','2','3','4','5'],
-    ans:2,
-    sol:'모든 실수에서 성립 → 판별식 D < 0. D = (a−2)² − 4 < 0 → (a−2)² < 4 → |a−2| < 2 → 0 < a < 4. 정수 a: 1, 2, 3 → 3개. [검증] a=1: x²−x+1, D=1−4=−3<0 ✓. a=4: x²+2x+1=(x+1)²≥0, D=0 (성립 안 함). 정답: ③'
+    opts:['0','1','2','3','4'],
+    ans:3,
+    sol:'모든 실수에서 성립 → 판별식 D < 0. D = (a−2)² − 4 < 0 → (a−2)² < 4 → |a−2| < 2 → 0 < a < 4. 정수 a: 1, 2, 3 → 3개. [검증] a=1: x²−x+1, D=1−4=−3<0 ✓. a=4: x²+2x+1=(x+1)²≥0, D=0 (성립 안 함). 정답: ④'
   },
   {
     id:23, diff:'상', unit:'이차방정식 판별식 응용',
     q:'다음 조건을 만족시키는 모든 정수 k의 개수는? (가) x에 대한 이차방정식 x²+kx+4k=0이 서로 다른 두 허근을 갖는다. (나) x에 대한 이차방정식 x²−2(k−2)x+3k−5=0이 실근을 갖는다.',
-    opts:['9','10','11','12','13'],
-    ans:2,
-    sol:'(가): D₁=k²−16k<0 → k(k−16)<0 → 0<k<16. (나): D₂/4=(k−2)²−(3k−5)≥0 → k²−7k+9≥0. 근: k=(7±√13)/2 ≈ 1.7, 5.3. 따라서 k≤1.7 또는 k≥5.3. 교집합: 0<k≤1 또는 6≤k<16. 정수: 1, 6,7,8,9,10,11,12,13,14,15 → 11개. 정답: ③'
+    opts:['11','12','13','14','15'],
+    ans:0,
+    sol:'(가): D₁=k²−16k<0 → k(k−16)<0 → 0<k<16. (나): D₂/4=(k−2)²−(3k−5)≥0 → k²−7k+9≥0. 근: k=(7±√13)/2 ≈ 1.7, 5.3. 따라서 k≤1.7 또는 k≥5.3. 교집합: 0<k≤1 또는 6≤k<16. 정수: 1, 6,7,8,9,10,11,12,13,14,15 → 11개. 정답: ①'
   },
 
   // ────────── 최상 (7문제) ──────────
   {
     id:24, diff:'최상', unit:'이차함수 최대최소',
     q:'이차함수 f(x) = 2x² − 4x + k가 x ≥ 1인 범위에서 최솟값이 3일 때, f(0) + f(3)의 값은?',
-    opts:['12','14','16','18','20'],
-    ans:2,
-    sol:'f(x)=2(x−1)²+k−2. x≥1이면 꼭짓점 x=1에서 최솟값=k−2=3 → k=5. f(x)=2x²−4x+5. f(0)=5, f(3)=18−12+5=11. f(0)+f(3)=16. [검증] k=5: 최솟값=f(1)=2−4+5=3 ✓. 정답: ③'
+    opts:['8','10','12','14','16'],
+    ans:4,
+    sol:'f(x)=2(x−1)²+k−2. x≥1이면 꼭짓점 x=1에서 최솟값=k−2=3 → k=5. f(x)=2x²−4x+5. f(0)=5, f(3)=18−12+5=11. f(0)+f(3)=16. [검증] k=5: 최솟값=f(1)=2−4+5=3 ✓. 정답: ⑤'
   },
   {
     id:25, diff:'최상', unit:'이차함수 조건 추론',
     q:'최고차항의 계수가 1인 이차함수 f(x)에 대하여 f(x+2) − f(x) = 4x + 6이 모든 실수 x에 대해 성립하고, f(1) = 3일 때, f(4)의 값은?',
-    opts:['19','20','21','22','23'],
-    ans:2,
-    sol:'f(x)=x²+ax+b로 놓으면 f(x+2)−f(x)=(x+2)²+a(x+2)+b−(x²+ax+b)=4x+4+2a. 4x+4+2a=4x+6 → 2a=2 → a=1. f(1)=1+1+b=3 → b=1. f(x)=x²+x+1. f(4)=16+4+1=21. [검증] f(3+2)−f(3)=21−13=8=4(3)+6−4=10... 재확인: 4×1+6=10, f(3+2)=f(5)=25+5+1=31, f(3)=9+3+1=13, 31−13=18≠10. 재계산: 4x+4+2(1)=4x+6 ✓ x=3: 4(3)+6=18 ✓, f(5)−f(3)=31−13=18 ✓. 정답: ③'
+    opts:['18','19','20','21','22'],
+    ans:3,
+    sol:'f(x)=x²+ax+b로 놓으면 f(x+2)−f(x)=(x+2)²+a(x+2)+b−(x²+ax+b)=4x+4+2a. 4x+4+2a=4x+6 → 2a=2 → a=1. f(1)=1+1+b=3 → b=1. f(x)=x²+x+1. f(4)=16+4+1=21. [검증] x=3일 때 f(5)−f(3)=31−13=18=4×3+6 ✓. 정답: ④'
   },
   {
     id:26, diff:'최상', unit:'다항식 나눗셈 추론',
@@ -3564,30 +3683,30 @@ const QZ_BANK = [
   {
     id:27, diff:'최상', unit:'이차방정식 근과 계수',
     q:'이차함수 f(x) = x² − 6x + b (b는 자연수)에 대하여 방정식 f(x) = 0의 두 근이 서로 다른 자연수가 되도록 하는 b의 최솟값은?',
-    opts:['3','4','5','6','7'],
-    ans:2,
-    sol:'f(x)=x²−6x+b=0의 두 근을 α, β(α<β, 자연수)라 하면 α+β=6, αβ=b. α≠β인 자연수 쌍: (1,5)→b=5, (2,4)→b=8. b의 최솟값=5. [검증] b=5: f(x)=x²−6x+5=(x−1)(x−5)=0 → 두 근 1, 5 (서로 다른 자연수) ✓. 정답: ③'
+    opts:['1','2','3','4','5'],
+    ans:4,
+    sol:'f(x)=x²−6x+b=0의 두 근을 α, β(α<β, 자연수)라 하면 α+β=6, αβ=b. α≠β인 자연수 쌍: (1,5)→b=5, (2,4)→b=8. b의 최솟값=5. [검증] b=5: f(x)=x²−6x+5=(x−1)(x−5)=0 → 두 근 1, 5 (서로 다른 자연수) ✓. 정답: ⑤'
   },
   {
     id:28, diff:'최상', unit:'이차방정식 근의 조건',
     q:'x에 대한 이차방정식 x² − 2(a+1)x + a² − 1 = 0의 두 근이 모두 양수가 되도록 하는 정수 a의 최솟값은?',
     opts:['0','1','2','3','4'],
     ans:2,
-    sol:'두 근의 합=2(a+1)>0 → a>−1. 두 근의 곱=a²−1=(a+1)(a−1)>0 → a<−1 또는 a>1. 판별식 D/4=(a+1)²−(a²−1)=2a+2>0 → a>−1. 세 조건 교집합: a>1. 정수 a의 최솟값=2. [검증] a=2: x²−6x+3=0. D=36−12=24>0 ✓, 합=6>0 ✓, 곱=3>0 ✓. a=1: 곱=0 (한 근이 0, 양수 아님). 정답: ③'
+    sol:'두 근의 합=2(a+1)>0 → a>−1. 두 근의 곱=a²−1=(a+1)(a−1)>0 → a<−1 또는 a>1. 판별식 D/4=(a+1)²−(a²−1)=2a+2≥0 → a≥−1 (중근 포함). 세 조건 교집합: a>1. 정수 a의 최솟값=2. [검증] a=2: x²−6x+3=0. D=36−12=24>0 ✓, 합=6>0 ✓, 곱=3>0 ✓. a=1: 곱=0 (한 근이 0, 양수 아님). 정답: ③'
   },
   {
     id:29, diff:'최상', unit:'이차함수와 부등식 추론',
     q:'최고차항의 계수가 1인 이차함수 f(x)에 대하여 부등식 f(x) > 0의 해가 x < −1 또는 x > 3일 때, 방정식 f(x−2) = 0의 두 근의 합은?',
-    opts:['4','5','6','7','8'],
-    ans:2,
-    sol:'f(x)>0의 해가 x<−1 또는 x>3이면 f(x)=(x+1)(x−3)=x²−2x−3. f(x−2)=(x−2+1)(x−2−3)=(x−1)(x−5)=0 → x=1 또는 x=5. 두 근의 합=1+5=6. [검증] f(x−2)=(x−1)(x−5): x=1→(0)(−4)=0 ✓, x=5→(4)(0)=0 ✓. 정답: ③'
+    opts:['2','3','4','5','6'],
+    ans:4,
+    sol:'f(x)>0의 해가 x<−1 또는 x>3이면 f(x)=(x+1)(x−3)=x²−2x−3. f(x−2)=(x−2+1)(x−2−3)=(x−1)(x−5)=0 → x=1 또는 x=5. 두 근의 합=1+5=6. [검증] f(x−2)=(x−1)(x−5): x=1→(0)(−4)=0 ✓, x=5→(4)(0)=0 ✓. 정답: ⑤'
   },
   {
-    id:30, diff:'최상', unit:'삼차방정식 근과 계수',
+    id:30, diff:'최상', unit:'삼차방정식(인수분해)',
     q:'삼차방정식 x³ − 6x² + 11x − 6 = 0의 세 근을 α, β, γ라 할 때, (α+β)(β+γ)(γ+α)의 값은?',
-    opts:['56','58','60','62','64'],
-    ans:2,
-    sol:'x³−6x²+11x−6=(x−1)(x−2)(x−3). 세 근: α=1, β=2, γ=3. α+β+γ=6. (α+β)=6−γ=3, (β+γ)=6−α=5, (γ+α)=6−β=4. (α+β)(β+γ)(γ+α)=3×5×4=60. [검증] f(6)=(6−1)(6−2)(6−3)=5×4×3=60 ✓. 정답: ③'
+    opts:['60','62','64','66','68'],
+    ans:0,
+    sol:'x³−6x²+11x−6=(x−1)(x−2)(x−3). 세 근: α=1, β=2, γ=3. α+β+γ=6. (α+β)=6−γ=3, (β+γ)=6−α=5, (γ+α)=6−β=4. (α+β)(β+γ)(γ+α)=3×5×4=60. [검증] f(6)=(6−1)(6−2)(6−3)=5×4×3=60 ✓. 정답: ①'
   }
 ];
 
@@ -3609,7 +3728,7 @@ const QZ_HINT = {
   14: '📌 인수분해 | x²−6x=X로 치환하면 X(X+11)+10이 인수분해된다.',
   15: '📌 연립일차부등식 | 두 부등식 따로 풀어서 공통 범위 구하고 정수 합산.',
   16: '📌 이차함수 최대최소 | 꼭짓점 x=4 기준으로 a≤4, a>4 두 경우로 나눠 최댓값+최솟값=0 방정식 세우기.',
-  17: '📌 나머지정리 | f(1)을 직접 계산. a항이 소거되는지 확인하면 깔끔하게 a값이 나온다.',
+  17: '📌 나머지정리 | 나머지는 f(1). f(1)을 a에 대한 식으로 정리한 뒤 f(1)=a를 방정식으로 풀자.',
   18: '📌 인수분해 활용 | (x−2)²(x+1)을 전개하면 a, b, c 값을 바로 읽을 수 있다.',
   19: '📌 근과 계수의 관계 | αβ=k−3=2이면 k=5. 그러면 α+β=−5. α²+β²=(α+β)²−2αβ.',
   20: '📌 이차함수 최대최소 | 꼭짓점 (b,b). b가 범위 [1,a] 안팎인지로 경우 나누고 M≤13, m≥1 조건 적용.',
@@ -3622,28 +3741,28 @@ const QZ_HINT = {
   27: '📌 근과 계수의 관계 | α+β=6이 되는 서로 다른 자연수 쌍을 나열하면 b=αβ.',
   28: '📌 이차방정식 근의 조건 | 두 근 모두 양수 → 합>0, 곱>0, 판별식≥0 세 조건 동시 적용.',
   29: '📌 이차함수와 부등식 추론 | f(x)>0의 해에서 두 근을 결정. f(x−2)는 x를 x−2로 치환.',
-  30: '📌 삼차방정식 근과 계수 | 세 근이 1,2,3. α+β+γ=6이용. (α+β)=6−γ 형태로 변환.'
+  30: '📌 삼차방정식(인수분해) | 세 근이 1,2,3. α+β+γ=6이용. (α+β)=6−γ 형태로 변환.'
 };
 
 // 힌트2 데이터 (상/최상 - 추가 힌트)
 const QZ_HINT2 = {
   // ── 상 ──
-  16: '① f(x)=−2(x−4)²+25로 변형. 꼭짓점 x=4. ② 0<a≤4이면 최솟값=f(0)=−7 → 최댓값=7이 되려면 f(a)=7 → −2a²+16a−7=7 풀기. ③ a>4이면 최댓값=f(4)=25 → 최솟값=−25이 되려면 f(a)=−25 풀기.',
-  17: '나머지정리: f(1)=1−(a+1)+(a−3)+8 계산. a항을 정리하면 −a+a=0으로 소거됨. 따라서 f(1)=1−1−3+8=5. 이 값이 a이므로 a=5.',
-  18: '조립제법으로 −1 대입: x³+(2a+3)x²+(3a+5)x+(a+3)에서 나머지=0 확인. 몫은 x²+(2a+2)x+(a+3). 이 이차식이 (x+b)(x+c) 꼴 → 두 경우로 나눠 a,b,c 결정 후 최댓값M, 최솟값m의 합.',
-  19: 'αβ=−(1/2)k²+3k=1 → k²−6k+2=0. α²+β²=(α+β)²−2αβ=k²−2. k²=6k−2를 대입하면 α²+β²=6k−2−2=6k−4. 근과 계수 관계로 k값 결정.',
-  20: '꼭짓점 x=b. 범위 1≤x≤a에서 ① b<1: 최솟값=f(1), 최댓값=f(a). ② 1≤b≤a: 최솟값=f(b)=b, 최댓값=max(f(1),f(a)). ③ b>a: 최솟값=f(a), 최댓값=f(1). M≤8, m≥1 조건 각각 대입.',
-  21: '나머지정리로 f(a) 계산. {f(a)}²−2f(a)+3을 x²−4x−5=(x−5)(x+1)로 나눈 나머지 → f(a)값 대입해서 상수값 확인.',
-  22: 'x²≥a의 해가 모든 실수 → a≤0. x²≤a+3의 해가 모든 실수 → a+3≥0이고 판별식 −4(a+3)≤0 → a≥−3. 따라서 −3≤a≤0. 최댓값0+최솟값(−3)=−3.',
-  23: '(가): k(k−12)<0 → 0<k<12. (나): (k−2)(k−8)≥0 → k≤2 또는 k≥8. 수직선에서 교집합: 1≤k≤2 또는 8≤k≤11. 정수 세기: 1,2,8,9,10,11 → 총 6개.',
+  16: '① f(x)=−2(x−4)²+25로 변형. 꼭짓점 x=4. ② 0<a≤4이면 최솟값=f(0)=−7 → 최댓값=7이 되려면 f(a)=7 → −2a²+16a−7=7 풀기. ③ a>4이면 최댓값=f(4)=25 → 최솟값=−25이 되려면 f(a)=−25 풀기. 단, f(8)=−7이므로 4<a≤8에서는 최솟값이 f(0)=−7이야. a>8일 때만 f(a)가 최솟값!',
+  17: '나머지정리: 나머지는 f(1). f(1)=1+a−(2a+1)+6 에서 a의 계수는 a−2a=−a. 정리한 식이 a와 같다는 일차방정식을 풀면 돼.',
+  18: '삼차식 f가 삼차식 (x−2)²(x+1)로 나누어떨어지고 최고차항 계수가 모두 1이므로 f(x)=(x−2)²(x+1). 이를 전개해 x², x, 상수항의 계수를 각각 a, b, c와 비교한 뒤 a+b+c를 구하자.',
+  19: 'αβ=k−3=2에서 k를 구하고, 판별식 k²−4(k−3)>0 으로 \'서로 다른 두 실근\' 조건을 확인. α+β=−k이므로 α²+β²=(α+β)²−2αβ에 대입.',
+  20: 'b가 자연수이므로 b≥1. ① 1≤b≤a(꼭짓점이 범위 안): 최솟값 f(b)=b, 최댓값은 f(1), f(a) 중 큰 값. ② b>a(꼭짓점이 범위 오른쪽): 최솟값 f(a), 최댓값 f(1). 각 경우에서 M≤13, m≥1을 만족하는 자연수 (a,b)를 빠짐없이 세기.',
+  21: '최고차항 계수가 1인 이차식을 (x−1)(x−2)로 나누면 몫은 1. 따라서 f(x)=(x−1)(x−2)+(3x−1). 이 식에 x=3을 대입.',
+  22: '모든 실수 x에서 x²+(a−2)x+1>0 → 판별식 D=(a−2)²−4<0. 이 이차부등식을 풀어 a의 범위를 구한 뒤 그 안의 정수 a를 세기.',
+  23: '(가) 서로 다른 두 허근 → D=k²−16k<0 → 0<k<16. (나) 실근을 가짐 → D/4=(k−2)²−(3k−5)=k²−7k+9≥0. k²−7k+9=0의 근은 (7±√13)/2 ≈ 1.70, 5.30 이므로 k≤1.70 또는 k≥5.30. 두 범위의 공통 정수 k를 세기.',
   // ── 최상 ──
-  24: 'g(t)=구간[t,t+2]에서 최댓값−최솟값. 꼭짓점 x=0. t+2<0이면 g(t)=f(t)−f(t+2)=a[(t+2)²−t²]. 0이 구간 안이면 g(t)=f(t) 또는 f(t+2)−f(0). (가) g(−1)=g(1): 각각 계산해서 a 결정. (나) g(2)=12 대입.',
-  25: 'f(0)=g(0)=7, f(3)=g(3). f(x)=−(x−p)²+q로 놓으면 f(0)=−p²+q=7. 조건(가),(나)에서 p,q결정. f(x)=−x²+2x+7. g(x)=−(x−r)²+s, g(0)=7에서 s−r²=7. f(3)=g(3)조건으로 r결정. f(−2)+h(5) 계산.',
-  26: 'f=PQ+Q²=Q(P+Q). P의 차수를 2로 가정하면 Q는 상수. P(x)=−x²+ax−2 (상수), Q(x)=−x+1. f=Q(P+Q)가 삼차식인지 확인. f(2)=Q(2)×(P(2)+Q(2))=1로 a결정.',
-  27: 'O=(0,0), A=(4,0). l₁: y=mx → B의 x좌표=(1/2)x²−2x=mx → x=2m+4. l₂: y=m(x−4) → C의 x좌표=2m. S₁=(1/2)×AE×EC, S₂=(1/2)×AD×DB 공식으로 m의 함수 표현 후 최댓값.',
-  28: 'f(x)=(1/2)(x−p)²+q, q≥0, f(1)=1. (1/2)(1−p)²+q=1. f(x)=t의 두 근 m,n이 자연수 → m+n=2p, mn=p²−2q+2t. t≤1 조건에서 가능한 (m,n) 탐색: (1,1),(1,2),(2,2) 등. 각각 t값 구해 곱 계산.',
-  29: 'h(x)=f(x)−g(x)로 치환. h(x)=0이 중근 → h(x)=a(x−c)² 꼴. h(x)=t의 근이 3개 되는 t: a(x−c)²=t → t=0(중근+하나), t≠0(두 근). 조건의 t값 −5/2,0,1 분석 → a(x−c)²의 최솟값=0, 꼭짓점에서 방정식 근 개수 확인.',
-  30: 'α+β+γ=0이므로 γ=−α−β. 4α+2β+γ=4α+2β−α−β=3α+β. (3α+β)(α+1)=−81. α=1이면 3+β=−81/2 → β는 정수 불가. α=−1이면 (−3+β)(0)=0≠−81. 다른 정수 α 대입 탐색.'
+  24: 'f(x)=2(x−1)²+k−2. 꼭짓점 x=1이 범위 x≥1의 끝점이므로 최솟값은 f(1)=k−2. 이 값이 3이 되는 k를 구한 뒤 f(0)+f(3)을 계산.',
+  25: 'f(x)=x²+ax+b로 놓고 f(x+2)−f(x)를 전개하면 4x+4+2a. 이것이 4x+6과 같다는 조건으로 a를 구하고, f(1)=3으로 b를 구한 뒤 f(4)를 계산.',
+  26: 'P(x)=(x−1)²Q(x)+(2x−1) 에서 P가 삼차, 최고차항 계수 1이므로 Q(x)=x+c. P(−1)=5를 대입해 c를 구한 뒤 P(2)를 계산.',
+  27: '두 근이 서로 다른 자연수 α, β이면 α+β=6. 가능한 쌍은 (1,5), (2,4). b=αβ 값들 중 가장 작은 값을 고르기.',
+  28: '두 근이 모두 양수 → ① 판별식 D/4=(a+1)²−(a²−1)=2a+2≥0 ② 두 근의 합 2(a+1)>0 ③ 두 근의 곱 a²−1>0. 세 조건을 동시에 만족하는 a의 범위에서 가장 작은 정수를 찾기.',
+  29: 'f(x)>0의 해가 x<−1 또는 x>3이므로 f(x)=(x+1)(x−3). f(x−2)=0 이면 x−2=−1 또는 x−2=3. 두 근을 구해 더하기.',
+  30: 'x=1을 대입하면 0이므로 (x−1)이 인수 → 인수분해로 세 근을 구해도 되고, α+β+γ=6이므로 (α+β)(β+γ)(γ+α)=(6−γ)(6−α)(6−β)=P(6) (P(x)=x³−6x²+11x−6)로 계산해도 돼.'
 };
 
 // 퀴즈 상태
@@ -4155,36 +4274,37 @@ function updateFeatContent(){
       makeFeatCard('var(--am-bg)','var(--am-lt)','⚡','극값 & 실근 관계',
         hasExt?`극대·극소 <strong>있음</strong> (f'(x) 판별식 > 0)`:`극대·극소 <strong>없음</strong> (단조)`,
         hasExt?`극대값 × 극소값의 부호로 실근 개수 판단!<br>극대×극소 < 0 → 실근 3개<br>극대×극소 = 0 → 실근 2개 (중근)<br>극대×극소 > 0 → 실근 1개`
-              :`f'(x) = 0의 실근 없음 → 단조증가/감소<br>실근은 정확히 1개.`,
+              :`f'(x) = 0이 실근이 없거나 중근 → 단조증가/감소<br>실근은 정확히 1개.`,
         'var(--am)',`📌 수능 포인트: 극값 부호 → 실근 개수`),
     ];
     footer=`🎯 <strong>수능 핵심:</strong> 극대·극소 판정(부호변화표), 변곡점 x = −b/3a, 실근 개수와 극값의 관계가 핵심이야.`;
 
   }else{
     const critPts=[];
+    let _sg0=0;
     for(let x=-8;x<=8;x+=0.05){
       const fp=4*s.c[0]*x*x*x+3*s.c[1]*x*x+2*s.c[2]*x+s.c[3];
-      const fp2=4*s.c[0]*(x+0.05)*(x+0.05)*(x+0.05)+3*s.c[1]*(x+0.05)*(x+0.05)+2*s.c[2]*(x+0.05)+s.c[3];
-      if(fp*fp2<0)critPts.push(parseFloat(x.toFixed(2)));
+      const sg=fp>0?1:fp<0?-1:0;
+      if(sg!==0){ if(_sg0!==0&&sg!==_sg0)critPts.push(parseFloat(x.toFixed(2))); _sg0=sg; }  // 0은 건너뛰고 부호 변화만 센다
     }
     const extCount=critPts.length;
-    const shapeStr=extCount>=3?'W형 (극소2·극대1)':extCount===2?'S+U형 (극값2)':extCount===1?'U형 (극소1)':'단조형';
+    const shapeStr=extCount>=3?'W형 (극값 3개)':extCount===1?'U형 (극값 1개)':'극값 탐색 구간(−8~8) 밖';
 
     cards=[
       makeFeatCard('var(--bl-bg)','var(--bl-lt)','📈','방향 & 기본 정보',
         `최고차계수 a = <strong>${a}</strong><br>${a>0?'양 끝 모두 위로 ↑↑':'양 끝 모두 아래로 ↓↓'}`,
         `실근 <strong>${roots.length}개</strong> &nbsp;·&nbsp; y절편 <strong>${yInt}</strong><br>사차함수는 양 끝이 같은 방향이야. (이차함수처럼)`,
-        'var(--bl)',`📌 a > 0 → 최솟값 존재 가능 · a < 0 → 최댓값 존재 가능`),
+        'var(--bl)',`📌 a > 0 → 최솟값 항상 존재 · a < 0 → 최댓값 항상 존재`),
       makeFeatCard('var(--gn-bg)','var(--gn-lt)','🔷','개형 패턴',
         `현재: <strong>${shapeStr}</strong>`,
-        `f'(x)는 3차함수 → 실근 개수로 개형 결정!<br>실근 3개 → W형 &nbsp;/&nbsp; 실근 2개 → S+U형<br>실근 1개 → U형 &nbsp;/&nbsp; 실근 없음 → 단조`,
+        `f'(x)는 3차함수라 실근이 반드시 1개 이상!<br>서로 다른 실근 3개 → W형 (극값 3개)<br>실근 1개 또는 (중근+단근) → U형 (극값 1개)<br>→ 사차함수의 극값은 <strong>1개 또는 3개</strong> (0개·2개는 불가능)`,
         'var(--gn)',`📌 f'(x) 판별식 부호 → 극값 개수 → 개형`),
       makeFeatCard('var(--am-bg)','var(--am-lt)','⚡','변곡점 & 대칭',
         `변곡점 최대 <strong>2개</strong><br>f''(x) = 0 이고 볼록 방향 바뀌는 점`,
-        `b = 0이면 y축 대칭 (짝함수).<br>그 외에는 y축 대칭이 아니야.<br>변곡점에서 볼록 방향이 바뀌는 걸 그래프에서 확인해봐.`,
-        'var(--am)',`📌 수능 포인트: b = 0 여부로 대칭 판단`),
+        `b = 0 이고 d = 0이면 y축 대칭 (짝함수).<br>b나 d가 0이 아니면 y축 대칭이 아니야.<br>변곡점에서 볼록 방향이 바뀌는 걸 그래프에서 확인해봐.`,
+        'var(--am)',`📌 수능 포인트: b = d = 0 여부로 대칭 판단`),
     ];
-    footer=`🎯 <strong>수능 핵심:</strong> f'(x) 실근 개수로 개형 결정, 이중접선, 1:√2 법칙이 주요 출제 포인트야.`;
+    footer=`🎯 <strong>수능 핵심:</strong> f'(x) 실근 개수로 개형 결정, 이중접선, √3:1 법칙이 주요 출제 포인트야.`;
   }
 
   document.getElementById('fcards').innerHTML=cards.join('');
@@ -4318,7 +4438,7 @@ function updateEqFeatContent(){
         hasExt?`극대·극소 있음<br>극대값 × 극소값 부호 → 실근 개수 결정`
               :`극대·극소 없음 (단조)<br>→ 실근 정확히 1개`,
         hasExt?`극대×극소 < 0 → 실근 3개<br>극대×극소 = 0 → 실근 2개 (중근 포함)<br>극대×극소 > 0 → 실근 1개`
-              :`f'(x) = 0의 실근 없음 → 단조증가/감소`,
+              :`f'(x) = 0이 실근이 없거나 중근 → 단조증가/감소`,
         'var(--am)',`📌 극값 부호 체크 → 실근 개수 즉시 판단`),
       makeFeatCard('var(--pu-bg)','var(--pu-lt)','🏆','수능 포인트',
         `실근 3개 ↔ 극대×극소 < 0<br>실근 2개 ↔ 극대×극소 = 0<br>실근 1개 ↔ 극대×극소 > 0 또는 극값 없음`,
@@ -4331,15 +4451,15 @@ function updateEqFeatContent(){
     cards=[
       makeFeatCard('var(--bl-bg)','var(--bl-lt)','🎯','실근 개수',
         `실근 <strong>${roots.length}개</strong><br>사차방정식 실근: 0~4개`,
-        `a > 0이면 양 끝이 위로 → 최솟값 존재 가능<br>a < 0이면 양 끝이 아래로 → 최댓값 존재 가능<br>y = f(x) 그래프와 x축 교점 개수 = 실근 개수`,
+        `a > 0이면 양 끝이 위로 → 최솟값 항상 존재<br>a < 0이면 양 끝이 아래로 → 최댓값 항상 존재<br>y = f(x) 그래프와 x축 교점 개수 = 실근 개수`,
         'var(--bl)',`📌 y절편 = ${yInt}`),
       makeFeatCard('var(--am-bg)','var(--am-lt)','⚡','그래프 개형과 실근',
         `f'(x)의 실근 개수 → 개형 결정<br>W형 → 실근 최대 4개<br>U형 → 실근 최대 2개`,
         `사차방정식 풀기: 인수분해 또는 치환법.<br>x² = t로 치환하면 이차방정식으로 변환 가능.<br>(단, t ≥ 0 조건 확인 필수!)`,
         'var(--am)',`📌 치환 후 t ≥ 0 조건 반드시 체크`),
       makeFeatCard('var(--pu-bg)','var(--pu-lt)','🏆','수능 포인트',
-        `대칭형(b=0) → x²=t 치환으로 이차로 변환<br>비대칭형 → 인수분해 또는 수치 근사`,
-        `y = k 와의 교점 개수 = f(x)=k 의 실근 개수.<br>슬라이더로 k값을 바꿔가며 실근 개수가<br>어떻게 변하는지 확인해봐.`,
+        `대칭형(b=0, d=0) → x²=t 치환으로 이차로 변환<br>비대칭형 → 인수분해 또는 수치 근사`,
+        `y = k 와의 교점 개수 = f(x)=k 의 실근 개수.<br>상수항 슬라이더로 그래프를 위아래로 움직이며<br>실근 개수가 어떻게 변하는지 확인해봐.`,
         'var(--pu)',`📌 y=k 수평선과 그래프 교점 = 실근 개수`),
     ];
     footer=`🎯 <strong>수능 핵심:</strong> x²=t 치환법, 그래프와 수평선의 교점 개수로 실근 개수 판별이 핵심이야.`;
@@ -4395,16 +4515,7 @@ function updateIneqFeatContent(){
     const mid=(pts[i]+pts[i+1])/2;
     if(isGt?evalP(s.c,s.deg,mid)>0:evalP(s.c,s.deg,mid)<0)intvs.push([pts[i],pts[i+1]]);
   }
-  let solText='';
-  if(!intvs.length) solText='해 없음 (∅)';
-  else if(intvs.some(([a,b])=>a<=-28.9&&b>=28.9)&&intvs.length===1) solText='모든 실수';
-  else solText=intvs.map(([lo,hi])=>{
-    const loV=parseFloat(lo.toFixed(2)),hiV=parseFloat(hi.toFixed(2));
-    if(lo<=-28.9&&hi>=28.9) return '모든 실수';
-    if(lo<=-28.9) return isStrict?`x < ${hiV}`:`x ≤ ${hiV}`;
-    if(hi>=28.9)  return isStrict?`x > ${loV}`:`x ≥ ${loV}`;
-    return isStrict?`${loV} < x < ${hiV}`:`${loV} ≤ x ≤ ${hiV}`;
-  }).join(' 또는 ');
+  const solText=ineqSolution(intvs,roots,isStrict).text;
 
   const rootStr=roots.length?roots.map(r=>`x = ${r}`).join(', '):'없음';
   const cards=[
@@ -4415,10 +4526,12 @@ function updateIneqFeatContent(){
     makeFeatCard('var(--bl-bg)','var(--bl-lt)','💡','해집합 구하는 법',
       `① f(x)의 근(경계점) 구하기<br>② 부등호 방향 확인 (>,<,≥,≤)<br>③ 그래프 위치로 해집합 결정`,
       `f(x) > 0 → 그래프가 x축 <strong>위</strong>인 구간<br>f(x) < 0 → 그래프가 x축 <strong>아래</strong>인 구간<br>a의 부호에 따라 방향이 달라지니 주의!`,
-      'var(--bl)',`📌 a < 0 이면 부등호 방향 뒤집힘`),
+      'var(--bl)',`📌 양변에 −1을 곱해 a>0으로 바꾸면 부등호 방향이 바뀜`),
     makeFeatCard('var(--am-bg)','var(--am-lt)','🏆','수능 포인트',
-      `D > 0 → 경계점 2개, 구간형 해집합<br>D = 0 → 경계점 1개 (중근)<br>D < 0 → 경계점 없음 (전체 or 없음)`,
-      `2차 이상에서 판별식이 해집합 형태를 결정해.<br>특히 D = 0일 때 ≥, ≤ 와 >, < 의 차이를<br>그래프로 꼭 확인해봐.`,
+      s.deg===2?`D > 0 → 경계점 2개, 구간형 해집합<br>D = 0 → 경계점 1개 (중근)<br>D < 0 → 경계점 없음 (전체 or 없음)`
+              :`그래프가 x축과 만나는 점이 경계점이야<br>x축을 뚫으면 부호가 바뀌고, 접하면(중근) 안 바뀌어`,
+      s.deg===2?`이차부등식에서는 판별식이 해집합 형태를 결정해.<br>특히 D = 0일 때 ≥, ≤ 와 >, < 의 차이를<br>그래프로 꼭 확인해봐.`
+              :`3·4차에서는 판별식 대신 근(경계점)과 그 좌우의 부호로 판단해.<br>중근에서는 부호가 안 바뀌고, ≥, ≤ 이면 그 근도 해에 포함돼.`,
       'var(--am)',`📌 등호 포함 여부(≥, ≤)에서 자주 실수!`),
   ];
   document.getElementById('ineqFcards').innerHTML=cards.join('');
@@ -4698,6 +4811,25 @@ function makeAdvGraph(id, onUpdate){
   },{passive:false});
   cv.addEventListener('touchend',()=>state.drag=false);
 
+  // 📱 두 손가락 핀치줌 (그래프만 확대·축소, 페이지 전체 확대 방지)
+  cv.style.touchAction='none';
+  let _pinchD=0;
+  function _pd(e){return Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);}
+  cv.addEventListener('touchstart',e=>{
+    if(e.touches.length===2){state.drag=false;_pinchD=_pd(e);}
+  },{passive:true});
+  cv.addEventListener('touchmove',e=>{
+    if(e.touches.length!==2)return;
+    e.preventDefault();
+    const d=_pd(e);
+    if(_pinchD>0&&d>0){
+      state.scale=Math.max(10,Math.min(400,state.scale*(d/_pinchD)));
+      if(onUpdate)onUpdate();
+    }
+    _pinchD=d;
+  },{passive:false});
+  cv.addEventListener('touchend',e=>{ if(e.touches.length<2)_pinchD=0; });
+
   return {cv,ctx,state};
 }
 
@@ -4837,20 +4969,22 @@ function findCriticals(fn,type='d1',a=-8,b=8,n=2000){
   const dfn=type==='d1'?(x=>numDeriv(fn,x)):(x=>numDeriv2(fn,x));
   const pts=[];
   const dx=(b-a)/n;
-  let prev=dfn(a);
+  let prev=dfn(a), prevX=a;
   for(let i=1;i<=n;i++){
     const x=a+i*dx;
     const cur=dfn(x);
+    if(cur===0)continue;                     // 표본점이 정확히 0이면(예: x=0) 다음 표본에서 부호 비교
+    if(prev===0){prev=cur;prevX=x;continue;}
     if(prev*cur<0){
       // bisect
-      let lo=x-dx,hi=x,flo=prev,fhi=cur;
+      let lo=prevX,hi=x,flo=prev,fhi=cur;
       for(let j=0;j<30;j++){
         const m=(lo+hi)/2,fm=dfn(m);
         if(flo*fm<=0){hi=m;fhi=fm;}else{lo=m;flo=fm;}
       }
       pts.push((lo+hi)/2);
     }
-    prev=cur;
+    prev=cur;prevX=x;
   }
   return pts;
 }
@@ -5076,27 +5210,26 @@ const C3_LAW_MODAL_CONTENT=[
     const sq=Math.sqrt(disc);
     const xa=(-2*b+sq)/(6*a),xb=(-2*b-sq)/(6*a);
     const[xL,xR]=xa<xb?[xa,xb]:[xb,xa];
-    const xg=(2*xL+xR)/3,xd=(xL+2*xR)/3;
-    const i1=(xg-xL).toFixed(3),i2=(xd-xg).toFixed(3),i3=(xR-xd).toFixed(3);
+    const xg=(3*xR-xL)/2,xd=(3*xL-xR)/2;   // γ: 극값 α의 접선이 다시 만나는 점, δ: 극값 β의 접선이 다시 만나는 점
+    const i1=(xL-xd).toFixed(3),i2=(xR-xL).toFixed(3),i3=(xg-xR).toFixed(3);
     document.getElementById('c3LawStats').innerHTML=
-      `α = <strong>${xL.toFixed(3)}</strong>  γ = <strong>${xg.toFixed(3)}</strong>  δ = <strong>${xd.toFixed(3)}</strong>  β = <strong>${xR.toFixed(3)}</strong><br>`+
-      `간격: <strong>${i1}</strong> : <strong>${i2}</strong> : <strong>${i3}</strong>`;
+      `δ = <strong>${xd.toFixed(3)}</strong>  α = <strong>${xL.toFixed(3)}</strong>  β = <strong>${xR.toFixed(3)}</strong>  γ = <strong>${xg.toFixed(3)}</strong><br>`+
+      `간격(δ→α : α→β : β→γ): <strong>${i1}</strong> : <strong>${i2}</strong> : <strong>${i3}</strong>`;
     document.getElementById('c3LawDesc').innerHTML=lawDesc(
-      `γ = (2α+β)/3,  δ = (α+2β)/3<br>α:γ:δ:β 간격 = 1:1:1 → 1:2:1`,
-      `극대점 α에서의 접선(수평선 y=f(α))이<br>
-      곡선과 다시 만나는 점이 γ = (2α+β)/3이야.<br>
-      극소점 β에서의 접선(수평선 y=f(β))이<br>
-      곡선과 다시 만나는 점이 δ = (α+2β)/3이야.<br>
-      4개 x좌표의 간격이 <strong>1:1:1</strong>이므로 묶으면 <strong>1:2:1</strong>.`,
-      `그래프에서 "어떤 x좌표 간의 비가 1:2:1"이 주어지면<br>
-      그게 α, (α+β)/2, β를 묻는 게 아니라<br>
-      <strong>α, γ, δ, β 네 점의 비율</strong>을 묻는 거야!<br>
-      수능에서 자주 이 비율로 미지수 설정해.`
+      `γ = (3β−α)/2,  δ = (3α−β)/2<br>δ→α : α→β : β→γ = 1 : 2 : 1`,
+      `α, β는 f'(x)=0의 두 근(극값의 x좌표)이야.<br>
+      극값 α에서의 접선(수평선 y=f(α))은 x=α에서 접하고(중근), 곡선과 한 번 더 만나는 점이 γ야.<br>
+      삼차방정식 f(x)=f(α)의 세 근 α, α, γ의 합은 −b/a = 3(α+β)/2 이므로 γ = (3β−α)/2.<br>
+      같은 방법으로 극값 β에서의 접선이 다시 만나는 점이 δ = (3α−β)/2.<br>
+      그러면 α−δ = (β−α)/2,  β−α,  γ−β = (β−α)/2 이므로 <strong>1 : 2 : 1</strong>이야.`,
+      `그래프에서 "x좌표 간의 비가 1:2:1"이 주어지면<br>
+      <strong>δ, α, β, γ 네 점 사이의 간격</strong>(δα : αβ : βγ)을 말하는 거야!<br>
+      수능에서 자주 이 비율로 미지수를 설정해.`
     );
   },
   // 3: 1:√3
   ()=>{
-    const[a,b]=SC3.c;
+    const[a,b,c]=SC3.c;
     const xi=-b/(3*a), yi=c3f(xi);
     const pts=[];
     let prev=c3f(-10)-yi;
@@ -5111,26 +5244,28 @@ const C3_LAW_MODAL_CONTENT=[
     }
     pts.sort((p,q)=>p-q);
     if(pts.length>=3){
-      const d1=(pts[1]-pts[0]).toFixed(4),d2=(pts[2]-pts[1]).toFixed(4);
-      const ratio=(parseFloat(d2)/parseFloat(d1)).toFixed(4);
+      const sqD=Math.sqrt(Math.max(0,4*b*b-12*a*c));
+      const xcR=Math.max((-2*b+sqD)/(6*a),(-2*b-sqD)/(6*a));   // 오른쪽 극점
+      const dc=(xcR-xi).toFixed(4),dr=(pts[2]-xi).toFixed(4);
+      const ratio=(parseFloat(dr)/parseFloat(dc)).toFixed(4);
       document.getElementById('c3LawStats').innerHTML=
         `P₁ = <strong>${pts[0].toFixed(3)}</strong>  P₂(변곡점) = <strong>${pts[1].toFixed(3)}</strong>  P₃ = <strong>${pts[2].toFixed(3)}</strong><br>`+
-        `P₁P₂ = <strong>${d1}</strong>  &nbsp;  P₂P₃ = <strong>${d2}</strong><br>`+
+        `변곡점→극점 = <strong>${dc}</strong>  &nbsp;  변곡점→교점(P₃) = <strong>${dr}</strong><br>`+
         `비율 = <strong style="color:var(--pu)">1 : ${ratio}</strong>  <span style="color:var(--tx3)">(√3 ≈ 1.7321)</span>`;
     } else {
       document.getElementById('c3LawStats').innerHTML=`<span style="color:var(--tx3)">교점 3개 필요 — 극대·극소가 있어야 해요</span>`;
     }
     document.getElementById('c3LawDesc').innerHTML=lawDesc(
-      `P₁P₂ : P₂P₃ = 1 : √3<br>(P₂ = 변곡점, y = f(변곡점) 수평선 위)`,
-      `변곡점을 원점으로 이동하면 f(x) = ax³ + cx.<br>
-      수평선 y=0(변곡점의 y값)과의 교점은<br>
-      x = 0(변곡점), x = ±√(−c/a)이야.<br>
-      변곡점→왼쪽 거리 : 변곡점→오른쪽 거리<br>
-      = √(−c/a) : (2√(−c/a) − √(−c/a)) 계산하면<br>
-      P₁P₂ : P₂P₃ = <strong>1 : √3</strong>이 나와.`,
+      `(변곡점→극점) : (변곡점→교점) = 1 : √3<br>(교점 = 수평선 y = f(변곡점)과 곡선이 만나는 점 P₁, P₃)`,
+      `변곡점을 원점으로 이동하면 f(x) = ax³ + cx  (c/a < 0).<br>
+      극점: f'(x) = 3ax² + c = 0 → x = ±√(−c/3a)<br>
+      교점: ax³ + cx = 0 → x = 0, ±√(−c/a)<br>
+      √(−c/a) ÷ √(−c/3a) = √3 이므로<br>
+      변곡점→극점 : 변곡점→교점 = <strong>1 : √3</strong>이 나와.<br>
+      (세 교점 P₁, P₂, P₃는 변곡점 기준 좌우 대칭이라 P₁P₂ : P₂P₃ = 1 : 1이야.)`,
       `슬라이더를 어떻게 바꿔도 이 비율은 <strong>항상 1:√3</strong>이야.<br>
-      변곡점의 y값 수평선이 곡선과 만나는 세 점의<br>
-      x좌표 간격을 물어볼 때 바로 적용 가능!`
+      극점의 x좌표를 알면 변곡점 높이의 수평선이<br>
+      곡선과 만나는 점의 위치를 바로 구할 수 있어!`
     );
   },
   // 4: 극값의 합
@@ -5181,23 +5316,24 @@ const C3_LAW_MODAL_CONTENT=[
     const ya=c3f(xa),yb=c3f(xb);
     const diff=Math.abs(ya-yb);
     const span=Math.abs(xb-xa);
-    const formula=2*Math.abs(a)*Math.pow(span,3)/2;
+    const formula=Math.abs(a)*Math.pow(span,3)/2;
     document.getElementById('c3LawStats').innerHTML=
       `|f(α)−f(β)|     = <strong style="color:var(--rd)">${diff.toFixed(4)}</strong><br>`+
-      `2|a|×|β−α|³/2 = <strong style="color:var(--rd)">${formula.toFixed(4)}</strong><br>`+
+      `|a|×|β−α|³/2 = <strong style="color:var(--rd)">${formula.toFixed(4)}</strong><br>`+
       `극점 간격 |β−α| = <strong>${span.toFixed(4)}</strong>`;
     document.getElementById('c3LawDesc').innerHTML=lawDesc(
-      `|f(α) − f(β)| = 2|a| · |β−α|³ / 2`,
+      `|f(α) − f(β)| = |a| · |β−α|³ / 2`,
       `변곡점 원점 이동 후 f(α)−f(β) 계산하면<br>
       = aα³+cα − (aβ³+cβ)<br>
       점대칭에서 β=−α이므로<br>
       = 2aα³+2cα = 2α(aα²+c)<br>
       f'(α)=0 → 3aα²+c=0 → c=−3aα²<br>
-      대입하면 <strong>|f(α)−f(β)| = 2|a||β−α|³/2</strong> 유도.`,
+      대입하면 2α(aα²−3aα²) = −4aα³ → |f(α)−f(β)| = 4|a|α³.<br>
+      극점 간격 t=|β−α|=2α 이므로 α=t/2 → 4|a|(t/2)³ = <strong>|a|t³/2</strong>.`,
       `a의 부호(양수/음수)에 따라 극대/극소 순서가 바뀌지만<br>
       <strong>차의 절댓값 공식은 동일</strong>하게 적용돼.<br>
       극점 간격 |β−α|를 t로 놓으면<br>
-      극값의 차 = 2|a|t³/2 → t를 역산할 수 있어.`
+      극값의 차 = |a|t³/2 → t를 역산할 수 있어.`
     );
   },
 ];
@@ -5380,25 +5516,22 @@ function renderC3(){
     // ③ 1:2:1: 4개 x좌표 + 구간 화살표
     if(extrema.length===2){
       const[xa,ya]=[extrema[0][0],extrema[0][1]],[xb,yb]=[extrema[1][0],extrema[1][1]];
-      const xg=(2*xa+xb)/3,xd=(xa+2*xb)/3;
-      // 4구간 배경 (교대 색상)
-      const cols=['rgba(45,125,70,0.1)','rgba(91,63,166,0.1)','rgba(91,63,166,0.1)','rgba(192,57,43,0.1)'];
-      const xs=[toWX(gC3,0),xa,xg,xd,xb];
-      // 구간들
-      [[xa,xg,'rgba(45,125,70,0.08)'],[xg,xd,'rgba(91,63,166,0.12)'],[xd,xb,'rgba(192,57,43,0.08)']].forEach(([x1,x2,col])=>{
+      const xg=(3*xb-xa)/2,xd=(3*xa-xb)/2;   // γ: α의 접선 재교점(오른쪽), δ: β의 접선 재교점(왼쪽)
+      // 3구간 배경 (δ→α, α→β, β→γ = 1:2:1)
+      [[xd,xa,'rgba(45,125,70,0.08)'],[xa,xb,'rgba(91,63,166,0.12)'],[xb,xg,'rgba(192,57,43,0.08)']].forEach(([x1,x2,col])=>{
         ctx.fillStyle=col;
         ctx.fillRect(toSX(gC3,x1),0,toSX(gC3,x2)-toSX(gC3,x1),cv.height);
       });
       // 수직선 4개
-      drawVLine(gC3,xa,'#2D7D46',[4,4]);
-      drawVLine(gC3,xg,'#5B3FA6',[3,3]);
       drawVLine(gC3,xd,'#5B3FA6',[3,3]);
+      drawVLine(gC3,xa,'#2D7D46',[4,4]);
       drawVLine(gC3,xb,'#C0392B',[4,4]);
+      drawVLine(gC3,xg,'#5B3FA6',[3,3]);
       // 화살표
       const arY=Math.min(ya,yb)-1.5;
-      drawHArrow(gC3,xa,xg,arY,'#2D7D46','1');
-      drawHArrow(gC3,xg,xd,arY-1.5,'#5B3FA6','1');
-      drawHArrow(gC3,xd,xb,arY,'#C0392B','1');
+      drawHArrow(gC3,xd,xa,arY,'#2D7D46','1');
+      drawHArrow(gC3,xa,xb,arY-1.5,'#5B3FA6','2');
+      drawHArrow(gC3,xb,xg,arY,'#C0392B','1');
       // γ, δ점 (접선-교점)
       drawPoint(gC3,xg,c3f(xg),'#5B3FA6',5);
       drawLabel(gC3,xg,c3f(xg),'γ','#5B3FA6',6,-12);
@@ -5426,11 +5559,13 @@ function renderC3(){
       prev=cur;
     }
     pts.sort((a,b)=>a-b);
-    if(pts.length>=3){
-      // 수평 거리 화살표
+    if(pts.length>=3&&extrema.length===2){
+      // 변곡점→극점 : 변곡점→교점 = 1 : √3
       const arY=yi+0.8;
-      drawHArrow(gC3,pts[0],pts[1],arY,'#5B3FA6','1');
-      drawHArrow(gC3,pts[1],pts[2],arY+0.8,'#C0392B','√3');
+      const xcR=Math.max(extrema[0][0],extrema[1][0]);
+      drawVLine(gC3,xcR,'#2D7D46',[4,4]);
+      drawHArrow(gC3,xi,xcR,arY,'#5B3FA6','1');
+      drawHArrow(gC3,xi,pts[2],arY+0.8,'#C0392B','√3');
       pts.forEach((px,i)=>{
         drawPoint(gC3,px,yi,'#5B3FA6',5);
         drawLabel(gC3,px,yi,['P₁','P₂','P₃'][i],'#5B3FA6',4,-12);
@@ -5540,21 +5675,21 @@ function buildC3Acc(){
       α~변곡점 : 변곡점~β = <strong>1 : 1</strong>
     `},
     {title:'③ 1:2:1 법칙 (접선-교점)',content:`
-      극대점(α)의 접선(수평선)이 곡선과 만나는 점 γ = <span class="acc-formula">(2α+β)/3</span><br>
-      극소점(β)의 접선(수평선)이 곡선과 만나는 점 δ = <span class="acc-formula">(α+2β)/3</span><br>
-      네 간격 α→γ→δ→β = <strong>1:1:1</strong> → 묶으면 <strong>1:2:1</strong>
+      극값 α의 접선(수평선)이 곡선과 다시 만나는 점 γ = <span class="acc-formula">(3β−α)/2</span><br>
+      극값 β의 접선(수평선)이 곡선과 다시 만나는 점 δ = <span class="acc-formula">(3α−β)/2</span><br>
+      δ→α : α→β : β→γ = <strong>1 : 2 : 1</strong>
     `},
     {title:'④ 1:√3 법칙',content:`
-      y = f(변곡점) 수평선과 곡선의 3개 교점 P₁, P₂, P₃ 중<br>
-      P₁P₂ : P₂P₃ = <span class="acc-formula">1 : √3</span><br>
-      (P₂가 변곡점, P₁·P₃이 양쪽 교점)
+      y = f(변곡점) 수평선과 곡선의 3개 교점 P₁, P₂, P₃에 대해<br>
+      (변곡점→극점) : (변곡점→교점) = <span class="acc-formula">1 : √3</span><br>
+      (P₂가 변곡점, P₁·P₃이 양쪽 교점 / P₁P₂ : P₂P₃ = 1 : 1)
     `},
     {title:'⑤ 극값의 합',content:`
       <span class="acc-formula">f(α) + f(β) = 2 × f(변곡점)</span><br>
       점대칭의 직접 결과야. 극대값과 극소값의 y평균 = 변곡점 y!
     `},
     {title:'⑥ 극값의 차',content:`
-      <span class="acc-formula">|f(α) − f(β)| = 2|a| × |β − α|³ / 2</span><br>
+      <span class="acc-formula">|f(α) − f(β)| = |a| × |β − α|³ / 2</span><br>
       계수 a가 크거나 극점 간격이 넓을수록 극값의 차가 커져.
     `}
   ];
@@ -5614,24 +5749,38 @@ function scheduleRenderC4(){if(rafC4)cancelAnimationFrame(rafC4);rafC4=requestAn
 
 function c4f(x){const[a,b,c,d,e]=SC4.c;return a*x*x*x*x+b*x*x*x+c*x*x+d*x+e;}
 
+// 이중접선: 변곡점이 2개(p<q)일 때 접점은 (p+q)/2 ± √3(q−p)/2, f−직선 = a(x−α)²(x−β)²
+function c4Bitan(){
+  const[a,b,c]=SC4.c;
+  const disc2=36*b*b-96*a*c;
+  if(!(disc2>0))return null;
+  const sq=Math.sqrt(disc2);
+  const x1=(-6*b+sq)/(24*a),x2=(-6*b-sq)/(24*a);
+  const p=Math.min(x1,x2),q=Math.max(x1,x2);
+  const m=(p+q)/2,h=Math.sqrt(3)*(q-p)/2;
+  const al=m-h,be=m+h;
+  const slope=(c4f(be)-c4f(al))/(be-al);
+  const intercept=c4f(al)-slope*al;
+  return {p,q,al,be,slope,intercept};
+}
+
 function buildC4Acc(){
   const items=[
     {title:'① 개형 케이스 (a>0 기준)',content:`
-      f'(x)는 3차함수. 실근 개수에 따라 개형이 결정돼.<br>
-      <span class="acc-tag" style="border-color:var(--bl-lt);color:var(--bl)">실근 3개</span> W형 — 극소 2개, 극대 1개<br>
-      <span class="acc-tag" style="border-color:var(--gn-lt);color:var(--gn)">실근 2개</span> S+U형 — 극값 2개 (중근 하나)<br>
-      <span class="acc-tag" style="border-color:var(--am-lt);color:var(--am)">실근 1개</span> U형 — 극소 1개만<br>
-      <span class="acc-tag" style="border-color:var(--tx3);color:var(--tx3)">허근만</span> 단조 — 극값 없음
+      f'(x)는 3차함수라 실근이 반드시 1개 이상 → <strong>극값은 항상 1개 또는 3개</strong>.<br>
+      <span class="acc-tag" style="border-color:var(--bl-lt);color:var(--bl)">서로 다른 실근 3개</span> W형 — 극소 2개, 극대 1개<br>
+      <span class="acc-tag" style="border-color:var(--gn-lt);color:var(--gn)">중근 + 단근</span> U형 변형 — 극소 1개 (중근인 점은 f'=0이지만 극값 아님)<br>
+      <span class="acc-tag" style="border-color:var(--am-lt);color:var(--am)">실근 1개</span> U형 — 극소 1개만
     `},
-    {title:'② 1:√2 법칙',content:`
-      이중접선이 존재할 때 (W형), 두 변곡점의 x좌표를 p, q라 하면,<br>
-      두 극소의 x좌표는 각각 <span class="acc-formula">p − (q−p)/√2</span>, <span class="acc-formula">q + (q−p)/√2</span> 위치야.<br>
-      변곡점 간격 : 변곡점~극소 거리 = <strong>√2 : 1</strong>
+    {title:'② √3:1 법칙',content:`
+      두 변곡점의 x좌표를 p, q라 하면 이중접선의 두 접점은<br>
+      <span class="acc-formula">(p+q)/2 − √3(q−p)/2</span>, <span class="acc-formula">(p+q)/2 + √3(q−p)/2</span> 위치야.<br>
+      접점 사이 거리 : 변곡점 사이 거리 = <strong>√3 : 1</strong>
     `},
     {title:'③ 이중접선',content:`
-      두 변곡점을 잇는 직선을 <strong>이중접선</strong>이라고 해.<br>
-      이 직선은 사차함수와 정확히 <strong>4점</strong>에서 만나.<br>
-      두 변곡점에서 각각 접하고, 그 외 교점 2개가 더 생겨.
+      곡선과 서로 다른 두 점 α, β에서 접하는 직선을 <strong>이중접선</strong>이라고 해.<br>
+      f(x) − (직선) = <span class="acc-formula">a(x−α)²(x−β)²</span> 으로 인수분해돼.<br>
+      곡선과 만나는 점은 접점 2개뿐이고, 두 변곡점을 잇는 직선과는 달라.
     `}
   ];
   document.getElementById('c4-acc').innerHTML=items.map((item,i)=>`
@@ -5677,7 +5826,7 @@ function updateC4LawModal(n){
   ][n];
   const iconEl=document.getElementById('c4LawIcon');
   iconEl.textContent=meta.icon; iconEl.style.background=meta.bg; iconEl.style.color=meta.color;
-  const titles=['개형 케이스','1:√2 법칙','이중접선'];
+  const titles=['개형 케이스','√3:1 법칙','이중접선'];
   document.getElementById('c4-law-hint').textContent=titles[n]+' 적용 중';
   C4_LAW_MODAL_CONTENT[n]();
 }
@@ -5688,104 +5837,75 @@ const C4_LAW_MODAL_CONTENT=[
     const[a,b,c,d,e]=SC4.c;
     const disc2=36*b*b-96*a*c;
     const extremaPts=findCriticals(c4f,'d1');
-    const caseStr=extremaPts.length>=3?'W형 (극소2·극대1)':extremaPts.length===2?'S+U형 (극값2)':extremaPts.length===1?'U형 (극소1)':'단조 (극값없음)';
-    const caseColor=extremaPts.length>=3?'var(--bl)':extremaPts.length===2?'var(--gn)':extremaPts.length===1?'var(--am)':'var(--tx3)';
+    const caseStr=extremaPts.length>=3?(a>0?'W형 (극소2·극대1)':'M형 (극대2·극소1)'):extremaPts.length===1?'U형 (극값 1개)':'극값 탐색 구간(−8~8) 밖';
+    const caseColor=extremaPts.length>=3?'var(--bl)':extremaPts.length===1?'var(--am)':'var(--tx3)';
     document.getElementById('c4LawStats').innerHTML=
       `현재 개형: <strong style="color:${caseColor}">${caseStr}</strong><br>`+
-      `f'(x) 판별식: <strong>${disc2.toFixed(2)}</strong>  ${disc2>0?'(실근 존재)':disc2===0?'(중근)':'(허근)'}<br>`+
+      `f''(x) 판별식: <strong>${disc2.toFixed(2)}</strong>  ${disc2>0?'(변곡점 2개)':disc2===0?'(중근 → 변곡점 없음)':'(변곡점 없음)'}<br>`+
       `극값 개수: <strong>${extremaPts.length}개</strong>`;
     document.getElementById('c4LawDesc').innerHTML=lawDesc(
-      `f'(x) = 4ax³+3bx²+2cx+d (3차)<br>실근 개수 → 개형 결정`,
+      `f'(x) = 4ax³+3bx²+2cx+d (3차)<br>f'(x)의 실근 → 극값 1개 또는 3개`,
       `사차함수의 도함수 f'(x)는 3차함수야.<br>
-      3차함수의 실근 개수에 따라 극값의 수가 달라지고,<br>
-      그게 곧 사차함수의 개형을 결정해.<br>
-      <span style="color:var(--bl)">●</span> <strong>실근 3개</strong> → 극소2·극대1 → <strong>W형</strong><br>
-      <span style="color:var(--gn)">●</span> <strong>실근 2개(중근)</strong> → 극값2 → <strong>S+U형</strong><br>
-      <span style="color:var(--am)">●</span> <strong>실근 1개</strong> → 극소1 → <strong>U형</strong><br>
-      <span style="color:var(--tx3)">●</span> <strong>허근만</strong> → 극값없음 → <strong>단조증가</strong>`,
-      `슬라이더로 a~e를 바꿔가며 4가지 개형을 모두 만들어봐!<br>
+      3차함수는 실근이 반드시 1개 이상이라 사차함수의 극값은 항상 1개 또는 3개야.<br>
+      <span style="color:var(--bl)">●</span> <strong>서로 다른 실근 3개</strong> → 극소2·극대1 → <strong>W형</strong><br>
+      <span style="color:var(--gn)">●</span> <strong>중근 + 단근</strong> → 극소1 (중근인 점은 f'=0이어도 극값 아님) → <strong>U형 변형</strong><br>
+      <span style="color:var(--am)">●</span> <strong>실근 1개</strong> → 극소1 → <strong>U형</strong>`,
+      `슬라이더로 a~e를 바꿔가며 W형·U형·U형 변형을 모두 만들어봐!<br>
       b=0, d=0으로 맞추면 <strong>y축 대칭</strong> 사차함수가 돼.<br>
       수능에서 "사차함수의 극값의 개수"를 물을 때<br>
-      f'(x)의 판별식으로 빠르게 판단할 수 있어.`
+      f'(x)의 판별식(또는 인수분해)으로 빠르게 판단할 수 있어.`
     );
   },
-  // 1: 1:√2 법칙
+  // 1: √3:1 법칙
   ()=>{
-    const[a,b,c]=SC4.c;
-    const disc2=36*b*b-96*a*c;
-    let inflects=[];
-    if(disc2>0){
-      const sq=Math.sqrt(disc2);
-      const xi1=(-6*b+sq)/(24*a),xi2=(-6*b-sq)/(24*a);
-      inflects=[[xi1,c4f(xi1)],[xi2,c4f(xi2)]].sort((p,q)=>p[0]-q[0]);
-    }
-    const extremaPts=findCriticals(c4f,'d1');
-    const extremas=extremaPts.map(x=>({x,y:c4f(x),type:numDeriv2(c4f,x)>0?'극소':'극대'}));
-    const minPts=extremas.filter(e=>e.type==='극소');
-
-    if(inflects.length===2&&minPts.length===2){
-      const p=inflects[0][0],q=inflects[1][0];
-      const gap=q-p;
-      const d1=Math.abs(minPts[0].x-p).toFixed(4);
-      const d2=Math.abs(minPts[1].x-q).toFixed(4);
-      const ratio=(gap/Math.min(parseFloat(d1),parseFloat(d2))).toFixed(4);
+    const bt=c4Bitan();
+    if(bt){
+      const{p,q,al,be}=bt;
+      const fp=x=>numDeriv(c4f,x);
       document.getElementById('c4LawStats').innerHTML=
-        `변곡점1 x = <strong>${p.toFixed(4)}</strong><br>`+
-        `변곡점2 x = <strong>${q.toFixed(4)}</strong><br>`+
-        `변곡점 간격 = <strong>${gap.toFixed(4)}</strong><br>`+
-        `극소1~변곡점1 = <strong>${d1}</strong>  극소2~변곡점2 = <strong>${d2}</strong><br>`+
-        `비율(간격/극소거리) ≈ <strong style="color:var(--pu)">${ratio}</strong>  (√2 ≈ 1.4142)`;
+        `변곡점 x : <strong>${p.toFixed(4)}</strong> , <strong>${q.toFixed(4)}</strong> (간격 <strong>${(q-p).toFixed(4)}</strong>)<br>`+
+        `접점 x (α, β) : <strong>${al.toFixed(4)}</strong> , <strong>${be.toFixed(4)}</strong> (간격 <strong>${(be-al).toFixed(4)}</strong>)<br>`+
+        `비율(접점 간격/변곡점 간격) ≈ <strong style="color:var(--pu)">${((be-al)/(q-p)).toFixed(4)}</strong>  (√3 ≈ 1.7321)<br>`+
+        `<span style="font-size:11px;color:var(--tx3)">f′(α)=${fp(al).toFixed(4)} , f′(β)=${fp(be).toFixed(4)} → 접선의 기울기가 같아요 ✓</span>`;
     } else {
-      document.getElementById('c4LawStats').innerHTML=`<span style="color:var(--tx3)">W형(변곡점2·극소2)이 필요해요<br>b 슬라이더를 0 근처로, c를 음수로 맞춰보세요</span>`;
+      document.getElementById('c4LawStats').innerHTML=`<span style="color:var(--tx3)">변곡점이 2개인 사차함수가 필요해요<br>b 슬라이더를 0 근처로, c를 음수로 맞춰보세요</span>`;
     }
     document.getElementById('c4LawDesc').innerHTML=lawDesc(
-      `변곡점 간격 : 변곡점~극소 거리 = √2 : 1`,
-      `y축 대칭 사차함수 f(x)=ax⁴+cx²+e 로 이동하면<br>
-      변곡점은 x = ±√(−c/6a) 에 위치해.<br>
-      극소는 x = ±√(−c/2a) 에 위치해.<br>
-      변곡점 간격 = 2√(−c/6a),  극소~변곡점 = √(−c/2a)−√(−c/6a)<br>
-      두 값의 비를 정리하면 <strong>√2 : 1</strong>이 나와.`,
-      `W형에서 변곡점 2개의 x좌표를 p, q라 하면<br>
-      극소 x좌표는 <strong>p − (q−p)/√2</strong>, <strong>q + (q−p)/√2</strong>야.<br>
-      변곡점 위치를 알면 극소 위치를 역산할 수 있어!`
+      `(이중접선의 접점 사이 거리) : (두 변곡점 사이 거리) = √3 : 1`,
+      `이중접선이 x=α, x=β에서 접하면 f(x) − (직선) = a(x−α)²(x−β)² 로 쓸 수 있어.<br>
+      직선은 f''(x)에 영향을 주지 않으니, f의 변곡점은 a(x−α)²(x−β)²의 변곡점과 같아.<br>
+      이 식은 x=(α+β)/2에 대해 대칭이고, 변곡점은 그 중점에서 좌우로 (β−α)/(2√3)씩 떨어져 있어.<br>
+      그래서 (변곡점 사이 거리) = (β−α)/√3, 즉 <strong>(접점 사이) : (변곡점 사이) = √3 : 1</strong>이야.`,
+      `두 변곡점의 x좌표 p, q를 알면 이중접선의 접점은<br>
+      <strong>(p+q)/2 ± √3(q−p)/2</strong> 에서 바로 구할 수 있어!`
     );
   },
   // 2: 이중접선
   ()=>{
-    const[a,b,c]=SC4.c;
-    const disc2=36*b*b-96*a*c;
-    let inflects=[];
-    if(disc2>0){
-      const sq=Math.sqrt(disc2);
-      const xi1=(-6*b+sq)/(24*a),xi2=(-6*b-sq)/(24*a);
-      inflects=[[xi1,c4f(xi1)],[xi2,c4f(xi2)]].sort((p,q)=>p[0]-q[0]);
-    }
-    if(inflects.length===2){
-      const[xi1,yi1]=inflects[0],[xi2,yi2]=inflects[1];
-      const slope=(yi2-yi1)/(xi2-xi1);
-      const intercept=yi1-slope*xi1;
+    const bt=c4Bitan();
+    if(bt){
+      const{al,be,slope,intercept}=bt;
       document.getElementById('c4LawStats').innerHTML=
         `이중접선 기울기 = <strong>${slope.toFixed(4)}</strong><br>`+
         `이중접선 y절편 = <strong>${intercept.toFixed(4)}</strong><br>`+
-        `접점1: (<strong>${xi1.toFixed(3)}</strong>, <strong>${yi1.toFixed(3)}</strong>)<br>`+
-        `접점2: (<strong>${xi2.toFixed(3)}</strong>, <strong>${yi2.toFixed(3)}</strong>)`;
+        `접점1: (<strong>${al.toFixed(3)}</strong>, <strong>${c4f(al).toFixed(3)}</strong>)<br>`+
+        `접점2: (<strong>${be.toFixed(3)}</strong>, <strong>${c4f(be).toFixed(3)}</strong>)`;
     } else {
-      document.getElementById('c4LawStats').innerHTML=`<span style="color:var(--tx3)">변곡점이 2개인 W형에서만 이중접선이 존재해요</span>`;
+      document.getElementById('c4LawStats').innerHTML=`<span style="color:var(--tx3)">변곡점이 2개인 사차함수에서만 이중접선이 존재해요</span>`;
     }
     document.getElementById('c4LawDesc').innerHTML=lawDesc(
-      `이중접선 = 두 변곡점을 잇는 직선`,
-      `이중접선은 사차함수와 <strong>4개의 점</strong>에서 만나.<br>
-      두 변곡점에서 각각 <strong>접하고</strong> (중근),<br>
-      그 바깥쪽에서 <strong>2개의 교점</strong>이 추가로 생겨.<br>
-      즉 f(x) − (기울기·x+절편) = a(x−α)²(x−β)² 형태로 인수분해돼.`,
+      `이중접선 = 곡선과 서로 다른 두 점에서 접하는 직선`,
+      `이중접선이 x=α, x=β에서 접하면<br>
+      f(x) − (직선) = <strong>a(x−α)²(x−β)²</strong> 로 인수분해돼.<br>
+      즉 곡선과 직선은 접점 두 개에서만 만나(각각 중근).<br>
+      두 변곡점을 잇는 직선과 헷갈리지 마! 변곡점을 지나는 직선은 접하지 않고 곡선을 가로질러.`,
       `이중접선과 사차함수 사이의 <strong>넓이를 구하는 문제</strong>가 자주 나와.<br>
-      인수분해 형태 a(x−p)²(x−q)²을 이용해서<br>
-      6분의 1 공식 변형으로 적분하면 빠르게 풀 수 있어.`
+      ∫(x−α)²(x−β)²dx (α→β) = (β−α)⁵/30 이라서<br>
+      넓이 = |a|(β−α)⁵/30 (30분의 1 공식)으로 바로 구할 수 있어.`
     );
   },
 ];
 
-// 드래그
 (function(){
   const handle=document.getElementById('c4LawHandle');
   const modal=document.getElementById('c4LawModal');
@@ -5832,20 +5952,20 @@ function renderC4WithLaw(){
       ctx.fillStyle=col;ctx.fillRect(toSX(gC4,x)-30*devicePixelRatio,0,60*devicePixelRatio,cv.height);
     });
   } else if(law===1){
-    // 1:√2: 변곡점~극소 거리 화살표
-    const minPts=extremas.filter(e=>e.type==='극소');
-    if(inflects.length===2&&minPts.length===2){
-      const p=inflects[0][0],q=inflects[1][0];
-      const arY=Math.min(...minPts.map(m=>m.y))-1.5;
-      drawHArrow(gC4,minPts[0].x,p,arY,'#C0392B','1');
-      drawHArrow(gC4,p,q,arY-1.5,'#8B5E00','√2');
-      drawHArrow(gC4,q,minPts[1].x,arY,'#C0392B','1');
+    // √3:1: 접점 사이 거리 : 변곡점 사이 거리
+    const bt=c4Bitan();
+    if(bt){
+      const arY=Math.min(c4f(bt.al),c4f(bt.be))-1.5;
+      drawVLine(gC4,bt.al,'#5B3FA6',[3,3]);
+      drawVLine(gC4,bt.be,'#5B3FA6',[3,3]);
+      drawHArrow(gC4,bt.al,bt.be,arY,'#5B3FA6','√3');
+      drawHArrow(gC4,bt.p,bt.q,arY-1.5,'#8B5E00','1');
     }
   } else if(law===2){
     // 이중접선 강조
-    if(inflects.length===2){
-      const[xi1,yi1]=inflects[0],[xi2,yi2]=inflects[1];
-      const slope=(yi2-yi1)/(xi2-xi1),intercept=yi1-slope*xi1;
+    const bt=c4Bitan();
+    if(bt){
+      const slope=bt.slope,intercept=bt.intercept;
       // 이중접선과 곡선 사이 배경
       ctx.fillStyle='rgba(91,63,166,0.08)';
       ctx.beginPath();
@@ -5855,6 +5975,8 @@ function renderC4WithLaw(){
       }
       ctx.stroke();
       drawCurve(gC4,x=>slope*x+intercept,'#5B3FA6',2.5);
+      drawPoint(gC4,bt.al,c4f(bt.al),'#5B3FA6',7);
+      drawPoint(gC4,bt.be,c4f(bt.be),'#5B3FA6',7);
     }
   }
 
@@ -5862,10 +5984,9 @@ function renderC4WithLaw(){
   drawCurve(gC4,x=>c4f(x),'#1A5FB4',law>=0?3:2.5);
 
   // 이중접선 (기본 상태)
-  if(law!==2&&inflects.length===2){
-    const[xi1,yi1]=inflects[0],[xi2,yi2]=inflects[1];
-    const slope=(yi2-yi1)/(xi2-xi1),intercept=yi1-slope*xi1;
-    drawCurve(gC4,x=>slope*x+intercept,'rgba(91,63,166,0.4)',1.5);
+  if(law!==2){
+    const bt=c4Bitan();
+    if(bt)drawCurve(gC4,x=>bt.slope*x+bt.intercept,'rgba(91,63,166,0.4)',1.5);
   }
 
   // 변곡점
@@ -6203,7 +6324,7 @@ const ABS_MODAL_CONTENT={
       `y = |f(x)|`,
       `y = f(x)의 그래프에서 <strong>y ≥ 0인 부분은 남긴 다음,</strong><br>
       y &lt; 0인 부분을 <strong>x축에 대하여 대칭이동</strong>한다.`,
-      `x절편(실근)마다 꺾임점(뾰족점)이 생겨.<br>
+      `그래프가 x축을 뚫고 지나가는 x절편마다 꺾임점(뾰족점)이 생겨. (x축에 접하는 중근에서는 꺾이지 않아.)<br>
       y = |f(x)|와 y = k 수평선의 교점 수 = |f(x)| = k의 실근 수.<br>
       k 슬라이더를 올리면서 교점 수 변화를 관찰해봐!`,
       `f(x)가 음수면 절댓값을 씌우면 양수가 되잖아.<br>
@@ -6227,7 +6348,7 @@ const ABS_MODAL_CONTENT={
       `y = f(|x|)`,
       `y = f(x)의 그래프에서 <strong>x ≥ 0인 부분만 남긴 다음,</strong><br>
       x ≥ 0인 부분을 <strong>y축에 대하여 대칭이동</strong>한다.`,
-      `항상 짝함수(y축 대칭)가 되고 f(|x|) = f(−|x|)야.<br>
+      `항상 짝함수(y축 대칭)가 돼. g(x) = f(|x|)라 하면 g(−x) = g(x)야.<br>
       양수 실근 1개 → f(|x|)의 y=k 교점은 2개(음수 대칭점에서도 만남)!<br>
       <strong>k 슬라이더</strong>로 y=k 수평선을 움직여 교점 수를 확인해봐!`,
       `x 자리에 |x|를 넣으면 x = 2일 때랑 x = −2일 때<br>
@@ -6253,7 +6374,7 @@ const ABS_MODAL_CONTENT={
       f(x) ≥ 0인 구간에서 y = f(x)와 y = −f(x) 두 곡선이 그려져.<br>
       <strong>k 슬라이더</strong>: y=k 수평선이 위쪽 곡선(y=f(x))과 아래쪽 곡선(y=−f(x)) 모두와의 교점을 표시해!`,
       `|y| = f(x)를 만족하려면 f(x)가 반드시 0 이상이어야 해.<br>
-      그리고 |y| = k (k ≥ 0)를 만족하는 y는 <strong>k랑 −k 두 개</strong>잖아.<br>
+      그리고 |y| = k (k > 0)를 만족하는 y는 <strong>k랑 −k 두 개</strong>잖아. (k = 0이면 y = 0 하나)<br>
       그래서 f(x) ≥ 0인 구간에서 위아래로 두 곡선이 생기는 거지.<br>
       <strong>두 곡선의 x절편</strong>은 f(x) = 0의 해 (f(x)≥0 구간의 경계).<br>
       → 방정식 f(x) = 0의 실근 수 = 위아래 곡선이 x축에 닿는 점의 수! 💡`
@@ -6354,7 +6475,7 @@ const ABS_MODAL_CONTENT={
       <strong>수평선 y = k 와의 교점 수</strong>가 f(|x|) = k 의 실근 수야.`,
       `y = f(|x|)는 y축 대칭이라서<br>
       x > 0에서 교점 1개 → 대칭인 x < 0에서도 1개, 총 2개!<br>
-      y축(x=0)에서 만나면 그건 1개로 셰야 해.`,
+      y축(x=0)에서 만나면 그건 1개로 세야 해.`,
       `<strong>연립방정식 관점으로 보면:</strong><br>
       <div style="background:white;border-radius:4px;padding:6px 10px;margin:4px 0;font-family:'JetBrains Mono',monospace">{  y = f(|x|)<br>{  y = k</div>
       이 두 그래프의 <strong>교점의 x좌표 = f(|x|) = k 의 실근</strong>이야.<br>
@@ -6412,7 +6533,7 @@ const ABS_MODAL_CONTENT={
       `<strong>연립방정식 관점으로 보면:</strong><br>
       <div style="background:white;border-radius:4px;padding:6px 10px;margin:4px 0;font-family:'JetBrains Mono',monospace">{  |y| = f(|x|)<br>{  y = k</div>
       4개 분면에 퍼진 곡선들과 y=k 직선의 <strong>교점 x좌표 = 방정식의 해</strong>야.<br>
-      y축·x축 대칭 구조라 1사분면 교점 1개 → 최대 4개까지 퍼져.<br>
+      y축·x축 대칭 구조라 1사분면 교점 1개 → y축 대칭으로 2개가 돼. (수평선 y=k는 위쪽 또는 아래쪽 두 사분면만 지나)<br>
       → 교점의 개수 = 방정식의 해의 개수! k 슬라이더로 확인해봐 💡`
     );
   },
@@ -6986,12 +7107,10 @@ function renderMm(){
   }
 
   // 교점 강조
-  const ints=findCriticals(x=>mmF(x)-mmG(x),'d1');
+  const ints=findZeros(x=>mmF(x)-mmG(x),-8,8,2000);
   ints.forEach(x=>{
-    if(Math.abs(mmF(x)-mmG(x))<0.1){
-      drawPoint(gMm,x,mmF(x),'#8B5E00',5);
-      drawLabel(gMm,x,mmF(x),'교점','#8B5E00',6,-12);
-    }
+    drawPoint(gMm,x,mmF(x),'#8B5E00',5);
+    drawLabel(gMm,x,mmF(x),'교점','#8B5E00',6,-12);
   });
 
   // f, g 레이블
@@ -7461,10 +7580,13 @@ function renderComp(){
     const fStr=polyStr(SComp.f.deg===1?[SComp.f.c[0],SComp.f.c[1],0,0,0]:[SComp.f.c[0],SComp.f.c[1],SComp.f.c[2],0,0],SComp.f.deg);
     const gStr=polyStr(SComp.g.deg===1?[SComp.g.c[0],SComp.g.c[1],0,0,0]:[SComp.g.c[0],SComp.g.c[1],SComp.g.c[2],0,0],SComp.g.deg);
     document.getElementById('comp-eq').textContent=`f(x) = ${fStr}, g(x) = ${gStr} → f(g(x))`;
+    const _expStr=compExpandStr();
+    document.getElementById('comp-eq').innerHTML+=`<br><b style="color:var(--gn)">f(g(x)) = ${_expStr}</b>`;
     document.getElementById('comp-formula-box').innerHTML=
       `<span style="color:var(--bl);font-weight:700">f(x)</span> <span style="color:var(--tx3)">= ${fStr}</span><br>`+
       `<span style="color:var(--rd);font-weight:700">g(x)</span> <span style="color:var(--tx3)">= ${gStr}</span><br>`+
-      `<span style="color:var(--gn);font-weight:700">f(g(x))</span> <span style="color:var(--tx3)">= f(${gStr})</span>`;
+      `<span style="color:var(--gn);font-weight:700">f(g(x))</span> <span style="color:var(--tx3)">= f(${gStr})</span><br>`+
+      `<span style="color:var(--gn);font-weight:700">　　　　 = ${_expStr}</span> <span style="color:var(--tx3);font-size:11px">(전개한 결과)</span>`;
     document.getElementById('comp-info').innerHTML=
       `<div class="ib"><div class="ibl">f(g(0))</div><div class="ibv" style="color:var(--gn)">${compFG(0).toFixed(3)}</div></div>`+
       `<div class="ib"><div class="ibl">f(g(1))</div><div class="ibv" style="color:var(--gn)">${compFG(1).toFixed(3)}</div></div>`;
@@ -8061,9 +8183,9 @@ function setPwLaw(idx){
     lawDesc(
       `lim<sub>x→a</sub>f(x) 존재 ↔ 좌극한 = 우극한`,
       `불연속이 되는 경우:<br>
-      <b>① 도약 불연속</b>: 좌극한 ≠ 우극한 (두 조각이 다른 값으로 만남)<br>
-      <b>② 제거가능 불연속</b>: 극한은 존재하지만 f(a)가 다름<br>
-      <b>③ 무한 불연속</b>: 극한값이 ±∞<br>
+      <b>① 도약 불연속(심화 용어)</b>: 좌극한 ≠ 우극한 (두 조각이 다른 값으로 만남)<br>
+      <b>② 제거가능 불연속(심화 용어)</b>: 극한은 존재하지만 f(a)가 다름<br>
+      <b>③ 무한 불연속</b>: 극한값이 존재하지 않고 ∞(또는 −∞)로 발산<br>
       지금 그래프에서 경계점 a를 움직이면 이 모든 경우를 볼 수 있어.`,
       `극한값의 존재 여부와 연속성은 다른 개념이야!<br>극한이 존재해도 함수값이 다르면 불연속.<br>"극한값이 존재하지 않는" 경우를 묻는 문제 자주 나와.`
     ),
@@ -8150,7 +8272,7 @@ function setMmLaw(idx){
       `f(a) = g(a) ↔ max(f,g)(a) = min(f,g)(a) = f(a)`,
       `두 함수가 교차하는 점(교점)에서 max와 min이 같아져.<br>
       교점 좌우로 어느 함수가 위에 있는지 바뀌기 때문에<br>
-      max(f,g) 그래프가 <b>꺾이는 점</b>이 바로 교점이야.<br>
+      max(f,g) 그래프는 두 그래프가 기울기가 다르게 교차하는 교점에서 <b>꺾여</b>. (접하면 꺾이지 않아)<br>
       교점을 경계로 "어느 쪽이 크냐"가 바뀐다는 게 핵심.`,
       `교점의 x좌표를 구하는 건 f(x)=g(x) 방정식 풀기.<br>
       이 교점이 max함수의 꺾임점이고, 여기서 연속이지만 미분불가능할 수 있어.`
@@ -8279,7 +8401,7 @@ function setCompLaw(idx){
         예: f(x)=x², g(x)=3x+1이면<br>
         (f∘g)'(x) = 2(3x+1) · 3 = 6(3x+1)<br>
         <b>연속성:</b> f, g가 모두 연속이면 f∘g도 반드시 연속이야.<br>
-        <b>미분가능성:</b> f, g 미분가능 → f∘g 미분가능 (단, g(x)≠불연속점).`,
+        <b>미분가능성:</b> f, g 미분가능 → f∘g 미분가능.`,
         `(f(g(x)))' 계산 문제:<br>
         x=a에서 미분계수 구하기 → g(a) 먼저, f'(g(a))·g'(a)<br>
         g(a)=b, f'(b)=3, g'(a)=2 → (f∘g)'(a)=6 형태가 자주 나와.`
@@ -8355,16 +8477,16 @@ function setCompLaw(idx){
         <span style="color:var(--rd)">밑줄 친 부분을 절대 빼먹으면 안 돼 — "f의 방향"은 x가 아니라<br>
         g(x)가 만들어낸 값 기준이야, 매번!</span><br><br>
         <b>🚧 진짜 마지막 함정 — "지나가는 순서"로 판단하면 안 돼</b><br>
-        x=1→2로 갈 때 g는 −0.59→−2.36으로 이동해 (이게 g가 "지나가는 경로").<br>
-        이 경로를 그대로 따라가면서 f값을 보면 0.35→5.57로 커지니까,<br>
+        x=1→2로 갈 때 g는 −0.2→−0.8로 이동해 (이게 g가 "지나가는 경로").<br>
+        이 경로를 그대로 따라가면서 f값을 보면 0.04→0.64로 커지니까,<br>
         <b style="color:var(--rd)">"어? f도 커지네, 증가네"</b>라고 착각하기 쉬운데 — 이건 틀렸어!<br><br>
         <b>증가·감소는 반드시 입력을 "작은 값 → 큰 값" 순서로 정렬해서 봐야 해.</b><br>
         g가 실제로 어느 방향으로 지나가는지는 상관없어. 그러니까:<br>
-        입력을 크기순으로 다시 정렬하면 <b>−2.36(작음) → −0.59(큼)</b><br>
-        f(−2.36)=5.57, f(−0.59)=0.35 → 입력이 커지는데 f값은 <b>작아졌지?</b><br>
+        입력을 크기순으로 다시 정렬하면 <b>−0.8(작음) → −0.2(큼)</b><br>
+        f(−0.8)=0.64, f(−0.2)=0.04 → 입력이 커지는데 f값은 <b>작아졌지?</b><br>
         입력 커짐 + 출력 작아짐 = <b style="color:var(--rd)">감소함수</b>의 정의 그대로야.<br><br>
         <b>💡 정리</b><br>
-        "0.35→5.57로 커졌다"는 관찰 자체는 맞아. 근데 그 순서가<br>
+        "0.04→0.64로 커졌다"는 관찰 자체는 맞아. 근데 그 순서가<br>
         <b>입력이 작아지는 방향</b>이었으니까, 오히려 그게 감소함수라는<br>
         증거였던 거야 (감소함수는 "입력 작아짐 → 출력 커짐"도 성립하거든).<br>
         g가 지나가는 경로는 무시하고, 항상 <b>입력값 크기순 재정렬</b> 후에<br>
@@ -8414,7 +8536,7 @@ function setCompLaw(idx){
       `f(x) = ${fStr}<br>기울기 a = <strong style="color:var(--bl)">${a.toFixed(2)}</strong><br>일대일 여부: <strong style="color:${invOK?'var(--gn)':'var(--rd)'}">${invOK?'✓ 일대일함수 (역함수 존재)':'✗ a=0, 상수함수 (역함수 없음)'}</strong>`,
       `f(x)와 f⁻¹(x)는 y=x에 대해 대칭<br>f의 기울기: <strong style="color:var(--bl)">${a.toFixed(3)}</strong><br>f⁻¹의 기울기: <strong style="color:var(--gn)">${invOK?(1/a).toFixed(3):'∞'}</strong><br>기울기 곱: <strong style="color:var(--am)">${invOK?(a*(1/a)).toFixed(1):'−'}</strong>`,
       `f(f⁻¹(2)) = <strong style="color:var(--gn)">${invOK?compF((2-b)/a).toFixed(3):'−'}</strong><br>f⁻¹(f(2)) = <strong style="color:var(--gn)">${invOK?((compF(2)-b)/a).toFixed(3):'−'}</strong><br>(두 값 모두 입력값 2에 가까워야 해)`,
-      `현재 f(x) = ${fStr}<br>f⁻¹(x) = ${invOK?`(x − ${b}) / ${a}`:'역함수 없음'}<br>y=x 교점: ${invOK&&Math.abs(a-1)>0.01?`x = ${(-b/(a-1)).toFixed(3)}`:'모든 점 (a=1, b=0일 때)'}`
+      `현재 f(x) = ${fStr}<br>f⁻¹(x) = ${invOK?`(x − ${b}) / ${a}`:'역함수 없음'}<br>y=x 교점: ${!invOK?'−':Math.abs(a-1)>0.01?`x = ${(-b/(a-1)).toFixed(3)}`:(Math.abs(b)<0.005?'모든 점 (a=1, b=0일 때)':'없음 (a=1이면 평행)')}`
     ];
     const descs=[
       lawDesc(
@@ -8434,11 +8556,11 @@ function setCompLaw(idx){
         `역함수는 f의 x와 y를 뒤바꾼 함수야.<br>
         y=f(x)의 점 (a, b)가 있으면 → y=f⁻¹(x)의 점 (b, a)<br>
         이 두 점은 정확히 y=x 직선에 대해 대칭!<br>
-        <b>교점의 위치:</b> f(x)=x를 만족하는 점 → f와 f⁻¹의 교점이야.<br>
-        1차함수(그리고 지금처럼 정의역을 제한한 2차함수)는<br>
-        기울기가 양수든 음수든 상관없이 이 교점이 <b>항상 유일하고 y=x 위에</b> 있어.<br>
-        (참고: 3차 이상의 감소함수부터는 이 성질이 깨져서 y=x 밖에도<br>
-        교점이 생길 수 있는데, 그건 나중에 배우게 될 거야.)`,
+        <b>교점의 위치:</b> f(x)=x를 만족하는 점은 f와 f⁻¹의 교점이면서 y=x 위의 점이야.<br>
+        f가 <b>증가함수</b>이면 f와 f⁻¹의 교점은 모두 y=x 위에 있어.<br>
+        (교점이 2개 이상일 수도 있어! 예: f(x)=x² (x≥0)은 (0,0), (1,1) 두 점에서 만나.)<br>
+        f가 <b>감소함수</b>이면 y=x 밖에도 교점이 생길 수 있어.<br>
+        (예: f(x)=−x+b는 f와 f⁻¹이 같은 함수라 모든 점이 교점이야.)`,
         `y=x 대칭 이용 면적 문제:<br>
         y=f(x)와 y=f⁻¹(x) 사이 넓이 = y=f(x)와 y=x 사이 넓이 × 2<br>
         교점은 f(x)=x 방정식으로 구해.`
@@ -8448,14 +8570,14 @@ function setCompLaw(idx){
         `f와 f⁻¹를 합성하면 항등함수 y=x가 돼.<br>
         이유: f⁻¹는 f가 한 변환을 정확히 되돌리는 함수이기 때문.<br>
         f(a)=b → f⁻¹(b)=a → f⁻¹(f(a))=a ✓<br>
-        <b>수학적 표현:</b> f∘f⁻¹ = f⁻¹∘f = I (항등함수)<br>
+        <b>수학적 표현:</b> f⁻¹∘f = X(정의역)의 항등함수, f∘f⁻¹ = Y(공역)의 항등함수 (두 함수의 정의역이 서로 달라)<br>
         이건 역함수에서만 성립해! 일반 합성함수 f∘g≠g∘f와 대비돼.`,
         `f(g(x))=x 이면 g=f⁻¹ 를 이용하는 문제:<br>
         예: f(g(x))=x를 만족하는 g(x) 구하기 → g=f⁻¹<br>
         또는 f(g(a))=a → a가 f와 f⁻¹의 교점 (y=x 위)`
       ),
       lawDesc(
-        `(f⁻¹)'(b) = 1 / f'(a) &nbsp; (단, f(a)=b)`,
+        `(f⁻¹)'(b) = 1 / f'(a) &nbsp; (단, f(a)=b, f'(a)≠0)`,
         `역함수의 미분공식이야.<br>
         <b>직관적 이해:</b><br>
         f의 기울기가 m이면 f⁻¹의 기울기는 1/m<br>
@@ -8521,7 +8643,7 @@ function setCompLaw(idx){
         반드시 "어느 쪽 정의역이냐"를 먼저 확인해야 계산이 맞아.`
       ),
       lawDesc(
-        `(f⁻¹)'(b) = 1 / f'(a) &nbsp; (단, f(a)=b, 제한된 정의역 위의 a)`,
+        `(f⁻¹)'(b) = 1 / f'(a) &nbsp; (단, f(a)=b, f'(a)≠0, 제한된 정의역 위의 a)`,
         `2차함수도 미분공식 자체는 1차 때와 똑같아.<br>
         차이는 f'(x)=2ax+b로 <b>x마다 접선 기울기가 달라진다</b>는 것.<br>
         그래서 (f⁻¹)'(b)를 구하려면 먼저 f(a)=b가 되는 a를<br>
@@ -11368,6 +11490,7 @@ function mxrCheck(){ $mx('mx-rv-send').disabled = !(mxr.stars>=1 && !mxr.sending
 function mxrApplyOn(on){
   mx.rvOn = (on !== false);
   const b = $mx('mx-rvbtn'); if(b) b.style.display = mx.rvOn ? '' : 'none';
+  document.querySelectorAll('.mx-rvh').forEach(h=>{ h.style.display = mx.rvOn ? '' : 'none'; });   // 상단바 후기 버튼도 같이
   if(!mx.rvOn){ const a = $mx('mx-ask'); if(a) a.remove(); }
 }
 function mxrOpen(){
@@ -11782,6 +11905,172 @@ window.addEventListener('DOMContentLoaded', ()=>{
   });
   const c = mxsCacheLoad(); if(c) mxsRenderHub(c);                    // 새로고침 직후에도 지난 숫자를 바로 표시
 });
+</script>
+<!-- 📝 떠 있는 메모장 (연습장) — 다른 기능과 독립된 추가 모듈 -->
+<style>
+#mxpad-fab{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(16px,env(safe-area-inset-bottom));z-index:90;min-height:48px;padding:0 18px;border-radius:24px;border:1.5px solid var(--pu-lt);background:var(--pu);color:#fff;font-weight:700;font-size:15px;font-family:inherit;box-shadow:0 4px 14px rgba(91,63,166,.35);cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#mxpad-fab.on{background:#fff;color:var(--pu)}
+#mxpad{position:fixed;z-index:600;display:none;flex-direction:column;background:#fff;border:2px solid var(--pu);border-radius:14px;box-shadow:0 10px 36px rgba(0,0,0,.28);overflow:hidden;min-width:260px;min-height:220px;font-family:inherit;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#mxpad-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 6px 0 12px;min-height:44px;background:var(--pu);color:#fff;font-weight:700;font-size:14px;cursor:grab;touch-action:none}
+#mxpad-hd span.hint{font-weight:400;font-size:11px;opacity:.85;margin-left:6px}
+#mxpad-x{min-width:44px;min-height:44px;border:none;background:transparent;color:#fff;font-size:20px;cursor:pointer;font-family:inherit}
+#mxpad-tb{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 8px;background:var(--pu-bg);border-bottom:1px solid var(--pu-lt)}
+#mxpad-tb button{min-width:44px;min-height:44px;padding:0 8px;border-radius:10px;border:1.5px solid var(--pu-lt);background:#fff;color:var(--tx);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;touch-action:manipulation}
+#mxpad-tb button.on{background:var(--pu);color:#fff;border-color:var(--pu)}
+#mxpad-tb .mxpad-sw{width:44px;padding:0;position:relative}
+#mxpad-tb .mxpad-sw i{display:block;width:22px;height:22px;border-radius:50%;margin:auto;border:2px solid #fff;box-shadow:0 0 0 1.5px var(--bor2)}
+#mxpad-tb .mxpad-sw.on i{box-shadow:0 0 0 2.5px var(--pu)}
+#mxpad-tb .sep{width:1px;align-self:stretch;background:var(--pu-lt);margin:4px 2px}
+#mxpad-bd{position:relative;flex:1;min-height:120px;background:#fff}
+#mxpad-bd.grid{background-image:linear-gradient(#e6e3f3 1px,transparent 1px),linear-gradient(90deg,#e6e3f3 1px,transparent 1px);background-size:28px 28px}
+#mxpad-cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+#mxpad-rz{position:absolute;right:0;bottom:0;width:44px;height:44px;touch-action:none;cursor:nwse-resize;z-index:2;background:linear-gradient(135deg,transparent 55%,var(--pu) 55%,var(--pu) 62%,transparent 62%,transparent 72%,var(--pu) 72%,var(--pu) 79%,transparent 79%);opacity:.7}
+@media (max-width:600px){#mxpad-fab{padding:0 14px}}
+</style>
+<button id="mxpad-fab" type="button" aria-label="메모장 열기">📝 메모장</button>
+<div id="mxpad" role="dialog" aria-label="메모장">
+  <div id="mxpad-hd"><div>📝 메모장<span class="hint">· 여기를 끌어서 이동</span></div><button id="mxpad-x" type="button" aria-label="메모장 닫기">✕</button></div>
+  <div id="mxpad-tb">
+    <button type="button" id="mxpad-pen" class="on">✏️ 펜</button>
+    <button type="button" id="mxpad-er">🧽 지우개</button>
+    <span class="sep"></span>
+    <button type="button" class="mxpad-sw on" data-c="#1C1B18" aria-label="검정"><i style="background:#1C1B18"></i></button>
+    <button type="button" class="mxpad-sw" data-c="#D6336C" aria-label="빨강"><i style="background:#D6336C"></i></button>
+    <button type="button" class="mxpad-sw" data-c="#1A5FB4" aria-label="파랑"><i style="background:#1A5FB4"></i></button>
+    <span class="sep"></span>
+    <button type="button" id="mxpad-w">굵기 ●</button>
+    <button type="button" id="mxpad-gr" class="on">▦ 격자</button>
+    <span class="sep"></span>
+    <button type="button" id="mxpad-un">↩ 되돌리기</button>
+    <button type="button" id="mxpad-cl">🗑 전체 지우기</button>
+  </div>
+  <div id="mxpad-bd" class="grid"><canvas id="mxpad-cv"></canvas><div id="mxpad-rz" aria-label="크기 조절"></div></div>
+</div>
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const fab=$('mxpad-fab'), pad=$('mxpad'), hd=$('mxpad-hd'), bd=$('mxpad-bd'), cv=$('mxpad-cv'), rz=$('mxpad-rz');
+  if(!fab||!pad||!cv)return;
+  // 앱 화면(#v1-view)이 숨겨져 있어도 메모장 버튼이 보이도록 body 바로 아래로 이동
+  if(fab.parentElement!==document.body)document.body.appendChild(fab);
+  if(pad.parentElement!==document.body)document.body.appendChild(pad);
+  const ctx=cv.getContext('2d');
+  let strokes=[], cur=null, tool='pen', color='#1C1B18', wi=1, penSeen=false;
+  const WIDTHS=[2,4,7], WLAB=['가늘게 ·','보통 ●','굵게 ⬤'];
+  function sz(){
+    const r=bd.getBoundingClientRect(), d=window.devicePixelRatio||1;
+    const w=Math.max(1,Math.round(r.width*d)), h=Math.max(1,Math.round(r.height*d));
+    if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}
+    redraw();
+  }
+  function drawStroke(s){
+    const d=window.devicePixelRatio||1, p=s.pts; if(!p.length)return;
+    ctx.save(); ctx.scale(d,d);
+    ctx.globalCompositeOperation=s.er?'destination-out':'source-over';
+    ctx.strokeStyle=s.color; ctx.fillStyle=s.color; ctx.lineCap='round'; ctx.lineJoin='round';
+    ctx.lineWidth=s.er?s.w*4:s.w;
+    if(p.length<3){ctx.beginPath();ctx.arc(p[0][0],p[0][1],ctx.lineWidth/2,0,Math.PI*2);ctx.fill();}
+    else{
+      ctx.beginPath(); ctx.moveTo(p[0][0],p[0][1]);
+      for(let i=1;i<p.length-1;i++){const mx=(p[i][0]+p[i+1][0])/2,my=(p[i][1]+p[i+1][1])/2;ctx.quadraticCurveTo(p[i][0],p[i][1],mx,my);}
+      ctx.lineTo(p[p.length-1][0],p[p.length-1][1]); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function redraw(){ctx.clearRect(0,0,cv.width,cv.height);strokes.forEach(drawStroke);if(cur)drawStroke(cur);}
+  function pt(e){const r=cv.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top];}
+
+  // 필기: 펜슬이 한 번이라도 감지되면 손바닥(손가락) 입력은 무시 — 펜슬이 없는 기기에서는 손가락으로 필기
+  cv.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='pen')penSeen=true;
+    if(e.pointerType==='touch'&&penSeen)return;
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    e.preventDefault();
+    try{cv.setPointerCapture(e.pointerId);}catch(_){}
+    cur={pts:[pt(e)],color:color,w:WIDTHS[wi],er:tool==='er',id:e.pointerId};
+    redraw();
+  });
+  cv.addEventListener('pointermove',e=>{
+    if(!cur||e.pointerId!==cur.id)return;
+    e.preventDefault();
+    const evs=e.getCoalescedEvents?e.getCoalescedEvents():[e];
+    (evs.length?evs:[e]).forEach(ev=>cur.pts.push(pt(ev)));
+    redraw();
+  });
+  function end(e){
+    if(!cur||e.pointerId!==cur.id)return;
+    strokes.push(cur); cur=null; redraw();
+  }
+  cv.addEventListener('pointerup',end); cv.addEventListener('pointercancel',end);
+  cv.addEventListener('contextmenu',e=>e.preventDefault());
+
+  // 열기/닫기
+  function place(){
+    const vw=window.innerWidth, vh=window.innerHeight;
+    const w=Math.min(460,vw-16), h=Math.min(420,Math.round(vh*0.55));
+    pad.style.width=w+'px'; pad.style.height=h+'px';
+    pad.style.left=Math.max(8,vw-w-12)+'px'; pad.style.top=Math.max(8,vh-h-76)+'px';
+  }
+  function open(){
+    if(!pad.dataset.placed){place();pad.dataset.placed='1';}
+    pad.style.display='flex'; fab.classList.add('on'); fab.textContent='📝 메모장 닫기'; sz();
+  }
+  function close(){pad.style.display='none';fab.classList.remove('on');fab.textContent='📝 메모장';}
+  fab.addEventListener('click',()=>{pad.style.display==='flex'?close():open();});
+  $('mxpad-x').addEventListener('click',close);
+  $('mxpad-x').addEventListener('pointerdown',e=>e.stopPropagation());
+
+  // 창 이동 (머리글을 손가락·펜·마우스로 끌기)
+  let mv=null;
+  hd.addEventListener('pointerdown',e=>{
+    if(e.target.closest('#mxpad-x'))return;
+    const r=pad.getBoundingClientRect(); mv={id:e.pointerId,dx:e.clientX-r.left,dy:e.clientY-r.top};
+    try{hd.setPointerCapture(e.pointerId);}catch(_){}
+  });
+  hd.addEventListener('pointermove',e=>{
+    if(!mv||e.pointerId!==mv.id)return;
+    const w=pad.offsetWidth,h=pad.offsetHeight;
+    pad.style.left=Math.min(Math.max(-w+80,e.clientX-mv.dx),window.innerWidth-80)+'px';
+    pad.style.top=Math.min(Math.max(0,e.clientY-mv.dy),window.innerHeight-44)+'px';
+  });
+  const mvEnd=e=>{if(mv&&e.pointerId===mv.id)mv=null;};
+  hd.addEventListener('pointerup',mvEnd); hd.addEventListener('pointercancel',mvEnd);
+
+  // 크기 조절 (오른쪽 아래 모서리)
+  let rs=null;
+  rz.addEventListener('pointerdown',e=>{
+    e.preventDefault(); e.stopPropagation();
+    rs={id:e.pointerId,x:e.clientX,y:e.clientY,w:pad.offsetWidth,h:pad.offsetHeight};
+    try{rz.setPointerCapture(e.pointerId);}catch(_){}
+  });
+  rz.addEventListener('pointermove',e=>{
+    if(!rs||e.pointerId!==rs.id)return;
+    pad.style.width=Math.max(260,Math.min(window.innerWidth-8,rs.w+e.clientX-rs.x))+'px';
+    pad.style.height=Math.max(220,Math.min(window.innerHeight-8,rs.h+e.clientY-rs.y))+'px';
+    sz();
+  });
+  const rsEnd=e=>{if(rs&&e.pointerId===rs.id){rs=null;sz();}};
+  rz.addEventListener('pointerup',rsEnd); rz.addEventListener('pointercancel',rsEnd);
+
+  // 도구
+  function setTool(t){tool=t;$('mxpad-pen').classList.toggle('on',t==='pen');$('mxpad-er').classList.toggle('on',t==='er');}
+  $('mxpad-pen').addEventListener('click',()=>setTool('pen'));
+  $('mxpad-er').addEventListener('click',()=>setTool('er'));
+  document.querySelectorAll('#mxpad-tb .mxpad-sw').forEach(b=>b.addEventListener('click',()=>{
+    color=b.dataset.c; setTool('pen');
+    document.querySelectorAll('#mxpad-tb .mxpad-sw').forEach(x=>x.classList.toggle('on',x===b));
+  }));
+  $('mxpad-w').addEventListener('click',()=>{wi=(wi+1)%WIDTHS.length;$('mxpad-w').textContent='굵기 '+WLAB[wi].split(' ')[1];});
+  $('mxpad-gr').addEventListener('click',e=>{bd.classList.toggle('grid');e.currentTarget.classList.toggle('on',bd.classList.contains('grid'));});
+  $('mxpad-un').addEventListener('click',()=>{strokes.pop();redraw();});
+  $('mxpad-cl').addEventListener('click',()=>{if(!strokes.length||confirm('메모장을 모두 지울까요?')){strokes=[];redraw();}});
+  window.addEventListener('resize',()=>{
+    if(pad.style.display!=='flex')return;
+    const r=pad.getBoundingClientRect();
+    if(r.right>window.innerWidth||r.bottom>window.innerHeight)place();
+    sz();
+  });
+})();
 </script>
 </body>
 </html>
