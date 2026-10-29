@@ -4773,9 +4773,12 @@ function makeAdvGraph(id, onUpdate){
     cv.style.height='460px';
     const r=cv.parentElement.getBoundingClientRect();
     if(r.width===0)return;
-    cv.width=r.width*devicePixelRatio;
+    // 부모의 안쪽 폭(패딩·테두리 제외)에 맞춰야 카드가 옆으로 삐져나가지 않아요
+    const pcs=getComputedStyle(cv.parentElement);
+    const cw=Math.max(50,r.width-(parseFloat(pcs.paddingLeft)||0)-(parseFloat(pcs.paddingRight)||0)-(parseFloat(pcs.borderLeftWidth)||0)-(parseFloat(pcs.borderRightWidth)||0));
+    cv.width=cw*devicePixelRatio;
     cv.height=460*devicePixelRatio;
-    cv.style.width=r.width+'px';
+    cv.style.width=cw+'px';
     cv.style.height='460px';
   }
   resize();
@@ -11555,7 +11558,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
 // ═══════════════════════════════
 // 관리자: 비밀번호 → 학생용 주소 · QR · 안내 문구 복사 (학생 앱 안에 포함)
 // ═══════════════════════════════
-const MX_ADMIN_PW = '0413';
+// (관리자 비밀번호는 앱에 두지 않아요 — 서버(GAS)에서만 확인해요)
 const MX_APP_NAME = "아듬's 수학탐구실";   // 링크에 보일 글자 기본값
 const MXA_KEY = 'mathexp_admin_v1';           // {linktxt}
 const MXA_SEEN_KEY = 'mathexp_rvseen_v1';       // 마지막으로 확인한 후기 개수 (새 후기 표시용)
@@ -11712,16 +11715,27 @@ function mxaOpen(){
   setTimeout(()=>{ try{ $mx('mx-adm-pwin').focus(); }catch(e){} }, 50);
 }
 function mxaClose(){ $mx('mx-adm').classList.remove('mx-open'); $mx('mx-adm-pwin').value = ''; mxaPw = ''; }
-function mxaCheckPw(){
-  if($mx('mx-adm-pwin').value === MX_ADMIN_PW){
-    mxaPw = $mx('mx-adm-pwin').value;
+let mxaChecking = false;
+async function mxaCheckPw(){
+  if(mxaChecking) return;
+  const typed = $mx('mx-adm-pwin').value;
+  if(!typed){ $mx('mx-adm-pwmsg').textContent = '비밀번호를 입력해 주세요'; return; }
+  if(!MX_GAS_URL){ $mx('mx-adm-pwmsg').textContent = '기록 서버(GAS)가 아직 연결되지 않았어요'; return; }
+  mxaChecking = true; $mx('mx-adm-pwmsg').textContent = '확인하는 중…';
+  let r = null, failMsg = '';
+  try{ r = await mxJsonp({action:'auth', pw:typed}, 10000); }
+  catch(e){ failMsg = '서버에 연결하지 못했어요. 잠시 후 다시 시도해 주세요'; }
+  mxaChecking = false;
+  if(failMsg){ $mx('mx-adm-pwmsg').textContent = failMsg; return; }
+  if(r && r.ok === true && r.auth === true){
+    mxaPw = typed;
     $mx('mx-adm-pw').style.display = 'none'; $mx('mx-adm-panel').style.display = '';
     mxaSetTab('link');
     $mx('mx-adm-pwin').value = ''; $mx('mx-adm-url').value = mxaDefaultUrl();
     let lt = MX_APP_NAME; try{ lt = (JSON.parse(localStorage.getItem(MXA_KEY)||'null')||{}).linktxt || MX_APP_NAME; }catch(e){}
     $mx('mx-adm-linktxt').value = lt; mxaDrawQr(); mxaRvStat(); mxaRvBadge();
   } else {
-    $mx('mx-adm-pwmsg').textContent = '비밀번호가 맞지 않아요'; $mx('mx-adm-pwin').select();
+    $mx('mx-adm-pwmsg').textContent = (r && r.code === 'auth' && r.error) ? r.error : '비밀번호가 맞지 않아요 (서버가 최신 버전인지 확인해 주세요)'; $mx('mx-adm-pwin').select();
   }
 }
 
