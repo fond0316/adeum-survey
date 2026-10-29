@@ -1,0 +1,3670 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KCSAT 감독 호출 보드</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+:root{
+  --navy:#324872; --navy-d:#263A5C; --navy-l:#E3E9F4; --bg:#EEF1F7; --card:#fff; --line:#D5DBE8; --tx:#1C2638; --sub:#5B6781;
+  --red:#C62F3A; --red-l:#FBE9EB; --amber:#B7791F; --amber-l:#FFF4DC; --green:#2E7D5B; --green-l:#E4F4EC;
+  --rf:16px;
+}
+*{box-sizing:border-box}
+html{font-size:var(--rf)}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:'Pretendard',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);-webkit-text-size-adjust:100%}
+button,input,select,textarea{font-family:inherit;font-size:1rem;color:inherit}
+.hide{display:none!important}
+.btn{min-height:44px;padding:0 18px;border:0;border-radius:10px;background:var(--navy);color:#fff;font-weight:700;cursor:pointer}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sub{background:#fff;color:var(--navy);border:1.5px solid var(--navy)}
+.btn.red{background:var(--red)}
+.btn.sm{min-height:38px;padding:0 12px;font-size:.9rem;border-radius:8px}
+.btn.big{min-height:56px;font-size:1.15rem;width:100%}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input[type=text],input[type=password],select,textarea{width:100%;min-height:44px;padding:8px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fff}
+textarea{resize:vertical;line-height:1.5}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--navy);border-color:var(--navy)}
+.chip{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;border:1.5px solid var(--line);border-radius:22px;background:#fff;cursor:pointer;font-weight:600;user-select:none}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.chip.red.on{background:var(--red);border-color:var(--red)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:0 0 14px}
+.card h3{margin:0 0 10px;font-size:1.05rem;color:var(--navy)}
+.hint{color:var(--sub);font-size:.88rem;line-height:1.5}
+.msg{font-size:.9rem;margin-top:8px;color:var(--sub);min-height:1.2em}
+.msg.err{color:var(--red)} .msg.ok{color:var(--green)}
+.wrap{max-width:860px;margin:0 auto;padding:16px}
+.center{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.panel{width:100%;max-width:520px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px}
+.logo{font-size:1.5rem;font-weight:800;color:var(--navy);margin:0 0 4px}
+label.f{display:block;font-weight:600;margin:12px 0 6px;font-size:.92rem}
+footer.ft{text-align:center;color:var(--sub);font-size:.85rem;padding:18px 12px 26px}
+footer.ft a{color:var(--navy)}
+/* 상단 바 */
+.top{background:var(--navy);color:#fff;display:flex;align-items:center;gap:10px;padding:10px 14px;flex-wrap:wrap}
+.top h1{font-size:1.15rem;margin:0;font-weight:800;flex:1;min-width:150px}
+.top .btn{background:rgba(255,255,255,.16);min-height:38px;padding:0 12px;font-size:.88rem}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#7BE0A6;margin-right:6px}
+.dot.bad{background:#FF8A8A}
+.dot.gray{background:#B8C0D2}
+.pv{border:3px solid var(--navy);border-radius:14px;overflow:hidden;background:var(--bg)}
+.pv .rbody{padding:14px}
+.pv .nb{font-size:1.2rem;padding:12px 18px}
+#demoBar{position:relative;z-index:80;background:var(--amber-l);color:#7a4d00;border-bottom:2px dashed var(--amber);padding:8px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-weight:600;font-size:.9rem}
+.slide{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;min-height:330px}
+.slide h2{margin:0 0 6px;color:var(--navy);font-size:1.25rem}
+.dots{display:flex;gap:6px;justify-content:center;margin:12px 0}
+.dots i{width:9px;height:9px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--navy)}
+.mini{margin:14px 0 0;display:grid;gap:8px}
+.mb{border-radius:10px;padding:10px 12px;font-size:.88rem;font-weight:700;line-height:1.5}
+.full{position:fixed;inset:0;background:var(--bg);z-index:55;overflow:auto}
+.alertbox{border:4px solid var(--red)}
+.alertbox h3{color:var(--red);font-size:1.3rem;margin:0 0 8px}
+.alertbox ol{margin:10px 0 14px;padding-left:20px;line-height:1.7}
+.sw{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:.9rem;font-weight:600}
+.sw input{width:20px;height:20px;min-height:0}
+.tabs{display:flex;background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.tab{flex:1;min-height:50px;border:0;background:none;font-weight:700;color:var(--sub);cursor:pointer;border-bottom:3px solid transparent}
+.tab.on{color:var(--navy);border-bottom-color:var(--navy)}
+.badge{display:inline-block;min-width:22px;padding:1px 6px;margin-left:5px;border-radius:11px;background:var(--red);color:#fff;font-size:.8rem}
+.pract{background:var(--amber-l);color:#7a4d00;border:1.5px dashed var(--amber);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-weight:600;font-size:.92rem}
+.grp{background:var(--navy-l);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-weight:600;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+/* 호출 대상 행 */
+.trow{display:grid;grid-template-columns:1.2fr 1.2fr 1.4fr 44px;gap:8px;margin-bottom:8px;align-items:start}
+.trow .x{min-height:44px;border:0;background:#EEF1F7;border-radius:10px;font-size:1.1rem;cursor:pointer;color:var(--sub)}
+.trow .oth{margin-top:6px}
+@media(max-width:600px){.trow{grid-template-columns:1fr 1fr;}.trow .nm{grid-column:1/3}.trow .x{grid-column:1/3}}
+/* 현황 */
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.pill{flex:1;min-width:90px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.pill b{display:block;font-size:1.6rem}
+.st{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.82rem;font-weight:700}
+.st.s0{background:var(--red-l);color:var(--red)} .st.s1{background:var(--amber-l);color:var(--amber)} .st.s2{background:var(--green-l);color:var(--green)} .st.s3{background:#E7E9EE;color:#5b6370}
+.crow{background:#fff;border:1px solid var(--line);border-left:6px solid var(--red);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.crow.s1{border-left-color:var(--amber)} .crow.s2{border-left-color:var(--green)} .crow.s3{border-left-color:#aab}
+.crow .t1{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-weight:700}
+.crow .t2{color:var(--sub);font-size:.88rem;margin:4px 0 8px;line-height:1.5}
+.tag{display:inline-block;padding:1px 8px;border-radius:8px;font-size:.78rem;font-weight:700;background:var(--navy-l);color:var(--navy)}
+.tag.u{background:var(--red);color:#fff} .tag.p{background:var(--amber-l);color:var(--amber)}
+.anrow{background:#fff;border:1px solid var(--line);border-left:6px solid var(--navy);border-radius:12px;padding:10px 14px;margin-bottom:8px}
+.anrow.u{border-left-color:var(--red)}
+.ov{position:fixed;inset:0;background:rgba(20,28,45,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+.ov .box{background:#fff;border-radius:16px;padding:22px;max-width:420px;width:100%}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#1C2638;color:#fff;padding:12px 20px;border-radius:24px;font-weight:600;z-index:60;max-width:90vw}
+details.acc{border:1px solid var(--line);border-radius:10px;margin:8px 0;background:#fff}
+details.acc summary{padding:12px 14px;cursor:pointer;font-weight:700;min-height:44px}
+details.acc .in{padding:0 14px 14px;line-height:1.7;font-size:.93rem}
+.entry{display:grid;gap:12px;margin-top:18px}
+.entry button{min-height:84px;border-radius:14px;border:2px solid var(--navy);background:#fff;color:var(--navy);font-weight:800;font-size:1.2rem;cursor:pointer}
+.entry button.p{background:var(--navy);color:#fff}
+.entry small{display:block;font-weight:500;font-size:.85rem;margin-top:4px;opacity:.85}
+/* ===== 대기실 화면 ===== */
+html.room{--rf:20px}
+html.room.f0{--rf:16px} html.room.f2{--rf:26px}
+.rhead{background:var(--navy);color:#fff;padding:14px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.rhead h1{margin:0;flex:1;font-size:1.6rem;font-weight:800;min-width:260px}
+.rhead .cn{font-size:.95rem;opacity:.95}
+.rhead .btn{background:rgba(255,255,255,.18);min-height:42px;font-size:.9rem}
+.netbad{background:var(--red);color:#fff;text-align:center;padding:10px;font-weight:700}
+.unlock{background:var(--amber-l);color:#7a4d00;text-align:center;padding:9px;font-weight:600;font-size:.92rem}
+.nb{background:var(--navy-d);color:#fff;padding:16px 24px;font-size:1.5rem;font-weight:700;line-height:1.4;border-bottom:3px solid rgba(255,255,255,.25)}
+.nb.u{background:var(--red)}
+.nb small{display:block;font-size:.8rem;opacity:.8;font-weight:500}
+.rbody{padding:18px 22px;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:16px;align-content:start}
+.rc{background:var(--navy);color:#fff;border-radius:18px;padding:20px 24px;border:4px solid var(--navy)}
+.rc.urg{background:var(--red);border-color:var(--red)}
+.rc.ok{background:#fff;color:var(--tx);border-color:var(--navy)}
+.rc .top1{font-size:1.1rem;font-weight:600;opacity:.92;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.rc .main{font-size:2.1rem;font-weight:800;line-height:1.3;margin:10px 0 6px;word-break:keep-all}
+.rc .sup{font-size:1.25rem;font-weight:600;margin:4px 0}
+.rc .memo{font-size:1.05rem;margin:6px 0;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.16)}
+.rc.ok .memo{background:var(--navy-l)}
+.rc .ft1{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;flex-wrap:wrap}
+.rc .el{font-weight:700;font-size:1.05rem}
+.rc .el.warn{color:#FFD27A} .rc.ok .el.warn{color:var(--amber)} .rc .el.late{color:#fff;background:rgba(0,0,0,.28);padding:2px 10px;border-radius:10px}
+.rc .cbtn{min-height:54px;padding:0 24px;border-radius:12px;border:0;background:#fff;color:var(--navy);font-weight:800;font-size:1.1rem;cursor:pointer}
+.rc.urg .cbtn{color:var(--red)}
+.rc .ch{font-size:.85rem;opacity:.85;width:100%}
+.rc .tag{background:rgba(255,255,255,.22);color:#fff} .rc.ok .tag{background:var(--navy-l);color:var(--navy)}
+.rc .tag.u{background:#fff;color:var(--red)}
+.empty{grid-column:1/-1;text-align:center;padding:60px 10px;color:var(--navy);font-size:2rem;font-weight:700;line-height:1.5}
+.empty small{display:block;font-size:1.05rem;color:var(--sub);font-weight:500;margin-top:8px}
+.rfoot{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;color:var(--sub);font-size:.85rem;padding:14px 12px 26px}
+.rfoot a{color:var(--navy)}
+.rfoot .fz button{min-height:36px;padding:0 10px;border:1.5px solid var(--line);background:#fff;border-radius:8px;font-weight:600;cursor:pointer;margin-left:4px}
+.rfoot .fz button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+#flash{position:fixed;inset:0;pointer-events:none;z-index:40;opacity:0}
+#flash.go{animation:fl .55s 7 alternate}
+#flash.u{background:rgba(198,47,58,.55)}
+#flash:not(.u){background:rgba(50,72,114,.5)}
+@keyframes fl{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){#flash.go{animation-duration:1.2s;animation-iteration-count:2}}
+/* ===== 사용자 등록 · 후기 · 아듬샘 탭 ===== */
+.stars{display:flex;gap:6px}
+.stars button{min-width:48px;min-height:48px;border:1.5px solid var(--line);background:#fff;border-radius:12px;font-size:1.5rem;color:#C9CFDD;cursor:pointer}
+.stars button.on{color:#F2A900;border-color:#F2A900;background:#FFF8E1}
+.agree{display:flex;gap:10px;align-items:flex-start;font-weight:700;margin:14px 0 6px;cursor:pointer;line-height:1.5}
+.agree input{width:22px;height:22px;min-height:0;margin-top:2px;flex:none}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bars{display:flex;align-items:flex-end;gap:4px;height:120px;padding-top:18px;margin-top:6px}
+.bars div{flex:1;border-radius:4px 4px 0 0;min-height:2px;position:relative}
+.bars div span{position:absolute;top:-17px;left:-4px;right:-4px;text-align:center;font-size:.72rem;color:var(--sub)}
+.bl{display:flex;gap:4px;margin-top:3px}.bl span{flex:1;text-align:center;font-size:.64rem;color:var(--sub);white-space:nowrap;overflow:hidden}
+.dist .r{display:grid;grid-template-columns:minmax(70px,130px) 1fr 32px;gap:8px;align-items:center;font-size:.86rem;margin:5px 0}
+.dist .b{height:10px;background:var(--navy-l);border-radius:5px;overflow:hidden}.dist .b i{display:block;height:100%;background:var(--navy)}
+.utbl{width:100%;border-collapse:collapse;font-size:.82rem;min-width:640px}.utbl th,.utbl td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.scrl{overflow-x:auto;padding-top:2px}
+#rvBanner{background:var(--navy-l);color:var(--navy);border-color:var(--navy);display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<!-- 처음 화면 -->
+<div id="scrEntry" class="center hide"><div class="panel">
+  <p class="logo">KCSAT 감독 호출 보드</p>
+  <p class="hint" style="margin:0">수능 감독 대기실에 있는 선생님을 본부에서 바로 호출하는 도구예요. 대기실 전자칠판에 큰 글씨와 소리로 알려줘요.</p>
+  <div class="entry">
+    <button class="p" onclick="startDemo()">🎬 체험해보기<small>등록 없이 바로 써 볼 수 있어요 · 저장·전송 없음</small></button>
+    <button onclick="showIntro()">📖 앱 소개<small>어떤 앱인지 1분 안에 살펴봐요</small></button>
+    <button onclick="goMode('admin')">본부(관리자)로 시작<small>처음이면 설치 안내부터 도와드려요</small></button>
+    <button onclick="goMode('room')">감독 대기실 화면 열기<small>전자칠판에 띄우는 호출 안내 화면</small></button>
+  </div>
+  <div class="row" style="justify-content:center;margin-top:14px"><button class="btn sub sm" onclick="openGuide()">📘 사용 가이드</button><button class="btn sub sm" onclick="openShare()">🔗 이 앱 소개하기</button></div>
+</div></div>
+
+<!-- 앱 소개 -->
+<div id="scrIntro" class="center hide"><div class="panel"><div id="introStage"></div></div></div>
+
+<!-- 연결 안내 (GAS 주소 없음) -->
+<div id="scrNeed" class="hide"><div class="wrap">
+  <div class="panel" style="max-width:none">
+    <p class="logo">KCSAT 감독 호출 보드 · 처음 설정</p>
+    <p class="hint" id="needRoom" style="margin:0 0 10px"></p>
+    <label class="f">연결 주소 (구글 앱스 스크립트 웹 앱 URL)</label>
+    <input type="text" id="gasIn" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off">
+    <div class="row" style="margin-top:12px"><button class="btn" onclick="connectGas()">연결 확인하고 시작</button></div>
+    <div class="msg" id="needMsg"></div>
+    <div id="guideWrap"></div>
+  </div>
+  <footer class="ft"></footer>
+</div></div>
+
+<!-- 로그인 -->
+<div id="scrLogin" class="center hide"><div class="panel">
+  <p class="logo">감독 호출 · 본부</p>
+  <p class="hint" style="margin:0 0 6px">관리자 비밀번호를 입력해 주세요.</p>
+  <input type="password" id="pwIn" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
+  <div class="row" style="margin-top:12px"><button class="btn" id="loginBtn" onclick="doLogin()">들어가기</button><button class="btn sub" onclick="goMode('')">처음 화면</button></div>
+  <div class="msg" id="loginMsg"></div>
+  <p class="hint">처음 사용하는 비밀번호는 앱 이름(영문 소문자, 띄어쓰기 없이 <b>kcsatcallboard</b>)이에요. 처음 들어가면 바로 바꾸게 돼요.</p>
+</div></div>
+
+<!-- 첫 비밀번호 변경 -->
+<div id="scrPw" class="center hide"><div class="panel">
+  <p class="logo">새 비밀번호 정하기</p>
+  <p class="hint" style="margin:0 0 6px">처음 비밀번호는 누구나 알 수 있어요. 나만 아는 비밀번호로 바꿔 주세요. (4자 이상)</p>
+  <label class="f">새 비밀번호</label><input type="password" id="npw1" autocomplete="off">
+  <label class="f">새 비밀번호 확인</label><input type="password" id="npw2" autocomplete="off" onkeydown="if(event.key==='Enter')changeFirstPw()">
+  <div class="row" style="margin-top:12px"><button class="btn" id="npwBtn" onclick="changeFirstPw()">변경하고 시작하기</button><button class="btn sub" onclick="logout()">나가기</button></div>
+  <div class="msg" id="npwMsg"></div>
+</div></div>
+
+<!-- 사용자 등록 (아듬샘 공용 등록부) -->
+<div id="scrReg" class="center hide"><div class="panel" style="max-width:560px">
+  <p class="logo">사용자 등록</p>
+  <div id="regForm">
+    <p class="hint" id="regLead" style="margin:0 0 4px"></p>
+    <label class="f">구분</label><div class="chips" id="regKinds"></div>
+    <label class="f" for="regName">아이디 <small style="font-weight:500;color:var(--sub)">(실명 대신 아이디를 권해요)</small></label>
+    <input type="text" id="regName" maxlength="20" autocomplete="off" placeholder="예) 수학샘, mathT">
+    <div id="regTeacher"><label class="f">학교 지역 · 학교급 <small style="font-weight:500;color:var(--sub)">(학교 이름은 받지 않아요)</small></label>
+      <div class="two"><select id="regRegion" aria-label="지역"></select><select id="regLevel" aria-label="학교급"></select></div></div>
+    <label class="f">사용 목적 <small style="font-weight:500;color:var(--sub)">(1개 선택)</small></label><div class="chips" id="regPurposes"></div>
+    <label class="agree"><input type="checkbox" id="regAgree"><span>[필수] 개인정보 수집·이용에 동의해요</span></label>
+    <details class="acc"><summary>수집·이용 안내 보기</summary><div class="in"><ul style="margin:0;padding-left:20px">
+      <li><b>받는 정보</b>: 구분, 아이디, 사용 목적, (교사) 학교의 지역·학교급, 접속한 날짜·횟수, 하루 호출 건수·대기실 수(숫자만), 동의한 시각</li>
+      <li><b>쓰는 곳</b>: 사용 현황 파악, 앱 개선, 문의 응대</li>
+      <li><b>보관 기간</b>: 앱을 운영하는 동안. 삭제를 요청하면 바로 지워요.</li>
+      <li><b>제3자 제공 없음</b>. 개발자의 구글 시트에 저장돼요(서버가 해외일 수 있어요).</li>
+      <li><b>받지 않는 정보</b>: 학교 이름, 학생 정보, 호출 내용(이름·메모·문구) — 호출 기록은 내 구글 시트에만 남아요.</li>
+      <li>동의하지 않으면 등록할 수 없어요. 그래도 "체험해보기"는 등록 없이 쓸 수 있어요.</li>
+      <li>수정·삭제 요청: <span class="regMailLink"></span></li></ul>
+      <p style="margin:8px 0 0"><a href="#" onclick="openPriv();return false">📄 개인정보 처리방침 전체 보기</a></p></div></details>
+    <div class="row" style="margin-top:14px"><button class="btn" id="regBtn" onclick="submitReg()">등록하고 다음으로</button><button class="btn sub" onclick="regBack()">처음 화면</button></div>
+    <div class="row" style="margin-top:8px"><button class="btn sub sm hide" id="regSkip" onclick="regSkip()">지금은 건너뛰고 들어가기 (이번 접속만)</button></div>
+    <div class="msg" id="regMsg"></div>
+  </div>
+  <div id="regBlock" class="hide"><p id="regBlockBody" style="line-height:1.6"></p>
+    <div class="row"><button class="btn" onclick="location.reload()">다시 확인</button><button class="btn sub" onclick="logout()">나가기</button></div>
+    <p class="hint">문의: <span class="regMailLink"></span></p></div>
+</div></div>
+
+<!-- 본부(관리자) -->
+<div id="scrAdmin" class="hide">
+  <div id="demoBar" class="hide"><span>🎬 체험 중이에요 — 저장·전송 없이 이 화면 안에서만 움직여요. [대기실 보기] 탭에서 대기실 화면도 볼 수 있어요.</span><button class="btn sm sub" id="brkBtn" onclick="demoBreak()">🔌 대기실 끊김 체험</button><button class="btn sm" onclick="goMode('')">체험 끝내기</button><button class="btn sm sub" onclick="goMode('admin')">본부로 시작하기</button></div>
+  <div class="top">
+    <h1>감독 호출 · 본부</h1>
+    <span id="rmConn" style="font-size:.88rem"></span>
+    <span id="aConn" style="font-size:.88rem"><i class="dot"></i>연결 중…</span>
+    <label class="sw"><input type="checkbox" id="pracSw" onchange="setPractice(this.checked)"> 연습 모드</label>
+    <button class="btn hide" id="rvTopBtn" onclick="openReview()">💬 후기</button>
+    <button class="btn" onclick="openGuide()">❓ 사용법</button>
+    <button class="btn" onclick="refreshAdmin(true)" title="새로고침">↻</button>
+    <button class="btn" onclick="logout()">나가기</button>
+  </div>
+  <div class="tabs">
+    <button class="tab on" data-t="call" onclick="setTab('call')">호출하기</button>
+    <button class="tab" data-t="ann" onclick="setTab('ann')">전체 공지</button>
+    <button class="tab" data-t="status" onclick="setTab('status')">현황<span class="badge hide" id="bdg">0</span></button>
+    <button class="tab" data-t="view" onclick="setTab('view')">대기실 보기</button>
+    <button class="tab" data-t="set" onclick="setTab('set')">설정</button>
+    <button class="tab hide" data-t="own" id="ownTab" onclick="setTab('own')">👑 아듬샘<span class="badge hide" id="ownBdg">0</span></button>
+  </div>
+  <div class="wrap">
+    <div id="rvBanner" class="pract hide"><span>💬 써 보시니 어떠세요? 별점과 한마디를 남겨 주시면 앱을 고치는 데 큰 도움이 돼요.</span><span class="row"><button class="btn sm" onclick="openReview()">후기 남기기</button><button class="btn sm sub" onclick="$('rvBanner').classList.add('hide')">나중에</button></span></div>
+    <div id="gasOld" class="pract hide"></div>
+    <div id="pgCall"></div><div id="pgAnn" class="hide"></div><div id="pgStatus" class="hide"></div><div id="pgView" class="hide"></div><div id="pgSet" class="hide"></div><div id="pgOwn" class="hide"></div>
+    <footer class="ft"></footer>
+  </div>
+</div>
+
+<!-- 대기실 -->
+<div id="scrRoom" class="hide">
+  <div class="rhead">
+    <h1>감독 호출 · 대기실</h1>
+    <span class="cn" id="rConn"></span>
+    <button class="btn" id="sndBtn" onclick="toggleSound()"></button>
+  </div>
+  <div id="rNet" class="netbad hide">연결이 끊겼어요. 다시 연결하는 중이에요… (본부에 알려 주세요)</div>
+  <div id="rUnlock" class="unlock hide">🔔 알림음이 나오려면 화면을 한 번 눌러 주세요</div>
+  <div id="rNotices"></div>
+  <div class="rbody" id="rCalls"></div>
+  <div class="rfoot">
+    <span>Made by Cheon_R</span>
+    <a id="rMail" href="#">문의 fond7509@naver.com</a>
+    <span class="fz">글자 <button data-f="0" onclick="setFont(0)">작게</button><button data-f="1" onclick="setFont(1)">보통</button><button data-f="2" onclick="setFont(2)">크게</button></span>
+    <a href="#" onclick="goMode('');return false">처음 화면</a>
+  </div>
+</div>
+<div id="flash"></div>
+<div id="ovWrap"></div>
+<div id="alertOv"></div>
+<div id="shOv"></div>
+<div id="guideOv"></div>
+<div id="rvOv"></div>
+<div id="privOv"></div>
+
+<script>
+/* qrcode-generator (c) 2009 Kazuhiko Arase, MIT license — QR 코드 만들기 (소개 링크용) */
+//---------------------------------------------------------------------
+//
+// QR Code Generator for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//  http://www.opensource.org/licenses/mit-license.php
+//
+// The word 'QR Code' is registered trademark of
+// DENSO WAVE INCORPORATED
+//  http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+
+var qrcode = function() {
+
+  //---------------------------------------------------------------------
+  // qrcode
+  //---------------------------------------------------------------------
+
+  /**
+   * qrcode
+   * @param typeNumber 1 to 40
+   * @param errorCorrectionLevel 'L','M','Q','H'
+   */
+  var qrcode = function(typeNumber, errorCorrectionLevel) {
+
+    var PAD0 = 0xEC;
+    var PAD1 = 0x11;
+
+    var _typeNumber = typeNumber;
+    var _errorCorrectionLevel = QRErrorCorrectionLevel[errorCorrectionLevel];
+    var _modules = null;
+    var _moduleCount = 0;
+    var _dataCache = null;
+    var _dataList = [];
+
+    var _this = {};
+
+    var makeImpl = function(test, maskPattern) {
+
+      _moduleCount = _typeNumber * 4 + 17;
+      _modules = function(moduleCount) {
+        var modules = new Array(moduleCount);
+        for (var row = 0; row < moduleCount; row += 1) {
+          modules[row] = new Array(moduleCount);
+          for (var col = 0; col < moduleCount; col += 1) {
+            modules[row][col] = null;
+          }
+        }
+        return modules;
+      }(_moduleCount);
+
+      setupPositionProbePattern(0, 0);
+      setupPositionProbePattern(_moduleCount - 7, 0);
+      setupPositionProbePattern(0, _moduleCount - 7);
+      setupPositionAdjustPattern();
+      setupTimingPattern();
+      setupTypeInfo(test, maskPattern);
+
+      if (_typeNumber >= 7) {
+        setupTypeNumber(test);
+      }
+
+      if (_dataCache == null) {
+        _dataCache = createData(_typeNumber, _errorCorrectionLevel, _dataList);
+      }
+
+      mapData(_dataCache, maskPattern);
+    };
+
+    var setupPositionProbePattern = function(row, col) {
+
+      for (var r = -1; r <= 7; r += 1) {
+
+        if (row + r <= -1 || _moduleCount <= row + r) continue;
+
+        for (var c = -1; c <= 7; c += 1) {
+
+          if (col + c <= -1 || _moduleCount <= col + c) continue;
+
+          if ( (0 <= r && r <= 6 && (c == 0 || c == 6) )
+              || (0 <= c && c <= 6 && (r == 0 || r == 6) )
+              || (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+            _modules[row + r][col + c] = true;
+          } else {
+            _modules[row + r][col + c] = false;
+          }
+        }
+      }
+    };
+
+    var getBestMaskPattern = function() {
+
+      var minLostPoint = 0;
+      var pattern = 0;
+
+      for (var i = 0; i < 8; i += 1) {
+
+        makeImpl(true, i);
+
+        var lostPoint = QRUtil.getLostPoint(_this);
+
+        if (i == 0 || minLostPoint > lostPoint) {
+          minLostPoint = lostPoint;
+          pattern = i;
+        }
+      }
+
+      return pattern;
+    };
+
+    var setupTimingPattern = function() {
+
+      for (var r = 8; r < _moduleCount - 8; r += 1) {
+        if (_modules[r][6] != null) {
+          continue;
+        }
+        _modules[r][6] = (r % 2 == 0);
+      }
+
+      for (var c = 8; c < _moduleCount - 8; c += 1) {
+        if (_modules[6][c] != null) {
+          continue;
+        }
+        _modules[6][c] = (c % 2 == 0);
+      }
+    };
+
+    var setupPositionAdjustPattern = function() {
+
+      var pos = QRUtil.getPatternPosition(_typeNumber);
+
+      for (var i = 0; i < pos.length; i += 1) {
+
+        for (var j = 0; j < pos.length; j += 1) {
+
+          var row = pos[i];
+          var col = pos[j];
+
+          if (_modules[row][col] != null) {
+            continue;
+          }
+
+          for (var r = -2; r <= 2; r += 1) {
+
+            for (var c = -2; c <= 2; c += 1) {
+
+              if (r == -2 || r == 2 || c == -2 || c == 2
+                  || (r == 0 && c == 0) ) {
+                _modules[row + r][col + c] = true;
+              } else {
+                _modules[row + r][col + c] = false;
+              }
+            }
+          }
+        }
+      }
+    };
+
+    var setupTypeNumber = function(test) {
+
+      var bits = QRUtil.getBCHTypeNumber(_typeNumber);
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[Math.floor(i / 3)][i % 3 + _moduleCount - 8 - 3] = mod;
+      }
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[i % 3 + _moduleCount - 8 - 3][Math.floor(i / 3)] = mod;
+      }
+    };
+
+    var setupTypeInfo = function(test, maskPattern) {
+
+      var data = (_errorCorrectionLevel << 3) | maskPattern;
+      var bits = QRUtil.getBCHTypeInfo(data);
+
+      // vertical
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 6) {
+          _modules[i][8] = mod;
+        } else if (i < 8) {
+          _modules[i + 1][8] = mod;
+        } else {
+          _modules[_moduleCount - 15 + i][8] = mod;
+        }
+      }
+
+      // horizontal
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 8) {
+          _modules[8][_moduleCount - i - 1] = mod;
+        } else if (i < 9) {
+          _modules[8][15 - i - 1 + 1] = mod;
+        } else {
+          _modules[8][15 - i - 1] = mod;
+        }
+      }
+
+      // fixed module
+      _modules[_moduleCount - 8][8] = (!test);
+    };
+
+    var mapData = function(data, maskPattern) {
+
+      var inc = -1;
+      var row = _moduleCount - 1;
+      var bitIndex = 7;
+      var byteIndex = 0;
+      var maskFunc = QRUtil.getMaskFunction(maskPattern);
+
+      for (var col = _moduleCount - 1; col > 0; col -= 2) {
+
+        if (col == 6) col -= 1;
+
+        while (true) {
+
+          for (var c = 0; c < 2; c += 1) {
+
+            if (_modules[row][col - c] == null) {
+
+              var dark = false;
+
+              if (byteIndex < data.length) {
+                dark = ( ( (data[byteIndex] >>> bitIndex) & 1) == 1);
+              }
+
+              var mask = maskFunc(row, col - c);
+
+              if (mask) {
+                dark = !dark;
+              }
+
+              _modules[row][col - c] = dark;
+              bitIndex -= 1;
+
+              if (bitIndex == -1) {
+                byteIndex += 1;
+                bitIndex = 7;
+              }
+            }
+          }
+
+          row += inc;
+
+          if (row < 0 || _moduleCount <= row) {
+            row -= inc;
+            inc = -inc;
+            break;
+          }
+        }
+      }
+    };
+
+    var createBytes = function(buffer, rsBlocks) {
+
+      var offset = 0;
+
+      var maxDcCount = 0;
+      var maxEcCount = 0;
+
+      var dcdata = new Array(rsBlocks.length);
+      var ecdata = new Array(rsBlocks.length);
+
+      for (var r = 0; r < rsBlocks.length; r += 1) {
+
+        var dcCount = rsBlocks[r].dataCount;
+        var ecCount = rsBlocks[r].totalCount - dcCount;
+
+        maxDcCount = Math.max(maxDcCount, dcCount);
+        maxEcCount = Math.max(maxEcCount, ecCount);
+
+        dcdata[r] = new Array(dcCount);
+
+        for (var i = 0; i < dcdata[r].length; i += 1) {
+          dcdata[r][i] = 0xff & buffer.getBuffer()[i + offset];
+        }
+        offset += dcCount;
+
+        var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+        var rawPoly = qrPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+        var modPoly = rawPoly.mod(rsPoly);
+        ecdata[r] = new Array(rsPoly.getLength() - 1);
+        for (var i = 0; i < ecdata[r].length; i += 1) {
+          var modIndex = i + modPoly.getLength() - ecdata[r].length;
+          ecdata[r][i] = (modIndex >= 0)? modPoly.getAt(modIndex) : 0;
+        }
+      }
+
+      var totalCodeCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalCodeCount += rsBlocks[i].totalCount;
+      }
+
+      var data = new Array(totalCodeCount);
+      var index = 0;
+
+      for (var i = 0; i < maxDcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < dcdata[r].length) {
+            data[index] = dcdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      for (var i = 0; i < maxEcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < ecdata[r].length) {
+            data[index] = ecdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      return data;
+    };
+
+    var createData = function(typeNumber, errorCorrectionLevel, dataList) {
+
+      var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectionLevel);
+
+      var buffer = qrBitBuffer();
+
+      for (var i = 0; i < dataList.length; i += 1) {
+        var data = dataList[i];
+        buffer.put(data.getMode(), 4);
+        buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+        data.write(buffer);
+      }
+
+      // calc num max data.
+      var totalDataCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalDataCount += rsBlocks[i].dataCount;
+      }
+
+      if (buffer.getLengthInBits() > totalDataCount * 8) {
+        throw 'code length overflow. ('
+          + buffer.getLengthInBits()
+          + '>'
+          + totalDataCount * 8
+          + ')';
+      }
+
+      // end code
+      if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+        buffer.put(0, 4);
+      }
+
+      // padding
+      while (buffer.getLengthInBits() % 8 != 0) {
+        buffer.putBit(false);
+      }
+
+      // padding
+      while (true) {
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD0, 8);
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD1, 8);
+      }
+
+      return createBytes(buffer, rsBlocks);
+    };
+
+    _this.addData = function(data, mode) {
+
+      mode = mode || 'Byte';
+
+      var newData = null;
+
+      switch(mode) {
+      case 'Numeric' :
+        newData = qrNumber(data);
+        break;
+      case 'Alphanumeric' :
+        newData = qrAlphaNum(data);
+        break;
+      case 'Byte' :
+        newData = qr8BitByte(data);
+        break;
+      case 'Kanji' :
+        newData = qrKanji(data);
+        break;
+      default :
+        throw 'mode:' + mode;
+      }
+
+      _dataList.push(newData);
+      _dataCache = null;
+    };
+
+    _this.isDark = function(row, col) {
+      if (row < 0 || _moduleCount <= row || col < 0 || _moduleCount <= col) {
+        throw row + ',' + col;
+      }
+      return _modules[row][col];
+    };
+
+    _this.getModuleCount = function() {
+      return _moduleCount;
+    };
+
+    _this.make = function() {
+      if (_typeNumber < 1) {
+        var typeNumber = 1;
+
+        for (; typeNumber < 40; typeNumber++) {
+          var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, _errorCorrectionLevel);
+          var buffer = qrBitBuffer();
+
+          for (var i = 0; i < _dataList.length; i++) {
+            var data = _dataList[i];
+            buffer.put(data.getMode(), 4);
+            buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+            data.write(buffer);
+          }
+
+          var totalDataCount = 0;
+          for (var i = 0; i < rsBlocks.length; i++) {
+            totalDataCount += rsBlocks[i].dataCount;
+          }
+
+          if (buffer.getLengthInBits() <= totalDataCount * 8) {
+            break;
+          }
+        }
+
+        _typeNumber = typeNumber;
+      }
+
+      makeImpl(false, getBestMaskPattern() );
+    };
+
+    _this.createTableTag = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var qrHtml = '';
+
+      qrHtml += '<table style="';
+      qrHtml += ' border-width: 0px; border-style: none;';
+      qrHtml += ' border-collapse: collapse;';
+      qrHtml += ' padding: 0px; margin: ' + margin + 'px;';
+      qrHtml += '">';
+      qrHtml += '<tbody>';
+
+      for (var r = 0; r < _this.getModuleCount(); r += 1) {
+
+        qrHtml += '<tr>';
+
+        for (var c = 0; c < _this.getModuleCount(); c += 1) {
+          qrHtml += '<td style="';
+          qrHtml += ' border-width: 0px; border-style: none;';
+          qrHtml += ' border-collapse: collapse;';
+          qrHtml += ' padding: 0px; margin: 0px;';
+          qrHtml += ' width: ' + cellSize + 'px;';
+          qrHtml += ' height: ' + cellSize + 'px;';
+          qrHtml += ' background-color: ';
+          qrHtml += _this.isDark(r, c)? '#000000' : '#ffffff';
+          qrHtml += ';';
+          qrHtml += '"/>';
+        }
+
+        qrHtml += '</tr>';
+      }
+
+      qrHtml += '</tbody>';
+      qrHtml += '</table>';
+
+      return qrHtml;
+    };
+
+    _this.createSvgTag = function(cellSize, margin, alt, title) {
+
+      var opts = {};
+      if (typeof arguments[0] == 'object') {
+        // Called by options.
+        opts = arguments[0];
+        // overwrite cellSize and margin.
+        cellSize = opts.cellSize;
+        margin = opts.margin;
+        alt = opts.alt;
+        title = opts.title;
+      }
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      // Compose alt property surrogate
+      alt = (typeof alt === 'string') ? {text: alt} : alt || {};
+      alt.text = alt.text || null;
+      alt.id = (alt.text) ? alt.id || 'qrcode-description' : null;
+
+      // Compose title property surrogate
+      title = (typeof title === 'string') ? {text: title} : title || {};
+      title.text = title.text || null;
+      title.id = (title.text) ? title.id || 'qrcode-title' : null;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var c, mc, r, mr, qrSvg='', rect;
+
+      rect = 'l' + cellSize + ',0 0,' + cellSize +
+        ' -' + cellSize + ',0 0,-' + cellSize + 'z ';
+
+      qrSvg += '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"';
+      qrSvg += !opts.scalable ? ' width="' + size + 'px" height="' + size + 'px"' : '';
+      qrSvg += ' viewBox="0 0 ' + size + ' ' + size + '" ';
+      qrSvg += ' preserveAspectRatio="xMinYMin meet"';
+      qrSvg += (title.text || alt.text) ? ' role="img" aria-labelledby="' +
+          escapeXml([title.id, alt.id].join(' ').trim() ) + '"' : '';
+      qrSvg += '>';
+      qrSvg += (title.text) ? '<title id="' + escapeXml(title.id) + '">' +
+          escapeXml(title.text) + '</title>' : '';
+      qrSvg += (alt.text) ? '<description id="' + escapeXml(alt.id) + '">' +
+          escapeXml(alt.text) + '</description>' : '';
+      qrSvg += '<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>';
+      qrSvg += '<path d="';
+
+      for (r = 0; r < _this.getModuleCount(); r += 1) {
+        mr = r * cellSize + margin;
+        for (c = 0; c < _this.getModuleCount(); c += 1) {
+          if (_this.isDark(r, c) ) {
+            mc = c*cellSize+margin;
+            qrSvg += 'M' + mc + ',' + mr + rect;
+          }
+        }
+      }
+
+      qrSvg += '" stroke="transparent" fill="black"/>';
+      qrSvg += '</svg>';
+
+      return qrSvg;
+    };
+
+    _this.createDataURL = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      return createDataURL(size, size, function(x, y) {
+        if (min <= x && x < max && min <= y && y < max) {
+          var c = Math.floor( (x - min) / cellSize);
+          var r = Math.floor( (y - min) / cellSize);
+          return _this.isDark(r, c)? 0 : 1;
+        } else {
+          return 1;
+        }
+      } );
+    };
+
+    _this.createImgTag = function(cellSize, margin, alt) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+
+      var img = '';
+      img += '<img';
+      img += '\u0020src="';
+      img += _this.createDataURL(cellSize, margin);
+      img += '"';
+      img += '\u0020width="';
+      img += size;
+      img += '"';
+      img += '\u0020height="';
+      img += size;
+      img += '"';
+      if (alt) {
+        img += '\u0020alt="';
+        img += escapeXml(alt);
+        img += '"';
+      }
+      img += '/>';
+
+      return img;
+    };
+
+    var escapeXml = function(s) {
+      var escaped = '';
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charAt(i);
+        switch(c) {
+        case '<': escaped += '&lt;'; break;
+        case '>': escaped += '&gt;'; break;
+        case '&': escaped += '&amp;'; break;
+        case '"': escaped += '&quot;'; break;
+        default : escaped += c; break;
+        }
+      }
+      return escaped;
+    };
+
+    var _createHalfASCII = function(margin) {
+      var cellSize = 1;
+      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      var y, x, r1, r2, p;
+
+      var blocks = {
+        '██': '█',
+        '█ ': '▀',
+        ' █': '▄',
+        '  ': ' '
+      };
+
+      var blocksLastLineNoMargin = {
+        '██': '▀',
+        '█ ': '▀',
+        ' █': ' ',
+        '  ': ' '
+      };
+
+      var ascii = '';
+      for (y = 0; y < size; y += 2) {
+        r1 = Math.floor((y - min) / cellSize);
+        r2 = Math.floor((y + 1 - min) / cellSize);
+        for (x = 0; x < size; x += 1) {
+          p = '█';
+
+          if (min <= x && x < max && min <= y && y < max && _this.isDark(r1, Math.floor((x - min) / cellSize))) {
+            p = ' ';
+          }
+
+          if (min <= x && x < max && min <= y+1 && y+1 < max && _this.isDark(r2, Math.floor((x - min) / cellSize))) {
+            p += ' ';
+          }
+          else {
+            p += '█';
+          }
+
+          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
+          ascii += (margin < 1 && y+1 >= max) ? blocksLastLineNoMargin[p] : blocks[p];
+        }
+
+        ascii += '\n';
+      }
+
+      if (size % 2 && margin > 0) {
+        return ascii.substring(0, ascii.length - size - 1) + Array(size+1).join('▀');
+      }
+
+      return ascii.substring(0, ascii.length-1);
+    };
+
+    _this.createASCII = function(cellSize, margin) {
+      cellSize = cellSize || 1;
+
+      if (cellSize < 2) {
+        return _createHalfASCII(margin);
+      }
+
+      cellSize -= 1;
+      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      var y, x, r, p;
+
+      var white = Array(cellSize+1).join('██');
+      var black = Array(cellSize+1).join('  ');
+
+      var ascii = '';
+      var line = '';
+      for (y = 0; y < size; y += 1) {
+        r = Math.floor( (y - min) / cellSize);
+        line = '';
+        for (x = 0; x < size; x += 1) {
+          p = 1;
+
+          if (min <= x && x < max && min <= y && y < max && _this.isDark(r, Math.floor((x - min) / cellSize))) {
+            p = 0;
+          }
+
+          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
+          line += p ? white : black;
+        }
+
+        for (r = 0; r < cellSize; r += 1) {
+          ascii += line + '\n';
+        }
+      }
+
+      return ascii.substring(0, ascii.length-1);
+    };
+
+    _this.renderTo2dContext = function(context, cellSize) {
+      cellSize = cellSize || 2;
+      var length = _this.getModuleCount();
+      for (var row = 0; row < length; row++) {
+        for (var col = 0; col < length; col++) {
+          context.fillStyle = _this.isDark(row, col) ? 'black' : 'white';
+          context.fillRect(row * cellSize, col * cellSize, cellSize, cellSize);
+        }
+      }
+    }
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrcode.stringToBytes
+  //---------------------------------------------------------------------
+
+  qrcode.stringToBytesFuncs = {
+    'default' : function(s) {
+      var bytes = [];
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        bytes.push(c & 0xff);
+      }
+      return bytes;
+    }
+  };
+
+  qrcode.stringToBytes = qrcode.stringToBytesFuncs['default'];
+
+  //---------------------------------------------------------------------
+  // qrcode.createStringToBytes
+  //---------------------------------------------------------------------
+
+  /**
+   * @param unicodeData base64 string of byte array.
+   * [16bit Unicode],[16bit Bytes], ...
+   * @param numChars
+   */
+  qrcode.createStringToBytes = function(unicodeData, numChars) {
+
+    // create conversion map.
+
+    var unicodeMap = function() {
+
+      var bin = base64DecodeInputStream(unicodeData);
+      var read = function() {
+        var b = bin.read();
+        if (b == -1) throw 'eof';
+        return b;
+      };
+
+      var count = 0;
+      var unicodeMap = {};
+      while (true) {
+        var b0 = bin.read();
+        if (b0 == -1) break;
+        var b1 = read();
+        var b2 = read();
+        var b3 = read();
+        var k = String.fromCharCode( (b0 << 8) | b1);
+        var v = (b2 << 8) | b3;
+        unicodeMap[k] = v;
+        count += 1;
+      }
+      if (count != numChars) {
+        throw count + ' != ' + numChars;
+      }
+
+      return unicodeMap;
+    }();
+
+    var unknownChar = '?'.charCodeAt(0);
+
+    return function(s) {
+      var bytes = [];
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        if (c < 128) {
+          bytes.push(c);
+        } else {
+          var b = unicodeMap[s.charAt(i)];
+          if (typeof b == 'number') {
+            if ( (b & 0xff) == b) {
+              // 1byte
+              bytes.push(b);
+            } else {
+              // 2bytes
+              bytes.push(b >>> 8);
+              bytes.push(b & 0xff);
+            }
+          } else {
+            bytes.push(unknownChar);
+          }
+        }
+      }
+      return bytes;
+    };
+  };
+
+  //---------------------------------------------------------------------
+  // QRMode
+  //---------------------------------------------------------------------
+
+  var QRMode = {
+    MODE_NUMBER :    1 << 0,
+    MODE_ALPHA_NUM : 1 << 1,
+    MODE_8BIT_BYTE : 1 << 2,
+    MODE_KANJI :     1 << 3
+  };
+
+  //---------------------------------------------------------------------
+  // QRErrorCorrectionLevel
+  //---------------------------------------------------------------------
+
+  var QRErrorCorrectionLevel = {
+    L : 1,
+    M : 0,
+    Q : 3,
+    H : 2
+  };
+
+  //---------------------------------------------------------------------
+  // QRMaskPattern
+  //---------------------------------------------------------------------
+
+  var QRMaskPattern = {
+    PATTERN000 : 0,
+    PATTERN001 : 1,
+    PATTERN010 : 2,
+    PATTERN011 : 3,
+    PATTERN100 : 4,
+    PATTERN101 : 5,
+    PATTERN110 : 6,
+    PATTERN111 : 7
+  };
+
+  //---------------------------------------------------------------------
+  // QRUtil
+  //---------------------------------------------------------------------
+
+  var QRUtil = function() {
+
+    var PATTERN_POSITION_TABLE = [
+      [],
+      [6, 18],
+      [6, 22],
+      [6, 26],
+      [6, 30],
+      [6, 34],
+      [6, 22, 38],
+      [6, 24, 42],
+      [6, 26, 46],
+      [6, 28, 50],
+      [6, 30, 54],
+      [6, 32, 58],
+      [6, 34, 62],
+      [6, 26, 46, 66],
+      [6, 26, 48, 70],
+      [6, 26, 50, 74],
+      [6, 30, 54, 78],
+      [6, 30, 56, 82],
+      [6, 30, 58, 86],
+      [6, 34, 62, 90],
+      [6, 28, 50, 72, 94],
+      [6, 26, 50, 74, 98],
+      [6, 30, 54, 78, 102],
+      [6, 28, 54, 80, 106],
+      [6, 32, 58, 84, 110],
+      [6, 30, 58, 86, 114],
+      [6, 34, 62, 90, 118],
+      [6, 26, 50, 74, 98, 122],
+      [6, 30, 54, 78, 102, 126],
+      [6, 26, 52, 78, 104, 130],
+      [6, 30, 56, 82, 108, 134],
+      [6, 34, 60, 86, 112, 138],
+      [6, 30, 58, 86, 114, 142],
+      [6, 34, 62, 90, 118, 146],
+      [6, 30, 54, 78, 102, 126, 150],
+      [6, 24, 50, 76, 102, 128, 154],
+      [6, 28, 54, 80, 106, 132, 158],
+      [6, 32, 58, 84, 110, 136, 162],
+      [6, 26, 54, 82, 110, 138, 166],
+      [6, 30, 58, 86, 114, 142, 170]
+    ];
+    var G15 = (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0);
+    var G18 = (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0);
+    var G15_MASK = (1 << 14) | (1 << 12) | (1 << 10) | (1 << 4) | (1 << 1);
+
+    var _this = {};
+
+    var getBCHDigit = function(data) {
+      var digit = 0;
+      while (data != 0) {
+        digit += 1;
+        data >>>= 1;
+      }
+      return digit;
+    };
+
+    _this.getBCHTypeInfo = function(data) {
+      var d = data << 10;
+      while (getBCHDigit(d) - getBCHDigit(G15) >= 0) {
+        d ^= (G15 << (getBCHDigit(d) - getBCHDigit(G15) ) );
+      }
+      return ( (data << 10) | d) ^ G15_MASK;
+    };
+
+    _this.getBCHTypeNumber = function(data) {
+      var d = data << 12;
+      while (getBCHDigit(d) - getBCHDigit(G18) >= 0) {
+        d ^= (G18 << (getBCHDigit(d) - getBCHDigit(G18) ) );
+      }
+      return (data << 12) | d;
+    };
+
+    _this.getPatternPosition = function(typeNumber) {
+      return PATTERN_POSITION_TABLE[typeNumber - 1];
+    };
+
+    _this.getMaskFunction = function(maskPattern) {
+
+      switch (maskPattern) {
+
+      case QRMaskPattern.PATTERN000 :
+        return function(i, j) { return (i + j) % 2 == 0; };
+      case QRMaskPattern.PATTERN001 :
+        return function(i, j) { return i % 2 == 0; };
+      case QRMaskPattern.PATTERN010 :
+        return function(i, j) { return j % 3 == 0; };
+      case QRMaskPattern.PATTERN011 :
+        return function(i, j) { return (i + j) % 3 == 0; };
+      case QRMaskPattern.PATTERN100 :
+        return function(i, j) { return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 == 0; };
+      case QRMaskPattern.PATTERN101 :
+        return function(i, j) { return (i * j) % 2 + (i * j) % 3 == 0; };
+      case QRMaskPattern.PATTERN110 :
+        return function(i, j) { return ( (i * j) % 2 + (i * j) % 3) % 2 == 0; };
+      case QRMaskPattern.PATTERN111 :
+        return function(i, j) { return ( (i * j) % 3 + (i + j) % 2) % 2 == 0; };
+
+      default :
+        throw 'bad maskPattern:' + maskPattern;
+      }
+    };
+
+    _this.getErrorCorrectPolynomial = function(errorCorrectLength) {
+      var a = qrPolynomial([1], 0);
+      for (var i = 0; i < errorCorrectLength; i += 1) {
+        a = a.multiply(qrPolynomial([1, QRMath.gexp(i)], 0) );
+      }
+      return a;
+    };
+
+    _this.getLengthInBits = function(mode, type) {
+
+      if (1 <= type && type < 10) {
+
+        // 1 - 9
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 10;
+        case QRMode.MODE_ALPHA_NUM : return 9;
+        case QRMode.MODE_8BIT_BYTE : return 8;
+        case QRMode.MODE_KANJI     : return 8;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else if (type < 27) {
+
+        // 10 - 26
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 12;
+        case QRMode.MODE_ALPHA_NUM : return 11;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 10;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else if (type < 41) {
+
+        // 27 - 40
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 14;
+        case QRMode.MODE_ALPHA_NUM : return 13;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 12;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else {
+        throw 'type:' + type;
+      }
+    };
+
+    _this.getLostPoint = function(qrcode) {
+
+      var moduleCount = qrcode.getModuleCount();
+
+      var lostPoint = 0;
+
+      // LEVEL1
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount; col += 1) {
+
+          var sameCount = 0;
+          var dark = qrcode.isDark(row, col);
+
+          for (var r = -1; r <= 1; r += 1) {
+
+            if (row + r < 0 || moduleCount <= row + r) {
+              continue;
+            }
+
+            for (var c = -1; c <= 1; c += 1) {
+
+              if (col + c < 0 || moduleCount <= col + c) {
+                continue;
+              }
+
+              if (r == 0 && c == 0) {
+                continue;
+              }
+
+              if (dark == qrcode.isDark(row + r, col + c) ) {
+                sameCount += 1;
+              }
+            }
+          }
+
+          if (sameCount > 5) {
+            lostPoint += (3 + sameCount - 5);
+          }
+        }
+      };
+
+      // LEVEL2
+
+      for (var row = 0; row < moduleCount - 1; row += 1) {
+        for (var col = 0; col < moduleCount - 1; col += 1) {
+          var count = 0;
+          if (qrcode.isDark(row, col) ) count += 1;
+          if (qrcode.isDark(row + 1, col) ) count += 1;
+          if (qrcode.isDark(row, col + 1) ) count += 1;
+          if (qrcode.isDark(row + 1, col + 1) ) count += 1;
+          if (count == 0 || count == 4) {
+            lostPoint += 3;
+          }
+        }
+      }
+
+      // LEVEL3
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount - 6; col += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row, col + 1)
+              &&  qrcode.isDark(row, col + 2)
+              &&  qrcode.isDark(row, col + 3)
+              &&  qrcode.isDark(row, col + 4)
+              && !qrcode.isDark(row, col + 5)
+              &&  qrcode.isDark(row, col + 6) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount - 6; row += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row + 1, col)
+              &&  qrcode.isDark(row + 2, col)
+              &&  qrcode.isDark(row + 3, col)
+              &&  qrcode.isDark(row + 4, col)
+              && !qrcode.isDark(row + 5, col)
+              &&  qrcode.isDark(row + 6, col) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      // LEVEL4
+
+      var darkCount = 0;
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount; row += 1) {
+          if (qrcode.isDark(row, col) ) {
+            darkCount += 1;
+          }
+        }
+      }
+
+      var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+      lostPoint += ratio * 10;
+
+      return lostPoint;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // QRMath
+  //---------------------------------------------------------------------
+
+  var QRMath = function() {
+
+    var EXP_TABLE = new Array(256);
+    var LOG_TABLE = new Array(256);
+
+    // initialize tables
+    for (var i = 0; i < 8; i += 1) {
+      EXP_TABLE[i] = 1 << i;
+    }
+    for (var i = 8; i < 256; i += 1) {
+      EXP_TABLE[i] = EXP_TABLE[i - 4]
+        ^ EXP_TABLE[i - 5]
+        ^ EXP_TABLE[i - 6]
+        ^ EXP_TABLE[i - 8];
+    }
+    for (var i = 0; i < 255; i += 1) {
+      LOG_TABLE[EXP_TABLE[i] ] = i;
+    }
+
+    var _this = {};
+
+    _this.glog = function(n) {
+
+      if (n < 1) {
+        throw 'glog(' + n + ')';
+      }
+
+      return LOG_TABLE[n];
+    };
+
+    _this.gexp = function(n) {
+
+      while (n < 0) {
+        n += 255;
+      }
+
+      while (n >= 256) {
+        n -= 255;
+      }
+
+      return EXP_TABLE[n];
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrPolynomial
+  //---------------------------------------------------------------------
+
+  function qrPolynomial(num, shift) {
+
+    if (typeof num.length == 'undefined') {
+      throw num.length + '/' + shift;
+    }
+
+    var _num = function() {
+      var offset = 0;
+      while (offset < num.length && num[offset] == 0) {
+        offset += 1;
+      }
+      var _num = new Array(num.length - offset + shift);
+      for (var i = 0; i < num.length - offset; i += 1) {
+        _num[i] = num[i + offset];
+      }
+      return _num;
+    }();
+
+    var _this = {};
+
+    _this.getAt = function(index) {
+      return _num[index];
+    };
+
+    _this.getLength = function() {
+      return _num.length;
+    };
+
+    _this.multiply = function(e) {
+
+      var num = new Array(_this.getLength() + e.getLength() - 1);
+
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        for (var j = 0; j < e.getLength(); j += 1) {
+          num[i + j] ^= QRMath.gexp(QRMath.glog(_this.getAt(i) ) + QRMath.glog(e.getAt(j) ) );
+        }
+      }
+
+      return qrPolynomial(num, 0);
+    };
+
+    _this.mod = function(e) {
+
+      if (_this.getLength() - e.getLength() < 0) {
+        return _this;
+      }
+
+      var ratio = QRMath.glog(_this.getAt(0) ) - QRMath.glog(e.getAt(0) );
+
+      var num = new Array(_this.getLength() );
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        num[i] = _this.getAt(i);
+      }
+
+      for (var i = 0; i < e.getLength(); i += 1) {
+        num[i] ^= QRMath.gexp(QRMath.glog(e.getAt(i) ) + ratio);
+      }
+
+      // recursive call
+      return qrPolynomial(num, 0).mod(e);
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // QRRSBlock
+  //---------------------------------------------------------------------
+
+  var QRRSBlock = function() {
+
+    var RS_BLOCK_TABLE = [
+
+      // L
+      // M
+      // Q
+      // H
+
+      // 1
+      [1, 26, 19],
+      [1, 26, 16],
+      [1, 26, 13],
+      [1, 26, 9],
+
+      // 2
+      [1, 44, 34],
+      [1, 44, 28],
+      [1, 44, 22],
+      [1, 44, 16],
+
+      // 3
+      [1, 70, 55],
+      [1, 70, 44],
+      [2, 35, 17],
+      [2, 35, 13],
+
+      // 4
+      [1, 100, 80],
+      [2, 50, 32],
+      [2, 50, 24],
+      [4, 25, 9],
+
+      // 5
+      [1, 134, 108],
+      [2, 67, 43],
+      [2, 33, 15, 2, 34, 16],
+      [2, 33, 11, 2, 34, 12],
+
+      // 6
+      [2, 86, 68],
+      [4, 43, 27],
+      [4, 43, 19],
+      [4, 43, 15],
+
+      // 7
+      [2, 98, 78],
+      [4, 49, 31],
+      [2, 32, 14, 4, 33, 15],
+      [4, 39, 13, 1, 40, 14],
+
+      // 8
+      [2, 121, 97],
+      [2, 60, 38, 2, 61, 39],
+      [4, 40, 18, 2, 41, 19],
+      [4, 40, 14, 2, 41, 15],
+
+      // 9
+      [2, 146, 116],
+      [3, 58, 36, 2, 59, 37],
+      [4, 36, 16, 4, 37, 17],
+      [4, 36, 12, 4, 37, 13],
+
+      // 10
+      [2, 86, 68, 2, 87, 69],
+      [4, 69, 43, 1, 70, 44],
+      [6, 43, 19, 2, 44, 20],
+      [6, 43, 15, 2, 44, 16],
+
+      // 11
+      [4, 101, 81],
+      [1, 80, 50, 4, 81, 51],
+      [4, 50, 22, 4, 51, 23],
+      [3, 36, 12, 8, 37, 13],
+
+      // 12
+      [2, 116, 92, 2, 117, 93],
+      [6, 58, 36, 2, 59, 37],
+      [4, 46, 20, 6, 47, 21],
+      [7, 42, 14, 4, 43, 15],
+
+      // 13
+      [4, 133, 107],
+      [8, 59, 37, 1, 60, 38],
+      [8, 44, 20, 4, 45, 21],
+      [12, 33, 11, 4, 34, 12],
+
+      // 14
+      [3, 145, 115, 1, 146, 116],
+      [4, 64, 40, 5, 65, 41],
+      [11, 36, 16, 5, 37, 17],
+      [11, 36, 12, 5, 37, 13],
+
+      // 15
+      [5, 109, 87, 1, 110, 88],
+      [5, 65, 41, 5, 66, 42],
+      [5, 54, 24, 7, 55, 25],
+      [11, 36, 12, 7, 37, 13],
+
+      // 16
+      [5, 122, 98, 1, 123, 99],
+      [7, 73, 45, 3, 74, 46],
+      [15, 43, 19, 2, 44, 20],
+      [3, 45, 15, 13, 46, 16],
+
+      // 17
+      [1, 135, 107, 5, 136, 108],
+      [10, 74, 46, 1, 75, 47],
+      [1, 50, 22, 15, 51, 23],
+      [2, 42, 14, 17, 43, 15],
+
+      // 18
+      [5, 150, 120, 1, 151, 121],
+      [9, 69, 43, 4, 70, 44],
+      [17, 50, 22, 1, 51, 23],
+      [2, 42, 14, 19, 43, 15],
+
+      // 19
+      [3, 141, 113, 4, 142, 114],
+      [3, 70, 44, 11, 71, 45],
+      [17, 47, 21, 4, 48, 22],
+      [9, 39, 13, 16, 40, 14],
+
+      // 20
+      [3, 135, 107, 5, 136, 108],
+      [3, 67, 41, 13, 68, 42],
+      [15, 54, 24, 5, 55, 25],
+      [15, 43, 15, 10, 44, 16],
+
+      // 21
+      [4, 144, 116, 4, 145, 117],
+      [17, 68, 42],
+      [17, 50, 22, 6, 51, 23],
+      [19, 46, 16, 6, 47, 17],
+
+      // 22
+      [2, 139, 111, 7, 140, 112],
+      [17, 74, 46],
+      [7, 54, 24, 16, 55, 25],
+      [34, 37, 13],
+
+      // 23
+      [4, 151, 121, 5, 152, 122],
+      [4, 75, 47, 14, 76, 48],
+      [11, 54, 24, 14, 55, 25],
+      [16, 45, 15, 14, 46, 16],
+
+      // 24
+      [6, 147, 117, 4, 148, 118],
+      [6, 73, 45, 14, 74, 46],
+      [11, 54, 24, 16, 55, 25],
+      [30, 46, 16, 2, 47, 17],
+
+      // 25
+      [8, 132, 106, 4, 133, 107],
+      [8, 75, 47, 13, 76, 48],
+      [7, 54, 24, 22, 55, 25],
+      [22, 45, 15, 13, 46, 16],
+
+      // 26
+      [10, 142, 114, 2, 143, 115],
+      [19, 74, 46, 4, 75, 47],
+      [28, 50, 22, 6, 51, 23],
+      [33, 46, 16, 4, 47, 17],
+
+      // 27
+      [8, 152, 122, 4, 153, 123],
+      [22, 73, 45, 3, 74, 46],
+      [8, 53, 23, 26, 54, 24],
+      [12, 45, 15, 28, 46, 16],
+
+      // 28
+      [3, 147, 117, 10, 148, 118],
+      [3, 73, 45, 23, 74, 46],
+      [4, 54, 24, 31, 55, 25],
+      [11, 45, 15, 31, 46, 16],
+
+      // 29
+      [7, 146, 116, 7, 147, 117],
+      [21, 73, 45, 7, 74, 46],
+      [1, 53, 23, 37, 54, 24],
+      [19, 45, 15, 26, 46, 16],
+
+      // 30
+      [5, 145, 115, 10, 146, 116],
+      [19, 75, 47, 10, 76, 48],
+      [15, 54, 24, 25, 55, 25],
+      [23, 45, 15, 25, 46, 16],
+
+      // 31
+      [13, 145, 115, 3, 146, 116],
+      [2, 74, 46, 29, 75, 47],
+      [42, 54, 24, 1, 55, 25],
+      [23, 45, 15, 28, 46, 16],
+
+      // 32
+      [17, 145, 115],
+      [10, 74, 46, 23, 75, 47],
+      [10, 54, 24, 35, 55, 25],
+      [19, 45, 15, 35, 46, 16],
+
+      // 33
+      [17, 145, 115, 1, 146, 116],
+      [14, 74, 46, 21, 75, 47],
+      [29, 54, 24, 19, 55, 25],
+      [11, 45, 15, 46, 46, 16],
+
+      // 34
+      [13, 145, 115, 6, 146, 116],
+      [14, 74, 46, 23, 75, 47],
+      [44, 54, 24, 7, 55, 25],
+      [59, 46, 16, 1, 47, 17],
+
+      // 35
+      [12, 151, 121, 7, 152, 122],
+      [12, 75, 47, 26, 76, 48],
+      [39, 54, 24, 14, 55, 25],
+      [22, 45, 15, 41, 46, 16],
+
+      // 36
+      [6, 151, 121, 14, 152, 122],
+      [6, 75, 47, 34, 76, 48],
+      [46, 54, 24, 10, 55, 25],
+      [2, 45, 15, 64, 46, 16],
+
+      // 37
+      [17, 152, 122, 4, 153, 123],
+      [29, 74, 46, 14, 75, 47],
+      [49, 54, 24, 10, 55, 25],
+      [24, 45, 15, 46, 46, 16],
+
+      // 38
+      [4, 152, 122, 18, 153, 123],
+      [13, 74, 46, 32, 75, 47],
+      [48, 54, 24, 14, 55, 25],
+      [42, 45, 15, 32, 46, 16],
+
+      // 39
+      [20, 147, 117, 4, 148, 118],
+      [40, 75, 47, 7, 76, 48],
+      [43, 54, 24, 22, 55, 25],
+      [10, 45, 15, 67, 46, 16],
+
+      // 40
+      [19, 148, 118, 6, 149, 119],
+      [18, 75, 47, 31, 76, 48],
+      [34, 54, 24, 34, 55, 25],
+      [20, 45, 15, 61, 46, 16]
+    ];
+
+    var qrRSBlock = function(totalCount, dataCount) {
+      var _this = {};
+      _this.totalCount = totalCount;
+      _this.dataCount = dataCount;
+      return _this;
+    };
+
+    var _this = {};
+
+    var getRsBlockTable = function(typeNumber, errorCorrectionLevel) {
+
+      switch(errorCorrectionLevel) {
+      case QRErrorCorrectionLevel.L :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+      case QRErrorCorrectionLevel.M :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+      case QRErrorCorrectionLevel.Q :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+      case QRErrorCorrectionLevel.H :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+      default :
+        return undefined;
+      }
+    };
+
+    _this.getRSBlocks = function(typeNumber, errorCorrectionLevel) {
+
+      var rsBlock = getRsBlockTable(typeNumber, errorCorrectionLevel);
+
+      if (typeof rsBlock == 'undefined') {
+        throw 'bad rs block @ typeNumber:' + typeNumber +
+            '/errorCorrectionLevel:' + errorCorrectionLevel;
+      }
+
+      var length = rsBlock.length / 3;
+
+      var list = [];
+
+      for (var i = 0; i < length; i += 1) {
+
+        var count = rsBlock[i * 3 + 0];
+        var totalCount = rsBlock[i * 3 + 1];
+        var dataCount = rsBlock[i * 3 + 2];
+
+        for (var j = 0; j < count; j += 1) {
+          list.push(qrRSBlock(totalCount, dataCount) );
+        }
+      }
+
+      return list;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrBitBuffer
+  //---------------------------------------------------------------------
+
+  var qrBitBuffer = function() {
+
+    var _buffer = [];
+    var _length = 0;
+
+    var _this = {};
+
+    _this.getBuffer = function() {
+      return _buffer;
+    };
+
+    _this.getAt = function(index) {
+      var bufIndex = Math.floor(index / 8);
+      return ( (_buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+    };
+
+    _this.put = function(num, length) {
+      for (var i = 0; i < length; i += 1) {
+        _this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+      }
+    };
+
+    _this.getLengthInBits = function() {
+      return _length;
+    };
+
+    _this.putBit = function(bit) {
+
+      var bufIndex = Math.floor(_length / 8);
+      if (_buffer.length <= bufIndex) {
+        _buffer.push(0);
+      }
+
+      if (bit) {
+        _buffer[bufIndex] |= (0x80 >>> (_length % 8) );
+      }
+
+      _length += 1;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrNumber
+  //---------------------------------------------------------------------
+
+  var qrNumber = function(data) {
+
+    var _mode = QRMode.MODE_NUMBER;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _data;
+
+      var i = 0;
+
+      while (i + 2 < data.length) {
+        buffer.put(strToNum(data.substring(i, i + 3) ), 10);
+        i += 3;
+      }
+
+      if (i < data.length) {
+        if (data.length - i == 1) {
+          buffer.put(strToNum(data.substring(i, i + 1) ), 4);
+        } else if (data.length - i == 2) {
+          buffer.put(strToNum(data.substring(i, i + 2) ), 7);
+        }
+      }
+    };
+
+    var strToNum = function(s) {
+      var num = 0;
+      for (var i = 0; i < s.length; i += 1) {
+        num = num * 10 + chatToNum(s.charAt(i) );
+      }
+      return num;
+    };
+
+    var chatToNum = function(c) {
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      }
+      throw 'illegal char :' + c;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrAlphaNum
+  //---------------------------------------------------------------------
+
+  var qrAlphaNum = function(data) {
+
+    var _mode = QRMode.MODE_ALPHA_NUM;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var s = _data;
+
+      var i = 0;
+
+      while (i + 1 < s.length) {
+        buffer.put(
+          getCode(s.charAt(i) ) * 45 +
+          getCode(s.charAt(i + 1) ), 11);
+        i += 2;
+      }
+
+      if (i < s.length) {
+        buffer.put(getCode(s.charAt(i) ), 6);
+      }
+    };
+
+    var getCode = function(c) {
+
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      } else if ('A' <= c && c <= 'Z') {
+        return c.charCodeAt(0) - 'A'.charCodeAt(0) + 10;
+      } else {
+        switch (c) {
+        case ' ' : return 36;
+        case '$' : return 37;
+        case '%' : return 38;
+        case '*' : return 39;
+        case '+' : return 40;
+        case '-' : return 41;
+        case '.' : return 42;
+        case '/' : return 43;
+        case ':' : return 44;
+        default :
+          throw 'illegal char :' + c;
+        }
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qr8BitByte
+  //---------------------------------------------------------------------
+
+  var qr8BitByte = function(data) {
+
+    var _mode = QRMode.MODE_8BIT_BYTE;
+    var _data = data;
+    var _bytes = qrcode.stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _bytes.length;
+    };
+
+    _this.write = function(buffer) {
+      for (var i = 0; i < _bytes.length; i += 1) {
+        buffer.put(_bytes[i], 8);
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrKanji
+  //---------------------------------------------------------------------
+
+  var qrKanji = function(data) {
+
+    var _mode = QRMode.MODE_KANJI;
+    var _data = data;
+
+    var stringToBytes = qrcode.stringToBytesFuncs['SJIS'];
+    if (!stringToBytes) {
+      throw 'sjis not supported.';
+    }
+    !function(c, code) {
+      // self test for sjis support.
+      var test = stringToBytes(c);
+      if (test.length != 2 || ( (test[0] << 8) | test[1]) != code) {
+        throw 'sjis not supported.';
+      }
+    }('\u53cb', 0x9746);
+
+    var _bytes = stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return ~~(_bytes.length / 2);
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _bytes;
+
+      var i = 0;
+
+      while (i + 1 < data.length) {
+
+        var c = ( (0xff & data[i]) << 8) | (0xff & data[i + 1]);
+
+        if (0x8140 <= c && c <= 0x9FFC) {
+          c -= 0x8140;
+        } else if (0xE040 <= c && c <= 0xEBBF) {
+          c -= 0xC140;
+        } else {
+          throw 'illegal char at ' + (i + 1) + '/' + c;
+        }
+
+        c = ( (c >>> 8) & 0xff) * 0xC0 + (c & 0xff);
+
+        buffer.put(c, 13);
+
+        i += 2;
+      }
+
+      if (i < data.length) {
+        throw 'illegal char at ' + (i + 1);
+      }
+    };
+
+    return _this;
+  };
+
+  //=====================================================================
+  // GIF Support etc.
+  //
+
+  //---------------------------------------------------------------------
+  // byteArrayOutputStream
+  //---------------------------------------------------------------------
+
+  var byteArrayOutputStream = function() {
+
+    var _bytes = [];
+
+    var _this = {};
+
+    _this.writeByte = function(b) {
+      _bytes.push(b & 0xff);
+    };
+
+    _this.writeShort = function(i) {
+      _this.writeByte(i);
+      _this.writeByte(i >>> 8);
+    };
+
+    _this.writeBytes = function(b, off, len) {
+      off = off || 0;
+      len = len || b.length;
+      for (var i = 0; i < len; i += 1) {
+        _this.writeByte(b[i + off]);
+      }
+    };
+
+    _this.writeString = function(s) {
+      for (var i = 0; i < s.length; i += 1) {
+        _this.writeByte(s.charCodeAt(i) );
+      }
+    };
+
+    _this.toByteArray = function() {
+      return _bytes;
+    };
+
+    _this.toString = function() {
+      var s = '';
+      s += '[';
+      for (var i = 0; i < _bytes.length; i += 1) {
+        if (i > 0) {
+          s += ',';
+        }
+        s += _bytes[i];
+      }
+      s += ']';
+      return s;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // base64EncodeOutputStream
+  //---------------------------------------------------------------------
+
+  var base64EncodeOutputStream = function() {
+
+    var _buffer = 0;
+    var _buflen = 0;
+    var _length = 0;
+    var _base64 = '';
+
+    var _this = {};
+
+    var writeEncoded = function(b) {
+      _base64 += String.fromCharCode(encode(b & 0x3f) );
+    };
+
+    var encode = function(n) {
+      if (n < 0) {
+        // error.
+      } else if (n < 26) {
+        return 0x41 + n;
+      } else if (n < 52) {
+        return 0x61 + (n - 26);
+      } else if (n < 62) {
+        return 0x30 + (n - 52);
+      } else if (n == 62) {
+        return 0x2b;
+      } else if (n == 63) {
+        return 0x2f;
+      }
+      throw 'n:' + n;
+    };
+
+    _this.writeByte = function(n) {
+
+      _buffer = (_buffer << 8) | (n & 0xff);
+      _buflen += 8;
+      _length += 1;
+
+      while (_buflen >= 6) {
+        writeEncoded(_buffer >>> (_buflen - 6) );
+        _buflen -= 6;
+      }
+    };
+
+    _this.flush = function() {
+
+      if (_buflen > 0) {
+        writeEncoded(_buffer << (6 - _buflen) );
+        _buffer = 0;
+        _buflen = 0;
+      }
+
+      if (_length % 3 != 0) {
+        // padding
+        var padlen = 3 - _length % 3;
+        for (var i = 0; i < padlen; i += 1) {
+          _base64 += '=';
+        }
+      }
+    };
+
+    _this.toString = function() {
+      return _base64;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // base64DecodeInputStream
+  //---------------------------------------------------------------------
+
+  var base64DecodeInputStream = function(str) {
+
+    var _str = str;
+    var _pos = 0;
+    var _buffer = 0;
+    var _buflen = 0;
+
+    var _this = {};
+
+    _this.read = function() {
+
+      while (_buflen < 8) {
+
+        if (_pos >= _str.length) {
+          if (_buflen == 0) {
+            return -1;
+          }
+          throw 'unexpected end of file./' + _buflen;
+        }
+
+        var c = _str.charAt(_pos);
+        _pos += 1;
+
+        if (c == '=') {
+          _buflen = 0;
+          return -1;
+        } else if (c.match(/^\s$/) ) {
+          // ignore if whitespace.
+          continue;
+        }
+
+        _buffer = (_buffer << 6) | decode(c.charCodeAt(0) );
+        _buflen += 6;
+      }
+
+      var n = (_buffer >>> (_buflen - 8) ) & 0xff;
+      _buflen -= 8;
+      return n;
+    };
+
+    var decode = function(c) {
+      if (0x41 <= c && c <= 0x5a) {
+        return c - 0x41;
+      } else if (0x61 <= c && c <= 0x7a) {
+        return c - 0x61 + 26;
+      } else if (0x30 <= c && c <= 0x39) {
+        return c - 0x30 + 52;
+      } else if (c == 0x2b) {
+        return 62;
+      } else if (c == 0x2f) {
+        return 63;
+      } else {
+        throw 'c:' + c;
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // gifImage (B/W)
+  //---------------------------------------------------------------------
+
+  var gifImage = function(width, height) {
+
+    var _width = width;
+    var _height = height;
+    var _data = new Array(width * height);
+
+    var _this = {};
+
+    _this.setPixel = function(x, y, pixel) {
+      _data[y * _width + x] = pixel;
+    };
+
+    _this.write = function(out) {
+
+      //---------------------------------
+      // GIF Signature
+
+      out.writeString('GIF87a');
+
+      //---------------------------------
+      // Screen Descriptor
+
+      out.writeShort(_width);
+      out.writeShort(_height);
+
+      out.writeByte(0x80); // 2bit
+      out.writeByte(0);
+      out.writeByte(0);
+
+      //---------------------------------
+      // Global Color Map
+
+      // black
+      out.writeByte(0x00);
+      out.writeByte(0x00);
+      out.writeByte(0x00);
+
+      // white
+      out.writeByte(0xff);
+      out.writeByte(0xff);
+      out.writeByte(0xff);
+
+      //---------------------------------
+      // Image Descriptor
+
+      out.writeString(',');
+      out.writeShort(0);
+      out.writeShort(0);
+      out.writeShort(_width);
+      out.writeShort(_height);
+      out.writeByte(0);
+
+      //---------------------------------
+      // Local Color Map
+
+      //---------------------------------
+      // Raster Data
+
+      var lzwMinCodeSize = 2;
+      var raster = getLZWRaster(lzwMinCodeSize);
+
+      out.writeByte(lzwMinCodeSize);
+
+      var offset = 0;
+
+      while (raster.length - offset > 255) {
+        out.writeByte(255);
+        out.writeBytes(raster, offset, 255);
+        offset += 255;
+      }
+
+      out.writeByte(raster.length - offset);
+      out.writeBytes(raster, offset, raster.length - offset);
+      out.writeByte(0x00);
+
+      //---------------------------------
+      // GIF Terminator
+      out.writeString(';');
+    };
+
+    var bitOutputStream = function(out) {
+
+      var _out = out;
+      var _bitLength = 0;
+      var _bitBuffer = 0;
+
+      var _this = {};
+
+      _this.write = function(data, length) {
+
+        if ( (data >>> length) != 0) {
+          throw 'length over';
+        }
+
+        while (_bitLength + length >= 8) {
+          _out.writeByte(0xff & ( (data << _bitLength) | _bitBuffer) );
+          length -= (8 - _bitLength);
+          data >>>= (8 - _bitLength);
+          _bitBuffer = 0;
+          _bitLength = 0;
+        }
+
+        _bitBuffer = (data << _bitLength) | _bitBuffer;
+        _bitLength = _bitLength + length;
+      };
+
+      _this.flush = function() {
+        if (_bitLength > 0) {
+          _out.writeByte(_bitBuffer);
+        }
+      };
+
+      return _this;
+    };
+
+    var getLZWRaster = function(lzwMinCodeSize) {
+
+      var clearCode = 1 << lzwMinCodeSize;
+      var endCode = (1 << lzwMinCodeSize) + 1;
+      var bitLength = lzwMinCodeSize + 1;
+
+      // Setup LZWTable
+      var table = lzwTable();
+
+      for (var i = 0; i < clearCode; i += 1) {
+        table.add(String.fromCharCode(i) );
+      }
+      table.add(String.fromCharCode(clearCode) );
+      table.add(String.fromCharCode(endCode) );
+
+      var byteOut = byteArrayOutputStream();
+      var bitOut = bitOutputStream(byteOut);
+
+      // clear code
+      bitOut.write(clearCode, bitLength);
+
+      var dataIndex = 0;
+
+      var s = String.fromCharCode(_data[dataIndex]);
+      dataIndex += 1;
+
+      while (dataIndex < _data.length) {
+
+        var c = String.fromCharCode(_data[dataIndex]);
+        dataIndex += 1;
+
+        if (table.contains(s + c) ) {
+
+          s = s + c;
+
+        } else {
+
+          bitOut.write(table.indexOf(s), bitLength);
+
+          if (table.size() < 0xfff) {
+
+            if (table.size() == (1 << bitLength) ) {
+              bitLength += 1;
+            }
+
+            table.add(s + c);
+          }
+
+          s = c;
+        }
+      }
+
+      bitOut.write(table.indexOf(s), bitLength);
+
+      // end code
+      bitOut.write(endCode, bitLength);
+
+      bitOut.flush();
+
+      return byteOut.toByteArray();
+    };
+
+    var lzwTable = function() {
+
+      var _map = {};
+      var _size = 0;
+
+      var _this = {};
+
+      _this.add = function(key) {
+        if (_this.contains(key) ) {
+          throw 'dup key:' + key;
+        }
+        _map[key] = _size;
+        _size += 1;
+      };
+
+      _this.size = function() {
+        return _size;
+      };
+
+      _this.indexOf = function(key) {
+        return _map[key];
+      };
+
+      _this.contains = function(key) {
+        return typeof _map[key] != 'undefined';
+      };
+
+      return _this;
+    };
+
+    return _this;
+  };
+
+  var createDataURL = function(width, height, getPixel) {
+    var gif = gifImage(width, height);
+    for (var y = 0; y < height; y += 1) {
+      for (var x = 0; x < width; x += 1) {
+        gif.setPixel(x, y, getPixel(x, y) );
+      }
+    }
+
+    var b = byteArrayOutputStream();
+    gif.write(b);
+
+    var base64 = base64EncodeOutputStream();
+    var bytes = b.toByteArray();
+    for (var i = 0; i < bytes.length; i += 1) {
+      base64.writeByte(bytes[i]);
+    }
+    base64.flush();
+
+    return 'data:image/gif;base64,' + base64;
+  };
+
+  //---------------------------------------------------------------------
+  // returns qrcode function.
+
+  return qrcode;
+}();
+
+// multibyte support
+!function() {
+
+  qrcode.stringToBytesFuncs['UTF-8'] = function(s) {
+    // http://stackoverflow.com/questions/18729405/how-to-convert-utf8-string-to-byte-array
+    function toUTF8Array(str) {
+      var utf8 = [];
+      for (var i=0; i < str.length; i++) {
+        var charcode = str.charCodeAt(i);
+        if (charcode < 0x80) utf8.push(charcode);
+        else if (charcode < 0x800) {
+          utf8.push(0xc0 | (charcode >> 6),
+              0x80 | (charcode & 0x3f));
+        }
+        else if (charcode < 0xd800 || charcode >= 0xe000) {
+          utf8.push(0xe0 | (charcode >> 12),
+              0x80 | ((charcode>>6) & 0x3f),
+              0x80 | (charcode & 0x3f));
+        }
+        // surrogate pair
+        else {
+          i++;
+          // UTF-16 encodes 0x10000-0x10FFFF by
+          // subtracting 0x10000 and splitting the
+          // 20 bits of 0x0-0xFFFFF into two halves
+          charcode = 0x10000 + (((charcode & 0x3ff)<<10)
+            | (str.charCodeAt(i) & 0x3ff));
+          utf8.push(0xf0 | (charcode >>18),
+              0x80 | ((charcode>>12) & 0x3f),
+              0x80 | ((charcode>>6) & 0x3f),
+              0x80 | (charcode & 0x3f));
+        }
+      }
+      return utf8;
+    }
+    return toUTF8Array(s);
+  };
+
+}();
+
+(function (factory) {
+  if (typeof define === 'function' && define.amd) {
+      define([], factory);
+  } else if (typeof exports === 'object') {
+      module.exports = factory();
+  }
+}(function () {
+    return qrcode;
+}));
+
+</script>
+<script>
+/* ===== 기본 ===== */
+const APP = 'KCSAT 감독 호출 보드';
+const MAIL = 'fond7509@naver.com';
+const NEED_GAS = 2;                       // 이 화면이 필요로 하는 GAS 코드 버전 (GAS를 고칠 때 같이 올려요)
+const GAS_FILE = 'Cheon-R-KCSAT-call-board.gs';
+const K = { gas:'kcsat_gas_v1', sound:'kcsat_sound_v1', font:'kcsat_font_v1', practice:'kcsat_practice_v1', reg:'kcsat_reg_v1', from:'kcsat_from_v1', rv:'kcsat_rv_v1' };
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const DEMO = new URLSearchParams(location.search).get('demo') === '1';   // 🎬 체험 모드: 가짜 서버만 쓰고, 이 기기에 아무것도 저장하지 않고, 아무 데도 보내지 않아요
+const _mem = {};
+function lsGet(k, d){ if (DEMO) return k in _mem ? _mem[k] : d; try{ const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); }catch(e){ return d; } }
+function lsSet(k, v){ if (DEMO){ _mem[k] = v; return; } try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+function ssGet(k){ if (DEMO) return _mem['ss_' + k] || ''; try{ return sessionStorage.getItem(k) || ''; }catch(e){ return ''; } }
+function ssSet(k, v){ if (DEMO){ _mem['ss_' + k] = v; return; } try{ v ? sessionStorage.setItem(k, v) : sessionStorage.removeItem(k); }catch(e){} }
+
+(function initGas(){
+  const g = new URLSearchParams(location.search).get('gas');
+  if (g && g.trim() && !DEMO) lsSet(K.gas, g.trim());
+})();
+let GAS = DEMO ? 'demo://sample' : lsGet(K.gas, '');
+const MODE = new URLSearchParams(location.search).get('mode') || '';
+let off = 0;                              // 서버 시계 - 이 기기 시계
+const nowMs = () => Date.now() + off;
+let gasVer = null;
+
+/* ===== JSONP (no-cors 금지 · 응답을 끝까지 확인) ===== */
+let jpSeq = 0;
+function jsonp(params, base, timeout){
+  if (DEMO) return demoApi(params);   // 체험 모드: 네트워크를 쓰지 않아요
+  return new Promise((resolve, reject) => {
+    const B = base || GAS;
+    if (!B) return reject(new Error('연결 주소가 없어요. 본부에서 만든 링크로 다시 열어 주세요.'));
+    const cb = '__kc' + Date.now() + (jpSeq++);
+    const s = document.createElement('script');
+    const t = setTimeout(() => { cleanup(); reject(new Error('서버 응답이 없어요. 인터넷 연결을 확인하고 다시 눌러 주세요.')); }, timeout || 25000);
+    function cleanup(){ clearTimeout(t); delete window[cb]; s.remove(); }
+    window[cb] = res => { cleanup(); res && res.ok ? resolve(res) : reject(new Error((res && res.error) || '요청에 실패했어요.')); };
+    const q = new URLSearchParams({ ...params, callback: cb, _: Date.now() });
+    s.src = B + (B.includes('?') ? '&' : '?') + q.toString();
+    s.onerror = () => { cleanup(); reject(new Error('서버에 연결하지 못했어요. 주소와 인터넷 연결을 확인해 주세요.')); };
+    document.body.appendChild(s);
+  });
+}
+/* 오래 걸리면 몇 초째인지 알려줘요 */
+function waitOn(el, base){
+  if (!el) return;
+  const t0 = Date.now(); let last = base; el.className = 'msg'; el.textContent = base;
+  const iv = setInterval(() => {
+    if (!el.isConnected || el.textContent !== last) return clearInterval(iv);
+    const s = Math.floor((Date.now() - t0) / 1000);
+    last = s >= 20 ? `${base} 너무 오래 걸려요 (${s}초). 다시 눌러 주세요.` : s >= 10 ? `${base} 아직 기다리는 중이에요 (${s}초)` : s >= 5 ? `${base} 구글 서버가 조금 느려요 (${s}초)` : base;
+    el.textContent = last;
+  }, 1000);
+}
+function msg(id, text, ok){ const el = $(id); if (!el) return; el.textContent = text; el.className = 'msg' + (text ? (ok ? ' ok' : ' err') : ''); }
+function toast(t){ const d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), 2600); }
+function confirmBox(title, body, okText){
+  return new Promise(res => {
+    const w = $('ovWrap');
+    w.innerHTML = `<div class="ov"><div class="box"><h3 style="margin:0 0 8px">${esc(title)}</h3><p class="hint" style="margin:0 0 16px">${esc(body)}</p><div class="row" style="justify-content:flex-end"><button class="btn sub" id="cfNo">취소</button><button class="btn red" id="cfYes">${esc(okText || '확인')}</button></div></div></div>`;
+    $('cfNo').onclick = () => { w.innerHTML = ''; res(false); };
+    $('cfYes').onclick = () => { w.innerHTML = ''; res(true); };
+  });
+}
+const SCREENS = ['scrEntry','scrIntro','scrNeed','scrLogin','scrPw','scrReg','scrAdmin','scrRoom'];
+function show(id){ SCREENS.forEach(s => $(s).classList.toggle('hide', s !== id)); document.documentElement.classList.toggle('room', id === 'scrRoom'); window.scrollTo(0, 0); }
+function mailHref(){ return `mailto:${MAIL}?subject=${encodeURIComponent('[' + APP + '] 문의')}`; }
+function fillFooters(){
+  document.querySelectorAll('footer.ft').forEach(f => f.innerHTML = `Made by Cheon_R · 문의 <a href="${mailHref()}">${MAIL}</a>`);
+  document.querySelectorAll('.regMailLink').forEach(f => f.innerHTML = `<a href="${mailHref()}">${MAIL}</a>`);
+  $('rMail').href = mailHref(); $('rMail').textContent = '문의 ' + MAIL;
+}
+function goMode(m){ location.href = location.pathname + (m ? '?mode=' + m : ''); }
+const hhmm = s => String(s || '').slice(11, 16);
+const hhmmss = d => String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ':' + String(d.getSeconds()).padStart(2,'0');
+function elapsed(ms){
+  const s = Math.max(0, Math.floor(ms / 1000)), m = Math.floor(s / 60);
+  return m >= 60 ? `${Math.floor(m/60)}시간 ${m%60}분` : m >= 1 ? `${m}분 ${s%60}초` : `${s}초`;
+}
+const newId = () => 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+/* ===== 소리 · 깜빡임 ===== */
+let actx = null, audioUnlocked = false, soundOn = lsGet(K.sound, true) !== false, blinkTimer = null, baseTitle = document.title;
+function beep(times){
+  if (!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const n = (times || 1) * 2;
+    for (let i = 0; i < n; i++){
+      const t0 = i * 0.28, o = actx.createOscillator(), g = actx.createGain();
+      o.frequency.value = i % 2 ? 660 : 880; o.connect(g); g.connect(actx.destination);
+      g.gain.setValueAtTime(0.3, actx.currentTime + t0);
+      g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + t0 + 0.24);
+      o.start(actx.currentTime + t0); o.stop(actx.currentTime + t0 + 0.25);
+    }
+  }catch(e){}
+}
+document.addEventListener('pointerdown', () => {
+  try{ actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); }catch(e){}
+  audioUnlocked = true; $('rUnlock').classList.add('hide'); stopBlink();
+});
+function flash(urgent){
+  const f = $('flash'); f.className = ''; void f.offsetWidth; f.className = 'go' + (urgent ? ' u' : '');
+  setTimeout(() => { f.className = ''; }, 4200);
+  if (document.hidden && !blinkTimer){
+    let on = false; blinkTimer = setInterval(() => { document.title = (on = !on) ? '🔴 새 호출!' : baseTitle; }, 1000);
+  }
+}
+function stopBlink(){ if (blinkTimer){ clearInterval(blinkTimer); blinkTimer = null; } document.title = baseTitle; }
+document.addEventListener('visibilitychange', () => { if (!document.hidden) stopBlink(); });
+
+/* ===== 시작 ===== */
+async function boot(){
+  fillFooters();
+  document.documentElement.classList.add('f' + lsGet(K.font, 1));
+  if (DEMO) return startDemoMode();
+  if (!GAS && MODE){ if (MODE === 'admin' && needReg()) return showReg('pre'); return showNeed(); }
+  if (!GAS) return show('scrEntry');
+  if (MODE === 'room') return startRoom();
+  if (MODE === 'admin'){
+    const pw = ssGet('kcsat_pw');
+    if (pw){ try{ const r = await jsonp({ action:'login', pw }); if (r.role === 'admin'){ PW = pw; gasVer = r.gasVer; IID = r.installId || ''; return enterAdmin(); } }catch(e){} }
+    return show('scrLogin'), setTimeout(() => $('pwIn').focus(), 50);
+  }
+  show('scrEntry');
+}
+
+/* ===== 처음 설정 / 설치 안내 ===== */
+function showNeed(){
+  $('needRoom').textContent = MODE === 'room' ? '대기실 화면이에요. 본부 노트북 [설정] 탭에서 복사한 "대기실 링크"로 열어 주세요. (주소가 없으면 아래에 직접 붙여넣어도 돼요)' : '처음 한 번만 하면 돼요. 아래 순서대로 만든 뒤 마지막에 받은 주소를 붙여넣어 주세요.';
+  $('guideWrap').innerHTML = guideHtml(true);
+  show('scrNeed');
+}
+function guideHtml(open, sfx){
+  sfx = sfx || '';
+  return `<details class="acc" ${open ? 'open' : ''}><summary>📘 설치 가이드 (처음 한 번)</summary><div class="in"><ol style="margin:0;padding-left:20px">
+  <li>구글 드라이브에서 <b>새 구글 시트</b>를 만들어요. (이름 예: 수능 감독 호출)</li>
+  <li>시트 메뉴 <b>확장 프로그램 → Apps Script</b>를 열어요.</li>
+  <li>기본 코드를 모두 지우고, 아래 <b>[코드 전체 복사]</b>로 복사한 코드를 붙여넣은 뒤 💾 저장해요.
+    <div class="row" style="margin:8px 0"><button class="btn sm" onclick="copyGas('gasCopyMsg${sfx}')">📋 코드 전체 복사</button><span class="msg" id="gasCopyMsg${sfx}" style="margin:0"></span></div></li>
+  <li>오른쪽 위 <b>배포 → 새 배포 → 유형: 웹 앱</b> · 실행 계정 <b>나</b> · 액세스 권한 <b>모든 사용자</b> → 배포 (권한 요청이 나오면 허용)</li>
+  <li>나온 <b>웹 앱 URL</b>(…/exec로 끝나요)을 복사해 이 화면 위 칸에 붙여넣어요.</li>
+  <li>⚠️ 나중에 코드를 고칠 때는 <b>배포 → 배포 관리 → ✏️ 수정 → 새 버전</b>으로만 다시 배포해요. <b>"새 배포"를 누르면 주소가 바뀌어 연결이 끊겨요.</b></li>
+  </ol></div></details>
+  <details class="acc"><summary>🛠 연결이 안 될 때</summary><div class="in"><ul style="margin:0;padding-left:20px">
+  <li>주소가 <b>/exec</b>로 끝나는지 확인해요. (/dev로 끝나면 안 돼요)</li>
+  <li>배포 설정의 <b>액세스 권한이 "모든 사용자"</b>인지 확인해요.</li>
+  <li>코드를 고친 뒤에는 <b>수정 → 새 버전</b>으로 다시 배포해야 반영돼요.</li>
+  <li>학교 계정에서 막히면 개인 구글 계정으로 만들어 보세요.</li></ul></div></details>`;
+}
+let gasText = '';
+async function ensureGasText(){
+  if (gasText) return true;
+  try{ const r = await fetch(GAS_FILE + '?_=' + Date.now()); if (!r.ok) return false; gasText = await r.text(); return true; }catch(e){ return false; }
+}
+async function copyGas(msgId){
+  msg(msgId, '코드를 불러오는 중…', true);
+  if (!(await ensureGasText())){ msg(msgId, '코드를 불러오지 못했어요. 인터넷 연결을 확인하고, 깃허브에 ' + GAS_FILE + ' 파일이 같은 폴더에 있는지 확인해 주세요.'); return; }
+  const v = (gasText.match(/var GAS_VER\s*=\s*(\d+)/) || [])[1];
+  if (Number(v) < NEED_GAS){ msg(msgId, '⚠️ 깃허브에 올라간 코드가 옛 버전이에요. 새 코드 파일을 올려 주세요.'); return; }
+  try{ await navigator.clipboard.writeText(gasText); msg(msgId, '복사했어요! Apps Script에 붙여넣기 하세요 ✅', true); }
+  catch(e){ msg(msgId, '자동 복사가 막혔어요. 브라우저 주소창에 ' + GAS_FILE + ' 를 열어 직접 전체 복사해 주세요.'); }
+}
+async function connectGas(){
+  const u = $('gasIn').value.trim();
+  if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(u)){ msg('needMsg', '주소가 올바르지 않아요. https://script.google.com/…/exec 로 끝나는 웹 앱 URL을 붙여넣어 주세요.'); return; }
+  waitOn($('needMsg'), '연결을 확인하는 중…');
+  try{ const r = await jsonp({ action:'ping' }, u); lsSet(K.gas, u); GAS = u; gasVer = r.gasVer; location.href = location.pathname + (MODE ? '?mode=' + MODE : '?mode=admin'); }
+  catch(e){ msg('needMsg', e.message); }
+}
+
+/* ===== 로그인 ===== */
+let PW = '';
+async function doLogin(){
+  const pw = $('pwIn').value;
+  if (!pw){ msg('loginMsg', '비밀번호를 입력해 주세요.'); return; }
+  $('loginBtn').disabled = true; waitOn($('loginMsg'), '확인하는 중…');
+  try{
+    const r = await jsonp({ action:'login', pw });
+    if (r.role !== 'admin'){ msg('loginMsg', '비밀번호가 맞지 않아요.'); return; }
+    PW = pw; gasVer = r.gasVer; IID = r.installId || ''; ssSet('kcsat_pw', pw);
+    if (r.mustChange){ $('npw1').value = ''; $('npw2').value = ''; msg('npwMsg', ''); return show('scrPw'); }
+    enterAdmin();
+  }catch(e){ msg('loginMsg', e.message); }
+  finally{ $('loginBtn').disabled = false; }
+}
+async function changeFirstPw(){
+  const a = $('npw1').value, b = $('npw2').value;
+  if (a.length < 4){ msg('npwMsg', '4자 이상으로 정해 주세요.'); return; }
+  if (a !== b){ msg('npwMsg', '두 칸이 서로 달라요.'); return; }
+  $('npwBtn').disabled = true; waitOn($('npwMsg'), '바꾸는 중…');
+  try{ await jsonp({ action:'changePw', pw:PW, newPw:a }); PW = a; ssSet('kcsat_pw', a); enterAdmin(); }
+  catch(e){ msg('npwMsg', e.message); }
+  finally{ $('npwBtn').disabled = false; }
+}
+function logout(){ if (DEMO) return goMode(''); ssSet('kcsat_pw', ''); PW = ''; location.href = location.pathname + '?mode=admin'; }
+
+/* ================= 본부(관리자) ================= */
+let S = { calls:[], notices:[], lists:{ period:[], role:[], supply:[], phrase:[], apphrase:[], roster:[] }, settings:{ memoDefault:false, suppliesFormat:'지참물: {items}', roomMax:30 } };
+let tab = 'call', flt = 'all', sortKey = 'room', sortDir = 1, practice = lsGet(K.practice, false) === true, adminTimer = null, loadingA = false, listSig = '';
+const A_ST = { lastOk:Date.now(), kind:'', snooze:0, beepT:0, html:'' };
+let F = null, AF = { text:'', urgent:false, minutes:0 };
+const blankT = () => ({ id:newId(), room:'', roomOther:'', role:'', roleOther:'', name:'' });
+function newForm(keep){
+  return { group:'', period: keep ? keep.period : '', periodOther: keep ? keep.periodOther : '', targets:[blankT()], msg:'본부로 오세요', supplies:[], supOther:'', memo:'', memoPub:S.settings.memoDefault, urgent:false };
+}
+async function enterAdmin(){
+  if (!(await regGate())) return;   // 등록 확인 (등록부가 안 열리면 그냥 통과해요)
+  show('scrAdmin'); $('pracSw').checked = practice;
+  F = newForm();
+  await refreshAdmin(true);
+  F.memoPub = S.settings.memoDefault;
+  renderAll(); setTab('call');
+  clearInterval(adminTimer); adminTimer = setInterval(() => refreshAdmin(false), 5000);
+  A_ST.lastOk = Date.now(); setInterval(watchAdmin, 2000); watchAdmin();
+  gateUi();
+}
+async function refreshAdmin(manual){
+  if (loadingA) return; loadingA = true;
+  try{
+    const r = await jsonp({ action:'adminLoad', pw:PW }, null, 10000);
+    off = r.now - Date.now(); gasVer = r.gasVer; A_ST.lastOk = Date.now(); S.room = r.room || null;
+    S.calls = r.calls; S.notices = r.notices; S.settings = r.settings;
+    const sig = JSON.stringify([r.lists, r.settings]);
+    const changed = sig !== listSig; S.lists = r.lists; listSig = sig;
+    $('aConn').innerHTML = '<i class="dot"></i>연결됨 ' + hhmmss(new Date());
+    renderBadge(); renderGasOld(); sendUsage();
+    if (changed && F && tab === 'call') renderCall();
+    if (tab === 'status') renderStatus(); if (tab === 'ann') renderAnn(); if (tab === 'view') renderView();
+    if (manual && $('pgSet') && tab === 'set') renderSet();
+  }catch(e){
+    $('aConn').innerHTML = '<i class="dot bad"></i>연결 끊김 — 다시 시도 중';
+    if (e.message.indexOf('권한') >= 0) logout();
+  }finally{ loadingA = false; }
+}
+function renderAll(){ renderCall(); renderAnn(); renderStatus(); renderSet(); renderBadge(); renderGasOld(); }
+function setTab(t){
+  tab = t;
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  ['call','ann','status','view','set','own'].forEach(x => $('pg' + x[0].toUpperCase() + x.slice(1)).classList.toggle('hide', x !== t));
+  if (t === 'call') renderCall(); if (t === 'ann') renderAnn(); if (t === 'status') renderStatus(); if (t === 'set') renderSet();
+  if (t === 'view') startPreview(); else stopPreview();
+  if (t === 'own') loadOwn(true);
+}
+function setPractice(on){ practice = on; lsSet(K.practice, on); renderCall(); renderAnn(); renderStatus(); renderBadge(); }
+const visCalls = () => S.calls.filter(c => c.practice === practice);
+const visNotices = () => S.notices.filter(n => n.practice === practice);
+function renderBadge(){
+  const n = visCalls().filter(c => c.status === '미처리' || c.status === '확인됨').length;
+  const b = $('bdg'); b.textContent = n; b.classList.toggle('hide', !n);
+}
+function renderGasOld(){
+  const el = $('gasOld'), old = gasVer !== null && gasVer < NEED_GAS;
+  el.classList.toggle('hide', !old);
+  if (old) el.innerHTML = `⚠️ 구글 시트의 코드가 옛 버전이에요 (버전 ${gasVer || '옛'} → ${NEED_GAS}). [설정] 탭에서 새 코드를 복사해 붙여넣고 <b>배포 → 배포 관리 → ✏️ 수정 → 새 버전</b>으로 다시 배포해 주세요. (새 배포 ✖)`;
+}
+const pracBanner = () => practice ? `<div class="pract">🧪 연습 모드예요. 실제 호출이 아니고, 대기실 화면에도 "연습"으로 표시돼요. 끝나면 [현황]에서 연습 기록을 지울 수 있어요.</div>` : '';
+
+/* ----- 호출하기 ----- */
+function chipHtml(label, on, fn, cls){ return `<span class="chip ${cls || ''} ${on ? 'on' : ''}" role="button" tabindex="0" onclick="${fn}" onkeydown="if(event.key==='Enter')${fn}">${esc(label)}</span>`; }
+function resolveRoom(t){ return t.room === '기타' ? t.roomOther.trim() : t.room; }
+function resolveRole(t){ return t.role === '기타' ? t.roleOther.trim() : t.role; }
+function validTargets(){ return F.targets.filter(t => resolveRoom(t) || t.name.trim()); }
+function renderCall(){
+  if (!F) return;
+  const L = S.lists, max = S.settings.roomMax || 30;
+  let h = pracBanner();
+  if (F.group){
+    const g = S.calls.filter(c => c.group === F.group);
+    h += `<div class="grp"><span>➕ 같은 호출에 추가하는 중이에요 (${esc(g[0] ? g[0].room || g[0].name : '')} 외 ${Math.max(0, g.length - 1)}명). 새로 추가한 분에게만 알림이 가요.</span><button class="btn sm sub" onclick="cancelGroup()">추가 취소</button></div>`;
+  }
+  h += `<div class="card"><h3>① 교시 / 영역</h3><div class="chips">` +
+    L.period.map((p, i) => chipHtml(p, F.period === p, `setPeriod(${i})`)).join('') +
+    chipHtml('기타', F.period === '기타', `setPeriod(-1)`) + `</div>` +
+    (F.period === '기타' ? `<input class="oth" type="text" style="margin-top:8px" placeholder="직접 입력 (예: 3교시 영어듣기)" value="${esc(F.periodOther)}" oninput="F.periodOther=this.value">` : '') + `</div>`;
+  h += `<div class="card"><h3>② 호출 대상</h3>` + F.targets.map((t, i) => {
+    const roomOpts = `<option value="">고사실</option>` + Array.from({ length:max }, (_, k) => `<option value="${k+1}고사실"${t.room === (k+1) + '고사실' ? ' selected' : ''}>${k+1}고사실</option>`).join('') + `<option value="기타"${t.room === '기타' ? ' selected' : ''}>기타</option>`;
+    const roleOpts = `<option value="">역할</option>` + L.role.map(r => `<option${t.role === r ? ' selected' : ''}>${esc(r)}</option>`).join('') + `<option value="기타"${t.role === '기타' ? ' selected' : ''}>기타</option>`;
+    return `<div class="trow">
+      <div><select aria-label="고사실" onchange="setT(${i},'room',this.value,true)">${roomOpts}</select>${t.room === '기타' ? `<input class="oth" type="text" placeholder="장소 직접 입력" value="${esc(t.roomOther)}" oninput="setT(${i},'roomOther',this.value)">` : ''}</div>
+      <div><select aria-label="역할" onchange="setT(${i},'role',this.value,true)">${roleOpts}</select>${t.role === '기타' ? `<input class="oth" type="text" placeholder="역할 직접 입력" value="${esc(t.roleOther)}" oninput="setT(${i},'roleOther',this.value)">` : ''}</div>
+      <div class="nm"><input type="text" placeholder="이름 (예: 홍길동)" aria-label="이름" value="${esc(t.name)}" oninput="setT(${i},'name',this.value)"></div>
+      <button class="x" aria-label="삭제" onclick="delT(${i})">✕</button></div>`;
+  }).join('') + `<button class="btn sub sm" onclick="addT()">＋ 대상 추가</button>` +
+    (L.roster.length ? `<div style="margin-top:14px"><div class="hint" style="margin-bottom:6px">자주 부르는 선생님 (누르면 이름이 들어가요)</div><div class="chips">${L.roster.map((n, i) => chipHtml(n, false, `pickRoster(${i})`)).join('')}</div></div>` : '') + `</div>`;
+  h += `<div class="card"><h3>③ 호출 문구</h3><input type="text" id="msgIn" value="${esc(F.msg)}" oninput="F.msg=this.value" aria-label="호출 문구"><div class="hint" style="margin:8px 0 6px">빠른 문구 (누르면 위 칸에 들어가요)</div><div class="chips">` +
+    L.phrase.map((p, i) => chipHtml(p, F.msg === p, `setPhrase(${i})`)).join('') + `</div></div>`;
+  h += `<div class="card"><h3>④ 지참물 <span class="hint" style="font-weight:400">(대기실 화면에 함께 보여요)</span></h3><div class="chips">` +
+    L.supply.map((p, i) => chipHtml(p, F.supplies.indexOf(p) >= 0, `togSup(${i})`)).join('') + `</div>
+    <input type="text" style="margin-top:8px" placeholder="직접 입력 (예: 여분 시험지)" value="${esc(F.supOther)}" oninput="F.supOther=this.value;updBtn()"></div>`;
+  h += `<div class="card"><h3>⑤ 메모 · 긴급</h3><textarea rows="2" placeholder="왜 불렀는지 적어 두세요 (기록에 남아요)" oninput="F.memo=this.value">${esc(F.memo)}</textarea>
+    <div class="row" style="margin-top:10px">
+    <label class="sw"><input type="checkbox" ${F.memoPub ? 'checked' : ''} onchange="F.memoPub=this.checked"> 이 메모를 대기실 화면에도 보이기</label>
+    <label class="sw" style="color:var(--red)"><input type="checkbox" id="urgCk" ${F.urgent ? 'checked' : ''} onchange="F.urgent=this.checked"> 🚨 긴급 호출 (빨간 화면 · 알림 반복)</label></div></div>`;
+  h += `<button class="btn big" id="sendBtn" onclick="sendCall()"></button><div class="msg" id="callMsg"></div>`;
+  $('pgCall').innerHTML = h; updBtn();
+}
+function updBtn(){
+  const b = $('sendBtn'); if (!b) return;
+  const n = validTargets().length;
+  b.disabled = !n; b.textContent = n ? `${n}명 호출하기` : '호출 대상을 입력해 주세요';
+}
+function setPeriod(i){ const v = i < 0 ? '기타' : S.lists.period[i]; F.period = F.period === v ? '' : v; renderCall(); }
+function setT(i, k, v, re){ F.targets[i][k] = v; if (re) renderCall(); else updBtn(); }
+function delT(i){ F.targets.splice(i, 1); if (!F.targets.length) F.targets.push(blankT()); renderCall(); }
+function addT(){ F.targets.push(blankT()); renderCall(); }
+function pickRoster(i){
+  const n = S.lists.roster[i], t = F.targets.find(x => !x.name.trim());
+  if (t) t.name = n; else { const nt = blankT(); nt.name = n; F.targets.push(nt); }
+  renderCall();
+}
+function setPhrase(i){ const p = S.lists.phrase[i]; F.msg = p; if (/^긴급/.test(p)) F.urgent = true; renderCall(); }
+function togSup(i){ const p = S.lists.supply[i], k = F.supplies.indexOf(p); k >= 0 ? F.supplies.splice(k, 1) : F.supplies.push(p); renderCall(); }
+function cancelGroup(){ const keep = F; F = newForm(keep); renderCall(); }
+function addToGroup(gid){
+  const g = S.calls.filter(c => c.group === gid)[0]; if (!g) return;
+  F = newForm(); F.group = gid;
+  if (S.lists.period.indexOf(g.period) >= 0) F.period = g.period; else if (g.period){ F.period = '기타'; F.periodOther = g.period; }
+  F.msg = g.msg || F.msg; F.urgent = g.urgent; setTab('call');
+}
+async function sendCall(){
+  const ts = validTargets();
+  if (!ts.length) return;
+  const period = F.period === '기타' ? F.periodOther.trim() : F.period;
+  const rows = ts.map(t => ({ id:t.id, period, room:resolveRoom(t), role:resolveRole(t), name:t.name.trim() }));
+  const sup = F.supplies.slice(); if (F.supOther.trim()) sup.push(F.supOther.trim());
+  const b = $('sendBtn'); b.disabled = true; waitOn($('callMsg'), '호출을 보내는 중…');
+  try{
+    const r = await jsonp({ action:'call', pw:PW, rows:JSON.stringify(rows), supplies:JSON.stringify(sup), msg:F.msg.trim(), memo:F.memo.trim(), memoPublic:F.memoPub ? '1' : '0', urgent:F.urgent ? '1' : '0', practice:practice ? '1' : '0', group:F.group });
+    toast(`✅ ${r.added || ts.length}명을 호출했어요`);
+    const keep = F; F = newForm(keep); await refreshAdmin(false); renderCall(); msg('callMsg', '호출했어요. [현황] 탭에서 처리 상태를 볼 수 있어요.', true);
+  }catch(e){ msg('callMsg', e.message + ' (다시 눌러도 같은 호출이 두 번 저장되지 않아요)'); b.disabled = false; }
+}
+
+/* ----- 전체 공지 ----- */
+function renderAnn(){
+  const L = S.lists;
+  const act = visNotices().filter(n => n.active).sort((a, b) => b.ms - a.ms);
+  let h = pracBanner() + `<div class="card"><h3>전체 공지 올리기</h3><textarea id="annTx" rows="3" placeholder="대기실 화면 맨 위에 크게 보여요" oninput="AF.text=this.value">${esc(AF.text)}</textarea>
+    <div class="hint" style="margin:10px 0 6px">빠른 문구</div><div class="chips">${L.apphrase.map((p, i) => chipHtml(p, false, `setAnnPhrase(${i})`)).join('')}</div>
+    <div class="hint" style="margin:12px 0 6px">종류</div><div class="chips">${chipHtml('일반', !AF.urgent, 'AF.urgent=false;renderAnn()')}${chipHtml('🚨 긴급 (빨간 띠)', AF.urgent, 'AF.urgent=true;renderAnn()', 'red')}</div>
+    <div class="hint" style="margin:12px 0 6px">게시 시간</div><div class="chips">${[[0, '직접 내릴 때까지'], [10, '10분'], [30, '30분']].map(x => chipHtml(x[1], AF.minutes === x[0], `AF.minutes=${x[0]};renderAnn()`)).join('')}</div>
+    <div style="margin-top:14px"><button class="btn big" id="annBtn" onclick="sendAnn()">공지 올리기</button></div><div class="msg" id="annMsg"></div></div>
+    <div class="card"><h3>지금 올라가 있는 공지 (${act.length})</h3>${act.length ? act.map(n => `<div class="anrow ${n.urgent ? 'u' : ''}"><div>${n.urgent ? '<span class="tag u">긴급</span> ' : ''}${n.practice ? '<span class="tag p">연습</span> ' : ''}${esc(n.text)}</div><div class="hint">${hhmm(n.at)} 게시${n.endMs ? ' · ' + hhmm(new Date(n.endMs + 9 * 3600000).toISOString().replace('T', ' ')) + '까지' : ' · 직접 내릴 때까지'}</div><div style="margin-top:6px"><button class="btn sm sub" onclick="offAnn('${esc(n.id)}')">공지 내리기</button></div></div>`).join('') : '<div class="hint">올라가 있는 공지가 없어요.</div>'}
+    <div class="hint" style="margin-top:8px">공지는 여러 개를 동시에 올릴 수 있고, 새 공지가 위에 보여요. 대기실에는 [확인] 버튼이 없어요.</div></div>`;
+  $('pgAnn').innerHTML = h;
+}
+function setAnnPhrase(i){ AF.text = S.lists.apphrase[i]; renderAnn(); }
+async function sendAnn(){
+  if (!AF.text.trim()){ msg('annMsg', '공지 내용을 입력해 주세요.'); return; }
+  $('annBtn').disabled = true; waitOn($('annMsg'), '공지를 올리는 중…');
+  try{
+    await jsonp({ action:'announce', pw:PW, id:AF.id || (AF.id = newId()), text:AF.text.trim(), urgent:AF.urgent ? '1' : '0', minutes:AF.minutes, practice:practice ? '1' : '0' });
+    toast('📢 공지를 올렸어요'); AF = { text:'', urgent:false, minutes:AF.minutes }; await refreshAdmin(false); renderAnn();
+  }catch(e){ msg('annMsg', e.message); $('annBtn').disabled = false; }
+}
+async function offAnn(id){
+  try{ await jsonp({ action:'unannounce', pw:PW, id }); toast('공지를 내렸어요'); await refreshAdmin(false); renderAnn(); renderStatus(); }catch(e){ toast(e.message); }
+}
+
+/* ----- 현황 ----- */
+const STO = { '미처리':0, '확인됨':1, '처리완료':2, '취소':3 };
+const roomNo = c => { const m = String(c.room || '').match(/\d+/); return m ? Number(m[0]) : 9999; };
+function renderStatus(){
+  const all = visCalls();
+  const cnt = s => all.filter(c => c.status === s).length;
+  let list = all.filter(c => flt === 'all' ? true : flt === 'open' ? (c.status === '미처리' || c.status === '확인됨') : c.status === '처리완료');
+  const cmp = {
+    room:(a, b) => roomNo(a) - roomNo(b) || String(a.room).localeCompare(String(b.room), 'ko') || a.ms - b.ms,
+    name:(a, b) => String(a.name).localeCompare(String(b.name), 'ko'),
+    status:(a, b) => STO[a.status] - STO[b.status] || roomNo(a) - roomNo(b),
+    time:(a, b) => a.ms - b.ms
+  }[sortKey];
+  list.sort((a, b) => cmp(a, b) * sortDir);
+  const t = nowMs();
+  let h = pracBanner() + `<div class="pills"><div class="pill"><b style="color:var(--red)">${cnt('미처리')}</b>🔴 미처리</div><div class="pill"><b style="color:var(--amber)">${cnt('확인됨')}</b>🟡 확인됨</div><div class="pill"><b style="color:var(--green)">${cnt('처리완료')}</b>✅ 처리완료</div><div class="pill"><b style="color:#667">${cnt('취소')}</b>⚪ 취소</div></div>
+  <div class="row" style="margin-bottom:12px">${[['all', '전체'], ['open', '미처리'], ['done', '처리완료']].map(x => chipHtml(x[1], flt === x[0], `flt='${x[0]}';renderStatus()`)).join('')}
+  <select style="width:auto" aria-label="정렬" onchange="sortKey=this.value;renderStatus()">${[['room', '고사실순'], ['name', '이름순'], ['status', '상태순'], ['time', '시간순']].map(x => `<option value="${x[0]}"${sortKey === x[0] ? ' selected' : ''}>${x[1]}</option>`).join('')}</select>
+  <button class="btn sub sm" onclick="sortDir*=-1;renderStatus()" aria-label="정렬 방향">${sortDir > 0 ? '▲ 오름차순' : '▼ 내림차순'}</button></div>`;
+  h += list.length ? list.map(c => {
+    const si = STO[c.status], who = (c.name ? esc(c.name) + ' 선생님' : '(이름 없음)');
+    const open = si <= 1;
+    const meta = [c.room, c.period, c.role].filter(Boolean).map(esc).join(' · ');
+    const times = `호출 ${hhmm(c.at)}` + (c.confirmAt ? ` · 확인 ${hhmm(c.confirmAt)}` : '') + (c.doneAt ? ` · 처리 ${hhmm(c.doneAt)}` : '') + (c.cancelAt ? ` · 취소 ${hhmm(c.cancelAt)}` : '');
+    const el = open ? `⏱ ${elapsed(t - c.since)} 경과` : c.doneMs ? `소요 ${elapsed(c.doneMs - c.ms)}` : '';
+    return `<div class="crow s${si}"><div class="t1"><span style="font-size:1.05rem">${esc(c.room) || '-'}</span><span>${who}</span><span class="st s${si}">${['🔴 미처리', '🟡 확인됨', '✅ 처리완료', '⚪ 취소'][si]}</span>${c.urgent ? '<span class="tag u">긴급</span>' : ''}${c.practice ? '<span class="tag p">연습</span>' : ''}${c.recalls ? `<span class="tag">다시 부름 ${c.recalls}</span>` : ''}${open ? deliverTag(c) : ''}</div>
+    <div class="t2">${meta ? meta + '<br>' : ''}💬 ${esc(c.msg)}${c.supplies ? '<br>' + esc(c.supplies) : ''}${c.memo ? `<br>📝 ${esc(c.memo)} ${c.memoPublic ? '<span class="tag">대기실에 보임</span>' : '<span class="tag">본부만</span>'}` : ''}<br>${times}${el ? ' · ' + el : ''}</div>
+    <div class="row">${open ? `<button class="btn sm" onclick="act('${esc(c.id)}','done')">처리완료</button><button class="btn sm sub" onclick="act('${esc(c.id)}','recall')">다시 부르기</button><button class="btn sm sub" onclick="act('${esc(c.id)}','cancel')">취소</button>` : `<button class="btn sm sub" onclick="act('${esc(c.id)}','undo')">되돌리기</button>`}<button class="btn sm sub" onclick="addToGroup('${esc(c.group)}')">＋ 같은 호출에 추가</button></div></div>`;
+  }).join('') : '<div class="card hint">표시할 호출이 없어요.</div>';
+  const ns = visNotices().sort((a, b) => b.ms - a.ms);
+  h += `<div class="card" style="margin-top:18px"><h3>전체 공지 기록 (${ns.length})</h3>${ns.length ? ns.map(n => `<div class="anrow ${n.urgent ? 'u' : ''}"><div>${n.urgent ? '<span class="tag u">긴급</span> ' : ''}${esc(n.text)}</div><div class="hint">${hhmm(n.at)} 게시 · ${n.state === '게시중' && n.active ? '게시 중' : n.state === '내림' ? hhmm(n.offAt) + ' 내림' : '시간 종료'}</div></div>`).join('') : '<div class="hint">공지 기록이 없어요.</div>'}</div>
+  <div class="row" style="margin-top:6px"><button class="btn sub" onclick="exportCsv()">엑셀(CSV)로 내보내기</button><button class="btn sub" onclick="clearRec('today')">오늘 기록 지우기</button><button class="btn sub" onclick="clearRec('all')">전체 지우기</button>${practice ? '<button class="btn sub" onclick="clearRec(\'practice\')">연습 기록 지우기</button>' : ''}</div><div class="msg" id="stMsg"></div>`;
+  $('pgStatus').innerHTML = h;
+}
+async function act(id, to){
+  const c = S.calls.find(x => x.id === id);
+  if (to === 'cancel' && !(await confirmBox('호출을 취소할까요?', `${c ? c.room + ' ' + c.name : ''} 호출을 취소로 기록해요. (처리완료와 따로 기록돼요)`, '취소로 기록'))) return;
+  try{ await jsonp({ action:'status', pw:PW, ids:JSON.stringify([id]), to }); await refreshAdmin(false); renderStatus(); toast(to === 'recall' ? '🔔 다시 불렀어요' : '반영했어요'); }
+  catch(e){ toast(e.message); }
+}
+async function clearRec(scope){
+  const nm = { today:'오늘 기록', all:'모든 기록', practice:'연습 기록' }[scope];
+  if (!(await confirmBox(nm + '을 지울까요?', '호출 기록과 공지 기록이 함께 지워지고 되돌릴 수 없어요. 필요하면 먼저 엑셀(CSV)로 내보내 두세요.', '지우기'))) return;
+  try{ const r = await jsonp({ action:'clear', pw:PW, scope }); toast(`${r.removed}건을 지웠어요`); await refreshAdmin(false); renderStatus(); renderBadge(); }
+  catch(e){ msg('stMsg', e.message); }
+}
+function csvCell(v){ return '"' + String(v ?? '').replace(/"/g, '""') + '"'; }
+function exportCsv(){
+  const rows = [['호출시각', '교시', '고사실', '역할', '이름', '호출 문구', '지참물', '메모', '긴급', '상태', '확인시각', '처리시각', '취소시각', '다시 부른 횟수']];
+  S.calls.filter(c => !c.practice).sort((a, b) => a.ms - b.ms).forEach(c => rows.push([c.at, c.period, c.room, c.role, c.name, c.msg, c.supplies, c.memo, c.urgent ? 'Y' : '', c.status, c.confirmAt, c.doneAt, c.cancelAt, c.recalls]));
+  rows.push([], ['[전체 공지]'], ['게시시각', '내용', '긴급', '상태', '내린시각']);
+  S.notices.filter(n => !n.practice).sort((a, b) => a.ms - b.ms).forEach(n => rows.push([n.at, n.text, n.urgent ? 'Y' : '', n.state, n.offAt]));
+  const csv = '﻿' + rows.map(r => r.map(csvCell).join(',')).join('\r\n');
+  const a = document.createElement('a'), d = new Date(nowMs());
+  a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv;charset=utf-8' }));
+  a.download = `감독호출기록_${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}.csv`;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+
+/* ----- 대기실 연결 감시 · 끊김 팝업 · 전달 확인 · 미리보기 ----- */
+S.room = null;
+function roomInfo(){
+  const r = S.room;
+  if (!r || !r.exists) return { st:'none' };
+  const age = r.ageMs + (Date.now() - A_ST.lastOk);
+  return { st: age <= 20000 ? 'ok' : 'bad', age, seen: r.seen };
+}
+const secTxt = ms => ms < 60000 ? Math.floor(ms / 1000) + '초' : Math.floor(ms / 60000) + '분 ' + Math.floor(ms % 60000 / 1000) + '초';
+function deliverTag(c){
+  const ri = roomInfo();
+  if (ri.st === 'none') return '<span class="tag u">⚠ 대기실 연결 없음</span>';
+  if (ri.st === 'bad') return '<span class="tag u">⚠ 대기실 연결 끊김</span>';
+  if (c.alert <= ri.seen) return '<span class="tag" style="background:var(--green-l);color:var(--green)">📺 대기실 표시됨</span>';
+  return nowMs() - c.since > 20000 ? '<span class="tag u">⚠ 대기실에 아직 안 보여요</span>' : '<span class="tag p">⏳ 전달 중</span>';
+}
+function watchAdmin(){
+  const now = Date.now(), selfBad = now - A_ST.lastOk > 15000, ri = roomInfo();
+  const rm = $('rmConn');
+  if (rm) rm.innerHTML = selfBad ? '<i class="dot gray"></i>대기실 확인 불가' : ri.st === 'none' ? '<i class="dot gray"></i>대기실 연결 전' : ri.st === 'ok' ? `<i class="dot"></i>대기실 정상 (${secTxt(ri.age)} 전)` : `<i class="dot bad"></i>대기실 끊김 (${secTxt(ri.age)} 전)`;
+  if (selfBad){ $('aConn').innerHTML = '<i class="dot bad"></i>본부 연결 끊김'; }
+  const open = S.calls.filter(c => c.status === '미처리' || c.status === '확인됨').length;
+  const kind = selfBad ? 'self' : ri.st === 'bad' ? 'room' : (ri.st === 'none' && open > 0) ? 'noroom' : '';
+  if (kind){
+    if (A_ST.kind !== kind){ A_ST.kind = kind; A_ST.snooze = 0; A_ST.html = ''; }
+    if (now >= A_ST.snooze){
+      showAlert(kind, selfBad ? now - A_ST.lastOk : ri.age);
+      if (now - A_ST.beepT > 6000){ A_ST.beepT = now; beep(3); }
+    }
+  }else if (A_ST.kind){
+    A_ST.kind = ''; A_ST.html = ''; $('alertOv').innerHTML = ''; toast('✅ 연결이 돌아왔어요');
+    refreshAdmin(false);
+  }
+  const dsig = S.calls.filter(c => c.status === '미처리' || c.status === '확인됨').map(deliverTag).join('');
+  if (dsig !== A_ST.dsig){ A_ST.dsig = dsig; if (tab === 'status') renderStatus(); if (tab === 'view') renderView(); }   // 전달 확인 표시가 바뀔 때만 갱신 (누르는 도중 화면이 바뀌지 않게)
+}
+function showAlert(kind, ms){
+  const T = {
+    self: ['🚨 본부 화면이 서버와 연결되지 않아요', `지금 호출하면 대기실에 전달되지 않을 수 있어요. (마지막 연결 ${secTxt(ms)} 전)`, ['이 노트북의 인터넷(와이파이)을 확인해 주세요.', '화면을 새로고침(F5) 해 주세요. 비밀번호는 다시 묻지 않아요.', '계속 안 되면 <b>전화나 직접 방문</b>으로 대기실에 알려 주세요.']],
+    room: ['🚨 대기실 화면 신호가 끊겼어요', `대기실 노트북이 서버와 연결되지 않았어요. 지금 호출해도 <b>대기실에서 못 볼 수 있어요.</b> (마지막 신호 ${secTxt(ms)} 전)`, ['대기실 노트북의 전원·와이파이를 확인해 주세요.', '대기실 화면(전자칠판)에서 새로고침(F5) 해 주세요.', '복구되기 전까지는 <b>전화나 직접 방문</b>으로 호출해 주세요.']],
+    noroom: ['⚠️ 대기실 화면이 아직 연결되지 않았어요', '호출 대기 중인 건이 있는데 대기실 화면에서 신호가 온 적이 없어요.', ['대기실 노트북에서 <b>대기실 링크</b>(설정 탭에서 복사)를 열었는지 확인해 주세요.', '열려 있다면 새로고침(F5) 해 주세요.', '복구되기 전까지는 <b>전화나 직접 방문</b>으로 호출해 주세요.']]
+  }[kind];
+  const html = `<div class="ov" style="z-index:70"><div class="box alertbox" role="alertdialog"><h3>${T[0]}</h3><div>${T[1]}</div><ol>${T[2].map(x => '<li>' + x + '</li>').join('')}</ol><div class="row"><button class="btn" onclick="refreshAdmin(true)">지금 다시 확인</button><button class="btn sub" onclick="snoozeAlert()">1분 뒤에 다시 알림</button></div><div class="hint" style="margin-top:8px">연결이 돌아오면 이 창은 자동으로 닫혀요.${DEMO ? '<br>🎬 체험 중이에요. 위쪽 노란 띠의 [다시 연결하기]를 누르면 닫혀요.' : ''}</div></div></div>`;
+  if (html !== A_ST.html){ A_ST.html = html; $('alertOv').innerHTML = html; }
+}
+function snoozeAlert(){ A_ST.snooze = Date.now() + 60000; A_ST.html = ''; $('alertOv').innerHTML = ''; }
+/* 대기실 보기 (미리보기) — 대기실 화면이 서버에서 받아 그리는 내용과 똑같이 5초마다 갱신 */
+const PV = { calls:[], notices:[], timer:null, ok:0, err:'' };
+async function pvLoad(){
+  try{ const r = await jsonp({ action:'poll' }, null, 10000); PV.calls = r.calls; PV.notices = r.notices; PV.ok = Date.now(); PV.err = ''; }
+  catch(e){ PV.err = e.message; }
+  renderView();
+}
+function startPreview(){ stopPreview(); renderView(); pvLoad(); PV.timer = setInterval(pvLoad, 5000); }
+function stopPreview(){ clearInterval(PV.timer); PV.timer = null; }
+function renderView(){
+  if (tab !== 'view') return;
+  const ri = roomInfo();
+  const st = ri.st === 'ok' ? `<span class="st s2">대기실 노트북 정상 (${secTxt(ri.age)} 전 신호)</span>` : ri.st === 'bad' ? `<span class="st s0">대기실 노트북 신호 끊김 (${secTxt(ri.age)} 전)</span>` : `<span class="st s3">대기실 노트북 연결 전</span>`;
+  $('pgView').innerHTML = `<div class="card"><div class="row" style="justify-content:space-between"><b>👁 대기실 화면 미리보기</b>${st}</div><p class="hint" style="margin:8px 0 0">서버에 올라간 내용 기준으로 5초마다 갱신돼요. 대기실 노트북이 실제로 켜져 있는지는 위의 <b>대기실 ● 표시</b>가 알려줘요. ${PV.err ? '<br><span style="color:var(--red)">미리보기를 불러오지 못했어요: ' + esc(PV.err) + '</span>' : ''}</p></div>
+  <div class="pv">${noticesHtml(PV.notices)}<div class="rbody">${cardsHtml(PV.calls, DEMO)}</div></div>`;
+  tickRoom();
+}
+
+/* ----- 설정 ----- */
+const LISTS_UI = [
+  ['period', '교시 / 영역 칩', '예) 1교시 국어 — 시간은 적지 않아도 돼요. "기타"는 자동으로 붙어요.'],
+  ['role', '역할 목록', '"기타"는 자동으로 붙어요.'],
+  ['supply', '지참물 칩', ''],
+  ['phrase', '빠른 호출 문구', '호출하기 화면의 ③에 나와요.'],
+  ['apphrase', '전체 공지 빠른 문구', ''],
+  ['roster', '자주 부르는 선생님 이름', '미리 적어 두면 한 번에 누를 수 있어요.']
+];
+function renderSet(){
+  const base = location.origin + location.pathname, enc = encodeURIComponent(GAS);
+  let h = `<div class="card"><h3>🔗 다른 학교·선생님께 소개하기</h3><p class="hint" style="margin:0 0 10px">링크와 QR을 보내 주세요. 받는 선생님은 자기 구글 시트로 따로 설치해서 써요. (우리 학교 연결 주소는 들어 있지 않아요)</p>
+    <div class="row"><button class="btn sm" onclick="openShare()">🔗 소개 링크·QR 열기</button><button class="btn sm sub" onclick="openGuide()">📘 사용 가이드</button></div></div>` +
+  (DEMO ? '' : `<div class="card"><h3>🏫 우리 학교용 링크</h3><p class="hint" style="margin:0 0 10px">대기실 노트북에서는 아래 "대기실 링크"로 열면 연결 주소가 자동으로 저장돼요. <b>이 링크에는 우리 학교 시트 주소가 들어 있어서 다른 학교에는 보내지 마세요.</b></p>
+    <div class="row"><button class="btn sm" onclick="copyLink('room')">📋 대기실 링크 복사</button><button class="btn sm sub" onclick="copyLink('admin')">📋 본부 링크 복사</button></div><div class="msg" id="lnkMsg"></div></div>`) + `
+  <div class="card"><h3>📋 호출 설정</h3>
+    <label class="sw"><input type="checkbox" ${S.settings.memoDefault ? 'checked' : ''} onchange="saveSetting('메모기본공개', this.checked ? 'Y' : 'N')"> 메모를 대기실 화면에도 보이는 것을 기본으로 하기</label>
+    <label class="f">지참물 안내 문구 ( {items} 자리에 지참물이 들어가요 )</label><div class="row"><input type="text" id="fmtIn" style="flex:1;min-width:200px" value="${esc(S.settings.suppliesFormat)}"><button class="btn sm" onclick="saveSetting('지참물형식', $('fmtIn').value)">저장</button></div>
+    <label class="f">고사실 개수 (선택 목록 1 ~ N)</label><div class="row"><input type="text" inputmode="numeric" id="maxIn" style="width:100px" value="${S.settings.roomMax}"><button class="btn sm" onclick="saveSetting('고사실수', $('maxIn').value)">저장</button></div><div class="msg" id="setMsg"></div></div>
+  <div class="card"><h3>✏️ 목록 편집</h3><p class="hint" style="margin:0 0 6px">한 줄에 하나씩 적어요. 줄 순서가 화면 순서예요. (줄을 지우면 삭제, 줄을 옮기면 순서 변경)</p>` +
+    LISTS_UI.map(l => `<label class="f">${l[1]}</label>${l[2] ? `<div class="hint" style="margin-bottom:4px">${l[2]}</div>` : ''}<textarea rows="${Math.min(8, Math.max(3, S.lists[l[0]].length + 1))}" id="ls_${l[0]}">${esc(S.lists[l[0]].join('\n'))}</textarea><div style="margin-top:6px"><button class="btn sm" onclick="saveList('${l[0]}')">저장</button><span class="msg" id="lsm_${l[0]}" style="margin-left:8px"></span></div>`).join('') + `</div>
+  ${DEMO ? '' : `<div class="card"><h3>🔑 비밀번호 바꾸기</h3><div class="row"><input type="password" id="cpw" placeholder="새 비밀번호 (4자 이상)" style="flex:1;min-width:200px" autocomplete="off"><button class="btn sm" onclick="changePw()">변경</button></div><div class="msg" id="cpwMsg"></div></div>`}
+  <div class="card"><h3>📘 설치 가이드 · 코드 업데이트</h3><p class="hint" style="margin:0">현재 구글 시트 코드 버전: ${gasVer === null ? '확인 중' : gasVer >= NEED_GAS ? gasVer + ' (최신 ✅)' : gasVer + ' → 업데이트 필요'}</p>${guideHtml(false)}</div>
+  ${regCardsHtml()}
+  <div class="card"><h3>문의</h3><p class="hint" style="margin:0"><a href="${mailHref()}">${MAIL}</a> · 오류나 개선 요청을 보내 주세요.</p></div>`;
+  $('pgSet').innerHTML = h;
+}
+async function saveSetting(key, value){
+  try{ await jsonp({ action:'saveSetting', pw:PW, key, value }); await refreshAdmin(false); if (key === '메모기본공개' && F) F.memoPub = S.settings.memoDefault; msg('setMsg', '저장했어요 ✅', true); }
+  catch(e){ msg('setMsg', e.message); }
+}
+async function saveList(kind){
+  const items = $('ls_' + kind).value.split('\n').map(s => s.trim()).filter(Boolean);
+  waitOn($('lsm_' + kind), '저장하는 중…');
+  try{ const r = await jsonp({ action:'saveLists', pw:PW, kind, items:JSON.stringify(items) }); S.lists[kind] = r.items; listSig = ''; msg('lsm_' + kind, '저장했어요 ✅', true); if (F){ if (kind === 'supply') F.supplies = F.supplies.filter(x => r.items.indexOf(x) >= 0); } }
+  catch(e){ msg('lsm_' + kind, e.message); }
+}
+async function changePw(){
+  const v = $('cpw').value;
+  if (v.length < 4){ msg('cpwMsg', '4자 이상으로 정해 주세요.'); return; }
+  try{ await jsonp({ action:'changePw', pw:PW, newPw:v }); PW = v; ssSet('kcsat_pw', v); $('cpw').value = ''; msg('cpwMsg', '바꿨어요 ✅ 다음부터 새 비밀번호로 들어가요.', true); }
+  catch(e){ msg('cpwMsg', e.message); }
+}
+async function copyLink(kind){
+  const url = location.origin + location.pathname + '?mode=' + kind + '&gas=' + encodeURIComponent(GAS);
+  const label = (kind === 'room' ? '감독 대기실 화면' : '본부 화면') + '_made by Cheon R';
+  try{
+    if (window.ClipboardItem){
+      await navigator.clipboard.write([new ClipboardItem({ 'text/html':new Blob([`<a href="${url}">${esc(label)}</a>`], { type:'text/html' }), 'text/plain':new Blob([url], { type:'text/plain' }) })]);
+    }else await navigator.clipboard.writeText(url);
+    msg('lnkMsg', '복사했어요 ✅ (글자를 누르면 열리는 링크예요)', true);
+  }catch(e){ msg('lnkMsg', '자동 복사가 막혔어요. 아래 주소를 직접 복사해 주세요: ' + url); }
+}
+
+/* ================= 대기실 ================= */
+let R = { calls:[], notices:[], baseline:null, lastOk:0, urgTimer:null, wake:null, polling:false, seen:0, rid:'' };
+function startRoom(){
+  R.rid = ssGet('kcsat_rid') || ('r' + Math.random().toString(36).slice(2, 9)); ssSet('kcsat_rid', R.rid);
+  show('scrRoom'); applySoundBtn(); applyFontBtns();
+  if (!audioUnlocked) $('rUnlock').classList.remove('hide');
+  roomPoll(); setInterval(roomPoll, 5000);
+  setInterval(tickRoom, 1000);
+  setInterval(() => { renderRoom(); getWake(); }, 30000);          // 30초마다 화면 전체 새로 그리기
+  window.addEventListener('online', roomPoll);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden){ getWake(); roomPoll(); } });
+  getWake();
+}
+async function getWake(){ try{ if ('wakeLock' in navigator && !document.hidden) R.wake = await navigator.wakeLock.request('screen'); }catch(e){} }
+async function roomPoll(){
+  if (R.polling) return; R.polling = true;
+  try{
+    const r = await jsonp({ action:'poll', rid:R.rid, seen:R.seen }, null, 12000);
+    off = r.now - Date.now(); R.lastOk = Date.now(); R.calls = r.calls; R.notices = r.notices;
+    const mx = Math.max(0, ...r.calls.map(c => c.alert), ...r.notices.map(n => n.alert));
+    if (R.baseline === null) R.baseline = mx;
+    else if (mx > R.baseline){
+      const nc = r.calls.filter(c => c.alert > R.baseline), nn = r.notices.filter(n => n.alert > R.baseline);
+      const urg = nc.some(c => c.urgent) || nn.some(n => n.urgent);
+      flash(urg); beep(urg ? 4 : 3); R.baseline = mx;
+    }
+    renderRoom(); R.seen = mx;                      // 화면에 그린 가장 큰 알림번호를 다음 신호에 실어 본부에 알림
+  }catch(e){ /* 끊김 표시는 tickRoom 이 처리 */ }
+  finally{ R.polling = false; tickRoom(); }
+}
+function noticesHtml(list){
+  return list.slice().sort((a, b) => b.ms - a.ms).map(n => `<div class="nb ${n.urgent ? 'u' : ''}">${n.urgent ? '🚨 ' : '📢 '}${esc(n.text)}${n.practice ? '<small>연습 공지예요</small>' : ''}</div>`).join('');
+}
+function cardsHtml(list, live){
+  const calls = list.slice().sort((a, b) => (a.status === '확인됨') - (b.status === '확인됨') || b.since - a.since);
+  return calls.length ? calls.map(c => {
+    const who = c.name ? esc(c.name) + ' 선생님' : esc(c.room) + ' 감독관님';
+    const meta = [c.room, c.period, c.role].filter(Boolean).map(esc).join(' · ');
+    const ok = c.status === '확인됨';
+    return `<div class="rc ${c.urgent ? 'urg' : ''} ${ok ? 'ok' : ''}" data-id="${esc(c.id)}">
+      <div class="top1">${c.urgent ? '<span class="tag u">긴급</span>' : ''}${c.practice ? '<span class="tag">연습</span>' : ''}<span>${meta}</span></div>
+      <div class="main">${who}, ${esc(c.msg)}</div>
+      ${c.supplies ? `<div class="sup">${esc(c.supplies)}</div>` : ''}${c.memo ? `<div class="memo">📝 ${esc(c.memo)}</div>` : ''}
+      <div class="ft1"><span class="el" data-since="${c.since}"></span>${ok ? `<span style="font-weight:700">✔ 확인했어요 (${hhmmss(new Date(c.confirmMs)).slice(0, 5)})</span>` : live ? `<button class="cbtn" onclick="roomConfirm('${esc(c.id)}')">확인했어요</button>` : `<button class="cbtn" disabled style="opacity:.6">확인했어요</button>`}</div>
+      ${ok ? '' : `<div class="ch">누르지 않아도 괜찮아요. 본부로 와 주시면 돼요.</div>`}</div>`;
+  }).join('') : `<div class="empty">호출이 없습니다<small>이 화면에서 대기해 주세요. 호출이 오면 소리와 함께 알려드려요.</small></div>`;
+}
+function renderRoom(){
+  $('rNotices').innerHTML = noticesHtml(R.notices);
+  $('rCalls').innerHTML = cardsHtml(R.calls, true);
+  tickRoom();
+  clearInterval(R.urgTimer);
+  if (R.calls.some(c => c.urgent && c.status === '미처리')) R.urgTimer = setInterval(() => beep(2), 8000);   // 긴급은 확인될 때까지 알림 반복
+}
+function tickRoom(){
+  const t = nowMs();
+  document.querySelectorAll('[data-since]').forEach(el => {
+    const ms = t - Number(el.dataset.since), m = ms / 60000;
+    el.textContent = '⏱ ' + elapsed(ms) + ' 경과';
+    el.className = 'el' + (m >= 5 ? ' late' : m >= 3 ? ' warn' : '');
+  });
+  const bad = !R.lastOk || Date.now() - R.lastOk > 20000;
+  $('rNet').classList.toggle('hide', !bad);
+  $('rConn').innerHTML = bad ? '<i class="dot bad"></i>연결 확인 중' : '<i class="dot"></i>연결됨 ' + hhmmss(new Date(R.lastOk));
+}
+async function roomConfirm(id){
+  const src = (DEMO && PV.calls.some(x => x.id === id)) ? PV : R, draw = () => src === PV ? renderView() : renderRoom();
+  const c = src.calls.find(x => x.id === id); if (c){ c.status = '확인됨'; c.confirmMs = nowMs(); draw(); }
+  try{ await jsonp({ action:'confirm', id }); }catch(e){ if (c){ c.status = '미처리'; draw(); } }
+}
+function applySoundBtn(){ $('sndBtn').textContent = soundOn ? '🔔 알림음 켜짐' : '🔕 알림음 꺼짐'; }
+function toggleSound(){ soundOn = !soundOn; lsSet(K.sound, soundOn); applySoundBtn(); if (soundOn) beep(1); }
+function setFont(n){ lsSet(K.font, n); document.documentElement.classList.remove('f0', 'f1', 'f2'); document.documentElement.classList.add('f' + n); applyFontBtns(); }
+function applyFontBtns(){ const n = lsGet(K.font, 1); document.querySelectorAll('.fz button').forEach(b => b.classList.toggle('on', Number(b.dataset.f) === n)); }
+
+/* ================= 🎬 체험해보기 (가짜 서버 · 저장·전송 없음) ================= */
+const D = { ready:false, calls:[], notices:[], alert:0, brk:false, lists:null, settings:{ memoDefault:false, suppliesFormat:'지참물: {items}', roomMax:30 } };
+const dKst = ms => new Date((ms || Date.now()) + 9 * 3600000).toISOString().replace('T', ' ').slice(0, 19);
+function demoSeed(){
+  D.ready = true; const t = Date.now();
+  D.lists = { period:['1교시 국어', '2교시 수학', '3교시 영어', '4교시 한국사·탐구', '5교시 제2외국어·한문'], role:['제1감독관', '제2감독관', '복도감독관'], supply:['도장', '필기구', '감독관 명찰'],
+    phrase:['확인 사항 있으니 본부로 와 주세요', '예비 시험지 가지러 와 주세요', '물품 수령 위해 본부로 와 주세요', '예비 감독관 투입, 해당 고사실로 가 주세요', '감독 교대 위해 본부로 와 주세요', '긴급, 즉시 본부로 와 주세요'],
+    apphrase:['잠시 대기해 주세요, 곧 안내드리겠습니다', '전체 감독관은 본부로 모여 주세요', '점심시간 안내: 본부 확인 후 이동해 주세요', '시험 종료 후 안내 사항이 있으니 대기해 주세요'], roster:['홍길동', '김철수', '이영희'] };
+  const mk = (id, room, role, name, msg, sup, memo, status, ago, conf) => ({ id, group:'gA', practice:false, period:'1교시 국어', room, role, name, msg, supplies:sup, memo, memoPublic:false, urgent:false, status,
+    alert:1, recalls:0, at:dKst(t - ago), confirmAt:conf ? dKst(t - ago + conf) : '', doneAt:'', cancelAt:'', ms:t - ago, since:t - ago, confirmMs:conf ? t - ago + conf : 0, doneMs:0 });
+  D.calls.push(mk('s1', '12고사실', '제1감독관', '홍길동', '본부로 오세요', '지참물: 도장, 필기구', '', '미처리', 45000, 0));
+  D.calls.push(mk('s2', '3고사실', '제2감독관', '김철수', '예비 시험지 가지러 와 주세요', '', '확인 사항 (본부만 보는 메모)', '확인됨', 150000, 30000));
+  D.alert = 1;
+  D.notices.push({ id:'n1', text:'잠시 대기해 주세요, 곧 안내드리겠습니다', urgent:false, practice:false, state:'게시중', alert:1, at:dKst(t), offAt:'', ms:t, endMs:0 });
+}
+const dActive = n => n.state === '게시중' && (!n.endMs || n.endMs > Date.now());
+function demoApi(p){ return new Promise((res, rej) => setTimeout(() => { try{ res(demoRoute(p)); }catch(e){ rej(e); } }, 60)); }
+function demoRoute(p){
+  if (!D.ready) demoSeed();
+  const A = p.action, ok = o => Object.assign({ ok:true }, o || {}), cp = x => JSON.parse(JSON.stringify(x));
+  const open = () => D.calls.filter(c => c.status === '미처리' || c.status === '확인됨');
+  switch (A){
+    case 'ping': return ok({ gasVer:99 });
+    case 'login': return ok({ role:'admin', gasVer:99, installId:'demo', mustChange:false });
+    case 'changePw': return ok();
+    case 'adminLoad': return ok({ gasVer:99, now:Date.now(), calls:cp(D.calls), notices:cp(D.notices).map(n => Object.assign(n, { active:dActive(n) })), lists:cp(D.lists), settings:cp(D.settings), room:{ exists:true, ageMs:D.brk ? 90000 : 1500, seen:D.brk ? 0 : D.alert } });
+    case 'poll': return ok({ gasVer:99, now:Date.now(), calls:cp(open()).map(c => Object.assign(c, { memo:c.memoPublic ? c.memo : '' })), notices:cp(D.notices.filter(dActive)) });
+    case 'call': {
+      const rows = JSON.parse(p.rows || '[]'), sup = JSON.parse(p.supplies || '[]'), t = Date.now(); let add = 0; const a = D.alert + 1;
+      rows.forEach(x => {
+        if (D.calls.some(c => c.id === x.id) || !(x.name || x.room)) return;
+        D.calls.push({ id:x.id, group:p.group || ('g' + t), practice:p.practice === '1', period:x.period || '', room:x.room || '', role:x.role || '', name:x.name || '', msg:p.msg || '본부로 오세요',
+          supplies:sup.length ? D.settings.suppliesFormat.replace('{items}', sup.join(', ')) : '', memo:p.memo || '', memoPublic:p.memoPublic === '1', urgent:p.urgent === '1', status:'미처리', alert:a, recalls:0,
+          at:dKst(t), confirmAt:'', doneAt:'', cancelAt:'', ms:t, since:t, confirmMs:0, doneMs:0 }); add++;
+      });
+      if (add) D.alert = a;
+      return ok({ added:add, group:p.group || '' });
+    }
+    case 'confirm': { const c = D.calls.find(x => x.id === p.id); if (c && c.status === '미처리'){ c.status = '확인됨'; c.confirmAt = dKst(); c.confirmMs = Date.now(); } return ok(); }
+    case 'status': {
+      const ids = JSON.parse(p.ids || '[]'), t = Date.now(); let a = 0; if (p.to === 'recall') a = ++D.alert;
+      D.calls.filter(c => ids.indexOf(c.id) >= 0).forEach(c => {
+        if (p.to === 'done' && (c.status === '미처리' || c.status === '확인됨')){ c.status = '처리완료'; c.doneAt = dKst(); c.doneMs = t; }
+        else if (p.to === 'cancel' && (c.status === '미처리' || c.status === '확인됨')){ c.status = '취소'; c.cancelAt = dKst(); }
+        else if (p.to === 'undo' && (c.status === '처리완료' || c.status === '취소')){ c.status = c.confirmMs ? '확인됨' : '미처리'; c.doneAt = ''; c.doneMs = 0; c.cancelAt = ''; }
+        else if (p.to === 'recall'){ c.status = '미처리'; c.confirmAt = ''; c.confirmMs = 0; c.doneAt = ''; c.doneMs = 0; c.cancelAt = ''; c.alert = a; c.recalls++; c.since = t; }
+      });
+      return ok();
+    }
+    case 'announce': { const t = Date.now(), m = Number(p.minutes) || 0; D.notices.push({ id:p.id || ('n' + t), text:p.text, urgent:p.urgent === '1', practice:p.practice === '1', state:'게시중', alert:++D.alert, at:dKst(t), offAt:'', ms:t, endMs:m ? t + m * 60000 : 0 }); return ok(); }
+    case 'unannounce': D.notices.forEach(n => { if (n.id === p.id){ n.state = '내림'; n.offAt = dKst(); } }); return ok();
+    case 'saveLists': { const items = JSON.parse(p.items || '[]'); D.lists[p.kind] = items; return ok({ items }); }
+    case 'saveSetting': { if (p.key === '메모기본공개') D.settings.memoDefault = p.value === 'Y'; else if (p.key === '지참물형식') D.settings.suppliesFormat = p.value; else if (p.key === '고사실수') D.settings.roomMax = Number(p.value) || 30; return ok(); }
+    case 'clear': {
+      const today = dKst().slice(0, 10), drop = x => p.scope === 'all' || (p.scope === 'practice' && x.practice) || (p.scope === 'today' && String(x.at).slice(0, 10) === today);
+      const n0 = D.calls.length + D.notices.length; D.calls = D.calls.filter(x => !drop(x)); D.notices = D.notices.filter(x => !drop(x)); return ok({ removed:n0 - D.calls.length - D.notices.length });
+    }
+    default: throw new Error('체험에서는 쓸 수 없는 기능이에요.');
+  }
+}
+function startDemo(){ location.href = location.pathname + '?demo=1'; }
+async function startDemoMode(){
+  PW = 'demo'; $('demoBar').classList.remove('hide'); await enterAdmin();
+}
+function demoBreak(){
+  D.brk = !D.brk; $('brkBtn').textContent = D.brk ? '🔌 다시 연결하기' : '🔌 대기실 끊김 체험';
+  refreshAdmin(true);
+}
+
+/* ================= 📖 앱 소개 ================= */
+const SLIDES = [
+  { t:'본부에서 누르면, 대기실에 바로 떠요', d:'교시·고사실·이름을 고르고 [호출하기]만 누르면 대기실 전자칠판에 큰 글씨로 나타나요.',
+    v:'<div class="mb" style="background:#324872;color:#fff">12고사실 · 1교시 국어 · 제1감독관<br><span style="font-size:1.25rem">홍길동 선생님, 본부로 오세요</span><br><span style="font-weight:600">지참물: 도장, 필기구</span></div>' },
+  { t:'여러 명도, 나중에 추가해서도 불러요', d:'한 번에 여러 선생님을 부르고, 이미 부른 호출에 사람을 더 추가하면 새로 추가된 분에게만 알림이 가요. 빠른 문구와 지참물 칩으로 입력도 간단해요.',
+    v:'<div class="mb" style="background:#E3E9F4;color:#324872">＋ 대상 추가 · 12고사실 홍길동 · 3고사실 김철수</div><div class="mb" style="background:#fff;border:1.5px solid #D5DBE8;color:#324872">빠른 문구: 예비 시험지 가지러 와 주세요</div>' },
+  { t:'소리와 깜빡임으로 놓치지 않아요', d:'새 호출이 오면 알림음과 화면 깜빡임이 나와요. 긴급 호출은 빨간 화면으로 뜨고 확인될 때까지 알림이 반복돼요. 알림음은 끄고 켤 수 있어요.',
+    v:'<div class="mb" style="background:#C62F3A;color:#fff">🚨 긴급 · 7고사실 박민수 선생님, 즉시 본부로 와 주세요</div><div class="mb" style="background:#E3E9F4;color:#324872">🔔 대기실의 [확인했어요]는 눌러도, 안 눌러도 돼요</div>' },
+  { t:'끊기면 본부가 먼저 알아요', d:'대기실 화면이 5초마다 신호를 보내서 본부가 연결 상태를 알 수 있어요. 끊기면 큰 경고 팝업이 뜨고, 호출마다 "대기실에 표시됨"을 확인할 수 있어요.',
+    v:'<div class="mb" style="background:#FBE9EB;color:#C62F3A;border:2px solid #C62F3A">🚨 대기실 화면 신호가 끊겼어요<br><span style="font-weight:600">전화나 직접 방문으로 호출해 주세요</span></div><div class="mb" style="background:#E4F4EC;color:#2E7D5B">📺 대기실 표시됨 · 호출마다 전달 확인</div>' },
+  { t:'처리 현황이 기록으로 남아요', d:'미처리 · 확인됨 · 처리완료를 한눈에 보고, 고사실·이름·상태·시간으로 정렬하고, 엑셀(CSV)로 내보낼 수 있어요. 연습 모드로 미리 해 볼 수도 있어요.',
+    v:'<div class="mb" style="background:#FBE9EB;color:#C62F3A">🔴 미처리 1</div><div class="mb" style="background:#FFF4DC;color:#B7791F">🟡 확인됨 1</div><div class="mb" style="background:#E4F4EC;color:#2E7D5B">✅ 처리완료 5</div>' },
+  { t:'우리 학교 구글 시트 하나면 돼요', d:'서버 비용이 없어요. 구글 시트에 코드를 한 번 붙여넣고 링크를 열면 끝이에요. 다른 학교 데이터와 섞이지 않고, 대기실 화면에는 별도 등록이 필요 없어요.',
+    v:'<div class="mb" style="background:#E3E9F4;color:#324872">① 구글 시트 만들기 → ② 코드 붙여넣기 → ③ 링크 열기</div><div class="mb" style="background:#fff;border:1.5px solid #D5DBE8;color:#324872">🎬 먼저 체험해 보고 결정하셔도 좋아요</div>' }
+];
+let introI = 0;
+function showIntro(){ introI = 0; renderIntro(); show('scrIntro'); }
+function introGo(n){ introI = Math.max(0, Math.min(SLIDES.length - 1, introI + n)); renderIntro(); }
+function renderIntro(){
+  const sl = SLIDES[introI], last = introI === SLIDES.length - 1;
+  $('introStage').innerHTML = `<div class="slide"><h2>${sl.t}</h2><p class="hint" style="margin:0">${sl.d}</p><div class="mini">${sl.v}</div></div>
+  <div class="dots">${SLIDES.map((_, i) => `<i class="${i === introI ? 'on' : ''}"></i>`).join('')}</div>
+  <div class="row" style="justify-content:space-between"><button class="btn sub" ${introI ? '' : 'disabled'} onclick="introGo(-1)">◀ 이전</button>${last ? `<button class="btn" onclick="startDemo()">🎬 체험해보기</button>` : `<button class="btn" onclick="introGo(1)">다음 ▶</button>`}</div>
+  ${last ? `<div class="row" style="margin-top:10px"><button class="btn sub" onclick="goMode('admin')">본부(관리자)로 시작하기</button><button class="btn sub" onclick="openShare()">🔗 소개하기</button></div>` : ''}
+  <div style="text-align:center;margin-top:14px"><a href="#" onclick="goMode('');return false" style="color:var(--navy)">처음 화면</a></div>`;
+}
+
+/* ================= 🔗 소개 링크 · QR (다른 학교 배포용) ================= */
+const shareFrom = () => (!DEMO && IID && (REG_ST === 'ok' || REG_ST === 'owner')) ? IID.replace(/[^A-Za-z0-9]/g, '').slice(0, 8) : '';   // 소개한 사람 번호 (설치ID 앞 8자 · 등록된 분만)
+const pureUrl = () => location.origin + location.pathname + (shareFrom() ? '?from=' + shareFrom() : '');   // 연결 주소(?gas=)·모드가 없는 소개 주소
+const APP_LABEL = 'KCSAT 감독 호출 보드_made by Cheon R';
+const shareText = () => `수능 감독 대기실 호출 도구 "KCSAT 감독 호출 보드"를 소개해요. 본부에서 누르면 대기실 전자칠판에 큰 글씨와 소리로 바로 떠요. 구글 시트 하나로 무료로 쓸 수 있고, 먼저 체험해 볼 수 있어요.\n${pureUrl()}`;
+function openShare(){
+  const url = pureUrl();
+  $('shOv').innerHTML = `<div class="ov" style="z-index:65"><div class="box" style="max-width:480px;max-height:92vh;overflow:auto"><h3 style="margin:0 0 6px">🔗 이 앱 소개하기</h3>
+    <p class="hint" style="margin:0 0 10px">받는 선생님은 자기 구글 시트로 따로 설치해서 써요. 우리 학교 호출 기록과 섞이지 않아요.</p>
+    <input type="text" readonly value="${esc(url)}" onclick="this.select()" aria-label="소개 링크">
+    <div class="row" style="margin:10px 0"><button class="btn sm" onclick="copyShareLink()">📋 링크 복사</button><button class="btn sm sub" onclick="copyShareText()">💬 소개 문구 복사</button></div>
+    <div style="text-align:center"><div id="qrBox" style="display:inline-block;padding:6px;background:#fff;border:1px solid var(--line);border-radius:10px"></div></div>
+    <div class="row" style="justify-content:center;margin-top:10px"><button class="btn sm sub" onclick="saveQr()">QR 이미지 저장</button></div>
+    <div class="msg" id="shMsg"></div><div class="row" style="justify-content:flex-end"><button class="btn sub" onclick="closeShare()">닫기</button></div></div></div>`;
+  try{
+    const q = qrObj(url); $('qrBox').innerHTML = q.createSvgTag(5, 2);
+    const sv = $('qrBox').querySelector('svg'); sv.setAttribute('width', '200'); sv.setAttribute('height', '200'); sv.setAttribute('role', 'img'); sv.setAttribute('aria-label', '소개 링크 QR코드');
+  }catch(e){ $('qrBox').textContent = 'QR을 만들지 못했어요. 링크를 복사해 주세요.'; }
+}
+function closeShare(){ $('shOv').innerHTML = ''; }
+function qrObj(url){ const q = qrcode(0, 'M'); q.addData(url); q.make(); return q; }
+async function copyRich(url, label, msgId){
+  try{
+    if (window.ClipboardItem) await navigator.clipboard.write([new ClipboardItem({ 'text/html':new Blob([`<a href="${url}">${esc(label)}</a>`], { type:'text/html' }), 'text/plain':new Blob([url], { type:'text/plain' }) })]);
+    else await navigator.clipboard.writeText(url);
+    msg(msgId, '복사했어요 ✅ (글자를 누르면 열리는 링크예요)', true);
+  }catch(e){ msg(msgId, '자동 복사가 막혔어요. 위 주소를 직접 복사해 주세요.'); }
+}
+function copyShareLink(){ copyRich(pureUrl(), APP_LABEL, 'shMsg'); }
+async function copyShareText(){ try{ await navigator.clipboard.writeText(shareText()); msg('shMsg', '소개 문구를 복사했어요 ✅', true); }catch(e){ msg('shMsg', '자동 복사가 막혔어요.'); } }
+function saveQr(){
+  try{
+    const q = qrObj(pureUrl()), n = q.getModuleCount(), cs = 10, m = 4, sz = (n + m * 2) * cs;
+    const c = document.createElement('canvas'); c.width = c.height = sz; const x = c.getContext('2d');
+    x.fillStyle = '#fff'; x.fillRect(0, 0, sz, sz); x.fillStyle = '#000';
+    for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (q.isDark(r, k)) x.fillRect((k + m) * cs, (r + m) * cs, cs, cs);
+    c.toBlob(b => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'KCSAT호출보드_QR.png'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); });
+  }catch(e){ msg('shMsg', 'QR 저장에 실패했어요.'); }
+}
+
+/* ================= 📘 사용 가이드 ================= */
+function guideBody(){
+  const ac = (t, body, open) => `<details class="acc" ${open ? 'open' : ''}><summary>${t}</summary><div class="in">${body}</div></details>`;
+  return ac('이 앱은 무엇인가요?', '수능 날 본부(교무실)에서 감독 대기실에 있는 선생님을 부르는 전용 도구예요. 본부에서 호출하면 대기실 전자칠판에 큰 글씨와 소리로 나타나고, 본부는 처리 상태를 기록으로 볼 수 있어요.', true) +
+  ac('1. 처음 설치 (본부 담당자, 한 번만)', guideHtml(true, 'G')) +
+  ac('2. 호출하는 방법', '<ol style="margin:0;padding-left:20px"><li>[호출하기] 탭에서 <b>교시/영역</b>을 고르고, <b>고사실·역할·이름</b>을 입력해요. 여러 명이면 [＋ 대상 추가].</li><li><b>빠른 문구</b>를 누르거나 호출 문구를 직접 써요.</li><li>필요하면 <b>지참물</b>(도장 등)과 <b>메모</b>, <b>긴급</b>을 골라요. 메모는 기본적으로 본부에서만 보여요.</li><li>[N명 호출하기]를 누르면 대기실에 바로 나타나요. 이미 부른 호출에 사람을 더 부르려면 [현황]에서 [＋ 같은 호출에 추가].</li><li>일이 끝나면 [현황]에서 <b>처리완료</b>를 눌러요. (취소는 따로 기록돼요)</li></ol>') +
+  ac('3. 대기실 화면 준비 (전자칠판 연결)', '<ul style="margin:0;padding-left:20px"><li>본부 [설정] 탭에서 <b>대기실 링크</b>를 복사해 대기실 노트북에서 열어요. 연결 주소가 자동으로 저장돼요.</li><li>브라우저를 <b>전체 화면(F11)</b>으로 두고, 노트북 <b>전원 연결·절전 해제</b>를 확인해요. (화면 꺼짐 방지 기능이 있지만 일부 브라우저는 지원하지 않아요)</li><li>화면을 <b>한 번 눌러야</b> 알림음이 나와요. 오른쪽 위 🔔 버튼으로 켜고 끌 수 있어요.</li><li>글자 크기는 화면 아래 [작게/보통/크게]로 바꿀 수 있어요.</li></ul>') +
+  ac('4. 수능 전날·당일 체크리스트', '<ul style="margin:0;padding-left:20px"><li>두 노트북 모두 <b>인터넷 연결</b>과 전원을 확인해요.</li><li>본부에서 <b>연습 모드</b>를 켜고 호출 → 대기실 표시 → [확인했어요] → 처리완료까지 한 번 해 봐요.</li><li>끝나면 [현황]에서 <b>연습 기록 지우기</b>, 연습 모드를 꺼요.</li><li>본부 맨 위에 <b>대기실 ● 정상</b>이 보이는지 확인해요.</li><li>비밀번호와 <b>대기실 연락 방법(전화·직접 방문)</b>을 미리 정해 두세요.</li></ul>') +
+  ac('5. 연결이 끊겼다는 팝업이 떴어요', '<ul style="margin:0;padding-left:20px"><li><b>대기실 화면 신호가 끊겼어요</b>: 대기실 노트북의 와이파이·전원을 보고 새로고침(F5)해요. 그동안은 전화나 직접 방문으로 호출해요.</li><li><b>본부 화면이 서버와 연결되지 않아요</b>: 이 노트북의 인터넷을 확인하고 새로고침(F5)해요. 비밀번호는 다시 묻지 않아요.</li><li><b>대기실 화면이 아직 연결되지 않았어요</b>: 대기실에서 대기실 링크를 열었는지 확인해요.</li><li>연결이 돌아오면 팝업은 자동으로 닫혀요.</li></ul>') +
+  ac('6. 다른 학교·선생님께 소개하기', '[설정] 탭의 <b>소개 링크·QR</b>를 보내 주세요. 이 링크에는 우리 학교 연결 주소가 들어 있지 않아서, 받은 선생님은 자기 구글 시트로 따로 설치해요. (설정의 "우리 학교용 링크"는 다른 학교에 보내지 마세요)') +
+  `<p class="hint" style="margin-top:14px">문의 <a href="${mailHref()}">${MAIL}</a> · Made by Cheon_R</p>`;
+}
+function openGuide(){
+  $('guideOv').innerHTML = `<div class="full"><div class="wrap"><div class="row" style="justify-content:space-between;margin-bottom:10px"><h2 style="margin:0;color:var(--navy)">📘 사용 가이드</h2><button class="btn sub sm" onclick="closeGuide()">닫기</button></div>${guideBody()}</div></div>`;
+}
+function closeGuide(){ $('guideOv').innerHTML = ''; }
+
+/* ================= 📋 사용자 등록 · 이용 현황 · 후기 (아듬샘 공용 등록부 연동) =================
+   - 등록부는 아듬샘 앱 공용 등록부(Cheon-R-registry-GAS.gs)예요. 이 앱은 app 값 'kcsat'으로 보내요.
+   - 등록부가 열리지 않아도(인터넷 문제 등) 본부 화면은 그대로 열려요 — 수능 당일 호출을 막지 않아요.
+   - 호출 내용(이름·메모·문구)은 등록부로 보내지 않아요. 하루 호출 '건수'와 대기실 '수'만 보내요. */
+const REGISTRY_URL = 'https://script.google.com/macros/s/AKfycbzrgeAlZhEGyvp7vo_j0hgesVoIoI6T_GMayKJCfvOFaV5Sb3wO1xvackSeQLc3HQxsnQ/exec';
+const APP_KEY = 'kcsat';
+const REGIONS = ['서울','부산','대구','인천','광주','대전','울산','세종','경기','강원','충북','충남','전북','전남','경북','경남','제주'];
+const LEVELS = ['초등학교','중학교','고등학교','기타'];
+const PURPOSES = ['수능·모의평가 감독 호출','학교 시험(중간·기말) 감독 호출','행사·기타 호출'];   // GAS(등록부)의 KC_PURPOSES와 같아야 해요
+const RG_KINDS = ['교사','기타'];
+const RV_CHIPS = ['본부에서 바로 호출할 수 있어요','대기실에서 알림이 잘 보이고 들려요','지참물·메모를 같이 보낼 수 있어요','연결이 끊기면 알려 줘서 안심돼요','설치·연결이 쉬웠어요','연습 모드로 미리 해 볼 수 있어요'];   // 등록부 REVIEW_KCSAT.chips와 순서 동일
+const RV_LOWS = ['사용법이 어려웠어요','설치·연결이 어려웠어요','기능이 부족해요','오류가 있었어요','알림이 늦거나 안 왔어요'];                  // 등록부 REVIEW_KCSAT.lows와 순서 동일
+const RV_KINDS = ['기능 요청','오류','디자인','기타'];
+const kstDay = () => new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+(function captureFrom(){   // 소개 링크(?from=)로 들어왔으면 처음 들어온 경로만 이 기기에 기억해요
+  const f = (new URLSearchParams(location.search).get('from') || '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 12);
+  if (f && !DEMO && !lsGet(K.from, '')) lsSet(K.from, f);
+})();
+let IID = '', REG_ST = '', IS_OWNER = false, REV_ON = true, PUB = null, REG_MODE = 'pre', GATE_SKIP = false;
+let RG = { kind:'교사', region:'', level:'', purpose:'' };
+const getReg = () => lsGet(K.reg, null);
+const needReg = () => !DEMO && !!REGISTRY_URL && !getReg();
+const randId = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+
+/* ---------- 등록 화면 ---------- */
+function showReg(mode){
+  REG_MODE = mode;
+  const old = getReg();
+  if (old){ RG = { kind:old.kind || '교사', region:old.region || '', level:old.level || '', purpose:old.purpose || '' }; }
+  $('regName').value = old ? old.name : '';
+  $('regRegion').innerHTML = '<option value="">지역 선택</option>' + REGIONS.map(r => `<option ${RG.region === r ? 'selected' : ''}>${r}</option>`).join('');
+  $('regLevel').innerHTML = '<option value="">학교급 선택</option>' + LEVELS.map(r => `<option ${RG.level === r ? 'selected' : ''}>${r}</option>`).join('');
+  $('regAgree').checked = false; msg('regMsg', '');
+  $('regForm').classList.remove('hide'); $('regBlock').classList.add('hide');
+  $('regLead').textContent = mode === 'pre'
+    ? '처음 한 번만 하면 돼요 🙂 등록을 마치면 설치 안내로 넘어가요. (체험해 보고 싶으면 처음 화면에서 "체험해보기"를 눌러 주세요)'
+    : '이 앱을 쓰는 분을 한 번만 등록해 주세요 🙂 (1분이면 돼요)';
+  $('regSkip').classList.toggle('hide', mode !== 'real');
+  renderReg(); show('scrReg');
+}
+function renderReg(){
+  $('regKinds').innerHTML = RG_KINDS.map(k => chipHtml(k, RG.kind === k, `regPick('kind','${k}')`)).join('');
+  $('regPurposes').innerHTML = PURPOSES.map((p, i) => chipHtml(p, RG.purpose === p, `regPick('purpose',PURPOSES[${i}])`)).join('');
+  $('regTeacher').classList.toggle('hide', RG.kind !== '교사');
+}
+function regPick(k, v){ RG[k] = v; renderReg(); }
+function regParams(reg, id){
+  return { action:'register', app:APP_KEY, id, name:reg.name, kind:reg.kind, region:reg.region, level:reg.level, purpose:reg.purpose, agree:'1', old:id.indexOf('pre-') === 0 ? '' : reg.pid, from:reg.from || '' };
+}
+async function submitReg(){
+  const name = $('regName').value.trim(), old = getReg();
+  RG.region = $('regRegion').value; RG.level = $('regLevel').value;
+  if (!name){ msg('regMsg', '아이디를 적어 주세요. (실명 대신 아이디를 권해요)'); return; }
+  if (RG.kind === '교사' && (!RG.region || !RG.level)){ msg('regMsg', '지역과 학교급을 골라 주세요.'); return; }
+  if (!RG.purpose){ msg('regMsg', '사용 목적을 1개 골라 주세요.'); return; }
+  if (!$('regAgree').checked){ msg('regMsg', '개인정보 수집·이용에 동의해야 등록할 수 있어요. 동의가 어려우면 "체험해보기"는 등록 없이 쓸 수 있어요.'); return; }
+  const reg = { pid:(old && old.pid) || 'pre-' + randId(), kind:RG.kind, name, region:RG.kind === '교사' ? RG.region : '', level:RG.kind === '교사' ? RG.level : '', purpose:RG.purpose,
+    agreeAt:(old && old.agreeAt) || new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 16).replace('T', ' '), from:lsGet(K.from, '') };
+  $('regBtn').disabled = true;
+  try{
+    if (REG_MODE === 'pre'){   // 시트 연결 전: 임시(pre-) 번호로 먼저 등록. 실패해도 다음 단계로 가요 (로그인 때 자동으로 다시 보내요)
+      lsSet(K.reg, reg);
+      jsonp(regParams(reg, reg.pid), REGISTRY_URL, 8000).catch(() => {});
+      return GAS ? goMode('admin') : showNeed();
+    }
+    waitOn($('regMsg'), '등록하는 중…');
+    await jsonp(regParams(reg, IID), REGISTRY_URL, 12000);
+    lsSet(K.reg, { ...reg, done:IID });
+    enterAdmin();
+  }catch(e){ msg('regMsg', e.message); }
+  finally{ $('regBtn').disabled = false; }
+}
+function regBack(){ goMode(''); }
+function regSkip(){ GATE_SKIP = true; enterAdmin(); }   // 수능 당일처럼 급할 때: 이번 접속만 건너뛰고 들어가요 (다음 접속 때 다시 물어봐요)
+function showRegBlocked(kind){
+  $('regForm').classList.add('hide'); $('regBlock').classList.remove('hide');
+  $('regBlockBody').innerHTML = kind === 'blocked'
+    ? '<b>이 설치는 사용이 중지되어 있어요.</b><br>문의가 필요하면 아래 메일로 알려 주세요.'
+    : '<b>승인을 기다리고 있어요.</b><br>개발자가 승인하면 들어갈 수 있어요. 급하면 아래 메일로 알려 주세요.';
+  show('scrReg');
+}
+
+/* ---------- 로그인 직후 등록 확인 (접속일지는 등록부가 하루 1번 기록해요) ---------- */
+async function regGate(){
+  if (DEMO || !REGISTRY_URL || !IID || GATE_SKIP) return true;
+  const reg = getReg();
+  let res;
+  try{ res = await jsonp({ action:'check', app:APP_KEY, id:IID, old:reg ? reg.pid : '' }, REGISTRY_URL, 8000); }
+  catch(e){ REG_ST = 'offline'; return true; }   // 등록부가 안 열려도 사용은 막지 않아요
+  try{
+    if (res.status === 'unregistered'){
+      if (!reg){ showReg('real'); return false; }
+      await jsonp(regParams(reg, IID), REGISTRY_URL, 10000);   // 사전 등록이 안 올라가 있었다면 지금 올려요
+      res = await jsonp({ action:'check', app:APP_KEY, id:IID }, REGISTRY_URL, 8000);
+    }
+  }catch(e){ REG_ST = 'offline'; return true; }
+  REG_ST = res.status; REV_ON = res.review !== false; PUB = res.pub || null;
+  if (REG_ST === 'blocked' || REG_ST === 'pending'){ showRegBlocked(REG_ST); return false; }
+  IS_OWNER = REG_ST === 'owner';
+  if (reg && reg.done !== IID) lsSet(K.reg, { ...reg, done:IID });
+  return true;
+}
+function gateUi(){
+  if (DEMO || !REGISTRY_URL) return;
+  $('ownTab').classList.toggle('hide', !IS_OWNER);
+  if (IS_OWNER) ownPeek();
+  rvTouch(); rvUi(); renderSet();
+}
+
+/* ---------- 이용 규모 (건수만) ---------- */
+const USE = { sig:'', t:0 };
+function sendUsage(){
+  if (DEMO || !REGISTRY_URL || !IID || (REG_ST !== 'ok' && REG_ST !== 'owner')) return;
+  const day = kstDay(), cs = (S.calls || []).filter(c => !c.practice && String(c.at || '').slice(0, 10) === day);
+  if (!cs.length) return;
+  const rooms = new Set(cs.map(c => c.room || '').filter(Boolean)).size, sig = day + '|' + cs.length + '|' + rooms;
+  if (sig === USE.sig || Date.now() - USE.t < 60000) return;
+  USE.sig = sig; USE.t = Date.now();
+  jsonp({ action:'kcsatStat', app:APP_KEY, id:IID, calls:cs.length, rooms }, REGISTRY_URL, 8000).catch(() => { USE.sig = ''; });
+}
+
+/* ---------- 개인정보 처리방침 ---------- */
+function openPriv(){
+  $('privOv').innerHTML = `<div class="ov" style="z-index:70"><div class="box" style="max-width:520px;max-height:92vh;overflow:auto"><h3 style="margin:0 0 8px">📄 개인정보 처리방침</h3>
+  <div class="hint" style="line-height:1.65;color:var(--tx)">
+  <p style="margin:0 0 8px">KCSAT 감독 호출 보드(Made by Cheon_R)를 만든 개발자가 사용자 등록·후기와 관련해 받는 정보를 어떻게 다루는지 알려 드려요. (시행일 2026-10-29)</p>
+  <p style="margin:10px 0 2px"><b>1. 받는 정보와 목적</b></p>
+  <ul style="margin:0;padding-left:20px"><li>필수: 구분(교사/기타), 아이디, 사용 목적, (교사) 학교의 지역·학교급 — 아이디는 실명이 아닌 이름표를 권해요.</li><li>자동: 접속한 날짜·횟수, 하루 호출 <b>건수</b>와 대기실 <b>수</b>(숫자만), 동의한 시각, 소개 링크로 들어온 경우 소개한 분의 번호</li><li>선택 제출: 후기·별점·개선점, 소개 자료 사용 허락 여부</li><li>목적: 사용 현황 파악, 앱 개선, 문의 응대, 개발자의 활동 기록 정리</li><li><b>학교 이름, 학생 정보, 호출 내용(이름·메모·문구)은 받지 않아요.</b> 호출 기록은 각 선생님 본인의 구글 시트에만 저장돼요.</li></ul>
+  <p style="margin:10px 0 2px"><b>2. 보유 기간과 파기</b></p>
+  <ul style="margin:0;padding-left:20px"><li>앱을 운영하는 동안 보관해요. 삭제를 요청하시면 지체 없이 등록부(구글 시트)에서 지워요.</li></ul>
+  <p style="margin:10px 0 2px"><b>3. 제3자 제공·소개 자료 활용</b></p>
+  <ul style="margin:0;padding-left:20px"><li>제3자에게 제공하지 않아요. 소개 자료에는 숫자 통계로만 쓰고, 후기 인용은 후기를 쓸 때 따로 허락하신 경우에만 해요.</li></ul>
+  <p style="margin:10px 0 2px"><b>4. 저장 장소 (해외 서버 포함)</b></p>
+  <ul style="margin:0;padding-left:20px"><li>개발자의 구글 시트·구글 Apps Script에 저장돼요. 구글의 서버를 쓰며 서버가 해외에 있을 수 있어요. 등록부는 개발자 본인만 열어 봐요.</li></ul>
+  <p style="margin:10px 0 2px"><b>5. 동의 거부 권리와 불이익</b></p>
+  <ul style="margin:0;padding-left:20px"><li>동의하지 않을 수 있어요. 동의하지 않으면 사용자 등록을 할 수 없어 본부 화면은 쓸 수 없지만, "체험해보기"는 등록 없이 쓸 수 있어요.</li></ul>
+  <p style="margin:10px 0 2px"><b>6. 열람·정정·삭제·처리정지 요청, 문의</b></p>
+  <ul style="margin:0;padding-left:20px"><li>앱 개발자 Cheon_R · <b>${MAIL}</b></li></ul></div>
+  <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn sub" onclick="$('privOv').innerHTML=''">닫기</button></div></div></div>`;
+}
+
+/* ---------- 💬 후기 · 별점 · 개선점 ---------- */
+let RV = { rate:0, pick:[], other:false, low:[], lowOther:false, kind:'', ok:'no', busy:false };
+function rvOkList(){
+  const k = (getReg() || {}).kind;
+  return k === '교사' ? [['name','아이디 공개해도 돼요'],['anon','아이디 없이 써도 돼요'],['no','쓰지 말아주세요']] : [['anon','아이디 없이 써도 돼요'],['no','쓰지 말아주세요']];
+}
+function rvUi(){
+  const on = !DEMO && !!REGISTRY_URL && REV_ON;
+  $('rvTopBtn').classList.toggle('hide', !on);
+  if (!on){ $('rvBanner').classList.add('hide'); return; }
+  const st = lsGet(K.rv, { n:0, day:'', shown:false, done:false });
+  const show = st.n >= 3 && !st.shown && !st.done;
+  $('rvBanner').classList.toggle('hide', !show);
+  if (show){ st.shown = true; lsSet(K.rv, st); }   // 안내 배너는 딱 한 번만 보여요
+}
+function rvTouch(){   // 방문한 '날' 수를 세요 (하루에 여러 번 열어도 1번)
+  if (DEMO) return;
+  const st = lsGet(K.rv, { n:0, day:'', shown:false, done:false }), d = kstDay();
+  if (st.day !== d){ st.n = (st.n || 0) + 1; st.day = d; lsSet(K.rv, st); }
+}
+function openReview(){
+  RV = { rate:0, pick:[], other:false, low:[], lowOther:false, kind:'', ok:'no', busy:false };
+  $('rvBanner').classList.add('hide');
+  $('rvOv').innerHTML = `<div class="ov" style="z-index:66"><div class="box" style="max-width:520px;max-height:94vh;overflow:auto">
+    <h3 style="margin:0 0 4px">💬 후기·별점·개선점</h3><p class="hint" style="margin:0 0 6px">써 주신 의견은 앱을 더 좋게 만드는 데 쓰여요. 1분이면 충분해요 🙂</p>
+    <label class="f">사용해 보니 어떠셨나요? <small>(별점 · 필수)</small></label><div class="stars" id="rvStars"></div>
+    <div id="rvLowBox" class="hide"><label class="f">아쉬웠던 점 <small>(여러 개 선택 가능)</small></label><div class="chips" id="rvLows"></div><input type="text" id="rvLowOther" class="hide" maxlength="30" placeholder="아쉬웠던 점을 직접 적어 주세요" style="margin-top:8px"></div>
+    <label class="f">좋았던 점 <small>(여러 개 선택 가능)</small></label><div class="chips" id="rvChips"></div><input type="text" id="rvOther" class="hide" maxlength="30" placeholder="좋았던 점을 직접 적어 주세요" style="margin-top:8px">
+    <label class="f">한줄 후기 <small>(선택 · 80자)</small></label><textarea id="rvOne" maxlength="80" rows="2" placeholder="한 줄로 소감을 남겨 주세요"></textarea>
+    <label class="f">이런 점이 개선되면 좋겠어요 <small>(선택 · 200자)</small></label><div class="chips" id="rvKinds"></div><textarea id="rvImp" maxlength="200" rows="3" style="margin-top:8px" placeholder="불편했던 점, 있었으면 하는 기능 등을 편하게 적어 주세요"></textarea>
+    <label class="f">소개 자료에 써도 될까요?</label><div class="chips" id="rvOk"></div>
+    <p class="hint" style="margin:6px 0 0">기본은 <b>쓰지 말아주세요</b>예요. 허락해 주신 경우에만 포트폴리오·소개 자료에 인용해요.</p>
+    <div class="row" style="margin-top:12px"><button class="btn" id="rvSend" onclick="sendReview()">보내기</button><button class="btn sub" onclick="closeReview()">닫기</button></div><div class="msg" id="rvMsg"></div></div></div>`;
+  renderRv();
+}
+function closeReview(){ $('rvOv').innerHTML = ''; }
+function renderRv(){
+  $('rvStars').innerHTML = [1,2,3,4,5].map(n => `<button type="button" class="${RV.rate >= n ? 'on' : ''}" aria-label="별 ${n}개" onclick="rvSetRate(${n})">★</button>`).join('');
+  const low = RV.rate >= 1 && RV.rate <= 3;
+  $('rvLowBox').classList.toggle('hide', !low);
+  $('rvLows').innerHTML = RV_LOWS.map((t, i) => chipHtml(t, RV.low.indexOf(i) >= 0, `rvTog('low',${i})`)).join('') + chipHtml('기타', RV.lowOther, 'rvTogOther(\'lowOther\')');
+  $('rvLowOther').classList.toggle('hide', !(low && RV.lowOther));
+  $('rvChips').innerHTML = RV_CHIPS.map((t, i) => chipHtml(t, RV.pick.indexOf(i) >= 0, `rvTog('pick',${i})`)).join('') + chipHtml('기타', RV.other, 'rvTogOther(\'other\')');
+  $('rvOther').classList.toggle('hide', !RV.other);
+  $('rvKinds').innerHTML = RV_KINDS.map(t => chipHtml(t, RV.kind === t, `rvKind('${t}')`)).join('');
+  $('rvOk').innerHTML = rvOkList().map(([k, t]) => chipHtml(t, RV.ok === k, `rvOkSet('${k}')`)).join('');
+}
+function rvSetRate(n){ RV.rate = n; if (n >= 4){ RV.low = []; RV.lowOther = false; } renderRv(); }   // 4점 이상이면 아쉬운 점 선택은 지워요
+function rvTog(k, i){ const a = RV[k], p = a.indexOf(i); p >= 0 ? a.splice(p, 1) : a.push(i); renderRv(); }
+function rvTogOther(k){ RV[k] = !RV[k]; renderRv(); if (RV[k]) setTimeout(() => $(k === 'other' ? 'rvOther' : 'rvLowOther').focus(), 30); }
+function rvKind(t){ RV.kind = RV.kind === t ? '' : t; renderRv(); }
+function rvOkSet(k){ RV.ok = k; renderRv(); }
+async function sendReview(){
+  if (RV.busy) return;
+  if (!RV.rate){ msg('rvMsg', '별점을 눌러 주세요.'); return; }
+  const low = RV.rate <= 3, imp = $('rvImp').value.trim();
+  RV.busy = true; $('rvSend').disabled = true; waitOn($('rvMsg'), '보내는 중…');
+  try{
+    await jsonp({ action:'review', app:APP_KEY, id:IID, rate:RV.rate, c:RV.pick.slice().sort((a, b) => a - b).join(','), lc:low ? RV.low.slice().sort((a, b) => a - b).join(',') : '',
+      lo:low && RV.lowOther ? $('rvLowOther').value.trim() : '', other:RV.other ? $('rvOther').value.trim() : '', one:$('rvOne').value.trim(), ik:RV.kind, imp, ok:RV.ok === 'no' ? '' : RV.ok }, REGISTRY_URL, 15000);
+    const st = lsGet(K.rv, { n:0, day:'', shown:true, done:false }); st.done = true; lsSet(K.rv, st);
+    closeReview(); toast('소중한 의견 감사합니다 🙏');
+  }catch(e){ msg('rvMsg', e.message); }
+  finally{ RV.busy = false; const b = $('rvSend'); if (b) b.disabled = false; }
+}
+
+/* ---------- 👑 아듬샘 전용 (등록부의 관리자설치ID로만 열려요) ---------- */
+let OWN = null;
+async function ownPeek(){
+  try{
+    const r = await jsonp({ action:'ownerReviews', app:APP_KEY, id:IID, peek:'1' }, REGISTRY_URL, 10000);
+    const n = Math.max(0, (r.tTotal || 0) - (r.seenT || 0)); const b = $('ownBdg'); b.textContent = n; b.classList.toggle('hide', !n);
+  }catch(e){}
+}
+async function loadOwn(mark){
+  $('pgOwn').innerHTML = '<div class="card"><p class="hint" style="margin:0">불러오는 중…</p></div>';
+  try{
+    const [L, Rv] = await Promise.all([
+      jsonp({ action:'ownerList', app:APP_KEY, id:IID }, REGISTRY_URL, 20000),
+      jsonp({ action:'ownerReviews', app:APP_KEY, id:IID, mark:mark ? '1' : '' }, REGISTRY_URL, 20000)]);
+    OWN = { L, Rv }; $('ownBdg').classList.add('hide'); renderOwn();
+  }catch(e){ $('pgOwn').innerHTML = `<div class="card"><p class="msg err">${esc(e.message)}</p><button class="btn sm" onclick="loadOwn(true)">다시 불러오기</button></div>`; }
+}
+function barsHtml(days, color){
+  const mx = Math.max(1, ...days.map(d => d.n));
+  return `<div class="bars">${days.map(d => `<div style="height:${Math.round(d.n / mx * 100)}%;background:${color}"><span>${d.n || ''}</span></div>`).join('')}</div><div class="bl">${days.map(d => `<span>${esc(d.d)}</span>`).join('')}</div>`;
+}
+function distHtml(title, map){
+  const ent = Object.entries(map).sort((a, b) => b[1] - a[1]), mx = Math.max(1, ...ent.map(e => e[1]));
+  return `<div class="dist"><b style="font-size:.92rem">${title}</b>${ent.length ? ent.map(([k, v]) => `<div class="r"><span>${esc(k)}</span><span class="b"><i style="width:${Math.round(v / mx * 100)}%"></i></span><b>${v}</b></div>`).join('') : '<div class="hint">아직 없어요</div>'}</div>`;
+}
+function renderOwn(){
+  const { L, Rv } = OWN, us = L.users || [], st = L.stats || {}, use = L.usage || { calls:0, schools:0, days:[] };
+  const cnt = f => { const m = {}; us.forEach(u => { const k = f(u); if (k) m[k] = (m[k] || 0) + 1; }); return m; };
+  const rows = us.slice().reverse().map(u => `<tr><td>${esc(u.name)}</td><td>${esc(u.kind)}</td><td>${esc((u.region + ' ' + u.level).trim())}</td><td>${esc(u.purpose)}</td><td>${esc(String(u.reg).slice(0, 10))}</td><td>${esc(String(u.last).slice(0, 10))}</td><td>${u.fromName ? esc(u.fromName) : (u.from ? '(' + esc(u.from) + ')' : '')}${u.refs ? ' · 소개 ' + u.refs + '명' : ''}</td><td><button class="btn sm sub" onclick="ownBlock('${esc(u.id)}',${u.block ? 0 : 1})">${u.block ? '차단 해제' : '차단'}</button></td></tr>`).join('');
+  const items = (Rv.t || []).map(r => `<div class="anrow ${r.nw ? 'u' : ''}"><div style="font-weight:700">${'★'.repeat(r.rate)}${'☆'.repeat(5 - r.rate)} ${r.nw ? '<span class="tag u">새 후기</span>' : ''} <span class="hint">${esc(r.t)} · ${esc(r.name)} · ${esc(r.school)}</span></div>
+    <div style="font-size:.9rem;margin-top:4px">${[...r.chips, r.other && '기타: ' + r.other].filter(Boolean).map(esc).join(' · ')}${r.lows.length || r.lowOther ? '<br><span style="color:var(--amber)">아쉬움: ' + [...r.lows, r.lowOther].filter(Boolean).map(esc).join(' · ') + '</span>' : ''}${r.one ? '<br>“' + esc(r.one) + '”' : ''}${r.imp ? '<br>🔧 [' + esc(r.kind || '개선') + '] ' + esc(r.imp) : ''}<br><span class="hint">소개 자료: ${esc(r.consent)}</span></div></div>`).join('');
+  $('pgOwn').innerHTML = `
+  <div class="card"><h3>👑 아듬샘 전용 · 이용 현황</h3>
+    <div class="pills"><div class="pill"><b>${st.users || 0}</b>누적 사용자</div><div class="pill"><b>${st.today || 0}</b>오늘 접속</div><div class="pill"><b>${st.week || 0}</b>이번 주</div><div class="pill"><b>${st.visits || 0}</b>누적 접속</div><div class="pill"><b>${use.calls}</b>누적 호출 건수</div><div class="pill"><b>${use.schools}</b>호출을 써 본 곳</div></div>
+    <b style="font-size:.92rem">최근 14일 접속한 선생님</b>${barsHtml(st.days || [], 'var(--navy)')}
+    <div style="height:10px"></div><b style="font-size:.92rem">최근 14일 호출 건수</b>${barsHtml(use.days || [], 'var(--red)')}
+    <div class="row" style="margin-top:12px"><button class="btn sm" onclick="ownPng()">🖼 PNG로 저장</button><button class="btn sm sub" onclick="ownCsv()">📄 사용자 CSV 저장</button><button class="btn sm sub" onclick="openShare()">🔗 배포 링크·QR</button><button class="btn sm sub" onclick="loadOwn(false)">↻ 새로고침</button></div></div>
+  <div class="card"><h3>어떤 분들이 쓰나요</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px">${distHtml('지역', cnt(u => u.region))}${distHtml('학교급', cnt(u => u.level))}${distHtml('사용 목적', cnt(u => u.purpose))}${distHtml('구분', cnt(u => u.kind))}</div></div>
+  <div class="card"><h3>💬 받은 후기 (${Rv.tTotal || 0}건 · 개선점 ${L.review ? L.review.improves : 0}건)</h3>
+    <label class="sw"><input type="checkbox" ${L.review && L.review.on ? 'checked' : ''} onchange="ownReviewSw(this.checked)"> 후기 받기 켜기 <span class="hint">(끄면 버튼이 숨겨지고 서버도 거절해요. 받은 후기는 시트에 남아요)</span></label><div class="msg" id="ownMsg"></div>
+    ${items || '<p class="hint" style="margin:8px 0 0">아직 받은 후기가 없어요.</p>'}</div>
+  <div class="card"><h3>👥 사용자 (${us.length}명)</h3><div class="scrl"><table class="utbl"><thead><tr><th>아이디</th><th>구분</th><th>지역·학교급</th><th>사용 목적</th><th>등록일</th><th>최근 접속</th><th>소개</th><th></th></tr></thead><tbody>${rows || '<tr><td colspan="8" class="hint">아직 없어요</td></tr>'}</tbody></table></div></div>`;
+}
+async function ownReviewSw(on){
+  try{ await jsonp({ action:'ownerReview', app:APP_KEY, id:IID, on:on ? '1' : '0' }, REGISTRY_URL, 10000); REV_ON = on; msg('ownMsg', on ? '후기 받기를 켰어요.' : '후기 받기를 껐어요.', true); }
+  catch(e){ msg('ownMsg', e.message); }
+}
+async function ownBlock(id, v){
+  try{ await jsonp({ action:'ownerUser', app:APP_KEY, id:IID, target:id, field:'block', value:String(v) }, REGISTRY_URL, 10000); loadOwn(false); }
+  catch(e){ toast(e.message); }
+}
+function ownCsv(){
+  const us = (OWN && OWN.L.users) || [];
+  const csv = '﻿' + ['아이디,구분,지역,학교급,사용목적,등록일,최근접속,소개자,소개한 사람 수'].concat(us.map(u => [u.name, u.kind, u.region, u.level, u.purpose, String(u.reg).slice(0, 10), String(u.last).slice(0, 10), u.fromName || u.from || '', u.refs || 0].map(csvCell).join(','))).join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv;charset=utf-8' })); a.download = 'KCSAT_사용자.csv'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function ownPng(){
+  if (!OWN) return;
+  const L = OWN.L, st = L.stats || {}, use = L.usage || { calls:0, days:[] };
+  const W = 900, H = 660, c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
+  x.fillStyle = '#fff'; x.fillRect(0, 0, W, H);
+  x.fillStyle = '#324872'; x.font = 'bold 26px Pretendard, sans-serif'; x.fillText('KCSAT 감독 호출 보드 · 이용 현황', 30, 44);
+  x.fillStyle = '#5B6781'; x.font = '15px Pretendard, sans-serif'; x.fillText(kstDay() + ' 기준 · 누적 사용자 ' + (st.users || 0) + '명 · 누적 접속 ' + (st.visits || 0) + '회 · 누적 호출 ' + use.calls + '건', 30, 72);
+  const draw = (days, y0, title, color) => {
+    x.fillStyle = '#1C2638'; x.font = 'bold 17px Pretendard, sans-serif'; x.fillText(title, 30, y0);
+    const mx = Math.max(1, ...days.map(d => d.n)), bw = (W - 60) / Math.max(1, days.length), ch = 170, base = y0 + 20 + ch;
+    days.forEach((d, i) => {
+      const h = Math.round(d.n / mx * (ch - 20)), bx = 30 + i * bw + 6;
+      x.fillStyle = color; x.fillRect(bx, base - h, bw - 12, h);
+      x.fillStyle = '#1C2638'; x.font = '13px Pretendard, sans-serif'; x.textAlign = 'center'; x.fillText(String(d.n), bx + (bw - 12) / 2, base - h - 5);
+      x.fillStyle = '#5B6781'; x.font = '12px Pretendard, sans-serif'; x.fillText(d.d, bx + (bw - 12) / 2, base + 18); x.textAlign = 'left';
+    });
+  };
+  draw(st.days || [], 110, '최근 14일 접속한 선생님 수', '#324872');
+  draw(use.days || [], 380, '최근 14일 호출 건수', '#C62F3A');
+  c.toBlob(b => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'KCSAT_이용현황.png'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); });
+}
+
+/* ---------- 설정 탭에 붙는 카드 ---------- */
+function regCardsHtml(){
+  if (DEMO || !REGISTRY_URL) return '';
+  const r = getReg(), pubShow = PUB && typeof PUB.users === 'number' && (IS_OWNER || PUB.users >= 10);   // 누적 10명 미만이면 숨겨요 (아듬샘에겐 항상 보여요)
+  return `<div class="card"><h3>📋 내 등록 정보</h3>
+    ${r ? `<p class="hint" style="margin:0 0 6px;color:var(--tx)">아이디 <b>${esc(r.name)}</b> · ${esc(r.kind)}${r.region ? ' · ' + esc(r.region) + ' ' + esc(r.level) : ''}<br>사용 목적: ${esc(r.purpose)}</p>` : '<p class="hint" style="margin:0 0 6px">아직 등록 정보가 없어요.</p>'}
+    ${REG_ST === 'offline' ? '<p class="hint" style="margin:0 0 6px;color:var(--amber)">지금은 등록부에 연결되지 않았어요. 호출 기능에는 영향이 없고, 다음에 들어올 때 자동으로 다시 보내요.</p>' : ''}
+    ${pubShow ? `<p class="hint" style="margin:0 0 6px"><b>● 오늘 ${PUB.today}명</b> / 누적 ${PUB.users}명이 쓰고 있어요</p>` : ''}
+    <p class="hint" style="margin:0">수정·삭제 요청은 <a href="${mailHref()}">${MAIL}</a>로 보내 주세요. · <a href="#" onclick="openPriv();return false">개인정보 처리방침</a></p></div>
+  ${REV_ON ? `<div class="card"><h3>💬 후기·별점·개선점</h3><p class="hint" style="margin:0 0 10px">쓰다가 느낀 점을 남겨 주세요. 앱을 고치는 데 큰 도움이 돼요.</p><button class="btn sm" onclick="openReview()">후기 남기기</button></div>` : ''}`;
+}
+
+
+boot();
+</script>
+</body>
+</html>
