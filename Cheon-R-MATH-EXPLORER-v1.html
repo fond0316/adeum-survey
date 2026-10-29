@@ -352,6 +352,25 @@ canvas{width:100%;height:440px;display:block}
 .mx-ask p{font-size:13.5px;color:#374151;line-height:1.55;margin-bottom:8px;}
 .mx-ask .mx-rvrow{margin-top:0;}
 .mx-ask .mx-rvrow button{min-height:44px;font-size:14px;}
+/* ════════ 공유하기 · 사용법 (누구나) ════════ */
+.mx-xh{flex-shrink:0;min-height:44px;padding:0 14px;font-size:13px;}
+@media (max-width:700px){.mx-xh .mx-rvt{display:none}.mx-xh{min-width:44px;padding:0 10px;font-size:18px}}
+.mx-bar .mx-xbtn{order:2;margin:0;}
+@media (max-width:520px){#v-hdr{padding:0 10px;gap:6px;}#v-hdr .made,#v-hdr .hbadge,#v-hdr .logo-v{display:none;}#v-hdr .logo-t{font-size:14px;white-space:nowrap;}#v-hdr .logo-link{gap:6px;}}   /* 폰: 버튼이 늘어난 만큼 머리글 정리 */
+@media (max-width:340px){#v-hdr .logo-t{display:none;}}
+#mx-sh,#mx-gd{position:fixed;inset:0;z-index:1055;background:rgba(17,24,39,.55);display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));}
+#mx-sh.mx-open,#mx-gd.mx-open{display:flex;}
+.mx-shthx{margin-top:10px;padding:10px 12px;border-radius:10px;background:#ECFDF3;border:1px solid #A7E3BF;color:#166534;font-size:13px;line-height:1.5;text-align:center;}
+.mx-intro{margin:10px auto 0;max-width:380px;padding:9px 12px;border-radius:10px;background:#EBF3FF;border:1px solid #B8D4F8;color:#1A4E94;font-size:13px;line-height:1.55;text-align:center;}
+.mx-intro b{color:#1A5FB4;}
+.mx-gderr{margin-top:14px;padding:14px 14px 12px;border-radius:14px;background:#FFF1F0;border:2px solid #E74C3C;color:#7B1D14;}
+.mx-gderr b{color:#C0392B;font-size:16px;line-height:1.5;display:block;}
+.mx-gderr p{font-size:13px;line-height:1.55;margin-top:6px;color:#7B1D14;}
+.mx-gdsec{margin-top:16px;}
+.mx-gdsec h4{font-size:14.5px;font-weight:800;color:#1A5FB4;margin-bottom:4px;}
+.mx-gdsec ul{margin:0;padding-left:18px;font-size:13px;color:#374151;line-height:1.65;}
+.mx-gdsec li{margin-bottom:2px;}
+.mx-errnote{display:block;margin:8px auto 2px;max-width:560px;padding:9px 14px;border:1.5px solid #E74C3C;border-radius:10px;background:#FFF1F0;color:#922B21;font-family:inherit;font-size:13px;font-weight:700;line-height:1.5;cursor:pointer;text-align:center;}
 
 .mx-hint{font-size:11.5px;color:#9ca3af;margin-top:6px;line-height:1.5;}
 
@@ -434,6 +453,7 @@ canvas{width:100%;height:440px;display:block}
     <div class="mx-eyebrow">Math Explorer</div>
     <div class="mx-title">🌟 아듬's 수학탐구실</div>
     <div class="mx-sub">처음이시네요! 간단히 등록하고 시작해요</div>
+    <div class="mx-intro"><b>고등학교 수학 개념을 직접 조작하고 움직여 보며 그래프로 탐구하는 도구예요 📈</b><br>식(대수)과 그래프(기하)를 함께 보고, 원리와 법칙을 정확한 수학 언어와 쉬운 설명으로 함께 익혀요</div>
     <div class="mx-legacy" id="mx-legacy" style="display:none"></div>
 
     <div class="mx-lbl mx-lbl-main">반가워요! 어떤 분이세요? 😊</div>
@@ -562,6 +582,66 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
   </div>
 </div>
 
+<!-- 🔗 공유하기 (누구나) -->
+<div id="mx-sh">
+  <div class="mx-admcard">
+    <div class="mx-admtitle">🔗 앱 공유하기</div>
+    <div class="mx-admsub" id="mx-sh-sub">친구·동료 선생님께 이 앱을 소개해 주세요</div>
+    <div class="mx-shthx" id="mx-sh-thx" style="display:none">후기 감사합니다 🙏 도움이 됐다면 다른 분께도 소개해 주세요!</div>
+    <div class="mx-qrbox"><canvas id="mx-sh-qr" width="260" height="260"></canvas></div>
+    <div class="mx-admprev" id="mx-sh-prev"><span class="mx-admprevlb">붙여넣으면 이렇게 보여요</span><a id="mx-sh-prevA" href="#" target="_blank" rel="noopener"></a></div>
+    <div class="mx-admrow"><button type="button" id="mx-sh-cpurl">주소 복사</button><button type="button" class="mx-main" id="mx-sh-cplink">🔗 링크로 복사</button></div>
+    <div class="mx-admrow"><button type="button" id="mx-sh-cptxt">소개 문구 복사</button><button type="button" id="mx-sh-save">QR 이미지 저장</button></div>
+    <div class="mx-hint" style="text-align:center">이 주소로 들어오면 누구나 같은 앱을 쓸 수 있어요. (내 정보·설정은 함께 전달되지 않아요)</div>
+    <div class="mx-msg" id="mx-sh-msg" style="color:#2D7D46"></div>
+    <button type="button" class="mx-admclose" id="mx-sh-close">닫기</button>
+  </div>
+</div>
+
+<!-- ❓ 사용법 (누구나) -->
+<div id="mx-gd">
+  <div class="mx-admcard">
+    <div class="mx-admtitle">❓ 사용법</div>
+    <div class="mx-admsub">아듬's 수학탐구실을 쓰는 방법이에요</div>
+
+    <div class="mx-gderr">
+      <b>🚨 수학 개념이나 문제에 오류가 있다면 꼭 관리자에게 알려주세요!</b>
+      <p><strong>설명·그래프·퀴즈의 정답이나 풀이</strong>가 교과서와 다르거나 이상하다면, 어느 탭(또는 몇 번 문제)인지와 무엇이 이상한지 짧게만 적어 보내 주세요. 빠르게 확인하고 고칠게요.</p>
+      <div class="mx-admrow"><button type="button" class="mx-main" id="mx-gd-mail">✉️ 메일로 알리기</button><button type="button" id="mx-gd-rv">💬 후기 창에서 알리기</button></div>
+    </div>
+
+    <div class="mx-gdsec"><h4>📚 이 앱은?</h4><ul>
+      <li><strong>고등학교 수학 개념을 직접 조작하고 움직여 보며 그래프로 탐구하는 도구</strong>예요.</li>
+      <li>식(대수)과 그래프(기하)를 함께 보고, 원리와 법칙을 정확한 수학 언어와 쉬운 설명으로 함께 익혀요.</li>
+      <li>지금은 <strong>다항함수 단원(v1)</strong>이 열려 있고, 다른 단원도 차례로 추가될 예정이에요.</li>
+      <li>수업 보조용이에요. 교과서와 다른 부분을 발견하면 위 버튼으로 알려 주세요.</li></ul></div>
+
+    <div class="mx-gdsec"><h4>🗂 단원(탭) 소개</h4><ul>
+      <li><strong>함수 탐색기</strong>: 계수를 바꾸며 그래프 변화를 봐요</li>
+      <li><strong>방정식 탐색기</strong>: 그래프와 x축의 관계로 방정식을 풀어요</li>
+      <li><strong>부등식 탐색기</strong>: 그래프로 해집합을 찾아요</li>
+      <li><strong>개념 정리</strong>: 공식과 함정 포인트를 모아 봐요</li>
+      <li><strong>퀴즈</strong>: 개념을 확인해요 (막히면 힌트를 눌러 보세요)</li>
+      <li><strong>심화(비율)</strong>·<strong>심화(함수변환)</strong>: 교과서 밖 내용도 있는 심화 탭이에요</li></ul></div>
+
+    <div class="mx-gdsec"><h4>🖱 그래프 조작</h4><ul>
+      <li>드래그로 이동, 마우스 휠로 확대·축소, 더블클릭하면 처음 화면으로 돌아와요</li>
+      <li>태블릿·폰은 두 손가락으로 확대·축소해요</li>
+      <li>슬라이더나 숫자 칸으로 계수를 바꿔 보세요</li></ul></div>
+
+    <div class="mx-gdsec"><h4>📝 메모장</h4><ul>
+      <li>화면에 떠 있는 <strong>메모장</strong>에 풀이를 손으로 적어 볼 수 있어요</li></ul></div>
+
+    <div class="mx-gdsec"><h4>🔗 공유 · 💬 후기</h4><ul>
+      <li>상단의 <strong>공유하기</strong>로 링크·QR을 다른 분께 보낼 수 있어요</li>
+      <li><strong>후기 남기기</strong>로 느낀 점이나 바라는 점을 알려 주세요</li>
+      <li>앱은 수시로 업데이트돼요. 이상하면 <strong>F5</strong>(새로고침)를 한 번 눌러 주세요</li></ul></div>
+
+    <div class="mx-msg" id="mx-gd-msg" style="color:#2D7D46"></div>
+    <button type="button" class="mx-admclose" id="mx-gd-close">닫기</button>
+  </div>
+</div>
+
 <!-- 관리자: 비밀번호 → 학생용 주소/QR -->
 <div id="mx-adm">
   <div class="mx-admcard">
@@ -639,6 +719,7 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
     <span>⚡</span>
     <span>이 앱은 업데이트가 수시로 이루어지니 시작하기 전에 <kbd style="background:#dbeafe;border:1px solid #93c5fd;border-radius:4px;padding:1px 6px;font-size:12px;font-family:inherit">F5</kbd> 한 번 눌러줘요!</span>
   </div>
+  <button type="button" class="mx-errnote" onclick="mxgdOpen()">🚨 수학 개념·문제에 오류가 있으면 꼭 관리자에게 알려주세요 (눌러서 방법 보기)</button>
   <div class="lc-grid">
 
     <!-- V1 -->
@@ -711,6 +792,8 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
     </div>
     <span class="made">Made by Cheon_R</span>
     <button type="button" class="mx-rvbtn mx-rvh" onclick="mxrOpen()" aria-label="후기 남기기">💬<span class="mx-rvt"> 후기 남기기</span></button>
+    <button type="button" class="mx-rvbtn mx-xh" onclick="mxshOpen()" aria-label="공유하기">🔗<span class="mx-rvt"> 공유하기</span></button>
+    <button type="button" class="mx-rvbtn mx-xh" onclick="mxgdOpen()" aria-label="사용법">❓<span class="mx-rvt"> 사용법</span></button>
     <div class="hsp"></div>
     <span class="hbadge">공통수학1·2 · 미적분Ⅰ (심화: 미적분Ⅱ) | 다항함수 · 방정식 · 부등식</span>
   </div>
@@ -11411,6 +11494,7 @@ function mxrToday(){ const d = new Date(); return d.getFullYear() + '-' + String
 /* 접속 1회 = 새 탭/새 창으로 연 접속, 또는 날짜가 바뀐 뒤의 접속. (같은 탭에서 F5 새로고침은 같은 접속) */
 function mxrOnEnter(){
   mxrEnsureButton();
+  try{ if(typeof mxgdAutoOnce === 'function') mxgdAutoOnce(); }catch(e){}
   let sessionCounted = false;
   try{ sessionCounted = !!sessionStorage.getItem('mx_cnt'); }catch(e){}
   const s = mxrLoad(), today = mxrToday();
@@ -11426,6 +11510,12 @@ function mxrEnsureButton(){
   b.type = 'button'; b.id = 'mx-rvbtn'; b.className = 'mx-rvbtn'; b.textContent = '💬 후기 남기기';
   b.onclick = mxrOpen; (mxBar()||hub).appendChild(b);
   if(mx.rvOn === false) b.style.display = 'none';
+  if(!$mx('mx-shbtn')){                                   // 🔗 공유하기 · ❓ 사용법 (누구나, 후기 ON/OFF와 무관)
+    const sb = document.createElement('button'); sb.type = 'button'; sb.id = 'mx-shbtn'; sb.className = 'mx-rvbtn mx-xbtn'; sb.textContent = '🔗 공유하기';
+    sb.onclick = ()=>mxshOpen(); (mxBar()||hub).appendChild(sb);
+    const gb = document.createElement('button'); gb.type = 'button'; gb.id = 'mx-gdbtn'; gb.className = 'mx-rvbtn mx-xbtn'; gb.textContent = '❓ 사용법';
+    gb.onclick = ()=>mxgdOpen(); (mxBar()||hub).appendChild(gb);
+  }
 }
 
 function mxrAsk(force){
@@ -11534,6 +11624,7 @@ async function mxrSend(){
     if(r && r.ok){
       const s = mxrLoad(); s.done = true; mxrSave(s);
       mxrClose(); mxToast('후기 감사합니다 🙏 큰 힘이 돼요!', 4000);
+      try{ setTimeout(()=>mxshOpen(true), 700); }catch(e){}
     } else if(r && r.code === 'off'){
       mxrApplyOn(false); mxrClose(); mxToast('지금은 후기를 받고 있지 않아요 🙏', 4000);
     } else {
@@ -12083,6 +12174,101 @@ window.addEventListener('DOMContentLoaded', ()=>{
     const r=pad.getBoundingClientRect();
     if(r.right>window.innerWidth||r.bottom>window.innerHeight)place();
     sz();
+  });
+})();
+</script>
+<script>
+/* ════════ 🔗 공유하기 · ❓ 사용법 (누구나 쓰는 추가 모듈 — 기존 기능과 독립) ════════ */
+(function(){
+  const g = id => document.getElementById(id);
+  const GD_KEY = 'mathexp_guide_v1';
+  function appUrl(){                       // 쿼리(?…)·해시(#…) 제거한 순수 앱 주소 → 내 정보·설정이 같이 넘어가지 않아요
+    try{ return location.protocol === 'file:' ? location.href.split(/[?#]/)[0] : (location.origin + location.pathname); }catch(e){ return ''; }
+  }
+  function linkTxt(){ return MX_APP_NAME + '_made by Cheon R'; }
+  function esc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function flash(id, t){ const m = g(id); if(!m) return; m.textContent = t; clearTimeout(flash['_'+id]); flash['_'+id] = setTimeout(()=>{ m.textContent = ''; }, 2500); }
+  function copyText(text, okMsg){
+    const fb = ()=>{
+      const ta = document.createElement('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      let ok = false; try{ ok = document.execCommand('copy'); }catch(e){} ta.remove();
+      flash('mx-sh-msg', ok ? okMsg : '복사에 실패했어요. 주소를 직접 선택해서 복사해 주세요');
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(()=>flash('mx-sh-msg', okMsg)).catch(fb); else fb();
+  }
+  function drawQr(){
+    const cv = g('mx-sh-qr'), ctx = cv.getContext('2d'), url = appUrl();
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
+    const a = g('mx-sh-prevA'); a.textContent = linkTxt(); a.href = url || '#'; a.onclick = e=>e.preventDefault();
+    if(!url) return;
+    try{
+      qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
+      const qr = qrcode(0, 'M'); qr.addData(url); qr.make();
+      const n = qr.getModuleCount(), quiet = 4, cell = Math.floor(cv.width / (n + quiet*2)), off = Math.floor((cv.width - cell*n) / 2);
+      ctx.fillStyle = '#000';
+      for(let r=0; r<n; r++) for(let c=0; c<n; c++) if(qr.isDark(r,c)) ctx.fillRect(off + c*cell, off + r*cell, cell, cell);
+    }catch(e){ ctx.fillStyle = '#9ca3af'; ctx.font = '14px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('QR을 만들지 못했어요', cv.width/2, cv.height/2); }
+  }
+  window.mxshOpen = function(afterReview){
+    drawQr();
+    g('mx-sh-thx').style.display = afterReview === true ? '' : 'none';
+    g('mx-sh-sub').style.display = afterReview === true ? 'none' : '';
+    g('mx-sh-msg').textContent = '';
+    g('mx-sh').classList.add('mx-open');
+  };
+  window.mxshClose = function(){ g('mx-sh').classList.remove('mx-open'); };
+  window.mxgdOpen = function(){
+    const rv = g('mx-gd-rv'); if(rv) rv.style.display = (typeof mx !== 'undefined' && mx.rvOn === false) ? 'none' : '';
+    g('mx-gd-msg').textContent = ''; g('mx-gd').classList.add('mx-open');
+    try{ localStorage.setItem(GD_KEY, '1'); }catch(e){}
+  };
+  window.mxgdClose = function(){ g('mx-gd').classList.remove('mx-open'); };
+  window.mxgdAutoOnce = function(){                       // 처음 들어왔을 때 딱 1번만 자동으로 열어요
+    let seen = false; try{ seen = !!localStorage.getItem(GD_KEY); }catch(e){ seen = true; }
+    if(seen) return;
+    setTimeout(()=>{
+      if(!mx.cur || !g('mx-reg').classList.contains('mx-hide')) return;       // 등록 화면이 떠 있으면 안 띄움
+      if(g('mx-gd').classList.contains('mx-open')) return;
+      let again = false; try{ again = !!localStorage.getItem(GD_KEY); }catch(e){}
+      if(!again) mxgdOpen();
+    }, 700);
+  };
+  window.addEventListener('DOMContentLoaded', ()=>{
+    g('mx-sh-close').onclick = mxshClose; g('mx-gd-close').onclick = mxgdClose;
+    g('mx-sh').addEventListener('click', e=>{ if(e.target === g('mx-sh')) mxshClose(); });
+    g('mx-gd').addEventListener('click', e=>{ if(e.target === g('mx-gd')) mxgdClose(); });
+    document.addEventListener('keydown', e=>{ if(e.key === 'Escape'){ if(g('mx-sh').classList.contains('mx-open')) mxshClose(); if(g('mx-gd').classList.contains('mx-open')) mxgdClose(); } });
+    g('mx-sh-cpurl').onclick = ()=>copyText(appUrl(), '주소를 복사했어요 ✅');
+    g('mx-sh-cptxt').onclick = ()=>copyText("📐 " + MX_APP_NAME + " — 고등학교 수학 개념을 직접 조작하고 움직여 보며 그래프로 탐구하는 도구예요 👉 " + appUrl(), '소개 문구를 복사했어요 ✅');
+    g('mx-sh-cplink').onclick = ()=>{
+      const url = appUrl(), txt = linkTxt(), html = '<a href="' + esc(url) + '">' + esc(txt) + '</a>', plain = txt + ' 👉 ' + url;
+      const ok = ()=>flash('mx-sh-msg', '링크로 복사했어요 ✅ 붙여넣기 해보세요');
+      const fb = ()=>{
+        const a = g('mx-sh-prevA'), sel = window.getSelection(), rg = document.createRange();
+        rg.selectNodeContents(a); sel.removeAllRanges(); sel.addRange(rg);
+        let done = false; try{ done = document.execCommand('copy'); }catch(e){} sel.removeAllRanges();
+        done ? ok() : flash('mx-sh-msg', '복사에 실패했어요. 주소 복사를 이용해 주세요');
+      };
+      if(window.ClipboardItem && navigator.clipboard && navigator.clipboard.write){
+        navigator.clipboard.write([new ClipboardItem({'text/html': new Blob([html], {type:'text/html'}), 'text/plain': new Blob([plain], {type:'text/plain'})})]).then(ok).catch(fb);
+      } else fb();
+    };
+    g('mx-sh-save').onclick = ()=>{
+      g('mx-sh-qr').toBlob(blob=>{
+        if(!blob){ flash('mx-sh-msg', '이미지 저장에 실패했어요'); return; }
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'math-explorer-qr.png';
+        document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+        flash('mx-sh-msg', 'QR 이미지를 저장했어요 ✅');
+      }, 'image/png');
+    };
+    g('mx-gd-mail').onclick = ()=>{
+      location.href = mxMailLink('수학 개념·문제 오류 제보') + '&body=' + encodeURIComponent('어느 탭(또는 몇 번 문제)인가요?\n\n무엇이 이상한가요? (맞다고 생각하는 내용도 알려주시면 좋아요)\n\n');
+    };
+    g('mx-gd-rv').onclick = ()=>{
+      mxgdClose(); mxrOpen();
+      setTimeout(()=>{ const t = g('mx-rv-imp'); if(t){ if(!t.value.trim()) t.value = '[오류 제보] '; try{ g('mx-sec-imp').scrollIntoView({block:'center'}); }catch(e){} } }, 60);
+    };
   });
 })();
 </script>
