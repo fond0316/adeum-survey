@@ -228,6 +228,17 @@ mark{background:#FEF3C7;color:inherit;border-radius:3px;padding:0 1px}
 #imgOv img{max-width:96vw;max-height:88vh;border-radius:10px;background:#fff}
 #imgOv span{color:#fff;font-size:13px}
 
+/* 연결 주소가 없을 때 안내 */
+#gasHint{display:none;margin-top:10px;padding:12px 14px;border-radius:12px;background:#FFF4E0;border:1px solid #F5D9A8;color:#7A4B00;font-size:14px;line-height:1.55}
+#gasHint b{font-weight:700}
+#gasHint .gp{display:flex;gap:8px;margin-top:10px}
+#gasHint .gp input{flex:1;min-width:0;min-height:44px;border:1.5px solid #F5D9A8;border-radius:10px;padding:0 12px;font-size:16px;font-family:inherit;background:#fff;color:#2E2A3D}
+#gasHint .gp button{flex:none;min-height:44px;padding:0 18px;border-radius:10px;background:var(--main);color:#fff;font-size:15px;font-weight:700;font-family:inherit}
+#gasHint .gd{margin-top:10px;font-size:13px}
+#gasHint .gd summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
+#gasHint .gd p{margin:6px 0 0;line-height:1.6}
+#gasHint .gm{margin-top:6px;font-size:13px;color:#B23A3A;min-height:0}
+
 /* 📖 우리 반 시간표 띠 + 주간 시간표 창 (로즈핑크) */
 #ttStrip{display:none;margin-top:10px;width:100%;min-height:48px;border-radius:12px;align-items:center;gap:10px;padding:0 10px;font-size:14px;font-weight:500;color:#72243E;background:#FBEAF0;border:0.5px solid #F4C0D1;text-align:left;cursor:pointer}
 #ttStrip.show{display:flex}
@@ -281,6 +292,7 @@ body.board .ti-row .tag{font-size:15px}
     <button class="ref" id="refBtn" onclick="load(true)" aria-label="새로고침">↻</button>
   </header>
 
+  <div id="gasHint"><b>⚠️ 이 기기에는 연결 주소가 저장돼 있지 않아요.</b><br>선생님이 알려준 링크(<b>주소 끝에 <code>?gas=…</code>가 붙은 긴 링크</b>)로 한 번 열어 주세요. 한 번 열면 그다음부터는 기본 주소로도 열려요.<br>카카오톡·네이버 앱 <b>안에서</b> 열었다면 크롬·사파리에서 다시 열어 주세요. 시크릿(사생활 보호) 모드에서는 저장이 안 돼요.<br><br><b>링크를 눌러도 안 될 때:</b> 선생님이 준 링크를 통째로 복사해서 아래 칸에 붙여넣고 [연결]을 눌러 주세요.<br><b>카카오톡에서 복사하는 방법:</b> ① 링크가 온 메시지를 <b>길게 누르기</b> → ② <b>복사</b> → ③ 아래 칸에 <b>붙여넣기</b> → ④ <b>[연결]</b><div class="gp"><input type="text" id="gasPaste" placeholder="여기에 링크를 붙여넣기" autocomplete="off" autocapitalize="off" spellcheck="false"><button type="button" onclick="gasPasteGo()">연결</button></div><div class="gm" id="gasPasteMsg"></div><details class="gd"><summary>📌 연결한 뒤에 꼭 해 두세요</summary><p><b>1. 즐겨찾기(북마크)에 저장하기</b><br>연결이 되면 이 화면을 즐겨찾기에 넣어 두고, 다음부터는 거기서 열어요.<br>· 크롬(컴퓨터): <b>Ctrl + D</b> · 크롬(폰): <b>⋮ 메뉴 → ☆ 북마크</b><br>· 사파리(아이폰): <b>공유 버튼 → 즐겨찾기에 추가</b> 또는 <b>홈 화면에 추가</b></p><p><b>2. 예전 주소가 자동으로 뜨면 지우기</b><br>주소창에 앱 주소를 치면 예전(연결 없는) 주소가 먼저 뜰 수 있어요.<br>· 크롬(컴퓨터): 주소창에 입력 → 방향키 ↓로 그 주소를 고르고 <b>Shift + Delete</b><br>· 크롬(폰): 주소창에 입력 → 그 주소를 <b>길게 눌러 삭제</b><br>· 사파리(아이폰): <b>설정 → Safari → 방문 기록 및 웹 사이트 데이터 지우기</b> (저장된 연결도 같이 지워지니 지운 뒤에는 다시 연결해 주세요)</p></details></div>
   <div id="urgent"></div>
   <div class="ti" id="ti" style="display:none"></div>
   <button type="button" id="ttStrip" onclick="ttOpen()" aria-label="우리 반 시간표 보기"></button>
@@ -1417,6 +1429,23 @@ async function ttPubLoad(){
   const ab2 = applyBoard;
   applyBoard = function(){ ab2(); try{ ttStripRender(); }catch(e){} };
 })();
+
+/* 연결 주소 직접 붙여넣기 — 링크를 눌러도 주소가 지워지는 기기용 (붙여넣은 글에서 gas 주소만 꺼내 저장해요) */
+function gasPasteGo(){
+  const inp = document.getElementById('gasPaste'), msg = document.getElementById('gasPasteMsg');
+  if (!inp || !msg) return;
+  const raw = String(inp.value || '').trim();
+  let g = '';
+  const urls = raw.match(/https?:\/\/[^\s<>"']+/g) || [];   // 글자·이모지가 같이 붙어 있어도 그 안의 링크를 찾아요 (카톡 메시지 복사)
+  for (const u of urls){ try{ const v = new URL(u).searchParams.get('gas'); if (v){ g = v; break; } }catch(e){} }
+  if (!g){ const m = raw.match(/https:\/\/script\.google\.com\/[^\s<>"']+\/exec/); if (m) g = m[0]; }   // 주소만 붙여넣어도 돼요
+  g = g.trim();
+  if (!/^https:\/\/script\.google\.com\/\S+/.test(g)){ msg.textContent = '링크에서 연결 주소를 찾지 못했어요. 선생님이 준 링크를 처음부터 끝까지 복사해서 붙여넣어 주세요.'; return; }
+  lsSet(K.gas, g);
+  if (lsGet(K.gas, '') !== g){ msg.textContent = '이 기기는 저장이 막혀 있어요. 시크릿 모드라면 일반 창에서 열어 주세요.'; return; }
+  location.reload();
+}
+if (!GAS && !DEMO && !PREVIEW){ const gh = document.getElementById('gasHint'); if (gh) gh.style.display = 'block'; }   // 연결 주소가 없으면 안내만 보여줘요
 if (GAS){
   ttPubLoad();
   setInterval(() => { ttPubLoad(); }, 30*60000);
