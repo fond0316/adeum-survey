@@ -262,7 +262,7 @@ html.room.f0{--rf:16px} html.room.f2{--rf:26px}
     <button class="tab" data-t="status" onclick="setTab('status')">현황<span class="badge hide" id="bdg">0</span></button>
     <button class="tab" data-t="view" onclick="setTab('view')">대기실 보기</button>
     <button class="tab" data-t="set" onclick="setTab('set')">설정</button>
-    <button class="tab hide" data-t="own" id="ownTab" onclick="setTab('own')">👑 아듬샘<span class="badge hide" id="ownBdg">0</span></button>
+    <button class="tab hide" data-t="own" id="ownTab" onclick="setTab('own')">👑 관리자(아듬전용)<span class="badge hide" id="ownBdg">0</span></button>
   </div>
   <div class="wrap">
     <div id="rvBanner" class="pract hide"><span>💬 써 보시니 어떠세요? 별점과 한마디를 남겨 주시면 앱을 고치는 데 큰 도움이 돼요.</span><span class="row"><button class="btn sm" onclick="openReview()">후기 남기기</button><button class="btn sm sub" onclick="$('rvBanner').classList.add('hide')">나중에</button></span></div>
@@ -296,6 +296,7 @@ html.room.f0{--rf:16px} html.room.f2{--rf:26px}
 <div id="shOv"></div>
 <div id="guideOv"></div>
 <div id="rvOv"></div>
+<div id="impOv"></div>
 <div id="privOv"></div>
 
 <script>
@@ -2603,7 +2604,7 @@ var qrcode = function() {
 /* ===== 기본 ===== */
 const APP = 'KCSAT 감독 호출 보드';
 const MAIL = 'fond7509@naver.com';
-const NEED_GAS = 2;                       // 이 화면이 필요로 하는 GAS 코드 버전 (GAS를 고칠 때 같이 올려요)
+const NEED_GAS = 3;                       // 이 화면이 필요로 하는 GAS 코드 버전 (GAS를 고칠 때 같이 올려요)
 const GAS_FILE = 'Cheon-R-KCSAT-call-board.gs';
 const K = { gas:'kcsat_gas_v1', sound:'kcsat_sound_v1', font:'kcsat_font_v1', practice:'kcsat_practice_v1', reg:'kcsat_reg_v1', from:'kcsat_from_v1', rv:'kcsat_rv_v1' };
 const $ = id => document.getElementById(id);
@@ -2882,10 +2883,10 @@ function renderCall(){
     return `<div class="trow">
       <div><select aria-label="고사실" onchange="setT(${i},'room',this.value,true)">${roomOpts}</select>${t.room === '기타' ? `<input class="oth" type="text" placeholder="장소 직접 입력" value="${esc(t.roomOther)}" oninput="setT(${i},'roomOther',this.value)">` : ''}</div>
       <div><select aria-label="역할" onchange="setT(${i},'role',this.value,true)">${roleOpts}</select>${t.role === '기타' ? `<input class="oth" type="text" placeholder="역할 직접 입력" value="${esc(t.roleOther)}" oninput="setT(${i},'roleOther',this.value)">` : ''}</div>
-      <div class="nm"><input type="text" placeholder="이름 (예: 홍길동)" aria-label="이름" value="${esc(t.name)}" oninput="setT(${i},'name',this.value)"></div>
+      <div class="nm"><input type="text" list="rosterDl" placeholder="이름 (예: 홍길동)" aria-label="이름" value="${esc(t.name)}" oninput="setT(${i},'name',this.value)"></div>
       <button class="x" aria-label="삭제" onclick="delT(${i})">✕</button></div>`;
   }).join('') + `<button class="btn sub sm" onclick="addT()">＋ 대상 추가</button>` +
-    (L.roster.length ? `<div style="margin-top:14px"><div class="hint" style="margin-bottom:6px">자주 부르는 선생님 (누르면 이름이 들어가요)</div><div class="chips">${L.roster.map((n, i) => chipHtml(n, false, `pickRoster(${i})`)).join('')}</div></div>` : '') + `</div>`;
+    rosterBoxHtml() + rosterDlHtml() + `</div>`;
   h += `<div class="card"><h3>③ 호출 문구</h3><input type="text" id="msgIn" value="${esc(F.msg)}" oninput="F.msg=this.value" aria-label="호출 문구"><div class="hint" style="margin:8px 0 6px">빠른 문구 (누르면 위 칸에 들어가요)</div><div class="chips">` +
     L.phrase.map((p, i) => chipHtml(p, F.msg === p, `setPhrase(${i})`)).join('') + `</div></div>`;
   h += `<div class="card"><h3>④ 지참물 <span class="hint" style="font-weight:400">(대기실 화면에 함께 보여요)</span></h3><div class="chips">` +
@@ -2896,7 +2897,7 @@ function renderCall(){
     <label class="sw"><input type="checkbox" ${F.memoPub ? 'checked' : ''} onchange="F.memoPub=this.checked"> 이 메모를 대기실 화면에도 보이기</label>
     <label class="sw" style="color:var(--red)"><input type="checkbox" id="urgCk" ${F.urgent ? 'checked' : ''} onchange="F.urgent=this.checked"> 🚨 긴급 호출 (빨간 화면 · 알림 반복)</label></div></div>`;
   h += `<button class="btn big" id="sendBtn" onclick="sendCall()"></button><div class="msg" id="callMsg"></div>`;
-  $('pgCall').innerHTML = h; updBtn();
+  $('pgCall').innerHTML = h; updBtn(); renderRoster();
 }
 function updBtn(){
   const b = $('sendBtn'); if (!b) return;
@@ -2909,6 +2910,7 @@ function delT(i){ F.targets.splice(i, 1); if (!F.targets.length) F.targets.push(
 function addT(){ F.targets.push(blankT()); renderCall(); }
 function pickRoster(i){
   const n = S.lists.roster[i], t = F.targets.find(x => !x.name.trim());
+  if (F.targets.some(x => x.name.trim() === n)){ toast('이미 들어 있어요'); return; }
   if (t) t.name = n; else { const nt = blankT(); nt.name = n; F.targets.push(nt); }
   renderCall();
 }
@@ -3104,7 +3106,7 @@ function renderSet(){
     <label class="f">지참물 안내 문구 ( {items} 자리에 지참물이 들어가요 )</label><div class="row"><input type="text" id="fmtIn" style="flex:1;min-width:200px" value="${esc(S.settings.suppliesFormat)}"><button class="btn sm" onclick="saveSetting('지참물형식', $('fmtIn').value)">저장</button></div>
     <label class="f">고사실 개수 (선택 목록 1 ~ N)</label><div class="row"><input type="text" inputmode="numeric" id="maxIn" style="width:100px" value="${S.settings.roomMax}"><button class="btn sm" onclick="saveSetting('고사실수', $('maxIn').value)">저장</button></div><div class="msg" id="setMsg"></div></div>
   <div class="card"><h3>✏️ 목록 편집</h3><p class="hint" style="margin:0 0 6px">한 줄에 하나씩 적어요. 줄 순서가 화면 순서예요. (줄을 지우면 삭제, 줄을 옮기면 순서 변경)</p>` +
-    LISTS_UI.map(l => `<label class="f">${l[1]}</label>${l[2] ? `<div class="hint" style="margin-bottom:4px">${l[2]}</div>` : ''}<textarea rows="${Math.min(8, Math.max(3, S.lists[l[0]].length + 1))}" id="ls_${l[0]}">${esc(S.lists[l[0]].join('\n'))}</textarea><div style="margin-top:6px"><button class="btn sm" onclick="saveList('${l[0]}')">저장</button><span class="msg" id="lsm_${l[0]}" style="margin-left:8px"></span></div>`).join('') + `</div>
+    LISTS_UI.map(l => `<label class="f">${l[1]}</label>${l[0] === 'roster' ? '<div style="margin-bottom:6px"><button class="btn sm sub" onclick="openImport()">📥 엑셀·PDF·파일에서 명단 불러오기</button></div>' : ''}${l[2] ? `<div class="hint" style="margin-bottom:4px">${l[2]}</div>` : ''}<textarea rows="${Math.min(8, Math.max(3, S.lists[l[0]].length + 1))}" id="ls_${l[0]}">${esc(S.lists[l[0]].join('\n'))}</textarea><div style="margin-top:6px"><button class="btn sm" onclick="saveList('${l[0]}')">저장</button><span class="msg" id="lsm_${l[0]}" style="margin-left:8px"></span></div>`).join('') + `</div>
   ${DEMO ? '' : `<div class="card"><h3>🔑 비밀번호 바꾸기</h3><div class="row"><input type="password" id="cpw" placeholder="새 비밀번호 (4자 이상)" style="flex:1;min-width:200px" autocomplete="off"><button class="btn sm" onclick="changePw()">변경</button></div><div class="msg" id="cpwMsg"></div></div>`}
   <div class="card"><h3>📘 설치 가이드 · 코드 업데이트</h3><p class="hint" style="margin:0">현재 구글 시트 코드 버전: ${gasVer === null ? '확인 중' : gasVer >= NEED_GAS ? gasVer + ' (최신 ✅)' : gasVer + ' → 업데이트 필요'}</p>${guideHtml(false)}</div>
   ${regCardsHtml()}
@@ -3118,7 +3120,7 @@ async function saveSetting(key, value){
 async function saveList(kind){
   const items = $('ls_' + kind).value.split('\n').map(s => s.trim()).filter(Boolean);
   waitOn($('lsm_' + kind), '저장하는 중…');
-  try{ const r = await jsonp({ action:'saveLists', pw:PW, kind, items:JSON.stringify(items) }); S.lists[kind] = r.items; listSig = ''; msg('lsm_' + kind, '저장했어요 ✅', true); if (F){ if (kind === 'supply') F.supplies = F.supplies.filter(x => r.items.indexOf(x) >= 0); } }
+  try{ const r = await saveListChunked(kind, items); S.lists[kind] = r.items; listSig = ''; msg('lsm_' + kind, '저장했어요 ✅', true); if (F){ if (kind === 'supply') F.supplies = F.supplies.filter(x => r.items.indexOf(x) >= 0); } }
   catch(e){ msg('lsm_' + kind, e.message); }
 }
 async function changePw(){
@@ -3264,7 +3266,7 @@ function demoRoute(p){
     }
     case 'announce': { const t = Date.now(), m = Number(p.minutes) || 0; D.notices.push({ id:p.id || ('n' + t), text:p.text, urgent:p.urgent === '1', practice:p.practice === '1', state:'게시중', alert:++D.alert, at:dKst(t), offAt:'', ms:t, endMs:m ? t + m * 60000 : 0 }); return ok(); }
     case 'unannounce': D.notices.forEach(n => { if (n.id === p.id){ n.state = '내림'; n.offAt = dKst(); } }); return ok();
-    case 'saveLists': { const items = JSON.parse(p.items || '[]'); D.lists[p.kind] = items; return ok({ items }); }
+    case 'saveLists': { let items = JSON.parse(p.items || '[]'); if (p.mode === 'add') items = Array.from(new Set((D.lists[p.kind] || []).concat(items))); D.lists[p.kind] = items; return ok({ items }); }
     case 'saveSetting': { if (p.key === '메모기본공개') D.settings.memoDefault = p.value === 'Y'; else if (p.key === '지참물형식') D.settings.suppliesFormat = p.value; else if (p.key === '고사실수') D.settings.roomMax = Number(p.value) || 30; return ok(); }
     case 'clear': {
       const today = dKst().slice(0, 10), drop = x => p.scope === 'all' || (p.scope === 'practice' && x.practice) || (p.scope === 'today' && String(x.at).slice(0, 10) === today);
@@ -3605,7 +3607,7 @@ function renderOwn(){
   const items = (Rv.t || []).map(r => `<div class="anrow ${r.nw ? 'u' : ''}"><div style="font-weight:700">${'★'.repeat(r.rate)}${'☆'.repeat(5 - r.rate)} ${r.nw ? '<span class="tag u">새 후기</span>' : ''} <span class="hint">${esc(r.t)} · ${esc(r.name)} · ${esc(r.school)}</span></div>
     <div style="font-size:.9rem;margin-top:4px">${[...r.chips, r.other && '기타: ' + r.other].filter(Boolean).map(esc).join(' · ')}${r.lows.length || r.lowOther ? '<br><span style="color:var(--amber)">아쉬움: ' + [...r.lows, r.lowOther].filter(Boolean).map(esc).join(' · ') + '</span>' : ''}${r.one ? '<br>“' + esc(r.one) + '”' : ''}${r.imp ? '<br>🔧 [' + esc(r.kind || '개선') + '] ' + esc(r.imp) : ''}<br><span class="hint">소개 자료: ${esc(r.consent)}</span></div></div>`).join('');
   $('pgOwn').innerHTML = `
-  <div class="card"><h3>👑 아듬샘 전용 · 이용 현황</h3>
+  <div class="card"><h3>👑 관리자(아듬전용) · 이용 현황</h3>
     <div class="pills"><div class="pill"><b>${st.users || 0}</b>누적 사용자</div><div class="pill"><b>${st.today || 0}</b>오늘 접속</div><div class="pill"><b>${st.week || 0}</b>이번 주</div><div class="pill"><b>${st.visits || 0}</b>누적 접속</div><div class="pill"><b>${use.calls}</b>누적 호출 건수</div><div class="pill"><b>${use.schools}</b>호출을 써 본 곳</div></div>
     <b style="font-size:.92rem">최근 14일 접속한 선생님</b>${barsHtml(st.days || [], 'var(--navy)')}
     <div style="height:10px"></div><b style="font-size:.92rem">최근 14일 호출 건수</b>${barsHtml(use.days || [], 'var(--red)')}
@@ -3663,6 +3665,146 @@ function regCardsHtml(){
     ${pubShow ? `<p class="hint" style="margin:0 0 6px"><b>● 오늘 ${PUB.today}명</b> / 누적 ${PUB.users}명이 쓰고 있어요</p>` : ''}
     <p class="hint" style="margin:0">수정·삭제 요청은 <a href="${mailHref()}">${MAIL}</a>로 보내 주세요. · <a href="#" onclick="openPriv();return false">개인정보 처리방침</a></p></div>
   ${REV_ON ? `<div class="card"><h3>💬 후기·별점·개선점</h3><p class="hint" style="margin:0 0 10px">쓰다가 느낀 점을 남겨 주세요. 앱을 고치는 데 큰 도움이 돼요.</p><button class="btn sm" onclick="openReview()">후기 남기기</button></div>` : ''}`;
+}
+
+/* ================= 📥 선생님 명단 불러오기 (엑셀·CSV·PDF·붙여넣기 → 미리보기 → 선택해서 추가) =================
+   이름만 읽어요. 파일은 이 기기 안에서만 읽고 어디로도 보내지 않아요. (엑셀·PDF 읽는 도구는 파일을 고를 때만 인터넷에서 불러와요) */
+const LIB_XLSX = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+const LIB_PDF = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+const LIB_PDF_WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const NAME_HEAD = ['이름', '성명', '교사명', '교원명', '교사', '선생님', '감독', '감독교사', '감독관', '성 명', '이 름'];
+const NAME_STOP = new Set(['이름','성명','교사','선생님','감독','감독관','담당','과목','학년','교시','교무','행정','교장','교감','부장','담임','부담임','평가','국어','수학','영어','과학','사회','체육','음악','미술','도덕','기술','가정','정보','한문','역사','지리','물리','화학','생물','지구','탐구','한국사','교과','비고','번호','순번','연락처','직위','직책','부서','업무','배정','시간','장소','고사실','본부','대기','대기실','예비','복도','시험','정감독','부감독','총계','합계','확인','서명','교육','실장','주무','기간제','강사','보건','상담','사서','영양','특수','시간강사','교직원']);
+const loaded = {};
+function loadScript(src){
+  return loaded[src] || (loaded[src] = new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => { delete loaded[src]; rej(new Error('읽기 도구를 불러오지 못했어요. 인터넷 연결을 확인하거나 아래 칸에 이름을 붙여넣어 주세요.')); }; document.head.appendChild(s); }));
+}
+function cleanName(v){
+  let s = String(v == null ? '' : v).replace(/[​-‍﻿]/g, '').trim();
+  s = s.replace(/\([^)]*\)|\[[^\]]*\]|（[^）]*）/g, '').trim();
+  s = s.replace(/^[\s\d.\-·•*▶▷■□○●◦]+|[\s\d.\-·•*,;:]+$/g, '');
+  s = s.replace(/(선생님|선생|쌤|샘|교사|님|T|t)$/, '').trim();
+  if (!/^[가-힣]{2,4}$/.test(s) || NAME_STOP.has(s) || (s.length >= 3 && /(과|부|팀)$/.test(s))) return '';   // '국어과'·'교무부' 같은 부서·과목 이름은 빼요
+  return s;
+}
+/* rows: 줄마다 칸 배열. 표 머리글(이름·성명…)이 있으면 그 열만, 없으면 모든 칸에서 이름 모양인 것만 모아요 */
+function extractNames(rows){
+  const out = [], seen = new Set(), add = v => { const n = cleanName(v); if (n && !seen.has(n)){ seen.add(n); out.push(n); } };
+  const heads = [];
+  rows.forEach((r, ri) => r.forEach((c, ci) => { if (NAME_HEAD.indexOf(String(c).trim()) >= 0) heads.push([ri, ci]); }));
+  if (heads.length){
+    heads.forEach(([ri, ci]) => { for (let k = ri + 1; k < rows.length; k++){ if (NAME_HEAD.indexOf(String(rows[k][ci] || '').trim()) >= 0) break; add(rows[k][ci]); } });
+    if (out.length) return { names:out, mode:'머리글 열' };
+  }
+  rows.forEach(r => r.forEach(add));
+  return { names:out, mode:'전체 칸' };
+}
+const splitCells = line => String(line).split(/[\t,;|··\/]+|\s{2,}|\s+/).map(x => x.trim()).filter(Boolean);
+async function readFileRows(file){
+  const name = file.name.toLowerCase(), buf = await file.arrayBuffer();
+  if (/\.(xlsx|xls|xlsm|ods)$/.test(name)){
+    await loadScript(LIB_XLSX);
+    const wb = XLSX.read(buf, { type:'array' }), rows = [];
+    wb.SheetNames.forEach(sn => { XLSX.utils.sheet_to_json(wb.Sheets[sn], { header:1, raw:false, defval:'' }).forEach(r => rows.push(r.map(String))); rows.push([]); });
+    return rows;
+  }
+  if (/\.pdf$/.test(name)){
+    await loadScript(LIB_PDF); pdfjsLib.GlobalWorkerOptions.workerSrc = LIB_PDF_WORKER;
+    const pdf = await pdfjsLib.getDocument({ data:new Uint8Array(buf) }).promise, rows = [];
+    for (let p = 1; p <= pdf.numPages; p++){
+      const tc = await (await pdf.getPage(p)).getTextContent(), lines = [];
+      tc.items.forEach(it => { if (!it.str) return; const y = Math.round(it.transform[5] / 3); let ln = lines.find(l => l.y === y); if (!ln){ ln = { y, cells:[] }; lines.push(ln); } ln.cells.push({ x:it.transform[4], w:it.width || 0, s:it.str }); });
+      lines.sort((a, b) => b.y - a.y).forEach(l => {   // 같은 줄의 조각을 왼쪽부터 이어 붙이고, 간격이 벌어진 곳만 칸으로 나눠요 (글자가 한 자씩 쪼개진 PDF 대응)
+        let t = '', end = null;
+        l.cells.sort((a, b) => a.x - b.x).forEach(c => { if (end !== null && c.x - end > 2) t += ' '; t += c.s; end = c.x + c.w; });
+        rows.push(t.split(/\s+/).map(x => x.trim()).filter(Boolean));
+      });
+    }
+    if (!rows.some(r => r.length)) throw new Error('이 PDF에서 글자를 읽지 못했어요. (스캔한 사진 PDF는 읽을 수 없어요) 엑셀로 받아 오거나 이름을 붙여넣어 주세요.');
+    return rows;
+  }
+  let txt = new TextDecoder('utf-8').decode(buf);
+  if (txt.indexOf('�') >= 0) { try{ txt = new TextDecoder('euc-kr').decode(buf); }catch(e){} }   // 엑셀에서 저장한 옛 CSV(한글 ANSI) 대응
+  return txt.split(/\r?\n/).map(splitCells);
+}
+const IMP = { names:[], on:{}, mode:'', src:'' };
+function openImport(){
+  IMP.names = []; IMP.on = {}; IMP.mode = ''; IMP.src = '';
+  $('impOv').innerHTML = `<div class="ov" style="z-index:67"><div class="box" style="max-width:520px;max-height:94vh;overflow:auto">
+    <h3 style="margin:0 0 4px">📥 선생님 명단 불러오기</h3>
+    <p class="hint" style="margin:0 0 10px">이름만 읽어서 "자주 부르는 선생님" 명단에 넣어요. 먼저 미리보기로 확인하고, 체크한 분만 추가돼요. 파일은 이 기기 안에서만 읽어요.</p>
+    <label class="f">① 파일 고르기 <small style="font-weight:500;color:var(--sub)">(엑셀 · CSV · 글자 PDF · 텍스트)</small></label>
+    <input type="file" id="impFile" accept=".xlsx,.xls,.xlsm,.ods,.csv,.txt,.pdf" onchange="impPickFile(this)" style="width:100%;min-height:44px">
+    <label class="f">또는 이름을 붙여넣기 <small style="font-weight:500;color:var(--sub)">(쉼표·띄어쓰기·줄바꿈 모두 돼요)</small></label>
+    <textarea id="impText" rows="3" placeholder="홍길동 김철수 이영희 …"></textarea>
+    <div class="row" style="margin-top:8px"><button class="btn sm" onclick="impPaste()">붙여넣은 이름 확인</button></div>
+    <div class="msg" id="impMsg"></div><div id="impPrev"></div>
+    <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn sub" onclick="closeImport()">닫기</button></div></div></div>`;
+}
+function closeImport(){ $('impOv').innerHTML = ''; }
+async function impPickFile(inp){
+  const f = inp.files && inp.files[0]; if (!f) return;
+  waitOn($('impMsg'), '파일을 읽는 중…'); $('impPrev').innerHTML = '';
+  try{ const rows = await readFileRows(f); impShow(extractNames(rows), f.name); }
+  catch(e){ msg('impMsg', e.message || '파일을 읽지 못했어요.'); }
+}
+function impPaste(){
+  const t = $('impText').value; if (!t.trim()){ msg('impMsg', '이름을 붙여넣어 주세요.'); return; }
+  impShow(extractNames(t.split(/\r?\n/).map(splitCells)), '붙여넣기');
+}
+function impShow(r, src){
+  IMP.names = r.names; IMP.mode = r.mode; IMP.src = src;
+  const have = new Set(S.lists.roster); IMP.on = {};
+  r.names.forEach(n => { IMP.on[n] = !have.has(n); });
+  if (!r.names.length){ msg('impMsg', '이름으로 보이는 글자를 찾지 못했어요. (한글 2~4자 이름만 읽어요) 파일 모양을 확인하거나 이름을 붙여넣어 주세요.'); $('impPrev').innerHTML = ''; return; }
+  msg('impMsg', ''); renderImp();
+}
+function renderImp(){
+  const have = new Set(S.lists.roster), n = IMP.names.length, sel = IMP.names.filter(x => IMP.on[x]).length, dup = IMP.names.filter(x => have.has(x)).length;
+  $('impPrev').innerHTML = `<div class="hint" style="margin:6px 0">② 미리보기 — <b>${n}명</b>을 찾았어요 (${esc(IMP.src)} · ${esc(IMP.mode)}에서 읽음${dup ? ` · 이미 명단에 있는 ${dup}명은 체크 해제됨` : ''}). 이름이 아닌 글자가 섞였으면 눌러서 빼 주세요.</div>
+    <div class="row" style="margin-bottom:8px"><button class="btn sm sub" onclick="impAll(true)">전체 선택</button><button class="btn sm sub" onclick="impAll(false)">전체 해제</button></div>
+    <div class="chips" style="max-height:34vh;overflow:auto;padding:2px">${IMP.names.map((x, i) => chipHtml(x, IMP.on[x], `impTog(${i})`)).join('')}</div>
+    <div class="row" style="margin-top:12px"><button class="btn" id="impAdd" ${sel ? '' : 'disabled'} onclick="impAdd()">체크한 ${sel}명을 명단에 추가</button></div>`;
+}
+function impTog(i){ const x = IMP.names[i]; IMP.on[x] = !IMP.on[x]; renderImp(); }
+function impAll(v){ IMP.names.forEach(x => IMP.on[x] = v); renderImp(); }
+async function saveRosterAdd(newNames){   // 주소창이 너무 길어지지 않게 40명씩 나눠 '추가'로 보내요 (기존 명단은 그대로)
+  let last = null;
+  for (let i = 0; i < newNames.length; i += 40) last = await jsonp({ action:'saveLists', pw:PW, kind:'roster', mode:'add', items:JSON.stringify(newNames.slice(i, i + 40)) });
+  if (last){ S.lists.roster = last.items; listSig = ''; }
+  return last;
+}
+async function impAdd(){
+  const pick = IMP.names.filter(x => IMP.on[x] && S.lists.roster.indexOf(x) < 0);
+  if (!pick.length) return;
+  if (!DEMO && gasVer !== null && gasVer < 3 && S.lists.roster.length + pick.length > 80){ msg('impMsg', '구글 시트 코드가 옛 버전이라 80명까지만 저장돼요. 설정 탭 맨 아래에서 새 코드로 업데이트(수정 → 새 버전 배포)한 뒤 다시 해 주세요.'); return; }
+  $('impAdd').disabled = true; waitOn($('impMsg'), '명단에 추가하는 중…');
+  try{
+    await saveRosterAdd(pick);
+    toast(`${pick.length}명을 명단에 추가했어요 ✅ (지금 ${S.lists.roster.length}명)`); closeImport();
+    renderCall(); if (tab === 'set') renderSet();
+  }catch(e){ msg('impMsg', e.message); $('impAdd').disabled = false; }
+}
+/* ---------- 호출 화면의 명단 고르기 (검색 + 자동완성) ---------- */
+let RSQ = '';
+function rosterBoxHtml(){
+  const L = S.lists.roster;
+  if (!L.length) return `<div style="margin-top:14px"><div class="hint">자주 부르는 선생님 명단이 아직 없어요. 파일로 한 번에 불러오면 이름을 눌러서 고를 수 있어요.</div><button class="btn sub sm" style="margin-top:6px" onclick="openImport()">📥 명단 불러오기</button></div>`;
+  return `<div style="margin-top:14px"><div class="row" style="justify-content:space-between"><span class="hint">자주 부르는 선생님 <b>${L.length}명</b> (누르면 빈 이름 칸에 들어가요)</span><button class="btn sub sm" onclick="openImport()">📥 명단 불러오기</button></div>
+    <input type="text" id="rsq" style="margin:8px 0" placeholder="🔍 이름 검색" value="${esc(RSQ)}" oninput="RSQ=this.value;renderRoster()" aria-label="이름 검색"><div class="chips" id="rsChips"></div></div>`;
+}
+function renderRoster(){
+  const el = $('rsChips'); if (!el) return;
+  const L = S.lists.roster, used = new Set(F ? F.targets.map(t => t.name.trim()) : []), q = RSQ.trim();
+  let idx = L.map((n, i) => i).filter(i => !q || L[i].indexOf(q) >= 0);
+  const total = idx.length, LIM = 36; if (total > LIM) idx = idx.slice(0, LIM);
+  el.innerHTML = idx.map(i => chipHtml(L[i], used.has(L[i]), `pickRoster(${i})`)).join('') + (total > LIM ? `<span class="hint" style="align-self:center">… 외 ${total - LIM}명 · 위 칸에 이름을 검색해 보세요</span>` : '') + (!total ? '<span class="hint">찾는 이름이 없어요</span>' : '');
+}
+const rosterDlHtml = () => `<datalist id="rosterDl">${S.lists.roster.map(n => `<option value="${esc(n)}"></option>`).join('')}</datalist>`;
+async function saveListChunked(kind, items){
+  if (kind !== 'roster' || items.length <= 40) return jsonp({ action:'saveLists', pw:PW, kind, items:JSON.stringify(items) });
+  let r = await jsonp({ action:'saveLists', pw:PW, kind, items:JSON.stringify(items.slice(0, 40)) });   // 첫 묶음으로 바꾸고
+  for (let i = 40; i < items.length; i += 40) r = await jsonp({ action:'saveLists', pw:PW, kind, mode:'add', items:JSON.stringify(items.slice(i, i + 40)) });   // 나머지는 뒤에 붙여요
+  return r;
 }
 
 
