@@ -3155,7 +3155,9 @@ function roomInfo(){
   const r = S.room;
   if (!r || !r.exists) return { st:'none' };
   const age = r.ageMs + (Date.now() - A_ST.lastOk);
-  return { st: age <= 20000 ? 'ok' : 'bad', age, seen: r.seen };
+  if (age <= 20000){ A_ST.sawRoom = true; return { st:'ok', age, seen:r.seen }; }
+  if (!A_ST.sawRoom) return { st:'none' };   // 이번에 본부 화면을 연 뒤로 대기실이 켜진 적이 없으면, 옛 신호(전에 열었다 닫은 화면)는 '끊김'이 아니라 '연결 전'으로 봐요
+  return { st:'bad', age, seen:r.seen };
 }
 const secTxt = ms => ms < 60000 ? Math.floor(ms / 1000) + '초' : Math.floor(ms / 60000) + '분 ' + Math.floor(ms % 60000 / 1000) + '초';
 function deliverTag(c){
@@ -3191,14 +3193,15 @@ function watchAdmin(){
   if (selfBad){ $('aConn').innerHTML = '<i class="dot bad"></i>본부 연결 끊김'; }
   const open = S.calls.filter(c => c.status === '미처리' || c.status === '확인됨').length;
   const kind = selfBad ? 'self' : ri.st === 'bad' ? 'room' : (ri.st === 'none' && open > 0) ? 'noroom' : '';
+  if (rm && kind && A_ST.ack) rm.innerHTML += ' <button class="btn" style="min-height:44px;padding:0 14px" onclick="recheckConn()">🔄 다시 확인</button>';
   if (kind){
-    if (A_ST.kind !== kind){ A_ST.kind = kind; A_ST.snooze = 0; A_ST.html = ''; }
-    if (now >= A_ST.snooze){
+    if (A_ST.kind !== kind){ A_ST.kind = kind; A_ST.snooze = 0; A_ST.html = ''; A_ST.ack = false; }
+    if (now >= A_ST.snooze && !A_ST.ack){
       showAlert(kind, selfBad ? now - A_ST.lastOk : ri.age);
       if (now - A_ST.beepT > 6000){ A_ST.beepT = now; beep(3); }
     }
   }else if (A_ST.kind){
-    A_ST.kind = ''; A_ST.html = ''; $('alertOv').innerHTML = ''; toast('✅ 연결이 돌아왔어요');
+    A_ST.kind = ''; A_ST.html = ''; A_ST.ack = false; $('alertOv').innerHTML = ''; toast('✅ 연결이 돌아왔어요');
     refreshAdmin(false);
   }
   const dsig = S.calls.filter(c => c.status === '미처리' || c.status === '확인됨').map(deliverTag).join('');
@@ -3210,10 +3213,19 @@ function showAlert(kind, ms){
     room: ['🚨 대기실 화면 신호가 끊겼어요', `대기실 노트북이 서버와 연결되지 않았어요. 지금 호출해도 <b>대기실에서 못 볼 수 있어요.</b> (마지막 신호 ${secTxt(ms)} 전)`, ['대기실 노트북의 전원·와이파이를 확인해 주세요.', '대기실 화면(전자칠판)에서 새로고침(F5) 해 주세요.', '복구되기 전까지는 <b>전화나 직접 방문</b>으로 호출해 주세요.']],
     noroom: ['⚠️ 대기실 화면이 아직 연결되지 않았어요', '호출 대기 중인 건이 있는데 대기실 화면에서 신호가 온 적이 없어요.', ['대기실 노트북에서 <b>대기실 링크</b>(설정 탭에서 복사)를 열었는지 확인해 주세요.', '열려 있다면 새로고침(F5) 해 주세요.', '복구되기 전까지는 <b>전화나 직접 방문</b>으로 호출해 주세요.']]
   }[kind];
-  const html = `<div class="ov" style="z-index:70"><div class="box alertbox" role="alertdialog"><h3>${T[0]}</h3><div>${T[1]}</div><ol>${T[2].map(x => '<li>' + x + '</li>').join('')}</ol><div class="row"><button class="btn" onclick="refreshAdmin(true)">지금 다시 확인</button><button class="btn sub" onclick="snoozeAlert()">1분 뒤에 다시 알림</button></div><div class="hint" style="margin-top:8px">연결이 돌아오면 이 창은 자동으로 닫혀요.${DEMO ? '<br>🎬 체험 중이에요. 위쪽 노란 띠의 [다시 연결하기]를 누르면 닫혀요.' : ''}</div></div></div>`;
+  const html = `<div class="ov" style="z-index:70"><div class="box alertbox" role="alertdialog"><h3>${T[0]}</h3><div>${T[1]}</div><ol>${T[2].map(x => '<li>' + x + '</li>').join('')}</ol><div class="row"><button class="btn" onclick="refreshAdmin(true)">지금 다시 확인</button><button class="btn sub" onclick="snoozeAlert()">1분 뒤에 다시 알림</button><button class="btn sub" onclick="ackAlert()">확인했어요 (점검할게요)</button></div><div class="hint" style="margin-top:8px">연결이 돌아오면 이 창은 자동으로 닫혀요.${DEMO ? '<br>🎬 체험 중이에요. 위쪽 노란 띠의 [다시 연결하기]를 누르면 닫혀요.' : ''}</div></div></div>`;
   if (html !== A_ST.html){ A_ST.html = html; $('alertOv').innerHTML = html; }
 }
 function snoozeAlert(){ A_ST.snooze = Date.now() + 60000; A_ST.html = ''; $('alertOv').innerHTML = ''; }
+/* 확인했어요: 팝업·알림음을 멈추고, 상태줄의 [다시 확인] 버튼으로 복구 여부를 직접 확인 (복구되면 자동 안내, 다시 끊기면 새로 알림) */
+function ackAlert(){ A_ST.ack = true; A_ST.html = ''; $('alertOv').innerHTML = ''; watchAdmin(); toast('확인했어요. 점검 후 상태줄의 [🔄 다시 확인]을 눌러 주세요'); }
+async function recheckConn(){
+  toast('연결 확인 중…');
+  await refreshAdmin(true);
+  watchAdmin();
+  if (!A_ST.kind) return;
+  toast(A_ST.kind === 'self' ? '아직 본부 화면이 연결되지 않았어요. 인터넷을 확인해 주세요' : '아직 대기실 신호가 없어요. 대기실을 점검한 뒤 5~10초 후 다시 눌러 주세요');
+}
 /* 대기실 보기 (미리보기) — 대기실 화면이 서버에서 받아 그리는 내용과 똑같이 5초마다 갱신 */
 const PV = { calls:[], notices:[], timer:null, ok:0, err:'' };
 async function pvLoad(){
