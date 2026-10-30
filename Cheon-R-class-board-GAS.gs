@@ -5,7 +5,7 @@
  */
 
 /** GAS 코드 버전 — 코드를 고칠 때마다 1씩 올려요. 관리 화면이 이 번호로 업데이트가 필요한지 알려줘요. */
-var GAS_VER = 6;
+var GAS_VER = 8;
 
 var TZ = 'Asia/Seoul';
 var SHEETS = {
@@ -24,6 +24,8 @@ var SHEETS = {
 SHEETS.timetable = { name: '시간표', headers: ['교시', '월', '화', '수', '목', '금'] };   // 우리 반 시간표 (나이스에 시간표가 없는 학교용 · N교시 제안)
 SHEETS.scheduleOv = { name: '학사일정수정', headers: ['날짜', '원래일정', '상태', '내용', '수정시각'] };   // 담임이 나이스 학사일정을 고친 내용 (수정/숨김/추가)
 SHEETS.teacherPlan = { name: '담임일정', headers: ['ID', '날짜', '제목', '메모', '완료', '완료시각', '작성시각', '수정시각'] };   // 담임만 보는 업무 일정 (adminLoad로만 내려줌 · 학생 불러오기엔 절대 안 들어감)
+SHEETS.ledgerFunds = { name: '담임가계부재원', headers: ['ID', '이름', '색', '처음예산', '순서', '작성시각', '수정시각'] };   // 담임 가계부의 재원(학급비·서울희망교실 등) — 담임만
+SHEETS.ledger = { name: '담임가계부', headers: ['ID', '날짜', '구분', '재원ID', '내용', '금액', '기안', '기안메모', '메모', '작성시각', '수정시각'] };   // 담임 가계부 기록 — adminLoad로만 내려줌
 var PRESIDENT_TYPES = ['확인', '교과', '일반'];
 var DEFAULT_PW = 'classboard';   // 초기 비밀번호 — 첫 로그인 때 변경 강제
 var DEFAULT_SETTINGS = [['학년도', String(new Date().getFullYear())], ['학급명', '우리 반'], ['관리자비번', DEFAULT_PW], ['회장코드', '']];
@@ -82,6 +84,10 @@ function route_(p) {
     case 'planSave': return planSave_(p);
     case 'planDone': return planDone_(p);
     case 'planDelete': return planDelete_(p);
+    case 'ledgerFundSave': return ledgerFundSave_(p);
+    case 'ledgerFundDelete': return ledgerFundDelete_(p);
+    case 'ledgerSave': return ledgerSave_(p);
+    case 'ledgerDelete': return ledgerDelete_(p);
     default: return { ok: false, error: '알 수 없는 요청이에요.' };
   }
 }
@@ -641,14 +647,50 @@ function adminLoad_(p) {
     res.photos = photoStats_();
     res.installId = installId_();
     res.teacherPlan = planList_();   // 담임일정 — 담임(admin)에게만
+    res.ledger = ledgerList_();      // 담임 가계부 — 담임(admin)에게만
   }
   return res;
 }
 
 /* ---------- 담임일정 (담임 전용) ---------- */
+/** 담임일정 첨부 — 공지 첨부와 같은 '첨부' 탭을 쓰되, 일정 ID로만 구분해요 (종류: link 링크 / file 파일 정보(이름·위치 메모) / photo 사진) */
+function planAttMap_() {
+  var m = {}, ids = {};
+  rows_('teacherPlan').forEach(function (r) { if (r[0]) ids[r[0]] = true; });   // 담임일정 ID에 달린 첨부만 (공지 첨부와 섞이지 않게)
+  rows_('files').filter(function (r) { return r[0] && ids[r[0]]; })
+    .sort(function (a, b) { return Number(a[1]) - Number(b[1]); })
+    .forEach(function (r) { (m[r[0]] = m[r[0]] || []).push({ kind: r[2] === 'photo' ? 'photo' : (r[2] === 'file' ? 'file' : 'link'), name: r[3], url: r[4] }); });
+  return m;
+}
 function planList_() {
+  var am = planAttMap_();
   return rows_('teacherPlan').filter(function (r) { return r[0]; })
-    .map(function (r) { return { id: r[0], date: dateStr_(r[1]), title: r[2], memo: r[3], done: r[4] === 'Y', doneAt: r[5], created: r[6], updated: r[7] }; });
+    .map(function (r) { return { id: r[0], date: dateStr_(r[1]), title: r[2], memo: r[3], done: r[4] === 'Y', doneAt: r[5], created: r[6], updated: r[7], attachments: am[r[0]] || [] }; });
+}
+var PLAN_MAX_ATT = 8;
+function cleanPlanAtts_(list) {
+  if (!Array.isArray(list)) throw new Error('첨부 형식이 올바르지 않아요.');
+  if (list.length > PLAN_MAX_ATT) throw new Error('첨부는 최대 ' + PLAN_MAX_ATT + '개까지예요.');
+  var photos = 0;
+  var out = list.map(function (a) {
+    var kind = a && (a.kind === 'photo' || a.kind === 'file') ? a.kind : 'link';
+    var name = String(a && a.name || '').replace(/[\r\n]+/g, ' ').trim(), url = String(a && a.url || '').trim();
+    if (kind === 'photo') {
+      if (!/^photo:P[a-z0-9]{12,24}$/.test(url)) throw new Error('사진 정보가 올바르지 않아요.');
+      if (!photoMeta_(url.slice(6))) throw new Error('사진 업로드가 아직 끝나지 않았어요. 잠시 뒤에 다시 저장해 주세요.');
+      photos++;
+      return { kind: kind, name: name.slice(0, 40), url: url };
+    }
+    if (kind === 'file') {
+      url = url.replace(/[\r\n]+/g, ' ');
+      if (!name) throw new Error('파일 이름을 적어 주세요.');
+      return { kind: kind, name: name.slice(0, 80), url: url.slice(0, 300) };
+    }
+    if (!okUrl_(url)) throw new Error('링크는 http:// 또는 https://로 시작하는 ' + MAX_URL + '자 이내 주소여야 해요.');
+    return { kind: kind, name: name.slice(0, 40), url: url };
+  });
+  if (photos > MAX_PHOTOS) throw new Error('사진은 ' + MAX_PHOTOS + '장까지예요.');
+  return out;
 }
 function planSave_(p) {
   need_(p, ['admin']);
@@ -656,6 +698,7 @@ function planSave_(p) {
   var date = dateStr_(d.date), title = String(d.title || '').replace(/\s+/g, ' ').trim().slice(0, 100), memo = String(d.memo || '').slice(0, 1000);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('날짜를 확인해 주세요.');
   if (!title) throw new Error('제목을 적어 주세요.');
+  var atts = (d.attachments === undefined) ? null : cleanPlanAtts_(d.attachments);   // 저장 전에 미리 검사 (안 보내면 기존 첨부 유지)
   return lock_(function () {
     var sh = sh_('teacherPlan'), data = rows_('teacherPlan'), idx = -1;
     if (d.id) {
@@ -667,6 +710,7 @@ function planSave_(p) {
     var id = idx >= 0 ? data[idx][0] : (d.cid && /^[A-Za-z0-9_-]{6,40}$/.test(String(d.cid)) ? String(d.cid) : 'T' + Date.now());
     var row = [id, date, title, memo, idx >= 0 ? data[idx][4] : '', idx >= 0 ? data[idx][5] : '', idx >= 0 ? data[idx][6] : now_(), idx >= 0 ? now_() : ''];
     writeRow_(sh, idx >= 0 ? idx + 2 : sh.getLastRow() + 1, row);
+    if (atts) replaceAttachments_(id, atts);
     return { ok: true, id: id };
   });
 }
@@ -687,7 +731,99 @@ function planDelete_(p) {
   var id = String(p.id || '');
   return lock_(function () {
     var sh = sh_('teacherPlan'), data = rows_('teacherPlan');
+    for (var i = 0; i < data.length; i++) if (data[i][0] === id) { replaceAttachments_(id, []); sh.deleteRow(i + 2); return { ok: true }; }   // 첨부(사진 포함)도 같이 정리
+    return { ok: true, already: true };
+  });
+}
+
+/* ---------- 담임 가계부 (담임 전용) ---------- */
+var LEDGER_MAX_FUNDS = 12, LEDGER_MAX_AMOUNT = 10000000000;
+function ledgerAttMap_() {
+  var m = {}, ids = {};
+  rows_('ledger').forEach(function (r) { if (r[0]) ids[r[0]] = true; });   // 가계부 기록 ID에 달린 첨부만
+  rows_('files').filter(function (r) { return r[0] && ids[r[0]]; })
+    .sort(function (a, b) { return Number(a[1]) - Number(b[1]); })
+    .forEach(function (r) { (m[r[0]] = m[r[0]] || []).push({ kind: r[2] === 'photo' ? 'photo' : (r[2] === 'file' ? 'file' : 'link'), name: r[3], url: r[4] }); });
+  return m;
+}
+function ledgerList_() {
+  var am = ledgerAttMap_();
+  var funds = rows_('ledgerFunds').filter(function (r) { return r[0]; })
+    .map(function (r) { return { id: r[0], name: r[1], color: r[2] || '#0F766E', budget: Number(r[3]) || 0, order: Number(r[4]) || 0 }; })
+    .sort(function (a, b) { return a.order - b.order; });
+  var entries = rows_('ledger').filter(function (r) { return r[0]; })
+    .map(function (r) { return { id: r[0], date: dateStr_(r[1]), type: r[2], fund: r[3], title: r[4], amount: Number(r[5]) || 0, gian: r[6] === 'Y', gianMemo: r[7], memo: r[8], created: r[9], updated: r[10], attachments: am[r[0]] || [] }; });
+  return { funds: funds, entries: entries };
+}
+function okLedgerId_(v) { return /^[A-Za-z0-9_-]{6,40}$/.test(String(v || '')); }
+function ledgerFundSave_(p) {
+  need_(p, ['admin']);
+  var d = JSON.parse(p.data || '{}');
+  var name = String(d.name || '').replace(/\s+/g, ' ').trim().slice(0, 20);
+  var color = /^#[0-9A-Fa-f]{6}$/.test(String(d.color || '')) ? String(d.color) : '#0F766E';
+  var budget = Math.round(Number(d.budget));
+  if (!name) throw new Error('재원 이름을 적어 주세요.');
+  if (isNaN(budget) || budget < 0 || budget > LEDGER_MAX_AMOUNT) throw new Error('처음 예산은 0원 이상의 숫자로 적어 주세요.');
+  return lock_(function () {
+    var sh = sh_('ledgerFunds'), data = rows_('ledgerFunds'), idx = -1, i;
+    if (d.id) {
+      for (i = 0; i < data.length; i++) if (data[i][0] === String(d.id)) { idx = i; break; }
+      if (idx < 0) throw new Error('수정할 재원을 찾지 못했어요.');
+    } else if (okLedgerId_(d.cid)) {
+      for (i = 0; i < data.length; i++) if (data[i][0] === String(d.cid)) return { ok: true, id: String(d.cid), already: true };
+    }
+    for (i = 0; i < data.length; i++) if (i !== idx && data[i][0] && data[i][1].toLowerCase() === name.toLowerCase()) throw new Error('같은 이름의 재원이 이미 있어요.');
+    if (idx < 0 && data.filter(function (r) { return r[0]; }).length >= LEDGER_MAX_FUNDS) throw new Error('재원은 최대 ' + LEDGER_MAX_FUNDS + '개까지예요.');
+    var id = idx >= 0 ? data[idx][0] : (okLedgerId_(d.cid) ? String(d.cid) : 'F' + Date.now());
+    var order = idx >= 0 ? data[idx][4] : String(Date.now());
+    writeRow_(sh, idx >= 0 ? idx + 2 : sh.getLastRow() + 1, [id, name, color, String(budget), order, idx >= 0 ? data[idx][5] : now_(), idx >= 0 ? now_() : '']);
+    return { ok: true, id: id };
+  });
+}
+function ledgerFundDelete_(p) {
+  need_(p, ['admin']);
+  var id = String(p.id || '');
+  return lock_(function () {
+    var n = rows_('ledger').filter(function (r) { return r[3] === id; }).length;
+    if (n) throw new Error('이 재원에 기록이 ' + n + '건 있어서 지울 수 없어요. 기록을 먼저 지우거나 다른 재원으로 옮겨 주세요.');
+    var sh = sh_('ledgerFunds'), data = rows_('ledgerFunds');
     for (var i = 0; i < data.length; i++) if (data[i][0] === id) { sh.deleteRow(i + 2); return { ok: true }; }
+    return { ok: true, already: true };
+  });
+}
+function ledgerSave_(p) {
+  need_(p, ['admin']);
+  var d = JSON.parse(p.data || '{}');
+  var date = dateStr_(d.date), type = d.type === '수입' ? '수입' : (d.type === '지출' ? '지출' : '');
+  var title = String(d.title || '').replace(/\s+/g, ' ').trim().slice(0, 100), memo = String(d.memo || '').slice(0, 500);
+  var gian = d.gian ? 'Y' : '', gianMemo = gian ? String(d.gianMemo || '').replace(/\s+/g, ' ').trim().slice(0, 100) : '';
+  var amount = Math.round(Number(d.amount));
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('날짜를 확인해 주세요.');
+  if (!type) throw new Error('수입인지 지출인지 골라 주세요.');
+  if (!title) throw new Error('내용을 적어 주세요.');
+  if (isNaN(amount) || amount < 1 || amount > LEDGER_MAX_AMOUNT) throw new Error('금액은 1원 이상의 숫자로 적어 주세요.');
+  var atts = (d.attachments === undefined) ? null : cleanPlanAtts_(d.attachments);
+  return lock_(function () {
+    if (!rows_('ledgerFunds').some(function (r) { return r[0] === String(d.fund); })) throw new Error('재원을 골라 주세요. (재원이 없으면 먼저 추가해 주세요)');
+    var sh = sh_('ledger'), data = rows_('ledger'), idx = -1, i;
+    if (d.id) {
+      for (i = 0; i < data.length; i++) if (data[i][0] === String(d.id)) { idx = i; break; }
+      if (idx < 0) throw new Error('수정할 기록을 찾지 못했어요.');
+    } else if (okLedgerId_(d.cid)) {
+      for (i = 0; i < data.length; i++) if (data[i][0] === String(d.cid)) return { ok: true, id: String(d.cid), already: true };
+    }
+    var id = idx >= 0 ? data[idx][0] : (okLedgerId_(d.cid) ? String(d.cid) : 'L' + Date.now());
+    writeRow_(sh, idx >= 0 ? idx + 2 : sh.getLastRow() + 1, [id, date, type, String(d.fund), title, String(amount), gian, gianMemo, memo, idx >= 0 ? data[idx][9] : now_(), idx >= 0 ? now_() : '']);
+    if (atts) replaceAttachments_(id, atts);
+    return { ok: true, id: id };
+  });
+}
+function ledgerDelete_(p) {
+  need_(p, ['admin']);
+  var id = String(p.id || '');
+  return lock_(function () {
+    var sh = sh_('ledger'), data = rows_('ledger');
+    for (var i = 0; i < data.length; i++) if (data[i][0] === id) { replaceAttachments_(id, []); sh.deleteRow(i + 2); return { ok: true }; }
     return { ok: true, already: true };
   });
 }
