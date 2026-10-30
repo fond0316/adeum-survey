@@ -738,11 +738,11 @@ input[type=date]{min-width:0;max-width:100%}
         <label class="f">좋았던 점 <small>(여러 개 선택 가능)</small></label>
         <div class="chips" id="rvChips"></div>
         <input type="text" id="rvOther" class="hide" maxlength="30" placeholder="좋았던 점을 직접 적어 주세요" style="margin-top:8px">
-        <label class="f">한줄 후기 <small>(선택 · 80자)</small></label>
-        <textarea id="rvOne" maxlength="80" style="min-height:64px" placeholder="한 줄로 소감을 남겨 주세요"></textarea>
-        <label class="f">이런 점이 개선되면 좋겠어요 <small>(선택 · 200자)</small></label>
+        <label class="f">한줄 후기 <small>(선택 · 200자)</small></label>
+        <textarea id="rvOne" maxlength="200" style="min-height:84px" placeholder="한 줄로 소감을 남겨 주세요"></textarea>
+        <label class="f">이런 점이 개선되면 좋겠어요 <small>(선택 · 400자)</small></label>
         <div class="chips" id="rvKinds"></div>
-        <textarea id="rvImp" maxlength="200" style="min-height:84px;margin-top:8px" placeholder="불편했던 점, 있었으면 하는 기능 등을 편하게 적어 주세요"></textarea>
+        <textarea id="rvImp" maxlength="400" style="min-height:120px;margin-top:8px" placeholder="불편했던 점, 있었으면 하는 기능 등을 편하게 적어 주세요"></textarea>
         <label class="f">소개 자료에 써도 될까요?</label>
         <div class="chips" id="rvOk"></div>
         <div id="rvNameBox" class="hide"><label class="f">공개해도 되는 아이디 <small>(공개를 고르셨어요)</small></label><input type="text" id="rvName" maxlength="20"><p class="hint" style="margin:6px 0 0">이 이름은 등록 정보에도 저장돼요.</p></div>
@@ -2745,7 +2745,7 @@ function renderGasBanner(){
   if ($('gasVerNow')) $('gasVerNow').textContent = gasVer === null ? '확인 중…' : old ? `버전 ${gasVer || '(옛 버전)'} → 최신 버전 ${NEED_GAS}로 업데이트가 필요해요` : `버전 ${gasVer} · 최신이에요 ✅`;
   if (!old) return;
   if (role === 'admin'){
-    $('gasBannerText').textContent = '새 기능(나이스 급식·학사일정, 검색·기간 공지·사진 올리기)을 쓰려면 내 구글 시트의 코드를 바꿔야 해요. 기존 공지·명단은 그대로예요. (3분이면 끝나요)';
+    $('gasBannerText').textContent = '새 기능(📌 담임 업무, 나이스 급식·학사일정, 검색·기간 공지·사진 올리기)을 쓰려면 내 구글 시트의 코드를 바꿔야 해요. 기존 공지·명단은 그대로예요. (3분이면 끝나요)';
     $('gasBannerBtns').classList.remove('hide');
   } else {
     $('gasBannerText').textContent = '담임선생님이 코드를 업데이트해야 기간 공지·사진 올리기를 쓸 수 있어요. 담임선생님께 알려 주세요.';
@@ -3490,7 +3490,7 @@ async function planDel(id){
 
 /* ===== ✨ 이번 업데이트 내용 (업데이트 알림에 보여요 · GAS를 새로 올릴 때 이 목록만 고쳐 주세요) ===== */
 const WHATS_NEW = [
-  '📌 담임만 보는 <b>담임 업무</b> 탭이 생겼어요 (기한·할 일 체크, 월 달력, D-day · 학생 화면에는 안 보여요)',
+  '📌 담임만 보는 <b style="display:inline">담임 업무</b> 탭이 생겼어요 (기한·할 일 체크, 월 달력, D-day · 학생 화면에는 안 보여요)',
   '📖 우리 반 시간표를 학생 화면에서 볼 수 있어요 (시간표를 입력해 두면 알림판 아래에 띠가 떠요)',
   '📆 학사일정이 달력에 <b style="display:inline;color:#2F9E78">초록 점</b>으로 떠요 (담임이 이름 수정·숨기기·추가도 가능)',
   '⚡ 학교 알림판이 날짜를 눌러도 바로 바뀌어요',
