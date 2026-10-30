@@ -3217,7 +3217,7 @@ function snoozeAlert(){ A_ST.snooze = Date.now() + 60000; A_ST.html = ''; $('ale
 /* 대기실 보기 (미리보기) — 대기실 화면이 서버에서 받아 그리는 내용과 똑같이 5초마다 갱신 */
 const PV = { calls:[], notices:[], timer:null, ok:0, err:'' };
 async function pvLoad(){
-  try{ const r = await jsonp({ action:'poll' }, null, 10000); PV.calls = r.calls; PV.notices = r.notices; PV.ok = Date.now(); PV.err = ''; }
+  try{ const r = await jsonp({ action:'poll' }, null, 10000); PV.calls = r.calls; PV.notices = r.notices; PV.greet = r.greet || null; PV.ok = Date.now(); PV.err = ''; }
   catch(e){ PV.err = e.message; }
   renderView();
 }
@@ -3228,8 +3228,8 @@ function renderView(){
   const ri = roomInfo();
   const st = ri.st === 'ok' ? `<span class="st s2">대기실 노트북 정상 (${secTxt(ri.age)} 전 신호)</span>` : ri.st === 'bad' ? `<span class="st s0">대기실 노트북 신호 끊김 (${secTxt(ri.age)} 전)</span>` : `<span class="st s3">대기실 노트북 연결 전</span>`;
   $('pgView').innerHTML = `<div class="card"><div class="row" style="justify-content:space-between"><b>👁 대기실 화면 미리보기</b>${st}</div><p class="hint" style="margin:8px 0 0">서버에 올라간 내용 기준으로 5초마다 갱신돼요. 대기실 노트북이 실제로 켜져 있는지는 위의 <b>대기실 ● 표시</b>가 알려줘요. ${PV.err ? '<br><span style="color:var(--red)">미리보기를 불러오지 못했어요: ' + esc(PV.err) + '</span>' : ''}</p></div>
-  <div class="pv">${noticesHtml(PV.notices)}<div class="rbody">${cardsHtml(PV.calls, DEMO)}</div></div>`;
-  tickRoom();
+  <div class="pv">${greetHtml(PV.greet, PV.calls.length)}${noticesHtml(PV.notices)}<div class="rbody${PV.calls.length > 6 ? ' cmp' : ''}" id="pvCalls">${cardsHtml(PV.calls, DEMO)}</div></div>`;   // 실제 대기실 화면과 같은 순서·모양 (인사말 → 공지 → 호출 카드)
+  tintCols($('pvCalls')); tickRoom();
 }
 
 /* ----- 설정 ----- */
@@ -3358,8 +3358,13 @@ function renderGreet(g){
   el.classList.remove('hide');
   el.classList.toggle('big', !(R.calls && R.calls.length)); el.classList.toggle('sm', !!(R.calls && R.calls.length > 6));   // 호출 없으면 크게, 있으면 위 띠로
 }
-function tintCols(){   // 컴팩트 보기: 열마다 남색 2톤 번갈아 (3열이면 가운데만 다른 톤 · 긴급은 '긴급' 글자만 빨강, 확인됨=흰색)
-  const el = $('rCalls'); if (!el) return;
+function greetHtml(g, n){   // 미리보기용 인사말 박스 (대기실 renderGreet 와 같은 모양)
+  const school = g && String(g.school || '').trim();
+  if (!school) return '';
+  return `<div class="greet${n ? '' : ' big'}${n > 6 ? ' sm' : ''}"><b>안녕하세요. ${esc(school)}입니다.</b>${g.text ? `<span>${esc(g.text)}</span>` : ''}</div>`;
+}
+function tintCols(elArg){   // 컴팩트 보기: 열마다 남색 2톤 번갈아 (3열이면 가운데만 다른 톤 · 긴급은 '긴급' 글자만 빨강, 확인됨=흰색)
+  const el = (elArg && elArg.nodeType === 1) ? elArg : $('rCalls'); if (!el) return;
   const cmp = el.classList.contains('cmp');
   const n = cmp ? Math.max(1, getComputedStyle(el).gridTemplateColumns.split(' ').length) : 1;
   el.querySelectorAll('.rc').forEach((c, i) => { if (cmp) c.dataset.col = String((i % n) % 2); else delete c.dataset.col; });
