@@ -210,7 +210,9 @@ html.room.f0{--rf:16px} html.room.f2{--rf:26px}
     <p class="hint" id="needRoom" style="margin:0 0 10px"></p>
     <label class="f">연결 주소 (구글 앱스 스크립트 웹 앱 URL)</label>
     <input type="text" id="gasIn" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off">
-    <div class="row" style="margin-top:12px"><button class="btn" onclick="connectGas()">연결 확인하고 시작</button></div>
+    <label class="f">연결 이름 <small style="font-weight:500;color:var(--sub)">(선택 · 여러 시트를 쓸 때 구분하기 쉬워요)</small></label>
+    <input type="text" id="gasNick" maxlength="20" placeholder="예) 우리 학교용, 내 시트" autocomplete="off">
+    <div class="row" style="margin-top:12px"><button class="btn" onclick="connectGas()">연결 확인하고 시작</button><button class="btn sub hide" id="needBack" onclick="backToConns()">↩ 이미 연결한 시트로 들어가기</button></div>
     <div class="msg" id="needMsg"></div>
     <div id="guideWrap"></div>
   </div>
@@ -225,6 +227,8 @@ html.room.f0{--rf:16px} html.room.f2{--rf:26px}
   <div class="row" style="margin-top:12px"><button class="btn" id="loginBtn" onclick="doLogin()">들어가기</button><button class="btn sub" onclick="goMode('')">처음 화면</button></div>
   <div class="msg" id="loginMsg"></div>
   <p class="hint">처음 사용하는 비밀번호는 앱 이름(영문 소문자, 띄어쓰기 없이 <b>kcsatcallboard</b>)이에요. 처음 들어가면 바로 바꾸게 돼요.</p>
+  <p class="hint" style="margin-top:6px">이 기기에 연결된 시트가 여러 개여도 비밀번호만 입력하면 맞는 시트로 들어가요. 새 시트를 처음 연결할 때는 처음 비밀번호를 입력해 주세요.</p>
+  <div class="row" style="margin-top:8px"><button class="btn sub sm" onclick="openConns()">🧹 이 기기의 연결 목록 보기·지우기</button></div>
 </div></div>
 
 <!-- 첫 비밀번호 변경 -->
@@ -279,7 +283,7 @@ html.room.f0{--rf:16px} html.room.f2{--rf:26px}
     <button class="btn hide" id="rvTopBtn" onclick="openReview()">💬 후기</button>
     <button class="btn" onclick="openGuide()">❓ 사용법</button>
     <button class="btn" onclick="refreshAdmin(true)" title="새로고침">↻</button>
-    <button class="btn" onclick="logout()">나가기</button>
+    <button class="btn" onclick="askLogout()">나가기</button>
   </div>
   <div class="tabs">
     <button class="tab on" data-t="call" onclick="setTab('call')">호출하기</button>
@@ -323,6 +327,7 @@ html.room.f0{--rf:16px} html.room.f2{--rf:26px}
 <div id="guideOv"></div>
 <div id="rvOv"></div>
 <div id="impOv"></div>
+<div id="connOv"></div>
 <div id="privOv"></div>
 
 <script>
@@ -2632,7 +2637,7 @@ const APP = 'KCSAT 감독 호출 보드';
 const MAIL = 'fond7509@naver.com';
 const NEED_GAS = 5;                       // 이 화면이 필요로 하는 GAS 코드 버전 (GAS를 고칠 때 같이 올려요)
 const GAS_FILE = 'Cheon-R-KCSAT-call-board.gs';
-const K = { gas:'kcsat_gas_v1', sound:'kcsat_sound_v1', font:'kcsat_font_v1', practice:'kcsat_practice_v1', reg:'kcsat_reg_v1', from:'kcsat_from_v1', rv:'kcsat_rv_v1' };
+const K = { gas:'kcsat_gas_v1', list:'kcsat_gas_list_v1', sound:'kcsat_sound_v1', font:'kcsat_font_v1', practice:'kcsat_practice_v1', reg:'kcsat_reg_v1', from:'kcsat_from_v1', rv:'kcsat_rv_v1' };
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const DEMO = new URLSearchParams(location.search).get('demo') === '1';   // 🎬 체험 모드: 가짜 서버만 쓰고, 이 기기에 아무것도 저장하지 않고, 아무 데도 보내지 않아요
@@ -2642,12 +2647,25 @@ function lsSet(k, v){ if (DEMO){ _mem[k] = v; return; } try{ localStorage.setIte
 function ssGet(k){ if (DEMO) return _mem['ss_' + k] || ''; try{ return sessionStorage.getItem(k) || ''; }catch(e){ return ''; } }
 function ssSet(k, v){ if (DEMO){ _mem['ss_' + k] = v; return; } try{ v ? sessionStorage.setItem(k, v) : sessionStorage.removeItem(k); }catch(e){} }
 
+/* ----- 이 기기에 연결된 시트 목록 (여러 시트를 번갈아 쓸 수 있어요) -----
+   K.gas = 마지막으로 쓴 시트 · K.list = [{ u:시트주소, n:별명, r:그 시트에서 쓰는 등록 정보 }] */
+const INIT_PW = 'kcsatcallboard';   // GAS의 DEFAULT_PW와 같아야 해요 (처음 비밀번호는 누구나 아는 값이에요)
+function getList(){ const l = lsGet(K.list, []); return Array.isArray(l) ? l.filter(x => x && x.u) : []; }
+function setList(l){ lsSet(K.list, l); }
+function addConn(u, n, r){
+  const l = getList(); let e = l.find(x => x.u === u);
+  if (!e){ e = { u, n:n || '', r:r || null }; l.push(e); } else { if (n) e.n = n; if (r) e.r = r; }
+  setList(l);
+}
+function connLabel(e){ return (e.n || '이름 없음') + ' · …' + String(e.u).replace(/\/exec$/, '').slice(-6) + (e.r && e.r.name ? ' · ' + e.r.name : ''); }
 (function initGas(){
   const g = new URLSearchParams(location.search).get('gas');
-  if (g && g.trim() && !DEMO) lsSet(K.gas, g.trim());
+  if (g && g.trim() && !DEMO){ lsSet(K.gas, g.trim()); ssSet('kcsat_fresh', ''); }
+  if (!DEMO){ const cur = lsGet(K.gas, ''); if (cur) addConn(cur, '', null); }   // 예전에 연결해 둔 시트도 목록에 자동으로 들어가요
 })();
 let GAS = DEMO ? 'demo://sample' : lsGet(K.gas, '');
 const MODE = new URLSearchParams(location.search).get('mode') || '';
+if (!DEMO && MODE === 'admin' && ssGet('kcsat_fresh')) GAS = '';   // "새로 시작하기"를 누른 직후: 이번 접속은 새 시트를 연결하는 흐름으로 가요
 let off = 0;                              // 서버 시계 - 이 기기 시계
 const nowMs = () => Date.now() + off;
 let gasVer = null;
@@ -2686,7 +2704,7 @@ function toast(t){ const d = document.createElement('div'); d.className = 'toast
 function confirmBox(title, body, okText){
   return new Promise(res => {
     const w = $('ovWrap');
-    w.innerHTML = `<div class="ov"><div class="box"><h3 style="margin:0 0 8px">${esc(title)}</h3><p class="hint" style="margin:0 0 16px">${esc(body)}</p><div class="row" style="justify-content:flex-end"><button class="btn sub" id="cfNo">취소</button><button class="btn red" id="cfYes">${esc(okText || '확인')}</button></div></div></div>`;
+    w.innerHTML = `<div class="ov"><div class="box"><h3 style="margin:0 0 8px">${esc(title)}</h3><p class="hint" style="margin:0 0 16px;white-space:pre-line">${esc(body)}</p><div class="row" style="justify-content:flex-end"><button class="btn sub" id="cfNo">취소</button><button class="btn red" id="cfYes">${esc(okText || '확인')}</button></div></div></div>`;
     $('cfNo').onclick = () => { w.innerHTML = ''; res(false); };
     $('cfYes').onclick = () => { w.innerHTML = ''; res(true); };
   });
@@ -2699,7 +2717,7 @@ function fillFooters(){
   document.querySelectorAll('.regMailLink').forEach(f => f.innerHTML = `<a href="${mailHref()}">${MAIL}</a>`);
   $('rMail').href = mailHref(); $('rMail').textContent = '문의 ' + MAIL;
 }
-function goMode(m){ location.href = location.pathname + (m ? '?mode=' + m : ''); }
+function goMode(m){ ssSet('kcsat_fresh', ''); location.href = location.pathname + (m ? '?mode=' + m : ''); }
 const hhmm = s => String(s || '').slice(11, 16);
 const hhmmss = d => String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0') + ':' + String(d.getSeconds()).padStart(2,'0');
 function elapsed(ms){
@@ -2745,6 +2763,7 @@ async function boot(){
   fillFooters();
   document.documentElement.classList.add('f' + lsGet(K.font, 1));
   if (DEMO) return startDemoMode();
+  if (!GAS && MODE === 'admin' && getList().length && !ssGet('kcsat_fresh')) return show('scrLogin'), setTimeout(() => $('pwIn').focus(), 50);   // 마지막 연결을 지웠어도 목록이 있으면 로그인 화면으로
   if (!GAS && MODE){ if (MODE === 'admin' && needReg()) return showReg('pre'); return showNeed(); }
   if (!GAS) return show('scrEntry');
   if (MODE === 'room') return startRoom();
@@ -2760,8 +2779,10 @@ async function boot(){
 function showNeed(){
   $('needRoom').textContent = MODE === 'room' ? '대기실 화면이에요. 본부 노트북 [설정] 탭에서 복사한 "대기실 링크"로 열어 주세요. (주소가 없으면 아래에 직접 붙여넣어도 돼요)' : '처음 한 번만 하면 돼요. 아래 순서대로 만든 뒤 마지막에 받은 주소를 붙여넣어 주세요.';
   $('guideWrap').innerHTML = guideHtml(true);
+  $('needBack').classList.toggle('hide', !(MODE === 'admin' && getList().length));
   show('scrNeed');
 }
+function backToConns(){ ssSet('kcsat_fresh', ''); location.href = location.pathname + '?mode=admin'; }
 function guideHtml(open, sfx){
   sfx = sfx || '';
   return `<details class="acc" ${open ? 'open' : ''}><summary>📘 설치 가이드 (처음 한 번)</summary><div class="in"><ol style="margin:0;padding-left:20px">
@@ -2796,7 +2817,7 @@ async function connectGas(){
   const u = $('gasIn').value.trim();
   if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(u)){ msg('needMsg', '주소가 올바르지 않아요. https://script.google.com/…/exec 로 끝나는 웹 앱 URL을 붙여넣어 주세요.'); return; }
   waitOn($('needMsg'), '연결을 확인하는 중…');
-  try{ const r = await jsonp({ action:'ping' }, u); lsSet(K.gas, u); GAS = u; gasVer = r.gasVer; location.href = location.pathname + (MODE ? '?mode=' + MODE : '?mode=admin'); }
+  try{ const r = await jsonp({ action:'ping' }, u); lsSet(K.gas, u); GAS = u; gasVer = r.gasVer; addConn(u, $('gasNick').value.trim(), getReg()); ssSet('kcsat_fresh', ''); location.href = location.pathname + (MODE ? '?mode=' + MODE : '?mode=admin'); }
   catch(e){ msg('needMsg', e.message); }
 }
 
@@ -2807,7 +2828,24 @@ async function doLogin(){
   if (!pw){ msg('loginMsg', '비밀번호를 입력해 주세요.'); return; }
   $('loginBtn').disabled = true; waitOn($('loginMsg'), '확인하는 중…');
   try{
-    const r = await jsonp({ action:'login', pw });
+    let r;
+    const list = DEMO ? [] : getList();
+    if (!list.length){ r = await jsonp({ action:'login', pw }); }
+    else{   // 이 기기에 연결된 모든 시트에 비밀번호를 물어보고, 맞다고 답하는 시트로 들어가요
+      const res = await loginProbe(pw, list);
+      const hits = res.filter(x => x.r && x.r.role === 'admin'), bad = res.filter(x => x.err);
+      if (!hits.length){
+        if (!bad.length && pw === INIT_PW){
+          if (await confirmBox('처음 비밀번호를 입력하셨어요', `이 기기에 연결된 시트 ${list.length}개 중에는 이 비밀번호로 열리는 곳이 없어요. 새 시트를 처음 연결하시는 건가요?\n기존 연결은 지워지지 않고 목록에 그대로 남아요.`, '새로 시작하기')) startFresh();
+          return;
+        }
+        msg('loginMsg', bad.length === list.length ? bad[0].err.message : bad.length ? `비밀번호가 맞지 않거나, 연결하지 못한 시트가 ${bad.length}곳 있어요. 인터넷 연결을 확인하고 다시 눌러 주세요.` : '비밀번호가 맞지 않아요.');
+        return;
+      }
+      let pick = hits[0];
+      if (hits.length > 1){ pick = await chooseConn(hits); if (!pick) return; }
+      r = pick.r; GAS = pick.e.u; lsSet(K.gas, GAS); if (pick.e.r) lsSet(K.reg, pick.e.r);
+    }
     if (r.role !== 'admin'){ msg('loginMsg', '비밀번호가 맞지 않아요.'); return; }
     PW = pw; gasVer = r.gasVer; IID = r.installId || ''; ssSet('kcsat_pw', pw);
     if (r.mustChange){ $('npw1').value = ''; $('npw2').value = ''; msg('npwMsg', ''); return show('scrPw'); }
@@ -2824,7 +2862,68 @@ async function changeFirstPw(){
   catch(e){ msg('npwMsg', e.message); }
   finally{ $('npwBtn').disabled = false; }
 }
-function logout(){ if (DEMO) return goMode(''); ssSet('kcsat_pw', ''); PW = ''; location.href = location.pathname + '?mode=admin'; }
+function logout(forget){
+  if (DEMO) return goMode('');
+  if (forget === true && GAS){   // 공용 컴퓨터: 이 시트의 연결과 등록 정보를 이 기기에서 지워요 (시트의 데이터는 그대로)
+    setList(getList().filter(x => x.u !== GAS)); lsSet(K.gas, ''); lsSet(K.reg, null);
+  }
+  ssSet('kcsat_pw', ''); PW = ''; location.href = location.pathname + '?mode=admin';
+}
+function askLogout(){
+  if (DEMO) return logout();
+  $('ovWrap').innerHTML = `<div class="ov"><div class="box"><h3 style="margin:0 0 8px">나갈까요?</h3>
+    <label class="agree" style="font-weight:600;margin:6px 0 14px"><input type="checkbox" id="lgForget"><span>이 기기에서 이 시트 연결도 지우기<small style="display:block;color:var(--sub);font-weight:500">공용 컴퓨터라면 체크해 주세요. 구글 시트의 데이터는 그대로예요.</small></span></label>
+    <div class="row" style="justify-content:flex-end"><button class="btn sub" onclick="$('ovWrap').innerHTML=''">취소</button><button class="btn" onclick="logout($('lgForget').checked)">나가기</button></div></div></div>`;
+}
+/* 로그인: 연결된 시트 전체에 동시에 물어봐요 (맞는 시트가 먼저 답하면 2초만 더 기다리고 진행) */
+function loginProbe(pw, list){
+  return new Promise(resolve => {
+    const out = []; let done = 0, timer = null, fin = false;
+    const finish = () => { if (fin) return; fin = true; clearTimeout(timer); resolve(out.slice()); };
+    list.forEach(e => {
+      jsonp({ action:'login', pw }, e.u, 12000)
+        .then(r => { out.push({ e, r }); if (r.role === 'admin' && !timer) timer = setTimeout(finish, 2000); }, err => out.push({ e, err }))
+        .finally(() => { if (++done === list.length) finish(); });
+    });
+  });
+}
+function chooseConn(hits){
+  return new Promise(res => {
+    window.__pickConn = i => { $('ovWrap').innerHTML = ''; res(i < 0 ? null : hits[i]); };
+    $('ovWrap').innerHTML = `<div class="ov"><div class="box"><h3 style="margin:0 0 8px">어느 시트로 들어갈까요?</h3><p class="hint" style="margin:0 0 12px">같은 비밀번호로 열리는 시트가 ${hits.length}개예요.</p>
+      ${hits.map((h, i) => `<button class="btn sub" style="width:100%;margin-bottom:8px;text-align:left" onclick="__pickConn(${i})">${esc(connLabel(h.e))}</button>`).join('')}
+      <div class="row" style="justify-content:flex-end"><button class="btn sub sm" onclick="__pickConn(-1)">취소</button></div></div></div>`;
+  });
+}
+function startFresh(){   // 다른 시트를 새로 연결: 기존 연결·목록은 그대로 두고, 이번 접속만 등록→설치 안내 흐름으로 가요
+  syncRegToEntry(); lsSet(K.reg, null); ssSet('kcsat_pw', ''); ssSet('kcsat_fresh', '1');
+  location.href = location.pathname + '?mode=admin';
+}
+function syncRegToEntry(){   // 지금 연결된 시트에 이 기기의 등록 정보를 붙여 두기 (시트를 바꿔도 아이디가 섞이지 않게)
+  if (DEMO || !GAS) return;
+  const r = getReg(); if (!r) return;
+  const l = getList(), e = l.find(x => x.u === GAS);
+  if (e){ e.r = r; setList(l); }
+}
+/* 로그인 화면: 이 기기의 연결 목록 보기·이름 붙이기·지우기 (비밀번호 없이 가능 — 지워도 시트 데이터는 그대로) */
+function openConns(){
+  const l = getList();
+  $('connOv').innerHTML = `<div class="ov" style="z-index:48" onclick="if(event.target===this)closeConns()"><div class="box" style="max-width:480px;max-height:92vh;overflow:auto"><h3 style="margin:0 0 6px">🧹 이 기기에 연결된 시트</h3>
+    <p class="hint" style="margin:0 0 10px">지워도 구글 시트의 데이터는 그대로예요. 이 기기가 시트 주소만 잊어요. 나중에 연결 링크로 열면 다시 연결돼요.</p>
+    ${l.length ? l.map((e, i) => `<div class="anrow"><div style="font-weight:700">${esc(connLabel(e))}${e.u === GAS ? ' <span class="tag">마지막 연결</span>' : ''}</div>
+      <div class="row" style="margin-top:6px"><input type="text" id="cn_${i}" maxlength="20" style="flex:1;min-width:140px" placeholder="이름 붙이기 (예: 우리 학교용)" value="${esc(e.n)}"><button class="btn sm" onclick="renConn(${i})">저장</button><button class="btn sm sub" onclick="delConn(${i})">🗑 지우기</button></div></div>`).join('') : '<div class="hint">연결된 시트가 없어요.</div>'}
+    <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="btn sub" onclick="closeConns()">닫기</button></div></div></div>`;
+}
+function closeConns(){ $('connOv').innerHTML = ''; }
+function renConn(i){ const l = getList(); if (!l[i]) return; l[i].n = $('cn_' + i).value.trim().slice(0, 20); setList(l); openConns(); toast('이름을 저장했어요'); }
+async function delConn(i){
+  const l = getList(), e = l[i]; if (!e) return;
+  if (!(await confirmBox('이 기기에서 연결을 지울까요?', connLabel(e) + '\n구글 시트의 데이터는 그대로 있고, 이 기기에서만 연결이 지워져요.', '지우기'))) return;
+  l.splice(i, 1); setList(l);
+  if (e.u === GAS){ GAS = ''; lsSet(K.gas, ''); ssSet('kcsat_pw', ''); }
+  if (!l.length){ location.href = location.pathname + '?mode=admin'; return; }
+  openConns(); toast('지웠어요');
+}
 
 /* ================= 본부(관리자) ================= */
 let S = { calls:[], notices:[], lists:{ period:[], role:[], supply:[], phrase:[], apphrase:[], roster:[] }, settings:{ memoDefault:false, suppliesFormat:'지참물: {items}', roomMax:30, school:'', greet:'' } };
@@ -2837,6 +2936,7 @@ function newForm(keep){
 }
 async function enterAdmin(){
   if (!(await regGate())) return;   // 등록 확인 (등록부가 안 열리면 그냥 통과해요)
+  syncRegToEntry();
   show('scrAdmin'); $('pracSw').checked = practice;
   F = newForm();
   await refreshAdmin(true);
