@@ -116,7 +116,6 @@ html.room.f0{--rf:16px} html.room.f2{--rf:26px}
 .nb small{display:block;font-size:.8rem;opacity:.8;font-weight:500}
 .rbody{padding:18px 22px;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,520px),1fr));gap:16px;align-content:start}
 .rc{background:var(--navy);color:#fff;border-radius:18px;padding:20px 24px;border:4px solid var(--navy)}
-.rc.urg{background:var(--red);border-color:var(--red)}
 .rc.ok{background:#fff;color:var(--tx);border-color:var(--navy)}
 .rc .top1{font-size:1.1rem;font-weight:600;opacity:.92;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .rc .main{font-size:2.1rem;font-weight:800;line-height:1.3;margin:10px 0 6px;word-break:keep-all}
@@ -127,10 +126,25 @@ html.room.f0{--rf:16px} html.room.f2{--rf:26px}
 .rc .el{font-weight:700;font-size:1.05rem}
 .rc .el.warn{color:#FFD27A} .rc.ok .el.warn{color:var(--amber)} .rc .el.late{color:#fff;background:rgba(0,0,0,.28);padding:2px 10px;border-radius:10px}
 .rc .cbtn{min-height:54px;padding:0 24px;border-radius:12px;border:0;background:#fff;color:var(--navy);font-weight:800;font-size:1.1rem;cursor:pointer}
-.rc.urg .cbtn{color:var(--red)}
 .rc .ch{font-size:.85rem;opacity:.85;width:100%}
+.rc .rm::after{content:' ·';opacity:.7}
+.cmp .rc .rm{background:#fff;color:var(--navy);padding:1px 11px;border-radius:9px;font-size:1.15rem;font-weight:800;line-height:1.5}
+.cmp .rc .rm::after{content:none}
+.cmp .rc.ok .rm{background:var(--navy);color:#fff}
+.cmp .rc[data-col="0"]:not(.ok){background:#2A3F6C;border-color:#2A3F6C}
+.cmp .rc[data-col="1"]:not(.ok){background:#41609A;border-color:#41609A}
+.rbody.cmp{grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:10px;padding:12px 16px}
+.cmp .rc{padding:10px 14px;border-radius:14px;border-width:3px}
+.cmp .rc .top1{font-size:.95rem}
+.cmp .rc .main{font-size:1.3rem;margin:4px 0 2px}
+.cmp .rc .sup{font-size:1rem;margin:2px 0}
+.cmp .rc .memo{font-size:.9rem;margin:3px 0;padding:5px 9px}
+.cmp .rc .ft1{margin-top:6px}
+.cmp .rc .cbtn{min-height:44px;padding:0 16px;font-size:1rem}
+.cmp .rc .ch{display:none}
 .rc .tag{background:rgba(255,255,255,.22);color:#fff} .rc.ok .tag{background:var(--navy-l);color:var(--navy)}
-.rc .tag.u{background:#fff;color:var(--red)}
+.rc .tag.u{background:#E5384A;color:#fff;font-size:1.3rem;font-weight:800;padding:2px 14px;border-radius:9px;letter-spacing:.02em}
+.cmp .rc .tag.u{font-size:1.1rem;padding:1px 11px}
 .empty{grid-column:1/-1;text-align:center;padding:60px 10px;color:var(--navy);font-size:2rem;font-weight:700;line-height:1.5}
 .empty small{display:block;font-size:1.05rem;color:var(--sub);font-weight:500;margin-top:8px}
 .rfoot{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;color:var(--sub);font-size:.85rem;padding:14px 12px 26px}
@@ -146,6 +160,9 @@ html.room.f0{--rf:16px} html.room.f2{--rf:26px}
 /* ===== 대기실 인사말 ===== */
 .greet{background:#D4DDEE;color:var(--navy);text-align:center;padding:14px 22px;margin:14px 22px 4px;border-radius:18px;border:1px solid #C3CEE4;box-shadow:0 6px 16px rgba(38,58,92,.16),inset 0 1px 0 rgba(255,255,255,.7)}
 .greet b{display:block;font-size:1.55rem;font-weight:800;line-height:1.4}
+.greet.sm{padding:6px 18px;margin:8px 16px 0;border-radius:12px}
+.greet.sm b{font-size:1.1rem;display:inline}
+.greet.sm span{font-size:1rem;display:inline;margin:0 0 0 10px}
 .greet.big{padding:44px 28px;margin:28px 22px 4px;border-radius:24px}
 .greet.big b{font-size:2.5rem}
 .greet.big span{font-size:1.7rem;margin-top:10px}
@@ -256,6 +273,7 @@ html.room.f0{--rf:16px} html.room.f2{--rf:26px}
   <div class="top">
     <h1>감독 호출 · 본부</h1>
     <span id="rmConn" style="font-size:.88rem"></span>
+    <button class="btn sm sub" id="sndAdm" onclick="toggleRoomSound()" style="font-size:.85rem"></button>
     <span id="aConn" style="font-size:.88rem"><i class="dot"></i>연결 중…</span>
     <label class="sw"><input type="checkbox" id="pracSw" onchange="setPractice(this.checked)"> 연습 모드</label>
     <button class="btn hide" id="rvTopBtn" onclick="openReview()">💬 후기</button>
@@ -284,7 +302,7 @@ html.room.f0{--rf:16px} html.room.f2{--rf:26px}
   <div class="rhead">
     <h1>감독 호출 · 대기실</h1>
     <span class="cn" id="rConn"></span>
-    <button class="btn" id="sndBtn" onclick="toggleSound()"></button>
+    <button class="btn hide" id="fsBtn" onclick="toggleFs()"></button>
   </div>
   <div id="rNet" class="netbad hide">연결이 끊겼어요. 다시 연결하는 중이에요… (본부에 알려 주세요)</div>
   <div id="rUnlock" class="unlock hide">🔔 알림음이 나오려면 화면을 한 번 눌러 주세요</div>
@@ -2612,7 +2630,7 @@ var qrcode = function() {
 /* ===== 기본 ===== */
 const APP = 'KCSAT 감독 호출 보드';
 const MAIL = 'fond7509@naver.com';
-const NEED_GAS = 4;                       // 이 화면이 필요로 하는 GAS 코드 버전 (GAS를 고칠 때 같이 올려요)
+const NEED_GAS = 5;                       // 이 화면이 필요로 하는 GAS 코드 버전 (GAS를 고칠 때 같이 올려요)
 const GAS_FILE = 'Cheon-R-KCSAT-call-board.gs';
 const K = { gas:'kcsat_gas_v1', sound:'kcsat_sound_v1', font:'kcsat_font_v1', practice:'kcsat_practice_v1', reg:'kcsat_reg_v1', from:'kcsat_from_v1', rv:'kcsat_rv_v1' };
 const $ = id => document.getElementById(id);
@@ -2691,7 +2709,7 @@ function elapsed(ms){
 const newId = () => 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
 /* ===== 소리 · 깜빡임 ===== */
-let actx = null, audioUnlocked = false, soundOn = lsGet(K.sound, true) !== false, blinkTimer = null, baseTitle = document.title;
+let actx = null, audioUnlocked = false, soundOn = true, blinkTimer = null, baseTitle = document.title;
 function beep(times){
   if (!soundOn) return;
   try{
@@ -2709,8 +2727,9 @@ function beep(times){
 }
 document.addEventListener('pointerdown', () => {
   try{ actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); }catch(e){}
-  audioUnlocked = true; $('rUnlock').classList.add('hide'); stopBlink();
+  audioUnlocked = true; stopBlink();
 });
+document.addEventListener('click', () => { $('rUnlock').classList.add('hide'); });   // 안내 띠는 '클릭이 끝난 뒤' 숨김 — 누르는 순간 화면이 밀려 첫 [확인했어요]가 씹히는 문제 방지
 function flash(urgent){
   const f = $('flash'); f.className = ''; void f.offsetWidth; f.className = 'go' + (urgent ? ' u' : '');
   setTimeout(() => { f.className = ''; }, 4200);
@@ -3046,10 +3065,29 @@ function deliverTag(c){
   if (c.alert <= ri.seen) return '<span class="tag" style="background:var(--green-l);color:var(--green)">📺 대기실 표시됨</span>';
   return nowMs() - c.since > 20000 ? '<span class="tag u">⚠ 대기실에 아직 안 보여요</span>' : '<span class="tag p">⏳ 전달 중</span>';
 }
+const roomSoundOn = () => S.settings.roomSound !== false;
+function soundTag(ri){
+  if (!roomSoundOn()) return ' · 🔕 소리 꺼둠';
+  if (gasVer !== null && gasVer < 5) return '';
+  const au = S.room && S.room.audio;
+  return au ? ' · 🔔 소리 준비됨' : ' · <b style="color:#B45309">⚠ 대기실 화면을 한 번 눌러야 소리가 나요</b>';
+}
+function renderSndAdm(){
+  const b = $('sndAdm'); if (!b) return;
+  b.textContent = roomSoundOn() ? '🔔 대기실 소리 켬' : '🔕 대기실 소리 끔';
+  b.classList.toggle('sub', roomSoundOn());
+}
+async function toggleRoomSound(){
+  if (gasVer !== null && gasVer < 5){ toast('구글 시트 코드를 새 버전(5)으로 업데이트하면 쓸 수 있어요. [설정] 탭 맨 아래를 보세요.'); return; }
+  const to = !roomSoundOn();
+  try{ await jsonp({ action:'saveSetting', pw:PW, key:'대기실소리', value: to ? 'Y' : 'N' }); S.settings.roomSound = to; renderSndAdm(); renderSet(); toast(to ? '🔔 대기실 알림음을 켰어요 (5초 안에 반영)' : '🔕 대기실 알림음을 껐어요. 화면 깜빡임은 계속 나와요'); }
+  catch(e){ toast(e.message); }
+}
 function watchAdmin(){
+  renderSndAdm();
   const now = Date.now(), selfBad = now - A_ST.lastOk > 15000, ri = roomInfo();
   const rm = $('rmConn');
-  if (rm) rm.innerHTML = selfBad ? '<i class="dot gray"></i>대기실 확인 불가' : ri.st === 'none' ? '<i class="dot gray"></i>대기실 연결 전' : ri.st === 'ok' ? `<i class="dot"></i>대기실 정상 (${secTxt(ri.age)} 전)` : `<i class="dot bad"></i>대기실 끊김 (${secTxt(ri.age)} 전)`;
+  if (rm) rm.innerHTML = selfBad ? '<i class="dot gray"></i>대기실 확인 불가' : ri.st === 'none' ? '<i class="dot gray"></i>대기실 연결 전' : ri.st === 'ok' ? `<i class="dot"></i>대기실 정상 (${secTxt(ri.age)} 전)${soundTag(ri)}` : `<i class="dot bad"></i>대기실 끊김 (${secTxt(ri.age)} 전)`;
   if (selfBad){ $('aConn').innerHTML = '<i class="dot bad"></i>본부 연결 끊김'; }
   const open = S.calls.filter(c => c.status === '미처리' || c.status === '확인됨').length;
   const kind = selfBad ? 'self' : ri.st === 'bad' ? 'room' : (ri.st === 'none' && open > 0) ? 'noroom' : '';
@@ -3113,6 +3151,7 @@ function renderSet(){
     <label class="sw"><input type="checkbox" ${S.settings.memoDefault ? 'checked' : ''} onchange="saveSetting('메모기본공개', this.checked ? 'Y' : 'N')"> 메모를 대기실 화면에도 보이는 것을 기본으로 하기</label>
     <label class="f">지참물 안내 문구 ( {items} 자리에 지참물이 들어가요 )</label><div class="row"><input type="text" id="fmtIn" style="flex:1;min-width:200px" value="${esc(S.settings.suppliesFormat)}"><button class="btn sm" onclick="saveSetting('지참물형식', $('fmtIn').value)">저장</button></div>
     <label class="f">고사실 개수 (선택 목록 1 ~ N)</label><div class="row"><input type="text" inputmode="numeric" id="maxIn" style="width:100px" value="${S.settings.roomMax}"><button class="btn sm" onclick="saveSetting('고사실수', $('maxIn').value)">저장</button></div><div class="msg" id="setMsg"></div></div>
+  <div class="card"><h3>🔔 대기실 알림음</h3><label class="sw"><input type="checkbox" ${roomSoundOn() ? 'checked' : ''} onchange="toggleRoomSound()"> 호출이 오면 대기실에서 알림음을 울리기</label><p class="hint" style="margin:8px 0 0">대기실 기기의 음량은 그 기기에서 직접 맞춰 주세요. 소리를 꺼도 호출 때 화면은 깜빡이고, 긴급 호출은 빨간 화면으로 보여요. 대기실 기기는 켠 뒤 <b>화면을 한 번 눌러야</b> 소리가 나요(인터넷 창 규칙). 본부 위쪽에 그 상태가 보여요.</p></div>
   <div class="card"><h3>🏫 대기실 인사말</h3><p class="hint" style="margin:0 0 8px">학교 이름을 적으면 대기실 화면 맨 위에 "안녕하세요. ○○고등학교입니다."와 아래 문구가 항상 보여요. 학교 이름을 비우면 인사말이 사라져요. (이 내용은 우리 학교 시트에만 저장돼요)</p>
     <label class="f">학교 이름</label><input type="text" id="schIn" maxlength="30" placeholder="예) ○○고등학교" value="${esc(S.settings.school || '')}" oninput="greetPrev()">
     <label class="f">인사말 문구 <small style="font-weight:500;color:var(--sub)">(선택 · 120자)</small></label><textarea id="grtIn" rows="2" maxlength="120" placeholder="예) 감독 선생님들의 노고에 감사드립니다." oninput="greetPrev()">${esc(S.settings.greet || '')}</textarea>
@@ -3168,7 +3207,7 @@ async function copyLink(kind){
 let R = { calls:[], notices:[], baseline:null, lastOk:0, urgTimer:null, wake:null, polling:false, seen:0, rid:'' };
 function startRoom(){
   R.rid = ssGet('kcsat_rid') || ('r' + Math.random().toString(36).slice(2, 9)); ssSet('kcsat_rid', R.rid);
-  show('scrRoom'); applySoundBtn(); applyFontBtns();
+  show('scrRoom'); applyFontBtns(); initFs();
   if (!audioUnlocked) $('rUnlock').classList.remove('hide');
   roomPoll(); setInterval(roomPoll, 5000);
   setInterval(tickRoom, 1000);
@@ -3181,8 +3220,8 @@ async function getWake(){ try{ if ('wakeLock' in navigator && !document.hidden) 
 async function roomPoll(){
   if (R.polling) return; R.polling = true;
   try{
-    const r = await jsonp({ action:'poll', rid:R.rid, seen:R.seen }, null, 12000);
-    off = r.now - Date.now(); R.lastOk = Date.now(); R.calls = r.calls; R.notices = r.notices; R.greet = r.greet || null;
+    const r = await jsonp({ action:'poll', rid:R.rid, seen:R.seen, au:audioUnlocked ? 1 : 0 }, null, 12000);
+    off = r.now - Date.now(); R.lastOk = Date.now(); R.calls = r.calls; R.notices = r.notices; R.greet = r.greet || null; soundOn = r.sound !== false; if (!soundOn) $('rUnlock').classList.add('hide'); else if (!audioUnlocked) $('rUnlock').classList.remove('hide');
     const mx = Math.max(0, ...r.calls.map(c => c.alert), ...r.notices.map(n => n.alert));
     if (R.baseline === null) R.baseline = mx;
     else if (mx > R.baseline){
@@ -3198,13 +3237,14 @@ function noticesHtml(list){
   return list.slice().sort((a, b) => b.ms - a.ms).map(n => `<div class="nb ${n.urgent ? 'u' : ''}">${n.urgent ? '🚨 ' : '📢 '}${esc(n.text)}${n.practice ? '<small>연습 공지예요</small>' : ''}</div>`).join('');
 }
 function cardsHtml(list, live){
-  const calls = list.slice().sort((a, b) => (a.status === '확인됨') - (b.status === '확인됨') || b.since - a.since);
+  const calls = list.slice().sort((a, b) => (a.status === '확인됨') - (b.status === '확인됨') || (b.urgent ? 1 : 0) - (a.urgent ? 1 : 0) || b.since - a.since);
   return calls.length ? calls.map(c => {
     const who = c.name ? esc(c.name) + ' 선생님' : esc(c.room) + ' 감독관님';
-    const meta = [c.room, c.period, c.role].filter(Boolean).map(esc).join(' · ');
+    const rest = [c.period, c.role].filter(Boolean).map(esc).join(' · ');
+    const meta = (c.room ? `<span class="rm">${esc(c.room)}</span>` : '') + (rest ? `<span>${rest}</span>` : '');
     const ok = c.status === '확인됨';
     return `<div class="rc ${c.urgent ? 'urg' : ''} ${ok ? 'ok' : ''}" data-id="${esc(c.id)}">
-      <div class="top1">${c.urgent ? '<span class="tag u">긴급</span>' : ''}${c.practice ? '<span class="tag">연습</span>' : ''}<span>${meta}</span></div>
+      <div class="top1">${c.urgent ? '<span class="tag u">긴급</span>' : ''}${c.practice ? '<span class="tag">연습</span>' : ''}${meta}</div>
       <div class="main">${who}, ${esc(c.msg)}</div>
       ${c.supplies ? `<div class="sup">${esc(c.supplies)}</div>` : ''}${c.memo ? `<div class="memo">📝 ${esc(c.memo)}</div>` : ''}
       <div class="ft1"><span class="el" data-since="${c.since}"></span>${ok ? `<span style="font-weight:700">✔ 확인했어요 (${hhmmss(new Date(c.confirmMs)).slice(0, 5)})</span>` : live ? `<button class="cbtn" onclick="roomConfirm('${esc(c.id)}')">확인했어요</button>` : `<button class="cbtn" disabled style="opacity:.6">확인했어요</button>`}</div>
@@ -3216,12 +3256,21 @@ function renderGreet(g){
   if (!school){ el.classList.add('hide'); el.innerHTML = ''; return; }
   el.innerHTML = `<b>안녕하세요. ${esc(school)}입니다.</b>` + (g.text ? `<span>${esc(g.text)}</span>` : '');
   el.classList.remove('hide');
-  el.classList.toggle('big', !(R.calls && R.calls.length));   // 호출 없으면 크게, 있으면 위 띠로
+  el.classList.toggle('big', !(R.calls && R.calls.length)); el.classList.toggle('sm', !!(R.calls && R.calls.length > 6));   // 호출 없으면 크게, 있으면 위 띠로
 }
+function tintCols(){   // 컴팩트 보기: 열마다 남색 2톤 번갈아 (3열이면 가운데만 다른 톤 · 긴급은 '긴급' 글자만 빨강, 확인됨=흰색)
+  const el = $('rCalls'); if (!el) return;
+  const cmp = el.classList.contains('cmp');
+  const n = cmp ? Math.max(1, getComputedStyle(el).gridTemplateColumns.split(' ').length) : 1;
+  el.querySelectorAll('.rc').forEach((c, i) => { if (cmp) c.dataset.col = String((i % n) % 2); else delete c.dataset.col; });
+}
+window.addEventListener('resize', () => { try{ tintCols(); }catch(e){} });
 function renderRoom(){
   renderGreet(R.greet);
   $('rNotices').innerHTML = noticesHtml(R.notices);
   $('rCalls').innerHTML = cardsHtml(R.calls, true);
+  $('rCalls').classList.toggle('cmp', R.calls.length > 6);   // 호출이 많으면 카드를 작게 (한 화면에 더 많이)
+  tintCols();
   tickRoom();
   clearInterval(R.urgTimer);
   if (R.calls.some(c => c.urgent && c.status === '미처리')) R.urgTimer = setInterval(() => beep(2), 8000);   // 긴급은 확인될 때까지 알림 반복
@@ -3242,13 +3291,21 @@ async function roomConfirm(id){
   const c = src.calls.find(x => x.id === id); if (c){ c.status = '확인됨'; c.confirmMs = nowMs(); draw(); }
   try{ await jsonp({ action:'confirm', id }); }catch(e){ if (c){ c.status = '미처리'; draw(); } }
 }
-function applySoundBtn(){ $('sndBtn').textContent = soundOn ? '🔔 알림음 켜짐' : '🔕 알림음 꺼짐'; }
-function toggleSound(){ soundOn = !soundOn; lsSet(K.sound, soundOn); applySoundBtn(); if (soundOn) beep(1); }
+function fsOk(){ return !!(document.documentElement.requestFullscreen && document.fullscreenEnabled !== false); }
+function initFs(){
+  if (!fsOk()) return;
+  $('fsBtn').classList.remove('hide'); applyFs();
+  document.addEventListener('fullscreenchange', applyFs);
+}
+function applyFs(){ $('fsBtn').textContent = document.fullscreenElement ? '🗗 전체화면 끝내기' : '⛶ 전체화면'; }
+function toggleFs(){
+  try{ if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen(); }catch(e){}
+}
 function setFont(n){ lsSet(K.font, n); document.documentElement.classList.remove('f0', 'f1', 'f2'); document.documentElement.classList.add('f' + n); applyFontBtns(); }
 function applyFontBtns(){ const n = lsGet(K.font, 1); document.querySelectorAll('.fz button').forEach(b => b.classList.toggle('on', Number(b.dataset.f) === n)); }
 
 /* ================= 🎬 체험해보기 (가짜 서버 · 저장·전송 없음) ================= */
-const D = { ready:false, calls:[], notices:[], alert:0, brk:false, lists:null, settings:{ memoDefault:false, suppliesFormat:'지참물: {items}', roomMax:30, school:'체험고등학교', greet:'감독 선생님들의 노고에 감사드립니다.' } };
+const D = { ready:false, calls:[], notices:[], alert:0, brk:false, lists:null, settings:{ memoDefault:false, suppliesFormat:'지참물: {items}', roomMax:30, roomSound:true, school:'체험고등학교', greet:'감독 선생님들의 노고에 감사드립니다.' } };
 const dKst = ms => new Date((ms || Date.now()) + 9 * 3600000).toISOString().replace('T', ' ').slice(0, 19);
 function demoSeed(){
   D.ready = true; const t = Date.now();
@@ -3273,7 +3330,7 @@ function demoRoute(p){
     case 'login': return ok({ role:'admin', gasVer:99, installId:'demo', mustChange:false });
     case 'changePw': return ok();
     case 'adminLoad': return ok({ gasVer:99, now:Date.now(), calls:cp(D.calls), notices:cp(D.notices).map(n => Object.assign(n, { active:dActive(n) })), lists:cp(D.lists), settings:cp(D.settings), room:{ exists:true, ageMs:D.brk ? 90000 : 1500, seen:D.brk ? 0 : D.alert } });
-    case 'poll': return ok({ gasVer:99, now:Date.now(), calls:cp(open()).map(c => Object.assign(c, { memo:c.memoPublic ? c.memo : '' })), notices:cp(D.notices.filter(dActive)), greet:{ school:D.settings.school, text:D.settings.greet } });
+    case 'poll': return ok({ gasVer:99, now:Date.now(), calls:cp(open()).map(c => Object.assign(c, { memo:c.memoPublic ? c.memo : '' })), notices:cp(D.notices.filter(dActive)), greet:{ school:D.settings.school, text:D.settings.greet }, sound:D.settings.roomSound !== false });
     case 'call': {
       const rows = JSON.parse(p.rows || '[]'), sup = JSON.parse(p.supplies || '[]'), t = Date.now(); let add = 0; const a = D.alert + 1;
       rows.forEach(x => {
@@ -3299,7 +3356,7 @@ function demoRoute(p){
     case 'announce': { const t = Date.now(), m = Number(p.minutes) || 0; D.notices.push({ id:p.id || ('n' + t), text:p.text, urgent:p.urgent === '1', practice:p.practice === '1', state:'게시중', alert:++D.alert, at:dKst(t), offAt:'', ms:t, endMs:m ? t + m * 60000 : 0 }); return ok(); }
     case 'unannounce': D.notices.forEach(n => { if (n.id === p.id){ n.state = '내림'; n.offAt = dKst(); } }); return ok();
     case 'saveLists': { let items = JSON.parse(p.items || '[]'); if (p.mode === 'add') items = Array.from(new Set((D.lists[p.kind] || []).concat(items))); D.lists[p.kind] = items; return ok({ items }); }
-    case 'saveSetting': { if (p.key === '메모기본공개') D.settings.memoDefault = p.value === 'Y'; else if (p.key === '지참물형식') D.settings.suppliesFormat = p.value; else if (p.key === '고사실수') D.settings.roomMax = Number(p.value) || 30; else if (p.key === '학교명') D.settings.school = String(p.value || '').trim().slice(0, 30); else if (p.key === '인사말') D.settings.greet = String(p.value || '').trim().slice(0, 120); return ok(); }
+    case 'saveSetting': { if (p.key === '메모기본공개') D.settings.memoDefault = p.value === 'Y'; else if (p.key === '지참물형식') D.settings.suppliesFormat = p.value; else if (p.key === '고사실수') D.settings.roomMax = Number(p.value) || 30; else if (p.key === '대기실소리') D.settings.roomSound = p.value !== 'N'; else if (p.key === '학교명') D.settings.school = String(p.value || '').trim().slice(0, 30); else if (p.key === '인사말') D.settings.greet = String(p.value || '').trim().slice(0, 120); return ok(); }
     case 'clear': {
       const today = dKst().slice(0, 10), drop = x => p.scope === 'all' || (p.scope === 'practice' && x.practice) || (p.scope === 'today' && String(x.at).slice(0, 10) === today);
       const n0 = D.calls.length + D.notices.length; D.calls = D.calls.filter(x => !drop(x)); D.notices = D.notices.filter(x => !drop(x)); return ok({ removed:n0 - D.calls.length - D.notices.length });
@@ -3401,7 +3458,7 @@ function guideBody(){
   return ac('이 앱은 무엇인가요?', '수능 날 본부(교무실)에서 감독 대기실에 있는 선생님을 부르는 전용 도구예요. 본부에서 호출하면 대기실 전자칠판에 큰 글씨와 소리로 나타나고, 본부는 처리 상태를 기록으로 볼 수 있어요.', true) +
   ac('1. 처음 설치 (본부 담당자, 한 번만)', guideHtml(true, 'G')) +
   ac('2. 호출하는 방법', '<ol style="margin:0;padding-left:20px"><li>[호출하기] 탭에서 <b>교시/영역</b>을 고르고, <b>고사실·역할·이름</b>을 입력해요. 여러 명이면 [＋ 대상 추가].</li><li><b>빠른 문구</b>를 누르거나 호출 문구를 직접 써요.</li><li>필요하면 <b>지참물</b>(도장 등)과 <b>메모</b>, <b>긴급</b>을 골라요. 메모는 기본적으로 본부에서만 보여요.</li><li>[N명 호출하기]를 누르면 대기실에 바로 나타나요. 이미 부른 호출에 사람을 더 부르려면 [현황]에서 [＋ 같은 호출에 추가].</li><li>일이 끝나면 [현황]에서 <b>처리완료</b>를 눌러요. (취소는 따로 기록돼요)</li></ol>') +
-  ac('3. 대기실 화면 준비 (전자칠판 연결)', '<ul style="margin:0;padding-left:20px"><li>본부 [설정] 탭에서 <b>대기실 링크</b>를 복사해 대기실 노트북에서 열어요. 연결 주소가 자동으로 저장돼요.</li><li>브라우저를 <b>전체 화면(F11)</b>으로 두고, 노트북 <b>전원 연결·절전 해제</b>를 확인해요. (화면 꺼짐 방지 기능이 있지만 일부 브라우저는 지원하지 않아요)</li><li>화면을 <b>한 번 눌러야</b> 알림음이 나와요. 오른쪽 위 🔔 버튼으로 켜고 끌 수 있어요.</li><li>글자 크기는 화면 아래 [작게/보통/크게]로 바꿀 수 있어요.</li></ul>') +
+  ac('3. 대기실 화면 준비 (전자칠판 연결)', '<ul style="margin:0;padding-left:20px"><li>본부 [설정] 탭에서 <b>대기실 링크</b>를 복사해 대기실 노트북에서 열어요. 연결 주소가 자동으로 저장돼요.</li><li>오른쪽 위 <b>[⛶ 전체화면]</b> 버튼으로 주소창 없이 화면 전체를 쓸 수 있어요. (안 되면 키보드 <b>F11</b>) 노트북 <b>전원 연결·절전 해제</b>를 확인해요. (화면 꺼짐 방지 기능이 있지만 일부 브라우저는 지원하지 않아요)</li><li>대기실 기기는 켠 뒤 화면을 <b>한 번 눌러야</b> 알림음이 나와요. 소리 켬/끔은 <b>본부 화면 위쪽 버튼</b>에서 조절하고, 음량은 대기실 기기에서 직접 맞춰요. 본부 위쪽에 "소리 준비됨"이 보이면 OK예요.</li><li>글자 크기는 화면 아래 [작게/보통/크게]로 바꿀 수 있어요.</li></ul>') +
   ac('4. 수능 전날·당일 체크리스트', '<ul style="margin:0;padding-left:20px"><li>두 노트북 모두 <b>인터넷 연결</b>과 전원을 확인해요.</li><li>본부에서 <b>연습 모드</b>를 켜고 호출 → 대기실 표시 → [확인했어요] → 처리완료까지 한 번 해 봐요.</li><li>끝나면 [현황]에서 <b>연습 기록 지우기</b>, 연습 모드를 꺼요.</li><li>본부 맨 위에 <b>대기실 ● 정상</b>이 보이는지 확인해요.</li><li>비밀번호와 <b>대기실 연락 방법(전화·직접 방문)</b>을 미리 정해 두세요.</li></ul>') +
   ac('5. 연결이 끊겼다는 팝업이 떴어요', '<ul style="margin:0;padding-left:20px"><li><b>대기실 화면 신호가 끊겼어요</b>: 대기실 노트북의 와이파이·전원을 보고 새로고침(F5)해요. 그동안은 전화나 직접 방문으로 호출해요.</li><li><b>본부 화면이 서버와 연결되지 않아요</b>: 이 노트북의 인터넷을 확인하고 새로고침(F5)해요. 비밀번호는 다시 묻지 않아요.</li><li><b>대기실 화면이 아직 연결되지 않았어요</b>: 대기실에서 대기실 링크를 열었는지 확인해요.</li><li>연결이 돌아오면 팝업은 자동으로 닫혀요.</li></ul>') +
   ac('6. 다른 학교·선생님께 소개하기', '[설정] 탭의 <b>소개 링크·QR</b>를 보내 주세요. 이 링크에는 우리 학교 연결 주소가 들어 있지 않아서, 받은 선생님은 자기 구글 시트로 따로 설치해요. (설정의 "우리 학교용 링크"는 다른 학교에 보내지 마세요)') +
