@@ -277,6 +277,49 @@ input[type=date]{min-width:0;max-width:100%}
 .gasnew{background:#fff;border:1px solid #F5D98B;border-radius:10px;padding:10px 12px;margin-top:10px;font-size:13.5px;line-height:1.7;color:#4A3A12}
 .gasnew b{display:block;margin-bottom:2px;color:#92400E}
 .gasnew ul{margin:0;padding-left:18px}
+/* ===== 📌 담임 업무 (인디고 #2F3A8F) ===== */
+.pl-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:12px;align-items:start}
+@media (max-width:700px){.pl-grid{grid-template-columns:1fr}}
+.pl-grid .box{margin-bottom:0}
+.plchips{display:flex;flex-wrap:wrap;gap:6px}
+.plchip{min-height:44px;padding:0 14px;border-radius:22px;border:1.5px solid var(--line);background:#fff;color:var(--tx2);font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:6px}
+.plchip i{width:10px;height:10px;border-radius:50%;display:inline-block;background:var(--c)}
+.plchip.on{border-color:var(--c);color:var(--tx);background:#fff;box-shadow:inset 0 0 0 1px var(--c)}
+.plchip:not(.on){opacity:.55}
+.plchip:not(.on) i{background:#fff;box-shadow:inset 0 0 0 2px var(--c)}
+.plmh{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.plmh b{font-family:'Jua','Pretendard',sans-serif;font-weight:400;font-size:17px;color:#2F3A8F}
+.plmh button{min-width:44px;min-height:44px;border-radius:10px;background:var(--bg);font-weight:700;color:var(--tx2)}
+.plcal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}
+.plcal .dw{text-align:center;font-size:12px;color:var(--tx3);padding:2px 0}
+.plcal button.dc{min-height:46px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:4px;font-size:13px;color:var(--tx);background:transparent;border:1.5px solid transparent}
+.plcal button.dc.out{visibility:hidden}
+.plcal button.dc.sun{color:#C0504D}.plcal button.dc.sat{color:#3A6FB0}
+.plcal button.dc.today{border-color:#2F3A8F;font-weight:700}
+.plcal button.dc.sel{background:#ECE8F7}
+.plcal .dots{display:flex;gap:2px;margin-top:3px;flex-wrap:wrap;justify-content:center;max-width:36px}
+.plcal .dots s{width:6px;height:6px;border-radius:50%;display:block;text-decoration:none}
+.plform label{display:block;font-size:13px;font-weight:700;color:var(--tx2);margin:8px 0 4px}
+.plform input,.plform textarea{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff}
+.plform input:focus,.plform textarea:focus{border-color:#2F3A8F}
+.plform textarea{min-height:60px;resize:vertical}
+.plbtn{min-height:44px;padding:0 18px;border-radius:10px;font-weight:700;background:#2F3A8F;color:#fff}
+.plbtn.sub{background:var(--bg);color:var(--tx2)}
+.pltool{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.pltool select{min-height:44px;border:1.5px solid var(--line);border-radius:10px;padding:0 10px;background:#fff}
+.plrow{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+.plrow input[type=checkbox]{width:24px;height:24px;accent-color:#2F3A8F;flex:none;margin-top:2px}
+.plrow .tt{font-weight:700;word-break:break-word}
+.plrow .mm{font-size:13px;color:var(--tx2);white-space:pre-wrap;word-break:break-word;margin-top:2px}
+.plrow .dd{font-size:12.5px;color:#2F3A8F;font-weight:700;margin-top:2px}
+.plrow.od .tt,.plrow.od .dd{color:#A32D2D}
+.plrow.od{background:#FCEBEB;border-radius:10px;padding-left:8px;padding-right:8px}
+.plrow.dn .tt{text-decoration:line-through;color:var(--tx3)}
+.plrow.dn .dd{color:var(--tx3)}
+.plrow .acts{display:flex;gap:4px;flex:none}
+.plrow .acts button{min-height:44px;min-width:44px;border-radius:8px;background:var(--bg);color:var(--tx2);font-weight:700;font-size:13px}
+.plro{display:flex;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
+.plro .bd2{flex:none;font-size:11px;font-weight:700;border-radius:8px;padding:2px 7px;color:#fff;background:var(--c)}
 </style>
 </head>
 <body>
@@ -949,6 +992,38 @@ input[type=date]{min-width:0;max-width:100%}
         <div class="row adm-only" style="margin-top:10px"><button class="btn sub" onclick="mailContact()">✉️ 그래도 안 되면 개발자에게 문의</button></div>
       </div></details>
     </section>
+    <section id="tab-plan" class="hide">
+      <div class="box" style="border-color:#2F3A8F">
+        <h2 style="color:#2F3A8F">📌 담임 업무</h2>
+        <p class="hint">담임 선생님만 볼 수 있어요. 학생·회장 화면에는 절대 나오지 않아요. 아래 칩을 눌러 달력에 보일 종류를 켜고 끌 수 있어요(이 기기에 기억돼요).</p>
+        <div class="plchips" id="plChips"></div>
+        <div class="msg" id="plMsg"></div>
+      </div>
+      <div class="pl-grid">
+        <div class="box">
+          <div class="plmh"><button onclick="planMove(-1)" aria-label="이전 달">◀</button><b id="plMonth"></b><button onclick="planMove(1)" aria-label="다음 달">▶</button></div>
+          <div class="plcal" id="plCal"></div>
+          <div class="row" style="margin-top:8px"><button class="plbtn sub" onclick="planGoToday()">오늘</button></div>
+        </div>
+        <div class="box">
+          <div class="plform">
+            <h2 id="plFormTitle" style="color:#2F3A8F">➕ 담임 일정 추가</h2>
+            <label for="plDate">날짜(기한)</label><input type="date" id="plDate">
+            <label for="plTitle">제목</label><input type="text" id="plTitle" maxlength="100" placeholder="예: 장학금 추천서 마감">
+            <label for="plMemo">메모(선택)</label><textarea id="plMemo" maxlength="1000"></textarea>
+            <div class="row" style="margin-top:10px"><button class="plbtn" id="plSaveBtn" onclick="planSave(this)">추가</button><button class="plbtn sub hide" id="plCancelBtn" onclick="planResetForm()">취소</button></div>
+          </div>
+          <div class="pltool">
+            <select id="plSort" onchange="planSort=this.value;planDraw()" aria-label="정렬"><option value="date">날짜순</option><option value="near">기한 가까운 순</option><option value="undone">미완료 먼저</option></select>
+            <select id="plFlt" onchange="planFlt=this.value;planDraw()" aria-label="보기"><option value="all">전체</option><option value="undone">미완료만</option><option value="done">완료만</option><option value="over">기한 지난 미완료</option></select>
+          </div>
+          <div id="plListHead" style="font-weight:700;margin-bottom:2px"></div>
+          <div id="plList"></div>
+          <div id="plDay"></div>
+        </div>
+      </div>
+    </section>
+
     <section id="tab-stat" class="hide">
       <div class="box">
         <h2>📊 확인 현황</h2>
@@ -1500,6 +1575,7 @@ async function enterMain(){
   const tabs = role==='admin'
     ? [['set','⚙️ 연결·설정'],['stu','👥 명단'],['write','✏️ 공지'],['stat','📊 확인현황']]
     : [['write','✏️ 공지']];
+  if (role==='admin') tabs.splice(3, 0, ['plan','📌 담임 업무']);
   if (role==='admin' && isOwner && REGISTRY_URL) tabs.push(['own','👑 사용자 관리']);
   tabs.push(['help','📘 가이드']);
   if (role==='admin') tabs.push(['rv','💬 후기']);
@@ -1515,6 +1591,7 @@ async function refresh(usePre){
   if (!r) r = await jsonp({ action:'adminLoad', pw:PW });
   role = r.role; data = { notices:(r.notices||[]).map(n => ({ ...n, date: normDate(n.date), end: n.end ? normDate(n.end) : '' })), students:r.students||[], confirms:r.confirms||[], requests:r.requests||[], callDone:r.callDone||{} };
   updateReqBadge();
+  if (role==='admin') planSet(r.teacherPlan);
   schoolYear = parseInt(r.year, 10) || new Date().getFullYear();
   gasVer = Number(r.gasVer) || 0; renderGasBanner();
   renderBlobs();
@@ -1537,9 +1614,10 @@ async function refresh(usePre){
 function goTab(k){
   curTab = k;
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on', b.dataset.t===k));
-  ['set','stu','write','stat','own','help','rv'].forEach(x=>$('tab-'+x).classList.toggle('hide', x!==k));
+  ['set','stu','write','plan','stat','own','help','rv'].forEach(x=>$('tab-'+x).classList.toggle('hide', x!==k));
   if (k==='help') renderHelp();
   if (k==='set') $('firstHint').classList.toggle('hide', !!data.students.length);
+  if (k==='plan') planOpen();
   if (k==='own') loadOwner();
   if (k==='rv'){ renderRv(); }
   if (k==='write'){ renderRoster(); renderList(); renderBulkChips(); renderReqs(); }
@@ -2657,7 +2735,7 @@ function renderHelp(){
 }
 
 /* ===== 🔔 GAS 코드 버전 확인 ===== */
-const NEED_GAS = 5;        // 이 화면이 필요로 하는 GAS 코드 버전 (GAS를 고칠 때 같이 올려요)
+const NEED_GAS = 6;        // 이 화면이 필요로 하는 GAS 코드 버전 (GAS를 고칠 때 같이 올려요)
 let gasVer = null;
 const gasOld = () => gasVer !== null && gasVer < NEED_GAS;
 const gasBelow = v => gasVer !== null && gasVer < v;   // 사진·기간 공지는 GAS 버전 2부터 되니까, 그 기능의 확인은 버전 2 기준으로 (새 버전이 나와도 막히지 않게)
@@ -3297,8 +3375,122 @@ function plain(s){   // 꾸밈 표시를 걷어낸 글자 (제목·알림·검�
   parseDated = function(t){ const r = pd(t); r.forEach(x => { if (x && x.title) x.title = plain(x.title); }); return r; };
 })();
 
+/* ===== 📌 담임 업무 (담임 전용 · 담임일정 시트 · adminLoad로만 받아요) ===== */
+const PL_KEY = 'sn_plan_chips_v1';
+const PL_TYPES = [['plan','담임일정','#2F3A8F'],['긴급','긴급','#E24B4A'],['호출','호출','#7F77DD'],['확인','학급공지','#EF9F27'],['교과','교과공지','#378ADD'],['일반','일반','#888780'],['sch','학사일정','#3FB68B']];
+let planItems = [], planOff = new Set((() => { const a = lsGet(PL_KEY, []); return Array.isArray(a) ? a : []; })());
+let planYM = today().slice(0,7), planSel = '', planSort = 'date', planFlt = 'all', planEditId = '', planSch = [], planSchAt = 0;
+WRITE_ACTIONS.push('planSave','planDone','planDelete');
+function planSet(list){ planItems = (list || []).map(x => ({ ...x, date: normDate(x.date) })); planDraw(); }
+function planOpen(){
+  if (gasVer !== null && gasVer < 6) msg('plMsg','⚠️ 먼저 GAS 코드를 최신(버전 6)으로 바꿔 주세요. (⚙️ 연결·설정 탭 안내 참고)');
+  else msg('plMsg','',true);
+  if (!$('plDate').value) $('plDate').value = planSel || today();
+  planDraw(); planLoadSch();
+}
+async function planLoadSch(){
+  if (Date.now() - planSchAt < 60000 || (gasVer !== null && gasVer < 3)) return;
+  planSchAt = Date.now();
+  try{ const r = await jsonp({ action:'neisCalList', pw:PW }); planSch = (r.items || []).filter(x => x.status !== '숨김').map(x => ({ date:x.date, name: x.status === '수정' ? x.text : x.name })); planDraw(); }catch(e){}
+}
+function planOn(k){ return !planOff.has(k); }
+function planChipTap(k){ planOn(k) ? planOff.add(k) : planOff.delete(k); lsSet(PL_KEY, [...planOff]); planDraw(); }
+function planMove(d){ const [y,m] = planYM.split('-').map(Number); const n = new Date(y, m-1+d, 1); planYM = n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0'); planDraw(); }
+function planGoToday(){ planYM = today().slice(0,7); planSel = today(); planDraw(); }
+function planPick(d){ planSel = (planSel === d) ? '' : d; if (planSel && !planEditId) $('plDate').value = planSel; planDraw(); }
+const planDiff = d => Math.round((new Date(d + 'T00:00:00') - new Date(today() + 'T00:00:00')) / 864e5);
+const planOver = x => !x.done && x.date < today();
+function planCovers(n, d){ return d >= n.date && d <= (n.end || n.date); }
+function planDayInfo(d){   // 그날 보여줄 것들 (칩 켜진 종류만)
+  const info = { plan: planItems.filter(x => x.date === d), notes: [], sch: [] };
+  data.notices.forEach(n => { if (planCovers(n, d) && planOn(n.type)) info.notes.push(n); });
+  if (planOn('sch')) planSch.forEach(s => { if (s.date === d) info.sch.push(s); });
+  return info;
+}
+function planDot(c){ return '<s style="background:' + c + '"></s>'; }
+function planDraw(){
+  if (!$('plCal')) return;
+  $('plChips').innerHTML = PL_TYPES.map(([k,l,c]) => `<button class="plchip ${planOn(k)?'on':''}" style="--c:${c}" aria-pressed="${planOn(k)}" onclick="planChipTap('${k}')"><i></i>${l}</button>`).join('');
+  const [y,m] = planYM.split('-').map(Number), first = new Date(y, m-1, 1).getDay(), dim = new Date(y, m, 0).getDate();
+  $('plMonth').textContent = y + '년 ' + m + '월';
+  let h = '일월화수목금토'.split('').map(w => `<div class="dw">${w}</div>`).join('');
+  for (let i = 0; i < first; i++) h += '<button class="dc out" tabindex="-1" aria-hidden="true"></button>';
+  const col = k => PL_TYPES.find(t => t[0] === k)[2];
+  for (let d = 1; d <= dim; d++){
+    const ds = y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0'), dow = (first + d - 1) % 7, inf = planDayInfo(ds);
+    let dots = '';
+    if (planOn('plan') && inf.plan.length){ const od = inf.plan.some(planOver); dots += planDot(od ? '#A32D2D' : col('plan')); }
+    const seen = new Set(); inf.notes.forEach(n => { if (!seen.has(n.type)){ seen.add(n.type); dots += planDot(col(n.type)); } });
+    if (inf.sch.length) dots += planDot(col('sch'));
+    h += `<button class="dc ${dow===0?'sun':''} ${dow===6?'sat':''} ${ds===today()?'today':''} ${ds===planSel?'sel':''}" onclick="planPick('${ds}')" aria-label="${m}월 ${d}일"><span>${d}</span><span class="dots">${dots}</span></button>`;
+  }
+  $('plCal').innerHTML = h;
+  /* 목록 */
+  let list = planItems.filter(x => !planSel || x.date === planSel);
+  list = list.filter(x => planFlt === 'all' ? true : planFlt === 'undone' ? !x.done : planFlt === 'done' ? x.done : planOver(x));
+  const cmp = (a,b) => a.date < b.date ? -1 : a.date > b.date ? 1 : String(a.title).localeCompare(String(b.title));
+  if (planSort === 'near') list.sort((a,b) => (a.done - b.done) || (Math.abs(planDiff(a.date)) - Math.abs(planDiff(b.date))) || cmp(a,b));
+  else if (planSort === 'undone') list.sort((a,b) => (a.done - b.done) || cmp(a,b));
+  else list.sort(cmp);
+  $('plListHead').innerHTML = planSel
+    ? `${prettyDate(planSel)} 담임 일정 <button class="plbtn sub" style="min-height:36px;padding:0 10px;font-size:13px;margin-left:6px" onclick="planSel='';planDraw()">전체 보기</button>`
+    : `담임 일정 ${planItems.length}건 <span style="font-weight:400;font-size:13px;color:var(--tx3)">(날짜를 누르면 그날 공지·학사일정도 함께 보여요)</span>`;
+  $('plList').innerHTML = list.length ? list.map(x => {
+    const n = planDiff(x.date), dd = x.done ? '✓ 완료' : (n === 0 ? 'D-day' : n > 0 ? 'D-' + n : '기한 지남 D+' + (-n));
+    return `<div class="plrow ${planOver(x)?'od':''} ${x.done?'dn':''}"><input type="checkbox" ${x.done?'checked':''} onchange="planToggle('${esc(x.id)}',this.checked)" aria-label="완료"><div style="flex:1;min-width:0"><div class="tt">${esc(x.title)}</div><div class="dd">${prettyDate(x.date)} · ${dd}</div>${x.memo ? `<div class="mm">${esc(x.memo)}</div>` : ''}</div><div class="acts"><button onclick="planEdit('${esc(x.id)}')">수정</button><button onclick="planDel('${esc(x.id)}')">삭제</button></div></div>`;
+  }).join('') : '<p class="hint" style="padding:8px 0">' + (planItems.length ? '조건에 맞는 일정이 없어요.' : '아직 담임 일정이 없어요. 위에서 추가해 보세요.') + '</p>';
+  /* 선택한 날의 공지·학사일정 (보기만) */
+  let ro = '';
+  if (planSel){
+    const inf = planDayInfo(planSel);
+    inf.notes.forEach(n => { const t = PL_TYPES.find(t => t[0] === n.type); ro += `<div class="plro"><span class="bd2" style="--c:${t[2]}">${t[1]}</span><span>${esc(n.title)}</span></div>`; });
+    inf.sch.forEach(s => { ro += `<div class="plro"><span class="bd2" style="--c:#3FB68B">학사일정</span><span>${esc(s.name)}</span></div>`; });
+    ro = `<div style="margin-top:12px;font-weight:700">같은 날 공지·학사일정 <span style="font-weight:400;font-size:12px;color:var(--tx3)">(보기만 · 수정은 ✏️ 공지 탭)</span></div>` + (ro || '<p class="hint" style="padding:6px 0">켜 둔 종류 중 이 날짜의 공지·학사일정이 없어요.</p>');
+  }
+  $('plDay').innerHTML = ro;
+}
+function planResetForm(){
+  planEditId = ''; $('plTitle').value = ''; $('plMemo').value = ''; $('plDate').value = planSel || today();
+  $('plFormTitle').textContent = '➕ 담임 일정 추가'; $('plSaveBtn').textContent = '추가'; $('plCancelBtn').classList.add('hide');
+}
+function planEdit(id){
+  const x = planItems.find(i => i.id === id); if (!x) return;
+  planEditId = id; $('plDate').value = x.date; $('plTitle').value = x.title; $('plMemo').value = x.memo || '';
+  $('plFormTitle').textContent = '✏️ 일정 수정'; $('plSaveBtn').textContent = '저장'; $('plCancelBtn').classList.remove('hide');
+  $('plTitle').focus(); $('plTitle').scrollIntoView({ block:'center', behavior:'smooth' });
+}
+let planBusy = false;
+async function planSave(btn){
+  if (planBusy) return;
+  if (gasVer !== null && gasVer < 6){ msg('plMsg','⚠️ 먼저 GAS 코드를 최신(버전 6)으로 바꿔 주세요.'); return; }
+  const date = $('plDate').value, title = $('plTitle').value.trim(), memo = $('plMemo').value.trim();
+  if (!date){ msg('plMsg','날짜를 골라 주세요.'); return; }
+  if (!title){ msg('plMsg','제목을 적어 주세요.'); return; }
+  planBusy = true; btn.disabled = true; msg('plMsg','저장 중…',true);
+  try{
+    const cid = 'C' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+    await jsonp({ action:'planSave', pw:PW, data:JSON.stringify({ id:planEditId, cid, date, title, memo }) });
+    planYM = date.slice(0,7); planResetForm();
+    await refresh(); planDraw(); msg('plMsg','저장했어요.',true);
+  }catch(e){ msg('plMsg', e.message); }
+  planBusy = false; btn.disabled = false;
+}
+async function planToggle(id, on){
+  const x = planItems.find(i => i.id === id); if (!x) return;
+  x.done = on; planDraw();
+  try{ await jsonp({ action:'planDone', pw:PW, id, done: on ? '1' : '0' }); }
+  catch(e){ x.done = !on; planDraw(); msg('plMsg', '완료 표시를 저장하지 못했어요. ' + e.message); }
+}
+async function planDel(id){
+  const x = planItems.find(i => i.id === id); if (!x) return;
+  if (!confirm('"' + x.title + '" 일정을 삭제할까요?')) return;
+  try{ msg('plMsg','삭제 중…',true); await jsonp({ action:'planDelete', pw:PW, id }); if (planEditId === id) planResetForm(); await refresh(); planDraw(); msg('plMsg','삭제했어요.',true); }
+  catch(e){ msg('plMsg', e.message); }
+}
+
 /* ===== ✨ 이번 업데이트 내용 (업데이트 알림에 보여요 · GAS를 새로 올릴 때 이 목록만 고쳐 주세요) ===== */
 const WHATS_NEW = [
+  '📌 담임만 보는 <b>담임 업무</b> 탭이 생겼어요 (기한·할 일 체크, 월 달력, D-day · 학생 화면에는 안 보여요)',
   '📖 우리 반 시간표를 학생 화면에서 볼 수 있어요 (시간표를 입력해 두면 알림판 아래에 띠가 떠요)',
   '📆 학사일정이 달력에 <b style="display:inline;color:#2F9E78">초록 점</b>으로 떠요 (담임이 이름 수정·숨기기·추가도 가능)',
   '⚡ 학교 알림판이 날짜를 눌러도 바로 바뀌어요',

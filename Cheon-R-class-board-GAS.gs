@@ -5,7 +5,7 @@
  */
 
 /** GAS 코드 버전 — 코드를 고칠 때마다 1씩 올려요. 관리 화면이 이 번호로 업데이트가 필요한지 알려줘요. */
-var GAS_VER = 5;
+var GAS_VER = 6;
 
 var TZ = 'Asia/Seoul';
 var SHEETS = {
@@ -23,6 +23,7 @@ var SHEETS = {
 };
 SHEETS.timetable = { name: '시간표', headers: ['교시', '월', '화', '수', '목', '금'] };   // 우리 반 시간표 (나이스에 시간표가 없는 학교용 · N교시 제안)
 SHEETS.scheduleOv = { name: '학사일정수정', headers: ['날짜', '원래일정', '상태', '내용', '수정시각'] };   // 담임이 나이스 학사일정을 고친 내용 (수정/숨김/추가)
+SHEETS.teacherPlan = { name: '담임일정', headers: ['ID', '날짜', '제목', '메모', '완료', '완료시각', '작성시각', '수정시각'] };   // 담임만 보는 업무 일정 (adminLoad로만 내려줌 · 학생 불러오기엔 절대 안 들어감)
 var PRESIDENT_TYPES = ['확인', '교과', '일반'];
 var DEFAULT_PW = 'classboard';   // 초기 비밀번호 — 첫 로그인 때 변경 강제
 var DEFAULT_SETTINGS = [['학년도', String(new Date().getFullYear())], ['학급명', '우리 반'], ['관리자비번', DEFAULT_PW], ['회장코드', '']];
@@ -78,6 +79,9 @@ function route_(p) {
     case 'neisMonth': return neisMonth_(p);
     case 'neisCalList': return neisCalList_(p);
     case 'neisOvSet': return neisOvSet_(p);
+    case 'planSave': return planSave_(p);
+    case 'planDone': return planDone_(p);
+    case 'planDelete': return planDelete_(p);
     default: return { ok: false, error: '알 수 없는 요청이에요.' };
   }
 }
@@ -636,8 +640,56 @@ function adminLoad_(p) {
     res.links = linksList_();
     res.photos = photoStats_();
     res.installId = installId_();
+    res.teacherPlan = planList_();   // 담임일정 — 담임(admin)에게만
   }
   return res;
+}
+
+/* ---------- 담임일정 (담임 전용) ---------- */
+function planList_() {
+  return rows_('teacherPlan').filter(function (r) { return r[0]; })
+    .map(function (r) { return { id: r[0], date: dateStr_(r[1]), title: r[2], memo: r[3], done: r[4] === 'Y', doneAt: r[5], created: r[6], updated: r[7] }; });
+}
+function planSave_(p) {
+  need_(p, ['admin']);
+  var d = JSON.parse(p.data || '{}');
+  var date = dateStr_(d.date), title = String(d.title || '').replace(/\s+/g, ' ').trim().slice(0, 100), memo = String(d.memo || '').slice(0, 1000);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('날짜를 확인해 주세요.');
+  if (!title) throw new Error('제목을 적어 주세요.');
+  return lock_(function () {
+    var sh = sh_('teacherPlan'), data = rows_('teacherPlan'), idx = -1;
+    if (d.id) {
+      for (var i = 0; i < data.length; i++) if (data[i][0] === String(d.id)) { idx = i; break; }
+      if (idx < 0) throw new Error('수정할 일정을 찾지 못했어요.');
+    } else if (d.cid && /^[A-Za-z0-9_-]{6,40}$/.test(String(d.cid))) {
+      for (var j = 0; j < data.length; j++) if (data[j][0] === String(d.cid)) return { ok: true, id: String(d.cid), already: true };   // 응답이 늦어 다시 보낸 같은 저장
+    }
+    var id = idx >= 0 ? data[idx][0] : (d.cid && /^[A-Za-z0-9_-]{6,40}$/.test(String(d.cid)) ? String(d.cid) : 'T' + Date.now());
+    var row = [id, date, title, memo, idx >= 0 ? data[idx][4] : '', idx >= 0 ? data[idx][5] : '', idx >= 0 ? data[idx][6] : now_(), idx >= 0 ? now_() : ''];
+    writeRow_(sh, idx >= 0 ? idx + 2 : sh.getLastRow() + 1, row);
+    return { ok: true, id: id };
+  });
+}
+function planDone_(p) {
+  need_(p, ['admin']);
+  var id = String(p.id || ''), on = p.done === '1' || p.done === 'true';
+  return lock_(function () {
+    var sh = sh_('teacherPlan'), data = rows_('teacherPlan');
+    for (var i = 0; i < data.length; i++) if (data[i][0] === id) {
+      sh.getRange(i + 2, 5, 1, 2).setNumberFormat('@').setValues([[on ? 'Y' : '', on ? now_() : '']]);
+      return { ok: true };
+    }
+    throw new Error('일정을 찾지 못했어요.');
+  });
+}
+function planDelete_(p) {
+  need_(p, ['admin']);
+  var id = String(p.id || '');
+  return lock_(function () {
+    var sh = sh_('teacherPlan'), data = rows_('teacherPlan');
+    for (var i = 0; i < data.length; i++) if (data[i][0] === id) { sh.deleteRow(i + 2); return { ok: true }; }
+    return { ok: true, already: true };
+  });
 }
 
 function saveNotice_(p) {
