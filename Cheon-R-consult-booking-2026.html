@@ -1025,6 +1025,7 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
           <button class="sort-btn" id="sort-student" onclick="setSort('student')">학생순</button>
         </div>
         <button class="btn btn-secondary" onclick="adminLoadBookings()" style="margin-bottom:14px;">🔄 새로고침</button>
+        <button class="btn btn-secondary" id="exportOpenBtn" onclick="openExportModal()" style="margin-bottom:14px;">📤 내보내기 (일정표 · 시간표 · 엑셀)</button>
         <div id="bookingTableWrap"><div class="empty-state"><div class="empty-icon">📋</div><p>새로고침을 눌러 불러오세요</p></div></div>
       </div>
     </div>
@@ -1371,6 +1372,51 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
     <button class="btn btn-secondary" onclick="closeContact()" style="margin-top:8px;">닫기</button>
     <div class="reg-msg ok" id="contactMsg"></div>
   </div>
+</div>
+
+<!-- ===================== 📤 상담 일정 내보내기 ===================== -->
+<div class="modal-overlay" id="exportModal" onclick="if(event.target===this)closeExportModal()">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="margin-bottom:4px;">📤 상담 일정 내보내기</div>
+    <p style="font-size:12px;color:var(--gray-500);margin-bottom:14px;line-height:1.6;">들고 다니거나 인쇄할 일정표를 만들어요. 선생님 기기에서만 만들어지고 어디로도 전송되지 않아요.</p>
+    <div style="font-size:13px;font-weight:700;margin-bottom:6px;">1. 포함할 예약</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+      <button class="filter-btn active" id="exStat-ok" onclick="exSetOpt('stat','ok')">✅ 확정만</button>
+      <button class="filter-btn" id="exStat-all" onclick="exSetOpt('stat','all')">📝 신청 포함</button>
+    </div>
+    <div style="font-size:13px;font-weight:700;margin-bottom:6px;">2. 기간 <span style="font-weight:400;color:var(--gray-400);">(비우면 전체)</span></div>
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:14px;">
+      <input type="date" class="form-input" id="exFrom" style="flex:1;min-width:0;font-size:14px;"><span>~</span><input type="date" class="form-input" id="exTo" style="flex:1;min-width:0;font-size:14px;">
+    </div>
+    <div style="font-size:13px;font-weight:700;margin-bottom:6px;">3. 형태</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+      <button class="filter-btn active" id="exFmt-day" onclick="exSetOpt('fmt','day')">📅 날짜별 일정표</button>
+      <button class="filter-btn" id="exFmt-week" onclick="exSetOpt('fmt','week')">🗓️ 주간 시간표 겹침</button>
+      <button class="filter-btn" id="exFmt-xlsx" onclick="exSetOpt('fmt','xlsx')">📊 엑셀</button>
+    </div>
+    <div id="exFmtHelp" style="font-size:12px;color:var(--gray-500);line-height:1.6;margin-bottom:14px;"></div>
+    <div id="exMemoSizeBox" style="margin-bottom:14px;">
+      <div style="font-size:13px;font-weight:700;margin-bottom:6px;">📝 메모칸 크기 <span style="font-weight:400;color:var(--gray-400);">(날짜별 일정표)</span></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="filter-btn" id="exMsz-normal" onclick="exSetMemoSize('normal')">보통 (한두 줄)</button>
+        <button class="filter-btn active" id="exMsz-wide" onclick="exSetMemoSize('wide')">넓게 (서너 줄)</button>
+      </div>
+    </div>
+    <div style="font-size:13px;font-weight:700;margin-bottom:6px;">4. 개인정보 칸 <span style="font-weight:400;color:var(--gray-400);">(필요 없으면 체크 해제)</span></div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:14px;min-height:44px;"><input type="checkbox" id="exContact" checked onchange="exWarn()" style="width:20px;height:20px;"> 연락처 포함</label>
+    <label style="display:flex;align-items:center;gap:8px;font-size:14px;min-height:44px;"><input type="checkbox" id="exMemo" checked onchange="exWarn()" style="width:20px;height:20px;"> 상담 내용 포함</label>
+    <div id="exWarn" style="font-size:12px;color:#B45309;background:#FEF3C7;border-radius:8px;padding:8px 10px;margin:6px 0;line-height:1.6;">⚠️ 학부모 개인정보가 들어가요. 파일·인쇄물은 잘 보관하고, 상담이 끝나면 꼭 폐기해 주세요.</div>
+    <button class="btn btn-primary" onclick="exportRun()" style="margin-top:14px;">만들기</button>
+    <button class="btn btn-secondary" onclick="closeExportModal()" style="margin-top:8px;">닫기</button>
+  </div>
+</div>
+<div id="exPreview" style="display:none;position:fixed;inset:0;z-index:300;background:#fff;flex-direction:column;">
+  <div style="display:flex;gap:8px;padding:10px 12px;padding-top:max(10px,env(safe-area-inset-top));border-bottom:1px solid var(--gray-200);">
+    <button class="btn btn-primary" onclick="exPrint()" style="flex:2;min-height:44px;padding:8px;">🖨️ 인쇄 / PDF 저장</button>
+    <button class="btn btn-secondary" onclick="exClosePreview()" style="flex:1;min-height:44px;padding:8px;">닫기</button>
+  </div>
+  <iframe id="exFrame" style="flex:1;border:0;width:100%;"></iframe>
 </div>
 
 <!-- ===================== QR 크게 보기 ===================== -->
@@ -5872,6 +5918,160 @@ window.addEventListener('DOMContentLoaded', () => {
     ttRender();
   }catch(e){}
 });
+</script>
+<script>
+/* 📤 상담 일정 내보내기 — 예약 현황 데이터를 읽기만 해요 (기존 기능·GAS는 그대로) */
+const EX = { stat:'ok', fmt:'day' };
+const EX_HELP = {
+  day:'날짜마다 시간·학생 표를 만들어요. 인쇄하거나 PDF로 저장할 수 있어요.',
+  week:'주 단위 시간표 위에 상담을 보라색으로 겹쳐 보여줘요. 수업 시간은 회색 칸으로 비워 둬요. (시간표는 올린 기기에서만 보여요)',
+  xlsx:'엑셀 파일(전체 목록 + 날짜별 일정표 두 장)로 저장해요.'
+};
+function exSetOpt(k, v){
+  EX[k] = v;
+  document.querySelectorAll('[id^="ex'+(k==='stat'?'Stat':'Fmt')+'-"]').forEach(b=>b.classList.remove('active'));
+  document.getElementById('ex'+(k==='stat'?'Stat':'Fmt')+'-'+v).classList.add('active');
+  document.getElementById('exFmtHelp').textContent = EX_HELP[EX.fmt];
+}
+EX.msz = 'wide';
+function exSetMemoSize(v){ EX.msz=v; document.querySelectorAll('[id^="exMsz-"]').forEach(b=>b.classList.remove('active')); document.getElementById('exMsz-'+v).classList.add('active'); }
+function exWarn(){ document.getElementById('exWarn').style.display = (document.getElementById('exContact').checked || document.getElementById('exMemo').checked) ? '' : 'none'; }
+function openExportModal(){ exSetOpt('fmt', EX.fmt); exWarn(); document.getElementById('exportModal').classList.add('open'); }
+function closeExportModal(){ document.getElementById('exportModal').classList.remove('open'); }
+function exClosePreview(){ document.getElementById('exPreview').style.display='none'; document.getElementById('exFrame').srcdoc=''; }
+function exPrint(){ const f=document.getElementById('exFrame'); try{ f.contentWindow.focus(); f.contentWindow.print(); }catch(e){ showToast('❌ 인쇄 창을 열지 못했어요'); } }
+
+function exRows(){
+  const o = { contact:document.getElementById('exContact').checked, memo:document.getElementById('exMemo').checked,
+              from:document.getElementById('exFrom').value, to:document.getElementById('exTo').value };
+  let rows = (bookingCache||[]).map(b => ({
+    type: b['유형']||b.type||'', student: b['학생이름']||b.student||'', parent: b['학부모이름']||b.parent||'',
+    contact: b['연락처']||b.contact||'', time: b['시간']||b.time||'', dateKey: b['날짜키']||b.dateKey||'',
+    memo: b['상담내용']||b.memo||'', status: (b['상태']||b.status||'')==='신청' ? '신청' : '확정'
+  })).filter(b => /^\d{4}-\d{2}-\d{2}$/.test(b.dateKey));
+  if (EX.stat==='ok') rows = rows.filter(b=>b.status==='확정');
+  if (o.from) rows = rows.filter(b=>b.dateKey>=o.from);
+  if (o.to)   rows = rows.filter(b=>b.dateKey<=o.to);
+  rows.forEach(b => {
+    const m = String(b.time).match(/(\d{1,2}):(\d{2})\s*[~\-–]\s*(\d{1,2}):(\d{2})/);
+    b.s = m ? (+m[1])*60+(+m[2]) : NaN; b.e = m ? (+m[3])*60+(+m[4]) : NaN;
+    b.isPhone = b.type==='전화'||b.type==='phone';
+  });
+  rows.sort((a,b)=>a.dateKey.localeCompare(b.dateKey) || (a.s-b.s || 0));
+  return { rows, o };
+}
+const EX_WD = ['일','월','화','수','목','금','토'];
+function exWd(k){ return EX_WD[new Date(k+'T00:00:00Z').getUTCDay()]; }
+function exDateLabel(k){ return (+k.slice(5,7))+'월 '+(+k.slice(8,10))+'일 ('+exWd(k)+')'; }
+function exMin(n){ return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0'); }
+function exTitle(){ const n=(appSettings&&appSettings.teacherName)||''; return (n?n+' ':'')+'학부모 상담 일정'; }
+const EX_CSS = `
+@page{size:A4 portrait;margin:12mm;}
+*{box-sizing:border-box;}
+body{font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:#1f2937;margin:0;padding:14px;font-size:13px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+h1{font-size:18px;margin:0 0 2px;color:#6B5A9E;} .sub{font-size:11px;color:#6b7280;margin-bottom:14px;}
+h2{font-size:14px;margin:16px 0 6px;color:#6B5A9E;border-bottom:2px solid #9B8EC4;padding-bottom:3px;}
+table{width:100%;border-collapse:collapse;margin-bottom:6px;} th,td{border:1px solid #d1d5db;padding:6px 7px;text-align:left;vertical-align:top;word-break:break-word;}
+th{background:#F4F2FA;font-size:12px;} .day{break-inside:avoid;page-break-inside:avoid;} .ft{margin-top:18px;font-size:10px;color:#9ca3af;text-align:right;}
+.warn{font-size:11px;color:#B45309;margin-bottom:8px;} .wk{page-break-after:always;break-after:page;} .wk:last-of-type{page-break-after:auto;break-after:auto;}
+.card{display:flex;border:1.5px solid #9B8EC4;border-radius:8px;margin-bottom:8px;overflow:hidden;break-inside:avoid;page-break-inside:avoid;}
+.ci{width:38%;flex:none;background:#F4F2FA;padding:8px 10px;border-right:1.5px solid #9B8EC4;}
+.ct{font-size:12px;font-weight:700;color:#6B5A9E;margin-bottom:3px;white-space:nowrap;} .cn{font-size:16px;font-weight:800;} .cp{font-size:11px;color:#4b5563;margin-top:2px;} .cm{font-size:11px;color:#374151;margin-top:4px;}
+.tag{font-size:10px;font-weight:700;background:#fff;color:#7B6BA8;border-radius:4px;padding:1px 5px;vertical-align:middle;} .tag.pd{background:#FEF3C7;color:#B45309;}
+.cmemo{flex:1;position:relative;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 7.2mm,#e5e7eb 7.2mm,#e5e7eb calc(7.2mm + 1px));} .cmemo span{position:absolute;top:3px;left:6px;font-size:9px;color:#c4b5fd;}
+.grid{display:flex;border:1px solid #d1d5db;} .axis{width:42px;position:relative;flex:none;border-right:1px solid #d1d5db;}
+.col{flex:1;position:relative;border-right:1px solid #e5e7eb;min-width:0;} .col:last-child{border-right:0;}
+.hd{display:flex;margin-left:42px;} .hd div{flex:1;text-align:center;font-weight:700;font-size:12px;padding:4px 0;background:#F4F2FA;border:1px solid #d1d5db;border-left:0;}
+.hl{position:absolute;left:0;right:0;border-top:1px dotted #e5e7eb;} .tl{position:absolute;right:3px;font-size:9px;color:#6b7280;transform:translateY(-50%);}
+.lesson{position:absolute;left:0;right:0;background:#E5E7EB;border-top:1px solid #fff;border-bottom:1px solid #fff;}
+.bk{position:absolute;left:2px;right:2px;background:#9B8EC4;color:#fff;border-radius:4px;padding:1px 4px;font-size:10px;line-height:1.25;overflow:hidden;font-weight:600;}
+.bk.pend{background:#FDE68A;color:#78350f;} .lg{font-size:10px;color:#6b7280;margin:6px 0 0;}
+`;
+function exDocWrap(body, landscape){
+  return '<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"><title>'+esc(exTitle())+'</title><style>'+EX_CSS+(landscape?'@page{size:A4 landscape;margin:10mm;}':'')+'</style></head><body>'+body+'<div class="ft">Made by Cheon_R</div></body></html>';
+}
+function exPeriodHint(o, rows){
+  const r = rows.length ? exDateLabel(rows[0].dateKey)+' ~ '+exDateLabel(rows[rows.length-1].dateKey) : '';
+  return '<div class="sub">'+esc(r)+' · 총 '+rows.length+'건'+(EX.stat==='all'?' (신청 포함)':' (확정)')+'</div>'+((o.contact||o.memo)?'<div class="warn">⚠️ 개인정보가 포함된 자료예요. 상담이 끝나면 폐기해 주세요.</div>':'');
+}
+function buildDayScheduleHtml(rows, o){
+  const mh = EX.msz==='normal' ? 20 : 32;   // 카드 높이(mm)
+  let h = '<h1>'+esc(exTitle())+'</h1>'+exPeriodHint(o, rows);
+  const by = {}; rows.forEach(b=>{ (by[b.dateKey]=by[b.dateKey]||[]).push(b); });
+  Object.keys(by).sort().forEach(k => {
+    h += '<div class="day"><h2>'+esc(exDateLabel(k))+'</h2>';
+    by[k].forEach(b => {
+      h += '<div class="card" style="min-height:'+mh+'mm"><div class="ci"><div class="ct">'+esc(b.time)+'</div>'
+        +'<div class="cn">'+esc(b.student)+(b.isPhone?' <span class="tag">📞 전화</span>':' <span class="tag">대면</span>')+(EX.stat==='all'&&b.status==='신청'?' <span class="tag pd">신청</span>':'')+'</div>'
+        +'<div class="cp">'+esc(b.parent)+(o.contact&&b.contact?' · '+esc(b.contact):'')+'</div>'
+        +(o.memo&&b.memo?'<div class="cm">💬 '+esc(b.memo)+'</div>':'')
+        +'</div><div class="cmemo"><span>메모</span></div></div>';
+    });
+    h += '</div>';
+  });
+  return exDocWrap(h, false);
+}
+function exMonday(k){ const d=new Date(k+'T00:00:00Z'); const w=d.getUTCDay(); d.setUTCDate(d.getUTCDate()-((w+6)%7)); return d.toISOString().slice(0,10); }
+function exAddDays(k,n){ const d=new Date(k+'T00:00:00Z'); d.setUTCDate(d.getUTCDate()+n); return d.toISOString().slice(0,10); }
+function buildWeekOverlayHtml(rows, o){
+  const T = (typeof tt!=='undefined' && tt && tt.periods) ? tt : null;
+  let classLen = 50; try{ classLen = ttReadSettings().classLen || 50; }catch(e){}
+  const lessons = {}; // 월~금 → [[s,e]]
+  if (T) TT_DAYS.forEach(d => { lessons[d]=[]; T.periods.forEach(p => { if (T.busy[d] && T.busy[d][p.n]) { const s=ttToMin(p.start); if(!isNaN(s)) lessons[d].push([s,s+classLen]); } }); });
+  let lo = 1e9, hi = 0;
+  rows.forEach(b => { if(!isNaN(b.s)){ lo=Math.min(lo,b.s); hi=Math.max(hi,b.e); } });
+  if (T) TT_DAYS.forEach(d => lessons[d].forEach(x => { lo=Math.min(lo,x[0]); hi=Math.max(hi,x[1]); }));
+  if (lo>=hi) { lo=8*60; hi=17*60; }
+  lo = Math.floor(lo/60)*60; hi = Math.ceil(hi/60)*60;
+  const ppm = Math.min(1.1, 520/(hi-lo)), H = Math.round((hi-lo)*ppm);
+  const weeks = {}; rows.forEach(b => { (weeks[exMonday(b.dateKey)]=weeks[exMonday(b.dateKey)]||[]).push(b); });
+  let h = '<h1>'+esc(exTitle())+' · 주간 시간표</h1>'+exPeriodHint(o, rows);
+  if (!T) h += '<div class="warn">ℹ️ 이 기기에 올려 둔 시간표가 없어서 수업 칸 없이 상담만 보여요.</div>';
+  Object.keys(weeks).sort().forEach(mon => {
+    const wk = weeks[mon];
+    const hasWe = wk.some(b=>{ const w=new Date(b.dateKey+'T00:00:00Z').getUTCDay(); return w===0||w===6; });
+    const n = hasWe ? 7 : 5;
+    let lines = '';
+    for (let t=lo; t<=hi; t+=60) lines += '<div class="hl" style="top:'+Math.round((t-lo)*ppm)+'px"></div>';
+    let axis = ''; for (let t=lo; t<=hi; t+=60) axis += '<div class="tl" style="top:'+Math.round((t-lo)*ppm)+'px">'+exMin(t)+'</div>';
+    let hd = '', cols = '';
+    for (let i=0;i<n;i++) {
+      const k = exAddDays(mon,i), nm = EX_WD[(i+1)%7];
+      hd += '<div>'+(+k.slice(5,7))+'/'+(+k.slice(8,10))+' ('+nm+')</div>';
+      let c = lines;
+      if (T && i<5) (lessons[TT_DAYS[i]]||[]).forEach(x => { c += '<div class="lesson" style="top:'+Math.round((x[0]-lo)*ppm)+'px;height:'+Math.max(2,Math.round((x[1]-x[0])*ppm))+'px"></div>'; });
+      wk.filter(b=>b.dateKey===k && !isNaN(b.s)).forEach(b => {
+        c += '<div class="bk'+(b.status==='신청'?' pend':'')+'" style="top:'+Math.round((b.s-lo)*ppm)+'px;height:'+Math.max(14,Math.round((b.e-b.s)*ppm))+'px">'+esc(b.student)+' '+exMin(b.s)+(b.isPhone?' 📞':'')+(o.contact&&b.contact?'<br>'+esc(b.contact):'')+(o.memo&&b.memo?'<br>'+esc(b.memo):'')+'</div>';
+      });
+      cols += '<div class="col" style="height:'+H+'px">'+c+'</div>';
+    }
+    h += '<div class="wk"><h2>'+esc((+mon.slice(5,7))+'월 '+(+mon.slice(8,10))+'일 주')+'</h2><div class="hd">'+hd+'</div><div class="grid"><div class="axis" style="height:'+H+'px">'+axis+'</div>'+cols+'</div><div class="lg">'+(T?'■ 회색: 수업 시간 · ':'')+'■ 보라: 상담'+(EX.stat==='all'?' · 노랑: 신청(미확정)':'')+'</div></div>';
+  });
+  return exDocWrap(h, true);
+}
+async function exportXlsx(rows, o){
+  await ttLoadScript(TT_LIBS.xlsx);
+  const head = ['날짜','요일','시간','유형','학생','학부모']; if (o.contact) head.push('연락처'); head.push('상태'); if (o.memo) head.push('상담내용');
+  const line = b => { const r=[b.dateKey, exWd(b.dateKey), b.time, b.isPhone?'전화':'대면', b.student, b.parent]; if(o.contact) r.push(b.contact); r.push(b.status); if(o.memo) r.push(b.memo); return r; };
+  const ws1 = XLSX.utils.aoa_to_sheet([head, ...rows.map(line)]);
+  const aoa2 = []; let last = '';
+  rows.forEach(b => { if (b.dateKey!==last) { if (last) aoa2.push([]); aoa2.push([exDateLabel(b.dateKey)]); aoa2.push(head.slice(2)); last=b.dateKey; } aoa2.push(line(b).slice(2)); });
+  const ws2 = XLSX.utils.aoa_to_sheet(aoa2);
+  ws1['!cols'] = head.map(()=>({wch:14})); ws2['!cols'] = head.slice(2).map(()=>({wch:16}));
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws1, '전체 목록'); XLSX.utils.book_append_sheet(wb, ws2, '날짜별 일정표');
+  XLSX.writeFile(wb, '학부모상담_일정.xlsx');
+}
+async function exportRun(){
+  const { rows, o } = exRows();
+  if (!rows.length) { showToast(EX.stat==='ok' ? '내보낼 확정 예약이 없어요' : '내보낼 예약이 없어요'); return; }
+  try {
+    if (EX.fmt==='xlsx') { await exportXlsx(rows, o); closeExportModal(); showToast('📊 엑셀 파일을 만들었어요'); return; }
+    const html = EX.fmt==='week' ? buildWeekOverlayHtml(rows, o) : buildDayScheduleHtml(rows, o);
+    closeExportModal();
+    document.getElementById('exFrame').srcdoc = html;
+    document.getElementById('exPreview').style.display = 'flex';
+  } catch(e) { showToast('❌ 만들지 못했어요: '+e.message); }
+}
 </script>
 </body>
 </html>
