@@ -143,6 +143,13 @@ html.room.f0{--rf:16px} html.room.f2{--rf:26px}
 #flash:not(.u){background:rgba(50,72,114,.5)}
 @keyframes fl{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){#flash.go{animation-duration:1.2s;animation-iteration-count:2}}
+/* ===== 대기실 인사말 ===== */
+.greet{background:#D4DDEE;color:var(--navy);text-align:center;padding:14px 22px;margin:14px 22px 4px;border-radius:18px;border:1px solid #C3CEE4;box-shadow:0 6px 16px rgba(38,58,92,.16),inset 0 1px 0 rgba(255,255,255,.7)}
+.greet b{display:block;font-size:1.55rem;font-weight:800;line-height:1.4}
+.greet.big{padding:44px 28px;margin:28px 22px 4px;border-radius:24px}
+.greet.big b{font-size:2.5rem}
+.greet.big span{font-size:1.7rem;margin-top:10px}
+.greet span{display:block;font-size:1.15rem;font-weight:600;margin-top:2px;line-height:1.5;color:var(--tx)}
 /* ===== 사용자 등록 · 후기 · 아듬샘 탭 ===== */
 .stars{display:flex;gap:6px}
 .stars button{min-width:48px;min-height:48px;border:1.5px solid var(--line);background:#fff;border-radius:12px;font-size:1.5rem;color:#C9CFDD;cursor:pointer}
@@ -281,6 +288,7 @@ html.room.f0{--rf:16px} html.room.f2{--rf:26px}
   </div>
   <div id="rNet" class="netbad hide">연결이 끊겼어요. 다시 연결하는 중이에요… (본부에 알려 주세요)</div>
   <div id="rUnlock" class="unlock hide">🔔 알림음이 나오려면 화면을 한 번 눌러 주세요</div>
+  <div id="rGreet" class="greet hide"></div>
   <div id="rNotices"></div>
   <div class="rbody" id="rCalls"></div>
   <div class="rfoot">
@@ -2604,7 +2612,7 @@ var qrcode = function() {
 /* ===== 기본 ===== */
 const APP = 'KCSAT 감독 호출 보드';
 const MAIL = 'fond7509@naver.com';
-const NEED_GAS = 3;                       // 이 화면이 필요로 하는 GAS 코드 버전 (GAS를 고칠 때 같이 올려요)
+const NEED_GAS = 4;                       // 이 화면이 필요로 하는 GAS 코드 버전 (GAS를 고칠 때 같이 올려요)
 const GAS_FILE = 'Cheon-R-KCSAT-call-board.gs';
 const K = { gas:'kcsat_gas_v1', sound:'kcsat_sound_v1', font:'kcsat_font_v1', practice:'kcsat_practice_v1', reg:'kcsat_reg_v1', from:'kcsat_from_v1', rv:'kcsat_rv_v1' };
 const $ = id => document.getElementById(id);
@@ -2800,13 +2808,13 @@ async function changeFirstPw(){
 function logout(){ if (DEMO) return goMode(''); ssSet('kcsat_pw', ''); PW = ''; location.href = location.pathname + '?mode=admin'; }
 
 /* ================= 본부(관리자) ================= */
-let S = { calls:[], notices:[], lists:{ period:[], role:[], supply:[], phrase:[], apphrase:[], roster:[] }, settings:{ memoDefault:false, suppliesFormat:'지참물: {items}', roomMax:30 } };
+let S = { calls:[], notices:[], lists:{ period:[], role:[], supply:[], phrase:[], apphrase:[], roster:[] }, settings:{ memoDefault:false, suppliesFormat:'지참물: {items}', roomMax:30, school:'', greet:'' } };
 let tab = 'call', flt = 'all', sortKey = 'room', sortDir = 1, practice = lsGet(K.practice, false) === true, adminTimer = null, loadingA = false, listSig = '';
 const A_ST = { lastOk:Date.now(), kind:'', snooze:0, beepT:0, html:'' };
 let F = null, AF = { text:'', urgent:false, minutes:0 };
 const blankT = () => ({ id:newId(), room:'', roomOther:'', role:'', roleOther:'', name:'' });
 function newForm(keep){
-  return { group:'', period: keep ? keep.period : '', periodOther: keep ? keep.periodOther : '', targets:[blankT()], msg:'본부로 오세요', supplies:[], supOther:'', memo:'', memoPub:S.settings.memoDefault, urgent:false };
+  return { group:'', period: keep ? keep.period : '', periodOther: keep ? keep.periodOther : '', targets:[blankT()], msg:'본부로 와 주시기 바랍니다', supplies:[], supOther:'', memo:'', memoPub:S.settings.memoDefault, urgent:false };
 }
 async function enterAdmin(){
   if (!(await regGate())) return;   // 등록 확인 (등록부가 안 열리면 그냥 통과해요)
@@ -3105,13 +3113,29 @@ function renderSet(){
     <label class="sw"><input type="checkbox" ${S.settings.memoDefault ? 'checked' : ''} onchange="saveSetting('메모기본공개', this.checked ? 'Y' : 'N')"> 메모를 대기실 화면에도 보이는 것을 기본으로 하기</label>
     <label class="f">지참물 안내 문구 ( {items} 자리에 지참물이 들어가요 )</label><div class="row"><input type="text" id="fmtIn" style="flex:1;min-width:200px" value="${esc(S.settings.suppliesFormat)}"><button class="btn sm" onclick="saveSetting('지참물형식', $('fmtIn').value)">저장</button></div>
     <label class="f">고사실 개수 (선택 목록 1 ~ N)</label><div class="row"><input type="text" inputmode="numeric" id="maxIn" style="width:100px" value="${S.settings.roomMax}"><button class="btn sm" onclick="saveSetting('고사실수', $('maxIn').value)">저장</button></div><div class="msg" id="setMsg"></div></div>
+  <div class="card"><h3>🏫 대기실 인사말</h3><p class="hint" style="margin:0 0 8px">학교 이름을 적으면 대기실 화면 맨 위에 "안녕하세요. ○○고등학교입니다."와 아래 문구가 항상 보여요. 학교 이름을 비우면 인사말이 사라져요. (이 내용은 우리 학교 시트에만 저장돼요)</p>
+    <label class="f">학교 이름</label><input type="text" id="schIn" maxlength="30" placeholder="예) ○○고등학교" value="${esc(S.settings.school || '')}" oninput="greetPrev()">
+    <label class="f">인사말 문구 <small style="font-weight:500;color:var(--sub)">(선택 · 120자)</small></label><textarea id="grtIn" rows="2" maxlength="120" placeholder="예) 감독 선생님들의 노고에 감사드립니다." oninput="greetPrev()">${esc(S.settings.greet || '')}</textarea>
+    <div class="hint" style="margin:8px 0 4px">미리보기</div><div class="greet" id="grtPrev" style="border-radius:10px;border:1.5px solid var(--line)"></div>
+    <div class="row" style="margin-top:10px"><button class="btn sm" onclick="saveGreet()">저장</button><button class="btn sm sub" onclick="$('schIn').value='';$('grtIn').value='';greetPrev()">비우기</button></div><div class="msg" id="grtMsg"></div></div>
   <div class="card"><h3>✏️ 목록 편집</h3><p class="hint" style="margin:0 0 6px">한 줄에 하나씩 적어요. 줄 순서가 화면 순서예요. (줄을 지우면 삭제, 줄을 옮기면 순서 변경)</p>` +
     LISTS_UI.map(l => `<label class="f">${l[1]}</label>${l[0] === 'roster' ? '<div style="margin-bottom:6px"><button class="btn sm sub" onclick="openImport()">📥 엑셀·PDF·파일에서 명단 불러오기</button></div>' : ''}${l[2] ? `<div class="hint" style="margin-bottom:4px">${l[2]}</div>` : ''}<textarea rows="${Math.min(8, Math.max(3, S.lists[l[0]].length + 1))}" id="ls_${l[0]}">${esc(S.lists[l[0]].join('\n'))}</textarea><div style="margin-top:6px"><button class="btn sm" onclick="saveList('${l[0]}')">저장</button><span class="msg" id="lsm_${l[0]}" style="margin-left:8px"></span></div>`).join('') + `</div>
   ${DEMO ? '' : `<div class="card"><h3>🔑 비밀번호 바꾸기</h3><div class="row"><input type="password" id="cpw" placeholder="새 비밀번호 (4자 이상)" style="flex:1;min-width:200px" autocomplete="off"><button class="btn sm" onclick="changePw()">변경</button></div><div class="msg" id="cpwMsg"></div></div>`}
   <div class="card"><h3>📘 설치 가이드 · 코드 업데이트</h3><p class="hint" style="margin:0">현재 구글 시트 코드 버전: ${gasVer === null ? '확인 중' : gasVer >= NEED_GAS ? gasVer + ' (최신 ✅)' : gasVer + ' → 업데이트 필요'}</p>${guideHtml(false)}</div>
   ${regCardsHtml()}
   <div class="card"><h3>문의</h3><p class="hint" style="margin:0"><a href="${mailHref()}">${MAIL}</a> · 오류나 개선 요청을 보내 주세요.</p></div>`;
-  $('pgSet').innerHTML = h;
+  $('pgSet').innerHTML = h; if ($('schIn')) greetPrev();
+}
+function greetPrev(){
+  const sc = $('schIn').value.trim(), tx = $('grtIn').value.trim(), el = $('grtPrev');
+  el.innerHTML = sc ? `<b>안녕하세요. ${esc(sc)}입니다.</b>` + (tx ? `<span>${esc(tx)}</span>` : '') : '<span style="color:var(--sub);font-weight:500;font-size:.95rem">학교 이름을 적으면 여기에 미리 보여요</span>';
+}
+async function saveGreet(){
+  if (!DEMO && gasVer !== null && gasVer < 4){ msg('grtMsg', '구글 시트 코드가 옛 버전이에요. 설정 맨 아래 안내대로 새 코드로 업데이트(수정 → 새 버전 배포)한 뒤 저장해 주세요.'); return; }
+  const sc = $('schIn').value.trim(), tx = $('grtIn').value.trim();
+  waitOn($('grtMsg'), '저장하는 중…');
+  try{ await jsonp({ action:'saveSetting', pw:PW, key:'학교명', value:sc }); await jsonp({ action:'saveSetting', pw:PW, key:'인사말', value:tx }); await refreshAdmin(false); msg('grtMsg', sc ? '저장했어요 ✅ 대기실 화면에 곧 나타나요.' : '인사말을 껐어요.', true); }
+  catch(e){ msg('grtMsg', e.message); }
 }
 async function saveSetting(key, value){
   try{ await jsonp({ action:'saveSetting', pw:PW, key, value }); await refreshAdmin(false); if (key === '메모기본공개' && F) F.memoPub = S.settings.memoDefault; msg('setMsg', '저장했어요 ✅', true); }
@@ -3158,7 +3182,7 @@ async function roomPoll(){
   if (R.polling) return; R.polling = true;
   try{
     const r = await jsonp({ action:'poll', rid:R.rid, seen:R.seen }, null, 12000);
-    off = r.now - Date.now(); R.lastOk = Date.now(); R.calls = r.calls; R.notices = r.notices;
+    off = r.now - Date.now(); R.lastOk = Date.now(); R.calls = r.calls; R.notices = r.notices; R.greet = r.greet || null;
     const mx = Math.max(0, ...r.calls.map(c => c.alert), ...r.notices.map(n => n.alert));
     if (R.baseline === null) R.baseline = mx;
     else if (mx > R.baseline){
@@ -3187,7 +3211,15 @@ function cardsHtml(list, live){
       ${ok ? '' : `<div class="ch">누르지 않아도 괜찮아요. 본부로 와 주시면 돼요.</div>`}</div>`;
   }).join('') : `<div class="empty">호출이 없습니다<small>이 화면에서 대기해 주세요. 호출이 오면 소리와 함께 알려드려요.</small></div>`;
 }
+function renderGreet(g){
+  const el = $('rGreet'), school = g && String(g.school || '').trim();
+  if (!school){ el.classList.add('hide'); el.innerHTML = ''; return; }
+  el.innerHTML = `<b>안녕하세요. ${esc(school)}입니다.</b>` + (g.text ? `<span>${esc(g.text)}</span>` : '');
+  el.classList.remove('hide');
+  el.classList.toggle('big', !(R.calls && R.calls.length));   // 호출 없으면 크게, 있으면 위 띠로
+}
 function renderRoom(){
+  renderGreet(R.greet);
   $('rNotices').innerHTML = noticesHtml(R.notices);
   $('rCalls').innerHTML = cardsHtml(R.calls, true);
   tickRoom();
@@ -3216,17 +3248,17 @@ function setFont(n){ lsSet(K.font, n); document.documentElement.classList.remove
 function applyFontBtns(){ const n = lsGet(K.font, 1); document.querySelectorAll('.fz button').forEach(b => b.classList.toggle('on', Number(b.dataset.f) === n)); }
 
 /* ================= 🎬 체험해보기 (가짜 서버 · 저장·전송 없음) ================= */
-const D = { ready:false, calls:[], notices:[], alert:0, brk:false, lists:null, settings:{ memoDefault:false, suppliesFormat:'지참물: {items}', roomMax:30 } };
+const D = { ready:false, calls:[], notices:[], alert:0, brk:false, lists:null, settings:{ memoDefault:false, suppliesFormat:'지참물: {items}', roomMax:30, school:'체험고등학교', greet:'감독 선생님들의 노고에 감사드립니다.' } };
 const dKst = ms => new Date((ms || Date.now()) + 9 * 3600000).toISOString().replace('T', ' ').slice(0, 19);
 function demoSeed(){
   D.ready = true; const t = Date.now();
   D.lists = { period:['1교시 국어', '2교시 수학', '3교시 영어', '4교시 한국사·탐구', '5교시 제2외국어·한문'], role:['제1감독관', '제2감독관', '복도감독관'], supply:['도장', '필기구', '감독관 명찰'],
-    phrase:['확인 사항 있으니 본부로 와 주세요', '예비 시험지 가지러 와 주세요', '물품 수령 위해 본부로 와 주세요', '예비 감독관 투입, 해당 고사실로 가 주세요', '감독 교대 위해 본부로 와 주세요', '긴급, 즉시 본부로 와 주세요'],
+    phrase:['확인 사항이 있으니 본부로 와 주시기 바랍니다', '예비 시험지를 가지러 와 주시기 바랍니다', '물품 수령을 위해 본부로 와 주시기 바랍니다', '예비 감독관 투입을 위해 해당 고사실로 가 주시기 바랍니다', '감독 교대를 위해 본부로 와 주시기 바랍니다', '긴급 상황입니다. 즉시 본부로 와 주시기 바랍니다'],
     apphrase:['잠시 대기해 주세요, 곧 안내드리겠습니다', '전체 감독관은 본부로 모여 주세요', '점심시간 안내: 본부 확인 후 이동해 주세요', '시험 종료 후 안내 사항이 있으니 대기해 주세요'], roster:['홍길동', '김철수', '이영희'] };
   const mk = (id, room, role, name, msg, sup, memo, status, ago, conf) => ({ id, group:'gA', practice:false, period:'1교시 국어', room, role, name, msg, supplies:sup, memo, memoPublic:false, urgent:false, status,
     alert:1, recalls:0, at:dKst(t - ago), confirmAt:conf ? dKst(t - ago + conf) : '', doneAt:'', cancelAt:'', ms:t - ago, since:t - ago, confirmMs:conf ? t - ago + conf : 0, doneMs:0 });
-  D.calls.push(mk('s1', '12고사실', '제1감독관', '홍길동', '본부로 오세요', '지참물: 도장, 필기구', '', '미처리', 45000, 0));
-  D.calls.push(mk('s2', '3고사실', '제2감독관', '김철수', '예비 시험지 가지러 와 주세요', '', '확인 사항 (본부만 보는 메모)', '확인됨', 150000, 30000));
+  D.calls.push(mk('s1', '12고사실', '제1감독관', '홍길동', '본부로 와 주시기 바랍니다', '지참물: 도장, 필기구', '', '미처리', 45000, 0));
+  D.calls.push(mk('s2', '3고사실', '제2감독관', '김철수', '예비 시험지를 가지러 와 주시기 바랍니다', '', '확인 사항 (본부만 보는 메모)', '확인됨', 150000, 30000));
   D.alert = 1;
   D.notices.push({ id:'n1', text:'잠시 대기해 주세요, 곧 안내드리겠습니다', urgent:false, practice:false, state:'게시중', alert:1, at:dKst(t), offAt:'', ms:t, endMs:0 });
 }
@@ -3241,12 +3273,12 @@ function demoRoute(p){
     case 'login': return ok({ role:'admin', gasVer:99, installId:'demo', mustChange:false });
     case 'changePw': return ok();
     case 'adminLoad': return ok({ gasVer:99, now:Date.now(), calls:cp(D.calls), notices:cp(D.notices).map(n => Object.assign(n, { active:dActive(n) })), lists:cp(D.lists), settings:cp(D.settings), room:{ exists:true, ageMs:D.brk ? 90000 : 1500, seen:D.brk ? 0 : D.alert } });
-    case 'poll': return ok({ gasVer:99, now:Date.now(), calls:cp(open()).map(c => Object.assign(c, { memo:c.memoPublic ? c.memo : '' })), notices:cp(D.notices.filter(dActive)) });
+    case 'poll': return ok({ gasVer:99, now:Date.now(), calls:cp(open()).map(c => Object.assign(c, { memo:c.memoPublic ? c.memo : '' })), notices:cp(D.notices.filter(dActive)), greet:{ school:D.settings.school, text:D.settings.greet } });
     case 'call': {
       const rows = JSON.parse(p.rows || '[]'), sup = JSON.parse(p.supplies || '[]'), t = Date.now(); let add = 0; const a = D.alert + 1;
       rows.forEach(x => {
         if (D.calls.some(c => c.id === x.id) || !(x.name || x.room)) return;
-        D.calls.push({ id:x.id, group:p.group || ('g' + t), practice:p.practice === '1', period:x.period || '', room:x.room || '', role:x.role || '', name:x.name || '', msg:p.msg || '본부로 오세요',
+        D.calls.push({ id:x.id, group:p.group || ('g' + t), practice:p.practice === '1', period:x.period || '', room:x.room || '', role:x.role || '', name:x.name || '', msg:p.msg || '본부로 와 주시기 바랍니다',
           supplies:sup.length ? D.settings.suppliesFormat.replace('{items}', sup.join(', ')) : '', memo:p.memo || '', memoPublic:p.memoPublic === '1', urgent:p.urgent === '1', status:'미처리', alert:a, recalls:0,
           at:dKst(t), confirmAt:'', doneAt:'', cancelAt:'', ms:t, since:t, confirmMs:0, doneMs:0 }); add++;
       });
@@ -3267,7 +3299,7 @@ function demoRoute(p){
     case 'announce': { const t = Date.now(), m = Number(p.minutes) || 0; D.notices.push({ id:p.id || ('n' + t), text:p.text, urgent:p.urgent === '1', practice:p.practice === '1', state:'게시중', alert:++D.alert, at:dKst(t), offAt:'', ms:t, endMs:m ? t + m * 60000 : 0 }); return ok(); }
     case 'unannounce': D.notices.forEach(n => { if (n.id === p.id){ n.state = '내림'; n.offAt = dKst(); } }); return ok();
     case 'saveLists': { let items = JSON.parse(p.items || '[]'); if (p.mode === 'add') items = Array.from(new Set((D.lists[p.kind] || []).concat(items))); D.lists[p.kind] = items; return ok({ items }); }
-    case 'saveSetting': { if (p.key === '메모기본공개') D.settings.memoDefault = p.value === 'Y'; else if (p.key === '지참물형식') D.settings.suppliesFormat = p.value; else if (p.key === '고사실수') D.settings.roomMax = Number(p.value) || 30; return ok(); }
+    case 'saveSetting': { if (p.key === '메모기본공개') D.settings.memoDefault = p.value === 'Y'; else if (p.key === '지참물형식') D.settings.suppliesFormat = p.value; else if (p.key === '고사실수') D.settings.roomMax = Number(p.value) || 30; else if (p.key === '학교명') D.settings.school = String(p.value || '').trim().slice(0, 30); else if (p.key === '인사말') D.settings.greet = String(p.value || '').trim().slice(0, 120); return ok(); }
     case 'clear': {
       const today = dKst().slice(0, 10), drop = x => p.scope === 'all' || (p.scope === 'practice' && x.practice) || (p.scope === 'today' && String(x.at).slice(0, 10) === today);
       const n0 = D.calls.length + D.notices.length; D.calls = D.calls.filter(x => !drop(x)); D.notices = D.notices.filter(x => !drop(x)); return ok({ removed:n0 - D.calls.length - D.notices.length });
@@ -3287,11 +3319,11 @@ function demoBreak(){
 /* ================= 📖 앱 소개 ================= */
 const SLIDES = [
   { t:'본부에서 누르면, 대기실에 바로 떠요', d:'교시·고사실·이름을 고르고 [호출하기]만 누르면 대기실 전자칠판에 큰 글씨로 나타나요.',
-    v:'<div class="mb" style="background:#324872;color:#fff">12고사실 · 1교시 국어 · 제1감독관<br><span style="font-size:1.25rem">홍길동 선생님, 본부로 오세요</span><br><span style="font-weight:600">지참물: 도장, 필기구</span></div>' },
+    v:'<div class="mb" style="background:#324872;color:#fff">12고사실 · 1교시 국어 · 제1감독관<br><span style="font-size:1.25rem">홍길동 선생님, 본부로 와 주시기 바랍니다</span><br><span style="font-weight:600">지참물: 도장, 필기구</span></div>' },
   { t:'여러 명도, 나중에 추가해서도 불러요', d:'한 번에 여러 선생님을 부르고, 이미 부른 호출에 사람을 더 추가하면 새로 추가된 분에게만 알림이 가요. 빠른 문구와 지참물 칩으로 입력도 간단해요.',
-    v:'<div class="mb" style="background:#E3E9F4;color:#324872">＋ 대상 추가 · 12고사실 홍길동 · 3고사실 김철수</div><div class="mb" style="background:#fff;border:1.5px solid #D5DBE8;color:#324872">빠른 문구: 예비 시험지 가지러 와 주세요</div>' },
+    v:'<div class="mb" style="background:#E3E9F4;color:#324872">＋ 대상 추가 · 12고사실 홍길동 · 3고사실 김철수</div><div class="mb" style="background:#fff;border:1.5px solid #D5DBE8;color:#324872">빠른 문구: 예비 시험지를 가지러 와 주시기 바랍니다</div>' },
   { t:'소리와 깜빡임으로 놓치지 않아요', d:'새 호출이 오면 알림음과 화면 깜빡임이 나와요. 긴급 호출은 빨간 화면으로 뜨고 확인될 때까지 알림이 반복돼요. 알림음은 끄고 켤 수 있어요.',
-    v:'<div class="mb" style="background:#C62F3A;color:#fff">🚨 긴급 · 7고사실 박민수 선생님, 즉시 본부로 와 주세요</div><div class="mb" style="background:#E3E9F4;color:#324872">🔔 대기실의 [확인했어요]는 눌러도, 안 눌러도 돼요</div>' },
+    v:'<div class="mb" style="background:#C62F3A;color:#fff">🚨 긴급 · 7고사실 박민수 선생님, 긴급 상황입니다. 즉시 본부로 와 주시기 바랍니다</div><div class="mb" style="background:#E3E9F4;color:#324872">🔔 대기실의 [확인했어요]는 눌러도, 안 눌러도 돼요</div>' },
   { t:'끊기면 본부가 먼저 알아요', d:'대기실 화면이 5초마다 신호를 보내서 본부가 연결 상태를 알 수 있어요. 끊기면 큰 경고 팝업이 뜨고, 호출마다 "대기실에 표시됨"을 확인할 수 있어요.',
     v:'<div class="mb" style="background:#FBE9EB;color:#C62F3A;border:2px solid #C62F3A">🚨 대기실 화면 신호가 끊겼어요<br><span style="font-weight:600">전화나 직접 방문으로 호출해 주세요</span></div><div class="mb" style="background:#E4F4EC;color:#2E7D5B">📺 대기실 표시됨 · 호출마다 전달 확인</div>' },
   { t:'처리 현황이 기록으로 남아요', d:'미처리 · 확인됨 · 처리완료를 한눈에 보고, 고사실·이름·상태·시간으로 정렬하고, 엑셀(CSV)로 내보낼 수 있어요. 연습 모드로 미리 해 볼 수도 있어요.',
@@ -3323,7 +3355,7 @@ function openShare(){
     <input type="text" readonly value="${esc(url)}" onclick="this.select()" aria-label="소개 링크">
     <div class="row" style="margin:10px 0"><button class="btn sm" onclick="copyShareLink()">📋 링크 복사</button><button class="btn sm sub" onclick="copyShareText()">💬 소개 문구 복사</button></div>
     <div style="text-align:center"><div id="qrBox" style="display:inline-block;padding:6px;background:#fff;border:1px solid var(--line);border-radius:10px"></div></div>
-    <div class="row" style="justify-content:center;margin-top:10px"><button class="btn sm sub" onclick="saveQr()">QR 이미지 저장</button></div>
+    <div class="row" style="justify-content:center;margin-top:10px"><button class="btn sm sub" onclick="copyQr()">QR 복사</button><button class="btn sm sub" onclick="saveQr()">QR 이미지 저장</button></div>
     <div class="msg" id="shMsg"></div><div class="row" style="justify-content:flex-end"><button class="btn sub" onclick="closeShare()">닫기</button></div></div></div>`;
   try{
     const q = qrObj(url); $('qrBox').innerHTML = q.createSvgTag(5, 2);
@@ -3341,6 +3373,18 @@ async function copyRich(url, label, msgId){
 }
 function copyShareLink(){ copyRich(pureUrl(), APP_LABEL, 'shMsg'); }
 async function copyShareText(){ try{ await navigator.clipboard.writeText(shareText()); msg('shMsg', '소개 문구를 복사했어요 ✅', true); }catch(e){ msg('shMsg', '자동 복사가 막혔어요.'); } }
+function copyQr(){   // QR 그림을 클립보드에 복사 (카톡·문서에 바로 붙여넣기)
+  try{
+    const q = qrObj(pureUrl()), n = q.getModuleCount(), cs = 10, m = 4, sz = (n + m * 2) * cs;
+    const c = document.createElement('canvas'); c.width = c.height = sz; const x = c.getContext('2d');
+    x.fillStyle = '#fff'; x.fillRect(0, 0, sz, sz); x.fillStyle = '#000';
+    for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (q.isDark(r, k)) x.fillRect((k + m) * cs, (r + m) * cs, cs, cs);
+    if (!window.ClipboardItem || !navigator.clipboard || !navigator.clipboard.write){ msg('shMsg', '이 브라우저는 그림 복사를 지원하지 않아요. "QR 이미지 저장"을 써 주세요.'); return; }
+    navigator.clipboard.write([new ClipboardItem({ 'image/png': new Promise(res => c.toBlob(res, 'image/png')) })])
+      .then(() => msg('shMsg', 'QR 그림을 복사했어요 ✅ 붙여넣기(Ctrl+V)로 쓸 수 있어요.', true))
+      .catch(() => msg('shMsg', '복사가 막혔어요. "QR 이미지 저장"을 써 주세요.'));
+  }catch(e){ msg('shMsg', 'QR 복사에 실패했어요.'); }
+}
 function saveQr(){
   try{
     const q = qrObj(pureUrl()), n = q.getModuleCount(), cs = 10, m = 4, sz = (n + m * 2) * cs;
@@ -3364,7 +3408,7 @@ function guideBody(){
   `<p class="hint" style="margin-top:14px">문의 <a href="${mailHref()}">${MAIL}</a> · Made by Cheon_R</p>`;
 }
 function openGuide(){
-  $('guideOv').innerHTML = `<div class="full"><div class="wrap"><div class="row" style="justify-content:space-between;margin-bottom:10px"><h2 style="margin:0;color:var(--navy)">📘 사용 가이드</h2><button class="btn sub sm" onclick="closeGuide()">닫기</button></div>${guideBody()}</div></div>`;
+  $('guideOv').innerHTML = `<div class="ov" style="z-index:58" onclick="if(event.target===this)closeGuide()"><div class="box" role="dialog" aria-label="사용 가이드" style="max-width:640px;max-height:92vh;overflow:auto;padding:18px"><div class="row" style="justify-content:space-between;margin-bottom:10px;position:sticky;top:-18px;background:#fff;padding:6px 0;z-index:1"><h2 style="margin:0;color:var(--navy);font-size:1.2rem">📘 사용 가이드</h2><button class="btn sub sm" onclick="closeGuide()">닫기</button></div>${guideBody()}<div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn sub" onclick="closeGuide()">닫기</button></div></div></div>`;
 }
 function closeGuide(){ $('guideOv').innerHTML = ''; }
 
