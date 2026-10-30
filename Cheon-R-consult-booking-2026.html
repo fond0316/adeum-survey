@@ -1396,6 +1396,13 @@ body{padding-top:env(safe-area-inset-top);padding-left:env(safe-area-inset-left)
       <button class="filter-btn" id="exFmt-xlsx" onclick="exSetOpt('fmt','xlsx')">📊 엑셀</button>
     </div>
     <div id="exFmtHelp" style="font-size:12px;color:var(--gray-500);line-height:1.6;margin-bottom:14px;"></div>
+    <div id="exPerBox" style="margin-bottom:10px;">
+      <div style="font-size:13px;font-weight:700;margin-bottom:6px;">📄 한 장에 <span style="font-weight:400;color:var(--gray-400);">(날짜별 일정표)</span></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="filter-btn active" id="exPer-multi" onclick="exSetPer('multi')">여러 명 (카드형)</button>
+        <button class="filter-btn" id="exPer-one" onclick="exSetPer('one')">학생당 1페이지 (상담 기록지)</button>
+      </div>
+    </div>
     <div id="exMemoSizeBox" style="margin-bottom:14px;">
       <div style="font-size:13px;font-weight:700;margin-bottom:6px;">📝 메모칸 크기 <span style="font-weight:400;color:var(--gray-400);">(날짜별 일정표)</span></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
@@ -5933,7 +5940,8 @@ function exSetOpt(k, v){
   document.getElementById('ex'+(k==='stat'?'Stat':'Fmt')+'-'+v).classList.add('active');
   document.getElementById('exFmtHelp').textContent = EX_HELP[EX.fmt];
 }
-EX.msz = 'wide';
+EX.msz = 'wide'; EX.per = 'multi';
+function exSetPer(v){ EX.per=v; document.querySelectorAll('[id^="exPer-"]').forEach(b=>b.classList.remove('active')); document.getElementById('exPer-'+v).classList.add('active'); document.getElementById('exMemoSizeBox').style.display = v==='one' ? 'none' : ''; }
 function exSetMemoSize(v){ EX.msz=v; document.querySelectorAll('[id^="exMsz-"]').forEach(b=>b.classList.remove('active')); document.getElementById('exMsz-'+v).classList.add('active'); }
 function exWarn(){ document.getElementById('exWarn').style.display = (document.getElementById('exContact').checked || document.getElementById('exMemo').checked) ? '' : 'none'; }
 function openExportModal(){ exSetOpt('fmt', EX.fmt); exWarn(); document.getElementById('exportModal').classList.add('open'); }
@@ -5979,6 +5987,13 @@ th{background:#F4F2FA;font-size:12px;} .day{break-inside:avoid;page-break-inside
 .ct{font-size:12px;font-weight:700;color:#6B5A9E;margin-bottom:3px;white-space:nowrap;} .cn{font-size:16px;font-weight:800;} .cp{font-size:11px;color:#4b5563;margin-top:2px;} .cm{font-size:11px;color:#374151;margin-top:4px;}
 .tag{font-size:10px;font-weight:700;background:#fff;color:#7B6BA8;border-radius:4px;padding:1px 5px;vertical-align:middle;} .tag.pd{background:#FEF3C7;color:#B45309;}
 .cmemo{flex:1;position:relative;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 7.2mm,#e5e7eb 7.2mm,#e5e7eb calc(7.2mm + 1px));} .cmemo span{position:absolute;top:3px;left:6px;font-size:9px;color:#c4b5fd;}
+.pg{height:244mm;display:flex;flex-direction:column;} .pg + .pg{break-before:page;page-break-before:always;}
+.ph{font-size:11px;color:#6b7280;border-bottom:2px solid #9B8EC4;padding-bottom:4px;margin-bottom:10px;} .pn{font-size:26px;font-weight:800;} .pd2{font-size:15px;font-weight:700;color:#6B5A9E;margin:2px 0 10px;}
+.pi{display:flex;flex-wrap:wrap;gap:4px 24px;background:#F4F2FA;border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:12px;} .pi b{color:#6B5A9E;margin-right:4px;}
+.pl{font-size:12px;font-weight:700;color:#6B5A9E;margin:6px 0 4px;}
+.pmemo{flex:1;border:1.5px solid #9B8EC4;border-radius:8px;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 9mm,#e5e7eb 9mm,#e5e7eb calc(9mm + 1px));}
+.pfu{height:42mm;border:1.5px solid #9B8EC4;border-radius:8px;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 9mm,#e5e7eb 9mm,#e5e7eb calc(9mm + 1px));}
+.pck{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;margin-top:8px;}
 .grid{display:flex;border:1px solid #d1d5db;} .axis{width:42px;position:relative;flex:none;border-right:1px solid #d1d5db;}
 .col{flex:1;position:relative;border-right:1px solid #e5e7eb;min-width:0;} .col:last-child{border-right:0;}
 .hd{display:flex;margin-left:42px;} .hd div{flex:1;text-align:center;font-weight:700;font-size:12px;padding:4px 0;background:#F4F2FA;border:1px solid #d1d5db;border-left:0;}
@@ -5994,7 +6009,22 @@ function exPeriodHint(o, rows){
   const r = rows.length ? exDateLabel(rows[0].dateKey)+' ~ '+exDateLabel(rows[rows.length-1].dateKey) : '';
   return '<div class="sub">'+esc(r)+' · 총 '+rows.length+'건'+(EX.stat==='all'?' (신청 포함)':' (확정)')+'</div>'+((o.contact||o.memo)?'<div class="warn">⚠️ 개인정보가 포함된 자료예요. 상담이 끝나면 폐기해 주세요.</div>':'');
 }
+function buildOnePageHtml(rows, o){
+  let h = '';
+  rows.forEach(b => {
+    h += '<div class="pg"><div class="ph">'+esc(exTitle())+' · 상담 기록지'+(EX.stat==='all'&&b.status==='신청'?' <span class="tag pd">신청(미확정)</span>':'')+'</div>'
+      +'<div class="pn">'+esc(b.student)+' <span class="tag">'+(b.isPhone?'📞 전화':'대면')+'</span></div>'
+      +'<div class="pd2">'+esc(exDateLabel(b.dateKey))+' &nbsp;'+esc(b.time)+'</div>'
+      +'<div class="pi"><div><b>학부모</b> '+esc(b.parent)+'</div>'+(o.contact?'<div><b>연락처</b> '+esc(b.contact)+'</div>':'')+(o.memo?'<div style="flex-basis:100%"><b>상담 신청 내용</b> '+esc(b.memo||'-')+'</div>':'')+'</div>'
+      +'<div class="pl">상담 내용 메모</div><div class="pmemo"></div>'
+      +'<div class="pl">후속 조치</div><div class="pfu"></div>'
+      +'<div class="pck"><span>□ 다음 상담 필요</span><span>□ 학부모 재연락</span><span>□ 다른 선생님께 전달</span><span>□ 누가기록 입력 완료</span></div>'
+      +'</div>';
+  });
+  return exDocWrap(h, false);
+}
 function buildDayScheduleHtml(rows, o){
+  if (EX.per==='one') return buildOnePageHtml(rows, o);
   const mh = EX.msz==='normal' ? 20 : 32;   // 카드 높이(mm)
   let h = '<h1>'+esc(exTitle())+'</h1>'+exPeriodHint(o, rows);
   const by = {}; rows.forEach(b=>{ (by[b.dateKey]=by[b.dateKey]||[]).push(b); });
@@ -6051,13 +6081,13 @@ function buildWeekOverlayHtml(rows, o){
 }
 async function exportXlsx(rows, o){
   await ttLoadScript(TT_LIBS.xlsx);
-  const head = ['날짜','요일','시간','유형','학생','학부모']; if (o.contact) head.push('연락처'); head.push('상태'); if (o.memo) head.push('상담내용');
-  const line = b => { const r=[b.dateKey, exWd(b.dateKey), b.time, b.isPhone?'전화':'대면', b.student, b.parent]; if(o.contact) r.push(b.contact); r.push(b.status); if(o.memo) r.push(b.memo); return r; };
+  const head = ['날짜','요일','시간','유형','학생','학부모']; if (o.contact) head.push('연락처'); head.push('상태'); if (o.memo) head.push('상담내용'); head.push('상담 메모','후속 조치','누가기록 입력(O)');
+  const line = b => { const r=[b.dateKey, exWd(b.dateKey), b.time, b.isPhone?'전화':'대면', b.student, b.parent]; if(o.contact) r.push(b.contact); r.push(b.status); if(o.memo) r.push(b.memo); r.push('','',''); return r; };
   const ws1 = XLSX.utils.aoa_to_sheet([head, ...rows.map(line)]);
   const aoa2 = []; let last = '';
   rows.forEach(b => { if (b.dateKey!==last) { if (last) aoa2.push([]); aoa2.push([exDateLabel(b.dateKey)]); aoa2.push(head.slice(2)); last=b.dateKey; } aoa2.push(line(b).slice(2)); });
   const ws2 = XLSX.utils.aoa_to_sheet(aoa2);
-  ws1['!cols'] = head.map(()=>({wch:14})); ws2['!cols'] = head.slice(2).map(()=>({wch:16}));
+  const wch = h => /메모|후속|상담내용/.test(h) ? 34 : /연락처|시간/.test(h) ? 16 : 12; ws1['!cols'] = head.map(h=>({wch:wch(h)})); ws2['!cols'] = head.slice(2).map(h=>({wch:wch(h)}));
   const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws1, '전체 목록'); XLSX.utils.book_append_sheet(wb, ws2, '날짜별 일정표');
   XLSX.writeFile(wb, '학부모상담_일정.xlsx');
 }
