@@ -62,6 +62,7 @@
 <title>🌟 아듬's 생기부 AI</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 if(window.pdfjsLib){
@@ -1182,6 +1183,7 @@ textarea{resize:vertical;}
           <button onclick="printAll()" style="padding:6px 12px;border:1px solid #e5e7eb;border-radius:7px;background:white;font-size:12px;cursor:pointer;color:#374151;">🖨️ 인쇄</button>
           <button onclick="copyAllResults()" style="padding:6px 12px;border:1px solid #059669;border-radius:7px;background:#f0fdf4;font-size:12px;cursor:pointer;color:#059669;font-weight:600;" title="완료된 학생 세특을 반/번호/이름/세특 형식으로 복사 (나이스 붙여넣기용)">📋 전체 복사</button>
           <button onclick="exportCSV()" style="padding:6px 12px;border:1px solid #16a34a;border-radius:7px;background:#f0fdf4;font-size:12px;cursor:pointer;color:#16a34a;font-weight:600;">📥 엑셀</button>
+          <button onclick="neisOpen()" style="padding:6px 12px;border:1px solid #2563eb;border-radius:7px;background:#eff6ff;font-size:12px;cursor:pointer;color:#1d4ed8;font-weight:600;" title="나이스에서 받은 업로드 양식(.xlsx)에 세특을 채워서 내려받기">🏫 나이스 양식</button>
         </div>
       </div>
       <div id="status-table-wrap">
@@ -1866,6 +1868,7 @@ textarea{resize:vertical;}
           <button onclick="dPrintAll()" style="padding:6px 12px;border:1px solid #a5b4fc;border-radius:7px;background:#eef2ff;font-size:12px;cursor:pointer;color:#4338ca;">🖨️ 출력</button>
           <button onclick="dCopyAllResults()" style="padding:6px 12px;border:1px solid #f59e0b;border-radius:7px;background:#fffbeb;font-size:12px;cursor:pointer;color:#92400e;font-weight:600;" title="완료된 학생 세특을 번호/이름/항목/내용 형식으로 복사">📋 전체 복사</button>
           <button onclick="dExportCSV()" style="padding:6px 12px;border:1px solid #16a34a;border-radius:7px;background:#f0fdf4;font-size:12px;cursor:pointer;color:#16a34a;font-weight:600;">📥 엑셀</button>
+          <button onclick="neisOpen()" style="padding:6px 12px;border:1px solid #2563eb;border-radius:7px;background:#eff6ff;font-size:12px;cursor:pointer;color:#1d4ed8;font-weight:600;" title="나이스에서 받은 업로드 양식(.xlsx)에 세특을 채워서 내려받기">🏫 나이스 양식</button>
           <button onclick="dExportCounselCSV()" style="padding:6px 12px;border:1px solid #fde68a;border-radius:7px;background:#fffbeb;font-size:12px;cursor:pointer;color:#92400e;">📋 상담CSV</button>
         </div>
       </div>
@@ -12564,6 +12567,409 @@ function dShowStoryAIError(msg){
     </div>
   </div>
 </div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   🏫 나이스 양식으로 내보내기 (추가 모듈 · 기존 코드 수정 없음)
+   - 나이스에서 내려받은 빈 업로드 양식(.xlsx)을 내보낼 때마다 올려서 사용
+   - 양식의 이름·학생개인번호 등은 브라우저 메모리에서만 쓰고 저장하지 않음
+   - 엑셀 내부 XML에서 입력 열의 값만 바꿔 원본 서식(열 너비·병합·글꼴) 100% 유지
+   - 번호 + 이름이 모두 일치하는 학생만 자동 입력, 불일치는 경고 후 선택
+   ══════════════════════════════════════════════════════════════ */
+(function(){
+"use strict";
+var LIMIT={"교과":1500,"자율":1500,"진로":2100,"행발":1500};
+var TYPES=["교과","자율","진로","행발"];
+var TYPE_LABEL={"교과":"교과 세부능력 및 특기사항","자율":"자율·자치활동 특기사항","진로":"진로활동 특기사항","행발":"행동특성 및 종합의견"};
+var FILE_PREFIX={"자율":"자율활동특기사항","진로":"진로활동특기사항","행발":"행동특성및종합의견"};
+var XLSX_MIME="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+var st={files:[]};
+
+/* ── 유틸 ── */
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function hn(s){return String(s==null?"":s).replace(/[\s ]+/g,"");}
+function colNum(L){var n=0;for(var i=0;i<L.length;i++)n=n*26+(L.charCodeAt(i)-64);return n;}
+function unesc(s){return s.replace(/&#x([0-9a-fA-F]+);/g,function(_,h){return String.fromCharCode(parseInt(h,16));}).replace(/&#(\d+);/g,function(_,d){return String.fromCharCode(+d);}).replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,"&");}
+function xesc(s){return String(s).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function neisBytes(s){var n=0;s=String(s||"");for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);n+=c===10?2:(c>127?3:1);}return n;}
+function normSubj(s){return hn(s).replace(/Ⅰ/g,"1").replace(/Ⅱ/g,"2").replace(/Ⅲ/g,"3");}
+function lastNum(s){var m=String(s==null?"":s).match(/(\d+)\D*$/);return m?m[1]:"";}
+function cleanText(t){
+  t=String(t||"");
+  if(typeof stripBold==="function")t=stripBold(t);else t=t.replace(/\*\*(.+?)\*\*/g,"$1");
+  return t.replace(/\*\*/g,"").replace(/\s*[\r\n]+\s*/g," ").trim();
+}
+function safeName(s){return String(s).replace(/[\\\/:*?"<>|]/g,"_");}
+
+/* ── 엑셀(xlsx) 읽기: 시트 XML 파싱 ── */
+function parseSST(xml){
+  var out=[],re=/<si\b[^>]*>([\s\S]*?)<\/si>/g,m;
+  while((m=re.exec(xml))){
+    var b=m[1].replace(/<rPh\b[\s\S]*?<\/rPh>/g,"");
+    var ts=b.match(/<t\b[^>]*>[\s\S]*?<\/t>/g)||[];
+    out.push(ts.map(function(x){return unesc(x.replace(/^<t\b[^>]*>/,"").replace(/<\/t>$/,""));}).join(""));
+  }
+  return out;
+}
+function parseSheet(xml,sst){
+  var rows={},rowRe=/<row\b[^>]*?\br="(\d+)"[^>]*?(?:\/>|>([\s\S]*?)<\/row>)/g,m;
+  while((m=rowRe.exec(xml))){
+    var rn=+m[1],body=m[2]||"",cells={};
+    var cRe=/<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g,cm;
+    while((cm=cRe.exec(body))){
+      var attrs=cm[1],inner=cm[2]||"";
+      var rm=/\br="([A-Z]+)\d+"/.exec(attrs);if(!rm)continue;
+      var tm=/\bt="([^"]*)"/.exec(attrs),t=tm?tm[1]:"",val="";
+      if(t==="inlineStr"){
+        var ts=inner.match(/<t\b[^>]*>[\s\S]*?<\/t>/g)||[];
+        val=ts.map(function(x){return unesc(x.replace(/^<t\b[^>]*>/,"").replace(/<\/t>$/,""));}).join("");
+      }else if(t==="s"){
+        var vm=/<v>([\s\S]*?)<\/v>/.exec(inner);val=vm?(sst[+vm[1]]||""):"";
+      }else{
+        var v2=/<v>([\s\S]*?)<\/v>/.exec(inner);val=v2?unesc(v2[1]):"";
+      }
+      cells[rm[1]]=val;
+    }
+    rows[rn]=cells;
+  }
+  return rows;
+}
+async function loadXlsx(file){
+  var buf=await (file.arrayBuffer?file.arrayBuffer():new Response(file).arrayBuffer());
+  var zip=await JSZip.loadAsync(buf);
+  var wbf=zip.file("xl/workbook.xml");if(!wbf)throw new Error("엑셀(.xlsx) 파일이 아니에요.");
+  var wb=await wbf.async("string");
+  var sh=/<sheet\b[^>]*>/.exec(wb);if(!sh)throw new Error("시트를 찾지 못했어요.");
+  var rid=/r:id="([^"]+)"/.exec(sh[0]),nm=/\bname="([^"]*)"/.exec(sh[0]);
+  var relsF=zip.file("xl/_rels/workbook.xml.rels");
+  var rels=relsF?await relsF.async("string"):"";
+  var target="worksheets/sheet1.xml";
+  (rels.match(/<Relationship\b[^>]*>/g)||[]).forEach(function(r){
+    var i=/\bId="([^"]+)"/.exec(r),t=/\bTarget="([^"]+)"/.exec(r);
+    if(i&&t&&rid&&i[1]===rid[1])target=t[1];
+  });
+  var sheetPath=target.charAt(0)==="/"?target.slice(1):"xl/"+target;
+  var sf=zip.file(sheetPath);if(!sf)throw new Error("시트 파일을 찾지 못했어요.");
+  var xml=await sf.async("string");
+  var sstF=zip.file("xl/sharedStrings.xml");
+  var sst=sstF?parseSST(await sstF.async("string")):[];
+  return {zip:zip,sheetPath:sheetPath,sheetName:nm?unesc(nm[1]):"",xml:xml,rows:parseSheet(xml,sst)};
+}
+
+/* ── 엑셀 쓰기: 대상 셀의 값만 교체 (서식 속성 s 유지) ── */
+function setCell(xml,L,rn,text){
+  var ref=L+rn;
+  var rowRe=new RegExp('<row\\b[^>]*?\\br="'+rn+'"[^>]*?(\\/>|>)');
+  var rm=rowRe.exec(xml);if(!rm)throw new Error("행 "+rn+"을 찾지 못했어요.");
+  var rowStart=rm.index,openEnd=rowStart+rm[0].length;
+  var openTag=rm[0],bodyStart=openEnd,bodyEnd,closeLen=0;
+  if(rm[1]==="/>"){ // <row r="n"/> → 빈 행 확장
+    openTag=openTag.slice(0,-2)+">";
+    var cell0='<c r="'+ref+'" t="inlineStr"><is><t xml:space="preserve">'+xesc(text)+'</t></is></c>';
+    return xml.slice(0,rowStart)+openTag+cell0+"</row>"+xml.slice(openEnd);
+  }
+  var closeIdx=xml.indexOf("</row>",bodyStart);if(closeIdx<0)throw new Error("행 구조 오류");
+  bodyEnd=closeIdx;
+  var body=xml.slice(bodyStart,bodyEnd);
+  var cRe=/<c\b([^>]*?)(?:\/>|>[\s\S]*?<\/c>)/g,cm,found=null,insertAt=body.length;
+  while((cm=cRe.exec(body))){
+    var rr=/\br="([A-Z]+)\d+"/.exec(cm[1]);if(!rr)continue;
+    if(rr[1]===L){found={idx:cm.index,len:cm[0].length,attrs:cm[1]};break;}
+    if(colNum(rr[1])>colNum(L)){insertAt=cm.index;break;}
+  }
+  var sAttr="";
+  if(found){var sm=/\bs="(\d+)"/.exec(found.attrs);if(sm)sAttr=' s="'+sm[1]+'"';}
+  var cell='<c r="'+ref+'"'+sAttr+' t="inlineStr"><is><t xml:space="preserve">'+xesc(text)+'</t></is></c>';
+  var nb=found?body.slice(0,found.idx)+cell+body.slice(found.idx+found.len):body.slice(0,insertAt)+cell+body.slice(insertAt);
+  return xml.slice(0,bodyStart)+nb+xml.slice(bodyEnd);
+}
+
+/* ── 양식 분석 ── */
+function colOf(f,names,pred){
+  for(var i=0;i<f.headers.length;i++){var h=f.headers[i];
+    if(names&&names.indexOf(h.h)>=0)return h.L;
+    if(pred&&pred(h.h))return h.L;}
+  return "";
+}
+function targetFor(f,type){
+  if(type==="교과")return colOf(f,null,function(h){return h.indexOf("세부능력")>=0;});
+  if(type==="행발")return colOf(f,null,function(h){return h.indexOf("행동특성")>=0;});
+  return colOf(f,null,function(h){return h.indexOf("특기사항")>=0&&h.indexOf("세부능력")<0;});
+}
+function analyze(f){
+  var hdr=f.rows[1]||{};
+  f.headers=Object.keys(hdr).sort(function(a,b){return colNum(a)-colNum(b);})
+    .map(function(L){return {L:L,h:hn(hdr[L]),raw:String(hdr[L]||"").replace(/[\r\n]+/g," ")};}).filter(function(x){return x.h;});
+  f.c={
+    no:colOf(f,["번호"]),banno:colOf(f,["반/번호"]),grade:colOf(f,["학년"]),ban:colOf(f,["반"]),
+    name:colOf(f,["성명","이름"]),area:colOf(f,["영역구분"]),subj:colOf(f,["과목"]),sem:colOf(f,["학기"])
+  };
+  var first=null,keys=Object.keys(f.rows).map(Number).filter(function(n){return n>=2;}).sort(function(a,b){return a-b;});
+  f.data=[];
+  keys.forEach(function(rn){
+    var c=f.rows[rn],name=f.c.name?String(c[f.c.name]||"").trim():"";
+    var ban="",no="";
+    if(f.c.banno){var p=String(c[f.c.banno]||"").split("/");ban=(p[0]||"").trim();no=(p[1]||"").trim();}
+    else{ban=f.c.ban?String(c[f.c.ban]||"").trim():"";no=f.c.no?String(c[f.c.no]||"").trim():"";}
+    if(!name&&!no)return;
+    var n=parseInt(parseFloat(no),10);
+    var r={r:rn,ban:ban?String(parseInt(parseFloat(ban),10)):"",no:isNaN(n)?0:n,name:name,grade:f.c.grade?String(c[f.c.grade]||"").trim():"",
+      subj:f.c.subj?String(c[f.c.subj]||"").trim():"",sem:f.c.sem?String(c[f.c.sem]||"").trim():"",area:f.c.area?String(c[f.c.area]||""):""};
+    if(!first)first=r;
+    f.data.push(r);
+  });
+  f.first=first||{};
+  // 항목 자동 판별
+  var type="";
+  if(targetFor(f,"교과"))type="교과";
+  else if(targetFor(f,"행발"))type="행발";
+  else if(targetFor(f,"자율")){
+    var ctx=hn((f.first.area||"")+" "+f.sheetName);
+    if(ctx.indexOf("진로")>=0)type="진로";else if(ctx.indexOf("자율")>=0)type="자율";
+  }
+  f.type=type||"자율";f.typeGuess=!!type;
+  f.targetCol=targetFor(f,f.type)||"";
+  var g=parseInt(f.first.grade,10),b=parseInt(f.first.ban,10);
+  f.label=(!isNaN(g)&&!isNaN(b))?(g+"-"+b):"";
+  f.limit=LIMIT[f.type];
+  f.overwrite=false;f.force={};
+  initApp(f);
+}
+function classList(subj){
+  var l=(typeof subjectClasses!=="undefined"&&subjectClasses&&subjectClasses[subj])?subjectClasses[subj]:null;
+  if(l&&l.length)return l;
+  if(typeof getDefaultClasses==="function")return getDefaultClasses();
+  return ["1-1","1-2","1-3","1-4"];
+}
+function initApp(f){
+  f.subj="";f.cls="";f.subjFound=true;f.clsFound=true;
+  if(f.type!=="교과")return;
+  var keys=(typeof CURRICULUM!=="undefined")?Object.keys(CURRICULUM):[];
+  var fs=normSubj(f.first.subj||"");
+  var hit=keys.filter(function(k){return normSubj(k)===fs;})[0];
+  f.subjFound=!!hit||!fs;
+  f.subj=hit||((typeof curName!=="undefined"&&curName)?curName:keys[0]||"");
+  var cls=classList(f.subj);
+  if(f.label&&cls.indexOf(f.label)>=0)f.cls=f.label;
+  else{
+    var ban=f.first.ban;
+    var alt=cls.filter(function(c){return lastNum(c)===ban;})[0];
+    f.clsFound=!!alt;f.cls=alt||cls[0]||"";
+  }
+}
+function appSource(f){
+  var by={},label="",list=[];
+  if(f.type==="교과"){
+    var sd=(typeof classData!=="undefined"&&classData)?classData[f.subj]:null,cd=sd?sd[f.cls]:null;
+    label=f.cls;
+    if(cd&&cd.list)list=cd.list.slice(0,cd.count||cd.list.length).map(function(s){return {name:s.name,text:s.result};});
+  }else{
+    label=(typeof dClassName!=="undefined")?dClassName:"";
+    if(typeof dStudents!=="undefined"&&dStudents){
+      var n=(typeof dCount!=="undefined"&&dCount)?dCount:dStudents.length;
+      list=dStudents.slice(0,n).map(function(s){return {name:s.name,text:s.results?s.results[f.type]:""};});
+    }
+  }
+  list.forEach(function(s,i){by[i+1]={name:String(s.name||"").trim(),text:cleanText(s.text)};});
+  return {by:by,label:label};
+}
+
+/* ── 매칭 ── */
+var STATUS_LABEL={ok:"✅ 입력",mismatch:"🔸 이름 불일치",blank:"⬜ 미생성",noapp:"➖ 앱에 없음",other:"➖ 다른 반"};
+function recalc(f){
+  var app=appSource(f);f.appLabel=app.label;
+  var banSel=lastNum(app.label);
+  f.items=[];f.warn=[];
+  var seen={};
+  f.data.forEach(function(d){
+    var it={r:d.r,no:d.no,neisName:d.name,appName:"",text:"",bytes:0,status:"noapp",write:false,exists:false,over:false};
+    var cur=f.targetCol?String((f.rows[d.r]||{})[f.targetCol]||""):"";
+    it.exists=!!cur.trim();
+    if(banSel&&d.ban&&d.ban!==banSel){it.status="other";f.items.push(it);return;}
+    seen[d.no]=1;
+    var a=app.by[d.no];
+    if(a){
+      it.appName=a.name;it.text=a.text;it.bytes=neisBytes(a.text);it.over=it.bytes>f.limit;
+      if(!a.text){it.status=a.name?"blank":"noapp";}
+      else if(hn(a.name)&&hn(a.name)===hn(d.name))it.status="ok";
+      else it.status="mismatch";
+    }
+    if(it.status==="ok")it.write=!it.exists||f.overwrite;
+    else if(it.status==="mismatch")it.write=!!f.force[d.r]&&(!it.exists||f.overwrite);
+    f.items.push(it);
+  });
+  f.extras=[];
+  Object.keys(app.by).forEach(function(k){var a=app.by[k];if(a.text&&!seen[k])f.extras.push({no:+k,name:a.name});});
+  // 파일 단위 경고
+  if(!f.targetCol)f.warn.push("입력할 열을 찾지 못했어요. 아래에서 열을 직접 골라주세요.");
+  if(!f.data.length)f.warn.push("학생 행을 찾지 못했어요. 양식의 1행이 헤더인지 확인해주세요.");
+  if(f.type==="교과"){
+    if(!f.subjFound)f.warn.push("양식의 과목('"+f.first.subj+"')이 앱 과목에 없어요. 과목을 직접 골라주세요. (현재: "+f.subj+")");
+    else if(f.first.subj&&normSubj(f.first.subj)!==normSubj(f.subj))f.warn.push("양식 과목('"+f.first.subj+"')과 선택된 앱 과목('"+f.subj+"')이 달라요.");
+    var sm=(typeof CURRICULUM!=="undefined"&&CURRICULUM[f.subj])?/([12])학기/.exec(CURRICULUM[f.subj].semester||""):null;
+    if(sm&&f.first.sem&&sm[1]!==String(parseInt(f.first.sem,10)))f.warn.push("양식은 "+f.first.sem+"학기인데 앱의 이 과목은 "+sm[1]+"학기 과목이에요.");
+    if(!f.clsFound)f.warn.push("양식의 "+(f.label||(f.first.ban+"반"))+"과 같은 반이 앱에 없어요. 반을 직접 골라주세요. (현재: "+f.cls+")");
+    else if(f.label&&f.label!==f.cls&&lastNum(f.label)!==lastNum(f.cls))f.warn.push("양식은 "+f.label+"인데 선택된 앱 반은 "+f.cls+"이에요.");
+  }else if(f.label&&app.label&&lastNum(f.label)!==lastNum(app.label)){
+    f.warn.push("양식은 "+f.label+"인데 앱의 담임 반은 "+app.label+"이에요. 앱 담임 반 설정이 맞는지 확인해주세요.");
+  }
+  var c={ok:0,mismatch:0,blank:0,noapp:0,other:0,write:0,over:0,exists:0};
+  f.items.forEach(function(it){c[it.status]++;if(it.write){c.write++;if(it.over)c.over++;}if(it.exists&&(it.status==="ok"||it.status==="mismatch"))c.exists++;});
+  f.sum=c;
+  if(f.data.length&&c.other===f.data.length)f.warn.push("양식의 반과 앱의 반이 달라서 모든 학생이 '다른 반'으로 건너뛰어졌어요. 반 설정을 확인해주세요.");
+}
+
+/* ── 파일 이름 / 내려받기 ── */
+function outName(f){
+  var lbl=f.label||f.appLabel||"";
+  var base=f.type==="교과"?((f.subj||"교과")+"교과세특"):FILE_PREFIX[f.type];
+  return safeName(base+(lbl?"("+lbl+")":""))+".xlsx";
+}
+async function buildBlob(f){
+  var xml=f.xml,n=0;
+  f.items.forEach(function(it){if(it.write&&it.text){xml=setCell(xml,f.targetCol,it.r,it.text);n++;}});
+  f.zip.file(f.sheetPath,xml,{createFolders:false});
+  var blob=await f.zip.generateAsync({type:"blob",mimeType:XLSX_MIME,compression:"DEFLATE"});
+  return {blob:blob,n:n};
+}
+function saveBlob(blob,name){
+  var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1500);
+}
+async function download(i){
+  var f=st.files[i];if(!f)return;
+  if(!f.targetCol){alert("입력할 열을 먼저 선택해주세요.");return;}
+  var w=f.items.filter(function(x){return x.write&&x.text;}).length;
+  if(!w){alert("입력할 학생이 없어요.\n\n· 앱에 완료된 결과가 있는지\n· 번호와 이름이 양식과 같은지\n확인해주세요.");return;}
+  if(f.sum.over>0&&!confirm("⚠️ 나이스 바이트 한도("+f.limit+"B)를 넘는 학생이 "+f.sum.over+"명 있어요.\n그대로 내려받을까요? (나이스 업로드 시 오류가 날 수 있어요)"))return;
+  try{
+    var r=await buildBlob(f);
+    saveBlob(r.blob,outName(f));
+  }catch(e){alert("내보내기 오류: "+e.message);}
+}
+async function downloadAll(){
+  for(var i=0;i<st.files.length;i++){
+    var f=st.files[i];
+    if(!f.targetCol||!f.items.some(function(x){return x.write&&x.text;}))continue;
+    await download(i);
+    await new Promise(function(r){setTimeout(r,700);});
+  }
+}
+
+/* ── UI ── */
+var MODAL_ID="neis-export-modal";
+function ensureModal(){
+  var m=document.getElementById(MODAL_ID);if(m)return m;
+  m=document.createElement("div");m.id=MODAL_ID;
+  m.style.cssText="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100000;align-items:center;justify-content:center;padding:16px;";
+  m.innerHTML='<div style="background:#fff;border-radius:18px;width:100%;max-width:880px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.25);">'
+   +'<div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid #f3f4f6;">'
+   +'<div style="flex:1;"><div style="font-size:16px;font-weight:700;color:#111;">🏫 나이스 양식으로 내보내기</div>'
+   +'<div style="font-size:11.5px;color:#6b7280;margin-top:3px;line-height:1.5;">나이스에서 내려받은 빈 업로드 양식(.xlsx)을 올리면, 원본 서식 그대로 세특만 채워 드려요. 양식 속 이름·학생개인번호는 이 브라우저 안에서만 쓰고 저장하지 않아요.</div></div>'
+   +'<button onclick="neisClose()" style="width:32px;height:32px;border-radius:8px;border:none;background:#f3f4f6;color:#6b7280;font-size:16px;cursor:pointer;">✕</button></div>'
+   +'<div style="padding:14px 20px;border-bottom:1px solid #f3f4f6;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">'
+   +'<label style="padding:9px 16px;border-radius:9px;background:#16a34a;color:#fff;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;display:inline-flex;align-items:center;">📂 나이스 양식 선택 (여러 개 가능)'
+   +'<input id="neis-file-input" type="file" accept=".xlsx" multiple style="display:none;" onchange="neisPick(this)"/></label>'
+   +'<span style="font-size:11.5px;color:#9ca3af;">항목·열·반은 자동으로 맞추고, 안 맞으면 경고해요.</span></div>'
+   +'<div id="neis-body" style="padding:14px 20px;overflow-y:auto;flex:1;"></div>'
+   +'<div id="neis-foot" style="padding:12px 20px;border-top:1px solid #f3f4f6;display:flex;justify-content:flex-end;gap:8px;"></div></div>';
+  document.body.appendChild(m);return m;
+}
+function open(){
+  if(typeof JSZip==="undefined"){alert("엑셀 처리 도구(JSZip)를 불러오지 못했어요.\n인터넷 연결을 확인하고 새로고침한 뒤 다시 시도해주세요.");return;}
+  st.files=[];var m=ensureModal();m.style.display="flex";render();
+}
+function close(){var m=document.getElementById(MODAL_ID);if(m)m.style.display="none";st.files=[];var i=document.getElementById("neis-file-input");if(i)i.value="";}
+async function pick(inp){
+  var files=Array.prototype.slice.call(inp.files||[]);
+  for(var k=0;k<files.length;k++){
+    var file=files[k];
+    if(!/\.xlsx$/i.test(file.name)){alert("'"+file.name+"'은(는) .xlsx 파일이 아니에요.\n나이스에서 받은 .xlsx 양식만 사용할 수 있어요.");continue;}
+    try{
+      var x=await loadXlsx(file);x.fileName=file.name;analyze(x);recalc(x);st.files.push(x);
+    }catch(e){alert("'"+file.name+"' 읽기 오류: "+e.message);}
+  }
+  inp.value="";render();
+}
+function chip(txt,bg,fg){return '<span style="display:inline-block;padding:3px 9px;border-radius:20px;background:'+bg+';color:'+fg+';font-size:11.5px;font-weight:700;margin:2px 4px 2px 0;">'+txt+'</span>';}
+function sel(onch,opts,val){
+  return '<select onchange="'+onch+'" style="border:1px solid #d1d5db;border-radius:7px;padding:6px 8px;font-size:12px;background:#fff;color:#111;min-height:34px;max-width:230px;">'
+    +opts.map(function(o){return '<option value="'+esc(o[0])+'"'+(String(o[0])===String(val)?" selected":"")+'>'+esc(o[1])+'</option>';}).join("")+'</select>';
+}
+function cardHtml(f,i){
+  var h='<div style="border:1.5px solid #e5e7eb;border-radius:12px;padding:14px;margin-bottom:12px;">';
+  h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><div style="flex:1;font-size:13px;font-weight:700;color:#111;word-break:break-all;">📄 '+esc(f.fileName)+'</div>'
+    +'<button onclick="neisRemove('+i+')" style="border:none;background:#f3f4f6;border-radius:7px;padding:5px 10px;font-size:11px;color:#6b7280;cursor:pointer;">제거</button></div>';
+  h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:12px;color:#374151;margin-bottom:8px;">';
+  h+='<span>항목 '+sel("neisSet("+i+",'type',this.value)",TYPES.map(function(t){return [t,TYPE_LABEL[t]];}),f.type)+'</span>';
+  h+='<span>입력할 열 '+sel("neisSet("+i+",'col',this.value)",[["","(선택)"]].concat(f.headers.map(function(x){return [x.L,x.L+"열 · "+x.raw];})),f.targetCol)+'</span>';
+  if(f.type==="교과"){
+    var keys=(typeof CURRICULUM!=="undefined")?Object.keys(CURRICULUM):[f.subj];
+    h+='<span>과목 '+sel("neisSet("+i+",'subj',this.value)",keys.map(function(k){return [k,k];}),f.subj)+'</span>';
+    h+='<span>반 '+sel("neisSet("+i+",'cls',this.value)",classList(f.subj).map(function(k){return [k,k];}),f.cls)+'</span>';
+  }else{
+    h+='<span style="color:#6b7280;">앱 담임 반: <b>'+esc(f.appLabel||"-")+'</b></span>';
+  }
+  h+='<span>바이트 한도 <input type="number" value="'+f.limit+'" min="100" step="100" onchange="neisSet('+i+',\'limit\',this.value)" style="width:76px;border:1px solid #d1d5db;border-radius:7px;padding:6px 8px;font-size:12px;"/></span>';
+  h+='</div>';
+  if(!f.typeGuess)h+='<div style="font-size:11.5px;color:#b45309;margin-bottom:6px;">⚠️ 항목을 자동으로 알아보지 못했어요. 위에서 직접 선택해주세요.</div>';
+  f.warn.forEach(function(w){h+='<div style="font-size:12px;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:7px 10px;margin-bottom:6px;">⚠️ '+esc(w)+'</div>';});
+  var s=f.sum;
+  h+='<div style="margin:8px 0;">'
+    +chip("✅ 입력 "+s.write+"명","#dcfce7","#166534")
+    +(s.mismatch?chip("🔸 이름 불일치 "+s.mismatch+"명","#ffedd5","#9a3412"):"")
+    +(s.blank?chip("⬜ 미생성 "+s.blank+"명(빈칸 유지)","#f3f4f6","#4b5563"):"")
+    +(s.noapp?chip("➖ 앱에 없음 "+s.noapp+"명","#f3f4f6","#4b5563"):"")
+    +(s.other?chip("➖ 다른 반 "+s.other+"명","#f3f4f6","#4b5563"):"")
+    +(s.over?chip("⚠️ 바이트 초과 "+s.over+"명","#fee2e2","#991b1b"):"")
+    +'</div>';
+  if(f.extras.length&&f.sum.other!==f.data.length)h+='<div style="font-size:12px;color:#b45309;margin-bottom:6px;">앱에는 결과가 있는데 양식에 없는 번호: '+f.extras.slice(0,15).map(function(e){return e.no+"번"+(e.name?"("+esc(e.name)+")":"");}).join(", ")+(f.extras.length>15?" 외 "+(f.extras.length-15)+"명":"")+'</div>';
+  if(s.exists)h+='<label style="display:block;font-size:12px;color:#991b1b;margin-bottom:6px;cursor:pointer;"><input type="checkbox" '+(f.overwrite?"checked":"")+' onchange="neisSet('+i+',\'ow\',this.checked)"/> 양식 칸에 이미 내용이 있는 '+s.exists+'명도 덮어쓰기 (체크 안 하면 그 칸은 건드리지 않아요)</label>';
+  h+='<div style="max-height:230px;overflow:auto;border:1px solid #f3f4f6;border-radius:8px;"><table style="width:100%;border-collapse:collapse;font-size:12px;">'
+    +'<thead><tr style="background:#f9fafb;color:#6b7280;"><th style="padding:6px 8px;text-align:left;">번호</th><th style="padding:6px 8px;text-align:left;">양식 이름</th><th style="padding:6px 8px;text-align:left;">앱 이름</th><th style="padding:6px 8px;text-align:left;">상태</th><th style="padding:6px 8px;text-align:right;">바이트</th><th style="padding:6px 8px;"></th></tr></thead><tbody>';
+  f.items.forEach(function(it){
+    var warn=it.status==="mismatch"||it.over;
+    h+='<tr style="border-top:1px solid #f3f4f6;'+(warn?"background:#fff7ed;":"")+'"><td style="padding:5px 8px;">'+it.no+'</td><td style="padding:5px 8px;">'+esc(it.neisName)+'</td><td style="padding:5px 8px;">'+esc(it.appName||"-")+'</td>'
+      +'<td style="padding:5px 8px;">'+STATUS_LABEL[it.status]+(it.exists&&(it.status==="ok"||it.status==="mismatch")?" · 기존내용":"")+'</td>'
+      +'<td style="padding:5px 8px;text-align:right;'+(it.over?"color:#dc2626;font-weight:700;":"")+'">'+(it.text?it.bytes:"")+'</td>'
+      +'<td style="padding:5px 8px;text-align:center;">'+(it.status==="mismatch"?'<label style="cursor:pointer;white-space:nowrap;"><input type="checkbox" '+(f.force[it.r]?"checked":"")+' onchange="neisForce('+i+','+it.r+',this.checked)"/> 그래도 입력</label>':"")+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:8px;flex-wrap:wrap;"><span style="font-size:11.5px;color:#6b7280;">저장 파일명: <b>'+esc(outName(f))+'</b></span>'
+    +'<button onclick="neisDownload('+i+')" style="padding:10px 18px;border:none;border-radius:9px;background:#16a34a;color:#fff;font-size:13px;font-weight:700;cursor:pointer;min-height:44px;">⬇️ 나이스 양식 내려받기</button></div>';
+  return h+'</div>';
+}
+function render(){
+  var body=document.getElementById("neis-body"),foot=document.getElementById("neis-foot");if(!body)return;
+  if(!st.files.length){
+    body.innerHTML='<div style="text-align:center;padding:30px 10px;color:#6b7280;font-size:13px;line-height:1.8;">위 버튼으로 나이스 양식(.xlsx)을 선택해주세요.<br/>자율·진로·행동특성·교과세특 양식을 한꺼번에 여러 개 올려도 돼요.<br/><span style="font-size:11.5px;color:#9ca3af;">양식 파일은 저장되지 않고, 창을 닫으면 사라져요.</span></div>';
+    foot.innerHTML='<button onclick="neisClose()" style="padding:9px 16px;border-radius:9px;border:1.5px solid #e5e7eb;background:#fff;color:#374151;font-size:12px;font-weight:600;cursor:pointer;min-height:40px;">닫기</button>';
+    return;
+  }
+  body.innerHTML=st.files.map(cardHtml).join("");
+  foot.innerHTML=(st.files.length>1?'<button onclick="neisDownloadAll()" style="padding:9px 16px;border-radius:9px;border:none;background:#111;color:#fff;font-size:12px;font-weight:700;cursor:pointer;min-height:40px;">⬇️ 전부 내려받기</button>':"")
+    +'<button onclick="neisClose()" style="padding:9px 16px;border-radius:9px;border:1.5px solid #e5e7eb;background:#fff;color:#374151;font-size:12px;font-weight:600;cursor:pointer;min-height:40px;">닫기</button>';
+}
+function setProp(i,k,v){
+  var f=st.files[i];if(!f)return;
+  if(k==="type"){f.type=v;f.typeGuess=true;f.targetCol=targetFor(f,v)||f.targetCol;f.limit=LIMIT[v];f.force={};initApp(f);}
+  else if(k==="col")f.targetCol=v;
+  else if(k==="subj"){f.subj=v;var cl=classList(v);f.subjFound=true;if(cl.indexOf(f.cls)<0){f.cls=(f.label&&cl.indexOf(f.label)>=0)?f.label:(cl[0]||"");}f.force={};}
+  else if(k==="cls"){f.cls=v;f.clsFound=true;f.force={};}
+  else if(k==="limit")f.limit=Math.max(100,parseInt(v,10)||LIMIT[f.type]);
+  else if(k==="ow")f.overwrite=!!v;
+  recalc(f);render();
+}
+function force(i,r,on){var f=st.files[i];if(!f)return;f.force[r]=!!on;recalc(f);render();}
+function remove(i){st.files.splice(i,1);render();}
+
+window.neisOpen=open;window.neisClose=close;window.neisPick=pick;window.neisSet=setProp;window.neisForce=force;
+window.neisRemove=remove;window.neisDownload=download;window.neisDownloadAll=downloadAll;
+window.NEIS={_t:{parseSheet:parseSheet,parseSST:parseSST,setCell:setCell,loadXlsx:loadXlsx,analyze:analyze,recalc:recalc,buildBlob:buildBlob,outName:outName,neisBytes:neisBytes,st:st}};
+})();
+
+</script>
 
 <script>
 try{ initOnboardGuide(); }catch(e){}
