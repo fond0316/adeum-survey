@@ -828,7 +828,7 @@ function setTabs(on){var t=$('tabs');if(!on){t.classList.add('hide');return;}t.c
  var tl=[['island','🏝️','섬'],['rank','🏆','순위'],['guide','📖','가이드']],cur=view==='q'?'island':view;
  t.innerHTML=tl.map(function(a){return '<button data-t="'+a[0]+'" class="'+(cur===a[0]?'on':'')+'"><b>'+a[1]+'</b>'+a[2]+'</button>';}).join('');
  qsa('button',t).forEach(function(b){b.onclick=function(){go(b.getAttribute('data-t'));};});}
-function go(tab){window.scrollTo(0,0);if(!ST){renderStart();return;}if(tab==='rank')renderRank();else if(tab==='guide')renderGuide(false);else renderIsland();}
+function go(tab){window.scrollTo(0,0);if(!ST){renderStart();return;}if(tab==='rank')renderRank();else if(tab==='guide')renderGuide(false,false,'s');else renderIsland();}
 function demoBar(){return MODE==='demo'?'<div class="demobar"><span>🧪 체험 모드 · 시트에 저장되지 않아요 (봇 조원 3명)</span><button id="dexit">나가기</button></div>':'';}
 function bindDemoBar(){var b=$('dexit');if(b)b.onclick=function(){demoStop();MODE='';SES=null;ST=null;SEEN=null;stopPoll();renderStart();};}
 
@@ -837,7 +837,7 @@ function renderStart(){
  view='start';MODE=MODE==='admin'?'':MODE;if(MODE!=='real')MODE='';stopPoll();setTabs(false);
  $('app').innerHTML=titleHtml()+(GAS?'':'<div class="card" style="border-color:var(--warn)"><b>⚠️ 아직 연결이 안 됐어요</b><div class="sub">입장하려면 아듬샘이 알려준 링크(QR)로 다시 열어 주세요. 체험하기는 연결 없이도 돼요.</div><button class="btn ghost small" id="btch">🆕 선생님이세요? 처음 설치하기</button></div>')+
  '<div class="card"><h2>어떻게 시작할까요? 👀</h2><button class="btn" id="bin">🏝️ 섬에 입장하기</button><button class="btn go" id="bdemo">🎮 체험해보기 (혼자서 먼저!)</button><button class="btn ghost" id="bguide">📖 가이드 보기</button><button class="btn ghost" id="badm">👩‍🏫 담임(관리자) 입장</button></div>'+footer();
- $('bin').onclick=renderTeamPick;$('bguide').onclick=function(){renderGuide(false,true);};if($('btch'))$('btch').onclick=renderTeacherSetup;$('bdemo').onclick=startDemo;$('badm').onclick=renderAdminLogin;}
+ $('bin').onclick=renderTeamPick;$('bguide').onclick=function(){renderGuide(false,true,'s');};if($('btch'))$('btch').onclick=renderTeacherSetup;$('bdemo').onclick=startDemo;$('badm').onclick=renderAdminLogin;}
 function renderTeamPick(){
  view='pick';setTabs(false);
  if(!GAS){renderStart();toast('연결 링크로 다시 열어 주세요',2600);return;}
@@ -1139,20 +1139,37 @@ function renderRank(){
 function paintRank(){if(view!=='rank'||!ST)return;$('rbody').innerHTML=rankHtml(ST.board,ST.team.team,phase(),ST.game.startAt);updateTimers();}
 
 /* ===== 가이드 ===== */
-function renderGuide(first,fromStart){
+function teacherGuideHtml(){
+ var d=function(open,t,b){return '<details'+(open?' open':'')+'><summary>'+t+'</summary><div class="gb">'+b+'</div></details>';};
+ return '<div class="card" style="margin-top:0"><b>👩‍🏫 선생님 가이드</b><div class="sub">수업 전 준비부터 진행, 마무리까지 한눈에 볼 수 있어요. 관리자 화면에 들어가면 모든 기능을 쓸 수 있어요.</div></div>'+
+ d(1,'🧭 1. 이 앱은 이런 앱이에요','<ul><li><b>조별 협력 형성평가 게임</b>이에요. 조원이 모두 '+NQ+'문제를 풀어 <b>배 열쇠 🗝️</b>를 모으면 섬을 탈출해요.</li><li>학생은 <b>조 선택 → 이름 입력</b>만 하면 돼요. (별도 명단 등록은 필요 없어요.)</li><li>막히면 <b>조원 힌트</b>나 <b>담임 힌트</b>를 받고, 도와준 학생은 코인 보너스를 받아요.</li><li>정답·힌트·단원은 HTML 파일 안에 들어 있어요. 단원은 <b>'+esc(UNIT||'')+'</b>이에요.</li></ul>')+
+ d(1,'🚀 2. 수업 전 준비 (한 번만)','<ol><li><b>시트·GAS 설치</b>: 구글 시트에 GAS 코드를 붙여넣고 setup 실행 → 웹 앱으로 배포해요. (처음 설치 화면에 순서가 자세히 나와요.)</li><li><b>입장코드 바꾸기</b>: 처음 들어가면 나만의 입장코드로 바꾸는 화면이 먼저 떠요.</li><li><b>학생용 링크·QR 만들기</b>: 관리자 화면의 [📱 학생용 링크 · QR]에서 링크를 복사하거나 QR 이미지를 저장해 화면에 띄워요.</li><li><b>체험해보기</b>로 학생 화면을 한 번 훑어 보세요. 봇 조원 3명과 함께 처음부터 탈출까지 체험할 수 있어요. (시트에는 저장되지 않아요.)</li></ol>')+
+ d(1,'🎮 3. 수업 진행 순서','<ol><li><b>학생 입장</b>: QR이나 링크로 들어와 조와 이름을 입력해요. 가이드를 읽는 동안은 "시작 전" 상태예요.</li><li><b>제한 시간 정하기</b>: 관리자 화면 [⏱ 게임 진행]에서 분 단위로 정하고 [적용]을 눌러요. (기본 15분)</li><li><b>▶ 게임 시작</b>: 누르는 순간부터 시간이 흘러요. 그 전에는 문제를 풀 수 없어요.</li><li><b>진행 중</b>: [📊 실시간 현황판]으로 조별 상황을 보고, 막힌 조를 도와주세요.</li><li><b>마무리</b>: 시간이 끝나거나 [⏹ 지금 종료]를 누르면 순위가 확정돼요. 탈출하지 못한 조는 "탈출 실패 🌊"예요.</li><li><b>다음 수업 전</b>: [🧹 전체 초기화]로 기록을 비워요.</li></ol>')+
+ d(1,'📊 4. 실시간 현황판 · 조별 섬 보기','<ul><li>관리자 화면 맨 위 [📊 현황판 열기]로 들어가요. <b>4초마다 자동</b>으로 갱신돼요. 프로젝터에 띄워 두기 좋아요.</li><li><b>📊 전체 탭</b>: 🏆 지금 순위와 조별 진행도, 학생별 현재 위치·풀이 현황·코인·오답·힌트 수가 보여요.</li><li><b>🆘 막힌 학생</b>은 노란 줄로 표시돼요. 어느 문제에서 막혔는지 바로 알 수 있어요.</li><li><b>조 탭(1조, 2조…)</b>: 그 조의 섬이 학생 화면과 똑같이 나와요. 조원 캐릭터가 각자 풀고 있는 장소에 서 있고, 문제를 풀면 다음 칸으로 이동해요. 장소별 인원도 함께 보여요.</li><li>탈출한 조는 조원이 배 위에 모여 있어요. 아무도 없는 조는 흐리게 표시돼요.</li></ul>')+
+ d(0,'⏱ 5. 시간 조절','<ul><li><b>제한 시간(분)</b> 입력 후 [적용], 또는 <b>-5분 / +5분</b> 버튼으로 진행 중에도 조절할 수 있어요.</li><li><b>⏹ 지금 종료</b>: 그 순간 게임을 끝내요.</li><li><b>대기로 되돌리기</b>: 시작 전 상태로 돌려요. (참가자 기록은 그대로 남아요.)</li></ul>')+
+ d(0,'🆘 6. 힌트와 담임 쪽지','<ul><li>학생이 2번 틀리면 [🆘 도움 요청]이 열려요. <b>조원에게 요청</b>하면 그 문제를 푼 조원이 힌트를 보내요. (정답이 들어간 힌트는 자동으로 막혀요.)</li><li><b>담임 힌트 요청</b>을 누르면 문제별로 미리 적어 둔 <b>1단계 → 2단계 힌트</b>가 자동으로 나가요. 선생님이 옆에 없어도 돼요.</li><li>기본은 <b>푼 조원이 없을 때만</b> 담임 힌트를 받을 수 있어요. [⚙️ 설정]의 <b>"조원이 풀었어도 담임 힌트 허용"</b>을 켜면 언제든 받을 수 있어요.</li><li><b>✉️ 담임 쪽지</b>: 전체 학생·조 전체·학생 한 명에게 직접 힌트나 응원을 보낼 수 있어요. 학생 화면에 [담임 힌트]로 떠요.</li><li>[최근 담임 힌트 요청] 목록에서 누가 어느 문제에서 도움을 요청했는지 볼 수 있어요.</li></ul>')+
+ d(0,'🏝️ 7. 조·학생 관리','<ul><li>[🏝️ 조별 현황]에서 <b>섬 이름 바꾸기</b>, 학생을 <b>다른 조로 이동</b>하거나 <b>삭제</b>할 수 있어요. (조당 최대 6명)</li><li>섬 이름은 각 조의 <b>조장(처음 입장한 학생 👑)</b>도 바꿀 수 있어요.</li><li>조를 잘못 고른 학생은 섬 화면의 [다시 입장할게요]로 나갈 수 있어요. (푼 문제와 코인은 새 조에서 처음부터예요.)</li><li><b>탈출 최소 인원</b>: 조원이 이 인원 이상이고 전원이 열쇠를 가져야 탈출해요. 한 명뿐인 조가 혼자 탈출하는 걸 막아 줘요. (기본 2명)</li></ul>')+
+ d(0,'🏆 8. 코인과 우승 기준','<ul><li><b>코인</b>: 문제당 기본 10, 한 번에 맞히고 힌트도 안 받으면 +5, 힌트 1개당 -2 (최소 5), 도와준 학생 +5. 문제를 풀 때마다 🎁 보석함이 열려요.</li><li><b>우승</b>: <b>탈출 속도 점수 + 평균 코인 점수</b>의 합이 가장 높은 조예요. 점수가 같으면 더 빨리 탈출한 조가 앞서요.</li></ul>')+
+ d(0,'🛠️ 9. 문제·단원 바꾸기','<ul><li>문제는 HTML 파일 안의 <b>QUESTIONS</b>에 있어요. 문제, 보기, 정답, 1·2단계 힌트, 답 유출 검사 규칙을 바꾸면 다른 단원으로 쓸 수 있어요.</li><li>표지에 보이는 단원명은 <b>UNIT</b> 한 줄만 바꾸면 돼요.</li><li>문제 수를 바꾸면 GAS의 <b>NQ</b>도 같은 숫자로 맞춰 주세요.</li><li>정답이 HTML에 들어 있어서 학생이 페이지 소스를 열면 볼 수 있어요. 수업용으로는 충분하지만 평가용으로 쓰기엔 주의가 필요해요.</li></ul>')+
+ d(0,'🔗 10. 다른 선생님께 공유하기','<ul><li>관리자 화면 [🧑‍🏫 선생님 공유용 링크 · QR]을 복사해 전해 주세요.</li><li>받은 선생님은 <b>"처음이세요?" 화면</b>에서 자기 구글 시트에 설치해요. 내 시트·내 관리자 화면과는 완전히 분리돼요.</li><li>입장코드는 각자 바꿔서 써요. 학생용 링크·QR도 각자의 관리자 화면에서 만들어져요.</li></ul>')+
+ d(0,'🔧 11. 문제가 생겼어요','<ul><li><b>입장코드를 잊었어요</b>: Apps Script → 프로젝트 설정 → 스크립트 속성에서 <b>ADMIN_CODE</b>를 지우면 처음 코드로 돌아가요.</li><li><b>학생이 "명단에서 빠졌어요"</b>라고 떠요: 관리자가 삭제했거나 전체 초기화를 한 경우예요. 다시 입장하면 돼요.</li><li><b>GAS 코드를 고친 뒤</b>에는 [배포 관리 → 수정 → 새 버전]으로 재배포해요. "새 배포"는 주소가 바뀌어서 학생 링크가 깨져요.</li><li><b>화면이 느려요</b>: 구글 시트가 잠깐 느린 거예요. 몇 초 뒤 자동으로 다시 불러와요.</li><li>그 밖의 문의는 화면 아래 메일로 보내 주세요.</li></ul>');}
+var GTAB='s';
+function renderGuide(first,fromStart,tab){
+ GTAB=tab||'s';
  view='guide';setTabs(!first&&!fromStart);
  $('app').innerHTML=demoBar()+'<div class="title" style="margin:6px 0 0"><b style="font-size:24px">📖 원정대 가이드</b><span>출발하기 전에 읽어 보세요!</span></div>'+
- '<div class="card"><label class="sw"><input type="checkbox" id="gauto"'+(store.get(K_GUIDEAUTO,false)?' checked':'')+'><span><b>📖 입장할 때마다 가이드 먼저 보기</b><br><small class="sub">끄면 처음 한 번만 보여요. 가이드는 언제든 아래 탭(📖)이나 시작 화면에서 다시 볼 수 있어요.</small></span></label></div>'+
- '<details open><summary>🏝️ 1. 섬에 떨어졌어요!</summary><div class="gb"><ul><li>우리 조는 무인도에 떨어졌어요. <b>조원 전원이 5문제를 모두 풀어야</b> 배를 타고 탈출할 수 있어요.</li><li>문제는 섬의 5개 장소(모래사장 → 숲 → 동굴 → 절벽 → 선착장)에 있어요. 앞 문제를 풀면 다음 장소가 열려요.</li><li>조원들의 캐릭터가 섬 위에 같이 보여요. 친구가 어디까지 왔는지 확인해요!</li></ul></div></details>'+
+ '<div class="btabs"><button id="gts" class="'+(GTAB==='s'?'on':'')+'">🎒 학생용</button><button id="gtt" class="'+(GTAB==='t'?'on':'')+'">👩‍🏫 선생님용</button></div>'+(GTAB==='s'?'<div class="card"><label class="sw"><input type="checkbox" id="gauto"'+(store.get(K_GUIDEAUTO,false)?' checked':'')+'><span><b>📖 입장할 때마다 가이드 먼저 보기</b><br><small class="sub">끄면 처음 한 번만 보여요. 가이드는 언제든 아래 탭(📖)이나 시작 화면에서 다시 볼 수 있어요.</small></span></label></div>':'')+
+ (GTAB==='t'?teacherGuideHtml():'<details open><summary>🏝️ 1. 섬에 떨어졌어요!</summary><div class="gb"><ul><li>우리 조는 무인도에 떨어졌어요. <b>조원 전원이 5문제를 모두 풀어야</b> 배를 타고 탈출할 수 있어요.</li><li>문제는 섬의 5개 장소(모래사장 → 숲 → 동굴 → 절벽 → 선착장)에 있어요. 앞 문제를 풀면 다음 장소가 열려요.</li><li>조원들의 캐릭터가 섬 위에 같이 보여요. 친구가 어디까지 왔는지 확인해요!</li></ul></div></details>'+
  '<details><summary>🎁 2. 코인과 보석함</summary><div class="gb"><ul><li>문제를 풀면 🪙 코인을 받아요. (기본 10, 한 번에 맞히고 힌트도 안 받으면 +5)</li><li>힌트를 받으면 코인이 조금 줄어요. (힌트 1개당 -2, 최소 5)</li><li>풀 때마다 <b>🎁 보석함</b> 5개 중 하나를 골라요. 꽝(💨)도 있고 ✨코인 2배도 있어요!</li></ul></div></details>'+
  '<details><summary>🆘 3. 막히면 도움을 요청해요</summary><div class="gb"><ul><li>문제를 <b>2번 틀리면 [🆘 도움 요청]</b>이 열려요.</li><li><b>👥 조원에게 요청</b>: 그 문제를 이미 푼 조원이 힌트를 보내줘요.</li><li><b>👩‍🏫 담임 힌트 요청</b>: 풀어 본 조원이 없을 때 열려요. 1단계, 2단계로 힌트가 나가요.</li><li>오답은 몇 번이든 다시 도전할 수 있어요!</li></ul></div></details>'+
  '<details><summary>💡 4. 힌트를 줄 때는</summary><div class="gb"><ul><li>친구의 도움 요청(🆘)이 보이면 [힌트 보내기]를 눌러요. 도와주면 <b>🪙 +5코인</b>!</li><li><b>정답을 직접 알려주면 안 돼요.</b> 보내면 "답은 보낼 수 없어요!"라고 막혀요.</li><li>친구가 스스로 풀 수 있게 <b>풀이 방향·개념·첫 단계</b>를 알려 주세요.</li></ul></div></details>'+
  '<details open><summary>🗝️ 5. 배 열쇠 (제일 중요!)</summary><div class="gb"><ul><li><b>5번(선착장)을 풀면 "배 열쇠" 🗝️를 얻어요.</b></li><li><b>조원 전원의 열쇠가 모이면 배가 출항해요!</b> 한 명이라도 못 풀면 섬을 떠날 수 없어요.</li><li>그러니 먼저 푼 친구는 끝까지 막힌 친구를 도와주세요 💪</li></ul></div></details>'+
  '<details><summary>🏆 6. 우승은?</summary><div class="gb"><ul><li><b>탈출 속도 점수 + 평균 코인 점수</b>를 합쳐서 가장 높은 조가 우승이에요.</li><li>제한 시간 안에 탈출하지 못하면 "탈출 실패 🌊"가 돼요. 남은 시간은 화면 위에 보여요.</li></ul></div></details>'+
- '<details><summary>🚪 7. 조를 잘못 골랐다면?</summary><div class="gb">섬 화면 맨 아래 <b>[다시 입장할게요]</b>를 눌러 새로 입장해요. (푼 문제와 코인은 새 조에서 처음부터 다시 시작해요.)</div></details>'+
- '<button class="btn" id="gmap">'+(fromStart?'‹ 처음으로':(first?'출발할까요! 🚀':'섬으로 가기 🏝️'))+'</button>'+footer();
- bindDemoBar();$('gauto').onchange=function(){store.set(K_GUIDEAUTO,this.checked);toast(this.checked?'입장할 때마다 가이드를 보여줄게요 📖':'가이드는 처음 한 번만 보여요',2000);};
- $('gmap').onclick=function(){if(fromStart){renderStart();return;}store.set(K_GUIDE,true);renderIsland();};}
+ '<details><summary>🚪 7. 조를 잘못 골랐다면?</summary><div class="gb">섬 화면 맨 아래 <b>[다시 입장할게요]</b>를 눌러 새로 입장해요. (푼 문제와 코인은 새 조에서 처음부터 다시 시작해요.)</div></details>')+
+ '<button class="btn" id="gmap">'+(fromStart==='admin'?'‹ 관리자 화면으로':fromStart?'‹ 처음으로':(first?'출발할까요! 🚀':'섬으로 가기 🏝️'))+'</button>'+footer();
+ bindDemoBar();$('gts').onclick=function(){renderGuide(first,fromStart,'s');};$('gtt').onclick=function(){renderGuide(first,fromStart,'t');};
+ if($('gauto'))$('gauto').onchange=function(){store.set(K_GUIDEAUTO,this.checked);toast(this.checked?'입장할 때마다 가이드를 보여줄게요 📖':'가이드는 처음 한 번만 보여요',2000);};
+ $('gmap').onclick=function(){if(fromStart==='admin'){renderAdmin();return;}if(fromStart){renderStart();return;}store.set(K_GUIDE,true);renderIsland();};}
 
 /* ===== 체험 모드 (가상 조원 봇 3명 · 시트에 저장 안 됨) ===== */
 var DEMO={s:null,iv:null};
@@ -1279,6 +1296,7 @@ function renderAdmin(){
  '<div class="card"><h2>📱 학생용 링크 · QR</h2><input type="text" id="stuLink" readonly><button class="btn small" id="cpl">링크 복사</button><button class="btn ghost small" id="cpr">글자 링크로 복사 (섬탈출원정대_made by Cheon R)</button><button class="btn go small" id="qrb">QR 코드 만들기</button><div id="qrbox" class="hide" style="text-align:center"><canvas id="qrc" style="width:100%;max-width:300px;border:3px solid var(--ink);border-radius:8px;margin-top:10px"></canvas><button class="btn ghost small" id="qrd">QR 이미지 저장</button></div><div class="msg" id="lkm"></div></div>'+
  '<div class="card"><h2>🧑‍🏫 선생님 공유용 링크 · QR</h2><div class="sub">다른 선생님이 <b>자기 시트로 처음 설치</b>하는 링크예요. 이 링크로 들어오면 "처음이세요?" 설치 안내가 나오고, 내 시트나 내 관리자 화면과는 완전히 분리돼요.</div><input type="text" id="tchLink" readonly><button class="btn small" id="tcpl">링크 복사</button><button class="btn ghost small" id="tcpr">글자 링크로 복사 (섬탈출원정대 선생님용_made by Cheon R)</button><button class="btn go small" id="tqrb">QR 코드 만들기</button><div id="tqrbox" class="hide" style="text-align:center"><canvas id="tqrc" style="width:100%;max-width:300px;border:3px solid var(--ink);border-radius:8px;margin-top:10px"></canvas><button class="btn ghost small" id="tqrd">QR 이미지 저장</button></div><div class="msg" id="tlkm"></div></div>'+
  '<div class="card"><h2>🔑 입장코드 변경</h2><div class="sub">관리자 입장코드를 바꿀 수 있어요.</div><button class="btn ghost small" id="apw">입장코드 바꾸기</button></div>'+
+ '<div class="card"><h2>📖 선생님 가이드</h2><div class="sub">수업 준비·진행·현황판 사용법을 정리해 두었어요.</div><button class="btn ghost small" id="atg">선생님 가이드 보기</button></div>'+
  '<div class="card"><h2>🎮 체험해보기</h2><div class="sub">봇 조원 3명과 함께 혼자 체험해 볼 수 있어요. (시트에 저장되지 않아요)</div><button class="btn small" id="ademo">체험 시작</button></div>'+
  '<div class="card"><h2>🧹 초기화</h2><div class="sub">참가자·풀이·힌트·상자·섬 이름·타이머를 모두 비워요. 새 수업 전에 한 번 눌러 주세요.</div><button class="btn ghost small" id="areset">전체 초기화</button></div>'+
  backBtn('aout','🚪 나가기')+footer();
@@ -1335,6 +1353,7 @@ function bindAdmin(){
  $('ademo').onclick=function(){clearInterval(admT);startDemo();};
  $('apw').onclick=function(){renderPwChange(false);};
  $('abd').onclick=renderBoard;
+ $('atg').onclick=function(){clearInterval(admT);renderGuide(false,'admin','t');};
  var el=$('stuLink');el.value=(location.protocol==='file:'?location.href.split('?')[0].split('#')[0]:location.origin+location.pathname)+'?gas='+encodeURIComponent(GAS);
  var lm=$('lkm');function note(t,ok){lm.className='msg '+(ok?'ok':'err');lm.textContent=t;}
  if(location.protocol==='file:')note('⚠️ 지금은 내 컴퓨터 파일로 열려 있어요. 깃허브에 올린 주소에서 열어야 학생용 링크가 제대로 만들어져요.');
