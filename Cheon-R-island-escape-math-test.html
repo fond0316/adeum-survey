@@ -119,6 +119,11 @@ footer a{color:var(--ink);font-weight:900}
 .btabs button.on{background:var(--gold)}.btabs button.off{opacity:.5}
 .bd .mrow{flex-wrap:wrap}.mrow.stuck{background:#FFF3B0;border-radius:6px;padding:3px 5px}
 #bscene .spot{pointer-events:none}
+.escb{position:absolute;left:50%;top:12%;transform:translateX(-50%);z-index:8;white-space:nowrap;background:var(--gold);border:3px solid var(--ink);border-radius:8px;padding:6px 12px;font-family:var(--game);font-weight:900;font-size:14px;color:var(--ink);box-shadow:0 3px 0 var(--ink);animation:escpop .5s ease both}
+@keyframes escpop{from{opacity:0;transform:translateX(-50%) scale(.4)}to{opacity:1;transform:translateX(-50%) scale(1)}}
+.ship .bub{position:absolute;right:0;bottom:calc(100% + 4px);white-space:nowrap;background:#fff;border:3px solid var(--ink);border-radius:6px;padding:2px 7px;font-size:12px;font-family:var(--game);font-weight:900;color:var(--ink)}
+.cft{position:fixed;top:-40px;font-size:24px;z-index:90;pointer-events:none;animation:cft 3s linear forwards}
+@keyframes cft{to{transform:translateY(112vh) rotate(420deg)}}
 .pc.hop{animation:hop .4s ease-in-out 3}
 .pc .bub{position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);white-space:nowrap;background:var(--gold);border:3px solid var(--ink);border-radius:6px;padding:2px 7px;font-size:12px;font-family:var(--game);font-weight:900;color:var(--ink);z-index:9;animation:bubin .3s ease}
 @keyframes bubin{from{opacity:0;transform:translateX(-50%) scale(.5)}to{opacity:1;transform:translateX(-50%) scale(1)}}
@@ -806,9 +811,27 @@ function checkEnd(){
  if(!ST)return;
  var seen=store.get(K_ESC,{}),k=escSeenKey(),T=ST.team,ph=phase();
  if(T.escapedAt){
-  if(!SAIL.started){SAIL.started=true;if(seen[k])SAIL.go=true;else setTimeout(function(){SAIL.go=true;if(view==='island')updateScene();},1600);}
+  if(!SAIL.started){SAIL.started=true;if(seen[k])SAIL.go=true;else if(view==='island'){seen[k]=1;store.set(K_ESC,seen);escapeShow();return;}else setTimeout(function(){SAIL.go=true;if(view==='island')updateScene();},1600);}
   if(!seen[k]){seen[k]=1;store.set(K_ESC,seen);setTimeout(finale,900);}
  }else if(ph==='over'&&!seen[k+'_f']){seen[k+'_f']=1;store.set(K_ESC,seen);setTimeout(failPop,400);}}
+function confetti(){
+ var em=['🎉','✨','🎊','⭐','🎈','💛'];
+ for(var i=0;i<34;i++){var s=document.createElement('span');s.className='cft';s.textContent=em[i%em.length];s.style.left=(Math.random()*96)+'vw';s.style.animationDelay=(Math.random()*1.4)+'s';s.style.animationDuration=(2.4+Math.random()*1.6)+'s';document.body.appendChild(s);
+  (function(n){setTimeout(function(){if(n.parentNode)n.parentNode.removeChild(n);},5200);})(s);}}
+function escapeShow(){
+ var sc=$('scene');
+ if(sc){var b=document.createElement('div');b.className='escb';b.textContent='🗝️ 열쇠가 모두 모였어요!';sc.appendChild(b);setTimeout(function(){if(b.parentNode)b.parentNode.removeChild(b);},2400);}
+ Object.keys(PCN).forEach(function(k){PCN[k]._hop=1;PCN[k]._bub=(k===ST.me.name)?'탑승~! 🚢':'';});
+ updateScene();sfx('coin');
+ setTimeout(function(){Object.keys(PCN).forEach(function(k){PCN[k]._hop=0;PCN[k]._bub='';if(PCN[k].classList)PCN[k].classList.remove('hop');});if(view==='island'&&ST)updateScene();},1800);
+ setTimeout(function(){
+  SAIL.go=true;if(view==='island'&&ST)updateScene();sfx('clear');
+  var sh=$('ship'),box=$('pcs');
+  if(sh){sh.innerHTML='🚢<span class="bub">뿌우~ 🚢</span>';setTimeout(function(){var s2=$('ship');if(s2)s2.innerHTML='🚢';},2600);}
+  if(box){for(var i=1;i<=8;i++){var d=document.createElement('i');d.className='ftp';d.style.left=(SHIP_X-6+i*4)+'%';d.style.top=(SHIP_Y+4)+'%';d.style.animationDelay=(i*0.25)+'s';box.appendChild(d);(function(n){setTimeout(function(){if(n.parentNode)n.parentNode.removeChild(n);},4600);})(d);}}
+  confetti();
+ },2000);
+ setTimeout(finale,5600);}
 function finale(){
  if(modalOpen()){setTimeout(finale,2500);return;}
  sfx('clear');var T=ST.team,el=T.escapedAt-ST.game.startAt;
@@ -955,7 +978,7 @@ function updateScene(){
  Object.keys(PCN).forEach(function(k){if(!seen[k]){if(PCN[k].parentNode)PCN[k].parentNode.removeChild(PCN[k]);delete PCN[k];}});}
 function panelsHtml(){
  var me=ST.me,T=ST.team,h='',keys=T.members.filter(function(m){return m.hasKey;}).length,nm=T.members.length,minT=ST.cfg.minTeam;
- h+='<div class="card"><b>🗝️ 배 열쇠 '+keys+'/'+nm+'</b><div class="bar key"><i style="width:'+Math.round(keys/Math.max(1,nm)*100)+'%"></i></div><div class="sub" style="margin-top:6px">'+(ST.me.hasKey?'내 열쇠는 챙겼어요! 🗝️ 막힌 조원이 있으면 힌트로 도와주세요. ':'5번(선착장)을 풀면 열쇠를 얻어요. ')+'<b>조원 전원</b>의 열쇠가 모이면 배가 출항해요!'+(nm<minT&&MODE!=='demo'?'<br>⚠️ 탈출하려면 조원이 최소 '+minT+'명 필요해요.':'')+'</div></div>';
+ h+='<div class="card"><b>🗝️ 배 열쇠 '+keys+'/'+nm+'</b><div class="bar key"><i style="width:'+Math.round(keys/Math.max(1,nm)*100)+'%"></i></div><div class="sub" style="margin-top:6px">'+(T.escapedAt?'🎉 조원 전원이 열쇠를 모아 탈출했어요! ':ST.me.hasKey?'내 열쇠는 챙겼어요! 🗝️ 막힌 조원이 있으면 힌트로 도와주세요. ':'5번(선착장)을 풀면 열쇠를 얻어요. ')+'<b>조원 전원</b>의 열쇠가 모이면 배가 출항해요!'+(nm<minT&&MODE!=='demo'?'<br>⚠️ 탈출하려면 조원이 최소 '+minT+'명 필요해요.':'')+'</div></div>';
  var need=T.members.filter(function(m){return m.name!==me.name&&m.helping;});
  if(need.length){
   h+='<div class="card"><h2>🆘 도움이 필요해요</h2>'+need.map(function(m){
