@@ -715,6 +715,48 @@ var QUESTIONS=[
   bot:'화살표 방향 두 개를 확인해! "p이면 q"가 참인지, "q이면 p"가 참인지 따로 따져 봐.',
   leak:[/충분조건(이|입니다|이에요|이야|이다|임)/,/충분조건이지만/]}
 ];
+/* ===== 📖 개념 다시보기 (교과서 개념 요약 · 문제 순서와 같음 · 정답/풀이는 넣지 않기) =====
+   t=개념 이름, pg=교과서 쪽수, pts=핵심 정리(줄 단위), ex=교과서 예시(정답과 무관한 것으로) */
+var CONCEPTS=[
+ {t:'원소와 집합, 부분집합',pg:'교과서 p.65 · p.67',
+  pts:['원소 a가 집합 A에 속하면 a ∈ A, 속하지 않으면 a ∉ A 로 써요. (원소 ↔ 집합)',
+       '집합 A의 모든 원소가 집합 B에도 속하면 A ⊂ B (A는 B의 부분집합)이라 써요. (집합 ↔ 집합)',
+       '모든 집합은 자기 자신의 부분집합이고, 공집합 ∅ 은 모든 집합의 부분집합이에요.',
+       '기호의 왼쪽이 "원소"인지 "집합({ }로 묶인 것)"인지 먼저 구분해요.'],
+  ex:'10보다 작은 홀수의 집합을 A라 하면 3 ∈ A, 4 ∉ A.  A={1, 4}, B={1, 4, 7}이면 A ⊂ B.'},
+ {t:'집합의 표현 (조건제시법과 약수)',pg:'교과서 p.65',
+  pts:['원소를 { } 안에 나열하는 방법이 원소나열법, 원소들의 공통 성질을 쓰는 방법이 조건제시법이에요.',
+       '조건제시법은 {x | x는 ~} 꼴로 쓰고, 세로선 오른쪽이 "원소들이 갖는 공통된 성질"이에요.',
+       '어떤 수의 약수는 그 수를 나누어떨어지게 하는 자연수예요. (1과 자기 자신도 약수)',
+       '원소를 나열할 때 순서는 상관없고, 같은 원소를 중복해서 쓰지 않아요.'],
+  ex:'A = {x | x는 3의 약수}  →  원소나열법으로 A = {1, 3}'},
+ {t:'부분집합 구하기',pg:'교과서 p.67 · p.68',
+  pts:['A의 모든 원소가 B에 속하면 A는 B의 부분집합이에요.',
+       '공집합과 자기 자신도 부분집합에 꼭 들어가요.',
+       '"어떤 원소를 반드시 갖는다"는 건, 그 원소가 모든 부분집합 안에 들어 있다는 뜻이에요.',
+       '부분집합은 원소를 하나씩 "넣을까, 뺄까"로 정리하면 빠뜨리지 않고 셀 수 있어요.'],
+  ex:'A = {a, b, c}의 부분집합은 ∅, {a}, {b}, {c}, {a, b}, {a, c}, {b, c}, {a, b, c} 로 모두 8개예요.'},
+ {t:'명제의 역과 대우',pg:'교과서 p.86 · p.87 · p.88 · p.89',
+  pts:['명제 p → q 에서 p는 가정, q는 결론이에요.',
+       '역: 가정과 결론을 서로 바꾼 명제  q → p',
+       '대우: 가정과 결론을 서로 바꾸고 각각 부정한 명제  ~q → ~p',
+       '어떤 명제가 참이면 그 대우도 참이고, 거짓이면 대우도 거짓이에요. (역은 참일 수도, 거짓일 수도 있어요)',
+       '명제가 거짓임을 보이려면 가정은 만족하지만 결론은 만족하지 않는 반례를 하나만 찾으면 돼요.'],
+  ex:'명제 "x=1이면 x²=1이다"의 역은 "x²=1이면 x=1이다", 대우는 "x²≠1이면 x≠1이다".'},
+ {t:'충분조건과 필요조건',pg:'교과서 p.89 · p.90',
+  pts:['p → q 가 참일 때 p ⟹ q 라 쓰고, p는 q이기 위한 충분조건, q는 p이기 위한 필요조건이라고 불러요.',
+       'p ⟹ q 이고 q ⟹ p 이면 p ⟺ q 로 쓰고, 이때 p와 q를 서로 필요충분조건 관계라고 불러요.',
+       '두 방향("p이면 q", "q이면 p")을 따로따로 참·거짓을 확인해야 해요.',
+       '진리집합 P, Q에서 P ⊂ Q 이면 p ⟹ q 이고, P = Q 이면 p ⟺ q 예요.'],
+  ex:'"a는 4의 배수" ⟹ "a는 2의 배수" 이므로, 4의 배수는 충분조건, 2의 배수는 필요조건 역할을 해요.'}
+];
+var K_CONC='ise_conc_v1';
+function showConcept(q){
+ var C=CONCEPTS[q-1];if(!C)return;
+ try{var cs=store.get(K_CONC,{})||{};cs[q]=(cs[q]||0)+1;store.set(K_CONC,cs);}catch(e){}
+ popup({icon:'📖',title:esc(C.t),
+  body:'<div class="sub" style="margin-bottom:8px">'+esc(C.pg)+'을 참고해요</div><div style="text-align:left;font-size:14px;line-height:1.7">'+C.pts.map(function(x){return '<div style="margin:5px 0">✔️ '+esc(x)+'</div>';}).join('')+'<div class="rule" style="margin-top:10px"><b>예시</b><br>'+esc(C.ex)+'</div></div><div class="sub" style="margin-top:8px">개념을 확인했다면 다시 도전해 보세요!</div>',
+  btns:[{t:'알겠어요, 다시 풀어볼게요 💪'}]});}
 /* 힌트에 정답이 들어 있는지 검사 (문제별 leak + 공통 규칙) */
 function leaks(text,qn){
  var Q=QUESTIONS[qn-1],t=String(text||'').replace(/\s+/g,'');
@@ -1020,7 +1062,7 @@ function leaveIsland(){
 function renderQuestion(q){
  view='q';curQ=q;QSEL=0;setTabs(true);var Q=QUESTIONS[q-1];
  var inputs=Q.type==='choice'?'<div id="qch">'+Q.choices.map(function(c,i){return '<button class="chc" data-i="'+(i+1)+'"><b>'+CIRC[i]+'</b>'+esc(c)+'</button>';}).join('')+'</div>':'<input type="text" id="qin" inputmode="numeric" placeholder="정답을 입력하세요" autocomplete="off">';
- $('app').innerHTML=demoBar()+'<button class="back" id="bk">‹ 섬으로</button><div class="card shead" style="background:#CFE9FF"><span class="sic">'+Q.icon+'</span><div><b>'+q+'단계 · '+esc(Q.spot)+'</b><small>난이도 '+esc(Q.lvl)+' · <span class="tmr"></span></small></div></div><div class="card" id="qcard"><div id="qmeta" class="sub"></div><div class="qtext">'+esc(Q.q)+'</div>'+inputs+'<button class="btn" id="qgo">제출하기</button><div class="msg" id="qmsg"></div></div><div id="qhelp"></div><div id="qhints"></div>'+footer();
+ $('app').innerHTML=demoBar()+'<button class="back" id="bk">‹ 섬으로</button><div class="card shead" style="background:#CFE9FF"><span class="sic">'+Q.icon+'</span><div><b>'+q+'단계 · '+esc(Q.spot)+'</b><small>난이도 '+esc(Q.lvl)+' · <span class="tmr"></span></small></div></div><div class="card" id="qcard"><div id="qmeta" class="sub"></div><div class="qtext">'+esc(Q.q)+'</div>'+inputs+'<button class="btn" id="qgo">제출하기</button><div class="msg" id="qmsg"></div></div><div id="qconc" style="margin:10px 0"></div><div id="qhelp"></div><div id="qhints"></div>'+footer();
  bindDemoBar();
  $('bk').onclick=function(){renderIsland();};
  qsa('.chc').forEach(function(b){b.onclick=function(){if(ST.me.done[q-1])return;QSEL=Number(b.getAttribute('data-i'));qsa('.chc').forEach(function(x){x.classList.toggle('on',x===b);});};});
@@ -1037,6 +1079,7 @@ function paintQ(){
  }else{
   go.textContent='제출하기';go.disabled=ph!=='running';go.onclick=function(){doSubmit(q);};
  }
+ var cc=$('qconc');if(cc){cc.innerHTML='<button class="btn ghost" id="qconcb">📖 개념 다시보기</button>';$('qconcb').onclick=function(){showConcept(q);};}
  $('qhelp').innerHTML=qHelpHtml(q);bindHelp(q);$('qhints').innerHTML=qHintsHtml(q);
  qsa('[data-thx]',$('qhints')).forEach(function(b){b.onclick=function(){sendThanks(Number(b.getAttribute('data-thx')));};});
  updateTimers();}
