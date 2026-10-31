@@ -122,6 +122,8 @@ footer a{color:var(--ink);font-weight:900}
 .escb{position:absolute;left:50%;top:12%;transform:translateX(-50%);z-index:8;white-space:nowrap;background:var(--gold);border:3px solid var(--ink);border-radius:8px;padding:6px 12px;font-family:var(--game);font-weight:900;font-size:14px;color:var(--ink);box-shadow:0 3px 0 var(--ink);animation:escpop .5s ease both}
 @keyframes escpop{from{opacity:0;transform:translateX(-50%) scale(.4)}to{opacity:1;transform:translateX(-50%) scale(1)}}
 .ship .bub{position:absolute;right:0;bottom:calc(100% + 4px);white-space:nowrap;background:#fff;border:3px solid var(--ink);border-radius:6px;padding:2px 7px;font-size:12px;font-family:var(--game);font-weight:900;color:var(--ink)}
+.bdc{position:fixed;left:50%;top:16%;transform:translateX(-50%);z-index:95;width:min(92vw,560px);background:var(--gold);border:4px solid var(--ink);border-radius:12px;padding:18px 14px;text-align:center;box-shadow:0 6px 0 var(--ink);font-family:var(--game);color:var(--ink);animation:escpop .5s ease both}
+.bdc .bdt{font-size:clamp(22px,6vw,34px);font-weight:900}.bdc .bdt2{font-size:clamp(26px,7.5vw,42px);font-weight:900;margin-top:4px}.bdc .bds{margin-top:8px;font-size:clamp(13px,3.6vw,18px);font-weight:800}
 .cft{position:fixed;top:-40px;font-size:24px;z-index:90;pointer-events:none;animation:cft 3s linear forwards}
 @keyframes cft{to{transform:translateY(112vh) rotate(420deg)}}
 .pc.hop{animation:hop .4s ease-in-out 3}
@@ -811,9 +813,16 @@ function checkEnd(){
  if(!ST)return;
  var seen=store.get(K_ESC,{}),k=escSeenKey(),T=ST.team,ph=phase();
  if(T.escapedAt){
-  if(!SAIL.started){SAIL.started=true;if(seen[k])SAIL.go=true;else if(view==='island'){seen[k]=1;store.set(K_ESC,seen);escapeShow();return;}else setTimeout(function(){SAIL.go=true;if(view==='island')updateScene();},1600);}
+  if(!SAIL.started){SAIL.started=true;if(seen[k])SAIL.go=true;else if(view==='island'){seen[k]=1;store.set(K_ESC,seen);escapeShow();return;}else{seen[k]=1;store.set(K_ESC,seen);boardPop();return;}}
   if(!seen[k]){seen[k]=1;store.set(K_ESC,seen);setTimeout(finale,900);}
  }else if(ph==='over'&&!seen[k+'_f']){seen[k+'_f']=1;store.set(K_ESC,seen);setTimeout(failPop,400);}}
+var ESCHOLD=false;
+function boardPop(){
+ if(modalOpen()){setTimeout(boardPop,2500);return;}
+ sfx('clear');
+ popup({icon:'🚢',title:'모두 탑승했어요!',body:'조원 <b>전원</b>이 열쇠를 모았어요 🗝️<br>이제 섬을 탈출해요!',btns:[{t:'출발! 🚀',fn:function(){
+  ESCHOLD=true;renderIsland();
+  setTimeout(function(){ESCHOLD=false;escapeShow();},800);}}]});}
 function confetti(){
  var em=['🎉','✨','🎊','⭐','🎈','💛'];
  for(var i=0;i<34;i++){var s=document.createElement('span');s.className='cft';s.textContent=em[i%em.length];s.style.left=(Math.random()*96)+'vw';s.style.animationDelay=(Math.random()*1.4)+'s';s.style.animationDuration=(2.4+Math.random()*1.6)+'s';document.body.appendChild(s);
@@ -962,7 +971,7 @@ function updateSpots(){
 function spotPos(sp,j,n){var b=SPOTS[sp-1];return {x:b.x+(j-(n-1)/2)*9,y:b.y-9};}
 function updateScene(){
  var T=ST.team,box=$('pcs'),ship=$('ship');if(!box)return;
- var esc_=!!T.escapedAt,groups={};
+ var esc_=!!T.escapedAt&&!ESCHOLD,groups={};
  T.members.forEach(function(m){var sp=esc_?0:(HOLD[m.name]||Math.min(doneCount(m)+1,NQ));(groups[sp]=groups[sp]||[]).push(m);});
  var seen={},sx=SAIL.go?132:SHIP_X;
  if(ship)ship.style.left=(esc_?sx:SHIP_X)+'%';
@@ -1435,12 +1444,45 @@ function renderTeacherSetup(){
   }).catch(function(){GAS=old;btn.disabled=false;m.className='msg err';m.textContent='연결이 안 돼요. 주소와 배포 설정("액세스: 모든 사용자")을 확인해 주세요.';});};}
 
 /* ===== 실시간 현황판 (담임) ===== */
-var BT=null,BSEL=0,BSCN=-1,PCB={};
+var BT=null,BSEL=0,BSCN=-1,PCB={},BSEEN=null,BQ=[],BQBUSY=false,BKNOWN=null,BSND=store.get('ise_bsnd_v1',false)===true;
+SFX.fanfare=[[523,.12,0],[659,.12,.13],[784,.12,.26],[1047,.22,.39],[784,.1,.66],[1047,.1,.77],[1319,.5,.88]];
+SFX.join=[[660,.07,0],[880,.12,.08]];
+SFX.sos=[[440,.12,0],[330,.2,.14]];
+SFX.start=[[392,.14,0],[392,.14,.38],[392,.14,.76],[784,.7,1.14]];
+SFX.over=[[300,.22,0],[250,.22,.27],[200,.22,.54],[150,.7,.81]];
+SFX.warn=[[1175,.08,0],[1568,.1,.1],[1175,.08,.26],[1568,.2,.36]];
+SFX.tick=[[1760,.05,0]];
+SFX.key=[[784,.08,0],[988,.08,.09],[1319,.28,.18]];
+var BGM={iv:null,step:0},BGMN=[220,220,262,220,330,220,262,196,220,220,262,220,349,330,262,247],BTK=null,BPH=null,BWARN=false,BKEYT=null;
+function bgmOn(){
+ if(BGM.iv||!BSND)return;
+ try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();}catch(e){return;}
+ BGM.step=0;
+ BGM.iv=setInterval(function(){
+  try{var f=BGMN[BGM.step%16],t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();BGM.step++;
+   o.type='square';o.frequency.value=f*2;g.gain.setValueAtTime(.035,t);g.gain.exponentialRampToValueAtTime(.001,t+.16);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+.18);
+   if(BGM.step%4===1){var b=AC.createOscillator(),bg=AC.createGain();b.type='triangle';b.frequency.value=f/2;bg.gain.setValueAtTime(.06,t);bg.gain.exponentialRampToValueAtTime(.001,t+.5);b.connect(bg);bg.connect(AC.destination);b.start(t);b.stop(t+.52);}
+  }catch(e){}},190);}
+function bgmOff(){clearInterval(BGM.iv);BGM.iv=null;}
+function bdTick(){
+ if(view!=='board'||!ADM){clearInterval(BTK);bgmOff();return;}
+ var g=ADM.game,n=ADM.now+(Date.now()-ADM.at),ph=!g.startAt?'ready':(n>g.endAt?'over':'running'),rem=g.endAt-n;
+ if(BPH!==null&&ph!==BPH){if(ph==='running'&&BPH==='ready')boardSfx('start');else if(ph==='over'&&BPH==='running')boardSfx('over');}
+ BPH=ph;
+ if(ph==='ready')BWARN=false;
+ if(ph==='running'&&rem<=60000){
+  if(!BWARN){BWARN=true;boardSfx('warn');}
+  bgmOn();if(rem<=10000)boardSfx('tick');
+ }else{bgmOff();if(ph==='running'&&rem>60000)BWARN=false;}}
+function boardSfx(n){if(!BSND)return;var o=SND_ON;SND_ON=true;try{sfx(n);}finally{SND_ON=o;}}
+function bsndLabel(){return BSND?'🔊 효과음 켜짐 (눌러서 끄기)':'🔇 효과음 꺼짐 (눌러서 켜기)';}
 function renderBoard(){
- view='board';MODE='admin';setTabs(false);clearInterval(admT);clearInterval(BT);PCB={};BSCN=-1;
- $('app').innerHTML='<div class="title" style="margin:6px 0 0"><b style="font-size:24px">📊 실시간 현황판</b><span>학생들이 지금 어디까지 왔는지 한눈에 보여요</span></div><div class="timer" id="bgt">불러오는 중…</div><div id="btabs" class="btabs"></div><div id="bbody" class="bd"></div><button class="btn ghost small" id="bout">‹ 관리자 화면으로</button>'+footer();
- $('bout').onclick=function(){clearInterval(BT);renderAdmin();};
- loadBoard();BT=setInterval(function(){if(view==='board')loadBoard();else clearInterval(BT);},4000);}
+ view='board';MODE='admin';setTabs(false);clearInterval(admT);clearInterval(BT);PCB={};BSCN=-1;BSEEN=null;BQ=[];BQBUSY=false;BKNOWN=null;BKEYT=null;BPH=null;BWARN=false;clearInterval(BTK);bgmOff();
+ $('app').innerHTML='<div class="title" style="margin:6px 0 0"><b style="font-size:24px">📊 실시간 현황판</b><span>학생들이 지금 어디까지 왔는지 한눈에 보여요</span></div><div class="timer" id="bgt">불러오는 중…</div><button class="btn ghost small" id="bsnd">'+bsndLabel()+'</button><div id="btabs" class="btabs"></div><div id="bbody" class="bd"></div><button class="btn ghost small" id="bout">‹ 관리자 화면으로</button>'+footer();
+ $('bout').onclick=function(){clearInterval(BT);clearInterval(BTK);bgmOff();renderAdmin();};
+ $('bsnd').onclick=function(){BSND=!BSND;store.set('ise_bsnd_v1',BSND);$('bsnd').textContent=bsndLabel();if(BSND)boardSfx('fanfare');else bgmOff();};
+ loadBoard();BT=setInterval(function(){if(view==='board')loadBoard();else clearInterval(BT);},4000);
+ BTK=setInterval(bdTick,1000);}
 function loadBoard(){
  adm('adminstate').then(function(r){if(!r||!r.ok||view!=='board')return;ADM=r;ADM.at=Date.now();paintBoard();}).catch(function(){});}
 function bdPhase(){var g=ADM.game,n=ADM.now+(Date.now()-ADM.at);return !g.startAt?'ready':(n>g.endAt?'over':'running');}
@@ -1464,6 +1506,11 @@ function bdTeam(L,mem,full){
 function paintBoard(){
  if(view!=='board'||!ADM)return;
  $('bgt').textContent=admPhaseTxt();
+ var escL=ADM.labels.filter(function(L){return L.escapedAt;}).sort(function(a,b){return a.escapedAt-b.escapedAt;});
+ if(BSEEN===null){BSEEN={};escL.forEach(function(L){BSEEN[L.team]=1;});}
+ else escL.forEach(function(L,i){if(!BSEEN[L.team]){BSEEN[L.team]=1;BQ.push({L:L,n:i+1});}});
+ bdSounds();
+ bdNext();
  var teams=ADM.labels.map(function(L){return {L:L,mem:ADM.players.filter(function(p){return p.team===L.team;})};});
  var tb=$('btabs');
  tb.innerHTML='<button data-b="0" class="'+(BSEL===0?'on':'')+'">📊 전체</button>'+teams.map(function(t){return '<button data-b="'+t.L.team+'" class="'+(BSEL===t.L.team?'on':'')+(t.mem.length?'':' off')+'">'+t.L.team+'조 ('+t.mem.length+')</button>';}).join('');
@@ -1488,6 +1535,23 @@ function paintBoard(){
  var cnt=[];for(var q=1;q<=NQ;q++){var c=t.mem.filter(function(p){return !esc_&&Math.min(doneCount(p)+1,NQ)===q;}).length;cnt.push(q+'. '+QUESTIONS[q-1].spot+' '+c+'명');}
  $('bcnt').textContent='지금 위치 → '+cnt.join(' · ')+(esc_?' · 🚢 탈출 완료':'');
  $('bteam').innerHTML=bdTeam(t.L,t.mem,true);}
+function bdSounds(){
+ var cur={};ADM.players.forEach(function(p){cur[p.team+'|'+p.name]=p.helping||0;});
+ var kt={};ADM.players.forEach(function(p){if(p.hasKey)kt[p.team]=1;});
+ if(BKEYT!==null){Object.keys(kt).forEach(function(t){if(!BKEYT[t]){var L=ADM.labels.filter(function(x){return x.team===Number(t);})[0];toast('🗝️ '+t+'조'+(L?' · '+L.label:'')+' 첫 열쇠 획득!',3200);boardSfx('key');}});}
+ BKEYT=kt;
+ if(BKNOWN===null){BKNOWN=cur;return;}
+ var joined=false,sos=false;
+ Object.keys(cur).forEach(function(k){if(!(k in BKNOWN))joined=true;else if(cur[k]&&cur[k]!==BKNOWN[k])sos=true;});
+ BKNOWN=cur;
+ if(sos)boardSfx('sos');else if(joined)boardSfx('join');}
+function bdNext(){
+ if(BQBUSY||!BQ.length)return;
+ var e=BQ.shift(),L=e.L;BQBUSY=true;
+ var el=document.createElement('div');el.className='bdc';
+ el.innerHTML='<div class="bdt">🎉 '+L.team+'조 · '+esc(L.label)+'</div><div class="bdt2">탈출 성공! 🚢</div><div class="bds">⏱ 탈출 시간 '+fmtMs(L.escapedAt-ADM.game.startAt)+' · '+e.n+'번째로 탈출했어요!</div>';
+ document.body.appendChild(el);confetti();boardSfx('fanfare');
+ setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);BQBUSY=false;bdNext();},6500);}
 function boardChars(mem,esc_){
  var box=$('pcs');if(!box)return;var groups={},seen={};
  mem.forEach(function(m){var sp=esc_?0:Math.min(doneCount(m)+1,NQ);(groups[sp]=groups[sp]||[]).push(m);});
