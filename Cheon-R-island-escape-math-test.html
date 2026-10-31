@@ -115,6 +115,10 @@ footer a{color:var(--ink);font-weight:900}
 .pc .pn{display:block;font-size:10px;font-family:var(--game);background:#fff;border:2px solid var(--ink);border-radius:4px;padding:0 3px;white-space:nowrap;margin-top:2px;max-width:62px;overflow:hidden;text-overflow:ellipsis}
 .pc.me .pn{background:var(--gold)}
 .pc.hop{animation:hop .4s ease-in-out 3}
+.pc .bub{position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);white-space:nowrap;background:var(--gold);border:3px solid var(--ink);border-radius:6px;padding:2px 7px;font-size:12px;font-family:var(--game);font-weight:900;color:var(--ink);z-index:9;animation:bubin .3s ease}
+@keyframes bubin{from{opacity:0;transform:translateX(-50%) scale(.5)}to{opacity:1;transform:translateX(-50%) scale(1)}}
+.ftp{position:absolute;width:9px;height:9px;margin:-4px 0 0 -4px;background:#fff;border:2px solid var(--ink);border-radius:2px;z-index:4;pointer-events:none;opacity:0;animation:ftp 1.9s ease both}
+@keyframes ftp{0%{opacity:0;transform:scale(0)}12%{opacity:1;transform:scale(1.25)}25%{transform:scale(1)}80%{opacity:1}100%{opacity:0}}
 @keyframes hop{0%,100%{transform:translate(-50%,-100%)}50%{transform:translate(-50%,-175%)}}
 .pc.sail{transition:left 3.2s ease-in,top 1.2s ease}
 .pc .sb{display:none;position:absolute;left:50%;top:-20px;transform:translateX(-50%);font-style:normal;font-size:16px;animation:blink .8s steps(2) infinite}
@@ -645,7 +649,7 @@ function doGet(e) {
 <script>
 /* ===== 설정 ===== */
 var GAS_DEFAULT='';
-var K_GAS='ise_gas_v1',K_SES='ise_session_v1',K_GUIDE='ise_guide_v1',K_ESC='ise_escseen_v1',K_SND='ise_snd_v1';
+var K_GAS='ise_gas_v1',K_SES='ise_session_v1',K_GUIDE='ise_guide_v1',K_GUIDEAUTO='ise_guideauto_v1',K_ESC='ise_escseen_v1',K_SND='ise_snd_v1';
 var params=new URLSearchParams(location.search);
 var GAS=params.get('gas')||localStorage.getItem(K_GAS)||GAS_DEFAULT;
 if(params.get('gas')){try{localStorage.setItem(K_GAS,params.get('gas'));}catch(e){}}
@@ -827,8 +831,8 @@ function bindDemoBar(){var b=$('dexit');if(b)b.onclick=function(){demoStop();MOD
 function renderStart(){
  view='start';MODE=MODE==='admin'?'':MODE;if(MODE!=='real')MODE='';stopPoll();setTabs(false);
  $('app').innerHTML=titleHtml()+(GAS?'':'<div class="card" style="border-color:var(--warn)"><b>⚠️ 아직 연결이 안 됐어요</b><div class="sub">입장하려면 아듬샘이 알려준 링크(QR)로 다시 열어 주세요. 체험하기는 연결 없이도 돼요.</div><button class="btn ghost small" id="btch">🆕 선생님이세요? 처음 설치하기</button></div>')+
- '<div class="card"><h2>어떻게 시작할까요? 👀</h2><button class="btn" id="bin">🏝️ 섬에 입장하기</button><button class="btn go" id="bdemo">🎮 체험해보기 (혼자서 먼저!)</button><button class="btn ghost" id="badm">👩‍🏫 담임(관리자) 입장</button></div>'+footer();
- $('bin').onclick=renderTeamPick;if($('btch'))$('btch').onclick=renderTeacherSetup;$('bdemo').onclick=startDemo;$('badm').onclick=renderAdminLogin;}
+ '<div class="card"><h2>어떻게 시작할까요? 👀</h2><button class="btn" id="bin">🏝️ 섬에 입장하기</button><button class="btn go" id="bdemo">🎮 체험해보기 (혼자서 먼저!)</button><button class="btn ghost" id="bguide">📖 가이드 보기</button><button class="btn ghost" id="badm">👩‍🏫 담임(관리자) 입장</button></div>'+footer();
+ $('bin').onclick=renderTeamPick;$('bguide').onclick=function(){renderGuide(false,true);};if($('btch'))$('btch').onclick=renderTeacherSetup;$('bdemo').onclick=startDemo;$('badm').onclick=renderAdminLogin;}
 function renderTeamPick(){
  view='pick';setTabs(false);
  if(!GAS){renderStart();toast('연결 링크로 다시 열어 주세요',2600);return;}
@@ -860,9 +864,10 @@ function renderNameEntry(team,teams){
   }).catch(function(e){stop();btn.disabled=false;m.className='msg err';m.textContent=noGasMsg(e);});};
  $('go').onclick=function(){doJoin(false);};
  $('nm').addEventListener('keydown',function(e){if(e.key==='Enter')doJoin(false);});}
+function guideFirst(){return !store.get(K_GUIDE,false)||!!store.get(K_GUIDEAUTO,false);}
 function enterGame(){
  startPoll();STAT_PH=phase();
- if(!ST.me.ch)renderChar();else if(!store.get(K_GUIDE,false))renderGuide(true);else renderIsland();}
+ if(!ST.me.ch)renderChar();else if(guideFirst())renderGuide(true);else renderIsland();}
 function renderChar(){
  view='char';setTabs(false);var sel=ST.me.ch||'';
  $('app').innerHTML='<div class="title"><b style="font-size:26px">나의 캐릭터 고르기</b><span>섬 위에 이 캐릭터로 나타나요</span></div><div class="card"><div class="chars" id="chs">'+CHARS.map(function(c){return '<div class="ch'+(c.e===sel?' on':'')+'" data-e="'+c.e+'">'+c.e+'<small>'+c.n+'</small></div>';}).join('')+'</div><button class="btn" id="cgo">이 캐릭터로 출발! ✨</button><div class="msg" id="cmsg"></div></div>';
@@ -872,7 +877,7 @@ function renderChar(){
   var btn=$('cgo');btn.disabled=true;
   api('setchar',Object.assign({char:sel},idp())).then(function(r){
    if(!r||!r.ok)throw new Error('x');ST.me.ch=sel;
-   return pollNow();}).then(function(){if(!store.get(K_GUIDE,false))renderGuide(true);else renderIsland();}).catch(function(){btn.disabled=false;$('cmsg').className='msg err';$('cmsg').textContent='저장하지 못했어요. 다시 눌러 주세요.';});};}
+   return pollNow();}).then(function(){if(guideFirst())renderGuide(true);else renderIsland();}).catch(function(){btn.disabled=false;$('cmsg').className='msg err';$('cmsg').textContent='저장하지 못했어요. 다시 눌러 주세요.';});};}
 
 /* ===== 섬 화면 ===== */
 function islandSvg(){
@@ -940,7 +945,7 @@ function updateScene(){
    var el=PCN[m.name];if(!el){el=document.createElement('div');box.appendChild(el);PCN[m.name]=el;}
    el.className='pc'+(m.name===ST.me.name?' me':'')+(m.helping?' sos':'')+(esc_?' sail':'')+(el._hop?' hop':'');
    el.style.left=pos.x+'%';el.style.top=pos.y+'%';
-   el.innerHTML='<i class="sb">🆘</i>'+esc(m.ch||'🙂')+'<span class="pn">'+esc(m.name)+(m.hasKey?' 🗝️':'')+'</span>';
+   el.innerHTML=(el._bub?'<span class="bub">'+el._bub+'</span>':'')+'<i class="sb">🆘</i>'+esc(m.ch||'🙂')+'<span class="pn">'+esc(m.name)+(m.hasKey?' 🗝️':'')+'</span>';
    seen[m.name]=1;});});
  Object.keys(PCN).forEach(function(k){if(!seen[k]){if(PCN[k].parentNode)PCN[k].parentNode.removeChild(PCN[k]);delete PCN[k];}});}
 function panelsHtml(){
@@ -1053,12 +1058,21 @@ function renderIslandMove(q){
  var nm=ST.me.name,Q=QUESTIONS[q];HOLD[nm]=q;renderIsland();
  try{$('scene').scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
  setTimeout(function(){
-  delete HOLD[nm];var el=PCN[nm];if(el)el._hop=1;if(view==='island'&&ST){updateScene();sfx('coin');}
+  delete HOLD[nm];var el=PCN[nm],box=$('pcs'),fx=0,fy=0;
+  if(el){fx=parseFloat(el.style.left);fy=parseFloat(el.style.top);el._hop=1;el._bub='총총총~ 🐾';}
+  if(view==='island'&&ST){updateScene();sfx('coin');}
+  if(el&&box){var tx=parseFloat(el.style.left),ty=parseFloat(el.style.top);
+   for(var i=1;i<=7;i++){var d=document.createElement('i');d.className='ftp';d.style.left=(fx+(tx-fx)*i/8)+'%';d.style.top=(fy+(ty-fy)*i/8+1)+'%';d.style.animationDelay=(i*0.12)+'s';box.appendChild(d);setTimeout((function(n){return function(){if(n.parentNode)n.parentNode.removeChild(n);};})(d),3200);}}
   setTimeout(function(){
-   var e=PCN[nm];if(e){e._hop=0;e.classList.remove('hop');}
-   if(view!=='island'||!ST||phase()!=='running')return;
-   popup({icon:Q.icon,title:'📍 '+esc(Q.spot)+'에 도착했어요!',body:'<b>'+(q+1)+'번 문제</b>가 기다리고 있어요.<br>문제 풀러 가볼까요?',btns:[{t:'가자! 🏃',fn:function(){renderQuestion(q+1);}},{t:'조금 더 둘러볼게요',ghost:true}]});
-  },1600);
+   var e=PCN[nm];if(e){e._hop=0;e._bub='뿅~ ✨';e.classList.remove('hop');}
+   if(view==='island'&&ST){updateScene();sfx('coin');}
+   setTimeout(function(){
+    var e2=PCN[nm];if(e2)e2._bub='';
+    if(view==='island'&&ST)updateScene();
+    if(view!=='island'||!ST||phase()!=='running')return;
+    popup({icon:Q.icon,title:'📍 '+esc(Q.spot)+'에 도착했어요!',body:'<b>'+(q+1)+'번 문제</b>가 기다리고 있어요.<br>문제 풀러 가볼까요?',btns:[{t:'가자! 🏃',fn:function(){renderQuestion(q+1);}},{t:'조금 더 둘러볼게요',ghost:true}]});
+   },1100);
+  },1300);
  },900);}
 function afterSolve(q){
  if(modalOpen())return;
@@ -1120,9 +1134,10 @@ function renderRank(){
 function paintRank(){if(view!=='rank'||!ST)return;$('rbody').innerHTML=rankHtml(ST.board,ST.team.team,phase(),ST.game.startAt);updateTimers();}
 
 /* ===== 가이드 ===== */
-function renderGuide(first){
- view='guide';setTabs(!first);
+function renderGuide(first,fromStart){
+ view='guide';setTabs(!first&&!fromStart);
  $('app').innerHTML=demoBar()+'<div class="title" style="margin:6px 0 0"><b style="font-size:24px">📖 원정대 가이드</b><span>출발하기 전에 읽어 보세요!</span></div>'+
+ '<div class="card"><label class="sw"><input type="checkbox" id="gauto"'+(store.get(K_GUIDEAUTO,false)?' checked':'')+'><span><b>📖 입장할 때마다 가이드 먼저 보기</b><br><small class="sub">끄면 처음 한 번만 보여요. 가이드는 언제든 아래 탭(📖)이나 시작 화면에서 다시 볼 수 있어요.</small></span></label></div>'+
  '<details open><summary>🏝️ 1. 섬에 떨어졌어요!</summary><div class="gb"><ul><li>우리 조는 무인도에 떨어졌어요. <b>조원 전원이 5문제를 모두 풀어야</b> 배를 타고 탈출할 수 있어요.</li><li>문제는 섬의 5개 장소(모래사장 → 숲 → 동굴 → 절벽 → 선착장)에 있어요. 앞 문제를 풀면 다음 장소가 열려요.</li><li>조원들의 캐릭터가 섬 위에 같이 보여요. 친구가 어디까지 왔는지 확인해요!</li></ul></div></details>'+
  '<details><summary>🎁 2. 코인과 보석함</summary><div class="gb"><ul><li>문제를 풀면 🪙 코인을 받아요. (기본 10, 한 번에 맞히고 힌트도 안 받으면 +5)</li><li>힌트를 받으면 코인이 조금 줄어요. (힌트 1개당 -2, 최소 5)</li><li>풀 때마다 <b>🎁 보석함</b> 5개 중 하나를 골라요. 꽝(💨)도 있고 ✨코인 2배도 있어요!</li></ul></div></details>'+
  '<details><summary>🆘 3. 막히면 도움을 요청해요</summary><div class="gb"><ul><li>문제를 <b>2번 틀리면 [🆘 도움 요청]</b>이 열려요.</li><li><b>👥 조원에게 요청</b>: 그 문제를 이미 푼 조원이 힌트를 보내줘요.</li><li><b>👩‍🏫 담임 힌트 요청</b>: 풀어 본 조원이 없을 때 열려요. 1단계, 2단계로 힌트가 나가요.</li><li>오답은 몇 번이든 다시 도전할 수 있어요!</li></ul></div></details>'+
@@ -1130,14 +1145,15 @@ function renderGuide(first){
  '<details open><summary>🗝️ 5. 배 열쇠 (제일 중요!)</summary><div class="gb"><ul><li><b>5번(선착장)을 풀면 "배 열쇠" 🗝️를 얻어요.</b></li><li><b>조원 전원의 열쇠가 모이면 배가 출항해요!</b> 한 명이라도 못 풀면 섬을 떠날 수 없어요.</li><li>그러니 먼저 푼 친구는 끝까지 막힌 친구를 도와주세요 💪</li></ul></div></details>'+
  '<details><summary>🏆 6. 우승은?</summary><div class="gb"><ul><li><b>탈출 속도 점수 + 평균 코인 점수</b>를 합쳐서 가장 높은 조가 우승이에요.</li><li>제한 시간 안에 탈출하지 못하면 "탈출 실패 🌊"가 돼요. 남은 시간은 화면 위에 보여요.</li></ul></div></details>'+
  '<details><summary>🚪 7. 조를 잘못 골랐다면?</summary><div class="gb">섬 화면 맨 아래 <b>[다시 입장할게요]</b>를 눌러 새로 입장해요. (푼 문제와 코인은 새 조에서 처음부터 다시 시작해요.)</div></details>'+
- '<button class="btn" id="gmap">'+(first?'출발할까요! 🚀':'섬으로 가기 🏝️')+'</button>'+footer();
- bindDemoBar();$('gmap').onclick=function(){store.set(K_GUIDE,true);renderIsland();};}
+ '<button class="btn" id="gmap">'+(fromStart?'‹ 처음으로':(first?'출발할까요! 🚀':'섬으로 가기 🏝️'))+'</button>'+footer();
+ bindDemoBar();$('gauto').onchange=function(){store.set(K_GUIDEAUTO,this.checked);toast(this.checked?'입장할 때마다 가이드를 보여줄게요 📖':'가이드는 처음 한 번만 보여요',2000);};
+ $('gmap').onclick=function(){if(fromStart){renderStart();return;}store.set(K_GUIDE,true);renderIsland();};}
 
 /* ===== 체험 모드 (가상 조원 봇 3명 · 시트에 저장 안 됨) ===== */
 var DEMO={s:null,iv:null};
 function startDemo(){
  MODE='demo';SES={team:9,name:'체험(나)'};SEEN=null;HELPSEEN={};SAIL={go:false,started:false};
- demoInit();pollNow().then(function(){STAT_PH=phase();startPoll();if(!store.get(K_GUIDE,false))renderGuide(true);else renderIsland();});}
+ demoInit();pollNow().then(function(){STAT_PH=phase();startPoll();if(guideFirst())renderGuide(true);else renderIsland();});}
 function demoStop(){clearInterval(DEMO.iv);DEMO.s=null;}
 function demoInit(){
  var t0=Date.now();
