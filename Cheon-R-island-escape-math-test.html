@@ -114,6 +114,8 @@ footer a{color:var(--ink);font-weight:900}
 .pc{position:absolute;transform:translate(-50%,-100%);transition:left 1.2s ease,top 1.2s ease;font-size:clamp(20px,6.4vw,28px);line-height:1;text-align:center;pointer-events:none;z-index:5}
 .pc .pn{display:block;font-size:10px;font-family:var(--game);background:#fff;border:2px solid var(--ink);border-radius:4px;padding:0 3px;white-space:nowrap;margin-top:2px;max-width:62px;overflow:hidden;text-overflow:ellipsis}
 .pc.me .pn{background:var(--gold)}
+.pc.hop{animation:hop .4s ease-in-out 3}
+@keyframes hop{0%,100%{transform:translate(-50%,-100%)}50%{transform:translate(-50%,-175%)}}
 .pc.sail{transition:left 3.2s ease-in,top 1.2s ease}
 .pc .sb{display:none;position:absolute;left:50%;top:-20px;transform:translateX(-50%);font-style:normal;font-size:16px;animation:blink .8s steps(2) infinite}
 .pc.sos .sb{display:block}
@@ -155,6 +157,491 @@ footer a{color:var(--ink);font-weight:900}
 <div id="tabs" class="hide"></div>
 <div id="modal" class="hide"></div>
 <div id="toast" class="hide"></div>
+<script type="text/plain" id="gassrc">
+/**
+ * 섬탈출원정대 GAS (Cheon-R-island-escape-math-test.gs)
+ *
+ * [설치]
+ * 1) 구글 시트를 하나 만들고 확장 프로그램 > Apps Script 에 이 코드를 통째로 붙여넣기
+ * 2) 함수 목록에서 setup 을 한 번 실행 (권한 허용) -> 시트 탭 6개가 자동으로 생겨요
+ * 3) 배포 > 새 배포 > 웹 앱 (실행: 나 / 액세스: 모든 사용자)
+ *    * 코드를 고친 뒤에는 반드시 [배포 관리 > 수정 > 새 버전]으로 재배포 (새 배포 금지)
+ * 4) 학생 링크:  앱주소.html?gas=웹앱주소
+ *
+ * [시트 탭]
+ *  참가자   : 입장한 사람 (조/이름/캐릭터/코인/열쇠/도움중 + 문항별 완료·오답·힌트받음)
+ *  풀이기록 : 제출할 때마다 한 줄 (정답/오답)
+ *  힌트     : 조원 힌트 + 담임 힌트 쪽지
+ *  도움요청 : 도움 요청 기록
+ *  상자     : 보석함 결과
+ *  조설정   : 섬 이름 변경 + 탈출 시각
+ *
+ * 이 앱의 정답·힌트는 HTML 파일의 QUESTIONS 에 있어요 (GAS는 기록과 공유만 담당).
+ * 관리자 입장코드: 처음엔 mathtest -> 관리자 화면에서 각자 바꿔요 (바뀐 값은 스크립트 속성 ADMIN_CODE 에 저장)
+ *   * 코드를 잊었다면: Apps Script > 프로젝트 설정 > 스크립트 속성에서 ADMIN_CODE 를 지우면 mathtest 로 돌아가요
+ */
+var SH_P = '참가자', SH_LOG = '풀이기록', SH_H = '힌트', SH_R = '도움요청', SH_B = '상자', SH_T = '조설정';
+var NQ = 5;                    // 문제 수 (HTML의 QUESTIONS 개수와 같아야 해요)
+var MAX_TEAM = 6;              // 조당 최대 인원
+var TEAMS = [1, 2, 3, 4, 5];
+var ISLAND_DEFAULT = { 1: '🐢 거북이섬', 2: '🌴 야자섬', 3: '🌋 화산섬', 4: '🪸 산호섬', 5: '🐚 조개섬' };
+var ADMIN_CODE = 'mathtest';   // 처음 입장코드 (관리자 화면에서 각자 바꾸면 스크립트 속성 ADMIN_CODE에 저장돼요)
+var CHARS = ['🦊', '🐯', '🐻', '🐼', '🐰', '🐸', '🦁', '🐧', '🐶', '🐱', '🐹', '🐨', '🐵', '🐔', '🦄', '🐙', '🦖', '🐳', '🦋', '🐢'];
+var COIN_BASE = 10, COIN_FIRST = 5, COIN_HINT_PENALTY = 2, COIN_MIN = 5, COIN_HELP = 5, DOUBLE_CAP = 30;
+var BOX_CODES = ['X', '5', '10', '20', 'D'];
+
+var B_H = ['상자ID', '키', '문항', '상자1', '상자2', '상자3', '상자4', '상자5', '선택', '획득코인', '시각'];
+var LOG_H = ['시각', '조', '이름', '문항', '결과', '획득코인'];
+var H_H = ['ID', '시각', '조', '보낸이', '받는이', '문항', '종류', '내용', '감사'];
+var R_H = ['ID', '시각', '조', '요청자', '문항', '종류', '상태'];
+var T_H = ['조', '섬이름', '탈출시각ms', '탈출시각'];
+function pHeaders_() {
+  var h = ['키', '조', '이름', '캐릭터', '코인', '열쇠', '도움중', '입장시각', '갱신'];
+  for (var i = 1; i <= NQ; i++) { h.push('Q' + i + '_완료'); h.push('Q' + i + '_오답'); h.push('Q' + i + '_힌트받음'); }
+  return h;
+}
+
+/* ===== 공통 ===== */
+function nowKST_() { return Utilities.formatDate(new Date(), 'Asia/Seoul', 'yyyy-MM-dd HH:mm:ss'); }
+function num_(v) { var n = parseInt(String(v).replace(/[^0-9]/g, ''), 10); return isNaN(n) ? 0 : n; }
+function clean_(v, n) { return String(v == null ? '' : v).replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, n); }
+function key_(t, n) { return 'T' + num_(t) + '_' + clean_(n, 10); }
+function props_() { return PropertiesService.getScriptProperties(); }
+function pwDefault_() { return !props_().getProperty('ADMIN_CODE'); }
+function adminOk_(code) { return String(code || '') === (props_().getProperty('ADMIN_CODE') || ADMIN_CODE); }
+function sheet_(name, headers) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName(name);
+  if (!sh) sh = ss.insertSheet(name);
+  if (sh.getLastRow() === 0) {
+    if (name === SH_P) sh.getRange(1, 1, sh.getMaxRows(), 3).setNumberFormat('@');   // 키·이름이 날짜로 바뀌지 않게
+    sh.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold').setBackground('#dff0ff');
+    sh.setFrozenRows(1);
+  }
+  return sh;
+}
+function setup() {
+  sheet_(SH_P, pHeaders_()); sheet_(SH_LOG, LOG_H); sheet_(SH_H, H_H); sheet_(SH_R, R_H); sheet_(SH_B, B_H); sheet_(SH_T, T_H);
+  return 'OK';
+}
+function jsonp_(cb, obj) {
+  var txt = JSON.stringify(obj);
+  if (cb && /^[A-Za-z0-9_]+$/.test(cb)) return ContentService.createTextOutput(cb + '(' + txt + ')').setMimeType(ContentService.MimeType.JAVASCRIPT);
+  return ContentService.createTextOutput(txt).setMimeType(ContentService.MimeType.JSON);
+}
+function withLock_(fn) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(25000);
+  try { return fn(); } finally { try { lock.releaseLock(); } catch (x) {} }
+}
+function bust_() { try { CacheService.getScriptCache().remove('snap'); } catch (e) {} }
+function shuffle_(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function nextId_(sh) {
+  var last = sh.getLastRow();
+  if (last < 2) return 1;
+  return num_(sh.getRange(last, 1, 1, 1).getValues()[0][0]) + 1;
+}
+
+/* ===== 게임 시간·설정 ===== */
+function game_() {
+  var pr = props_(), st = Number(pr.getProperty('START')) || 0, dur = Number(pr.getProperty('DUR'));
+  if (!(dur > 0)) dur = 15;
+  var now = Date.now(), end = st ? st + dur * 60000 : 0;
+  return { phase: !st ? 'ready' : (now > end ? 'over' : 'running'), startAt: st, endAt: end, durationMin: Math.round(dur * 10) / 10 };
+}
+function cfg_() {
+  var pr = props_();
+  return { always: pr.getProperty('ALWAYS') === '1', minTeam: Math.max(1, num_(pr.getProperty('MINTEAM')) || 2) };
+}
+
+/* ===== 시트 읽기·쓰기 ===== */
+function readP_() {
+  var H = pHeaders_(), sh = sheet_(SH_P, H), last = sh.getLastRow(), list = [];
+  if (last >= 2) {
+    var v = sh.getRange(2, 1, last - 1, H.length).getValues();
+    for (var i = 0; i < v.length; i++) {
+      var r = v[i];
+      if (!r[0]) continue;
+      var p = { row: i + 2, key: String(r[0]), team: num_(r[1]), name: String(r[2]), ch: String(r[3] || ''), coins: Number(r[4]) || 0, hasKey: String(r[5]) === 'O', helping: num_(r[6]), joined: String(r[7]), done: [], wrong: [], hinted: [] };
+      for (var q = 0; q < NQ; q++) { p.done.push(String(r[9 + q * 3]) === 'O'); p.wrong.push(num_(r[10 + q * 3])); p.hinted.push(num_(r[11 + q * 3])); }
+      list.push(p);
+    }
+  }
+  return { sh: sh, list: list };
+}
+function pRow_(p) {
+  var r = [p.key, p.team, p.name, p.ch, p.coins, p.hasKey ? 'O' : '', p.helping || '', p.joined, nowKST_()];
+  for (var q = 0; q < NQ; q++) { r.push(p.done[q] ? 'O' : ''); r.push(p.wrong[q] || 0); r.push(p.hinted[q] || 0); }
+  return r;
+}
+function saveP_(sh, p) { var r = pRow_(p); sh.getRange(p.row, 1, 1, r.length).setValues([r]); }
+function findP_(list, key) { for (var i = 0; i < list.length; i++) if (list[i].key === key) return list[i]; return null; }
+function newP_(team, name) {
+  var p = { key: key_(team, name), team: team, name: clean_(name, 10), ch: '', coins: 0, hasKey: false, helping: 0, joined: nowKST_(), done: [], wrong: [], hinted: [] };
+  for (var q = 0; q < NQ; q++) { p.done.push(false); p.wrong.push(0); p.hinted.push(0); }
+  return p;
+}
+function readH_() {
+  var sh = sheet_(SH_H, H_H), last = sh.getLastRow(), list = [];
+  if (last >= 2) {
+    var v = sh.getRange(2, 1, last - 1, H_H.length).getValues();
+    for (var i = 0; i < v.length; i++) {
+      var r = v[i];
+      list.push({ row: i + 2, id: num_(r[0]), t: String(r[1]), team: num_(r[2]), from: String(r[3]), to: String(r[4]), q: num_(r[5]), kind: String(r[6]), text: String(r[7]), thanks: String(r[8]) === 'O' });
+    }
+  }
+  return { sh: sh, list: list };
+}
+function readR_() {
+  var sh = sheet_(SH_R, R_H), last = sh.getLastRow(), list = [];
+  if (last >= 2) {
+    var v = sh.getRange(2, 1, last - 1, R_H.length).getValues();
+    for (var i = 0; i < v.length; i++) { var r = v[i]; list.push({ row: i + 2, id: num_(r[0]), t: String(r[1]), team: num_(r[2]), name: String(r[3]), q: num_(r[4]), kind: String(r[5]), status: String(r[6]) }); }
+  }
+  return { sh: sh, list: list };
+}
+function readB_() {
+  var sh = sheet_(SH_B, B_H), last = sh.getLastRow(), list = [];
+  if (last >= 2) {
+    var v = sh.getRange(2, 1, last - 1, B_H.length).getValues();
+    for (var i = 0; i < v.length; i++) {
+      var r = v[i];
+      list.push({ row: i + 2, id: String(r[0]), key: String(r[1]), q: num_(r[2]), codes: [r[3], r[4], r[5], r[6], r[7]].map(String), pick: String(r[8]), gained: Number(r[9]) || 0 });
+    }
+  }
+  return { sh: sh, list: list };
+}
+function readT_() {
+  var sh = sheet_(SH_T, T_H), last = sh.getLastRow(), map = {};
+  if (last >= 2) {
+    var v = sh.getRange(2, 1, last - 1, 4).getValues();
+    for (var i = 0; i < v.length; i++) { var t = num_(v[i][0]); if (t) map[t] = { row: i + 2, label: String(v[i][1] || ''), esc: Number(v[i][2]) || 0 }; }
+  }
+  return { sh: sh, map: map };
+}
+function upsertT_(T, t, label, esc) {
+  var cur = T.map[t];
+  var lab = label != null ? label : (cur ? cur.label : '');
+  var e = esc != null ? esc : (cur ? cur.esc : 0);
+  var row = [t, lab, e || '', e ? Utilities.formatDate(new Date(e), 'Asia/Seoul', 'HH:mm:ss') : ''];
+  if (cur) { T.sh.getRange(cur.row, 1, 1, 4).setValues([row]); cur.label = lab; cur.esc = e; }
+  else { T.sh.appendRow(row); T.map[t] = { row: T.sh.getLastRow(), label: lab, esc: e }; }
+}
+function labelOf_(T, t) { return (T[t] && T[t].label) || ISLAND_DEFAULT[t] || (t + '조'); }
+
+/* 읽기용 스냅샷 (4초 캐시: 학생 20명이 5초마다 불러도 시트를 덜 읽게) */
+function snap_() {
+  var c = CacheService.getScriptCache(), hit = c.get('snap');
+  if (hit) { try { return JSON.parse(hit); } catch (e) {} }
+  var T = readT_().map, tt = {};
+  Object.keys(T).forEach(function (k) { tt[k] = { label: T[k].label, esc: T[k].esc }; });
+  var pend = readB_().list.filter(function (b) { return b.pick === ''; }).map(function (b) { return { id: b.id, key: b.key, q: b.q }; });
+  var s = { P: readP_().list, H: readH_().list, R: readR_().list.slice(-60), T: tt, B: pend };
+  try { c.put('snap', JSON.stringify(s), 4); } catch (e) {}
+  return s;
+}
+
+/* ===== 보드 ===== */
+function board_(s) {
+  var tm = {};
+  s.P.forEach(function (pl) {
+    var t = tm[pl.team] || (tm[pl.team] = { team: pl.team, n: 0, coins: 0, solved: 0 });
+    t.n++; t.coins += pl.coins;
+    pl.done.forEach(function (d) { if (d) t.solved++; });
+  });
+  return Object.keys(tm).map(function (k) {
+    var t = tm[k], info = s.T[t.team] || {};
+    return { team: t.team, label: labelOf_(s.T, t.team), n: t.n, avg: Math.round(t.coins / t.n * 10) / 10, progress: Math.round(t.solved / (t.n * NQ) * 100), escapedAt: info.esc || 0 };
+  });
+}
+function pubP_(p) { return { name: p.name, ch: p.ch, coins: p.coins, hasKey: p.hasKey, helping: p.helping, done: p.done }; }
+
+/* ===== 조회 ===== */
+function lobby_() {
+  var s = snap_(), cnt = {};
+  s.P.forEach(function (p) { cnt[p.team] = (cnt[p.team] || 0) + 1; });
+  return { ok: true, now: Date.now(), game: game_(), teams: TEAMS.map(function (t) { return { team: t, label: labelOf_(s.T, t), n: cnt[t] || 0, max: MAX_TEAM }; }) };
+}
+function state_(p) {
+  var s = snap_(), team = num_(p.team), key = key_(team, p.name), me = null, members = [];
+  s.P.forEach(function (x) { if (x.key === key) me = x; if (x.team === team) members.push(x); });
+  if (!me) return { ok: false, gone: true, error: '명단에 없어요. 다시 입장해 주세요' };
+  var info = s.T[team] || {};
+  var recv = [], sent = [];
+  s.H.forEach(function (h) {
+    if (h.team !== team) return;
+    if (h.to === me.name) recv.push({ id: h.id, t: h.t, from: h.from, q: h.q, kind: h.kind, text: h.text, thanks: h.thanks });
+    if (h.from === me.name && h.kind === '조원') sent.push({ id: h.id, to: h.to, q: h.q, thanks: h.thanks });
+  });
+  return {
+    ok: true, now: Date.now(), game: game_(), cfg: cfg_(),
+    me: { key: me.key, name: me.name, team: team, ch: me.ch, coins: me.coins, hasKey: me.hasKey, helping: me.helping, done: me.done, wrong: me.wrong, hinted: me.hinted },
+    team: { team: team, label: labelOf_(s.T, team), leader: members[0] ? members[0].name : '', escapedAt: info.esc || 0, members: members.map(pubP_) },
+    hints: { recv: recv, sent: sent },
+    boxes: s.B.filter(function (b) { return b.key === key; }),
+    board: board_(s)
+  };
+}
+
+/* ===== 입장·캐릭터 ===== */
+function join_(p) {
+  var team = num_(p.team), name = clean_(p.name, 10);
+  if (TEAMS.indexOf(team) < 0) return { ok: false, error: '조를 다시 골라 주세요' };
+  if (!name) return { ok: false, error: '이름을 입력해 주세요' };
+  var R = readP_(), key = key_(team, name), ex = findP_(R.list, key), cnt = 0;
+  R.list.forEach(function (x) { if (x.team === team) cnt++; });
+  if (ex) {
+    if (String(p.confirm) !== '1') return { ok: true, exists: true };
+    return { ok: true, rejoin: true, ch: ex.ch };
+  }
+  if (cnt >= MAX_TEAM) return { ok: false, error: '이 섬은 가득 찼어요 (최대 ' + MAX_TEAM + '명). 다른 조를 골라 주세요' };
+  R.sh.appendRow(pRow_(newP_(team, name)));
+  return { ok: true, created: true, ch: '' };
+}
+function cancelBoxes_(key) {
+  var B = readB_();
+  B.list.forEach(function (b) { if (b.key === key && b.pick === '') B.sh.getRange(b.row, 9).setValue('취소'); });
+}
+function leave_(p) {
+  var R = readP_(), key = key_(p.team, p.name), x = findP_(R.list, key);
+  if (x) { R.sh.deleteRow(x.row); cancelBoxes_(key); }
+  return { ok: true };
+}
+function setchar_(p) {
+  if (CHARS.indexOf(String(p.char)) < 0) return { ok: false, error: '캐릭터 오류' };
+  var R = readP_(), x = findP_(R.list, key_(p.team, p.name));
+  if (!x) return { ok: false, gone: true, error: '다시 입장해 주세요' };
+  x.ch = String(p.char); saveP_(R.sh, x);
+  return { ok: true };
+}
+function setisland_(p) {
+  var R = readP_(), team = num_(p.team), mem = R.list.filter(function (x) { return x.team === team; });
+  var isAdmin = adminOk_(p.code);
+  if (!isAdmin && !(mem[0] && mem[0].name === clean_(p.name, 10))) return { ok: false, error: '섬 이름은 조장(처음 입장한 사람)만 바꿀 수 있어요' };
+  var label = clean_(p.label, 12);
+  var T = readT_();
+  upsertT_(T, team, label || ISLAND_DEFAULT[team] || '', null);
+  return { ok: true, label: label };
+}
+
+/* ===== 풀이 결과 ===== */
+function resolveReq_(team, name, q) {
+  var Rq = readR_();
+  Rq.list.forEach(function (r) { if (r.team === team && r.name === name && r.q === q && r.status === '대기') Rq.sh.getRange(r.row, 7).setValue('해결'); });
+}
+function checkEscape_(team) {
+  var R = readP_(), mem = R.list.filter(function (x) { return x.team === team; }), T = readT_();
+  if (T.map[team] && T.map[team].esc) return 0;
+  if (mem.length < cfg_().minTeam) return 0;
+  for (var i = 0; i < mem.length; i++) if (!mem[i].hasKey) return 0;
+  var now = Date.now();
+  upsertT_(T, team, null, now);
+  return now;
+}
+function result_(p) {
+  var g = game_();
+  if (g.phase !== 'running') return { ok: false, error: g.phase === 'ready' ? '아직 시작 전이에요. 아듬샘의 시작 신호를 기다려 주세요' : '시간이 끝났어요 🌊' };
+  var R = readP_(), team = num_(p.team), pl = findP_(R.list, key_(team, p.name));
+  if (!pl) return { ok: false, gone: true, error: '다시 입장해 주세요' };
+  var q = num_(p.q);
+  if (q < 1 || q > NQ) return { ok: false, error: '문항 오류' };
+  if (pl.done[q - 1]) return { ok: true, already: true, coins: pl.coins };
+  if (q > 1 && !pl.done[q - 2]) return { ok: false, error: '앞 문제를 먼저 풀어야 해요' };
+  var correct = String(p.correct) === '1';
+  var lg = sheet_(SH_LOG, LOG_H);
+  if (!correct) {
+    pl.wrong[q - 1]++;
+    saveP_(R.sh, pl);
+    lg.appendRow([nowKST_(), team, pl.name, q, '오답', 0]);
+    return { ok: true, correct: false, wrong: pl.wrong[q - 1] };
+  }
+  var first = pl.wrong[q - 1] === 0 && pl.hinted[q - 1] === 0;
+  var gained = Math.max(COIN_MIN, COIN_BASE + (first ? COIN_FIRST : 0) - COIN_HINT_PENALTY * pl.hinted[q - 1]);
+  pl.done[q - 1] = true; pl.coins += gained;
+  if (pl.helping === q) pl.helping = 0;
+  if (q === NQ) pl.hasKey = true;
+  saveP_(R.sh, pl);
+  lg.appendRow([nowKST_(), team, pl.name, q, '정답', gained]);
+  resolveReq_(team, pl.name, q);
+  var boxId = pl.key + '_' + q, codes = shuffle_(BOX_CODES.slice()), B = readB_(), dup = false;
+  B.list.forEach(function (b) { if (b.id === boxId) dup = true; });
+  if (!dup) B.sh.appendRow([boxId, pl.key, q, codes[0], codes[1], codes[2], codes[3], codes[4], '', '', nowKST_()]);
+  var esc = (q === NQ) ? checkEscape_(team) : 0;
+  return { ok: true, correct: true, gained: gained, coins: pl.coins, boxId: dup ? '' : boxId, key: q === NQ, escaped: esc > 0 };
+}
+
+/* ===== 도움 요청 · 힌트 ===== */
+function help_(p) {
+  var R = readP_(), team = num_(p.team), me = findP_(R.list, key_(team, p.name));
+  if (!me) return { ok: false, gone: true, error: '다시 입장해 주세요' };
+  var q = num_(p.q);
+  if (q < 1 || q > NQ) return { ok: false, error: '문항 오류' };
+  if (me.done[q - 1]) return { ok: false, error: '이미 푼 문제예요' };
+  var solvers = R.list.filter(function (x) { return x.team === team && x.name !== me.name && x.done[q - 1]; }).length;
+  var Rq = readR_();
+  if (String(p.mode) === 'team') {
+    if (!solvers) return { ok: false, code: 'nosolver' };
+    me.helping = q; saveP_(R.sh, me);
+    Rq.sh.appendRow([nextId_(Rq.sh), nowKST_(), team, me.name, q, '조원', '대기']);
+    return { ok: true };
+  }
+  // 담임 힌트
+  var cf = cfg_();
+  if (solvers && !cf.always) return { ok: false, code: 'blocked', solvers: solvers };
+  if (solvers && String(p.force) !== '1') return { ok: false, code: 'confirm', solvers: solvers };
+  var text = clean_(p.text, 200);
+  if (!text) return { ok: false, error: '힌트 내용이 없어요' };
+  var H = readH_();
+  H.sh.appendRow([nextId_(H.sh), nowKST_(), team, '담임', me.name, q, '담임', text, '']);
+  me.hinted[q - 1]++; saveP_(R.sh, me);
+  Rq.sh.appendRow([nextId_(Rq.sh), nowKST_(), team, me.name, q, '담임', '처리']);
+  return { ok: true };
+}
+function hint_(p) {
+  var R = readP_(), team = num_(p.team), me = findP_(R.list, key_(team, p.name)), to = findP_(R.list, key_(team, p.to));
+  if (!me || !to) return { ok: false, error: '조원을 찾을 수 없어요' };
+  var q = num_(p.q);
+  if (q < 1 || q > NQ) return { ok: false, error: '문항 오류' };
+  if (!me.done[q - 1]) return { ok: false, error: '이 문제를 푼 사람만 힌트를 보낼 수 있어요' };
+  var text = clean_(p.text, 200);
+  if (text.length < 4) return { ok: false, error: '힌트를 조금 더 자세히 적어 주세요' };
+  var H = readH_(), already = H.list.some(function (h) { return h.team === team && h.from === me.name && h.to === to.name && h.q === q && h.kind === '조원'; });
+  H.sh.appendRow([nextId_(H.sh), nowKST_(), team, me.name, to.name, q, '조원', text, '']);
+  to.hinted[q - 1]++; saveP_(R.sh, to);
+  if (!already) { me.coins += COIN_HELP; saveP_(R.sh, me); }
+  return { ok: true, coins: me.coins, bonus: !already, help: COIN_HELP };
+}
+function thanks_(p) {
+  var H = readH_(), id = num_(p.id), team = num_(p.team);
+  for (var i = 0; i < H.list.length; i++) {
+    var h = H.list[i];
+    if (h.id === id && h.team === team && h.to === clean_(p.name, 10)) { H.sh.getRange(h.row, 9).setValue('O'); return { ok: true }; }
+  }
+  return { ok: false, error: '힌트를 찾을 수 없어요' };
+}
+
+/* ===== 보석함 ===== */
+function openbox_(p) {
+  var id = String(p.id || ''), pick = parseInt(p.pick, 10);
+  if (!id || !(pick >= 1 && pick <= 5)) return { ok: false, error: '상자 선택 오류' };
+  var B = readB_(), R = readP_();
+  for (var i = 0; i < B.list.length; i++) {
+    var b = B.list[i];
+    if (b.id !== id) continue;
+    var me = findP_(R.list, b.key);
+    if (b.pick !== '') return { ok: true, already: true, codes: b.codes, pick: num_(b.pick), gained: b.gained, coins: me ? me.coins : 0 };
+    var code = b.codes[pick - 1], gained = 0;
+    if (code === 'D') gained = Math.min(DOUBLE_CAP, me ? me.coins : 0);
+    else if (code !== 'X') gained = parseInt(code, 10) || 0;
+    if (me && gained) { me.coins += gained; saveP_(R.sh, me); }
+    B.sh.getRange(b.row, 9, 1, 3).setValues([[pick, gained, nowKST_()]]);
+    return { ok: true, already: false, codes: b.codes, pick: pick, gained: gained, coins: me ? me.coins : 0 };
+  }
+  return { ok: false, error: '상자를 찾을 수 없어요' };
+}
+
+/* ===== 관리자 ===== */
+function needAdmin_(p) { return adminOk_(p.code) ? null : { ok: false, error: '입장코드가 달라요' }; }
+function adminstate_(p) {
+  var e = needAdmin_(p); if (e) return e;
+  var s = snap_();
+  return {
+    ok: true, now: Date.now(), game: game_(), cfg: cfg_(), pwDefault: pwDefault_(),
+    players: s.P.map(function (x) { return { team: x.team, name: x.name, ch: x.ch, coins: x.coins, hasKey: x.hasKey, helping: x.helping, done: x.done, wrong: x.wrong, hinted: x.hinted }; }),
+    labels: TEAMS.map(function (t) { return { team: t, label: labelOf_(s.T, t), escapedAt: (s.T[t] && s.T[t].esc) || 0 }; }),
+    board: board_(s),
+    reqs: s.R.filter(function (r) { return r.kind === '담임'; }).slice(-20).reverse()
+  };
+}
+function admincfg_(p) {
+  var e = needAdmin_(p); if (e) return e;
+  var pr = props_(), now = Date.now(), g = game_();
+  if (String(p.start) === '1') { pr.setProperty('START', String(now)); }
+  if (String(p.unstart) === '1') { pr.deleteProperty('START'); }
+  if (String(p.stop) === '1' && g.startAt) { pr.setProperty('DUR', String(Math.max(0.1, (now - g.startAt) / 60000))); }
+  if (p.dur !== undefined && p.dur !== '') { var d = Number(p.dur); if (d > 0 && d <= 600) pr.setProperty('DUR', String(d)); }
+  if (p.delta !== undefined && p.delta !== '') {
+    var dl = Number(p.delta) || 0;
+    if (g.startAt) {
+      var base = g.phase === 'over' ? (now - g.startAt) / 60000 : g.durationMin;
+      pr.setProperty('DUR', String(Math.max(0.5, base + dl)));
+    } else pr.setProperty('DUR', String(Math.max(1, g.durationMin + dl)));
+  }
+  if (p.always !== undefined && p.always !== '') pr.setProperty('ALWAYS', String(p.always) === '1' ? '1' : '0');
+  if (p.minteam !== undefined && p.minteam !== '') pr.setProperty('MINTEAM', String(Math.max(1, Math.min(MAX_TEAM, num_(p.minteam) || 2))));
+  return { ok: true, game: game_(), cfg: cfg_() };
+}
+function adminmove_(p) {
+  var e = needAdmin_(p); if (e) return e;
+  var R = readP_(), team = num_(p.team), to = num_(p.to), x = findP_(R.list, key_(team, p.name));
+  if (!x) return { ok: false, error: '대상을 찾을 수 없어요' };
+  if (TEAMS.indexOf(to) < 0) return { ok: false, error: '조 오류' };
+  if (findP_(R.list, key_(to, x.name))) return { ok: false, error: '그 조에 같은 이름이 있어요' };
+  var cnt = R.list.filter(function (y) { return y.team === to; }).length;
+  if (cnt >= MAX_TEAM) return { ok: false, error: '그 섬은 가득 찼어요' };
+  var oldKey = x.key;
+  x.team = to; x.key = key_(to, x.name);
+  saveP_(R.sh, x);
+  var B = readB_();
+  B.list.forEach(function (b) { if (b.key === oldKey) B.sh.getRange(b.row, 2).setValue(x.key); });
+  return { ok: true };
+}
+function admindel_(p) {
+  var e = needAdmin_(p); if (e) return e;
+  return leave_(p);
+}
+function adminhint_(p) {
+  var e = needAdmin_(p); if (e) return e;
+  var text = clean_(p.text, 200);
+  if (!text) return { ok: false, error: '내용을 적어 주세요' };
+  var R = readP_(), q = num_(p.q), team = num_(p.team), targets = [];
+  R.list.forEach(function (x) {
+    if (String(p.scope) === 'all') targets.push(x);
+    else if (String(p.scope) === 'team' && x.team === team) targets.push(x);
+    else if (String(p.scope) === 'one' && x.team === team && x.name === clean_(p.name, 10)) targets.push(x);
+  });
+  if (!targets.length) return { ok: false, error: '받을 사람이 없어요' };
+  var H = readH_(), id = nextId_(H.sh), now = nowKST_();
+  var rows = targets.map(function (x, i) { return [id + i, now, x.team, '담임', x.name, q || 0, '담임', text, '']; });
+  H.sh.getRange(H.sh.getLastRow() + 1, 1, rows.length, H_H.length).setValues(rows);
+  return { ok: true, sent: targets.length };
+}
+function adminpw_(p) {
+  var e = needAdmin_(p); if (e) return e;
+  var nc = String(p.newcode || '').trim();
+  if (nc.length < 4 || nc.length > 20) return { ok: false, error: '입장코드는 4~20자로 정해 주세요' };
+  if (nc === ADMIN_CODE) return { ok: false, error: '처음 코드(' + ADMIN_CODE + ')와 다른 코드로 정해 주세요' };
+  props_().setProperty('ADMIN_CODE', nc);
+  return { ok: true };
+}
+function clearRows_(name, headers) {
+  var sh = sheet_(name, headers), last = sh.getLastRow();
+  if (last >= 2) sh.getRange(2, 1, last - 1, headers.length).clearContent();
+}
+function adminreset_(p) {
+  var e = needAdmin_(p); if (e) return e;
+  clearRows_(SH_P, pHeaders_()); clearRows_(SH_LOG, LOG_H); clearRows_(SH_H, H_H); clearRows_(SH_R, R_H); clearRows_(SH_B, B_H); clearRows_(SH_T, T_H);
+  props_().deleteProperty('START');
+  return { ok: true };
+}
+
+/* ===== 진입점 ===== */
+var WRITERS = { join: join_, leave: leave_, setchar: setchar_, setisland: setisland_, result: result_, help: help_, hint: hint_, thanks: thanks_, openbox: openbox_, admincfg: admincfg_, adminmove: adminmove_, admindel: admindel_, adminhint: adminhint_, adminreset: adminreset_, adminpw: adminpw_ };
+function route_(p) {
+  var a = p.action;
+  if (WRITERS[a]) { var r = withLock_(function () { return WRITERS[a](p); }); bust_(); return r; }
+  if (a === 'state') return state_(p);
+  if (a === 'lobby') return lobby_();
+  if (a === 'adminlogin') return adminOk_(p.code) ? { ok: true, pwDefault: pwDefault_() } : { ok: false, error: '입장코드가 달라요' };
+  if (a === 'adminstate') return adminstate_(p);
+  return { ok: true, ping: 1 };
+}
+function doGet(e) {
+  var p = (e && e.parameter) || {}, out;
+  try { out = route_(p); } catch (err) { out = { ok: false, error: String(err) }; }
+  return jsonp_(p.callback, out);
+}
+</script>
 <script>
 /* ===== 설정 ===== */
 var GAS_DEFAULT='';
@@ -280,7 +767,7 @@ function errCard(title,msg,retryFn,backFn){
  $('ere').onclick=retryFn;$('ebk').onclick=backFn||renderStart;}
 
 /* ===== 상태 ===== */
-var MODE='',SES=null,ST=null,OFF=0,view='',curQ=0,pollT=null,tickT=null,SEEN=null,HELPSEEN={},PCN={},SAIL={go:false,started:false},QSEL=0,QTAB=null;
+var MODE='',SES=null,ST=null,OFF=0,view='',curQ=0,pollT=null,tickT=null,SEEN=null,HELPSEEN={},PCN={},HOLD={},SAIL={go:false,started:false},QSEL=0,QTAB=null;
 function nowMs(){return Date.now()+OFF;}
 function phase(){var g=ST&&ST.game;if(!g||!g.startAt)return 'ready';return nowMs()>g.endAt?'over':'running';}
 function idp(){return {team:SES.team,name:SES.name};}
@@ -339,9 +826,9 @@ function bindDemoBar(){var b=$('dexit');if(b)b.onclick=function(){demoStop();MOD
 /* ===== 시작 · 입장 ===== */
 function renderStart(){
  view='start';MODE=MODE==='admin'?'':MODE;if(MODE!=='real')MODE='';stopPoll();setTabs(false);
- $('app').innerHTML=titleHtml()+(GAS?'':'<div class="card" style="border-color:var(--warn)"><b>⚠️ 아직 연결이 안 됐어요</b><div class="sub">입장하려면 아듬샘이 알려준 링크(QR)로 다시 열어 주세요. 체험하기는 연결 없이도 돼요.</div></div>')+
+ $('app').innerHTML=titleHtml()+(GAS?'':'<div class="card" style="border-color:var(--warn)"><b>⚠️ 아직 연결이 안 됐어요</b><div class="sub">입장하려면 아듬샘이 알려준 링크(QR)로 다시 열어 주세요. 체험하기는 연결 없이도 돼요.</div><button class="btn ghost small" id="btch">🆕 선생님이세요? 처음 설치하기</button></div>')+
  '<div class="card"><h2>어떻게 시작할까요? 👀</h2><button class="btn" id="bin">🏝️ 섬에 입장하기</button><button class="btn go" id="bdemo">🎮 체험해보기 (혼자서 먼저!)</button><button class="btn ghost" id="badm">👩‍🏫 담임(관리자) 입장</button></div>'+footer();
- $('bin').onclick=renderTeamPick;$('bdemo').onclick=startDemo;$('badm').onclick=renderAdminLogin;}
+ $('bin').onclick=renderTeamPick;if($('btch'))$('btch').onclick=renderTeacherSetup;$('bdemo').onclick=startDemo;$('badm').onclick=renderAdminLogin;}
 function renderTeamPick(){
  view='pick';setTabs(false);
  if(!GAS){renderStart();toast('연결 링크로 다시 열어 주세요',2600);return;}
@@ -443,7 +930,7 @@ function spotPos(sp,j,n){var b=SPOTS[sp-1];return {x:b.x+(j-(n-1)/2)*9,y:b.y-9};
 function updateScene(){
  var T=ST.team,box=$('pcs'),ship=$('ship');if(!box)return;
  var esc_=!!T.escapedAt,groups={};
- T.members.forEach(function(m){var sp=esc_?0:Math.min(doneCount(m)+1,NQ);(groups[sp]=groups[sp]||[]).push(m);});
+ T.members.forEach(function(m){var sp=esc_?0:(HOLD[m.name]||Math.min(doneCount(m)+1,NQ));(groups[sp]=groups[sp]||[]).push(m);});
  var seen={},sx=SAIL.go?132:SHIP_X;
  if(ship)ship.style.left=(esc_?sx:SHIP_X)+'%';
  Object.keys(groups).forEach(function(sp){
@@ -451,7 +938,7 @@ function updateScene(){
   arr.forEach(function(m,j){
    var pos=sp==='0'?{x:sx+(j-(arr.length-1)/2)*5,y:SHIP_Y-6}:spotPos(Number(sp),j,arr.length);
    var el=PCN[m.name];if(!el){el=document.createElement('div');box.appendChild(el);PCN[m.name]=el;}
-   el.className='pc'+(m.name===ST.me.name?' me':'')+(m.helping?' sos':'')+(esc_?' sail':'');
+   el.className='pc'+(m.name===ST.me.name?' me':'')+(m.helping?' sos':'')+(esc_?' sail':'')+(el._hop?' hop':'');
    el.style.left=pos.x+'%';el.style.top=pos.y+'%';
    el.innerHTML='<i class="sb">🆘</i>'+esc(m.ch||'🙂')+'<span class="pn">'+esc(m.name)+(m.hasKey?' 🗝️':'')+'</span>';
    seen[m.name]=1;});});
@@ -562,10 +1049,21 @@ function doSubmit(q){
   if(r.boxId)setTimeout(function(){openBox(r.boxId,q);},500);else setTimeout(function(){afterSolve(q);},600);
   pollNow();
  }).catch(function(e){stop();btn.disabled=false;btn.textContent='제출하기';msg.className='msg err';msg.textContent='아직 기록이 안 됐어요 😢 '+((e&&e.message&&e.message.length<40&&e.message!=='x')?e.message:'구글 시트가 느린가 봐요. 같은 답으로 다시 눌러 주세요.');});}
+function renderIslandMove(q){
+ var nm=ST.me.name,Q=QUESTIONS[q];HOLD[nm]=q;renderIsland();
+ try{$('scene').scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
+ setTimeout(function(){
+  delete HOLD[nm];var el=PCN[nm];if(el)el._hop=1;if(view==='island'&&ST){updateScene();sfx('coin');}
+  setTimeout(function(){
+   var e=PCN[nm];if(e){e._hop=0;e.classList.remove('hop');}
+   if(view!=='island'||!ST||phase()!=='running')return;
+   popup({icon:Q.icon,title:'📍 '+esc(Q.spot)+'에 도착했어요!',body:'<b>'+(q+1)+'번 문제</b>가 기다리고 있어요.<br>문제 풀러 가볼까요?',btns:[{t:'가자! 🏃',fn:function(){renderQuestion(q+1);}},{t:'조금 더 둘러볼게요',ghost:true}]});
+  },1600);
+ },900);}
 function afterSolve(q){
  if(modalOpen())return;
  if(q>=NQ){popup({icon:'🗝️',title:'배 열쇠를 얻었어요!',body:'조원 <b>전원</b>의 열쇠가 모이면 배가 출항해요!<br>아직 막힌 친구가 있으면 힌트로 도와주세요 💪',btns:[{t:'섬으로 돌아가기 🏝️',fn:function(){renderIsland();}}]});return;}
- popup({icon:'🎉',title:'클리어!',body:'다음은 <b>'+(q+1)+'번 '+esc(QUESTIONS[q].spot)+'</b>이에요.',btns:[{t:'다음 문제 ▶',fn:function(){renderQuestion(q+1);}},{t:'섬으로 돌아가기',ghost:true,fn:function(){renderIsland();}}]});}
+ popup({icon:'🎉',title:'클리어!',body:'잘했어요! 다음 장소는 <b>'+(q+1)+'번 '+esc(QUESTIONS[q].spot)+'</b>이에요.',btns:[{t:'다음 장소로 이동해볼까요? 🚶',fn:function(){renderIslandMove(q);}},{t:'섬으로 돌아가기',ghost:true,fn:function(){renderIsland();}}]});}
 
 /* ===== 힌트 보내기 (정답 차단) ===== */
 function hintModal(to,q){
@@ -732,7 +1230,7 @@ function renderAdminLogin(){
   btn.disabled=true;m.className='msg';m.textContent='확인 중…';
   jsonp({action:'adminlogin',code:code},30000).then(function(r){
    if(!r||!r.ok){m.className='msg err';m.textContent=(r&&r.error)||'입장코드가 달라요';btn.disabled=false;return;}
-   try{sessionStorage.setItem('ise_admin_code',code);}catch(e){}renderAdmin();
+   try{sessionStorage.setItem('ise_admin_code',code);}catch(e){}if(r.pwDefault)renderPwChange(true);else renderAdmin();
   }).catch(function(e){btn.disabled=false;m.className='msg err';m.textContent=noGasMsg(e);});};
  $('ago').onclick=go;$('acode').addEventListener('keydown',function(e){if(e.key==='Enter')go();});}
 function renderGasSetup(){
@@ -757,6 +1255,8 @@ function renderAdmin(){
  '<div class="card"><h2>🏆 지금 순위</h2><div id="adrank"></div></div>'+
  '<div class="card"><h2>✉️ 담임 쪽지(힌트) 보내기</h2><label for="hsc">받는 사람</label><select id="hsc"></select><label for="hq">문항</label><select id="hq"><option value="0">일반 쪽지</option>'+QUESTIONS.map(function(Q,i){return '<option value="'+(i+1)+'">'+(i+1)+'번 '+esc(Q.spot)+'</option>';}).join('')+'</select><textarea id="htx" maxlength="200" placeholder="학생 화면에 [담임 힌트]로 떠요 (200자)"></textarea><button class="btn small" id="hsend">보내기</button><div class="msg" id="hmsg"></div><div class="sub" style="margin-top:10px"><b>최근 담임 힌트 요청</b></div><div id="adreq"></div></div>'+
  '<div class="card"><h2>📱 학생용 링크 · QR</h2><input type="text" id="stuLink" readonly><button class="btn small" id="cpl">링크 복사</button><button class="btn ghost small" id="cpr">글자 링크로 복사 (섬탈출원정대_made by Cheon R)</button><button class="btn go small" id="qrb">QR 코드 만들기</button><div id="qrbox" class="hide" style="text-align:center"><canvas id="qrc" style="width:100%;max-width:300px;border:3px solid var(--ink);border-radius:8px;margin-top:10px"></canvas><button class="btn ghost small" id="qrd">QR 이미지 저장</button></div><div class="msg" id="lkm"></div></div>'+
+ '<div class="card"><h2>🧑‍🏫 선생님 공유용 링크 · QR</h2><div class="sub">다른 선생님이 <b>자기 시트로 처음 설치</b>하는 링크예요. 이 링크로 들어오면 "처음이세요?" 설치 안내가 나오고, 내 시트나 내 관리자 화면과는 완전히 분리돼요.</div><input type="text" id="tchLink" readonly><button class="btn small" id="tcpl">링크 복사</button><button class="btn ghost small" id="tcpr">글자 링크로 복사 (섬탈출원정대 선생님용_made by Cheon R)</button><button class="btn go small" id="tqrb">QR 코드 만들기</button><div id="tqrbox" class="hide" style="text-align:center"><canvas id="tqrc" style="width:100%;max-width:300px;border:3px solid var(--ink);border-radius:8px;margin-top:10px"></canvas><button class="btn ghost small" id="tqrd">QR 이미지 저장</button></div><div class="msg" id="tlkm"></div></div>'+
+ '<div class="card"><h2>🔑 입장코드 변경</h2><div class="sub">관리자 입장코드를 바꿀 수 있어요.</div><button class="btn ghost small" id="apw">입장코드 바꾸기</button></div>'+
  '<div class="card"><h2>🎮 체험해보기</h2><div class="sub">봇 조원 3명과 함께 혼자 체험해 볼 수 있어요. (시트에 저장되지 않아요)</div><button class="btn small" id="ademo">체험 시작</button></div>'+
  '<div class="card"><h2>🧹 초기화</h2><div class="sub">참가자·풀이·힌트·상자·섬 이름·타이머를 모두 비워요. 새 수업 전에 한 번 눌러 주세요.</div><button class="btn ghost small" id="areset">전체 초기화</button></div>'+
  backBtn('aout','🚪 나가기')+footer();
@@ -764,6 +1264,7 @@ function renderAdmin(){
 function loadAdmin(quiet){
  adm('adminstate').then(function(r){
   if(!r||!r.ok){if(!quiet)toast((r&&r.error)||'불러오지 못했어요',2400);return;}
+  if(r.pwDefault&&view==='admin'){renderPwChange(true);return;}
   ADM=r;ADM.at=Date.now();paintAdmin();
  }).catch(function(e){if(!quiet)toast(noGasMsg(e),2600);});}
 function paintAdmin(){
@@ -810,6 +1311,7 @@ function bindAdmin(){
  $('areset').onclick=function(){popup({icon:'⚠️',title:'전체 초기화',body:'참가자·풀이·힌트·상자·섬 이름·타이머가 모두 사라져요.<br><br>맞다면 <b>초기화</b>라고 입력해 주세요<input type="text" id="rsc" autocomplete="off">',btns:[{t:'초기화 실행',pre:function(){var v=$('rsc');return v?v.value.trim():'';},fn:function(v){if(v!=='초기화'){toast('"초기화"를 정확히 입력해야 해요',2400);return;}adm('adminreset').then(function(r){done(r,'초기화했어요');});}},{t:'취소',ghost:true}]});};
  $('aout').onclick=function(){clearInterval(admT);try{sessionStorage.removeItem('ise_admin_code');}catch(e){}MODE='';renderStart();};
  $('ademo').onclick=function(){clearInterval(admT);startDemo();};
+ $('apw').onclick=function(){renderPwChange(false);};
  var el=$('stuLink');el.value=(location.protocol==='file:'?location.href.split('?')[0].split('#')[0]:location.origin+location.pathname)+'?gas='+encodeURIComponent(GAS);
  var lm=$('lkm');function note(t,ok){lm.className='msg '+(ok?'ok':'err');lm.textContent=t;}
  if(location.protocol==='file:')note('⚠️ 지금은 내 컴퓨터 파일로 열려 있어요. 깃허브에 올린 주소에서 열어야 학생용 링크가 제대로 만들어져요.');
@@ -821,22 +1323,83 @@ function bindAdmin(){
   var draw=function(){try{qrPoster(el.value);$('qrbox').classList.remove('hide');note('QR이 만들어졌어요.',true);}catch(e){note('QR을 만들지 못했어요. 링크를 복사해서 써 주세요.');}};
   if(window.qrcode){draw();return;}
   var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';s.onload=draw;s.onerror=function(){note('QR 라이브러리를 못 불러왔어요. 인터넷을 확인해 주세요.');};document.head.appendChild(s);};
- $('qrd').onclick=function(){var a=document.createElement('a');a.href=$('qrc').toDataURL('image/png');a.download='섬탈출원정대_QR.png';document.body.appendChild(a);a.click();a.remove();};}
+ $('qrd').onclick=function(){var a=document.createElement('a');a.href=$('qrc').toDataURL('image/png');a.download='섬탈출원정대_QR.png';document.body.appendChild(a);a.click();a.remove();};
+ bindTeacherShare();}
 function copyText(txt){return (navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(txt):Promise.reject()).catch(function(){var ta=document.createElement('textarea');ta.value=txt;ta.style.cssText='position:fixed;left:0;top:0;opacity:0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}ta.remove();});}
-function qrPoster(url){
+function bindTeacherShare(){
+ var el=$('tchLink'),lm=$('tlkm');if(!el)return;
+ el.value=(location.protocol==='file:'?location.href.split('?')[0].split('#')[0]:location.origin+location.pathname)+'?new=1';
+ function note(t,ok){lm.className='msg '+(ok?'ok':'err');lm.textContent=t;}
+ if(location.protocol==='file:')note('⚠️ 지금은 내 컴퓨터 파일로 열려 있어요. 깃허브에 올린 주소에서 열어야 공유용 링크가 제대로 만들어져요.');
+ $('tcpl').onclick=function(){el.select();copyText(el.value).then(function(){note('✅ 링크를 복사했어요!',true);});};
+ $('tcpr').onclick=function(){var url=el.value,label='섬탈출원정대 선생님용_made by Cheon R',html='<a href="'+esc(url)+'">'+esc(label)+'</a>',plain=label+' 👉 '+url;
+  var d=function(){note('✅ "'+label+'" 글자 링크로 복사했어요!',true);};
+  try{navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([plain],{type:'text/plain'})})]).then(d,function(){copyText(plain).then(d);});}catch(e){copyText(plain).then(d);}};
+ $('tqrb').onclick=function(){
+  var draw=function(){try{qrPoster(el.value,{cid:'tqrc',sub:'선생님용 · 내 시트로 처음 설치하기',line:'📷 찍고 설치를 시작해요!'});$('tqrbox').classList.remove('hide');note('QR이 만들어졌어요.',true);}catch(e){note('QR을 만들지 못했어요. 링크를 복사해서 써 주세요.');}};
+  if(window.qrcode){draw();return;}
+  var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';s.onload=draw;s.onerror=function(){note('QR 라이브러리를 못 불러왔어요. 인터넷을 확인해 주세요.');};document.head.appendChild(s);};
+ $('tqrd').onclick=function(){var a=document.createElement('a');a.href=$('tqrc').toDataURL('image/png');a.download='섬탈출원정대_선생님용_QR.png';document.body.appendChild(a);a.click();a.remove();};}
+
+/* ===== 선생님 처음 설치 (?new=1) ===== */
+function renderTeacherSetup(){
+ view='tsetup';MODE='';setTabs(false);stopPoll();
+ var step=function(n,t,b){return '<details open><summary>'+n+'. '+t+'</summary><div class="gb">'+b+'</div></details>';};
+ $('app').innerHTML=titleHtml('선생님 처음 설치')+
+ '<div class="card"><h2>🆕 처음이세요?</h2><div class="sub"><b>내 구글 시트</b>에 연결해서 내 수업 전용으로 쓰는 방법이에요. 10분이면 끝나요! 다른 선생님의 시트·데이터와 섞이지 않아요.</div></div>'+
+ step(1,'구글 시트 새로 만들기','<ul><li>구글 드라이브에서 <b>새 스프레드시트</b>를 하나 만들어요. (<a href="https://sheets.new" target="_blank" rel="noopener">sheets.new</a>)</li><li>이름은 자유예요. 예) 섬탈출원정대</li></ul>')+
+ step(2,'코드 복사해서 붙여넣기','<ul><li>시트 메뉴 <b>확장 프로그램 → Apps Script</b>를 열어요.</li><li>들어있는 코드를 모두 지우고, 아래 버튼으로 복사한 코드를 붙여넣은 뒤 💾 저장해요.</li></ul><button class="btn go small" id="tcopy">📋 GAS 코드 복사</button><div class="msg" id="tcm"></div>')+
+ step(3,'setup 한 번 실행','<ul><li>위쪽 함수 선택 칸에서 <b>setup</b>을 고르고 ▶ 실행을 눌러요.</li><li>권한을 물으면 [권한 검토] → 내 계정 → [고급] → [(안전하지 않음)으로 이동] → [허용]을 눌러요.</li><li>시트에 탭 6개가 생기면 성공이에요!</li></ul>')+
+ step(4,'웹 앱으로 배포','<ul><li>오른쪽 위 <b>배포 → 새 배포 → 유형: 웹 앱</b></li><li>실행: <b>나</b> / 액세스: <b>모든 사용자</b> → 배포</li><li>나오는 <b>웹 앱 URL</b>(…/exec)을 복사해요.</li><li>⚠️ 나중에 코드를 고칠 땐 <b>배포 관리 → 수정 → 새 버전</b>으로 해야 주소가 안 바뀌어요. ("새 배포"는 주소가 바뀌어요)</li></ul>')+
+ '<div class="card"><h2>5. 웹 앱 주소 붙여넣기</h2><label for="tgin">웹 앱 URL</label><input type="text" id="tgin" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off"><button class="btn" id="tgo">연결 확인하기</button><div class="msg" id="tgm"></div><div class="sub" style="margin-top:8px">연결되면 담임 입장 화면이 나와요. <b>처음 입장코드는 mathtest</b>예요. 들어가면 바로 나만의 코드로 바꿔요. 학생용 링크·QR은 관리자 화면에서 만들어져요.</div></div>'+
+ (GAS?'<button class="btn ghost" id="tin">이미 설치했어요 → 담임 입장</button>':'')+backBtn('bk')+footer();
+ $('bk').onclick=function(){try{history.replaceState(null,'',location.pathname);}catch(e){}renderStart();};
+ if($('tin'))$('tin').onclick=renderAdminLogin;
+ $('tcopy').onclick=function(){
+  var el=$('gassrc'),t=el?el.textContent.replace(/^\n/,''):'',m=$('tcm');
+  if(!t){m.className='msg err';m.textContent='코드를 못 찾았어요. 아듬샘께 문의해 주세요.';return;}
+  copyText(t).then(function(){m.className='msg ok';m.textContent='✅ 복사했어요! Apps Script에 붙여넣기(Ctrl+V) 하세요.';});};
+ $('tgo').onclick=function(){
+  var v=$('tgin').value.trim(),m=$('tgm'),btn=$('tgo');
+  if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(v)){m.className='msg err';m.textContent='주소가 맞는지 확인해 주세요. "https://script.google.com/…/exec" 모양이에요.';return;}
+  var old=GAS;GAS=v;btn.disabled=true;m.className='msg';m.textContent='연결 확인 중…';
+  jsonp({action:'lobby'},30000).then(function(r){
+   if(!r||!r.ok||!r.teams){GAS=old;btn.disabled=false;m.className='msg err';m.textContent='연결은 됐는데 GAS 코드가 이 앱과 안 맞아요. 2단계의 코드를 다시 복사해서 붙여넣고 [배포 관리 → 수정 → 새 버전]으로 재배포해 주세요.';return;}
+   try{localStorage.setItem(K_GAS,v);}catch(e){}try{history.replaceState(null,'',location.pathname);}catch(e){}toast('연결됐어요! ✅ 처음 입장코드는 mathtest예요',3200);renderAdminLogin();
+  }).catch(function(){GAS=old;btn.disabled=false;m.className='msg err';m.textContent='연결이 안 돼요. 주소와 배포 설정("액세스: 모든 사용자")을 확인해 주세요.';});};}
+
+/* ===== 입장코드 변경 ===== */
+function renderPwChange(force){
+ view='pw';setTabs(false);clearInterval(admT);
+ $('app').innerHTML=titleHtml('입장코드 설정')+'<div class="card"><h2>🔑 나만의 입장코드로 바꿔 주세요</h2><div class="sub">'+(force?'처음 코드(mathtest)는 누구나 알 수 있어요. ':'')+'<b>4~20자</b>로 새 입장코드를 정해 주세요. 학생에게는 보이지 않아요.</div><label for="pw1">새 입장코드</label><input type="text" class="pw" id="pw1" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false"><label for="pw2">한 번 더 입력</label><input type="text" class="pw" id="pw2" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="btn" id="pwgo">바꾸기</button><div class="msg" id="pwm"></div><div class="sub" style="margin-top:8px">잊어버리면: Apps Script → 프로젝트 설정 → 스크립트 속성에서 <b>ADMIN_CODE</b>를 지우면 mathtest로 돌아가요.</div></div>'+backBtn('bk',force?'🚪 나가기':'‹ 관리자 화면으로')+footer();
+ $('bk').onclick=function(){if(force){try{sessionStorage.removeItem('ise_admin_code');}catch(e){}MODE='';renderStart();}else renderAdmin();};
+ var go=function(){
+  var a=$('pw1').value.trim(),b=$('pw2').value.trim(),m=$('pwm'),btn=$('pwgo');
+  if(a.length<4||a.length>20){m.className='msg err';m.textContent='4~20자로 정해 주세요.';return;}
+  if(a.toLowerCase()==='mathtest'){m.className='msg err';m.textContent='처음 코드와 다른 코드로 정해 주세요.';return;}
+  if(a!==b){m.className='msg err';m.textContent='두 칸이 달라요. 다시 확인해 주세요.';return;}
+  btn.disabled=true;m.className='msg';m.textContent='저장 중…';
+  adm('adminpw',{newcode:a}).then(function(r){
+   if(!r||!r.ok){btn.disabled=false;m.className='msg err';m.textContent=(r&&r.error)||'바꾸지 못했어요';return;}
+   try{sessionStorage.setItem('ise_admin_code',a);}catch(e){}toast('✅ 입장코드를 바꿨어요! 잊지 마세요',3000);renderAdmin();
+  }).catch(function(e){btn.disabled=false;m.className='msg err';m.textContent=noGasMsg(e);});};
+ $('pwgo').onclick=go;$('pw2').addEventListener('keydown',function(e){if(e.key==='Enter')go();});}
+
+function qrPoster(url,o){o=o||{};
  var qr=qrcode(0,'M');qr.addData(url);qr.make();
- var n=qr.getModuleCount(),W=640,H=860,c=$('qrc'),x;c.width=W;c.height=H;x=c.getContext('2d');
+ var n=qr.getModuleCount(),W=640,H=860,c=$(o.cid||'qrc'),x;c.width=W;c.height=H;x=c.getContext('2d');
  x.fillStyle='#7FD0FF';x.fillRect(0,0,W,H);x.fillStyle='#16294D';x.fillRect(0,0,W,12);x.fillRect(0,H-12,W,12);
  x.textAlign='center';x.fillStyle='#16294D';x.font='900 54px Galmuri11,Pretendard,sans-serif';x.fillText('섬탈출원정대',W/2,100);
- x.font='700 24px Galmuri11,Pretendard,sans-serif';x.fillText('수학문제를 클리어하고 보석을 얻어 섬을 탈출하자!',W/2,152);
+ x.font='700 24px Galmuri11,Pretendard,sans-serif';x.fillText(o.sub||'수학문제를 클리어하고 보석을 얻어 섬을 탈출하자!',W/2,152);
  var sz=Math.floor(480/n)*n,ox=(W-sz)/2,oy=205,k=sz/n;
  x.fillStyle='#fff';x.fillRect(ox-24,oy-24,sz+48,sz+48);x.strokeStyle='#16294D';x.lineWidth=6;x.strokeRect(ox-24,oy-24,sz+48,sz+48);
  x.fillStyle='#16294D';for(var r=0;r<n;r++)for(var q=0;q<n;q++)if(qr.isDark(r,q))x.fillRect(Math.round(ox+q*k),Math.round(oy+r*k),Math.ceil(k),Math.ceil(k));
- x.font='700 28px Galmuri11,Pretendard,sans-serif';x.fillText('📷 카메라로 찍어서 입장해요!',W/2,oy+sz+90);
+ x.font='700 28px Galmuri11,Pretendard,sans-serif';x.fillText(o.line||'📷 카메라로 찍어서 입장해요!',W/2,oy+sz+90);
  x.font='700 22px Galmuri11,Pretendard,sans-serif';x.fillText('Made by Cheon_R',W/2,H-40);}
 
 /* ===== 시작 ===== */
 (function boot(){
+ if(params.get('new')==='1'&&!params.get('gas')){renderTeacherSetup();return;}
  var s=store.get(K_SES,null);
  if(s&&GAS){
   MODE='real';SES=s;view='boot';setTabs(false);

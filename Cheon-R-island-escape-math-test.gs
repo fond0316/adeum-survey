@@ -1,5 +1,5 @@
 /**
- * 섬탈출원정대 GAS (Cheon-R-island-escape.gs)
+ * 섬탈출원정대 GAS (Cheon-R-island-escape-math-test.gs)
  *
  * [설치]
  * 1) 구글 시트를 하나 만들고 확장 프로그램 > Apps Script 에 이 코드를 통째로 붙여넣기
@@ -17,14 +17,15 @@
  *  조설정   : 섬 이름 변경 + 탈출 시각
  *
  * 이 앱의 정답·힌트는 HTML 파일의 QUESTIONS 에 있어요 (GAS는 기록과 공유만 담당).
- * 관리자 입장코드: 아래 ADMIN_CODE (스크립트 속성 ADMIN_CODE 를 만들면 그 값이 우선)
+ * 관리자 입장코드: 처음엔 mathtest -> 관리자 화면에서 각자 바꿔요 (바뀐 값은 스크립트 속성 ADMIN_CODE 에 저장)
+ *   * 코드를 잊었다면: Apps Script > 프로젝트 설정 > 스크립트 속성에서 ADMIN_CODE 를 지우면 mathtest 로 돌아가요
  */
 var SH_P = '참가자', SH_LOG = '풀이기록', SH_H = '힌트', SH_R = '도움요청', SH_B = '상자', SH_T = '조설정';
 var NQ = 5;                    // 문제 수 (HTML의 QUESTIONS 개수와 같아야 해요)
 var MAX_TEAM = 6;              // 조당 최대 인원
 var TEAMS = [1, 2, 3, 4, 5];
 var ISLAND_DEFAULT = { 1: '🐢 거북이섬', 2: '🌴 야자섬', 3: '🌋 화산섬', 4: '🪸 산호섬', 5: '🐚 조개섬' };
-var ADMIN_CODE = '0413';
+var ADMIN_CODE = 'mathtest';   // 처음 입장코드 (관리자 화면에서 각자 바꾸면 스크립트 속성 ADMIN_CODE에 저장돼요)
 var CHARS = ['🦊', '🐯', '🐻', '🐼', '🐰', '🐸', '🦁', '🐧', '🐶', '🐱', '🐹', '🐨', '🐵', '🐔', '🦄', '🐙', '🦖', '🐳', '🦋', '🐢'];
 var COIN_BASE = 10, COIN_FIRST = 5, COIN_HINT_PENALTY = 2, COIN_MIN = 5, COIN_HELP = 5, DOUBLE_CAP = 30;
 var BOX_CODES = ['X', '5', '10', '20', 'D'];
@@ -46,6 +47,7 @@ function num_(v) { var n = parseInt(String(v).replace(/[^0-9]/g, ''), 10); retur
 function clean_(v, n) { return String(v == null ? '' : v).replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, n); }
 function key_(t, n) { return 'T' + num_(t) + '_' + clean_(n, 10); }
 function props_() { return PropertiesService.getScriptProperties(); }
+function pwDefault_() { return !props_().getProperty('ADMIN_CODE'); }
 function adminOk_(code) { return String(code || '') === (props_().getProperty('ADMIN_CODE') || ADMIN_CODE); }
 function sheet_(name, headers) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -384,7 +386,7 @@ function adminstate_(p) {
   var e = needAdmin_(p); if (e) return e;
   var s = snap_();
   return {
-    ok: true, now: Date.now(), game: game_(), cfg: cfg_(),
+    ok: true, now: Date.now(), game: game_(), cfg: cfg_(), pwDefault: pwDefault_(),
     players: s.P.map(function (x) { return { team: x.team, name: x.name, ch: x.ch, coins: x.coins, hasKey: x.hasKey, helping: x.helping, done: x.done, wrong: x.wrong, hinted: x.hinted }; }),
     labels: TEAMS.map(function (t) { return { team: t, label: labelOf_(s.T, t), escapedAt: (s.T[t] && s.T[t].esc) || 0 }; }),
     board: board_(s),
@@ -444,6 +446,14 @@ function adminhint_(p) {
   H.sh.getRange(H.sh.getLastRow() + 1, 1, rows.length, H_H.length).setValues(rows);
   return { ok: true, sent: targets.length };
 }
+function adminpw_(p) {
+  var e = needAdmin_(p); if (e) return e;
+  var nc = String(p.newcode || '').trim();
+  if (nc.length < 4 || nc.length > 20) return { ok: false, error: '입장코드는 4~20자로 정해 주세요' };
+  if (nc === ADMIN_CODE) return { ok: false, error: '처음 코드(' + ADMIN_CODE + ')와 다른 코드로 정해 주세요' };
+  props_().setProperty('ADMIN_CODE', nc);
+  return { ok: true };
+}
 function clearRows_(name, headers) {
   var sh = sheet_(name, headers), last = sh.getLastRow();
   if (last >= 2) sh.getRange(2, 1, last - 1, headers.length).clearContent();
@@ -456,13 +466,13 @@ function adminreset_(p) {
 }
 
 /* ===== 진입점 ===== */
-var WRITERS = { join: join_, leave: leave_, setchar: setchar_, setisland: setisland_, result: result_, help: help_, hint: hint_, thanks: thanks_, openbox: openbox_, admincfg: admincfg_, adminmove: adminmove_, admindel: admindel_, adminhint: adminhint_, adminreset: adminreset_ };
+var WRITERS = { join: join_, leave: leave_, setchar: setchar_, setisland: setisland_, result: result_, help: help_, hint: hint_, thanks: thanks_, openbox: openbox_, admincfg: admincfg_, adminmove: adminmove_, admindel: admindel_, adminhint: adminhint_, adminreset: adminreset_, adminpw: adminpw_ };
 function route_(p) {
   var a = p.action;
   if (WRITERS[a]) { var r = withLock_(function () { return WRITERS[a](p); }); bust_(); return r; }
   if (a === 'state') return state_(p);
   if (a === 'lobby') return lobby_();
-  if (a === 'adminlogin') return adminOk_(p.code) ? { ok: true } : { ok: false, error: '입장코드가 달라요' };
+  if (a === 'adminlogin') return adminOk_(p.code) ? { ok: true, pwDefault: pwDefault_() } : { ok: false, error: '입장코드가 달라요' };
   if (a === 'adminstate') return adminstate_(p);
   return { ok: true, ping: 1 };
 }
