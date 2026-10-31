@@ -1063,7 +1063,7 @@ function renderIslandMove(q){
 function afterSolve(q){
  if(modalOpen())return;
  if(q>=NQ){popup({icon:'🗝️',title:'배 열쇠를 얻었어요!',body:'조원 <b>전원</b>의 열쇠가 모이면 배가 출항해요!<br>아직 막힌 친구가 있으면 힌트로 도와주세요 💪',btns:[{t:'섬으로 돌아가기 🏝️',fn:function(){renderIsland();}}]});return;}
- popup({icon:'🎉',title:'클리어!',body:'잘했어요! 다음 장소는 <b>'+(q+1)+'번 '+esc(QUESTIONS[q].spot)+'</b>이에요.',btns:[{t:'다음 장소로 이동해볼까요? 🚶',fn:function(){renderIslandMove(q);}},{t:'섬으로 돌아가기',ghost:true,fn:function(){renderIsland();}}]});}
+ popup({icon:'🎉',title:'클리어!',body:'잘했어요! 다음 장소는 <b>'+(q+1)+'번 '+esc(QUESTIONS[q].spot)+'</b>이에요.',btns:[{t:'다음 장소로 이동해볼까요? 🚶',fn:function(){renderIslandMove(q);}}]});}
 
 /* ===== 힌트 보내기 (정답 차단) ===== */
 function hintModal(to,q){
@@ -1380,6 +1380,7 @@ function renderPwChange(force){
   if(a!==b){m.className='msg err';m.textContent='두 칸이 달라요. 다시 확인해 주세요.';return;}
   btn.disabled=true;m.className='msg';m.textContent='저장 중…';
   adm('adminpw',{newcode:a}).then(function(r){
+   if(r&&r.ok&&r.ping){btn.disabled=false;m.className='msg err';m.textContent='연결된 GAS 코드가 옛 버전이에요. 최신 .gs를 붙여넣고 [배포 관리 → 수정 → 새 버전]으로 재배포해 주세요.';return;}
    if(!r||!r.ok){btn.disabled=false;m.className='msg err';m.textContent=(r&&r.error)||'바꾸지 못했어요';return;}
    try{sessionStorage.setItem('ise_admin_code',a);}catch(e){}toast('✅ 입장코드를 바꿨어요! 잊지 마세요',3000);renderAdmin();
   }).catch(function(e){btn.disabled=false;m.className='msg err';m.textContent=noGasMsg(e);});};
