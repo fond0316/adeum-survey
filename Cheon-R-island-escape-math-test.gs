@@ -24,7 +24,7 @@ var SH_P = '참가자', SH_LOG = '풀이기록', SH_H = '힌트', SH_R = '도움
 var NQ = 5;                    // 문제 수 (HTML의 QUESTIONS 개수와 같아야 해요)
 var MAX_TEAM = 6;              // 조당 최대 인원
 var TEAMS = [1, 2, 3, 4, 5];
-var ISLAND_DEFAULT = { 1: '🐢 거북이섬', 2: '🌴 야자섬', 3: '🌋 화산섬', 4: '🪸 산호섬', 5: '🐚 조개섬' };
+var ISLAND_DEFAULT = { 1: '🐢 거북이섬', 2: '🌴 야자섬', 3: '🌋 화산섬', 4: '🐠 산호섬', 5: '🐚 조개섬' };
 var ADMIN_CODE = 'mathtest';   // 처음 입장코드 (관리자 화면에서 각자 바꾸면 스크립트 속성 ADMIN_CODE에 저장돼요)
 var CHARS = ['🦊', '🐯', '🐻', '🐼', '🐰', '🐸', '🦁', '🐧', '🐶', '🐱', '🐹', '🐨', '🐵', '🐔', '🦄', '🐙', '🦖', '🐳', '🦋', '🐢'];
 var COIN_BASE = 10, COIN_FIRST = 5, COIN_HINT_PENALTY = 2, COIN_MIN = 5, COIN_HELP = 5, DOUBLE_CAP = 30;

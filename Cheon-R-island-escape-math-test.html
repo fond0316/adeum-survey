@@ -114,6 +114,11 @@ footer a{color:var(--ink);font-weight:900}
 .pc{position:absolute;transform:translate(-50%,-100%);transition:left 1.2s ease,top 1.2s ease;font-size:clamp(20px,6.4vw,28px);line-height:1;text-align:center;pointer-events:none;z-index:5}
 .pc .pn{display:block;font-size:10px;font-family:var(--game);background:#fff;border:2px solid var(--ink);border-radius:4px;padding:0 3px;white-space:nowrap;margin-top:2px;max-width:62px;overflow:hidden;text-overflow:ellipsis}
 .pc.me .pn{background:var(--gold)}
+.btabs{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.btabs button{font-family:var(--game);font-weight:900;font-size:13px;min-height:44px;padding:4px 12px;border:3px solid var(--ink);border-radius:8px;background:#fff;color:var(--ink);cursor:pointer}
+.btabs button.on{background:var(--gold)}.btabs button.off{opacity:.5}
+.bd .mrow{flex-wrap:wrap}.mrow.stuck{background:#FFF3B0;border-radius:6px;padding:3px 5px}
+#bscene .spot{pointer-events:none}
 .pc.hop{animation:hop .4s ease-in-out 3}
 .pc .bub{position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);white-space:nowrap;background:var(--gold);border:3px solid var(--ink);border-radius:6px;padding:2px 7px;font-size:12px;font-family:var(--game);font-weight:900;color:var(--ink);z-index:9;animation:bubin .3s ease}
 @keyframes bubin{from{opacity:0;transform:translateX(-50%) scale(.5)}to{opacity:1;transform:translateX(-50%) scale(1)}}
@@ -188,7 +193,7 @@ var SH_P = '참가자', SH_LOG = '풀이기록', SH_H = '힌트', SH_R = '도움
 var NQ = 5;                    // 문제 수 (HTML의 QUESTIONS 개수와 같아야 해요)
 var MAX_TEAM = 6;              // 조당 최대 인원
 var TEAMS = [1, 2, 3, 4, 5];
-var ISLAND_DEFAULT = { 1: '🐢 거북이섬', 2: '🌴 야자섬', 3: '🌋 화산섬', 4: '🪸 산호섬', 5: '🐚 조개섬' };
+var ISLAND_DEFAULT = { 1: '🐢 거북이섬', 2: '🌴 야자섬', 3: '🌋 화산섬', 4: '🐠 산호섬', 5: '🐚 조개섬' };
 var ADMIN_CODE = 'mathtest';   // 처음 입장코드 (관리자 화면에서 각자 바꾸면 스크립트 속성 ADMIN_CODE에 저장돼요)
 var CHARS = ['🦊', '🐯', '🐻', '🐼', '🐰', '🐸', '🦁', '🐧', '🐶', '🐱', '🐹', '🐨', '🐵', '🐔', '🦄', '🐙', '🦖', '🐳', '🦋', '🐢'];
 var COIN_BASE = 10, COIN_FIRST = 5, COIN_HINT_PENALTY = 2, COIN_MIN = 5, COIN_HELP = 5, DOUBLE_CAP = 30;
@@ -654,7 +659,7 @@ var params=new URLSearchParams(location.search);
 var GAS=params.get('gas')||localStorage.getItem(K_GAS)||GAS_DEFAULT;
 if(params.get('gas')){try{localStorage.setItem(K_GAS,params.get('gas'));}catch(e){}}
 var NQ=5,TEAMS=[1,2,3,4,5];
-var ISLAND_DEFAULT={1:'🐢 거북이섬',2:'🌴 야자섬',3:'🌋 화산섬',4:'🪸 산호섬',5:'🐚 조개섬'};
+var ISLAND_DEFAULT={1:'🐢 거북이섬',2:'🌴 야자섬',3:'🌋 화산섬',4:'🐠 산호섬',5:'🐚 조개섬'};
 var TEAM_COLORS={1:'#2FA866',2:'#E5484D',3:'#F08A1C',4:'#8A55D6',5:'#14A6C9',9:'#3B6FE0'};
 var CHARS=[{e:'🦊',n:'여우'},{e:'🐯',n:'호랑이'},{e:'🐻',n:'곰'},{e:'🐼',n:'판다'},{e:'🐰',n:'토끼'},{e:'🐸',n:'개구리'},{e:'🦁',n:'사자'},{e:'🐧',n:'펭귄'},{e:'🐶',n:'강아지'},{e:'🐱',n:'고양이'},{e:'🐹',n:'햄스터'},{e:'🐨',n:'코알라'},{e:'🐵',n:'원숭이'},{e:'🐔',n:'병아리'},{e:'🦄',n:'유니콘'},{e:'🐙',n:'문어'},{e:'🦖',n:'공룡'},{e:'🐳',n:'고래'},{e:'🦋',n:'나비'},{e:'🐢',n:'거북이'}];
 var BOX_TXT={'X':['💨','꽝! 다음 기회를 노려보세요!'],'5':['🪙','+5 코인'],'10':['💰','+10 코인'],'20':['💎','+20 코인'],'D':['✨','코인 2배! (최대 +30)']};
@@ -1191,7 +1196,7 @@ function demoState(){
   team:{team:9,label:s.label,leader:me.name,escapedAt:s.escAt,members:mem.map(function(m){return {name:m.name,ch:m.ch,coins:m.coins,hasKey:m.hasKey,helping:m.helping,done:m.done.slice()};})},
   hints:{recv:s.H.filter(function(h){return h.to===me.name;}).map(function(h){return {id:h.id,t:h.t,from:h.from,q:h.q,kind:h.kind,text:h.text,thanks:h.thanks};}),sent:s.H.filter(function(h){return h.from===me.name&&h.kind==='조원';}).map(function(h){return {id:h.id,to:h.to,q:h.q,thanks:h.thanks};})},
   boxes:s.B.filter(function(b){return b.pick==='';}).map(function(b){return {id:b.id,key:'demo',q:b.q};}),
-  board:[{team:9,label:s.label,n:4,avg:Math.round(sum/4*10)/10,progress:Math.round(dn/20*100),escapedAt:s.escAt},fake('🌋 화산섬',3,4.5),fake('🪸 산호섬',4,7.5)]};}
+  board:[{team:9,label:s.label,n:4,avg:Math.round(sum/4*10)/10,progress:Math.round(dn/20*100),escapedAt:s.escAt},fake('🌋 화산섬',3,4.5),fake('🐠 산호섬',4,7.5)]};}
 function demoCall(a,p){return new Promise(function(res){setTimeout(function(){res(demoDo(a,p));},120);});}
 function demoDo(a,p){
  var s=DEMO.s,me=s&&s.me;if(!s)return {ok:false,error:'체험이 끝났어요'};
@@ -1266,6 +1271,7 @@ function renderAdmin(){
  view='admin';MODE='admin';setTabs(false);clearInterval(admT);
  $('app').innerHTML=titleHtml('담임 관리자 모드')+
  '<div class="card"><h2>⏱ 게임 진행</h2><div class="timer" id="agt">불러오는 중…</div><div class="row2"><button class="btn go small" id="astart">▶ 게임 시작</button><button class="btn ghost small" id="astop">⏹ 지금 종료</button></div><label for="adur">제한 시간 (분)</label><div class="row2"><input type="number" id="adur" min="1" max="600" step="1" placeholder="15"><button class="btn small" id="adset" style="margin-top:0">적용</button></div><div class="row2"><button class="btn ghost small" id="am5">-5분</button><button class="btn ghost small" id="ap5">+5분</button><button class="btn ghost small" id="aun">대기로 되돌리기</button></div><div class="sub" id="adinfo">시작을 누르면 그 순간부터 제한 시간이 흘러요. 진행 중에도 시간을 늘리거나 줄일 수 있어요.</div></div>'+
+ '<div class="card"><h2>📊 실시간 현황판</h2><div class="sub">조별 진행 상황과 학생 개별 현황을 한눈에 보고, 조를 눌러 그 조의 섬 화면도 볼 수 있어요. (4초마다 자동 갱신)</div><button class="btn go" id="abd">현황판 열기</button></div>'+
  '<div class="card"><h2>⚙️ 설정</h2><label class="sw"><input type="checkbox" id="aalw"><span><b>조원이 풀었어도 담임 힌트 허용</b><br><small class="sub">꺼두면 푼 조원이 있는 문제는 조원에게만 요청할 수 있어요</small></span></label><label for="amin">탈출 최소 인원 (조원이 이 인원 이상이고 전원 열쇠를 가져야 탈출)</label><div class="row2"><input type="number" id="amin" min="1" max="6"><button class="btn small" id="aminset" style="margin-top:0">저장</button></div></div>'+
  '<div class="card"><h2>🏝️ 조별 현황</h2><div id="adteams"></div></div>'+
  '<div class="card"><h2>🏆 지금 순위</h2><div id="adrank"></div></div>'+
@@ -1328,6 +1334,7 @@ function bindAdmin(){
  $('aout').onclick=function(){clearInterval(admT);try{sessionStorage.removeItem('ise_admin_code');}catch(e){}MODE='';renderStart();};
  $('ademo').onclick=function(){clearInterval(admT);startDemo();};
  $('apw').onclick=function(){renderPwChange(false);};
+ $('abd').onclick=renderBoard;
  var el=$('stuLink');el.value=(location.protocol==='file:'?location.href.split('?')[0].split('#')[0]:location.origin+location.pathname)+'?gas='+encodeURIComponent(GAS);
  var lm=$('lkm');function note(t,ok){lm.className='msg '+(ok?'ok':'err');lm.textContent=t;}
  if(location.protocol==='file:')note('⚠️ 지금은 내 컴퓨터 파일로 열려 있어요. 깃허브에 올린 주소에서 열어야 학생용 링크가 제대로 만들어져요.');
@@ -1383,6 +1390,72 @@ function renderTeacherSetup(){
    if(!r||!r.ok||!r.teams){GAS=old;btn.disabled=false;m.className='msg err';m.textContent='연결은 됐는데 GAS 코드가 이 앱과 안 맞아요. 2단계의 코드를 다시 복사해서 붙여넣고 [배포 관리 → 수정 → 새 버전]으로 재배포해 주세요.';return;}
    try{localStorage.setItem(K_GAS,v);}catch(e){}try{history.replaceState(null,'',location.pathname);}catch(e){}toast('연결됐어요! ✅ 처음 입장코드는 mathtest예요',3200);renderAdminLogin();
   }).catch(function(){GAS=old;btn.disabled=false;m.className='msg err';m.textContent='연결이 안 돼요. 주소와 배포 설정("액세스: 모든 사용자")을 확인해 주세요.';});};}
+
+/* ===== 실시간 현황판 (담임) ===== */
+var BT=null,BSEL=0,BSCN=-1,PCB={};
+function renderBoard(){
+ view='board';MODE='admin';setTabs(false);clearInterval(admT);clearInterval(BT);PCB={};BSCN=-1;
+ $('app').innerHTML='<div class="title" style="margin:6px 0 0"><b style="font-size:24px">📊 실시간 현황판</b><span>학생들이 지금 어디까지 왔는지 한눈에 보여요</span></div><div class="timer" id="bgt">불러오는 중…</div><div id="btabs" class="btabs"></div><div id="bbody" class="bd"></div><button class="btn ghost small" id="bout">‹ 관리자 화면으로</button>'+footer();
+ $('bout').onclick=function(){clearInterval(BT);renderAdmin();};
+ loadBoard();BT=setInterval(function(){if(view==='board')loadBoard();else clearInterval(BT);},4000);}
+function loadBoard(){
+ adm('adminstate').then(function(r){if(!r||!r.ok||view!=='board')return;ADM=r;ADM.at=Date.now();paintBoard();}).catch(function(){});}
+function bdPhase(){var g=ADM.game,n=ADM.now+(Date.now()-ADM.at);return !g.startAt?'ready':(n>g.endAt?'over':'running');}
+function bdLoc(p,esc_){
+ var n=doneCount(p);
+ if(esc_)return '🚢 배를 타고 탈출!';
+ if(n>=NQ)return '⚓ 열쇠 획득 · 조원 기다리는 중';
+ return '📍 '+(n+1)+'번 '+QUESTIONS[n].spot;}
+function bdRows(mem,esc_){
+ if(!mem.length)return '<div class="sub">(아직 아무도 없어요)</div>';
+ return mem.map(function(p){
+  var wr=p.wrong.reduce(function(a,b){return a+b;},0),hn=p.hinted.reduce(function(a,b){return a+b;},0);
+  return '<div class="mrow'+(p.helping?' stuck':'')+'"><span>'+esc(p.ch||'🙂')+'</span><span class="mn">'+esc(p.name)+(p.hasKey?' 🗝️':'')+(p.helping?' 🆘 '+p.helping+'번에서 막혔어요':'')+'</span><span class="pips">'+p.done.map(function(d){return '<i'+(d?' class="d"':'')+'></i>';}).join('')+'</span><span class="sub">'+bdLoc(p,esc_)+'</span><span>🪙'+p.coins+'</span><span class="sub">오답 '+wr+' · 힌트 '+hn+'</span></div>';}).join('');}
+function bdTeam(L,mem,full){
+ var col=teamColor(L.team),n=mem.length,solved=0,coins=0;
+ mem.forEach(function(p){solved+=doneCount(p);coins+=p.coins;});
+ var pct=n?Math.round(solved/(n*NQ)*100):0,avg=n?Math.round(coins/n*10)/10:0,esc_=!!L.escapedAt;
+ return '<div class="card"><div><span class="dot" style="background:'+col+'"></span><b>'+L.team+'조 · '+esc(L.label)+'</b> <span class="sub">'+n+'명'+(esc_?' · 🚢 탈출 성공':'')+'</span></div>'+
+  '<div class="bar"><i style="width:'+pct+'%"></i></div><div class="sub">진행 '+pct+'% · 🪙 평균 '+avg+'</div>'+bdRows(mem,esc_)+
+  (full?'':'<button class="btn small go" data-bview="'+L.team+'">🏝️ 이 조의 섬 보기</button>')+'</div>';}
+function paintBoard(){
+ if(view!=='board'||!ADM)return;
+ $('bgt').textContent=admPhaseTxt();
+ var teams=ADM.labels.map(function(L){return {L:L,mem:ADM.players.filter(function(p){return p.team===L.team;})};});
+ var tb=$('btabs');
+ tb.innerHTML='<button data-b="0" class="'+(BSEL===0?'on':'')+'">📊 전체</button>'+teams.map(function(t){return '<button data-b="'+t.L.team+'" class="'+(BSEL===t.L.team?'on':'')+(t.mem.length?'':' off')+'">'+t.L.team+'조 ('+t.mem.length+')</button>';}).join('');
+ qsa('button',tb).forEach(function(b){b.onclick=function(){BSEL=Number(b.getAttribute('data-b'));BSCN=-1;paintBoard();};});
+ var body=$('bbody');
+ if(BSEL===0){
+  PCB={};BSCN=-1;
+  var act=teams.filter(function(t){return t.mem.length;}),idle=teams.filter(function(t){return !t.mem.length;});
+  body.innerHTML='<div class="sub" style="margin:4px 0">조를 누르면 그 조의 섬을 볼 수 있어요.</div>'+
+   '<h2 style="margin:12px 0 4px">🏆 지금 순위</h2>'+rankHtml(ADM.board,0,bdPhase(),ADM.game.startAt,true)+
+   '<h2 style="margin:16px 0 4px">🏝️ 조별 · 개별 현황</h2>'+(act.length?act.map(function(t){return bdTeam(t.L,t.mem,false);}).join(''):'<div class="card sub">아직 입장한 학생이 없어요.</div>')+
+   (idle.length?'<div class="sub" style="margin:8px 0">비어 있는 섬: '+idle.map(function(t){return t.L.team+'조';}).join(', ')+'</div>':'');
+  qsa('[data-bview]',body).forEach(function(b){b.onclick=function(){BSEL=Number(b.getAttribute('data-bview'));BSCN=-1;paintBoard();window.scrollTo(0,0);};});
+  return;}
+ var t=teams.filter(function(x){return x.L.team===BSEL;})[0];if(!t){BSEL=0;return;}
+ var esc_=!!t.L.escapedAt;
+ if(BSCN!==BSEL){
+  body.innerHTML='<div id="bscene">'+sceneHtml()+'</div><div id="bcnt" class="sub" style="margin:-6px 0 8px"></div><div id="bteam"></div>';
+  PCB={};BSCN=BSEL;}
+ qsa('#bscene .spot').forEach(function(el){var q=Number(el.getAttribute('data-q'));el.className='spot'+((t.mem.length&&t.mem.every(function(p){return p.done[q-1];}))?' clear':'');});
+ boardChars(t.mem,esc_);
+ var cnt=[];for(var q=1;q<=NQ;q++){var c=t.mem.filter(function(p){return !esc_&&Math.min(doneCount(p)+1,NQ)===q;}).length;cnt.push(q+'. '+QUESTIONS[q-1].spot+' '+c+'명');}
+ $('bcnt').textContent='지금 위치 → '+cnt.join(' · ')+(esc_?' · 🚢 탈출 완료':'');
+ $('bteam').innerHTML=bdTeam(t.L,t.mem,true);}
+function boardChars(mem,esc_){
+ var box=$('pcs');if(!box)return;var groups={},seen={};
+ mem.forEach(function(m){var sp=esc_?0:Math.min(doneCount(m)+1,NQ);(groups[sp]=groups[sp]||[]).push(m);});
+ Object.keys(groups).forEach(function(sp){var arr=groups[sp];
+  arr.forEach(function(m,j){
+   var pos=sp==='0'?{x:SHIP_X+(j-(arr.length-1)/2)*5,y:SHIP_Y-6}:spotPos(Number(sp),j,arr.length);
+   var el=PCB[m.name];if(!el){el=document.createElement('div');box.appendChild(el);PCB[m.name]=el;}
+   el.className='pc'+(m.helping?' sos':'');el.style.left=pos.x+'%';el.style.top=pos.y+'%';
+   el.innerHTML='<i class="sb">🆘</i>'+esc(m.ch||'🙂')+'<span class="pn">'+esc(m.name)+(m.hasKey?' 🗝️':'')+'</span>';
+   seen[m.name]=1;});});
+ Object.keys(PCB).forEach(function(k){if(!seen[k]){if(PCB[k].parentNode)PCB[k].parentNode.removeChild(PCB[k]);delete PCB[k];}});}
 
 /* ===== 입장코드 변경 ===== */
 function renderPwChange(force){
