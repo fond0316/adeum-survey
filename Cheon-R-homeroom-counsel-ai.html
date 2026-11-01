@@ -4016,7 +4016,7 @@ function startStatAnalysis() {
     if (!isTop && d.rank && d.total) {
       const targetCutPct = [0, 0.10, 0.34, 0.66, 0.90][targetGrade];
       const targetCutRank = Math.floor(d.total * targetCutPct);
-      ahead = Math.max(0, d.rank - targetCutRank - 1);
+      ahead = Math.max(0, d.rank - targetCutRank);
       aheadDetail = `${d.rank}위→${targetCutRank}위 이내`;
     }
 
@@ -4087,7 +4087,7 @@ function startStatAnalysis() {
     if (!d || d.grade === 1 || !d.rank || !d.total) return false;
     const targetCutPct = [0, 0.10, 0.34, 0.66, 0.90][d.grade - 1];
     const targetCutRank = Math.floor(d.total * targetCutPct);
-    return Math.max(0, d.rank - targetCutRank - 1) <= 5;
+    return Math.max(0, d.rank - targetCutRank) <= 5;
   }).sort((a, b) => {
     const calc = s => { const d=subjs[s]; return Math.max(0, d.rank - Math.floor(d.total*[0,0.10,0.34,0.66,0.90][d.grade-1])-1); };
     return calc(a) - calc(b);
@@ -4103,7 +4103,7 @@ function startStatAnalysis() {
       const targetGrade = d.grade - 1;
       const targetCutPct = [0, 0.10, 0.34, 0.66, 0.90][d.grade - 1];
       const targetCutRank = Math.floor(d.total * targetCutPct);
-      const ahead = Math.max(0, d.rank - targetCutRank - 1);
+      const ahead = Math.max(0, d.rank - targetCutRank);
       const barPct = ahead === 0 ? 100 : Math.max(10, 100 - ahead * 10);
       const color = GRADE_COLOR[d.grade];
       const medals = ['🥇','🥈','🥉'];
@@ -4171,7 +4171,7 @@ function startStatAnalysis() {
       const currentPct = ((d.rank / d.total) * 100);
       const targetPct = targetCutPct * 100;
       const targetCutRank = Math.floor(d.total * targetCutPct);
-      const ahead = Math.max(0, d.rank - targetCutRank - 1);
+      const ahead = Math.max(0, d.rank - targetCutRank);
       const barPct = Math.min(100, (targetCutRank / d.total) * 100);
       const color = GRADE_COLOR[d.grade];
 
@@ -4929,10 +4929,13 @@ function buildTrendEvaluationHTML(ev, slots) {
     const score = r => (r.gradeDelta || 0) * 100 + (r.pctDelta || 0);
     const sorted = ev.rows.filter(r => !r.single).slice().sort((x, y) => score(y) - score(x));
     const best = sorted[0], worst = sorted[sorted.length - 1];
-    if (best && worst) {
+    // 실제로 좋아진/나빠진 과목이 있을 때만 표시 (전부 좋아졌는데 '아쉬워진 과목'이 뜨지 않게)
+    const showBest = best && score(best) > 0, showWorst = worst && score(worst) < 0;
+    const desc = r => `${r.a.grade || '-'}→${r.b.grade || '-'}등급${r.pctDelta !== null ? ' · 상위% ' + (r.pctDelta >= 0 ? '−' : '+') + Math.abs(r.pctDelta).toFixed(1) + '%p' : ''}`;
+    if (showBest || showWorst) {
       html += `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
-        <div style="flex:1;min-width:150px;background:#f0faf7;border-radius:10px;padding:10px 12px;"><div style="font-size:11px;color:#048a6c;font-weight:700;">▲ 가장 좋아진 과목</div><div style="font-size:13px;font-weight:800;margin-top:2px;">${escapeHTML(trendSubjShort(best.subj))} <span style="font-size:11px;font-weight:600;color:var(--text3);">${best.a.grade || '-'}→${best.b.grade || '-'}등급${best.pctDelta !== null ? ' · 상위% ' + (best.pctDelta >= 0 ? '−' : '+') + Math.abs(best.pctDelta).toFixed(1) + '%p' : ''}</span></div></div>
-        <div style="flex:1;min-width:150px;background:#fff5f5;border-radius:10px;padding:10px 12px;"><div style="font-size:11px;color:#e05c5c;font-weight:700;">▼ 가장 아쉬워진 과목</div><div style="font-size:13px;font-weight:800;margin-top:2px;">${escapeHTML(trendSubjShort(worst.subj))} <span style="font-size:11px;font-weight:600;color:var(--text3);">${worst.a.grade || '-'}→${worst.b.grade || '-'}등급${worst.pctDelta !== null ? ' · 상위% ' + (worst.pctDelta >= 0 ? '−' : '+') + Math.abs(worst.pctDelta).toFixed(1) + '%p' : ''}</span></div></div>
+        ${showBest ? `<div style="flex:1;min-width:150px;background:#f0faf7;border-radius:10px;padding:10px 12px;"><div style="font-size:11px;color:#048a6c;font-weight:700;">▲ 가장 좋아진 과목</div><div style="font-size:13px;font-weight:800;margin-top:2px;">${escapeHTML(trendSubjShort(best.subj))} <span style="font-size:11px;font-weight:600;color:var(--text3);">${desc(best)}</span></div></div>` : ''}
+        ${showWorst ? `<div style="flex:1;min-width:150px;background:#fff5f5;border-radius:10px;padding:10px 12px;"><div style="font-size:11px;color:#e05c5c;font-weight:700;">▼ 가장 아쉬워진 과목</div><div style="font-size:13px;font-weight:800;margin-top:2px;">${escapeHTML(trendSubjShort(worst.subj))} <span style="font-size:11px;font-weight:600;color:var(--text3);">${desc(worst)}</span></div></div>` : ''}
       </div>`;
     }
   }
@@ -5008,7 +5011,17 @@ function renderTrendTab(slots) {
   document.getElementById('chartCard').style.display = 'none';
 }
 
+// 누적 변화 탭이 쓰는 계산 요약을 그대로 뽑아서 AI 심층분석에도 같이 전달
+function buildTrendFactsText() {
+  try {
+    const full = buildTrendAIPrompt();
+    const a = full.indexOf('[시험별 성적]'), b = full.indexOf('[담임 메모]');
+    return (a < 0 || b < 0) ? '' : full.slice(a, b).trim();
+  } catch (e) { return ''; }
+}
+
 function trendAIHtml(text) {
+  text = String(text).replace(/\*\*/g, '').replace(/^\s*#{1,6}\s*/gm, '').replace(/^\s*[-*]\s+/gm, '· ');
   const body = escapeHTML(text).replace(/【([^】]+)】/g, '<b style="color:#5e40a6;font-size:13px;">【$1】</b>');
   return `<div style="background:#fff;border:1.5px solid #d8cff0;border-radius:12px;padding:14px;font-size:12px;line-height:1.9;color:var(--text);white-space:pre-wrap;">${body}</div>`;
 }
@@ -5241,7 +5254,7 @@ function analyzeAcademicProfile(profile) {
     .map(s => {
       const targetPct = [0, 0.10, 0.34, 0.66, 0.90][s.grade - 1];
       const targetRank = Math.floor(s.total * targetPct);
-      return { ...s, targetGrade: s.grade - 1, targetRank, ahead: Math.max(0, s.rank - targetRank - 1) };
+      return { ...s, targetGrade: s.grade - 1, targetRank, ahead: Math.max(0, s.rank - targetRank) };
     })
     .sort((a, b) => a.ahead - b.ahead);
 
@@ -7708,16 +7721,22 @@ function buildPrompt(student, mokData, career, memo, extra = {}, counselData = n
     const SLOTS = [
       { g:1, s:1, k:'mid', label:'1학년 1학기 중간' },
       { g:1, s:1, k:'fin', label:'1학년 1학기 기말' },
+      { g:1, s:1, k:'total', label:'1학년 1학기 학기말(중간+기말+수행 합산)' },
       { g:1, s:2, k:'mid', label:'1학년 2학기 중간' },
       { g:1, s:2, k:'fin', label:'1학년 2학기 기말' },
+      { g:1, s:2, k:'total', label:'1학년 2학기 학기말(중간+기말+수행 합산)' },
       { g:2, s:1, k:'mid', label:'2학년 1학기 중간' },
       { g:2, s:1, k:'fin', label:'2학년 1학기 기말' },
+      { g:2, s:1, k:'total', label:'2학년 1학기 학기말(중간+기말+수행 합산)' },
       { g:2, s:2, k:'mid', label:'2학년 2학기 중간' },
       { g:2, s:2, k:'fin', label:'2학년 2학기 기말' },
+      { g:2, s:2, k:'total', label:'2학년 2학기 학기말(중간+기말+수행 합산)' },
       { g:3, s:1, k:'mid', label:'3학년 1학기 중간' },
       { g:3, s:1, k:'fin', label:'3학년 1학기 기말' },
+      { g:3, s:1, k:'total', label:'3학년 1학기 학기말(중간+기말+수행 합산)' },
       { g:3, s:2, k:'mid', label:'3학년 2학기 중간' },
       { g:3, s:2, k:'fin', label:'3학년 2학기 기말' },
+      { g:3, s:2, k:'total', label:'3학년 2학기 학기말(중간+기말+수행 합산)' },
     ];
 
     const filledSlots = SLOTS.map(sl => {
@@ -7738,7 +7757,7 @@ function buildPrompt(student, mokData, career, memo, extra = {}, counselData = n
         naesinText += `• ${subj}: 원점수 ${d.score !== null ? Math.round(d.score)+'점' : '-'}, 석차 ${d.rank || '-'}등/${d.total || '-'}명, ${d.grade ? d.grade+'등급' : '-'}\n`;
       });
 
-      if (idx > 0) {
+      if (idx > 0 && !(filledSlots[idx - 1].g === sl.g && filledSlots[idx - 1].s === sl.s && sl.k === 'total')) {
         const prev = filledSlots[idx - 1];
         const upList = [], downList = [], sameList = [];
         SUBJECTS.forEach(subj => {
@@ -7751,7 +7770,7 @@ function buildPrompt(student, mokData, career, memo, extra = {}, counselData = n
           else sameList.push(`${subj} ${d1.grade}등급 유지`);
         });
         if (upList.length || downList.length || sameList.length) {
-          naesinText += `▶ ${prev.label} → ${sl.label} 변화\n`;
+          naesinText += `▶ ${prev.label} → ${sl.label} 변화${(prev.k === 'total') !== (sl.k === 'total') ? ' ※학기말(합산)↔지필 비교 — 구성이 달라 변화가 과장될 수 있음' : ''}\n`;
           if (upList.length) naesinText += `• 상승(${upList.length}): ${upList.join(', ')}\n`;
           if (downList.length) naesinText += `• 하락(${downList.length}): ${downList.join(', ')}\n`;
           if (sameList.length) naesinText += `• 유지(${sameList.length}): ${sameList.join(', ')}\n`;
@@ -7762,6 +7781,9 @@ function buildPrompt(student, mokData, career, memo, extra = {}, counselData = n
     if (filledSlots.length > 1) {
       naesinText += '\n※ 위 누적 성적 변화 추이를 【항목1】 성적 분석과 【항목5】 학습 방향에 반드시 반영해주세요.\n';
     }
+    // 시스템이 계산한 누적 변화 요약(상위%·가중평균·우선 후보) — 화면의 '누적 변화' 탭과 같은 수치
+    const _facts = buildTrendFactsText();
+    if (_facts) naesinText += '\n【누적 변화 요약 (시스템 계산 — 이 수치만 사용)】\n' + _facts + '\n';
 
     // 일반 모드 최신 subjs
     const latestSlotN = filledSlots[filledSlots.length - 1];
@@ -7809,7 +7831,7 @@ function buildPrompt(student, mokData, career, memo, extra = {}, counselData = n
     const targetGrade = d.grade - 1;
     const targetCutPct = GRADE_CUTS[d.grade - 1];
     const targetCutRank = Math.floor(d.total * targetCutPct);
-    const ahead = Math.max(0, d.rank - targetCutRank - 1);
+    const ahead = Math.max(0, d.rank - targetCutRank);
     const currentTopPct = (100 - (d.rank - 1) / (d.total - 1) * 100).toFixed(1);
     const targetTopPct = ((1 - targetCutPct) * 100).toFixed(1);
     edgeText += `• ${subj}: 현재 ${d.rank}위/${d.total}명(상위 ${currentTopPct}%), ${targetGrade}등급 커트라인 ${targetCutRank}위(상위 ${targetTopPct}%) → 앞에 정확히 ${ahead}명${ahead === 0 ? ' (동점자 변별만 해결하면 즉시 등급 상승!)' : ` 추월 필요`}\n`;
