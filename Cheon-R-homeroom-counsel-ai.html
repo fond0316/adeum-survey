@@ -1219,6 +1219,7 @@
           <button onclick="printStat()" style="padding:4px 12px;border-radius:6px;border:1.5px solid var(--border);background:white;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🖨️ 출력</button>
         </div>
       </div>
+      <div id="statTabBar" style="display:none;flex-wrap:wrap;gap:6px;padding:12px 20px 0;"></div>
       <div id="statContent"></div>
     </div>
 
@@ -1515,18 +1516,25 @@ function restoreScoreDataFromStorage() {
 }
 
 // scoreData 전체에서 학생 수가 가장 많은 버킷을 기준 명렬표로 선택
+// (전입생처럼 일부 시험에만 있는 학생도 선택할 수 있도록, 모든 업로드의 학생을 합친 명렬표를 만든다)
 function pickBestStudentsBucket() {
-  let best = {}, bestCount = 0;
+  const all = {};
   [1,2,3].forEach(g => {
     [1,2].forEach(s => {
       ['mid','fin','total'].forEach(k => {
         const bucket = scoreData[g][s][k];
-        const count = Object.keys(bucket).length;
-        if (count > bestCount) { best = bucket; bestCount = count; }
+        Object.keys(bucket).forEach(num => {
+          const st = bucket[num];
+          if (!all[num]) all[num] = { name: st.name || '', subjects: st.subjects };
+          else {
+            if (st.name) all[num].name = st.name;       // 뒤(최신) 업로드의 이름·과목 우선
+            all[num].subjects = st.subjects;
+          }
+        });
       });
     });
   });
-  return best;
+  return all;
 }
 
 function saveCumulDataToStorage() {
@@ -2519,11 +2527,14 @@ function parseStudentsCore(rows, target, grade, sem, key) {
   function buildDataColsForHeader(headerRowIdx) {
     const headerRow = rows[headerRowIdx] || [];
     const colMap = {}; // 시작컬럼 → 과목명
+    const creditMap = {}; // 과목명 → 단위수
     for (let c = 0; c < headerRow.length; c++) {
       if (headerRow[c] && String(headerRow[c]).trim()) {
         const name = String(headerRow[c]).trim().replace(/\(\d+\)/, '').trim();
         if (['공통국어1', '공통수학1', '공통영어1', '한국사1', '통합사회1', '통합과학1'].some(s => name.includes(s.replace('1','')))) {
           colMap[c] = getSubjectName(name);
+          const cm = String(headerRow[c]).match(/\((\d+)\)/);
+          creditMap[colMap[c]] = cm ? parseInt(cm[1]) : null;
         }
       }
     }
@@ -2544,7 +2555,7 @@ function parseStudentsCore(rows, target, grade, sem, key) {
       }
       // 컬럼을 하나도 못 찾았으면(이전 표에서 이어받은 라벨만 있는 경우) 이 표에서는 이 과목 데이터를 만들지 않는다
       if (scoreC === null && rankC === null && totalC === null && gradeC === null) continue;
-      dataCols[subName] = { score: scoreC, rank: rankC, total: totalC, gradeCol: gradeC };
+      dataCols[subName] = { score: scoreC, rank: rankC, total: totalC, gradeCol: gradeC, credit: creditMap[subName] || null };
     }
     return dataCols;
   }
@@ -2557,7 +2568,7 @@ function parseStudentsCore(rows, target, grade, sem, key) {
       const total = cols.total !== null ? row[cols.total] : null;
       const gradeFromCol = cols.gradeCol !== null ? parseRank(row[cols.gradeCol]) : null;
       const gradeVal = gradeFromCol !== null ? gradeFromCol : calcGrade5(rank, total);
-      result[subName] = { score, rank, total, grade: gradeVal };
+      result[subName] = { score, rank, total, grade: gradeVal, credit: cols.credit || null };
     });
     return result;
   }
@@ -2570,6 +2581,7 @@ function parseStudentsCore(rows, target, grade, sem, key) {
       rank: incoming.rank !== null ? incoming.rank : existing.rank,
       total: incoming.total !== null ? incoming.total : existing.total,
       grade: incoming.grade !== null ? incoming.grade : existing.grade,
+      credit: incoming.credit || existing.credit || null,
     };
   }
 
@@ -2615,9 +2627,7 @@ function parseStudentsCore(rows, target, grade, sem, key) {
   }
 
   // 기준 명렬표: students는 항상 가장 많은 학생 수를 가진 데이터로 갱신
-  if (Object.keys(students).length === 0 || studentCount >= Object.keys(students).length) {
-    students = target;
-  }
+  students = pickBestStudentsBucket(); // 모든 업로드의 학생을 합친 명렬표 (일부 시험에만 있는 전입생 포함)
 
   renderStudentDropdownUI();
   saveScoreDataToStorage();
@@ -2645,6 +2655,7 @@ function parseSummaryFormat(rows, target) {
   let colMap = null; // 컬럼번호 → 과목명
   let cur = null;    // 지금 읽는 학생 번호
   let base = 0;      // '번호' 열 위치
+  let colCredit = {}; // 컬럼번호 → 단위수
   const blank = () => ({ score: null, rank: null, total: null, grade: null });
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
@@ -2656,7 +2667,11 @@ function parseSummaryFormat(rows, target) {
       for (let c = base + 3; c < row.length; c++) {
         if (!row[c]) continue;
         const nm = String(row[c]).trim().replace(/\(\d+\)/, '').trim();
-        if (KEYS.some(k => nm.includes(k))) colMap[c] = getSubjectName(nm);
+        if (KEYS.some(k => nm.includes(k))) {
+          colMap[c] = getSubjectName(nm);
+          const cm = String(row[c]).match(/\((\d+)\)/);
+          colCredit[c] = cm ? parseInt(cm[1]) : null;
+        }
       }
       cur = null;
       continue;
@@ -2673,7 +2688,7 @@ function parseSummaryFormat(rows, target) {
         if (raw === null || raw === undefined || raw === '') return;
         const m = String(raw).match(/\((\d+(?:\.\d+)?)\)\s*$/); // '73.78(74)' → 74
         const sc = m ? parseFloat(m[1]) : parseFloat(raw);
-        target[cur].subjects[sub] = Object.assign(blank(), target[cur].subjects[sub], { score: isNaN(sc) ? null : sc });
+        target[cur].subjects[sub] = Object.assign(blank(), target[cur].subjects[sub], { score: isNaN(sc) ? null : sc, credit: colCredit[c] || null });
       });
       continue;
     }
@@ -2851,6 +2866,7 @@ function selectStudent() {
   }
 
   selectedStudent = { num: parseInt(num), ...students[num] };
+  statTab = 'slot'; statSlotKey = null; // 학생을 바꾸면 분석 탭을 가장 최근 시험으로 초기화
   selectedTrack = null;
   resetStudentInputFields();
   initMokUI();
@@ -3871,6 +3887,13 @@ function startStatAnalysis() {
     badgeEl.textContent = name ? `${num}번 · ${name}` : `${num}번`;
   }
 
+  // 시험별 탭 / 누적 변화 탭 (누적 모드에서는 탭 없음)
+  const _slotsAll = uploadMode === 'cumul' ? [] : getStudentSlots();
+  if (statSlotKey && !_slotsAll.find(x => x.key === statSlotKey)) statSlotKey = null;
+  renderStatTabs(_slotsAll);
+  if (uploadMode !== 'cumul' && statTab === 'trend' && _slotsAll.length) { renderTrendTab(_slotsAll); return; }
+  const _selSlot = _slotsAll.find(x => x.key === (statSlotKey || (_slotsAll.length ? _slotsAll[_slotsAll.length - 1].key : null)));
+
   // 최신 슬롯 기준 subjects
   const _ss_num = selectedStudent?.num, _ss_name = selectedStudent?.name;
 
@@ -3896,7 +3919,7 @@ function startStatAnalysis() {
       .map(sl => { const d = scoreData[sl.g][sl.s][sl.k][_ss_num] || Object.values(scoreData[sl.g][sl.s][sl.k]).find(s=>s.name===_ss_name); return d||null; })
       .filter(Boolean);
     const _ss_latest = _ss_slots[_ss_slots.length - 1];
-    subjs = _ss_latest?.subjects || selectedStudent?.subjects || {};
+    subjs = _selSlot ? _selSlot.subjects : (_ss_latest?.subjects || selectedStudent?.subjects || {});
   }
   // 누적 모드: subjs에 실제로 있는 키를 effectiveSubjects로 사용
   // (1학년=공통과목, 2학년=선택과목 등 학년따라 다름)
@@ -3915,6 +3938,11 @@ function startStatAnalysis() {
   // ── 학생 요약 ──
   const isCumulMode = uploadMode === 'cumul';
   let html = '';
+
+  // 어느 시험 기준인지 표시
+  if (!isCumulMode && _selSlot) {
+    html += `<div style="padding:14px 20px 0;"><span style="display:inline-block;background:var(--primary-bg);color:var(--primary-dark);border-radius:999px;padding:4px 12px;font-size:11px;font-weight:700;">📌 ${escapeHTML(slotShortLabel(_selSlot, new Set(_slotsAll.map(x => x.g)).size > 1))} 기준 분석</span></div>`;
+  }
 
   // 누적 모드 안내 배너
   if (isCumulMode) {
@@ -4650,6 +4678,402 @@ function startStatAnalysis() {
 
   // 트렌드 차트 그리기
   setTimeout(() => drawTrendChart('all'), 100);
+}
+
+
+// ==================== 성적 기본 분석: 시험별 탭 + 누적 변화 탭 ====================
+// (기존 분석 화면은 그대로 두고, 위쪽에 탭만 추가. '누적 변화' 탭은 그래프 + 평가를 보여줌)
+let statTab = 'slot';        // 'slot' = 시험별 분석 | 'trend' = 누적 변화
+let statSlotKey = null;      // '1-2-mid' 형태. null이면 가장 최근 시험
+let trendMetric = 'grade';   // 'grade' | 'pct' | 'score'
+let trendSubjOff = {};       // 그래프에서 꺼 둔 과목
+let trendMemoText = '';      // 담임 메모 (AI 서술문에 반영)
+const trendAICache = {};     // 학생번호 → 생성된 AI 서술문
+const DEFAULT_CREDITS = { '공통국어1': 4, '공통수학1': 4, '공통영어1': 4, '한국사1': 3, '통합사회1': 4, '통합과학1': 4 };
+const EXAM_LABEL = { mid: '중간고사', fin: '기말고사', total: '학기말' };
+
+// 선택한 학생이 가진 시험(슬롯) 목록 — 시간순 (학기마다 중간 → 기말 → 학기말)
+function getStudentSlots() {
+  if (!selectedStudent) return [];
+  const num = selectedStudent.num, name = selectedStudent.name;
+  const out = [];
+  [1, 2, 3].forEach(g => [1, 2].forEach(s => ['mid', 'fin', 'total'].forEach(k => {
+    const b = scoreData[g][s][k] || {};
+    const d = b[num] || (name ? Object.values(b).find(x => x.name === name) : null);
+    if (d && d.subjects && Object.keys(d.subjects).length) {
+      out.push({ g, s, k, key: `${g}-${s}-${k}`, subjects: d.subjects });
+    }
+  })));
+  return out;
+}
+
+function slotShortLabel(sl, multiG) {
+  return `${multiG ? sl.g + '학년 ' : ''}${sl.s}학기 ${EXAM_LABEL[sl.k]}`;
+}
+
+function switchStatSlot(key) { statTab = 'slot'; statSlotKey = key; startStatAnalysis(); }
+function switchStatTrend() { statTab = 'trend'; startStatAnalysis(); }
+
+function renderStatTabs(slots) {
+  const bar = document.getElementById('statTabBar');
+  if (!bar) return;
+  if (uploadMode === 'cumul' || slots.length === 0) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
+  const multiG = new Set(slots.map(x => x.g)).size > 1;
+  const activeKey = statSlotKey || slots[slots.length - 1].key;
+  const btn = (label, active, onclick) =>
+    `<button type="button" onclick="${onclick}" style="min-height:40px;padding:0 14px;border-radius:20px;border:1.5px solid ${active ? 'var(--primary)' : 'var(--border)'};background:${active ? 'var(--primary)' : '#fff'};color:${active ? '#fff' : 'var(--text2)'};font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">${label}</button>`;
+  let html = slots.map(sl => btn(escapeHTML(slotShortLabel(sl, multiG)), statTab === 'slot' && sl.key === activeKey, `switchStatSlot('${sl.key}')`)).join('');
+  html += btn('📈 누적 변화', statTab === 'trend', 'switchStatTrend()');
+  bar.innerHTML = html;
+  bar.style.display = 'flex';
+}
+
+function trendSubjShort(s) { return s.replace(/1$/, ''); }
+
+// 과목별 시험 순서대로 {등급, 원점수, 석차, 상위%} 모으기
+function buildTrendSeries(slots) {
+  const series = {};
+  SUBJECTS.forEach(subj => {
+    series[subj] = [];
+    slots.forEach((sl, idx) => {
+      const d = sl.subjects[subj];
+      if (!d) return;
+      const grade = (typeof d.grade === 'number' && d.grade >= 1 && d.grade <= 5) ? d.grade : null;
+      const sc = parseFloat(d.score);
+      const score = (d.score !== null && d.score !== undefined && d.score !== '' && !isNaN(sc)) ? sc : null;
+      const rank = parseFloat(d.rank) || null;
+      const total = parseFloat(d.total) || null;
+      if (grade === null && score === null) return;
+      series[subj].push({
+        idx, slot: sl, grade, score, rank, total,
+        pct: (rank && total) ? rank / total * 100 : null,
+        credit: d.credit || DEFAULT_CREDITS[subj] || 3
+      });
+    });
+  });
+  return series;
+}
+
+function buildTrendSVG(slots, series, metric) {
+  const host = document.getElementById('statContent');
+  const W = Math.max(300, ((host && host.clientWidth) || 520) - 40);
+  const H = 250, padL = 52, padR = 12, padT = 14, padB = 52;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const n = slots.length;
+  const multiG = new Set(slots.map(x => x.g)).size > 1;
+  const xAt = i => padL + (i + 0.5) / n * plotW;
+
+  const vals = [];
+  SUBJECTS.forEach(s => { if (trendSubjOff[s]) return; series[s].forEach(p => { if (p[metric] !== null && p[metric] !== undefined) vals.push(p[metric]); }); });
+  let ticks, yAt, fmt;
+  if (metric === 'grade') {
+    ticks = [1, 2, 3, 4, 5]; yAt = v => padT + (v - 1) / 4 * plotH; fmt = v => v + '등급';
+  } else {
+    const mn = vals.length ? Math.min(...vals) : 0, mx = vals.length ? Math.max(...vals) : 100;
+    let lo = Math.max(0, Math.floor((mn - 8) / 10) * 10), hi = Math.min(100, Math.ceil((mx + 8) / 10) * 10);
+    if (hi - lo < 20) { hi = Math.min(100, lo + 20); lo = Math.max(0, hi - 20); }
+    ticks = [0, 1, 2, 3, 4].map(i => Math.round(lo + i * (hi - lo) / 4));
+    if (metric === 'pct') { yAt = v => padT + (v - lo) / (hi - lo) * plotH; fmt = v => '상위' + v + '%'; }
+    else { yAt = v => padT + (hi - v) / (hi - lo) * plotH; fmt = v => v + '점'; }
+  }
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="max-width:100%;height:auto;display:block;font-family:'Noto Sans KR',sans-serif;">`;
+  ticks.forEach(t => {
+    const y = yAt(t);
+    svg += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#eee" stroke-width="1"/>`;
+    svg += `<text x="${padL - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="#999">${fmt(t)}</text>`;
+  });
+  slots.forEach((sl, i) => {
+    const x = xAt(i);
+    svg += `<text x="${x}" y="${H - padB + 16}" text-anchor="middle" font-size="10" fill="#888">${escapeHTML((multiG ? sl.g + '학년 ' : '') + sl.s + '학기')}</text>`;
+    svg += `<text x="${x}" y="${H - padB + 29}" text-anchor="middle" font-size="10" font-weight="700" fill="#5e40a6">${EXAM_LABEL[sl.k]}</text>`;
+    const nx = slots[i + 1];
+    if (nx && (nx.g !== sl.g || nx.s !== sl.s)) {
+      const mx2 = (x + xAt(i + 1)) / 2;
+      svg += `<line x1="${mx2}" y1="${padT}" x2="${mx2}" y2="${padT + plotH}" stroke="#d9cdf2" stroke-width="1" stroke-dasharray="3 3"/>`;
+    }
+  });
+  SUBJECTS.forEach(subj => {
+    if (trendSubjOff[subj]) return;
+    const pts = series[subj].filter(p => p[metric] !== null && p[metric] !== undefined);
+    if (!pts.length) return;
+    const color = TREND_COLORS[subj] || '#999';
+    for (let i = 1; i < pts.length; i++) {
+      const a = pts[i - 1], b = pts[i];
+      const mixed = (a.slot.k === 'total') !== (b.slot.k === 'total'); // 학기말(합산) ↔ 지필 비교 구간은 점선
+      svg += `<line x1="${xAt(a.idx)}" y1="${yAt(a[metric])}" x2="${xAt(b.idx)}" y2="${yAt(b[metric])}" stroke="${color}" stroke-width="2" ${mixed ? 'stroke-dasharray="5 4"' : ''} stroke-linecap="round"/>`;
+    }
+    pts.forEach(p => {
+      const x = xAt(p.idx), y = yAt(p[metric]);
+      const tip = `${trendSubjShort(subj)} · ${slotShortLabel(p.slot, multiG)} · ${p.grade ? p.grade + '등급' : '등급 -'} · ${p.pct !== null ? '상위 ' + p.pct.toFixed(1) + '%' : ''} · ${p.score !== null ? p.score + '점' : ''}${p.rank ? ' · ' + p.rank + '/' + p.total + '위' : ''}`;
+      if (p.slot.k === 'total') svg += `<polygon points="${x},${y - 6} ${x + 6},${y} ${x},${y + 6} ${x - 6},${y}" fill="${color}" stroke="#fff" stroke-width="1.5"><title>${escapeHTML(tip)}</title></polygon>`;
+      else svg += `<circle cx="${x}" cy="${y}" r="5" fill="${color}" stroke="#fff" stroke-width="1.5"><title>${escapeHTML(tip)}</title></circle>`;
+    });
+  });
+  return svg + '</svg>';
+}
+
+function setTrendMetric(m) { trendMetric = m; startStatAnalysis(); }
+function toggleTrendSubj(s) { trendSubjOff[s] = !trendSubjOff[s]; startStatAnalysis(); }
+
+// ── 평가(계산 기반): 과목별 변화, 우선 올릴 과목 ──
+function buildTrendEvaluation(slots, series) {
+  const multiG = new Set(slots.map(x => x.g)).size > 1;
+  const first = slots[0], latest = slots[slots.length - 1];
+  const wAvg = sl => {
+    let sw = 0, sg = 0;
+    SUBJECTS.forEach(s => { const p = series[s].find(x => x.slot === sl); if (p && p.grade) { sw += p.credit; sg += p.grade * p.credit; } });
+    return sw ? { avg: sg / sw, sw } : null;
+  };
+  const rows = [];
+  SUBJECTS.forEach(subj => {
+    const pts = series[subj];
+    if (!pts.length) return;
+    const a = pts[0], b = pts[pts.length - 1];
+    const row = { subj, pts, a, b, single: pts.length < 2 };
+    if (!row.single) {
+      row.gradeDelta = (a.grade && b.grade) ? a.grade - b.grade : null;            // +면 등급 상승
+      row.pctDelta = (a.pct !== null && b.pct !== null) ? a.pct - b.pct : null;      // +면 상위%가 좋아짐
+      row.scoreDelta = (a.score !== null && b.score !== null) ? b.score - a.score : null;
+      row.mixed = (a.slot.k === 'total') !== (b.slot.k === 'total');
+      const gs = pts.map(p => p.grade).filter(Boolean);
+      row.range = gs.length ? Math.max(...gs) - Math.min(...gs) : 0;
+      if (row.gradeDelta !== null && row.gradeDelta >= 1) row.dir = 'up';
+      else if (row.gradeDelta !== null && row.gradeDelta <= -1) row.dir = 'down';
+      else if (row.pctDelta !== null && row.pctDelta >= 8) row.dir = 'upSoft';
+      else if (row.pctDelta !== null && row.pctDelta <= -8) row.dir = 'downSoft';
+      else row.dir = 'flat';
+    }
+    rows.push(row);
+  });
+  const avgF = wAvg(first), avgL = wAvg(latest);
+  // 우선 올릴 과목: 가장 최근 시험에서 1등급 컷에 가까운 순 (석차 기준), 같으면 단위수 큰 순
+  const sumL = avgL ? avgL.sw : 0;
+  const pri = [];
+  SUBJECTS.forEach(subj => {
+    const p = series[subj].find(x => x.slot === latest);
+    if (!p || !p.grade || p.grade <= 1) return;
+    const cutPct = [0, 0.10, 0.34, 0.66, 0.90][p.grade - 1];
+    const cutRank = (p.rank && p.total) ? Math.floor(p.total * cutPct) : null;
+    const gap = cutRank !== null ? Math.max(0, p.rank - cutRank) : null;
+    const row = rows.find(r => r.subj === subj);
+    pri.push({ subj, p, cutRank, gap, contrib: sumL ? p.credit / sumL : 0, dir: row ? row.dir : 'flat' });
+  });
+  pri.sort((x, y) => (x.gap === null ? 1e9 : x.gap) - (y.gap === null ? 1e9 : y.gap) || y.p.credit - x.p.credit);
+  return { rows, avgF, avgL, pri: pri.slice(0, 3), first, latest, multiG };
+}
+
+function trendDirChip(r) {
+  const m = {
+    up: ['▲ 상승', '#048a6c'], upSoft: ['▲ 소폭 상승', '#048a6c'], down: ['▼ 하락', '#e05c5c'],
+    downSoft: ['▼ 소폭 하락', '#e05c5c'], flat: ['– 유지', '#7c5cbf']
+  };
+  if (r.single) return `<span style="color:var(--text3);font-size:11px;">비교 전</span>`;
+  const [t, c] = m[r.dir];
+  return `<span style="background:${c}18;color:${c};border:1px solid ${c}40;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:700;white-space:nowrap;">${t}</span>`;
+}
+
+function buildTrendEvaluationHTML(ev, slots) {
+  const sl = s => slotShortLabel(s, ev.multiG);
+  const f1 = v => v.toFixed(1);
+  let html = '';
+
+  // 종합 문장
+  const ups = ev.rows.filter(r => r.dir === 'up' || r.dir === 'upSoft');
+  const downs = ev.rows.filter(r => r.dir === 'down' || r.dir === 'downSoft');
+  const flats = ev.rows.filter(r => r.dir === 'flat');
+  let summary = '';
+  if (ev.avgL) summary += `가장 최근 시험(${sl(ev.latest)})의 단위수 가중 평균은 <b>${ev.avgL.avg.toFixed(2)}등급</b>이에요. `;
+  if (slots.length >= 2 && ev.avgF && ev.avgL) {
+    const d = ev.avgF.avg - ev.avgL.avg;
+    const dTxt = Math.abs(d) < 0.05 ? '거의 같은 수준이에요' : (d > 0 ? `<b style="color:#048a6c;">${d.toFixed(2)}등급 상승</b>했어요` : `<b style="color:#e05c5c;">${(-d).toFixed(2)}등급 하락</b>했어요`);
+    summary += `처음 시험(${sl(ev.first)}) ${ev.avgF.avg.toFixed(2)}등급과 비교하면 ${dTxt}. `;
+    summary += `과목별로는 상승 ${ups.length}개 · 유지 ${flats.length}개 · 하락 ${downs.length}개예요.`;
+  } else {
+    summary += `시험이 1개뿐이라 변화 비교는 아직 어려워요. 이번 시험 기준으로만 평가해요.`;
+  }
+  const mixedAny = ev.rows.some(r => r.mixed);
+
+  html += `<div style="background:#f8fbff;border:1.5px solid #c7d2fe;border-radius:12px;padding:14px;margin-bottom:14px;">
+    <div style="font-size:13px;font-weight:800;color:#3730a3;margin-bottom:6px;">🧭 변화 총평</div>
+    <div style="font-size:12px;color:var(--text2);line-height:1.8;">${summary}</div>
+    ${mixedAny ? `<div style="margin-top:8px;font-size:11px;color:#b45309;background:#fff8e6;border-radius:8px;padding:6px 10px;">⚠️ 학기말(중간+기말+수행 합산)과 중간·기말(지필) 시험은 구성이 달라, 둘을 비교한 구간(그래프 점선)은 변화가 과장될 수 있어요. 상위%를 함께 참고하세요.</div>` : ''}
+  </div>`;
+
+  // 과목별 변화
+  html += `<div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px;">📚 과목별 변화</div>
+    <div style="overflow-x:auto;margin-bottom:14px;"><table style="width:100%;border-collapse:collapse;font-size:12px;">
+    <thead><tr style="background:var(--primary-bg);"><th style="padding:8px;text-align:left;">과목</th><th style="padding:8px;text-align:center;">등급 흐름</th><th style="padding:8px;text-align:center;">판정</th><th style="padding:8px;text-align:left;">내용</th></tr></thead><tbody>`;
+  ev.rows.forEach(r => {
+    const flow = r.pts.map(p => p.grade ? p.grade : '-').join(' → ');
+    let txt = '';
+    if (r.single) {
+      txt = `${sl(r.a.slot)} ${r.a.grade ? r.a.grade + '등급' : ''}${r.a.pct !== null ? ` (상위 ${f1(r.a.pct)}%)` : ''}${r.a.score !== null ? ` · ${r.a.score}점` : ''}`;
+    } else {
+      const parts = [];
+      if (r.gradeDelta !== null) parts.push(r.gradeDelta > 0 ? `등급 ${r.gradeDelta}단계 상승` : r.gradeDelta < 0 ? `등급 ${-r.gradeDelta}단계 하락` : '등급 변화 없음');
+      if (r.pctDelta !== null) parts.push(`상위 ${f1(r.a.pct)}% → ${f1(r.b.pct)}%`);
+      if (r.scoreDelta !== null) parts.push(`원점수 ${r.a.score} → ${r.b.score} (${r.scoreDelta >= 0 ? '+' : ''}${(Math.round(r.scoreDelta * 10) / 10)})`);
+      txt = parts.join(' · ');
+      if (r.pts.length >= 3 && r.range >= 2) txt += ' · 등락 폭 큼';
+      if (r.mixed) txt += ' · ⚠ 합산↔지필 비교';
+    }
+    html += `<tr style="border-bottom:1px solid #f0ecf8;"><td style="padding:8px;font-weight:700;white-space:nowrap;">${escapeHTML(trendSubjShort(r.subj))}</td>
+      <td style="padding:8px;text-align:center;white-space:nowrap;">${flow}</td><td style="padding:8px;text-align:center;">${trendDirChip(r)}</td>
+      <td style="padding:8px;color:var(--text2);line-height:1.6;">${escapeHTML(txt)}</td></tr>`;
+  });
+  html += `</tbody></table></div>`;
+
+  // 가장 오른/내린
+  if (slots.length >= 2) {
+    const score = r => (r.gradeDelta || 0) * 100 + (r.pctDelta || 0);
+    const sorted = ev.rows.filter(r => !r.single).slice().sort((x, y) => score(y) - score(x));
+    const best = sorted[0], worst = sorted[sorted.length - 1];
+    if (best && worst) {
+      html += `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+        <div style="flex:1;min-width:150px;background:#f0faf7;border-radius:10px;padding:10px 12px;"><div style="font-size:11px;color:#048a6c;font-weight:700;">▲ 가장 좋아진 과목</div><div style="font-size:13px;font-weight:800;margin-top:2px;">${escapeHTML(trendSubjShort(best.subj))} <span style="font-size:11px;font-weight:600;color:var(--text3);">${best.a.grade || '-'}→${best.b.grade || '-'}등급${best.pctDelta !== null ? ' · 상위% ' + (best.pctDelta >= 0 ? '−' : '+') + Math.abs(best.pctDelta).toFixed(1) + '%p' : ''}</span></div></div>
+        <div style="flex:1;min-width:150px;background:#fff5f5;border-radius:10px;padding:10px 12px;"><div style="font-size:11px;color:#e05c5c;font-weight:700;">▼ 가장 아쉬워진 과목</div><div style="font-size:13px;font-weight:800;margin-top:2px;">${escapeHTML(trendSubjShort(worst.subj))} <span style="font-size:11px;font-weight:600;color:var(--text3);">${worst.a.grade || '-'}→${worst.b.grade || '-'}등급${worst.pctDelta !== null ? ' · 상위% ' + (worst.pctDelta >= 0 ? '−' : '+') + Math.abs(worst.pctDelta).toFixed(1) + '%p' : ''}</span></div></div>
+      </div>`;
+    }
+  }
+
+  // 우선 올릴 과목
+  if (ev.pri.length) {
+    html += `<div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:2px;">🎯 우선 올리면 좋은 과목 TOP ${ev.pri.length}</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">${escapeHTML(sl(ev.latest))} 기준 · 한 등급 올리는 컷에 가까운 순 (같으면 단위수 큰 과목 우선)</div><div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">`;
+    ev.pri.forEach((x, i) => {
+      const cutTxt = x.cutRank !== null ? `현재 <b>${x.p.rank}위</b> → ${x.p.grade - 1}등급 컷 <b>${x.cutRank}위 이내</b> (${x.gap}계단 상승 필요)` : `현재 ${x.p.grade}등급`;
+      const down = (x.dir === 'down' || x.dir === 'downSoft') ? ' · <b style="color:#e05c5c;">최근 하락 추세라 관리가 시급해요</b>' : '';
+      html += `<div style="background:#f8f4ff;border:1.5px solid #d8b4fe55;border-radius:10px;padding:10px 12px;">
+        <div style="font-size:13px;font-weight:800;color:#5e40a6;">${i + 1}. ${escapeHTML(trendSubjShort(x.subj))} <span style="font-size:11px;font-weight:600;color:var(--text3);">${x.p.grade}등급 → ${x.p.grade - 1}등급 · 단위수 ${x.p.credit}</span></div>
+        <div style="font-size:11px;color:var(--text2);margin-top:4px;line-height:1.7;">${cutTxt}${x.contrib ? `<br>이 과목을 한 등급 올리면 가중 평균이 약 <b>${(x.contrib).toFixed(2)}등급</b> 좋아져요.` : ''}${down}</div></div>`;
+    });
+    html += `</div>`;
+  }
+  return html;
+}
+
+function buildTrendTableHTML(slots, series) {
+  const multiG = new Set(slots.map(x => x.g)).size > 1;
+  let html = `<div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px;">📋 시험별 성적표</div><div style="overflow-x:auto;margin-bottom:14px;"><table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr style="background:var(--primary-bg);"><th style="padding:6px 8px;text-align:left;">과목</th>`;
+  slots.forEach(s => { html += `<th style="padding:6px 8px;text-align:center;white-space:nowrap;">${escapeHTML(slotShortLabel(s, multiG))}</th>`; });
+  html += `</tr></thead><tbody>`;
+  SUBJECTS.forEach(subj => {
+    if (!series[subj].length) return;
+    html += `<tr style="border-bottom:1px solid #f0ecf8;"><td style="padding:6px 8px;font-weight:700;white-space:nowrap;">${escapeHTML(trendSubjShort(subj))}</td>`;
+    slots.forEach((s, i) => {
+      const p = series[subj].find(x => x.idx === i);
+      html += p ? `<td style="padding:6px 8px;text-align:center;line-height:1.5;"><b>${p.grade ? p.grade + '등급' : '-'}</b><br><span style="color:var(--text3);">${p.pct !== null ? '상위 ' + p.pct.toFixed(0) + '%' : ''}${p.score !== null ? ' · ' + p.score + '점' : ''}</span></td>` : `<td style="padding:6px 8px;text-align:center;color:#ccc;">-</td>`;
+    });
+    html += `</tr>`;
+  });
+  return html + `</tbody></table></div>`;
+}
+
+function renderTrendTab(slots) {
+  const series = buildTrendSeries(slots);
+  const multiG = new Set(slots.map(x => x.g)).size > 1;
+  const ev = buildTrendEvaluation(slots, series);
+  const mBtn = (k, label) => `<button type="button" onclick="setTrendMetric('${k}')" style="min-height:36px;padding:0 12px;border-radius:8px;border:1.5px solid ${trendMetric === k ? 'var(--primary)' : 'var(--border)'};background:${trendMetric === k ? 'var(--primary-bg)' : '#fff'};color:${trendMetric === k ? 'var(--primary-dark)' : 'var(--text2)'};font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">${label}</button>`;
+  const chips = SUBJECTS.filter(s => series[s].length).map(s => {
+    const off = !!trendSubjOff[s], c = TREND_COLORS[s] || '#999';
+    return `<button type="button" onclick="toggleTrendSubj('${s}')" style="min-height:36px;padding:0 12px;border-radius:18px;border:1.5px solid ${off ? '#ddd' : c};background:${off ? '#f5f5f5' : c + '18'};color:${off ? '#aaa' : 'var(--text)'};font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${off ? '#ccc' : c};margin-right:5px;"></span>${escapeHTML(trendSubjShort(s))}</button>`;
+  }).join('');
+
+  const num = selectedStudent.num;
+  const aiText = trendAICache[num];
+  let html = `
+  <div style="padding:14px 20px 0;">
+    <div style="display:inline-block;background:var(--primary-bg);color:var(--primary-dark);border-radius:999px;padding:4px 12px;font-size:11px;font-weight:700;">📈 누적 변화 · 시험 ${slots.length}개 비교 (${escapeHTML(slots.map(s => slotShortLabel(s, multiG)).join(' → '))})</div>
+  </div>
+  <div style="padding:14px 20px 0;">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">${mBtn('grade', '등급')}${mBtn('pct', '상위 %')}${mBtn('score', '원점수')}</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">${chips}</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:6px;">${trendMetric === 'grade' ? '위쪽 = 1등급(좋음)' : trendMetric === 'pct' ? '위쪽 = 상위 %가 작음(좋음)' : '위쪽 = 높은 점수'} · ● 중간·기말(지필) ◆ 학기말(합산) · 점선 = 구성이 다른 시험 사이</div>
+    <div id="trendSvgWrap" style="margin-bottom:14px;">${buildTrendSVG(slots, series, trendMetric)}</div>
+    ${buildTrendTableHTML(slots, series)}
+    ${buildTrendEvaluationHTML(ev, slots)}
+  </div>
+  <div style="padding:0 20px 20px;">
+    <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:6px;">✨ AI 상담용 서술문</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">위 계산 결과를 근거로 문장만 다듬어요. 원인은 단정하지 않고, 담임 메모를 적으면 반영해요.</div>
+    <textarea id="trendMemo" oninput="trendMemoText=this.value" rows="2" placeholder="담임 메모 (선택) 예: 2학기 들어 수학 학원을 그만둠 / 동아리 대회 준비로 바빴음" style="width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:12px;font-family:'Noto Sans KR',sans-serif;margin-bottom:8px;resize:vertical;">${escapeHTML(trendMemoText)}</textarea>
+    <button type="button" id="trendAIBtn" onclick="startTrendAI()" style="width:100%;min-height:44px;border-radius:10px;border:none;background:linear-gradient(135deg,#48b89f,#5dd4b8);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">${aiText ? '🔄 서술문 다시 만들기' : '✨ 서술문 만들기'}</button>
+    <div id="trendAIResult" style="margin-top:10px;">${aiText ? trendAIHtml(aiText) : ''}</div>
+  </div>`;
+
+  document.getElementById('statCard').style.display = 'block';
+  document.getElementById('statContent').innerHTML = html;
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('chartCard').style.display = 'none';
+}
+
+function trendAIHtml(text) {
+  const body = escapeHTML(text).replace(/【([^】]+)】/g, '<b style="color:#5e40a6;font-size:13px;">【$1】</b>');
+  return `<div style="background:#fff;border:1.5px solid #d8cff0;border-radius:12px;padding:14px;font-size:12px;line-height:1.9;color:var(--text);white-space:pre-wrap;">${body}</div>`;
+}
+
+function buildTrendAIPrompt() {
+  const slots = getStudentSlots();
+  const series = buildTrendSeries(slots);
+  const ev = buildTrendEvaluation(slots, series);
+  const multiG = ev.multiG;
+  const sl = s => slotShortLabel(s, multiG);
+  let t = `당신은 고등학교 담임교사의 성적 상담을 돕는 보조자입니다. 아래는 한 학생의 시험별 성적과, 이미 계산된 변화 요약입니다.\n`;
+  t += `규칙: 아래 숫자만 그대로 사용하고 없는 숫자·순위·점수를 만들지 마세요. 변화의 원인은 단정하지 말고 "~일 수 있어요"처럼 가능성으로만 쓰세요. 학기말(중간+기말+수행 합산)과 중간·기말(지필)은 구성이 달라 직접 비교에 주의가 필요합니다. 마크다운 기호(#, **, 표)는 쓰지 말고 존댓말로 쓰세요.\n\n`;
+  t += `[학생] ${selectedStudent.num}번 ${selectedStudent.name || ''}\n\n[시험별 성적] (등급 / 상위% / 원점수 / 석차)\n`;
+  SUBJECTS.forEach(s => {
+    if (!series[s].length) return;
+    t += `- ${trendSubjShort(s)}: ` + series[s].map(p => `${sl(p.slot)} ${p.grade ? p.grade + '등급' : '-'}/${p.pct !== null ? '상위' + p.pct.toFixed(1) + '%' : '-'}/${p.score !== null ? p.score + '점' : '-'}/${p.rank ? p.rank + '위(' + p.total + '명)' : '-'}`).join(' → ') + '\n';
+  });
+  t += `\n[계산된 변화]\n`;
+  if (ev.avgL) t += `- 최근(${sl(ev.latest)}) 단위수 가중 평균 ${ev.avgL.avg.toFixed(2)}등급\n`;
+  if (slots.length >= 2 && ev.avgF) t += `- 처음(${sl(ev.first)}) 가중 평균 ${ev.avgF.avg.toFixed(2)}등급\n`;
+  const nm = { up: '상승', upSoft: '소폭 상승', down: '하락', downSoft: '소폭 하락', flat: '유지' };
+  ev.rows.forEach(r => { if (!r.single) t += `- ${trendSubjShort(r.subj)}: ${nm[r.dir]}${r.mixed ? ' (합산↔지필 비교 주의)' : ''}\n`; });
+  if (slots.length < 2) t += `- 시험이 1개뿐이라 변화 비교 불가 (이번 시험 기준으로만 평가)\n`;
+  t += `\n[우선 올릴 후보]\n`;
+  ev.pri.forEach(x => { t += `- ${trendSubjShort(x.subj)} ${x.p.grade}등급, 현재 ${x.p.rank || '-'}위 → ${x.p.grade - 1}등급 컷 ${x.cutRank !== null ? x.cutRank + '위 이내' : '-'}, 단위수 ${x.p.credit}\n`; });
+  t += `\n[담임 메모]\n${trendMemoText.trim() || '없음'}\n\n`;
+  t += `다음 제목을 그대로 사용해 작성하세요.\n【성적 변화 평가】 과목별 변화와 의미를 4~6문장\n【강점과 보완점】 강점 과목과 보완이 필요한 과목을 근거 숫자와 함께\n【우선 올리면 좋은 과목】 1~2과목, 이유와 구체적인 학습 방향 2~3가지\n【학생에게 해줄 말】 담임이 직접 말하는 말투로 3~4문장, 따뜻하게\n【학부모 상담 시 전달 문구】 담임이 직접 말하는 말투로 4~5문장, 과장 없이`;
+  return t;
+}
+
+async function callTrendAIText(prompt) {
+  if (selectedModel === 'claude') {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: AI_MODELS.claude, max_tokens: 2500, messages: [{ role: 'user', content: prompt }] })
+    });
+    if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error?.message || 'Claude 호출 오류'); }
+    const d = await res.json();
+    return d.content.map(b => b.text || '').join('');
+  }
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+    body: JSON.stringify({ model: AI_MODELS.openai, max_tokens: 2500, messages: [{ role: 'user', content: prompt }] })
+  });
+  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error?.message || 'GPT 호출 오류'); }
+  const d = await res.json();
+  return d.choices[0].message.content;
+}
+
+async function startTrendAI() {
+  if (!selectedStudent) return;
+  if (!apiKey) { showToast('AI 서술문을 만들려면 API 키를 먼저 설정해주세요', 'error'); try { toggleApiPanel(); } catch (e) {} return; }
+  const btn = document.getElementById('trendAIBtn'), box = document.getElementById('trendAIResult');
+  const num = selectedStudent.num;
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ 작성 중…'; }
+  try {
+    const text = await callTrendAIText(buildTrendAIPrompt());
+    trendAICache[num] = text;
+    if (selectedStudent && selectedStudent.num === num && box) box.innerHTML = trendAIHtml(text);
+  } catch (err) {
+    showToast('서술문 생성 실패: ' + err.message, 'error');
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '🔄 서술문 다시 만들기'; }
 }
 
 
@@ -7066,16 +7490,22 @@ function drawTrendChart(key) {
   const ALL_SLOTS = [
     { g:1, s:1, k:'mid', label:'1학년\n1학기 중간' },
     { g:1, s:1, k:'fin', label:'1학년\n1학기 기말' },
+    { g:1, s:1, k:'total', label:'1학년\n1학기 학기말' },
     { g:1, s:2, k:'mid', label:'1학년\n2학기 중간' },
     { g:1, s:2, k:'fin', label:'1학년\n2학기 기말' },
+    { g:1, s:2, k:'total', label:'1학년\n2학기 학기말' },
     { g:2, s:1, k:'mid', label:'2학년\n1학기 중간' },
     { g:2, s:1, k:'fin', label:'2학년\n1학기 기말' },
+    { g:2, s:1, k:'total', label:'2학년\n1학기 학기말' },
     { g:2, s:2, k:'mid', label:'2학년\n2학기 중간' },
     { g:2, s:2, k:'fin', label:'2학년\n2학기 기말' },
+    { g:2, s:2, k:'total', label:'2학년\n2학기 학기말' },
     { g:3, s:1, k:'mid', label:'3학년\n1학기 중간' },
     { g:3, s:1, k:'fin', label:'3학년\n1학기 기말' },
+    { g:3, s:1, k:'total', label:'3학년\n1학기 학기말' },
     { g:3, s:2, k:'mid', label:'3학년\n2학기 중간' },
     { g:3, s:2, k:'fin', label:'3학년\n2학기 기말' },
+    { g:3, s:2, k:'total', label:'3학년\n2학기 학기말' },
   ];
 
   // 데이터 있는 슬롯만 필터 (어느 과목이라도 데이터 있으면 포함)
@@ -7114,7 +7544,7 @@ function drawTrendChart(key) {
       ctx.fillText(line, x, 200 - padB + 14 + li * 11);
     });
     // 학기 구분선 (기말→다음중간 사이)
-    if (sl.k === 'fin' && i < activeSlots.length - 1) {
+    if (i < activeSlots.length - 1 && (activeSlots[i + 1].g !== sl.g || activeSlots[i + 1].s !== sl.s)) {
       const nextX = padL + ((i + 1) / (activeSlots.length - 1)) * plotW;
       const midX = (x + nextX) / 2;
       ctx.strokeStyle = '#e0d6f5';
