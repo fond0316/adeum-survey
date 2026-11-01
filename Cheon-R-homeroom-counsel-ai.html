@@ -4637,7 +4637,7 @@ function startStatAnalysis() {
 
   // ── 선택과목 추천 (학년 자동 반영) ──
   // cumul 모드면 gradeYearVal이 이미 자동세팅돼 있음
-  html += buildSubjectRecommendHTML(subjs, grades);
+  html += wrapCollapsibleSection('subjRec', '📋 선택과목 추천', buildSubjectRecommendHTML(subjs, grades));
 
   // ── 컨설턴트 분석 섹션 추가 ──
   html += buildConsultantSectionHTML(subjs, grades);
@@ -4680,6 +4680,20 @@ function startStatAnalysis() {
   setTimeout(() => drawTrendChart('all'), 100);
 }
 
+
+// ==================== 접고 펴는 섹션 (상담 때 필요 없는 부분 접어두기) ====================
+// 기본은 접힘. 펼침 상태는 이 기기 브라우저에 기억함 (실패해도 그냥 접힌 채로 동작)
+function wrapCollapsibleSection(id, title, innerHtml) {
+  if (!innerHtml) return '';
+  let open = false;
+  try { open = localStorage.getItem('admAI_sec_' + id) === '1'; } catch (e) {}
+  return `<details ${open ? 'open' : ''} ontoggle="try{localStorage.setItem('admAI_sec_${id}', this.open ? '1' : '0')}catch(e){}" style="margin:0 20px 16px;">
+    <summary style="cursor:pointer;min-height:44px;display:flex;align-items:center;gap:8px;padding:0 14px;background:#f3effa;border:1.5px solid var(--border);border-radius:12px;font-size:13px;font-weight:800;color:var(--text);list-style:none;">
+      <span>${title}</span><span style="margin-left:auto;font-size:11px;font-weight:600;color:var(--text3);">눌러서 펼치기 / 접기 ▾</span>
+    </summary>
+    <div style="margin:0 -20px;padding-top:10px;">${innerHtml}</div>
+  </details>`;
+}
 
 // ==================== 성적 기본 분석: 시험별 탭 + 누적 변화 탭 ====================
 // (기존 분석 화면은 그대로 두고, 위쪽에 탭만 추가. '누적 변화' 탭은 그래프 + 평가를 보여줌)
