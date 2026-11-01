@@ -790,6 +790,9 @@
               <span style="color:#7c5cbf;font-weight:600;">학기말(합산)</span> — 위와 같은 성적일람표 전과목 화면에서, 학기말 성적처리 마감 후(중간+기말+수행 모두 반영된 시점) 다시 다운로드하면 돼요
             </div>
             <div style="font-size:11px;color:#6b5b8a;line-height:1.8;margin-top:4px;">
+              <span style="color:#7c5cbf;font-weight:600;">학기말 종합일람표</span> — 나이스 → 성적조회/통계 → 학기말성적조회 → 학기말성적종합일람표 엑셀도 <b>학기말 칸</b>에 올리면 돼요
+            </div>
+            <div style="font-size:11px;color:#6b5b8a;line-height:1.8;margin-top:4px;">
               <span style="color:#7c5cbf;font-weight:600;">교과학습발달상황</span> — 나이스 → 학급담임 → 학생생활 → 교과학습발달상황
             </div>
             <div style="font-size:11px;color:#6b5b8a;line-height:1.8;margin-top:4px;">
@@ -1588,6 +1591,55 @@ function restoreSavedDataOnLoad() {
 
 // ==================== 파일 업로드 ====================
 
+// 칸별 업로드한 파일명 (화면 표시용, 저장은 안 함)
+const scoreFileNames = {};
+
+function scoreSlotButtons(fileId, grade, sem, key) {
+  const st = 'min-width:44px;min-height:40px;padding:0 8px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;background:#fff;';
+  return `<div style="display:flex;gap:4px;flex-shrink:0;">
+    <button type="button" style="${st}border:1px solid var(--primary);color:var(--primary-dark);" onclick="event.stopPropagation();document.getElementById('${fileId}').click()">교체</button>
+    <button type="button" style="${st}border:1px solid #e05c5c;color:#e05c5c;" onclick="event.stopPropagation();clearScoreSlot(${grade},${sem},'${key}')">삭제</button>
+  </div>`;
+}
+
+function scoreSlotNameText(typeStr, bucket) {
+  const n = Object.keys(bucket || {}).length;
+  if (!n) return '';
+  return '✅ ' + (scoreFileNames[typeStr] || `저장된 데이터 (${n}명)`);
+}
+
+// 올린 파일 삭제 (잘못 올렸을 때) — 삭제 후 다시 올리거나 '교체'로 바로 덮어쓸 수 있음
+function clearScoreSlot(grade, sem, key) {
+  if (!confirm(`${scoreSlotLabel(grade, sem, key)} 파일을 삭제할까요?\n(다시 올리면 새로 반영돼요)`)) return;
+  scoreData[grade][sem][key] = {};
+  delete scoreFileNames[`score_${grade}_${sem}_${key}`];
+  saveScoreDataToStorage();
+  students = pickBestStudentsBucket();
+  const keepNum = selectedStudent ? selectedStudent.num : null;
+  if (Object.keys(students).length === 0) {
+    selectedStudent = null;
+    ['studentCard', 'extraCard', 'analyzeBtnWrap', 'gradePreview', 'chartCard'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+  } else {
+    renderStudentDropdownUI();
+    if (keepNum !== null && students[keepNum]) {
+      document.getElementById('studentSelect').value = String(keepNum);
+      selectedStudent = { num: keepNum, ...students[keepNum] };
+      try { renderGradePreview(); renderChart(); } catch (err) { console.warn(err); }
+    } else {
+      selectedStudent = null;
+      ['gradePreview', 'chartCard'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+    }
+  }
+  renderGradeUploadPanel(activeGrade);
+  showToast('파일을 삭제했어요. 다시 올려주세요 📂', 'success');
+}
+
 // 학년 탭 렌더링
 function renderGradeUploadPanel(grade) {
   const panel = document.getElementById('gradeUploadPanel');
@@ -1620,8 +1672,9 @@ function renderGradeUploadPanel(grade) {
             <div class="upload-icon" style="font-size:16px;flex-shrink:0;">${icon}</div>
             <div class="upload-text">
               <strong style="font-size:11px;">${label}</strong>
-              <div class="upload-file-name" id="${nameId}"></div>
+              <div class="upload-file-name" id="${nameId}">${scoreSlotNameText(typeStr, scoreData[grade][sem][key])}</div>
             </div>
+            ${hasData ? scoreSlotButtons(fileId, grade, sem, key) : ''}
           </div>
           <input type="file" id="${fileId}" accept=".xlsx,.xls,.xlsm,.ods" style="display:none"
             onchange="handleFileSelectScore(event,'${typeStr}','${zoneId}','${nameId}')">
@@ -1645,8 +1698,9 @@ function renderGradeUploadPanel(grade) {
             <div class="upload-text">
               <strong style="font-size:11px;">학기말(중간+기말+수행 합산) <span style="color:var(--primary-dark);font-weight:700;background:var(--primary-bg2);border-radius:6px;padding:1px 6px;font-size:9px;">선택</span></strong>
               <div style="font-size:10px;color:var(--text3);">넣으면 중간/기말 없이 바로 분석돼요</div>
-              <div class="upload-file-name" id="${totalNameId}"></div>
+              <div class="upload-file-name" id="${totalNameId}">${scoreSlotNameText(totalTypeStr, scoreData[grade][sem].total)}</div>
             </div>
+            ${hasTotalData ? scoreSlotButtons(totalFileId, grade, sem, 'total') : ''}
           </div>
           <input type="file" id="${totalFileId}" accept=".xlsx,.xls,.xlsm,.ods" style="display:none"
             onchange="handleFileSelectScore(event,'${totalTypeStr}','${totalZoneId}','${totalNameId}')">
@@ -2136,6 +2190,7 @@ function handleDrop(e, type) {
 function handleFileSelectScore(e, type, zoneId, nameId) {
   const file = e.target.files[0];
   if (file) processScoreFile(file, type, zoneId, nameId);
+  e.target.value = ''; // 같은 파일을 삭제 후 다시 올려도 인식되도록 초기화
 }
 function handleFileSelect(e, type) {
   const file = e.target.files[0];
@@ -2156,13 +2211,28 @@ function processScoreFile(file, type, zoneId, nameId) {
       const ws = wb.Sheets[wb.SheetNames[0]];
       const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
 
-      const wasEmpty = Object.keys(students).length === 0;
-      parseStudentsTo(data, grade, sem, key);
+      // 파일 내용이 선택한 칸(학년/학기/종류)과 다르면 먼저 물어본다
+      const meta = detectScoreFileMeta(data);
+      const differs = (meta.grade && meta.grade !== grade) || (meta.sem && meta.sem !== sem) || (meta.kind && meta.kind !== key);
+      if (differs) {
+        const found = scoreSlotLabel(meta.grade || grade, meta.sem || sem, meta.kind);
+        const chosen = scoreSlotLabel(grade, sem, key);
+        if (!confirm(`이 파일은 "${found}" 자료로 보여요.\n지금 선택한 칸은 "${chosen}"이에요.\n\n그래도 이 칸에 넣을까요?\n(취소하면 올리지 않아요)`)) {
+          showToast('올리지 않았어요. 맞는 칸에 다시 올려주세요', '');
+          return;
+        }
+      }
 
+      const wasEmpty = Object.keys(students).length === 0;
+      const parsedOk = parseStudentsTo(data, grade, sem, key);
+      if (!parsedOk) return; // 인식 실패 — 안내 창은 이미 떴고, 기존 데이터는 그대로 유지됨
+
+      scoreFileNames[type] = file.name;
       const zone = document.getElementById(zoneId);
       const nameEl = document.getElementById(nameId);
       if (zone) zone.classList.add('done');
       if (nameEl) nameEl.textContent = '✅ ' + file.name;
+      renderGradeUploadPanel(activeGrade); // 교체/삭제 버튼 표시
 
       const keyLabel = key === 'mid' ? '중간' : key === 'fin' ? '기말' : '학기말';
       showToast(`${grade}학년 ${sem}학기 ${keyLabel} 업로드 완료!${wasEmpty ? ' 학생을 선택해주세요 📂' : ''}`, 'success');
@@ -2396,9 +2466,12 @@ function calcGrade5(rank, total) {
 
 // parseStudentsTo: 새 구조 (학년/학기/mid|fin) 저장
 function parseStudentsTo(rows, grade, sem, key) {
+  const prev = scoreData[grade][sem][key];   // 실패하면 기존에 올려둔 데이터를 그대로 되돌리기 위해 보관
   scoreData[grade][sem][key] = {};
   const target = scoreData[grade][sem][key];
-  parseStudentsCore(rows, target, grade, sem, key);
+  const ok = parseStudentsCore(rows, target, grade, sem, key);
+  if (!ok) scoreData[grade][sem][key] = prev;
+  return ok;
 }
 
 // 하위호환 래퍼 (구 코드 잔여 호출 대비)
@@ -2526,14 +2599,19 @@ function parseStudentsCore(rows, target, grade, sem, key) {
     });
   }
 
-  parseBatch(subjectHeaderIdx, subjectHeaderIdx2 !== -1 ? subjectHeaderIdx2 : rows.length);
-  parseBatch(subjectHeaderIdx2, rows.length);
+  if (isSummaryFormat(rows)) {
+    // 나이스 '학기말 성적 종합일람표' 양식 (학생 1명이 5줄씩 세로로 이어지는 구조)
+    parseSummaryFormat(rows, target);
+  } else {
+    parseBatch(subjectHeaderIdx, subjectHeaderIdx2 !== -1 ? subjectHeaderIdx2 : rows.length);
+    parseBatch(subjectHeaderIdx2, rows.length);
+  }
 
   // 학생 드롭다운 채우기 — 어떤 파일이든 학생 목록이 생기면 드롭다운 갱신
   const studentCount = Object.keys(target).length;
   if (studentCount === 0) {
-    showParseError(`${grade}학년 ${sem}학기`);
-    return;
+    showParseError(`${grade}학년 ${sem}`);
+    return false;
   }
 
   // 기준 명렬표: students는 항상 가장 많은 학생 수를 가진 데이터로 갱신
@@ -2543,6 +2621,96 @@ function parseStudentsCore(rows, target, grade, sem, key) {
 
   renderStudentDropdownUI();
   saveScoreDataToStorage();
+  return true;
+}
+
+// ── 학기말 성적 종합일람표 양식 ──
+// 나이스 → 성적조회/통계 → 학기말성적종합일람표. 헤더: 번호 | 성명 | 교과목 | 과목명...
+// 학생 1명 = 5줄: 합계(원점수) '73.78(74)' / 성취도 / 석차등급 / 석차 / 수강자수 (페이지마다 헤더 반복)
+// 헤더 행에서 '번호' 열 위치를 찾는다 (엑셀이 B열부터 시작해도 되도록 위치를 고정하지 않음). 못 찾으면 -1
+function summaryHeaderCol(row) {
+  if (!row) return -1;
+  const t = v => String(v ?? '').replace(/\s/g, '');
+  for (let c = 0; c < row.length - 2; c++) {
+    if (t(row[c]) === '번호' && t(row[c + 1]) === '성명' && t(row[c + 2]) === '교과목') return c;
+  }
+  return -1;
+}
+function isSummaryFormat(rows) {
+  return rows.some(r => summaryHeaderCol(r) !== -1);
+}
+
+function parseSummaryFormat(rows, target) {
+  const KEYS = ['공통국어', '공통수학', '공통영어', '한국사', '통합사회', '통합과학'];
+  let colMap = null; // 컬럼번호 → 과목명
+  let cur = null;    // 지금 읽는 학생 번호
+  let base = 0;      // '번호' 열 위치
+  const blank = () => ({ score: null, rank: null, total: null, grade: null });
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row) continue;
+    const hc = summaryHeaderCol(row);
+    if (hc !== -1) {
+      base = hc;
+      colMap = {};
+      for (let c = base + 3; c < row.length; c++) {
+        if (!row[c]) continue;
+        const nm = String(row[c]).trim().replace(/\(\d+\)/, '').trim();
+        if (KEYS.some(k => nm.includes(k))) colMap[c] = getSubjectName(nm);
+      }
+      cur = null;
+      continue;
+    }
+    if (!colMap) continue;
+    const label = String(row[base + 2] ?? '').replace(/\s/g, '');
+    if (typeof row[base] === 'number' && label.startsWith('합계')) {
+      cur = parseInt(row[base]);
+      if (!target[cur]) target[cur] = { name: '', subjects: {} };
+      const nm = row[base + 1] ? String(row[base + 1]).trim() : '';
+      if (nm) target[cur].name = nm;
+      Object.entries(colMap).forEach(([c, sub]) => {
+        const raw = row[c];
+        if (raw === null || raw === undefined || raw === '') return;
+        const m = String(raw).match(/\((\d+(?:\.\d+)?)\)\s*$/); // '73.78(74)' → 74
+        const sc = m ? parseFloat(m[1]) : parseFloat(raw);
+        target[cur].subjects[sub] = Object.assign(blank(), target[cur].subjects[sub], { score: isNaN(sc) ? null : sc });
+      });
+      continue;
+    }
+    if (cur === null) continue;
+    if (label === '석차등급' || label === '석차' || label === '수강자수') {
+      Object.entries(colMap).forEach(([c, sub]) => {
+        const sj = target[cur].subjects[sub];
+        if (!sj) return;
+        const v = parseRank(row[c]);
+        if (v === null) return;
+        if (label === '석차등급') sj.grade = v;
+        else if (label === '석차') sj.rank = v;
+        else sj.total = v;
+      });
+    }
+  }
+  // 석차등급이 비어 있으면 석차/수강자수로 5등급제 환산
+  Object.values(target).forEach(st => Object.values(st.subjects).forEach(sj => {
+    if (sj.grade === null) sj.grade = calcGrade5(sj.rank, sj.total);
+  }));
+}
+
+// 파일 내용(학년/학기/종류)을 읽어서, 사용자가 올린 칸과 다르면 알려주기 위한 판별
+function detectScoreFileMeta(rows) {
+  const head = rows.slice(0, 10).map(r => (r || []).map(v => (v === null || v === undefined) ? '' : String(v)).join(' ')).join(' ');
+  const semM = head.match(/(?:제\s*)?([12])\s*학기/);
+  const gradeM = head.match(/([123])\s*학년\s*\d+\s*반/);
+  const hasMid = /중간고사/.test(head), hasFin = /기말고사/.test(head);
+  let kind = null;
+  if (isSummaryFormat(rows)) kind = 'total';
+  else if (hasMid && !hasFin) kind = 'mid';
+  else if (hasFin && !hasMid) kind = 'fin';
+  return { grade: gradeM ? parseInt(gradeM[1]) : null, sem: semM ? parseInt(semM[1]) : null, kind };
+}
+
+function scoreSlotLabel(g, s, k) {
+  return `${g}학년 ${s}학기${k ? ' ' + (k === 'mid' ? '중간고사' : k === 'fin' ? '기말고사' : '학기말') : ''}`;
 }
 
 // 학생 드롭다운 + 관련 카드 표시 (신규 업로드 후 / 저장된 데이터 복원 후 공통 사용)
@@ -2567,7 +2735,8 @@ function showParseError(semester) {
         <b>1.</b> 나이스(NEIS)에서 내보낸 성적 엑셀 파일인지 확인<br>
         <b>2.</b> 파일이 손상됐거나 비밀번호가 걸려 있지 않은지 확인<br>
         <b>3.</b> 시트가 여러 개면 첫 번째 시트에 성적 데이터가 있어야 해요<br>
-        <b>4.</b> '공통국어', '공통수학' 등 과목명이 파일에 포함돼 있어야 해요
+        <b>4.</b> '공통국어', '공통수학' 등 과목명이 파일에 포함돼 있어야 해요<br>
+        <b>5.</b> 지원 양식: <b>성적일람표 전과목</b>(중간·기말) / <b>학기말성적종합일람표</b>(학기말) — 칸을 바꿔 올리지 않았는지도 확인해주세요
       </div>
       <button onclick="document.getElementById('parseErrorModal').remove();"
         style="padding:10px 32px;border-radius:10px;border:none;background:var(--primary);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
