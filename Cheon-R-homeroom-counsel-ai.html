@@ -6602,14 +6602,22 @@ function careerKeySave() {
 }
 async function careerApiCall(params) {
   const key = careerKeyGet();
-  const qs = new URLSearchParams(Object.assign({ apiKey: key, svcType: 'api', contentType: 'json', gubun: 'univ_list' }, params));
-  const res = await fetch(CAREER_API_BASE + '?' + qs.toString());
-  if (!res.ok) throw new Error('커리어넷 응답 오류 (' + res.status + ')');
-  const txt = await res.text();
-  let d; try { d = JSON.parse(txt); } catch (er) { throw new Error('응답을 읽지 못했어요'); }
-  if (d && d.result && d.result.content) { const c = Array.isArray(d.result.content) ? d.result.content[0] : d.result.content; throw new Error((c && c.message) || '커리어넷 오류'); }
-  const c = d && d.dataSearch ? d.dataSearch.content : null;
-  return Array.isArray(c) ? c : (c ? [c] : []);
+  const qs = new URLSearchParams(Object.assign({ apiKey: key, svcType: 'api', gubun: 'univ_list' }, params));
+  // 안내서에는 두 가지 주소 형태가 함께 나와 있어서, 앞의 것이 안 되면 뒤의 것으로 한 번 더 시도
+  const urls = [CAREER_API_BASE + '.json?' + qs.toString(), CAREER_API_BASE + '?' + qs.toString() + '&contentType=json'];
+  let lastErr = null;
+  for (const u of urls) {
+    try {
+      const res = await fetch(u);
+      if (!res.ok) throw new Error('커리어넷 응답 오류 (' + res.status + ')');
+      const txt = await res.text();
+      let d; try { d = JSON.parse(txt); } catch (er) { throw new Error('응답을 읽지 못했어요'); }
+      if (d && d.result && d.result.content) { const c0 = Array.isArray(d.result.content) ? d.result.content[0] : d.result.content; const er2 = new Error((c0 && c0.message) || '커리어넷 오류'); er2.fatal = true; throw er2; }
+      const c = d && d.dataSearch ? d.dataSearch.content : null;
+      return Array.isArray(c) ? c : (c ? [c] : []);
+    } catch (er) { lastErr = er; if (er.fatal) break; }
+  }
+  throw lastErr || new Error('커리어넷 호출 실패');
 }
 function careerClean(x) {
   return escapeHTML(String(x == null ? '' : x).replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim());
