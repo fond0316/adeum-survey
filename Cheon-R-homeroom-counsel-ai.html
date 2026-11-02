@@ -3915,6 +3915,15 @@ function refreshSusiStrategyWrap() {
   tmp.innerHTML = newHTML;
   const newWrap = tmp.querySelector("#susiStrategyWrap");
   if (newWrap) wrap.replaceWith(newWrap);
+  // 진학 방향 블록도 계열 변경에 맞춰 갱신 (AI 결과·입력 검색어는 유지)
+  const pw = document.getElementById('pathwayWrap');
+  if (pw) {
+    const keepQ = (document.getElementById('pathQ') || {}).value;
+    const tmp2 = document.createElement('div');
+    tmp2.innerHTML = buildPathwayHTML(avg, career, careerTrack, false);
+    const nw = tmp2.querySelector('#pathwayWrap');
+    if (nw) { pw.replaceWith(nw); const q2 = document.getElementById('pathQ'); if (q2 && keepQ) q2.value = keepQ; }
+  }
 }
 
 // ==================== 분석 시작 ====================
@@ -4933,14 +4942,16 @@ function buildTrendSVG(slots, series, metric, opt) {
   } else {
     const mn = vals.length ? Math.min(...vals) : 0, mx = vals.length ? Math.max(...vals) : 100;
     // 축을 데이터 범위에 딱 맞춰서(여백 최소) 변화폭이 크게 보이게 함. 눈금은 1·2·5·10 단위로 딱 떨어지게
-    const need = Math.max(mx - mn + 4, 10);
-    const stepRaw = need / 4;
-    const step = [1, 2, 5, 10, 20].find(x => x >= stepRaw) || 20;
-    let lo = Math.floor((mn - 2) / step) * step;
-    if (lo < 0) lo = 0;
-    let hi = lo + step * 4;
-    if (hi < mx + 1) { lo = Math.floor((mx + 1 - step * 4) / step) * step; if (lo < 0) lo = 0; hi = lo + step * 4; }
-    if (hi > 100) { hi = 100; lo = Math.max(0, hi - step * 4); }
+    // 데이터가 위·아래로 잘리지 않는 가장 촘촘한 눈금(1·2·5·10·20·25 단위)을 고름
+    let lo = 0, hi = 100;
+    for (const st of [1, 2, 5, 10, 20, 25]) {
+      let l = Math.floor((mn - 1) / st) * st;
+      if (l < 0) l = 0;
+      let found = false;
+      for (; l <= mn; l += st) { if (l + st * 4 >= mx + 1) { found = true; break; } }
+      if (found && !(l + st * 4 > 100 && l > 0 && (l = Math.max(0, 100 - st * 4)) > mn)) { lo = l; hi = l + st * 4; break; }
+    }
+    if (hi > 100) { hi = 100; lo = Math.max(0, hi - 4 * Math.ceil((hi - lo) / 4)); }
     ticks = [0, 1, 2, 3, 4].map(i => Math.round((lo + i * (hi - lo) / 4) * 10) / 10);
     if (metric === 'pct') { yAt = v => padT + (v - lo) / (hi - lo) * plotH; fmt = v => '상위' + v + '%'; }
     else { yAt = v => padT + (hi - v) / (hi - lo) * plotH; fmt = v => v + '점'; }
@@ -6169,6 +6180,9 @@ function buildConsultantSectionHTML(subjs, grades) {
   <!-- 수시 안정/적정/도전 분류표 (컨설턴트) -->
   ${wrapCollapsibleSection('susi', '📋 수시 상향·적정·하향 추천 대학', susiStrategyHtml, true)}
 
+  <!-- 성적대별 진학 방향 -->
+  ${wrapCollapsibleSection('pathway', '🧭 성적대별 진학 방향', buildPathwayHTML(avg, career, careerTrack, false), true)}
+
   <!-- 컨설턴트 등급 시뮬 -->
   ${wrapCollapsibleSection('univSim', '📊 등급별 대학 범위', univSimHtml, true)}
 
@@ -6476,6 +6490,126 @@ function buildRemainingTermSimHTML(avg, gradeYear) {
   </div>`;
 }
 
+// ── [2-1] 성적대별 진학 방향 안내 (대학 이름 없이도 쓸 수 있는 현실적 방향 + 희망학과 검색 + 참고 대학 예시) ──
+// 구간·문구를 바꾸려면 PATH_PLANS / PATH_EXAMPLES 만 고치면 됨 (분석 화면·학부모 출력 공통)
+const PATH_PLANS = {
+  top: { label: '2.0등급 이내', rows: [
+    ['수시 교과', '수능최저 충족 여부가 핵심이에요. 최저 없는 전형과 있는 전형을 나눠 보세요.'],
+    ['수시 종합', '세특·진로 일관성이 경쟁력이에요. 희망 학과와 선택과목이 맞는지 점검해요.'],
+    ['논술·정시', '논술은 병행 가능, 정시는 모의고사 추이로 판단해요.']] },
+  mid: { label: '2.0~3.0등급', rows: [
+    ['수시 교과', '지역·경기권 교과전형 중심으로, 수능최저가 없는 전형을 먼저 살펴보세요.'],
+    ['수시 종합', '서류(세특·진로)가 탄탄하면 한 단계 위도 도전할 수 있어요. 내신 반영 비중은 대학마다 달라요.'],
+    ['논술·정시', '내신이 아쉬워도 논술은 가능해요. 정시는 모의고사 성적이 방향을 정해요.'],
+    ['전문대', '관심 학과가 있다면 안전 지원선으로 함께 알아봐요.']] },
+  low: { label: '3.0~4.0등급', rows: [
+    ['수시 교과', '지방·지역인재 전형, 지역 대학 교과전형을 우선 살펴보세요.'],
+    ['수시 종합', '학교생활 특색이나 서류 중심 전형이 있는 대학을 찾아보세요.'],
+    ['정시', '수능 성적이 내신보다 높게 나오는 학생이 많아요. 모의고사 점검이 중요해요.'],
+    ['전문대', '학과별 취업 연계가 좋은 곳이 많아요. 희망 학과 기준으로 비교해 보세요.']] },
+  base: { label: '4.0등급 초과', rows: [
+    ['정시·수능', '내신보다 수능 준비가 방향을 크게 바꿀 수 있어요. 모의고사 점검이 최우선이에요.'],
+    ['전문대·특성화', '학과 면접·실무 중심 전형, 취업 연계 학과를 먼저 살펴보세요.'],
+    ['기회균형·지역', '농어촌·기회균형·지역인재 등 해당되는 전형이 있는지 확인해요.']] },
+  art: { label: '예체능·예술', rows: [
+    ['실기 중심', '대부분 실기(포트폴리오·기록) 비중이 커서, 내신은 최소 기준만 보는 대학이 많아요. 대학별 반영 비율을 확인해요.'],
+    ['수시·정시', '실기전형(수시)과 수능+실기(정시) 중 어느 쪽이 유리한지 대학별로 비교해요.'],
+    ['준비 일정', '실기·포트폴리오 준비 기간이 길어서 학기 중 일정을 미리 잡아 두면 좋아요.'],
+    ['전문대·특성화', '예술·체육 특성화 학과 중 취업 연계가 좋은 곳도 함께 살펴봐요.']] }
+};
+// 9등급 입결을 5등급으로 대략 줄여 잡은 '느슨한 추정' — 참고만 (실제 합격 평균 아님)
+const PATH_EXAMPLES = [
+  { max: 2.5, title: '인서울 하한 ~ 수도권 상위 사립', ex: '건국·동국·홍익·숙명·세종·국민·인하·아주 (학과·전형에 따라 차이 큼)' },
+  { max: 3.0, title: '수도권 외곽·경기권 중위 사립', ex: '가천·경기대·한신대·한성대·상명대 등' },
+  { max: 3.5, title: '지방 거점 국립대 일부 학과·수도권 외곽', ex: '강원대·충북대·충남대·전북대·전남대 등 (지역인재전형은 별도 확인)' },
+  { max: 4.0, title: '지방 사립대·지역 대학, 전문대 상위 학과', ex: '지역별·학과별 편차가 커서 어디가에서 개별 확인이 필요해요' },
+  { max: 99,  title: '전문대 중심 · 정시 병행', ex: '희망 학과 기준으로 전문대 개설 학과와 취업 연계를 먼저 확인해요' }
+];
+function getPathKey(avg, track, career) {
+  const c = String(career || '').toLowerCase();
+  if (track === 'art' || (!track && /미술|디자인|음악|실용음악|체육|무용|연극|영화|스포츠|예체능|예술|체대/.test(c))) return 'art';
+  return avg <= 2.0 ? 'top' : avg <= 3.0 ? 'mid' : avg <= 4.0 ? 'low' : 'base';
+}
+function buildPathwayHTML(avg, career, track, forPrint) {
+  if (!avg || avg <= 0) return '';
+  const key = getPathKey(avg, track, career);
+  const plan = PATH_PLANS[key];
+  const e = escapeHTML;
+  const exam = PATH_EXAMPLES.find(x => avg <= x.max) || PATH_EXAMPLES[PATH_EXAMPLES.length - 1];
+  const showEx = key !== 'art' && avg > 2.0;
+  if (forPrint) {
+    return `<div class="box"><div class="bt">🧭 성적대별 진학 방향 <span style="font-weight:500;color:#8a80a8;font-size:10px;">${e(plan.label)} 기준 · 참고용</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;line-height:1.55;">${plan.rows.map(r => `<div><b style="color:#5e40a6;">${e(r[0])}</b> ${e(r[1])}</div>`).join('')}</div>
+      ${showEx ? `<div style="margin-top:4px;font-size:10px;color:#6b5aa8;">📍 참고 구간(추정): ${e(exam.title)} — ${e(exam.ex)}</div>` : ''}
+      <div style="font-size:9.5px;color:#8a80a8;margin-top:2px;">※ 5등급제 입결은 아직 없어 추정한 방향이에요. 실제 지원은 대학별 모집요강과 어디가(adiga.kr)에서 꼭 확인해 주세요.</div></div>`;
+  }
+  const q = String(career || '').trim();
+  const rowsHtml = plan.rows.map(r => `<tr style="border-bottom:1px solid var(--border);"><td style="padding:7px 10px;font-weight:700;color:#5e40a6;white-space:nowrap;vertical-align:top;">${e(r[0])}</td><td style="padding:7px 10px;color:var(--text2);line-height:1.6;">${e(r[1])}</td></tr>`).join('');
+  return `
+  <div id="pathwayWrap" style="margin:0 20px 16px;padding:14px 16px;background:#fff;border:1.5px solid var(--border);border-radius:12px;">
+    <div style="font-size:12px;font-weight:800;color:var(--text);margin-bottom:2px;">🧭 성적대별 진학 방향
+      <span style="font-size:10px;font-weight:500;color:var(--primary-dark);background:var(--primary-bg);padding:1px 7px;border-radius:10px;margin-left:4px;">${e(plan.label)}</span></div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:8px;">현재 내신 <strong style="color:var(--primary);">${avg.toFixed(2)}등급</strong> 기준 · 대학 이름 대신 <strong>지금 열려 있는 길</strong>을 먼저 보여줘요. (위쪽 '추천 대학' 표는 2점대 초반까지만 의미가 있어요)</div>
+    <table style="width:100%;border-collapse:collapse;font-size:11px;"><tbody>${rowsHtml}</tbody></table>
+    ${showEx ? `<div style="margin-top:8px;background:#f8f6ff;border-radius:8px;padding:8px 12px;font-size:11px;color:var(--text2);line-height:1.7;">📍 <b>참고 구간(추정)</b> — ${e(exam.title)}<br><span style="color:var(--text3);">${e(exam.ex)}</span><br><span style="font-size:10px;color:#b45309;">※ 9등급제 입결을 5등급으로 대략 줄여 잡은 느슨한 추정이에요. 참고만 하시고 실제 합격 평균이 아닙니다.</span></div>` : ''}
+    <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
+      <div style="font-size:11px;font-weight:800;color:var(--text);margin-bottom:6px;">🔎 희망 학과로 직접 찾아보기 <span style="font-weight:500;color:var(--text3);">(공식 사이트 안에서 검색)</span></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <input id="pathQ" type="text" class="text-input" value="${e(q)}" placeholder="희망 학과 (예: 수학교육과, 컴퓨터공학과)" style="flex:1;min-width:160px;height:40px;">
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+        <button type="button" onclick="pathSearch('adiga')" style="min-height:40px;padding:0 12px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">대학어디가 입결·전형</button>
+        <button type="button" onclick="pathSearch('career')" style="min-height:40px;padding:0 12px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">커리어넷 학과정보</button>
+        <button type="button" onclick="pathSearch('academyinfo')" style="min-height:40px;padding:0 12px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">대학알리미 공시</button>
+      </div>
+      <div style="font-size:10px;color:var(--text3);margin-top:4px;">해당 사이트 안에서 학과명을 검색한 결과가 새 창으로 열려요. 입결·모집단위는 꼭 사이트에서 확인하세요.</div>
+    </div>
+    <div class="no-print" style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
+      <div style="font-size:11px;font-weight:800;color:var(--text);margin-bottom:4px;">🤖 AI 후보 제안 <span style="font-weight:500;color:var(--text3);">(담임 참고용 · 출력 안 됨)</span></div>
+      <button type="button" id="pathAIBtn" onclick="startPathAI()" style="width:100%;min-height:42px;border-radius:10px;border:none;background:linear-gradient(135deg,#7c5cbf,#9b8ac4);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">✨ 탐색 후보 받아보기</button>
+      <div id="pathAIResult" style="margin-top:8px;"></div>
+    </div>
+  </div>`;
+}
+function pathSearch(site) {
+  const q = ((document.getElementById('pathQ') || {}).value || '').trim();
+  if (!q) { showToast('희망 학과를 먼저 입력해 주세요 🙏', 'error'); return; }
+  const dom = { adiga: 'adiga.kr', career: 'career.go.kr', academyinfo: 'academyinfo.go.kr' }[site];
+  const add = { adiga: ' 입시결과', career: ' 학과', academyinfo: '' }[site];
+  window.open('https://www.google.com/search?q=' + encodeURIComponent('site:' + dom + ' ' + q + add), '_blank', 'noopener');
+}
+const pathAICache = {};
+function getPathCtx() {
+  const avgEl = (typeof getStudentSlots === 'function') ? (() => { try { const sl = getStudentSlots(); const ev = buildTrendEvaluation(sl, buildTrendSeries(sl)); return ev.avgL ? ev.avgL.avg : null; } catch (er) { return null; } })() : null;
+  return { avg: avgEl, career: (document.getElementById('career') || {}).value || '', track: (document.getElementById('careerTrackVal') || {}).value || '' };
+}
+async function startPathAI() {
+  if (!selectedStudent) return;
+  if (!apiKey) { showToast('AI 후보를 받으려면 API 키를 먼저 설정해주세요', 'error'); try { toggleApiPanel(); } catch (er) {} return; }
+  const c = getPathCtx();
+  if (!c.avg) { showToast('성적 자료가 아직 없어요', 'error'); return; }
+  const btn = document.getElementById('pathAIBtn'), box = document.getElementById('pathAIResult');
+  const key = getPathKey(c.avg, c.track, c.career);
+  const prompt = `당신은 고등학교 담임교사의 진학 상담을 돕는 보조자입니다. 2022개정 5등급제 학생의 '탐색 후보'를 제안하세요.
+[학생 정보] 최근 단위수 가중 평균 ${c.avg.toFixed(2)}등급(5등급제), 희망 진로/학과: ${c.career.trim() || '미입력'}, 계열 선택: ${c.track || '자동'}${key === 'art' ? ' (예체능 계열: 실기 중심)' : ''}
+[규칙]
+- 5등급제 입결은 아직 공개된 자료가 없으므로 합격 가능성·입결 수치·경쟁률을 단정하거나 만들지 마세요.
+- 확실히 존재하는 대학·학과만 쓰고, 불확실하면 쓰지 마세요. 학과 이름은 대학마다 다를 수 있다고 안내하세요.
+- 대학 6~8곳을 '상향 탐색 / 적정 탐색 / 안전 탐색' 세 묶음으로 나누고 각 대학마다 학과 후보 1~2개와 한 줄 이유를 쓰세요. 성적이 낮거나 예체능이면 전문대·지역 대학·실기 전형 위주로 현실적인 선택지를 제시하세요.
+- 희망 학과가 있으면 그 학과 개설 대학을 우선하고, 없으면 성적대에 맞는 일반 후보를 쓰세요.
+- 마지막에 '※ 후보일 뿐이며 대학어디가(adiga.kr)에서 모집단위와 입결을 확인해야 한다'는 한 줄을 쓰세요.
+- 마크다운 기호(#, **, 표)는 쓰지 말고 존댓말로 쓰세요.`;
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ 후보 찾는 중…'; }
+  try {
+    const text = await callTrendAIText(prompt);
+    pathAICache[selectedStudent.num] = text;
+    if (box) box.innerHTML = `<div style="background:#faf8ff;border:1.5px solid #d8c9f5;border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.8;color:var(--text2);white-space:pre-wrap;">${escapeHTML(text)}</div><div style="font-size:10px;color:#b45309;margin-top:4px;">⚠️ AI가 만든 참고 후보예요. 모집단위·입결은 사실과 다를 수 있으니 어디가에서 꼭 확인하세요.</div>`;
+  } catch (err) {
+    showToast('후보 제안 실패: ' + err.message, 'error');
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '🔄 다시 받아보기'; }
+}
+
 // ── [2] 수시 안정/적정/도전 분류표 ──
 function buildSusiStrategyHTML(avg, gradeYear, career, careerTrack) {
   if (!avg || avg <= 0) return '';
@@ -6716,6 +6850,7 @@ function buildSusiStrategyHTML(avg, gradeYear, career, careerTrack) {
       <tbody>${rows}</tbody>
     </table>
     </div>
+    ${avg > 2.3 ? `<div style="margin-top:8px;background:#fff1f0;border-radius:6px;padding:6px 10px;font-size:10px;color:#c2410c;line-height:1.6;">ℹ️ 이 표는 2점대 초반까지의 대학만 담고 있어서, 현재 성적(${avg.toFixed(2)}등급)에서는 '적정·하향'이 실제보다 높게 보일 수 있어요. 아래 <b>「성적대별 진학 방향」</b>을 함께 참고하세요.</div>` : ''}
     <div style="margin-top:8px;background:#fff8e6;border-radius:6px;padding:6px 10px;font-size:10px;color:#b45309;line-height:1.6;">
       ⚠️ 5등급제 입결은 아직 공개된 자료가 없어서, 기존 기준을 <strong>상위%로 환산해 보수적으로(약 15% 더 엄격하게)</strong> 잡은 추정값이에요. 표의 '교과 기준'은 그 환산값이고, 실제 합격 평균이 아니에요. 인서울은 사실상 2등급 이내가 기준선이며, 수능최저·비교과·면접 등 변수가 크므로 <strong>대입정보포털 어디가(adiga.kr)</strong>에서 실제 입결을 반드시 확인하세요.
     </div>
@@ -9015,6 +9150,7 @@ function openParentSheet() {
     <div style="margin-top:12px;font-size:12px;color:var(--text2);line-height:1.9;">
       <label style="display:flex;align-items:center;gap:8px;min-height:36px;"><input id="ps_career" type="checkbox" ${(document.getElementById('career') || {}).value && document.getElementById('career').value.trim() ? 'checked' : ''}> 희망 진로 표시하기${(document.getElementById('career') || {}).value && document.getElementById('career').value.trim() ? ' (' + escapeHTML(document.getElementById('career').value.trim()) + ')' : ' (입력된 진로 없음)'}</label>
       <label style="display:flex;align-items:center;gap:8px;min-height:36px;"><input id="ps_pri" type="checkbox" checked> 「우선 올리면 좋은 과목 TOP」 카드 넣기 (현재 석차·목표 컷 포함)</label>
+      <label style="display:flex;align-items:center;gap:8px;min-height:36px;"><input id="ps_path" type="checkbox"> 「성적대별 진학 방향」 안내 넣기 <span style="color:var(--text3);">(켜면 한 장을 넘기기 쉬워요 · 아래 해설·사이트 박스를 끄면 맞아요)</span></label>
       <label style="display:flex;align-items:center;gap:8px;min-height:36px;"><input id="ps_guide" type="checkbox" checked> 「숫자 읽는 법」 해설 박스 넣기</label>
       <label style="display:flex;align-items:center;gap:8px;min-height:36px;"><input id="ps_sites" type="checkbox" checked> 「참고하면 좋은 공식 사이트」 넣기</label>
     </div>
@@ -9096,6 +9232,7 @@ function buildParentSheetHtml(d, v) {
     }).join('');
     priBox = `<div class="box"><div class="bt">🎯 우선 올리면 좋은 과목 TOP ${ev.pri.length} <span style="font-weight:500;color:#8a80a8;font-size:10px;">${e(d.latestLabel)} 기준 · 한 등급 올리는 컷에 가까운 순</span></div><div style="display:grid;grid-template-columns:repeat(${ev.pri.length},1fr);gap:6px;">${cards}</div></div>`;
   }
+  const pathBox = (v.path && ev.avgL) ? buildPathwayHTML(ev.avgL.avg, careerTxt, (document.getElementById('careerTrackVal') || {}).value || '', true) : '';
   const guide = v.guide ? `
     <div class="box" style="background:#faf8ff;">
       <div class="bt">📖 숫자 읽는 법</div>
@@ -9123,6 +9260,7 @@ function buildParentSheetHtml(d, v) {
   <table class="t"><thead><tr><th>과목</th><th>등급 흐름<div class="s">${e(flowHead)}</div></th><th>최근 등급</th><th>최근 상위 %</th><th>최근 원점수</th><th>변화</th></tr></thead><tbody>${rowsHtml}</tbody></table>
   ${chartBox}
   ${priBox}
+  ${pathBox}
   <div class="two">
     <div class="box" style="border-color:#bde5d6;background:#f4fbf8;"><div class="bt">👍 잘하고 있는 점</div>${bullets(psLines(v.strengths), 3)}</div>
     <div class="box" style="border-color:#f3d9b1;background:#fffaf2;"><div class="bt">🔎 함께 살펴볼 점</div>${bullets(psLines(v.weak), 3)}</div>
@@ -9144,6 +9282,7 @@ function printParentSheet() {
   const v = { strengths: g('ps_strengths'), weak: g('ps_weak'), todo: g('ps_todo'), goal: g('ps_goal'), nextDate: g('ps_next'), memo: g('ps_memo'),
               guide: !!(document.getElementById('ps_guide') || {}).checked,
               pri: !!(document.getElementById('ps_pri') || {}).checked,
+              path: !!(document.getElementById('ps_path') || {}).checked,
               sites: !!(document.getElementById('ps_sites') || {}).checked,
               chart: !!(document.getElementById('ps_chart') || {}).checked,
               target: ((document.querySelector('input[name="ps_target"]:checked') || {}).value) || 'parent',
