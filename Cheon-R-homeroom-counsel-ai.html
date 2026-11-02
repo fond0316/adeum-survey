@@ -8670,6 +8670,7 @@ function openParentSheet() {
     </div>` : ''}
     <div style="margin-top:12px;font-size:12px;color:var(--text2);line-height:1.9;">
       <label style="display:flex;align-items:center;gap:8px;min-height:36px;"><input id="ps_guide" type="checkbox" checked> 「숫자 읽는 법」 해설 박스 넣기</label>
+      <label style="display:flex;align-items:center;gap:8px;min-height:36px;"><input id="ps_sites" type="checkbox" checked> 「참고하면 좋은 공식 사이트」 넣기</label>
     </div>
     <div style="display:flex;gap:8px;margin-top:14px;">
       <button type="button" onclick="printParentSheet()" style="flex:1;min-height:48px;border-radius:12px;border:none;background:linear-gradient(135deg,#5e40a6,#7c5cbf);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;">🖨️ 미리보기 · 출력</button>
@@ -8731,6 +8732,19 @@ function buildParentSheetHtml(d, v) {
       · <b>상위 %</b>는 숫자가 작을수록 앞선 거예요. 예) 상위 8% = 100명 중 약 8번째.<br>
       · 같은 등급 안에서도 점수·석차는 시험마다 달라질 수 있어, 한 번의 결과보다 <b>흐름</b>을 함께 봐 주세요.</div>
     </div>` : '';
+  const SITES = [
+    ['대입정보포털 어디가', 'adiga.kr', '대학별 입시결과·전형 정보'],
+    ['대학알리미', 'academyinfo.go.kr', '대학별 취업률·등록금 등 공시 정보'],
+    ['커리어넷', 'career.go.kr', '진로검사·학과·직업 정보'],
+    ['수능 (한국교육과정평가원)', 'suneung.re.kr', '수능 일정·기출 문제'],
+    ['한국대학교육협의회', 'kcue.or.kr', '대입 전형 시행계획·공통 안내'],
+    ['한국장학재단', 'kosaf.go.kr', '장학금·학자금 대출']
+  ];
+  const sitesBox = v.sites ? `
+    <div class="box"><div class="bt">🔗 참고하면 좋은 공식 사이트</div>
+      <div style="line-height:1.65;font-size:10.5px;">${SITES.map(x => `<div><b>${e(x[0])}</b> <span style="color:#5e40a6;">${e(x[1])}</span> <span style="color:#8a80a8;">· ${e(x[2])}</span></div>`).join('')}</div>
+      <div style="font-size:10px;color:#8a80a8;margin-top:3px;">※ 대학별 모집요강은 각 대학 입학처 홈페이지에서 꼭 확인해 주세요.</div>
+    </div>` : '';
   return `
   <div class="head"><div><div class="ttl">👪 학부모 상담 자료</div><div class="sub">${e(d.title)} · 2022개정 교육과정 · 5등급제 · ${new Date().toLocaleDateString('ko-KR')}</div></div></div>
   <div class="sum">${sum}</div>
@@ -8746,7 +8760,7 @@ function buildParentSheetHtml(d, v) {
     <div style="margin-top:8px;display:flex;gap:14px;align-items:flex-end;"><span style="white-space:nowrap;font-weight:700;">다음 상담 예정일</span>${v.nextDate.trim() ? `<span style="font-weight:700;">${e(v.nextDate.trim())}</span>` : `<span style="flex:1;border-bottom:1px solid #b9aedb;height:20px;"></span>`}
     <span style="white-space:nowrap;font-weight:700;margin-left:auto;">확인 (학부모 · 학생)</span><span style="width:130px;border-bottom:1px solid #b9aedb;height:20px;"></span></div>
   </div>
-  ${guide}
+  <div style="display:grid;grid-template-columns:${guide && sitesBox ? '1fr 1.25fr' : '1fr'};gap:8px;">${guide}${sitesBox}</div>
   <div class="foot">※ 이 자료는 시험 결과를 바탕으로 한 참고용 안내이며, 학생의 가능성을 단정하는 자료가 아니에요. 입시 결과는 해마다 달라지므로 대학별 모집요강을 꼭 확인해 주세요.<br>아듬's 담임상담 AI · Made by Cheon_R</div>`;
 }
 
@@ -8756,6 +8770,7 @@ function printParentSheet() {
   const g = id => (document.getElementById(id) || {}).value || '';
   const v = { strengths: g('ps_strengths'), weak: g('ps_weak'), todo: g('ps_todo'), goal: g('ps_goal'), nextDate: g('ps_next'), memo: g('ps_memo'),
               guide: !!(document.getElementById('ps_guide') || {}).checked,
+              sites: !!(document.getElementById('ps_sites') || {}).checked,
               chart: !!(document.getElementById('ps_chart') || {}).checked,
               metric: ((document.querySelector('input[name="ps_metric"]:checked') || {}).value) || 'pct',
               subjOn: [...document.querySelectorAll('.ps_subj')].filter(x => x.checked).map(x => x.value) };
