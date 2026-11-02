@@ -1216,6 +1216,7 @@
           <button onclick="copyStatResult()" style="padding:4px 12px;border-radius:6px;border:1.5px solid var(--border);background:white;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📋 복사</button>
           <button onclick="saveStatResult()" style="padding:4px 12px;border-radius:6px;border:1.5px solid var(--primary);background:var(--primary-bg);color:var(--primary-dark);font-size:11px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💾 저장</button>
           <button onclick="printFullReport()" style="padding:4px 12px;border-radius:6px;border:1.5px solid #5e40a6;background:linear-gradient(135deg,#5e40a6,#7c5cbf);color:white;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🖨️ 전체 출력</button>
+          <button onclick="openParentSheet()" style="padding:4px 12px;border-radius:6px;border:1.5px solid #48b89f;background:#f0faf7;color:#048a6c;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">👪 학부모용 1장</button>
           <button onclick="printStat()" style="padding:4px 12px;border-radius:6px;border:1.5px solid var(--border);background:white;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🖨️ 출력</button>
         </div>
       </div>
@@ -4528,11 +4529,11 @@ function startStatAnalysis() {
     // ── 종합전형 점수 계산 (5등급제 기준) ──
     // 종합전형은 내신보다 비교과·세특이 중요 — 2등급대가 황금 구간
     let jongScore = 0;
-    if      (avg <= 1.3) jongScore = 3;   // 내신 충분, 비교과가 관건
-    else if (avg <= 1.8) jongScore = 4.5; // 종합전형 황금 구간
-    else if (avg <= 2.3) jongScore = 4;   // 비교과로 충분히 보완 가능
-    else if (avg <= 2.8) jongScore = 3;   // 비교과 질이 더 중요해지는 구간
-    else if (avg <= 3.3) jongScore = 2;   // 서류 통과 어려워짐
+    if      (avg <= 1.1) jongScore = 3;   // 내신 충분, 비교과가 관건
+    else if (avg <= 1.5) jongScore = 4.5; // 종합전형 황금 구간
+    else if (avg <= 1.9) jongScore = 4;   // 비교과로 충분히 보완 가능
+    else if (avg <= 2.4) jongScore = 3;   // 비교과 질이 더 중요해지는 구간
+    else if (avg <= 2.8) jongScore = 2;   // 서류 통과 어려워짐
     else                 jongScore = 1;
 
     if (gradeVariance <= 0.5) jongScore = Math.min(5, jongScore + 0.5);
@@ -4540,48 +4541,48 @@ function startStatAnalysis() {
     const jongGrade = Math.min(5, Math.max(1, Math.round(jongScore)));
 
     const jongTags = [];
-    if      (avg <= 1.3) jongTags.push({ text: `평균 ${avg.toFixed(2)}등급 — 내신 충분, 비교과가 관건`,   color: '#5b9bd5' });
-    else if (avg <= 2.3) jongTags.push({ text: `평균 ${avg.toFixed(2)}등급 — 종합전형 최적 구간`,        color: '#48b89f' });
-    else if (avg <= 3.0) jongTags.push({ text: `평균 ${avg.toFixed(2)}등급 — 비교과로 보완 필요`,        color: '#f0a500' });
+    if      (avg <= 1.1) jongTags.push({ text: `평균 ${avg.toFixed(2)}등급 — 내신 충분, 비교과가 관건`,   color: '#5b9bd5' });
+    else if (avg <= 1.9) jongTags.push({ text: `평균 ${avg.toFixed(2)}등급 — 종합전형 최적 구간`,        color: '#48b89f' });
+    else if (avg <= 2.5) jongTags.push({ text: `평균 ${avg.toFixed(2)}등급 — 비교과로 보완 필요`,        color: '#f0a500' });
     else                 jongTags.push({ text: `평균 ${avg.toFixed(2)}등급 — 내신 보완 필요`,            color: '#e05c5c' });
     if (grade3upCount === 0) jongTags.push({ text: `전 과목 2등급 이상 — 안정적`, color: '#48b89f' });
     if (korGrade)  jongTags.push({ text: `국어 ${korGrade}등급`,  color: korGrade  <= 2 ? '#48b89f' : korGrade  <= 3 ? '#5b9bd5' : '#f0a500' });
     if (mathGrade) jongTags.push({ text: `수학 ${mathGrade}등급`, color: mathGrade <= 2 ? '#48b89f' : mathGrade <= 3 ? '#5b9bd5' : '#f0a500' });
 
     const jongComment =
-      avg <= 1.3
+      avg <= 1.1
       ? `✅ 종합전형 최상위권 도전 가능. 5등급제 기준 1.3등급 이내는 서울대·연세·고려 종합전형 서류 통과에 충분한 수준이에요. 이 구간에서는 내신보다 세특의 깊이와 진로 일관성이 당락을 가르는 핵심이에요. ${mathGrade && mathGrade <= 2 ? '수학 '+mathGrade+'등급 강점으로 이공계 종합전형에서 추가 유리.' : ''}\n\n지원 가능 대학군: 서울대·연세·고려·성균관·서강 종합전형 도전 가능. 같은 등급대 경쟁자도 세특이 뛰어나므로 탐구 주제의 깊이와 진로 연계성이 결정적이에요.\n\n📌 지금 당장 할 일: ① 진로 연계 세특 주제 심화 정리 ② 면접 대비 및 자기소개서 구성 ③ 지원 대학별 전형 방식(서류100% vs 면접 포함) 사전 파악`
-      : avg <= 2.3
-      ? `✅ 종합전형 황금 구간. 5등급제 기준 1.3~2.3등급은 종합전형에서 내신 서류가 통과 가능하면서 비교과·세특으로 승부하는 최적 구간이에요. ${korGrade && korGrade <= 2 ? '국어 '+korGrade+'등급 강점은 인문계 종합전형 플러스 요인.' : ''} ${mathGrade && mathGrade <= 2 ? '수학 '+mathGrade+'등급은 이공계 종합전형에서 강점.' : ''}\n\n지원 가능 대학군: 연세·고려·성균관·서강·한양 ~ 중앙·경희·이화. 학교마다 서류 vs 면접 비중이 달라 세특 중심 vs 면접 중심 학교를 구분해 준비하는 것이 효율적이에요.\n\n📌 지금 당장 할 일: ① 희망 진로 연계 교과 탐구활동 기록 정리 ② 동아리·봉사·수상과 진로의 연결고리 구성 ③ 지원 대학별 학생부종합 평가 요소 체크`
-      : avg <= 3.0
-      ? `⚡ 종합전형 병행 가능하지만 비교과 질이 더 중요한 구간. 5등급제 기준 2.3~3.0등급은 서류에서 내신이 아쉬울 수 있어 세특의 깊이와 활동의 질로 차별화해야 해요. 교과 연계 탐구활동, 수업 내 발표·토론 기록이 내신 약점을 보완하는 핵심이에요.\n\n지원 가능 대학군: 한국외대·이화·건국·동국·홍익 ~ 수도권 중위권. 면접 비중이 높은 학교일수록 역전 가능성이 있어요.\n\n📌 지금 당장 할 일: ① 세특·활동 목록 정리하고 진로 스토리 연결 ② 면접 대비 병행 시작 ③ 교과·논술전형과 병행 여부 결정`
-      : `⚠️ 내신이 낮아 주요 대학 종합전형 서류 통과가 어려운 수준이에요. 5등급제 기준 3등급 초과는 인서울 종합전형 커트라인을 넘는 편이에요. 비교과가 매우 뛰어나다면 일부 도전 가능하지만, 논술·정시 전형 쪽으로 비중을 높이는 전략이 현실적이에요.\n\n지원 가능 대학군: 수도권 중하위권 ~ 지방 주요 대학 종합전형. 내신 반영 비중 낮고 면접 비중 높은 전형 위주 선별 지원 권장.\n\n📌 지금 당장 할 일: ① 논술·정시 준비 비중 높이기 ② 남은 학기 내신 향상 집중 ③ 비교과 정리는 하되 과도한 시간 투자 지양`;
+      : avg <= 1.9
+      ? `✅ 종합전형 황금 구간. 5등급제 기준 1.1~1.9등급은 종합전형에서 내신 서류가 통과 가능하면서 비교과·세특으로 승부하는 최적 구간이에요. ${korGrade && korGrade <= 2 ? '국어 '+korGrade+'등급 강점은 인문계 종합전형 플러스 요인.' : ''} ${mathGrade && mathGrade <= 2 ? '수학 '+mathGrade+'등급은 이공계 종합전형에서 강점.' : ''}\n\n지원 가능 대학군: 연세·고려·성균관·서강·한양 ~ 중앙·경희·이화. 학교마다 서류 vs 면접 비중이 달라 세특 중심 vs 면접 중심 학교를 구분해 준비하는 것이 효율적이에요.\n\n📌 지금 당장 할 일: ① 희망 진로 연계 교과 탐구활동 기록 정리 ② 동아리·봉사·수상과 진로의 연결고리 구성 ③ 지원 대학별 학생부종합 평가 요소 체크`
+      : avg <= 2.5
+      ? `⚡ 종합전형 병행 가능하지만 비교과 질이 더 중요한 구간. 5등급제 기준 1.9~2.5등급은 서류에서 내신이 아쉬울 수 있어 세특의 깊이와 활동의 질로 차별화해야 해요. 교과 연계 탐구활동, 수업 내 발표·토론 기록이 내신 약점을 보완하는 핵심이에요.\n\n지원 가능 대학군: 한국외대·이화·건국·동국·홍익 ~ 수도권 중위권. 면접 비중이 높은 학교일수록 역전 가능성이 있어요.\n\n📌 지금 당장 할 일: ① 세특·활동 목록 정리하고 진로 스토리 연결 ② 면접 대비 병행 시작 ③ 교과·논술전형과 병행 여부 결정`
+      : `⚠️ 내신이 낮아 주요 대학 종합전형 서류 통과가 어려운 수준이에요. 5등급제 기준 2.5등급 초과는 인서울 종합전형 커트라인을 넘는 편이에요. 비교과가 매우 뛰어나다면 일부 도전 가능하지만, 논술·정시 전형 쪽으로 비중을 높이는 전략이 현실적이에요.\n\n지원 가능 대학군: 수도권 중하위권 ~ 지방 주요 대학 종합전형. 내신 반영 비중 낮고 면접 비중 높은 전형 위주 선별 지원 권장.\n\n📌 지금 당장 할 일: ① 논술·정시 준비 비중 높이기 ② 남은 학기 내신 향상 집중 ③ 비교과 정리는 하되 과도한 시간 투자 지양`;
 
     // ── 논술전형 점수 계산 (5등급제 기준) ──
     // 논술은 내신 반영 비율이 낮아 역전 가능 — 내신이 불리할수록 논술 전략 의존도 높음
     let nonScore = 0;
-    if      (avg <= 1.5) nonScore = 2;   // 교과·종합이 더 유리 → 논술은 추가 도전용
-    else if (avg <= 2.0) nonScore = 2.5;
-    else if (avg <= 2.5) nonScore = 3.5;
-    else if (avg <= 3.0) nonScore = 4;   // 내신 불리 → 논술 전략 유효성 높음
+    if      (avg <= 1.3) nonScore = 2;   // 교과·종합이 더 유리 → 논술은 추가 도전용
+    else if (avg <= 1.7) nonScore = 2.5;
+    else if (avg <= 2.1) nonScore = 3.5;
+    else if (avg <= 2.5) nonScore = 4;   // 내신 불리 → 논술 전략 유효성 높음
     else                 nonScore = 4.5; // 내신 불리할수록 논술이 사실상 유일한 인서울 루트
     if (engGrade  && engGrade  <= 2) nonScore = Math.min(5, nonScore + 0.5); // 수능최저 충족 용이
     if (mathGrade && mathGrade <= 2) nonScore = Math.min(5, nonScore + 0.5);
     const nonGrade = Math.min(5, Math.max(1, Math.round(nonScore)));
 
     const nonTags = [];
-    if      (avg <= 2.0) nonTags.push({ text: `내신 ${avg.toFixed(2)}등급 — 교과·종합 우선, 논술은 상향 도전용`, color: '#48b89f' });
-    else if (avg <= 3.0) nonTags.push({ text: `내신 ${avg.toFixed(2)}등급 — 논술 병행 유효 구간`,             color: '#5b9bd5' });
+    if      (avg <= 1.7) nonTags.push({ text: `내신 ${avg.toFixed(2)}등급 — 교과·종합 우선, 논술은 상향 도전용`, color: '#48b89f' });
+    else if (avg <= 2.5) nonTags.push({ text: `내신 ${avg.toFixed(2)}등급 — 논술 병행 유효 구간`,             color: '#5b9bd5' });
     else                 nonTags.push({ text: `내신 ${avg.toFixed(2)}등급 — 논술 전략 의존도 높음`,           color: '#f0a500' });
     if (engGrade)  nonTags.push({ text: `영어 ${engGrade}등급 (절대평가)`, color: engGrade  <= 2 ? '#48b89f' : '#f0a500' });
     if (mathGrade && mathGrade <= 2) nonTags.push({ text: `수학 ${mathGrade}등급 — 수능최저 유리`, color: '#48b89f' });
     nonTags.push({ text: `논술 실력이 핵심 변수`, color: '#7c5cbf' });
 
     const nonComment =
-      avg <= 2.0
+      avg <= 1.7
       ? `⚠️ 교과·종합전형이 더 유리한 상황이에요. 5등급제 기준 2.0등급 이내는 교과·종합에서 경쟁력이 충분해요. 논술전형은 내신 반영 비율이 낮아 역전이 가능하지만, 지금은 교과·종합을 우선하고 논술은 최상위 1~2개교 추가 도전 카드로만 활용하는 것이 효율적이에요.\n\n📌 지금 당장 할 일: ① 교과·종합 전형 준비 최우선 ② 논술은 최상위권 1~2개교만 선별 ③ 수능최저 탐구 과목 관리`
-      : avg <= 3.0
-      ? `⚡ 논술전형 병행 전략이 유효해요. 논술전형은 내신 반영 비율이 낮아 5등급제 기준 2~3등급대 학생에게 내신 불리함을 만회할 수 있는 유효한 전형이에요. ${engGrade ? '영어 '+engGrade+'등급(절대평가)은 수능최저에서 '+(engGrade <= 2 ? '안정적인 카드예요.' : '추가 관리가 필요해요.') : ''} ${mathGrade && mathGrade <= 2 ? '수학 '+mathGrade+'등급 강점으로 수능최저 충족 가능성이 높아요.' : ''}\n\n⚠️ 단, 논술 합격은 내신이 아닌 논술 실력이 결정해요. 준비 없이 지원만 하면 합격이 어려워요.\n\n📌 지금 당장 할 일: ① 교과·종합과 병행해 논술 2~3개교 목표 설정 ② 수능최저 과목 집중 관리 ③ 지원 대학 논술 기출 풀어보며 유형 파악`
+      : avg <= 2.5
+      ? `⚡ 논술전형 병행 전략이 유효해요. 논술전형은 내신 반영 비율이 낮아 5등급제 기준 1.7~2.5등급대 학생에게 내신 불리함을 만회할 수 있는 유효한 전형이에요. ${engGrade ? '영어 '+engGrade+'등급(절대평가)은 수능최저에서 '+(engGrade <= 2 ? '안정적인 카드예요.' : '추가 관리가 필요해요.') : ''} ${mathGrade && mathGrade <= 2 ? '수학 '+mathGrade+'등급 강점으로 수능최저 충족 가능성이 높아요.' : ''}\n\n⚠️ 단, 논술 합격은 내신이 아닌 논술 실력이 결정해요. 준비 없이 지원만 하면 합격이 어려워요.\n\n📌 지금 당장 할 일: ① 교과·종합과 병행해 논술 2~3개교 목표 설정 ② 수능최저 과목 집중 관리 ③ 지원 대학 논술 기출 풀어보며 유형 파악`
       : `✅ 논술전형을 적극 고려해야 하는 구간이에요. 5등급제 기준 3등급 초과는 교과·종합전형이 불리하기 때문에 논술로 만회하는 전략이 가장 현실적이에요. 논술전형은 내신 반영 비율이 낮거나 없어 역전이 가능한 전형이에요. ${engGrade && engGrade <= 2 ? '영어 '+engGrade+'등급(절대평가)으로 수능최저 한 과목 확보 용이.' : ''} ${mathGrade && mathGrade <= 2 ? '수학 '+mathGrade+'등급으로 수능최저 추가 충족 가능성 높음.' : ''}\n\n⚠️ 단, 논술 합격은 내신과 무관하게 논술 실력이 결정해요. 준비 없이 지원만 하면 논술에서도 불리해요.\n\n📌 지금 당장 할 일: ① 논술 준비 즉시 시작 (수학논술·언어논술 유형 파악) ② 영어·수학 수능최저 집중 관리 ③ 지원 대학 논술 기출 3개년 분석`;
 
 
@@ -4810,17 +4811,19 @@ function buildTrendSeries(slots) {
   return series;
 }
 
-function buildTrendSVG(slots, series, metric) {
+function buildTrendSVG(slots, series, metric, opt) {
+  opt = opt || {};
   const host = document.getElementById('statContent');
-  const W = Math.max(300, ((host && host.clientWidth) || 520) - 40);
-  const H = 250, padL = 52, padR = 12, padT = 14, padB = 52;
+  const W = opt.W || Math.max(300, ((host && host.clientWidth) || 520) - 40);
+  const _off = opt.off || trendSubjOff;
+  const H = opt.H || 250, padL = 52, padR = 12, padT = 14, padB = opt.padB || 52;
   const plotW = W - padL - padR, plotH = H - padT - padB;
   const n = slots.length;
   const multiG = new Set(slots.map(x => x.g)).size > 1;
   const xAt = i => padL + (i + 0.5) / n * plotW;
 
   const vals = [];
-  SUBJECTS.forEach(s => { if (trendSubjOff[s]) return; series[s].forEach(p => { if (p[metric] !== null && p[metric] !== undefined) vals.push(p[metric]); }); });
+  SUBJECTS.forEach(s => { if (_off[s]) return; series[s].forEach(p => { if (p[metric] !== null && p[metric] !== undefined) vals.push(p[metric]); }); });
   let ticks, yAt, fmt;
   if (metric === 'grade') {
     ticks = [1, 2, 3, 4, 5]; yAt = v => padT + (v - 1) / 4 * plotH; fmt = v => v + '등급';
@@ -4833,7 +4836,7 @@ function buildTrendSVG(slots, series, metric) {
     else { yAt = v => padT + (hi - v) / (hi - lo) * plotH; fmt = v => v + '점'; }
   }
 
-  let svg = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="max-width:100%;height:auto;display:block;font-family:'Noto Sans KR',sans-serif;">`;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="max-width:100%;height:auto;display:block;font-family:${opt.font || "'Noto Sans KR',sans-serif"};">`;
   ticks.forEach(t => {
     const y = yAt(t);
     svg += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#eee" stroke-width="1"/>`;
@@ -4850,7 +4853,7 @@ function buildTrendSVG(slots, series, metric) {
     }
   });
   SUBJECTS.forEach(subj => {
-    if (trendSubjOff[subj]) return;
+    if (_off[subj]) return;
     const pts = series[subj].filter(p => p[metric] !== null && p[metric] !== undefined);
     if (!pts.length) return;
     const color = TREND_COLORS[subj] || '#999';
@@ -5607,21 +5610,21 @@ function buildConsultantSectionHTML(subjs, grades) {
 
   // ── 종합전형 점수 (5등급제 기준) ──
   let jongScore = 0;
-  if      (avg <= 1.3) jongScore = 3;   // 내신 충분, 비교과가 관건
-  else if (avg <= 1.8) jongScore = 4.5; // 황금 구간
-  else if (avg <= 2.3) jongScore = 4;   // 비교과로 보완 가능
-  else if (avg <= 2.8) jongScore = 3;   // 비교과 질이 핵심
-  else if (avg <= 3.3) jongScore = 2;
+  if      (avg <= 1.1) jongScore = 3;   // 내신 충분, 비교과가 관건
+  else if (avg <= 1.5) jongScore = 4.5; // 황금 구간
+  else if (avg <= 1.9) jongScore = 4;   // 비교과로 보완 가능
+  else if (avg <= 2.4) jongScore = 3;   // 비교과 질이 핵심
+  else if (avg <= 2.8) jongScore = 2;
   else                 jongScore = 1;
   if (gradeVariance <= 0.5) jongScore = Math.min(5, jongScore + 0.5);
   jongScore = Math.min(5, Math.max(1, Math.round(jongScore)));
 
   // ── 논술전형 점수 (5등급제 기준) ──
   let nonScore = 0;
-  if      (avg <= 1.5) nonScore = 2;   // 교과·종합 우선
-  else if (avg <= 2.0) nonScore = 2.5;
-  else if (avg <= 2.5) nonScore = 3.5;
-  else if (avg <= 3.0) nonScore = 4;
+  if      (avg <= 1.3) nonScore = 2;   // 교과·종합 우선
+  else if (avg <= 1.7) nonScore = 2.5;
+  else if (avg <= 2.1) nonScore = 3.5;
+  else if (avg <= 2.5) nonScore = 4;
   else                 nonScore = 4.5;
   if (engGrade  && engGrade  <= 2) nonScore = Math.min(5, nonScore + 0.5);
   if (mathGrade && mathGrade <= 2) nonScore = Math.min(5, nonScore + 0.5);
@@ -5641,12 +5644,12 @@ function buildConsultantSectionHTML(subjs, grades) {
   if (gradeVariance <= 0.3) kyoTags.push({text:`편차 ${gradeVariance.toFixed(2)} — 균형 내신`, color:'#48b89f'});
   else if (gradeVariance >= 1.0) kyoTags.push({text:`편차 ${gradeVariance.toFixed(2)} — 과목 격차 주의`, color:'#f0a500'});
 
-  jongTags.push({text:`평균 ${avg.toFixed(2)}등급`, color: avg<=2.5?'#48b89f':avg<=3.2?'#f0a500':'#e05c5c'});
+  jongTags.push({text:`평균 ${avg.toFixed(2)}등급`, color: avg<=2.1?'#48b89f':avg<=2.7?'#f0a500':'#e05c5c'});
   if (mathGrade && mathGrade <= 2) jongTags.push({text:`수학 ${mathGrade}등급 — 이공계 강점`, color:'#5b9bd5'});
   if (korGrade && korGrade <= 2) jongTags.push({text:`국어 ${korGrade}등급 — 인문계 강점`, color:'#9b59b6'});
   nonTags.push({text:`논술 실력이 핵심 변수`, color:'#7c5cbf'});
   if (engGrade) nonTags.push({text:`영어 ${engGrade}등급(절대평가)`, color:engGrade<=2?'#48b89f':'#f0a500'});
-  if (avg > 2.5) nonTags.push({text:`내신 불리 → 논술 유효성 높음`, color:'#e05c5c'});
+  if (avg > 2.1) nonTags.push({text:`내신 불리 → 논술 유효성 높음`, color:'#e05c5c'});
 
   // ── 학년별 맞춤 코멘트 ──
   if (gradeYear === 1) {
@@ -5657,11 +5660,11 @@ function buildConsultantSectionHTML(subjs, grades) {
       ? `⚡ 평균 ${avg.toFixed(2)}등급은 인서울 중상위권 교과전형까지 현실적이에요. 지금 단계에서 가장 중요한 건 2학년 선택과목을 강점 과목 위주로 편성해 평균을 0.3~0.5등급 올리는 전략이에요. ${grade3upCount > 0 ? grade3upCount+'과목이 3등급 이하인데, 이 과목을 2학년에서 수강하지 않거나 집중 보완하면 평균이 확실히 올라요.' : ''}\n종합전형도 함께 준비하면 지원 폭이 크게 넓어져요.`
       : `⚠️ 현재 평균 ${avg.toFixed(2)}등급은 인서울 주요 대학 교과전형 커트라인을 상회해 쉽지 않아요. 2학년에서 성적이 오를 여지가 충분히 있으므로, 지금은 포기하기보다 2학년 선택과목을 전략적으로 편성하고 취약 과목을 집중 보완하는 게 우선이에요.\n종합전형 비교과·세특 준비를 병행해 두 방향을 동시에 챙기는 전략이 현명해요.`;
 
-    jongComment = avg <= 2.5
+    jongComment = avg <= 2.1
       ? `✅ 평균 ${avg.toFixed(2)}등급은 종합전형 서류 통과 가능한 구간이에요. 1학년 시점에서 지금 해야 할 건 내신 관리보다 세특의 방향 설계예요. 어떤 과목에서 어떤 탐구를 할지, 진로와 어떻게 연결할지 지금부터 구체화해야 2학년 세특이 살아나요.\n${mathGrade && mathGrade <= 2 ? '수학 '+mathGrade+'등급은 이공계 종합전형에서 강력한 강점이에요. 수학 세특 주제를 이공계 진로와 연결하는 게 핵심이에요.' : ''}${korGrade && korGrade <= 2 ? '국어 '+korGrade+'등급은 인문계 종합전형 서류에서 유리하게 작용해요.' : ''}`
       : `⚡ 종합전형은 내신만으로 결정되지 않아요. 현재 평균 ${avg.toFixed(2)}등급도 비교과·세특이 뛰어나면 주요 대학 종합전형에 도전할 수 있어요. 1학년 지금 단계에서 세특 주제를 진로와 연결하고, 동아리·봉사활동을 일관된 스토리로 쌓아나가는 게 2~3학년에서 역전의 발판이 돼요.\n내신과 세특을 동시에 잡는 1학년 루틴을 지금 만들어두세요.`;
 
-    nonComment = avg <= 2.0
+    nonComment = avg <= 1.7
       ? `교과·종합이 더 유리한 상황이에요. 논술은 최상위 1~2개교 도전 카드로만 활용하고 지금은 내신에 집중하세요. 논술 준비는 3학년 여름방학부터 시작해도 늦지 않아요.`
       : `평균 ${avg.toFixed(2)}등급은 논술전형 병행이 유효한 구간이에요. 논술은 내신 불리함을 역전시킬 수 있는 전형이지만, 준비 없이 응시하면 의미가 없어요. 1학년 때는 국어 독해력·수학 문제해결력을 기르는 데 집중하고, 논술 준비는 2학년 2학기부터 본격화하세요.`;
 
@@ -5673,13 +5676,13 @@ function buildConsultantSectionHTML(subjs, grades) {
       ? `⚡ 평균 ${avg.toFixed(2)}등급으로 인서울 중상위권 교과전형까지 도전 가능해요. 2학년 지금이 교과전형 결정적 시기예요 — 3학년 1학기까지 남은 학기 동안 0.2~0.3등급 향상이 실질적으로 가능해요. ${grade3upCount > 0 ? '3등급 이하 과목 '+grade3upCount+'개를 집중 공략해 전체 평균을 끌어올리는 게 가장 효과적이에요.' : ''}\n수능최저 있는 대학 위주로 집중 지원하면 실질 경쟁률에서 유리해요.`
       : `⚠️ 평균 ${avg.toFixed(2)}등급은 인서울 주요 대학 교과전형 커트라인을 넘어서 쉽지 않은 상황이에요. 2학년 지금부터 3학년 1학기까지 남은 학기를 집중 공략하면 아직 0.3~0.5등급 향상 여지가 있어요. ${gradeVariance >= 0.8 ? '편차('+gradeVariance.toFixed(2)+')가 있어 취약 과목 집중 공략이 가장 효과적이에요.' : ''}\n교과전형과 함께 종합·논술전형을 반드시 병행 준비하세요.`;
 
-    jongComment = avg <= 2.5
+    jongComment = avg <= 2.1
       ? `✅ 평균 ${avg.toFixed(2)}등급은 종합전형 황금 구간이에요. 2학년 지금이 세특의 핵심 시기예요 — 1학년 탐구 주제를 심화·확장하는 방향으로 2학년 세특을 완성해야 해요. 단순 수업 내용 정리가 아닌, 진로와 연결된 자기 주도적 탐구 기록이 입사관의 눈에 띄어요.\n${mathGrade && mathGrade <= 2 ? '수학 '+mathGrade+'등급은 이공계 종합전형에서 강점이에요. 수학·과학 세특에서 심화 탐구를 보여주세요.' : ''}${korGrade && korGrade <= 2 ? '국어 '+korGrade+'등급 강점을 인문계 세특 글쓰기·토론 활동과 연결하세요.' : ''}`
       : `⚡ 평균 ${avg.toFixed(2)}등급은 종합전형에서 세특·비교과 완성도가 당락을 가르는 구간이에요. 2학년 세특이 부실하면 내신이 좋아도 서류 탈락하고, 세특이 뛰어나면 내신이 약해도 역전이 가능해요. 지금 당장 각 과목 담당 선생님과 세특 주제를 상의하고, 교내 활동(토론·탐구·발표)에 적극 참여하세요.\n종합전형은 면접도 중요해요 — 지금부터 자신의 탐구 경험을 말로 설명하는 연습을 해두세요.`;
 
-    nonComment = avg <= 2.0
+    nonComment = avg <= 1.7
       ? `교과·종합이 더 유리한 구간이에요. 논술은 최상위 1~2개교 추가 도전 카드로만 활용하고, 수능최저 충족에 집중하세요. 논술 준비는 3학년 여름방학에 집중해도 늦지 않아요.`
-      : avg <= 3.0
+      : avg <= 2.5
       ? `⚡ 논술전형 병행이 유효해요. 평균 ${avg.toFixed(2)}등급에서 내신 불리함을 논술로 만회하는 전략이 실제로 가능해요. 2학년 2학기부터 논술 기출을 풀기 시작해 유형을 파악하고, 수능최저 과목(수학·영어)을 반드시 챙기세요. 논술 없이 지원만 하면 내신이 낮을수록 더 불리하니, 준비 없이는 넣지 마세요.`
       : `✅ 논술전형을 적극 활용해야 하는 구간이에요. 내신이 불리한 만큼 논술로 역전하는 전략이 가장 현실적이에요. 지금 당장 목표 대학 논술 기출 3개년을 풀어보며 유형을 파악하고, 수학논술·언어논술 중 강점 방향을 빠르게 정하세요. 수능최저(영어·탐구) 관리를 동시에 하지 않으면 논술 합격도 무효가 되니 반드시 함께 챙기세요.`;
 
@@ -5691,13 +5694,13 @@ function buildConsultantSectionHTML(subjs, grades) {
       ? `⚡ 평균 ${avg.toFixed(2)}등급은 인서울 중상위권 교과전형까지 현실적이에요. 3학년 1학기가 마지막 내신 반영 기회예요 — 0.1~0.2등급만 올려도 지원 가능 대학군이 크게 바뀌어요. 수능최저 있는 대학 위주로 집중 지원하면 실질 경쟁률에서 유리해요.\n지금 당장 목표 대학별 교과전형 반영 과목과 수능최저 기준을 정확히 파악하고, 시험 일정에 맞춘 마지막 내신 전략을 세우세요.`
       : `⚠️ 현재 평균 ${avg.toFixed(2)}등급으로는 인서울 주요 대학 교과전형이 어려운 상황이에요. 남은 3학년 1학기 내신을 최대한 올리면서 교과전형보다 종합·논술·정시에 집중하는 전략 전환이 필요해요.\n교과전형은 수능최저 없는 학교만 선별 지원하고, 시간과 에너지를 수능 준비에 더 투자하는 게 현실적이에요.`;
 
-    jongComment = avg <= 2.5
+    jongComment = avg <= 2.1
       ? `✅ 평균 ${avg.toFixed(2)}등급은 종합전형 경쟁력 있는 구간이에요. 3학년 시점에서 서류는 거의 완성 단계이므로, 지금은 면접 준비가 가장 중요해요. 1·2학년 때 쌓은 세특·활동을 자신의 언어로 설명할 수 있어야 해요.\n${mathGrade && mathGrade <= 2 ? '수학 '+mathGrade+'등급은 이공계 종합 서류에서 강점이에요.' : ''}면접에서 "왜 이 전공인가"를 성적·세특·활동의 흐름으로 설득력 있게 말할 수 있어야 당락이 갈려요.`
       : `⚡ 종합전형은 내신이 다소 낮아도 비교과·면접이 뛰어나면 역전이 가능해요. 3학년 지금 단계에서 서류를 보강하기보다, 면접 역량을 집중 강화하는 게 효과적이에요. 자신의 탐구 경험·활동을 구체적 사례로 정리해 면접에서 논리적으로 설명하는 연습을 매일 하세요.\n면접 비중이 높은 학교(서강·한양 등)를 우선 탐색하세요.`;
 
-    nonComment = avg <= 2.0
+    nonComment = avg <= 1.7
       ? `교과·종합이 더 유리한 상황이에요. 논술은 최상위 1~2개교 추가 도전 카드로 활용하되, 지금 시간을 논술에 과하게 쏟기보다 수능최저·수능 준비에 더 집중하는 게 효율적이에요.`
-      : avg <= 3.0
+      : avg <= 2.5
       ? `⚡ 논술전형이 유효한 전략이에요. 수능 성적이 내신보다 잘 나오는 타입이라면 더욱 맞아요. 3학년 여름방학이 논술 집중 훈련의 마지막 기회예요. 기출 유형 파악 → 시간 내 답안 작성 연습 → 모범 답안 분석 루틴을 반복하세요.\n수능최저(수학·영어·탐구) 충족이 논술 합격의 선결 조건이에요.`
       : `✅ 논술전형을 반드시 활용해야 하는 구간이에요. 내신이 불리한 만큼 논술과 정시가 현실적인 역전 카드예요. 남은 시간 동안 논술 집중 훈련과 수능 병행이 가장 효율적인 전략이에요. 특히 수학논술은 수능 수학과 겹치는 부분이 많아 동시 준비가 가능해요.\n목표 대학 논술 기출을 반드시 풀어보고, 수능최저 충족 가능 여부를 먼저 확인하세요.`;
   }
@@ -8578,6 +8581,211 @@ ${cleanHtml}
   win.focus();
   setTimeout(() => { win.print(); }, 300);
 }
+// ==================== 👪 학부모 상담용 1장 (편집 후 출력) ====================
+// 학부모·학생에게 드리는 자료라서: 대학 예측은 넣지 않고, 원인은 단정하지 않으며, 입력칸·버튼은 출력되지 않음
+let parentSheetCtx = null;
+
+function buildParentSheetDraft() {
+  const slots = getStudentSlots();
+  if (!slots.length) return null;
+  const series = buildTrendSeries(slots);
+  const ev = buildTrendEvaluation(slots, series);
+  const multiG = ev.multiG;
+  const lat = ev.latest;
+  const sj = s => trendSubjShort(s);
+  const strengths = [], weak = [], todo = [];
+
+  ev.rows.forEach(r => {
+    const p = r.b;
+    if (p.grade === 1) strengths.push(`${sj(r.subj)}: 최근 시험 1등급${r.single ? '' : (r.dir === 'up' || r.dir === 'upSoft' ? ' (이전보다 올랐어요)' : ' 수준 유지')}`);
+    else if (!r.single && (r.dir === 'up' || r.dir === 'upSoft')) strengths.push(`${sj(r.subj)}: ${r.a.grade || '-'}등급 → ${r.b.grade || '-'}등급으로 올랐어요`);
+  });
+  ev.rows.filter(r => !r.single && (r.dir === 'down' || r.dir === 'downSoft')).forEach(r =>
+    weak.push(`${sj(r.subj)}: ${r.a.grade || '-'}등급 → ${r.b.grade || '-'}등급으로 내려갔어요 (함께 이유를 살펴보면 좋겠어요)`));
+  ev.pri.forEach(x => {
+    const g = x.p.grade, t = g - 1;
+    if (x.gap !== null) {
+      weak.push(`${sj(x.subj)}: 현재 ${g}등급 · ${t}등급 경계까지 약 ${x.gap}등 차이`);
+      todo.push(`${sj(x.subj)} — 최근 시험에서 틀린 문항 유형을 한 번 정리해 보기`);
+    } else {
+      todo.push(`${sj(x.subj)} — 최근 시험 결과를 선생님과 함께 점검하기`);
+    }
+  });
+  if (!strengths.length) strengths.push('꾸준히 시험에 임하고 있어요');
+  if (!weak.length) weak.push('현재 특별히 우려되는 과목은 없어요');
+  while (todo.length < 3) todo.push('');
+  return {
+    series, ev, slots, multiG,
+    title: `${selectedStudent.num}번 ${selectedStudent.name}`,
+    latestLabel: slotShortLabel(lat, multiG),
+    strengths: strengths.join('\n'),
+    weak: weak.slice(0, 5).join('\n'),
+    todo: todo.slice(0, 3).join('\n'),
+    goal: '', nextDate: '', memo: ''
+  };
+}
+
+function openParentSheet() {
+  if (!selectedStudent) { showToast('먼저 학생을 선택해 주세요 🙏', 'error'); return; }
+  const d = buildParentSheetDraft();
+  if (!d) { showToast('이 학생의 성적 자료가 아직 없어요', 'error'); return; }
+  parentSheetCtx = d;
+  closeParentSheet();
+  const e2 = escapeHTML;
+  const fld = 'width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:13px;font-family:inherit;line-height:1.6;resize:vertical;';
+  const lab = 'font-size:12px;font-weight:800;color:var(--text);margin:12px 0 4px;display:block;';
+  const hint = 'font-size:11px;color:var(--text3);margin-bottom:4px;';
+  const ov = document.createElement('div');
+  ov.id = 'parentSheetOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(30,20,60,.45);z-index:9999;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:max(16px,env(safe-area-inset-top)) 12px 24px;';
+  ov.innerHTML = `
+  <div style="background:#fff;border-radius:16px;max-width:560px;width:100%;padding:18px 18px 20px;box-shadow:0 10px 40px rgba(0,0,0,.25);">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="font-size:16px;font-weight:800;color:var(--primary-dark);">👪 학부모 상담용 1장</div>
+      <button type="button" onclick="closeParentSheet()" style="margin-left:auto;min-width:44px;min-height:44px;border:none;background:none;font-size:20px;cursor:pointer;">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--text2);line-height:1.6;">${escapeHTML(d.title)} · 가장 최근 시험(${escapeHTML(d.latestLabel)}) 기준 · 자동으로 채운 문장을 <b>자유롭게 고친 뒤</b> 출력하세요. 대학 예측은 넣지 않아요.</div>
+    <label style="${lab}">👍 잘하고 있는 점 <span style="font-weight:500;color:var(--text3);">(한 줄에 하나)</span></label>
+    <textarea id="ps_strengths" rows="4" style="${fld}">${escapeHTML(d.strengths)}</textarea>
+    <label style="${lab}">🔎 함께 살펴볼 점</label>
+    <textarea id="ps_weak" rows="4" style="${fld}">${escapeHTML(d.weak)}</textarea>
+    <label style="${lab}">✅ 앞으로 할 일 3가지</label>
+    <textarea id="ps_todo" rows="3" style="${fld}">${escapeHTML(d.todo)}</textarea>
+    <label style="${lab}">🤝 이번 학기 함께 정한 목표 <span style="font-weight:500;color:var(--text3);">(비워 두면 손으로 쓰는 빈칸으로 출력)</span></label>
+    <textarea id="ps_goal" rows="2" style="${fld}" placeholder="예: 수학 오답노트 매주 1회 / 영어 단어 하루 20개"></textarea>
+    <label style="${lab}">📅 다음 상담 예정일</label>
+    <input id="ps_next" type="text" style="${fld}min-height:44px;" placeholder="예: 12월 둘째 주 (비워 두면 빈칸)">
+    <label style="${lab}">✏️ 담임 한마디 <span style="font-weight:500;color:var(--text3);">(선택)</span></label>
+    <textarea id="ps_memo" rows="2" style="${fld}" placeholder="학부모님께 드리고 싶은 말"></textarea>
+    ${d.slots.length >= 2 ? `
+    <label style="${lab}">📈 누적 변화 그래프 <span style="font-weight:500;color:var(--text3);">(출력에 넣을 것만 고르세요)</span></label>
+    <label style="display:flex;align-items:center;gap:8px;min-height:36px;font-size:12px;"><input id="ps_chart" type="checkbox" checked> 그래프 넣기</label>
+    <div style="${hint}">무엇을 보여줄까요?</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+      ${[['pct', '상위 %'], ['score', '원점수'], ['grade', '등급']].map(([k, t]) => `<label style="display:flex;align-items:center;gap:6px;min-height:40px;padding:0 12px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;"><input type="radio" name="ps_metric" value="${k}" ${k === 'pct' ? 'checked' : ''}>${t}</label>`).join('')}
+    </div>
+    <div style="${hint}">보여줄 과목</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      ${SUBJECTS.filter(sb => d.series[sb].length).map(sb => `<label style="display:flex;align-items:center;gap:6px;min-height:40px;padding:0 12px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;"><input type="checkbox" class="ps_subj" value="${sb}" checked><span style="width:9px;height:9px;border-radius:50%;background:${TREND_COLORS[sb] || '#999'};display:inline-block;"></span>${e2(trendSubjShort(sb))}</label>`).join('')}
+    </div>` : ''}
+    <div style="margin-top:12px;font-size:12px;color:var(--text2);line-height:1.9;">
+      <label style="display:flex;align-items:center;gap:8px;min-height:36px;"><input id="ps_guide" type="checkbox" checked> 「숫자 읽는 법」 해설 박스 넣기</label>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button type="button" onclick="printParentSheet()" style="flex:1;min-height:48px;border-radius:12px;border:none;background:linear-gradient(135deg,#5e40a6,#7c5cbf);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;">🖨️ 미리보기 · 출력</button>
+      <button type="button" onclick="closeParentSheet()" style="min-height:48px;padding:0 18px;border-radius:12px;border:1.5px solid var(--border);background:#fff;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">닫기</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+}
+
+function closeParentSheet() {
+  const o = document.getElementById('parentSheetOverlay');
+  if (o) o.remove();
+}
+
+function psLines(txt) {
+  return String(txt || '').split('\n').map(x => x.trim()).filter(Boolean);
+}
+
+function buildParentSheetHtml(d, v) {
+  const e = escapeHTML;
+  const f1 = x => x.toFixed(1);
+  const ev = d.ev, slots = d.slots;
+  const blank = (n) => Array.from({ length: n }, () => `<div style="border-bottom:1px solid #b9aedb;height:22px;"></div>`).join('');
+  const bullets = (arr, emptyN) => arr.length
+    ? `<ul style="margin:0;padding-left:18px;line-height:1.75;">${arr.map(x => `<li>${e(x)}</li>`).join('')}</ul>` : blank(emptyN);
+  // 요약 한 줄
+  let sum = '';
+  if (ev.avgL) sum = `가장 최근 시험(${e(d.latestLabel)}) 평균 <b>${ev.avgL.avg.toFixed(2)}등급</b>`;
+  if (slots.length >= 2 && ev.avgF && ev.avgL) {
+    const dd = ev.avgF.avg - ev.avgL.avg;
+    sum += Math.abs(dd) < 0.05 ? ' · 처음 시험과 비슷한 수준이에요' : (dd > 0 ? ` · 처음 시험보다 <b style="color:#048a6c;">${dd.toFixed(2)}등급 올랐어요</b>` : ` · 처음 시험보다 <b style="color:#c2410c;">${(-dd).toFixed(2)}등급 내려갔어요</b>`);
+  }
+  // 과목 표
+  const rowsHtml = ev.rows.map(r => {
+    const flow = r.pts.map(p => p.grade ? p.grade : '-').join(' → ');
+    const b = r.b;
+    const chipMap = { up: ['▲ 상승', '#048a6c'], upSoft: ['▲ 소폭 상승', '#048a6c'], down: ['▼ 하락', '#c2410c'], downSoft: ['▼ 소폭 하락', '#c2410c'], flat: ['– 유지', '#6b5aa8'] };
+    const chip = r.single ? '<span style="color:#888;">비교 전</span>' : `<span style="color:${chipMap[r.dir][1]};font-weight:700;">${chipMap[r.dir][0]}</span>`;
+    return `<tr><td style="font-weight:700;">${e(trendSubjShort(r.subj))}</td><td style="text-align:center;">${flow}</td>
+      <td style="text-align:center;">${b.grade ? b.grade + '등급' : '-'}</td><td style="text-align:center;">${b.pct !== null ? '상위 ' + f1(b.pct) + '%' : '-'}</td>
+      <td style="text-align:center;">${b.score !== null ? b.score + '점' : '-'}</td><td style="text-align:center;">${chip}</td></tr>`;
+  }).join('');
+  const flowHead = slots.map(s => slotShortLabel(s, d.multiG)).join(' → ');
+  let chartBox = '';
+  if (v.chart && slots.length >= 2 && v.subjOn.length) {
+    const off = {}; SUBJECTS.forEach(sb => { off[sb] = !v.subjOn.includes(sb); });
+    const svg = buildTrendSVG(slots, d.series, v.metric, { W: 720, H: 175, padB: 36, off, font: "'Pretendard','Noto Sans KR',sans-serif" });
+    const mName = { pct: '상위 %', score: '원점수', grade: '등급' }[v.metric];
+    const dirNote = v.metric === 'pct' ? '위쪽일수록 상위 %가 작아요(좋아요)' : v.metric === 'grade' ? '위쪽일수록 1등급에 가까워요' : '위쪽일수록 점수가 높아요';
+    const legend = SUBJECTS.filter(sb => v.subjOn.includes(sb) && d.series[sb].length).map(sb =>
+      `<span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;"><i style="width:9px;height:9px;border-radius:50%;background:${TREND_COLORS[sb] || '#999'};display:inline-block;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></i>${e(trendSubjShort(sb))}</span>`).join('');
+    const mixedNote = slots.some(x => x.k === 'total') && slots.some(x => x.k !== 'total') ? ' · 점선·◆는 학기말(합산)과 지필 시험처럼 구성이 다른 시험 사이예요' : '';
+    chartBox = `<div class="box" style="padding:6px 10px;"><div class="bt">📈 시험별 변화 (${mName}) <span style="font-weight:500;color:#8a80a8;font-size:10px;">${dirNote}</span></div>${svg}<div style="font-size:10.5px;margin-top:2px;">${legend}</div><div style="font-size:9.5px;color:#8a80a8;margin-top:2px;">● 중간·기말(지필)${mixedNote}</div></div>`;
+  }
+  const guide = v.guide ? `
+    <div class="box" style="background:#faf8ff;">
+      <div class="bt">📖 숫자 읽는 법</div>
+      <div style="line-height:1.7;">· <b>5등급제</b>는 상위 10%까지 1등급, 34%까지 2등급, 66%까지 3등급, 90%까지 4등급이에요. 석차 백분율로 정해져요.<br>
+      · <b>상위 %</b>는 숫자가 작을수록 앞선 거예요. 예) 상위 8% = 100명 중 약 8번째.<br>
+      · 같은 등급 안에서도 점수·석차는 시험마다 달라질 수 있어, 한 번의 결과보다 <b>흐름</b>을 함께 봐 주세요.</div>
+    </div>` : '';
+  return `
+  <div class="head"><div><div class="ttl">👪 학부모 상담 자료</div><div class="sub">${e(d.title)} · 2022개정 교육과정 · 5등급제 · ${new Date().toLocaleDateString('ko-KR')}</div></div></div>
+  <div class="sum">${sum}</div>
+  <table class="t"><thead><tr><th>과목</th><th>등급 흐름<div class="s">${e(flowHead)}</div></th><th>최근 등급</th><th>최근 상위 %</th><th>최근 원점수</th><th>변화</th></tr></thead><tbody>${rowsHtml}</tbody></table>
+  ${chartBox}
+  <div class="two">
+    <div class="box" style="border-color:#bde5d6;background:#f4fbf8;"><div class="bt">👍 잘하고 있는 점</div>${bullets(psLines(v.strengths), 3)}</div>
+    <div class="box" style="border-color:#f3d9b1;background:#fffaf2;"><div class="bt">🔎 함께 살펴볼 점</div>${bullets(psLines(v.weak), 3)}</div>
+  </div>
+  <div class="box"><div class="bt">✅ 앞으로 할 일</div>${psLines(v.todo).length ? `<ol style="margin:0;padding-left:20px;line-height:1.75;">${psLines(v.todo).map(x => `<li>${e(x)}</li>`).join('')}</ol>` : blank(3)}</div>
+  ${v.memo.trim() ? `<div class="box"><div class="bt">✏️ 담임 한마디</div><div style="line-height:1.7;white-space:pre-wrap;">${e(v.memo.trim())}</div></div>` : ''}
+  <div class="box" style="border-color:#c9bdf0;"><div class="bt">🤝 이번 학기 함께 정한 목표</div>${psLines(v.goal).length ? bullets(psLines(v.goal), 2) : blank(2)}
+    <div style="margin-top:8px;display:flex;gap:14px;align-items:flex-end;"><span style="white-space:nowrap;font-weight:700;">다음 상담 예정일</span>${v.nextDate.trim() ? `<span style="font-weight:700;">${e(v.nextDate.trim())}</span>` : `<span style="flex:1;border-bottom:1px solid #b9aedb;height:20px;"></span>`}
+    <span style="white-space:nowrap;font-weight:700;margin-left:auto;">확인 (학부모 · 학생)</span><span style="width:130px;border-bottom:1px solid #b9aedb;height:20px;"></span></div>
+  </div>
+  ${guide}
+  <div class="foot">※ 이 자료는 시험 결과를 바탕으로 한 참고용 안내이며, 학생의 가능성을 단정하는 자료가 아니에요. 입시 결과는 해마다 달라지므로 대학별 모집요강을 꼭 확인해 주세요.<br>아듬's 담임상담 AI · Made by Cheon_R</div>`;
+}
+
+function printParentSheet() {
+  const d = parentSheetCtx;
+  if (!d) return;
+  const g = id => (document.getElementById(id) || {}).value || '';
+  const v = { strengths: g('ps_strengths'), weak: g('ps_weak'), todo: g('ps_todo'), goal: g('ps_goal'), nextDate: g('ps_next'), memo: g('ps_memo'),
+              guide: !!(document.getElementById('ps_guide') || {}).checked,
+              chart: !!(document.getElementById('ps_chart') || {}).checked,
+              metric: ((document.querySelector('input[name="ps_metric"]:checked') || {}).value) || 'pct',
+              subjOn: [...document.querySelectorAll('.ps_subj')].filter(x => x.checked).map(x => x.value) };
+  const body = buildParentSheetHtml(d, v);
+  const win = window.open('', '_blank');
+  if (!win) { showToast('팝업이 차단됐어요. 브라우저에서 팝업 허용 후 다시 눌러주세요 🖨️', 'error'); return; }
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>학부모 상담 자료 - ${escapeHTML(d.title)}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+  <style>
+    @page { size: A4; margin: 10mm; }
+    body { font-family: 'Pretendard','Noto Sans KR',sans-serif; margin: 0 auto; max-width: 190mm; padding: 12px; color: #2d2540; font-size: 11px; }
+    .head { background: linear-gradient(135deg,#5e40a6,#7c5cbf); border-radius: 10px; padding: 8px 16px; color: #fff; margin-bottom: 6px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .ttl { font-size: 17px; font-weight: 800; } .sub { font-size: 11px; opacity: .9; margin-top: 2px; }
+    .sum { font-size: 12px; margin: 4px 2px 6px; }
+    table.t { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+    table.t th { background: #f3effa; color: #5e40a6; padding: 3px 6px; border: 1px solid #ddd6f0; font-size: 11px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    table.t th .s { font-weight: 500; font-size: 9px; color: #7a6fa0; }
+    table.t td { padding: 3px 6px; border: 1px solid #ddd6f0; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .box { border: 1.5px solid #ddd6f0; border-radius: 10px; padding: 6px 12px; margin-bottom: 6px; break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .bt { font-weight: 800; color: #5e40a6; margin-bottom: 4px; font-size: 12px; }
+    .foot { font-size: 9.5px; color: #8a80a8; line-height: 1.6; margin-top: 4px; }
+    @media print { body { padding: 0; } }
+  </style></head><body>${body}</body></html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { win.print(); }, 600);
+}
+
 function printStat() {
   const content = buildStatPrintHtml();
   const studentName = selectedStudent?.name || '';
