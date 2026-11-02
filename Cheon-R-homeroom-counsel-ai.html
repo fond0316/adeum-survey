@@ -1208,11 +1208,11 @@
 
     <!-- 자체 성적 분석 카드 (API 불필요) -->
     <div class="card" id="statCard" style="display:none;">
-      <div class="card-header">
+      <div class="card-header" style="flex-wrap:wrap;row-gap:10px;">
         <div class="card-header-icon">📊</div>
-        <div class="card-title">성적 기본 분석</div>
+        <div class="card-title" style="white-space:nowrap;">성적 기본 분석</div>
         <span id="statStudentBadge" style="margin-left:8px;padding:3px 10px;border-radius:20px;background:var(--primary-bg);color:var(--primary-dark);font-size:12px;font-weight:700;"></span>
-        <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+        <div style="flex-basis:100%;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-start;">
           <button onclick="copyStatResult()" style="padding:4px 12px;border-radius:6px;border:1.5px solid var(--border);background:white;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📋 복사</button>
           <button onclick="saveStatResult()" style="padding:4px 12px;border-radius:6px;border:1.5px solid var(--primary);background:var(--primary-bg);color:var(--primary-dark);font-size:11px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💾 저장</button>
           <button onclick="printFullReport()" style="padding:4px 12px;border-radius:6px;border:1.5px solid #5e40a6;background:linear-gradient(135deg,#5e40a6,#7c5cbf);color:white;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🖨️ 전체 출력</button>
@@ -2348,10 +2348,44 @@ function parseSetuk(rows) {
 //        한국사[과목,원,등급](24-26)
 let pendingMokData = null; // { round, byName: { 이름: {...} } }
 
+function mokColMap(rows, dataStart) {
+  // 헤더(과목 묶음 행 + 세부 열 행)를 읽어 열 위치를 찾음 — 영어에 '과목' 열이 있든 없든 맞게 동작
+  const h0 = rows[dataStart - 2] || [], h1 = rows[dataStart - 1] || [];
+  const starts = [];
+  h0.forEach((v, c) => { if (v !== null && v !== undefined && String(v).trim() !== '') starts.push({ c, label: String(v).replace(/\s/g, '') }); });
+  const keyOf = l => l.startsWith('국어') ? '국어' : l.startsWith('수학') ? '수학' : l.startsWith('영어') ? '영어' : l.startsWith('탐구1') ? '탐구1' : l.startsWith('탐구2') ? '탐구2' : l.startsWith('한국사') ? '한국사' : null;
+  const map = {};
+  starts.forEach((st, i) => {
+    const k = keyOf(st.label); if (!k) return;
+    const end = i + 1 < starts.length ? starts[i + 1].c : Math.max(h1.length, st.c + 6);
+    const cols = {};
+    for (let c = st.c; c < end; c++) {
+      const t = String(h1[c] === null || h1[c] === undefined ? '' : h1[c]).replace(/\s/g, '');
+      if (!t) continue;
+      if (t.includes('과목')) cols.name = c;
+      else if (t.includes('원점수') || t === '원') cols.score = c;
+      else if (t.includes('표준')) cols.std = c;
+      else if (t.includes('백분')) cols.pct = c;
+      else if (t.includes('등급')) cols.grade = c;
+    }
+    map[k] = cols;
+  });
+  const ok = ['국어', '수학', '영어'].every(k => map[k] && map[k].grade !== undefined);
+  if (ok) return map;
+  // 헤더를 못 읽으면 앱 기본 양식 위치로
+  return {
+    '국어': { name: 2, score: 3, std: 4, pct: 5, grade: 6 }, '수학': { name: 7, score: 8, std: 9, pct: 10, grade: 11 },
+    '영어': { score: 12, grade: 13 }, '탐구1': { name: 14, score: 15, std: 16, pct: 17, grade: 18 },
+    '탐구2': { name: 19, score: 20, std: 21, pct: 22, grade: 23 }, '한국사': { name: 24, score: 25, grade: 26 }
+  };
+}
+function mokNum(v) { if (v === null || v === undefined || v === '') return null; const n = Number(v); return isNaN(n) ? null : n; }
+function mokGrade(v) { const n = Number(v); return (v !== null && v !== '' && Number.isInteger(n) && n >= 1 && n <= 9) ? n : null; }   // 1~9 밖의 값(원점수 등)은 등급으로 쓰지 않음
+
 function parseMokFile(rows, fileName) {
   // 회차 감지: 파일명에서 3/6/9/11월 찾기
   let round = null;
-  const roundMatch = fileName.match(/(11|3|6|9)월/);
+  const roundMatch = fileName.match(/(11|3|6|9)\s*월/);
   if (roundMatch) {
     round = roundMatch[1] + '월';
   }
@@ -2369,23 +2403,26 @@ function parseMokFile(rows, fileName) {
     return;
   }
 
-  const byName = {};
+  const map = mokColMap(rows, dataStart);
+  const get = (row, c) => (c === undefined ? null : (row[c] === undefined ? null : row[c]));
+  const byName = {}, byNo = {};
   for (let i = dataStart; i < rows.length; i++) {
     const row = rows[i];
     if (!row || typeof row[0] !== 'number') continue;
     const name = row[1] ? String(row[1]).trim() : '';
     if (!name) continue;
-
-    byName[name] = {
-      '국어':  { grade: row[6]  ?? null, pct: row[5]  ?? null },
-      '수학':  { grade: row[11] ?? null, pct: row[10] ?? null },
-      '영어':  { grade: row[13] ?? null, pct: null },
-    '탐구1': { name: row[14] ? String(row[14]).trim() : null, grade: row[18] ?? null, pct: row[17] ?? null },
-      '탐구2': { name: row[19] ? String(row[19]).trim() : null, grade: row[23] ?? null, pct: row[22] ?? null },
-    };
+    const ent = {};
+    ['국어', '수학', '영어', '탐구1', '탐구2', '한국사'].forEach(k => {
+      const m = map[k] || {};
+      const o = { grade: mokGrade(get(row, m.grade)), pct: (k === '영어' || k === '한국사') ? null : mokNum(get(row, m.pct)), score: mokNum(get(row, m.score)), std: mokNum(get(row, m.std)) };
+      if ((k === '탐구1' || k === '탐구2') && m.name !== undefined && get(row, m.name)) o.name = String(get(row, m.name)).trim();
+      ent[k] = o;
+    });
+    byName[name] = ent;
+    byNo[String(row[0] % 100)] = ent;   // 학번 끝 두 자리 = 번호 (이름이 달라도 찾을 수 있게)
   }
 
-  pendingMokData = { round, byName };
+  pendingMokData = { round, byName, byNo, fileName };
 
   if (!round) {
     // 회차 감지 실패 → 선택 모달 표시
@@ -2420,18 +2457,24 @@ function showRoundSelectModal(byName) {
   document.body.appendChild(overlay);
 }
 
-function applyMokFileData(round, byName) {
+function applyMokFileData(round, byName, force) {
+  if (force === undefined) force = true;   // 파일을 새로 올렸을 때는 덮어쓰기, 학생 선택 때 자동 적용은 직접 고친 값 보호
   // 회차 탭 전환
   currentMokRound = round;
 
+  // 새로 올린 파일은 회차별로 보관 → 학생을 바꿔도 모든 회차가 누적돼서 적용됨
+  if (force && pendingMokData && pendingMokData.byName === byName) {
+    saveMokFile(round, pendingMokData.fileName, byName, pendingMokData.byNo || {});
+  }
+
   // 학생 선택 안 된 상태면 byName 저장만 해두기
   if (!selectedStudent) {
-    pendingMokData = { round, byName };
-    showToast(`모의고사 파일 읽기 완료! 학생 선택 후 자동 적용돼요 📝`, 'success');
+    pendingMokData = Object.assign({}, pendingMokData || {}, { round, byName });
+    showToast(`${round} 모의고사 파일 읽기 완료! 학생 선택 후 자동 적용돼요 📝`, 'success');
     return;
   }
 
-  const studentData = byName[selectedStudent.name];
+  const studentData = byName[selectedStudent.name] || ((pendingMokData && pendingMokData.byNo) || {})[String(selectedStudent.num)];
   if (!studentData) {
     showToast(`"${selectedStudent.name}" 학생 데이터를 파일에서 찾지 못했어요.`, 'error');
     return;
@@ -2439,14 +2482,9 @@ function applyMokFileData(round, byName) {
 
   // localStorage에 저장 (_fromFile 플래그로 출처 표시)
   const all = JSON.parse(localStorage.getItem(getMokKey()) || '{}');
-  all[round] = {
-    _fromFile: true,
-    '국어':  studentData['국어'],
-    '수학':  studentData['수학'],
-    '영어':  studentData['영어'],
-    '탐구1': studentData['탐구1'],
-    '탐구2': studentData['탐구2'],
-  };
+  const ex = all[round];
+  if (!force && ex && !ex._fromFile && Object.values(ex).some(v => v && v.grade)) { renderMokTabs(); renderMokInputs(); return; }
+  all[round] = Object.assign({ _fromFile: true }, studentData);
   localStorage.setItem(getMokKey(), JSON.stringify(all));
 
   // UI 갱신
@@ -2882,9 +2920,7 @@ function selectStudent() {
   initSetukCard();
 
   // 모의고사 파일이 미리 업로드돼 있으면 자동 적용
-  if (pendingMokData) {
-    applyMokFileData(pendingMokData.round || currentMokRound, pendingMokData.byName);
-  }
+  applyStoredMokFiles();
 
   // 저장된 결과 있으면 빈 상태에 불러오기 버튼 표시
   document.getElementById('resultWrap').style.display = 'none';
@@ -3137,8 +3173,8 @@ function renderMokInputs() {
       <span style="font-size:12px;color:var(--text2);font-weight:500;">${subj}</span>
       <input type="number" min="1" max="9" class="mok-input" id="mok_${subj}_grade"
         value="${stored[subj]?.grade || ''}" placeholder="등급">
-      <input type="number" min="1" max="100" class="mok-input" id="mok_${subj}_pct"
-        value="${stored[subj]?.pct || ''}" placeholder="백분위">
+      <input type="number" min="1" max="100" step="any" class="mok-input" id="mok_${subj}_pct"
+        value="${stored[subj]?.pct || ''}" placeholder="${subj === '영어' ? '절대평가' : '백분위'}" ${subj === '영어' ? 'disabled style="background:#f3f3f3;"' : ''}>
     </div>
   `).join('');
 
@@ -3166,6 +3202,7 @@ function renderMokInputs() {
 
   area.innerHTML = `
     ${sourceBadge}
+    <div style="font-size:10.5px;color:var(--text3);line-height:1.6;margin-bottom:6px;">💡 EBS 등에서 확인한 <b>예상 등급</b>이 파일과 다르면 등급 칸을 직접 고치고 저장하세요. 직접 고친 값이 우선돼요. (영어·한국사는 절대평가)</div>
     <div style="display:grid;grid-template-columns:60px 1fr 1fr;gap:6px;margin-bottom:4px;">
       <span></span>
       <span style="font-size:10px;color:var(--text3);text-align:center;">등급(1~9)</span>
@@ -3191,7 +3228,8 @@ function saveMokData(silent = false) {
   ['국어', '수학', '영어'].forEach(subj => {
     const grade = document.getElementById(`mok_${subj}_grade`)?.value;
     const pct = document.getElementById(`mok_${subj}_pct`)?.value;
-    roundData[subj] = { grade: grade ? parseInt(grade) : null, pct: pct ? parseInt(pct) : null };
+    const prevS = (all[currentMokRound] || {})[subj] || {};
+    roundData[subj] = { grade: grade ? parseInt(grade) : null, pct: pct ? parseFloat(pct) : null, score: prevS.score !== undefined ? prevS.score : null, std: prevS.std !== undefined ? prevS.std : null };
   });
 
   // 탐구1/탐구2 (과목명 포함)
@@ -3199,12 +3237,15 @@ function saveMokData(silent = false) {
     const name = document.getElementById(`mok_${subj}_name`)?.value || '선택 안함';
     const grade = document.getElementById(`mok_${subj}_grade`)?.value;
     const pct = document.getElementById(`mok_${subj}_pct`)?.value;
+    const prevT = (all[currentMokRound] || {})[subj] || {};
     roundData[subj] = {
       name: name !== '선택 안함' ? name : null,
       grade: grade ? parseInt(grade) : null,
-      pct: pct ? parseInt(pct) : null
+      pct: pct ? parseFloat(pct) : null,
+      score: prevT.score !== undefined ? prevT.score : null, std: prevT.std !== undefined ? prevT.std : null
     };
   });
+  if ((all[currentMokRound] || {})['한국사']) roundData['한국사'] = all[currentMokRound]['한국사'];   // 한국사는 입력칸이 없어 파일 값 유지
 
   all[currentMokRound] = roundData; // _fromFile 없음 → 수동입력 상태
   localStorage.setItem(getMokKey(), JSON.stringify(all));
@@ -3893,6 +3934,7 @@ function startStatAnalysis() {
   if (statSlotKey && !_slotsAll.find(x => x.key === statSlotKey)) statSlotKey = null;
   renderStatTabs(_slotsAll);
   if (uploadMode !== 'cumul' && statTab === 'trend' && _slotsAll.length) { renderTrendTab(_slotsAll); return; }
+  if (uploadMode !== 'cumul' && statTab === 'mock' && hasAnyMock()) { renderMockTab(); return; }
   const _selSlot = _slotsAll.find(x => x.key === (statSlotKey || (_slotsAll.length ? _slotsAll[_slotsAll.length - 1].key : null)));
 
   // 최신 슬롯 기준 subjects
@@ -4684,6 +4726,7 @@ function startStatAnalysis() {
   const statCard = document.getElementById('statCard');
   statCard.style.display = 'block';
   document.getElementById('statContent').innerHTML = html;
+  autoFoldStatSections();
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('chartCard').style.display = 'none';
 
@@ -4700,13 +4743,68 @@ function wrapCollapsibleSection(id, title, innerHtml, defaultOpen) {
   try { const v = localStorage.getItem('admAI_sec_' + id); if (v === '1') open = true; else if (v === '0') open = false; } catch (e) {}
   return `<details ${open ? 'open' : ''} ontoggle="try{localStorage.setItem('admAI_sec_${id}', this.open ? '1' : '0')}catch(e){}" style="margin:0 20px 16px;">
     <summary style="cursor:pointer;min-height:44px;display:flex;align-items:center;gap:8px;padding:0 14px;background:#f3effa;border:1.5px solid var(--border);border-radius:12px;font-size:13px;font-weight:800;color:var(--text);list-style:none;">
-      <span>${title}</span><span style="margin-left:auto;font-size:11px;font-weight:600;color:var(--text3);">눌러서 펼치기 / 접기 ▾</span>
+      <span>${title}</span><span class="secHint" style="margin-left:auto;font-size:11px;font-weight:700;color:var(--primary-dark);display:flex;align-items:center;gap:4px;"><span class="secLbl"></span><span class="secArr">▾</span></span>
     </summary>
     <div style="margin:0 -20px;padding-top:10px;">${innerHtml}</div>
   </details>`;
 }
 
 // 모두 접기 / 모두 펼치기
+const secFoldStyle = document.createElement('style');
+secFoldStyle.textContent = `
+  details > summary { list-style:none; }
+  details > summary::-webkit-details-marker { display:none; }
+  details > summary .secLbl::before { content:'펼치기'; }
+  details[open] > summary .secLbl::before { content:'접기'; }
+  details > summary .secArr { display:inline-block; transition:transform .2s; }
+  details[open] > summary .secArr { transform:rotate(180deg); }
+  #statCard .card-header button { min-height:38px; white-space:nowrap; }
+`;
+document.head.appendChild(secFoldStyle);
+
+// 곳곳에 흩어진 분석 블록(제목 + 내용)을 접기/펼치기 항목으로 감싸기 (이미 접기 있는 항목은 건드리지 않음)
+function autoFoldStatSections() {
+  const root = document.getElementById('statContent');
+  if (!root) return;
+  const GROUPS = [
+    { id: 'f_summary', heads: ['📋 학생 요약'] },
+    { id: 'f_virtual', heads: ['📊 전과목 가상등급'] },
+    { id: 'f_pctEdge', heads: ['📐 백분위 환산', '🎯 효율적 등급 상승 우선순위'] },
+    { id: 'f_catTrend', heads: ['📈 계열별 등급 변화 추이'] },
+    { id: 'f_edgeRank', heads: ['🔥 등급 경계 아쉬운 과목 순위'] },
+    { id: 'f_semChange', heads: ['📊 1학기 → 2학기 등급 변화'] },
+    { id: 'f_mokVs', heads: ['🆚 모의고사 vs 내신 비교'] },
+  ];
+  const allHeads = [...root.querySelectorAll('div')].filter(d => d.style && d.style.fontWeight === '800' && d.style.fontSize === '13px' && !d.closest('summary'));
+  GROUPS.forEach(g => {
+    const hs = g.heads.map(t => allHeads.find(h => h.textContent.trim().startsWith(t))).filter(Boolean);
+    if (!hs.length) return;
+    let container;
+    if (hs.length === 1) container = hs[0].parentElement;
+    else {
+      container = hs[0].parentElement;
+      while (container && container !== root && !hs.every(h => container.contains(h))) container = container.parentElement;
+      if (container === root) container = null;
+    }
+    if (!container || container === root || container.closest('details')) return;
+    const title = hs.length === 1 ? hs[0].textContent.trim() : hs.map(h => h.textContent.trim()).join(' · ');
+    if (hs.length === 1) hs[0].remove();
+    let open = true;
+    try { const v = localStorage.getItem('admAI_sec_' + g.id); if (v === '0') open = false; } catch (e) {}
+    const d = document.createElement('details');
+    if (open) d.open = true;
+    d.style.cssText = 'margin:0 20px 16px;';
+    d.innerHTML = `<summary style="cursor:pointer;min-height:44px;display:flex;align-items:center;gap:8px;padding:0 14px;background:#f3effa;border:1.5px solid var(--border);border-radius:12px;font-size:13px;font-weight:800;color:var(--text);list-style:none;"><span>${escapeHTML(title)}</span><span class="secHint" style="margin-left:auto;font-size:11px;font-weight:700;color:var(--primary-dark);display:flex;align-items:center;gap:4px;"><span class="secLbl"></span><span class="secArr">▾</span></span></summary><div style="margin:0 -20px;padding-top:10px;"></div>`;
+    container.parentNode.insertBefore(d, container);
+    { const pl = parseFloat(getComputedStyle(d.parentElement).paddingLeft) || 0; d.style.margin = `0 ${Math.max(0, 20 - pl)}px 16px`; }   // 이미 안쪽 여백이 있는 곳에선 좌우 줄을 맞춤
+    d.lastElementChild.appendChild(container);
+    d.addEventListener('toggle', () => {
+      try { localStorage.setItem('admAI_sec_' + g.id, d.open ? '1' : '0'); } catch (e) {}
+      if (d.open && d.querySelector('#trendChart')) { try { drawTrendChart(currentTrendKey); } catch (e) {} }
+    });
+  });
+}
+
 function foldAllStatSections(open) {
   document.querySelectorAll('#statContent details').forEach(d => { d.open = open; });
 }
@@ -4777,13 +4875,14 @@ function switchStatTrend() { statTab = 'trend'; startStatAnalysis(); }
 function renderStatTabs(slots) {
   const bar = document.getElementById('statTabBar');
   if (!bar) return;
-  if (uploadMode === 'cumul' || slots.length === 0) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
+  if (uploadMode === 'cumul' || (slots.length === 0 && !hasAnyMock())) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
   const multiG = new Set(slots.map(x => x.g)).size > 1;
-  const activeKey = statSlotKey || slots[slots.length - 1].key;
+  const activeKey = statSlotKey || (slots.length ? slots[slots.length - 1].key : null);
   const btn = (label, active, onclick) =>
     `<button type="button" onclick="${onclick}" style="min-height:40px;padding:0 14px;border-radius:20px;border:1.5px solid ${active ? 'var(--primary)' : 'var(--border)'};background:${active ? 'var(--primary)' : '#fff'};color:${active ? '#fff' : 'var(--text2)'};font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">${label}</button>`;
   let html = slots.map(sl => btn(escapeHTML(slotShortLabel(sl, multiG)), statTab === 'slot' && sl.key === activeKey, `switchStatSlot('${sl.key}')`)).join('');
   html += btn('📈 누적 변화', statTab === 'trend', 'switchStatTrend()');
+  if (hasAnyMock()) html += btn('📝 모의고사 누적', statTab === 'mock', 'switchStatMock()');
   bar.innerHTML = html;
   bar.style.display = 'flex';
 }
@@ -4819,7 +4918,8 @@ function buildTrendSVG(slots, series, metric, opt) {
   const host = document.getElementById('statContent');
   const W = opt.W || Math.max(300, ((host && host.clientWidth) || 520) - 40);
   const _off = opt.off || trendSubjOff;
-  const H = opt.H || 250, padL = 52, padR = 12, padT = 14, padB = opt.padB || 52;
+  const emph = opt.emphasize !== false;   // 많이 변한 과목을 굵게 + 변화량 표시
+  const H = opt.H || (metric === 'grade' ? 250 : 290), padL = 52, padR = emph ? 100 : 12, padT = 18, padB = opt.padB || 52;
   const plotW = W - padL - padR, plotH = H - padT - padB;
   const n = slots.length;
   const multiG = new Set(slots.map(x => x.g)).size > 1;
@@ -4832,10 +4932,16 @@ function buildTrendSVG(slots, series, metric, opt) {
     ticks = [1, 2, 3, 4, 5]; yAt = v => padT + (v - 1) / 4 * plotH; fmt = v => v + '등급';
   } else {
     const mn = vals.length ? Math.min(...vals) : 0, mx = vals.length ? Math.max(...vals) : 100;
-    let lo = Math.max(0, Math.floor((mn - 8) / 10) * 10), hi = Math.min(100, Math.ceil((mx + 8) / 10) * 10);
-    if (hi - lo < 20) { hi = Math.min(100, lo + 20); lo = Math.max(0, hi - 20); }
-    { const sp = Math.ceil((hi - lo) / 20) * 20; hi = Math.min(100, lo + sp); lo = Math.max(0, hi - sp); }   // 눈금이 10·20 단위로 딱 떨어지게
-    ticks = [0, 1, 2, 3, 4].map(i => Math.round(lo + i * (hi - lo) / 4));
+    // 축을 데이터 범위에 딱 맞춰서(여백 최소) 변화폭이 크게 보이게 함. 눈금은 1·2·5·10 단위로 딱 떨어지게
+    const need = Math.max(mx - mn + 4, 10);
+    const stepRaw = need / 4;
+    const step = [1, 2, 5, 10, 20].find(x => x >= stepRaw) || 20;
+    let lo = Math.floor((mn - 2) / step) * step;
+    if (lo < 0) lo = 0;
+    let hi = lo + step * 4;
+    if (hi < mx + 1) { lo = Math.floor((mx + 1 - step * 4) / step) * step; if (lo < 0) lo = 0; hi = lo + step * 4; }
+    if (hi > 100) { hi = 100; lo = Math.max(0, hi - step * 4); }
+    ticks = [0, 1, 2, 3, 4].map(i => Math.round((lo + i * (hi - lo) / 4) * 10) / 10);
     if (metric === 'pct') { yAt = v => padT + (v - lo) / (hi - lo) * plotH; fmt = v => '상위' + v + '%'; }
     else { yAt = v => padT + (hi - v) / (hi - lo) * plotH; fmt = v => v + '점'; }
   }
@@ -4856,23 +4962,42 @@ function buildTrendSVG(slots, series, metric, opt) {
       svg += `<line x1="${mx2}" y1="${padT}" x2="${mx2}" y2="${padT + plotH}" stroke="#d9cdf2" stroke-width="1" stroke-dasharray="3 3"/>`;
     }
   });
+  const labels = [];
   SUBJECTS.forEach(subj => {
     if (_off[subj]) return;
     const pts = series[subj].filter(p => p[metric] !== null && p[metric] !== undefined);
     if (!pts.length) return;
     const color = TREND_COLORS[subj] || '#999';
+    // 많이 변한 과목 판정 (등급 1단계↑ / 상위% 5%p↑ / 원점수 8점↑)
+    let big = false, worse = false, dTxt = '';
+    if (emph && pts.length >= 2) {
+      const a0 = pts[0][metric], b0 = pts[pts.length - 1][metric], dv = b0 - a0;
+      const th = metric === 'grade' ? 1 : metric === 'pct' ? 5 : 8;
+      if (Math.abs(dv) >= th) {
+        big = true;
+        worse = metric === 'score' ? dv < 0 : dv > 0;
+        const mag = Math.abs(Math.round(dv * 10) / 10);
+        dTxt = (worse ? '▼ ' : '▲ ') + mag + (metric === 'grade' ? '등급' : metric === 'pct' ? '%p' : '점');
+        labels.push({ y: yAt(b0), text: trendSubjShort(subj).replace('공통', '') + ' ' + dTxt, color: worse ? '#d32f2f' : '#047857' });
+      }
+    }
+    const lw = emph ? (big ? 3.6 : 1.6) : 2, op = emph ? (big ? 1 : 0.5) : 1;
     for (let i = 1; i < pts.length; i++) {
       const a = pts[i - 1], b = pts[i];
       const mixed = (a.slot.k === 'total') !== (b.slot.k === 'total'); // 학기말(합산) ↔ 지필 비교 구간은 점선
-      svg += `<line x1="${xAt(a.idx)}" y1="${yAt(a[metric])}" x2="${xAt(b.idx)}" y2="${yAt(b[metric])}" stroke="${color}" stroke-width="2" ${mixed ? 'stroke-dasharray="5 4"' : ''} stroke-linecap="round"/>`;
+      svg += `<line x1="${xAt(a.idx)}" y1="${yAt(a[metric])}" x2="${xAt(b.idx)}" y2="${yAt(b[metric])}" stroke="${color}" stroke-width="${lw}" opacity="${op}" ${mixed ? 'stroke-dasharray="5 4"' : ''} stroke-linecap="round"/>`;
     }
     pts.forEach(p => {
       const x = xAt(p.idx), y = yAt(p[metric]);
       const tip = `${trendSubjShort(subj)} · ${slotShortLabel(p.slot, multiG)} · ${p.grade ? p.grade + '등급' : '등급 -'} · ${p.pct !== null ? '상위 ' + p.pct.toFixed(1) + '%' : ''} · ${p.score !== null ? p.score + '점' : ''}${p.rank ? ' · ' + p.rank + '/' + p.total + '위' : ''}`;
       if (p.slot.k === 'total') svg += `<polygon points="${x},${y - 6} ${x + 6},${y} ${x},${y + 6} ${x - 6},${y}" fill="${color}" stroke="#fff" stroke-width="1.5"><title>${escapeHTML(tip)}</title></polygon>`;
-      else svg += `<circle cx="${x}" cy="${y}" r="5" fill="${color}" stroke="#fff" stroke-width="1.5"><title>${escapeHTML(tip)}</title></circle>`;
+      else svg += `<circle cx="${x}" cy="${y}" r="${emph ? (big ? 6 : 4) : 5}" fill="${color}" opacity="${op}" stroke="#fff" stroke-width="1.5"><title>${escapeHTML(tip)}</title></circle>`;
     });
   });
+  // 변화량 라벨 (겹치지 않게 위아래로 조금씩 밀어서)
+  labels.sort((a, b) => a.y - b.y);
+  for (let i = 1; i < labels.length; i++) if (labels[i].y - labels[i - 1].y < 13) labels[i].y = labels[i - 1].y + 13;
+  labels.forEach(l => { svg += `<text x="${W - padR + 8}" y="${l.y + 4}" font-size="11" font-weight="800" fill="${l.color}">${escapeHTML(l.text)}</text>`; });
   return svg + '</svg>';
 }
 
@@ -5034,6 +5159,184 @@ function buildTrendTableHTML(slots, series) {
     html += `</tr>`;
   });
   return html + `</tbody></table></div>`;
+}
+
+// ==================== 📝 모의고사 누적 탭 ====================
+let mockMetric = 'grade';        // 'grade' | 'pct' | 'score'
+let mockSubjOff = {};
+const MOCK_SUBJ = ['국어', '수학', '영어', '탐구1', '탐구2', '한국사'];
+const MOCK_COLORS = { '국어': '#48b89f', '수학': '#e05c5c', '영어': '#f0a500', '탐구1': '#7c5cbf', '탐구2': '#2ecc71', '한국사': '#9b59b6' };
+
+function getMockSeries() {
+  const all = getAllMokData();
+  const rounds = MOK_ROUNDS.filter(r => all[r] && MOCK_SUBJ.some(k => all[r][k] && all[r][k].grade));
+  const series = {}, label = {};
+  MOCK_SUBJ.forEach(k => {
+    series[k] = [];
+    rounds.forEach((r, idx) => {
+      const d = all[r][k];
+      if (!d) return;
+      const grade = (Number.isInteger(+d.grade) && +d.grade >= 1 && +d.grade <= 9) ? +d.grade : null;
+      const pct = (d.pct !== null && d.pct !== undefined && d.pct !== '' && !isNaN(+d.pct)) ? +d.pct : null;
+      const score = (d.score !== null && d.score !== undefined && d.score !== '' && !isNaN(+d.score)) ? +d.score : null;
+      if (grade === null && pct === null && score === null) return;
+      series[k].push({ idx, round: r, grade, pct, score });
+      if (d.name) label[k] = d.name;
+    });
+  });
+  return { all, rounds, series, label };
+}
+function mockSubjLabel(k, label) { return (k === '탐구1' || k === '탐구2') ? (label[k] ? `${k.replace('탐구', '탐구')}(${label[k]})` : k) : k; }
+function hasAnyMock() {
+  try { return selectedStudent && getMockSeries().rounds.length > 0; } catch (e) { return false; }
+}
+function switchStatMock() { statTab = 'mock'; startStatAnalysis(); }
+function setMockMetric(m) { mockMetric = m; startStatAnalysis(); }
+function toggleMockSubj(k) { mockSubjOff[k] = !mockSubjOff[k]; startStatAnalysis(); }
+
+function buildMockSVG(ms, metric, opt) {
+  opt = opt || {};
+  const host = document.getElementById('statContent');
+  const W = opt.W || Math.max(300, ((host && host.clientWidth) || 520) - 40);
+  const H = opt.H || 240, padL = 56, padR = 14, padT = 14, padB = 34;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const n = ms.rounds.length;
+  const xAt = i => padL + (i + 0.5) / n * plotW;
+  const vals = [];
+  MOCK_SUBJ.forEach(k => { if (mockSubjOff[k]) return; ms.series[k].forEach(p => { if (p[metric] !== null) vals.push(p[metric]); }); });
+  let ticks, yAt, fmt;
+  if (metric === 'grade') {
+    ticks = [1, 3, 5, 7, 9]; yAt = v => padT + (v - 1) / 8 * plotH; fmt = v => v + '등급';
+  } else {
+    const mn = vals.length ? Math.min(...vals) : 0, mx = vals.length ? Math.max(...vals) : 100;
+    let lo = Math.max(0, Math.floor((mn - 8) / 10) * 10), hi = Math.min(100, Math.ceil((mx + 8) / 10) * 10);
+    if (hi - lo < 20) { hi = Math.min(100, lo + 20); lo = Math.max(0, hi - 20); }
+    { const sp = Math.ceil((hi - lo) / 20) * 20; hi = Math.min(100, lo + sp); lo = Math.max(0, hi - sp); }
+    ticks = [0, 1, 2, 3, 4].map(i => Math.round(lo + i * (hi - lo) / 4));
+    yAt = v => padT + (hi - v) / (hi - lo) * plotH; fmt = v => v + (metric === 'pct' ? '' : '점');
+  }
+  let svg = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="max-width:100%;height:auto;display:block;font-family:${opt.font || "'Noto Sans KR',sans-serif"};">`;
+  ticks.forEach(t => {
+    const y = yAt(t);
+    svg += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#eee"/><text x="${padL - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="#999">${fmt(t)}</text>`;
+  });
+  ms.rounds.forEach((r, i) => { svg += `<text x="${xAt(i)}" y="${H - 10}" text-anchor="middle" font-size="11" font-weight="700" fill="#5e40a6">${escapeHTML(r)}</text>`; });
+  MOCK_SUBJ.forEach(k => {
+    if (mockSubjOff[k]) return;
+    const pts = ms.series[k].filter(p => p[metric] !== null);
+    if (!pts.length) return;
+    const c = MOCK_COLORS[k];
+    for (let i = 1; i < pts.length; i++) svg += `<line x1="${xAt(pts[i - 1].idx)}" y1="${yAt(pts[i - 1][metric])}" x2="${xAt(pts[i].idx)}" y2="${yAt(pts[i][metric])}" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/>`;
+    pts.forEach(p => {
+      const tip = `${mockSubjLabel(k, ms.label)} · ${p.round} · ${p.grade ? p.grade + '등급' : ''}${p.pct !== null ? ' · 백분위 ' + p.pct : ''}${p.score !== null ? ' · ' + p.score + '점' : ''}`;
+      svg += `<circle cx="${xAt(p.idx)}" cy="${yAt(p[metric])}" r="5" fill="${c}" stroke="#fff" stroke-width="1.5"><title>${escapeHTML(tip)}</title></circle>`;
+    });
+  });
+  return svg + '</svg>';
+}
+
+function renderMockTab() {
+  const ms = getMockSeries();
+  const e = escapeHTML;
+  const first = ms.rounds[0], last = ms.rounds[ms.rounds.length - 1];
+  const mBtn = (k, t, dis) => `<button type="button" ${dis ? 'disabled' : `onclick="setMockMetric('${k}')"`} style="min-height:36px;padding:0 12px;border-radius:8px;border:1.5px solid ${mockMetric === k ? 'var(--primary)' : 'var(--border)'};background:${mockMetric === k ? 'var(--primary-bg)' : '#fff'};color:${dis ? '#bbb' : mockMetric === k ? 'var(--primary-dark)' : 'var(--text2)'};font-size:12px;font-weight:700;cursor:${dis ? 'default' : 'pointer'};font-family:'Noto Sans KR',sans-serif;">${t}</button>`;
+  const hasScore = MOCK_SUBJ.some(k => ms.series[k].some(p => p.score !== null));
+  if (mockMetric === 'score' && !hasScore) mockMetric = 'grade';
+  const chips = MOCK_SUBJ.filter(k => ms.series[k].length).map(k => {
+    const off = !!mockSubjOff[k], c = MOCK_COLORS[k];
+    return `<button type="button" onclick="toggleMockSubj('${k}')" style="min-height:36px;padding:0 12px;border-radius:18px;border:1.5px solid ${off ? '#ddd' : c};background:${off ? '#f5f5f5' : c + '18'};color:${off ? '#aaa' : '#2d2540'};font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">${e(mockSubjLabel(k, ms.label))}</button>`;
+  }).join('');
+
+  // 표
+  const cell = (p, k) => {
+    if (!p) return '<td style="padding:8px;text-align:center;color:#bbb;">-</td>';
+    const gc = (typeof GRADE_COLOR !== 'undefined' && GRADE_COLOR[p.grade]) || '#9b8ec4';
+    return `<td style="padding:8px;text-align:center;line-height:1.5;">${p.grade ? `<b style="color:${gc};">${p.grade}등급</b>` : ''}${p.pct !== null ? `<br><span style="font-size:10px;color:var(--text3);">백분위 ${p.pct}</span>` : ''}${p.score !== null ? `<br><span style="font-size:10px;color:var(--text3);">${p.score}점</span>` : ''}</td>`;
+  };
+  const rowsArr = MOCK_SUBJ.filter(k => ms.series[k].length).map(k => {
+    const pts = ms.series[k];
+    const a = pts[0], b = pts[pts.length - 1];
+    let chip = '<span style="color:var(--text3);font-size:11px;">비교 전</span>';
+    let note = '';
+    if (pts.length >= 2 && a.grade && b.grade) {
+      const d = a.grade - b.grade;
+      const col = d > 0 ? '#048a6c' : d < 0 ? '#e05c5c' : '#7c5cbf';
+      chip = `<span style="background:${col}18;color:${col};border:1px solid ${col}40;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:700;white-space:nowrap;">${d > 0 ? '▲ ' + d + '등급 상승' : d < 0 ? '▼ ' + (-d) + '등급 하락' : '– 유지'}</span>`;
+      note = (a.pct !== null && b.pct !== null) ? `백분위 ${a.pct} → ${b.pct} (${b.pct - a.pct >= 0 ? '+' : ''}${Math.round((b.pct - a.pct) * 10) / 10})` : '';
+    }
+    return { k, pts, a, b, html: `<tr style="border-bottom:1px solid #f0ecf8;"><td style="padding:8px;font-weight:700;white-space:nowrap;">${e(mockSubjLabel(k, ms.label))}</td>${ms.rounds.map(r => cell(pts.find(p => p.round === r), k)).join('')}<td style="padding:8px;text-align:center;">${chip}${note ? `<div style="font-size:10px;color:var(--text3);margin-top:3px;">${note}</div>` : ''}</td></tr>` };
+  });
+
+  // 평가 (계산 기반)
+  const avgOf = r => { const g = ['국어', '수학', '영어', '탐구1', '탐구2'].map(k => (ms.series[k].find(p => p.round === r) || {}).grade).filter(Boolean); return g.length ? g.reduce((x, y) => x + y, 0) / g.length : null; };
+  const aF = avgOf(first), aL = avgOf(last);
+  let sum = `가장 최근 모의고사(<b>${e(last)}</b>) 국·수·영·탐 평균 등급은 <b>${aL !== null ? aL.toFixed(2) : '-'}등급</b>이에요.`;
+  if (ms.rounds.length >= 2 && aF !== null && aL !== null) {
+    const d = aF - aL;
+    sum += ` ${e(first)}(${aF.toFixed(2)}등급)과 비교하면 ` + (Math.abs(d) < 0.1 ? '거의 같은 수준이에요.' : d > 0 ? `<b style="color:#048a6c;">${d.toFixed(2)}등급 상승</b>했어요.` : `<b style="color:#e05c5c;">${(-d).toFixed(2)}등급 하락</b>했어요.`);
+  } else sum += ' 모의고사가 1회뿐이라 변화 비교는 아직 어려워요.';
+  const diffs = rowsArr.filter(r => r.pts.length >= 2 && r.a.grade && r.b.grade).map(r => ({ r, d: r.a.grade - r.b.grade }));
+  const up = diffs.filter(x => x.d > 0).sort((x, y) => y.d - x.d), down = diffs.filter(x => x.d < 0).sort((x, y) => x.d - y.d);
+  const lines = [];
+  if (up.length) lines.push(`📈 올라간 과목: ${up.map(x => `${e(mockSubjLabel(x.r.k, ms.label))} ${x.r.a.grade}→${x.r.b.grade}등급`).join(', ')}`);
+  if (down.length) lines.push(`📉 내려간 과목: ${down.map(x => `${e(mockSubjLabel(x.r.k, ms.label))} ${x.r.a.grade}→${x.r.b.grade}등급`).join(', ')}`);
+  const lowest = rowsArr.filter(r => r.k !== '영어' && r.k !== '한국사' && r.b.grade).sort((x, y) => y.b.grade - x.b.grade)[0];
+  if (lowest && lowest.b.grade >= 4) lines.push(`🔎 최근 가장 낮은 과목: ${e(mockSubjLabel(lowest.k, ms.label))} ${lowest.b.grade}등급`);
+
+  let html = `
+  <div style="padding:14px 20px 0;">
+    <div style="display:inline-block;background:var(--primary-bg);color:var(--primary-dark);border-radius:999px;padding:4px 12px;font-size:11px;font-weight:700;">📝 모의고사 누적 · ${ms.rounds.length}회 (${e(ms.rounds.join(' → '))})</div>
+  </div>
+  <div style="padding:14px 20px 0;">
+    <div class="no-print" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">${mBtn('grade', '등급')}${mBtn('pct', '백분위')}${mBtn('score', '원점수', !hasScore)}</div>
+    <div class="no-print" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">${chips}</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:6px;">${mockMetric === 'grade' ? '위쪽 = 1등급(좋음) · 수능형 9등급제' : mockMetric === 'pct' ? '위쪽 = 백분위가 높음(좋음)' : '위쪽 = 높은 원점수'}${mockMetric === 'pct' ? ' · 영어·한국사는 절대평가라 백분위가 없어요' : ''}</div>
+    <div style="margin-bottom:14px;">${ms.rounds.length ? buildMockSVG(ms, mockMetric) : ''}</div>
+    <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px;">📋 회차별 성적표</div>
+    <div style="overflow-x:auto;margin-bottom:14px;"><table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <thead><tr style="background:var(--primary-bg);"><th style="padding:8px;text-align:left;">과목</th>${ms.rounds.map(r => `<th style="padding:8px;text-align:center;">${e(r)}</th>`).join('')}<th style="padding:8px;text-align:center;">변화</th></tr></thead>
+      <tbody>${rowsArr.map(r => r.html).join('')}</tbody></table></div>
+    <div style="background:#f8fbff;border:1.5px solid #c7d2fe;border-radius:12px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:13px;font-weight:800;color:#3730a3;margin-bottom:6px;">🧭 모의고사 변화 총평</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.8;">${sum}${lines.length ? '<br>' + lines.join('<br>') : ''}</div>
+      <div style="margin-top:8px;font-size:11px;color:#b45309;background:#fff8e6;border-radius:8px;padding:6px 10px;line-height:1.6;">⚠️ 모의고사는 수능형 <b>9등급제</b>, 학교 내신은 <b>5등급제</b>라 등급 숫자를 서로 직접 비교할 수 없어요. 영어·한국사는 절대평가입니다. 파일의 등급과 다르면(예: EBS 예상 등급) 왼쪽 '모의고사 성적' 칸에서 등급을 직접 고치고 저장하세요.</div>
+    </div>
+  </div>`;
+  document.getElementById('statCard').style.display = 'block';
+  document.getElementById('statContent').innerHTML = html;
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('chartCard').style.display = 'none';
+}
+
+// ==================== 모의고사 파일 보관 (회차별 누적) ====================
+const MOK_FILES_KEY = 'admAI_mokFiles_v1';
+function loadMokFiles() { try { return JSON.parse(localStorage.getItem(MOK_FILES_KEY) || '{}'); } catch (e) { return {}; } }
+function saveMokFile(round, fileName, byName, byNo) {
+  try {
+    const all = loadMokFiles();
+    all[round] = { fileName: fileName || '', savedAt: Date.now(), byName, byNo };
+    localStorage.setItem(MOK_FILES_KEY, JSON.stringify(all));
+  } catch (e) { /* 저장 공간 부족 등 — 이번 세션만 사용 */ }
+}
+// 학생을 고르면, 보관된 모든 회차 파일에서 그 학생 성적을 꺼내 채움 (직접 고쳐 저장한 회차는 건드리지 않음)
+function applyStoredMokFiles() {
+  if (!selectedStudent) return;
+  const files = loadMokFiles();
+  const all = JSON.parse(localStorage.getItem(getMokKey()) || '{}');
+  let last = null, changed = false;
+  MOK_ROUNDS.forEach(r => {
+    const f = files[r]; if (!f) return;
+    const sd = (f.byName || {})[selectedStudent.name] || (f.byNo || {})[String(selectedStudent.num)];
+    if (!sd) return;
+    const ex = all[r];
+    const manual = ex && !ex._fromFile && Object.values(ex).some(v => v && v.grade);
+    if (manual) { last = r; return; }
+    all[r] = Object.assign({ _fromFile: true }, sd);
+    last = r; changed = true;
+  });
+  if (changed) localStorage.setItem(getMokKey(), JSON.stringify(all));
+  if (last) currentMokRound = last;
+  renderMokTabs(); renderMokInputs();
 }
 
 function renderTrendTab(slots) {
@@ -5851,10 +6154,10 @@ function buildConsultantSectionHTML(subjs, grades) {
     <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:16px;">📌 입사관·컨설턴트·담임 종합 분석</div>
 
     <!-- 누적 입사관 트렌드 (cumul 모드만) -->
-    ${cumulTrendHtml}
+    <div style="margin:0 -20px;">${wrapCollapsibleSection('cumulTrend', '👁️ 입학사정관 관점 — 학기별 성적 신뢰도 분석', cumulTrendHtml, true)}</div>
 
     <!-- 성적 급변 경고 (cumul 모드만) -->
-    ${gradeAlertHtml}
+    <div style="margin:0 -20px;">${wrapCollapsibleSection('gradeAlert', '⚠️ 성적 급변 점검', gradeAlertHtml, true)}</div>
 
     <!-- 전형 유불리 인디케이터는 상단 기본 분석 영역에서만 표시합니다. -->
 
@@ -5879,7 +6182,7 @@ function buildConsultantSectionHTML(subjs, grades) {
   ${wrapCollapsibleSection('nextAction', '👨‍🏫 다음 상담 전 액션 카드', nextActionHtml, true)}
 
   <!-- 담임 상담 문구 -->
-  ${counselBtn}
+  ${wrapCollapsibleSection('counselScript', '💬 학부모 상담 문구', counselBtn, true)}
 `;
 }
 
@@ -8637,14 +8940,13 @@ function buildParentSheetDraft() {
   ev.pri.forEach(x => {
     const g = x.p.grade, t = g - 1;
     if (x.gap !== null) {
-      weak.push(`${sj(x.subj)}: 현재 ${g}등급 · ${t}등급 경계까지 약 ${x.gap}등 차이`);
       todo.push(`${sj(x.subj)} — 최근 시험에서 틀린 문항 유형을 한 번 정리해 보기`);
     } else {
       todo.push(`${sj(x.subj)} — 최근 시험 결과를 선생님과 함께 점검하기`);
     }
   });
   if (!strengths.length) strengths.push('꾸준히 시험에 임하고 있어요');
-  if (!weak.length) weak.push('현재 특별히 우려되는 과목은 없어요');
+  if (!weak.length && !ev.pri.length) weak.push('현재 특별히 우려되는 과목은 없어요');
   while (todo.length < 3) todo.push('');
   return {
     series, ev, slots, multiG,
@@ -8712,6 +9014,7 @@ function openParentSheet() {
     </div>` : ''}
     <div style="margin-top:12px;font-size:12px;color:var(--text2);line-height:1.9;">
       <label style="display:flex;align-items:center;gap:8px;min-height:36px;"><input id="ps_career" type="checkbox" ${(document.getElementById('career') || {}).value && document.getElementById('career').value.trim() ? 'checked' : ''}> 희망 진로 표시하기${(document.getElementById('career') || {}).value && document.getElementById('career').value.trim() ? ' (' + escapeHTML(document.getElementById('career').value.trim()) + ')' : ' (입력된 진로 없음)'}</label>
+      <label style="display:flex;align-items:center;gap:8px;min-height:36px;"><input id="ps_pri" type="checkbox" checked> 「우선 올리면 좋은 과목 TOP」 카드 넣기 (현재 석차·목표 컷 포함)</label>
       <label style="display:flex;align-items:center;gap:8px;min-height:36px;"><input id="ps_guide" type="checkbox" checked> 「숫자 읽는 법」 해설 박스 넣기</label>
       <label style="display:flex;align-items:center;gap:8px;min-height:36px;"><input id="ps_sites" type="checkbox" checked> 「참고하면 좋은 공식 사이트」 넣기</label>
     </div>
@@ -8774,13 +9077,24 @@ function buildParentSheetHtml(d, v) {
   let chartBox = '';
   if (v.chart && slots.length >= 2 && v.subjOn.length) {
     const off = {}; SUBJECTS.forEach(sb => { off[sb] = !v.subjOn.includes(sb); });
-    const svg = buildTrendSVG(slots, d.series, v.metric, { W: 720, H: 140, padB: 32, off, font: "'Pretendard','Noto Sans KR',sans-serif" });
+    const svg = buildTrendSVG(slots, d.series, v.metric, { W: 720, H: 112, padB: 34, off, font: "'Pretendard','Noto Sans KR',sans-serif" });
     const mName = { pct: '상위 %', score: '원점수', grade: '등급' }[v.metric];
     const dirNote = v.metric === 'pct' ? '위쪽일수록 상위 %가 작아요(좋아요)' : v.metric === 'grade' ? '위쪽일수록 1등급에 가까워요' : '위쪽일수록 점수가 높아요';
     const legend = SUBJECTS.filter(sb => v.subjOn.includes(sb) && d.series[sb].length).map(sb =>
       `<span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;"><i style="width:9px;height:9px;border-radius:50%;background:${TREND_COLORS[sb] || '#999'};display:inline-block;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></i>${e(trendSubjShort(sb))}</span>`).join('');
     const mixedNote = slots.some(x => x.k === 'total') && slots.some(x => x.k !== 'total') ? ' · 점선·◆는 학기말(합산)과 지필 시험처럼 구성이 다른 시험 사이예요' : '';
     chartBox = `<div class="box" style="padding:6px 10px;"><div class="bt">📈 시험별 변화 (${mName}) <span style="font-weight:500;color:#8a80a8;font-size:10px;">${dirNote}</span></div>${svg}<div style="font-size:10.5px;margin-top:2px;">${legend}</div><div style="font-size:9.5px;color:#8a80a8;margin-top:2px;">● 중간·기말(지필)${mixedNote}</div></div>`;
+  }
+  let priBox = '';
+  if (v.pri && ev.pri.length) {
+    const cards = ev.pri.map((x, i) => {
+      const cutTxt = x.cutRank !== null ? `현재 <b>${x.p.rank}위</b> → ${x.p.grade - 1}등급 컷 <b>${x.cutRank}위 이내</b> (${x.gap}계단↑)` : `현재 ${x.p.grade}등급`;
+      const down = (x.dir === 'down' || x.dir === 'downSoft') ? `<br><b style="color:#c2410c;">최근 하락 추세, 관리 필요</b>` : '';
+      return `<div style="background:#f8f4ff;border:1px solid #d8c9f5;border-radius:8px;padding:6px 9px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
+        <div style="font-weight:800;color:#5e40a6;font-size:11.5px;">${i + 1}. ${e(trendSubjShort(x.subj))} <span style="font-size:10px;font-weight:600;color:#8a80a8;">${x.p.grade}등급 → ${x.p.grade - 1}등급 · 단위수 ${x.p.credit}</span></div>
+        <div style="line-height:1.55;margin-top:2px;font-size:10.5px;">${cutTxt}${x.contrib ? `<br>올리면 평균이 약 <b>${x.contrib.toFixed(2)}등급</b> 좋아져요` : ''}${down}</div></div>`;
+    }).join('');
+    priBox = `<div class="box"><div class="bt">🎯 우선 올리면 좋은 과목 TOP ${ev.pri.length} <span style="font-weight:500;color:#8a80a8;font-size:10px;">${e(d.latestLabel)} 기준 · 한 등급 올리는 컷에 가까운 순</span></div><div style="display:grid;grid-template-columns:repeat(${ev.pri.length},1fr);gap:6px;">${cards}</div></div>`;
   }
   const guide = v.guide ? `
     <div class="box" style="background:#faf8ff;">
@@ -8808,6 +9122,7 @@ function buildParentSheetHtml(d, v) {
   <div class="sum">${sum}${v.career && careerTxt ? ` · 희망 진로 <b>${e(careerTxt)}</b>` : ''}</div>
   <table class="t"><thead><tr><th>과목</th><th>등급 흐름<div class="s">${e(flowHead)}</div></th><th>최근 등급</th><th>최근 상위 %</th><th>최근 원점수</th><th>변화</th></tr></thead><tbody>${rowsHtml}</tbody></table>
   ${chartBox}
+  ${priBox}
   <div class="two">
     <div class="box" style="border-color:#bde5d6;background:#f4fbf8;"><div class="bt">👍 잘하고 있는 점</div>${bullets(psLines(v.strengths), 3)}</div>
     <div class="box" style="border-color:#f3d9b1;background:#fffaf2;"><div class="bt">🔎 함께 살펴볼 점</div>${bullets(psLines(v.weak), 3)}</div>
@@ -8828,6 +9143,7 @@ function printParentSheet() {
   const g = id => (document.getElementById(id) || {}).value || '';
   const v = { strengths: g('ps_strengths'), weak: g('ps_weak'), todo: g('ps_todo'), goal: g('ps_goal'), nextDate: g('ps_next'), memo: g('ps_memo'),
               guide: !!(document.getElementById('ps_guide') || {}).checked,
+              pri: !!(document.getElementById('ps_pri') || {}).checked,
               sites: !!(document.getElementById('ps_sites') || {}).checked,
               chart: !!(document.getElementById('ps_chart') || {}).checked,
               target: ((document.querySelector('input[name="ps_target"]:checked') || {}).value) || 'parent',
