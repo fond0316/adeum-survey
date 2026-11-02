@@ -1212,11 +1212,12 @@
         <div class="card-header-icon">📊</div>
         <div class="card-title">성적 기본 분석</div>
         <span id="statStudentBadge" style="margin-left:8px;padding:3px 10px;border-radius:20px;background:var(--primary-bg);color:var(--primary-dark);font-size:12px;font-weight:700;"></span>
-        <div style="margin-left:auto;display:flex;gap:6px;">
+        <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
           <button onclick="copyStatResult()" style="padding:4px 12px;border-radius:6px;border:1.5px solid var(--border);background:white;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📋 복사</button>
           <button onclick="saveStatResult()" style="padding:4px 12px;border-radius:6px;border:1.5px solid var(--primary);background:var(--primary-bg);color:var(--primary-dark);font-size:11px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💾 저장</button>
           <button onclick="printFullReport()" style="padding:4px 12px;border-radius:6px;border:1.5px solid #5e40a6;background:linear-gradient(135deg,#5e40a6,#7c5cbf);color:white;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🖨️ 전체 출력</button>
-          <button onclick="openParentSheet()" style="padding:4px 12px;border-radius:6px;border:1.5px solid #48b89f;background:#f0faf7;color:#048a6c;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">👪 학부모용 1장</button>
+          <button onclick="printStudentSummaryCard()" style="padding:4px 12px;border-radius:6px;border:1.5px solid #5e40a6;background:#f3effa;color:#5e40a6;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📄 학생 요약 카드</button>
+          <button onclick="openParentSheet()" style="padding:4px 12px;border-radius:6px;border:1.5px solid #48b89f;background:#f0faf7;color:#048a6c;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">👪 학부모 상담용 출력</button>
           <button onclick="printStat()" style="padding:4px 12px;border-radius:6px;border:1.5px solid var(--border);background:white;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🖨️ 출력</button>
         </div>
       </div>
@@ -3746,7 +3747,7 @@ function printCounselScript() {
   win.document.write(`<!DOCTYPE html><html><head>
     <meta charset="UTF-8">
     <title>성적 기반 상담 문구 - ${num}번 ${name}</title>
-    <style>
+    <style>*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
       body { font-family: 'Noto Sans KR', sans-serif; margin: 20px; color: #2d2540; font-size: 13px; line-height: 1.9; }
       h2 { font-size: 15px; color: #b45309; margin-bottom: 4px; }
       .sub { font-size: 11px; color: #888; margin-bottom: 20px; }
@@ -3779,7 +3780,7 @@ function printSchoolLifeText() {
   win.document.write(`<!DOCTYPE html><html><head>
     <meta charset="UTF-8">
     <title>학교생활 상담 문구 - ${num}번 ${name}</title>
-    <style>
+    <style>*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
       body { font-family: 'Noto Sans KR', sans-serif; margin: 20px; color: #2d2540; font-size: 13px; line-height: 1.9; }
       h2 { font-size: 15px; color: #5e40a6; margin-bottom: 4px; }
       .sub { font-size: 11px; color: #888; margin-bottom: 20px; }
@@ -4152,7 +4153,10 @@ function startStatAnalysis() {
   html += `
   <div style="padding:16px 20px 12px;">
     <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px;">📈 계열별 등급 변화 추이</div>
-    <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">Y축 위 = 1등급(높은 등급)<span class="no-print"> · 탭으로 계열 전환</span></div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px;"><span id="trendHint">${TREND_C_HINT[currentTrendMetric] || TREND_C_HINT.grade}</span><span class="no-print"> · 탭으로 계열 전환</span></div>
+    <div class="no-print" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;" id="trendMetricTabs">
+      ${[['grade', '등급'], ['pct', '상위 %'], ['score', '원점수']].map(([k, t]) => `<button type="button" onclick="setTrendMetricC('${k}')" class="trend-tab trend-mtab${currentTrendMetric === k ? ' active' : ''}" data-mkey="${k}">${t}</button>`).join('')}
+    </div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;" id="trendTabs">
       <button onclick="switchTrend('all')" class="trend-tab active" data-key="all">전체과목 (${grades.length})</button>
       <button onclick="switchTrend('korean')" class="trend-tab" data-key="korean">국어계열 (1)</button>
@@ -4831,6 +4835,7 @@ function buildTrendSVG(slots, series, metric, opt) {
     const mn = vals.length ? Math.min(...vals) : 0, mx = vals.length ? Math.max(...vals) : 100;
     let lo = Math.max(0, Math.floor((mn - 8) / 10) * 10), hi = Math.min(100, Math.ceil((mx + 8) / 10) * 10);
     if (hi - lo < 20) { hi = Math.min(100, lo + 20); lo = Math.max(0, hi - 20); }
+    { const sp = Math.ceil((hi - lo) / 20) * 20; hi = Math.min(100, lo + sp); lo = Math.max(0, hi - sp); }   // 눈금이 10·20 단위로 딱 떨어지게
     ticks = [0, 1, 2, 3, 4].map(i => Math.round(lo + i * (hi - lo) / 4));
     if (metric === 'pct') { yAt = v => padT + (v - lo) / (hi - lo) * plotH; fmt = v => '상위' + v + '%'; }
     else { yAt = v => padT + (hi - v) / (hi - lo) * plotH; fmt = v => v + '점'; }
@@ -5708,16 +5713,7 @@ function buildConsultantSectionHTML(subjs, grades) {
   // ────────────────────────────────────────────────────
   // 컨설턴트 시뮬레이터
   // ────────────────────────────────────────────────────
-  const getUnivRange = g => {
-    if (g <= 1.0) return {range:'SKY 최상위권', color:'#7c5cbf', desc:'5등급제 기준 최상위 구간. 수능최저 충족 시 SKY 교과전형 도전권. 세특 완성도가 종합전형 당락 결정.'};
-    if (g <= 1.15) return {range:'연·고·성균관·서강', color:'#5b9bd5', desc:'교과전형 인서울 최상위권 경쟁력. 세특·비교과 강화로 SKY 종합 도전 가능.'};
-    if (g <= 1.3) return {range:'성균관·서강·한양', color:'#48b89f', desc:'교과전형 상위권. 수능최저 충족 시 연·고 도전 가능. 세특 차별화가 관건.'};
-    if (g <= 1.5) return {range:'한양·중앙·경희·이화', color:'#38a3a5', desc:'교과·종합 중상위권 구간. 세특·비교과 강화로 성균관·서강 종합 도전 가능.'};
-    if (g <= 1.7) return {range:'건동홍·숙명·세종·국민', color:'#f0a500', desc:'인서울 하한선 구간. 0.2등급 향상 시 중앙·경희권 진입 가능. 수능최저 없는 전형 우선 탐색.'};
-    if (g <= 2.1) return {range:'경기·수도권 외곽', color:'#e08030', desc:'인서울 교과전형 사실상 어려운 구간. 논술·종합 병행 및 경기권 교과전형 중심 전략 필요.'};
-    if (g <= 2.7) return {range:'수도권 중하위·지방 국립', color:'#e05c5c', desc:'논술·정시 비중 확대 필요. 남은 학기 내신 향상 집중.'};
-    return {range:'지방 주요 대학', color:'#888', desc:'정시 준비 병행, 내신 향상이 최우선.'};
-  };
+  const getUnivRange = g => UNIV_BANDS.find(x => g <= x.max) || UNIV_BANDS[UNIV_BANDS.length - 1];
   const current = getUnivRange(avg);
   const simRows = [];
   for (let t = Math.max(1.0, avg-1.2); t <= avg+0.1; t = Math.round((t+0.3)*10)/10) {
@@ -5850,15 +5846,6 @@ function buildConsultantSectionHTML(subjs, grades) {
   const gradeAlertHtml = buildGradeAlertHTML();
   const nextActionHtml = buildNextCounselActionHTML(avg, gradeYear, career);
 
-  // 1페이지 요약카드 출력 버튼
-  const summaryCardBtn = `
-  <div style="margin:0 20px 16px;padding:10px 14px;background:#f3effa;border:1.5px solid var(--primary)33;border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
-    <div>
-      <div style="font-size:11px;font-weight:700;color:#5e40a6;">🖨️ 1페이지 학생 요약 카드 출력</div>
-      <div style="font-size:10px;color:var(--text3);">성적·트렌드·전략·체크리스트를 한 장에 — 학부모 상담 시 배부 가능</div>
-    </div>
-    <button onclick="printStudentSummaryCard()" style="padding:8px 14px;border-radius:8px;border:none;background:linear-gradient(135deg,#5e40a6,#7c5cbf);color:white;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;">출력</button>
-  </div>`;
 
   return `
   <div style="padding:16px 20px 0;">
@@ -5894,9 +5881,7 @@ function buildConsultantSectionHTML(subjs, grades) {
 
   <!-- 담임 상담 문구 -->
   ${counselBtn}
-
-  <!-- 1페이지 요약카드 출력 버튼 -->
-  ${summaryCardBtn}`;
+`;
 }
 
 // 성적 기반 학부모 상담 문구 생성
@@ -6169,7 +6154,7 @@ function buildRemainingTermSimHTML(avg, gradeYear) {
       </tr></thead>
       <tbody>
         ${rows.map(r => {
-          const univRange = r.target <= 1.0 ? 'SKY 도전권' : r.target <= 1.15 ? '연·고·성균관·서강' : r.target <= 1.3 ? '성균관·서강·한양' : r.target <= 1.5 ? '한양·중앙·경희·이화' : r.target <= 1.7 ? '건동홍·숙명·세종·국민 (인서울 하한)' : r.target <= 2.1 ? '경기·수도권 외곽 (인서울은 종합·논술 병행)' : '지방·경기 외곽 대학';
+          const univRange = (UNIV_BANDS.find(x => r.target <= x.max) || UNIV_BANDS[UNIV_BANDS.length - 1]).short;
           const rangeColor = r.target <= 1.15 ? '#7c5cbf' : r.target <= 1.5 ? '#5b9bd5' : r.target <= 2.1 ? '#48b89f' : r.target <= 2.7 ? '#f0a500' : '#e05c5c';
           return `<tr style="border-bottom:1px solid var(--border);background:${r.isCurrent?'#fff3cd':'white'};">
             <td style="padding:6px 8px;text-align:center;">
@@ -6746,32 +6731,33 @@ function printStudentSummaryCard() {
   win.document.write(`<!DOCTYPE html><html><head>
   <meta charset="UTF-8">
   <title>학생 요약 카드 — ${num}번 ${name}</title>
-  <style>
+  <style>*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700;800&display=swap');
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Noto Sans KR',sans-serif; background:#f3effa; padding:20px; color:#2d2540; font-size:12px; }
-    .card { background:white; border-radius:16px; padding:24px; max-width:720px; margin:0 auto; box-shadow:0 4px 20px rgba(124,92,191,0.12); }
+    @page { size:A4; margin:10mm; }
+    body { font-family:'Pretendard','Noto Sans KR',sans-serif; background:#f3effa; padding:20px; color:#2d2540; font-size:12px; }
+    .card { background:white; border-radius:16px; padding:22px; max-width:720px; margin:0 auto; box-shadow:0 4px 20px rgba(124,92,191,0.12); border:1.5px solid #ddd6f0; }
     .header { background:linear-gradient(135deg,#5e40a6,#7c5cbf); border-radius:12px; padding:16px 20px; color:white; margin-bottom:20px; }
     .header-title { font-size:18px; font-weight:800; margin-bottom:4px; }
     .header-sub { font-size:12px; opacity:0.8; }
     .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
     .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:16px; }
-    .box { background:#f3effa; border-radius:10px; padding:12px; }
+    .box { background:#f3effa; border:1.5px solid #ddd6f0; border-radius:10px; padding:12px; }
     .box-title { font-size:10px; color:#6b5b8a; font-weight:700; margin-bottom:4px; }
     .box-val { font-size:22px; font-weight:800; color:#7c5cbf; }
     .box-sub { font-size:10px; color:#9e8fb8; margin-top:2px; }
-    .section-title { font-size:12px; font-weight:800; color:#2d2540; margin-bottom:8px; padding-bottom:4px; border-bottom:2px solid #e8e0f5; }
+    .section-title { font-size:12.5px; font-weight:800; color:#3b2a73; margin-bottom:8px; padding:5px 10px; background:#f3effa; border-left:4px solid #7c5cbf; border-radius:6px; }
     table { width:100%; border-collapse:collapse; font-size:11px; }
-    th { background:#f3effa; color:#5e40a6; padding:6px 8px; text-align:left; font-weight:700; }
-    td { padding:5px 8px; border-bottom:1px solid #f0ebf8; }
+    th { background:#ece6f8; color:#4a2f96; padding:6px 8px; text-align:left; font-weight:700; border:1px solid #ddd6f0; }
+    td { padding:5px 8px; border:1px solid #e6dff5; }
     .grade-badge { display:inline-block; padding:2px 8px; border-radius:8px; color:white; font-weight:700; font-size:11px; }
     .tag { display:inline-block; padding:2px 8px; border-radius:20px; font-size:10px; font-weight:600; margin:2px; }
     .divider { height:1px; background:#e8e0f5; margin:16px 0; }
-    .strategy-box { background:linear-gradient(135deg,#f3effa,#e8e0f5); border-radius:10px; padding:12px 16px; margin-bottom:16px; }
-    .action-item { display:flex; align-items:flex-start; gap:8px; padding:6px 0; border-bottom:1px solid #f0ebf8; }
+    .strategy-box { background:#f3effa; border:1.5px solid #c9bdf0; border-left:5px solid #7c5cbf; border-radius:10px; padding:12px 16px; margin-bottom:16px; }
+    .action-item { display:flex; align-items:flex-start; gap:8px; padding:6px 10px; border:1px solid #e6dff5; border-radius:8px; margin-bottom:5px; background:#fcfbff; }
     .action-icon { font-size:14px; flex-shrink:0; }
     .footer { text-align:center; color:#9e8fb8; font-size:10px; margin-top:16px; }
-    @media print { body { background:white; padding:8px; } .card { box-shadow:none; } }
+    @media print { body { background:white; padding:0; } .card { box-shadow:none; max-width:none; border-radius:0; border:none; padding:0; } .section-title,.box,.strategy-box,.action-item,tr { break-inside:avoid; } }
   </style>
   </head><body>
   <div class="card">
@@ -7542,11 +7528,36 @@ const TREND_COLORS = {
   '한국사1':'#9b59b6','통합사회1':'#7c5cbf','통합과학1':'#2ecc71'
 };
 
+// ── 대학 구간 (5등급제 · 타이트 기준) — 전형 유불리 인디케이터 / 등급별 대학 범위 / 남은 학기 목표 계산기가 모두 이 표 하나를 씀 ──
+// 구간 기준을 바꾸려면 여기 max 값만 고치면 세 화면이 같이 바뀜
+const UNIV_BANDS = [
+  { max: 1.0,  short: 'SKY 도전권',                          range: 'SKY 최상위권',            color: '#7c5cbf', desc: '5등급제 기준 최상위 구간. 수능최저 충족 시 SKY 교과전형 도전권. 세특 완성도가 종합전형 당락 결정.' },
+  { max: 1.15, short: '연·고·성균관·서강',                    range: '연·고·성균관·서강',        color: '#5b9bd5', desc: '교과전형 인서울 최상위권 경쟁력. 세특·비교과 강화로 SKY 종합 도전 가능.' },
+  { max: 1.3,  short: '성균관·서강·한양',                     range: '성균관·서강·한양',         color: '#48b89f', desc: '교과전형 상위권. 수능최저 충족 시 연·고 도전 가능. 세특 차별화가 관건.' },
+  { max: 1.7,  short: '중앙·경희·한국외대·이화',              range: '중앙·경희·한국외대·이화',  color: '#38a3a5', desc: '교과·종합 중상위권 구간. 적정~상향으로 검토(보수적 추정). 세특·비교과 강화로 한양·성균관 종합 도전 가능.' },
+  { max: 2.1,  short: '건국·동국·홍익·숙명 (인서울 하한)',    range: '건국·동국·홍익·숙명',      color: '#f0a500', desc: '인서울 하한선 구간. 0.3~0.4등급 향상 시 중앙·경희권 접근 가능. 수능최저 없는 전형 우선 탐색.' },
+  { max: 2.5,  short: '세종·국민·인하·아주 (경기·수도권 외곽)', range: '세종·국민·인하·아주',      color: '#e08030', desc: '인서울 교과전형은 어려운 구간. 논술·종합 병행 및 경기권 교과전형 중심 전략 필요.' },
+  { max: 3.0,  short: '가천·경기 외곽 (인서울은 종합·논술 병행)', range: '가천·경기 외곽',        color: '#e05c5c', desc: '논술·정시 비중 확대 필요. 남은 학기 내신 향상 집중.' },
+  { max: 99,   short: '지방·수도권 외곽 대학',                range: '지방 주요 대학',          color: '#888',    desc: '정시 준비 병행, 내신 향상이 최우선.' }
+];
+
 let currentTrendKey = 'all';
+let currentTrendMetric = 'grade';   // 'grade' | 'pct' | 'score'
+const TREND_C_HINT = {
+  grade: 'Y축 위 = 1등급(높은 등급)',
+  pct: 'Y축 위 = 상위 %가 작음(좋음)',
+  score: 'Y축 위 = 높은 원점수'
+};
+function setTrendMetricC(m) {
+  currentTrendMetric = m;
+  document.querySelectorAll('.trend-mtab').forEach(b => b.classList.toggle('active', b.dataset.mkey === m));
+  const h = document.getElementById('trendHint'); if (h) h.textContent = TREND_C_HINT[m];
+  drawTrendChart(currentTrendKey);
+}
 
 function switchTrend(key) {
   currentTrendKey = key;
-  document.querySelectorAll('.trend-tab').forEach(b => {
+  document.querySelectorAll('.trend-tab:not(.trend-mtab)').forEach(b => {
     b.classList.toggle('active', b.dataset.key === key);
   });
   drawTrendChart(key);
@@ -7604,15 +7615,43 @@ function drawTrendChart(key) {
   const plotW = W - padL - padR;
   const plotH = 200 - padT - padB;
 
-  // 그리드 (1~5등급)
+  // 보여줄 값 (등급 / 상위 % / 원점수)
+  const metric = currentTrendMetric || 'grade';
+  const valOf = d => {
+    if (!d) return null;
+    if (metric === 'grade') return d.grade ? d.grade : null;
+    if (metric === 'pct') { const r = parseFloat(d.rank), t = parseFloat(d.total); return (r && t) ? r / t * 100 : null; }
+    const sc = parseFloat(d.score); return (d.score !== null && d.score !== undefined && d.score !== '' && !isNaN(sc)) ? sc : null;
+  };
+  const dataOf = (sl, subj) => {
+    if (sl._fallback) return sl._fallback[subj];
+    const slData = scoreData[sl.g][sl.s][sl.k][num] || Object.values(scoreData[sl.g][sl.s][sl.k]).find(s => s.name === name);
+    return slData?.subjects?.[subj];
+  };
+  const allVals = [];
+  subjList.forEach(subj => activeSlots.forEach(sl => { const v = valOf(dataOf(sl, subj)); if (v !== null) allVals.push(v); }));
+  let ticks, yAt, fmt;
+  if (metric === 'grade') {
+    ticks = [1, 2, 3, 4, 5]; yAt = v => padT + ((v - 1) / 4) * plotH; fmt = v => v + '등급';
+  } else {
+    const mn = allVals.length ? Math.min(...allVals) : 0, mx = allVals.length ? Math.max(...allVals) : 100;
+    let lo = Math.max(0, Math.floor((mn - 8) / 10) * 10), hi = Math.min(100, Math.ceil((mx + 8) / 10) * 10);
+    if (hi - lo < 20) { hi = Math.min(100, lo + 20); lo = Math.max(0, hi - 20); }
+    { const sp = Math.ceil((hi - lo) / 20) * 20; hi = Math.min(100, lo + sp); lo = Math.max(0, hi - sp); }   // 눈금이 10·20 단위로 딱 떨어지게
+    ticks = [0, 1, 2, 3, 4].map(i => Math.round(lo + i * (hi - lo) / 4));
+    if (metric === 'pct') { yAt = v => padT + ((v - lo) / (hi - lo)) * plotH; fmt = v => '상위' + v + '%'; }
+    else { yAt = v => padT + ((hi - v) / (hi - lo)) * plotH; fmt = v => v + '점'; }
+  }
+
+  // 그리드
   ctx.strokeStyle = '#eee';
   ctx.lineWidth = 1;
-  for (let g = 1; g <= 5; g++) {
-    const y = padT + ((g - 1) / 4) * plotH;
+  ticks.forEach(t => {
+    const y = yAt(t);
     ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
     ctx.fillStyle = '#999'; ctx.font = '11px sans-serif'; ctx.textAlign = 'right';
-    ctx.fillText(g + '등급', padL - 4, y + 4);
-  }
+    ctx.fillText(fmt(t), padL - 4, y + 4);
+  });
 
   // X축 레이블 (2줄)
   ctx.fillStyle = '#999'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
@@ -7638,14 +7677,8 @@ function drawTrendChart(key) {
   subjList.forEach(subj => {
     const pts = [];
     activeSlots.forEach((sl, i) => {
-      let d;
-      if (sl._fallback) {
-        d = sl._fallback[subj];
-      } else {
-        const slData = scoreData[sl.g][sl.s][sl.k][num] || Object.values(scoreData[sl.g][sl.s][sl.k]).find(s => s.name === name);
-        d = slData?.subjects?.[subj];
-      }
-      if (d?.grade) pts.push({ idx: i, grade: d.grade });
+      const v = valOf(dataOf(sl, subj));
+      if (v !== null) pts.push({ idx: i, val: v });
     });
     if (pts.length === 0) return;
 
@@ -7657,7 +7690,7 @@ function drawTrendChart(key) {
     ctx.beginPath();
     pts.forEach((pt, pi) => {
       const x = activeSlots.length > 1 ? padL + (pt.idx / (activeSlots.length - 1)) * plotW : padL + plotW / 2;
-      const y = padT + ((pt.grade - 1) / 4) * plotH;
+      const y = yAt(pt.val);
       if (pi === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     });
     ctx.stroke();
@@ -7665,7 +7698,7 @@ function drawTrendChart(key) {
     // 점
     pts.forEach(pt => {
       const x = activeSlots.length > 1 ? padL + (pt.idx / (activeSlots.length - 1)) * plotW : padL + plotW / 2;
-      const y = padT + ((pt.grade - 1) / 4) * plotH;
+      const y = yAt(pt.val);
       ctx.beginPath();
       ctx.arc(x, y, 5, 0, Math.PI * 2);
       ctx.fillStyle = color;
@@ -8542,7 +8575,7 @@ function printFullReport() {
 <title>성적 분석 보고서 — ${num}번 ${name}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
+<style>*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:'Noto Sans KR',sans-serif; color:#2d2540; font-size:11px; line-height:1.65; background:white; padding:24px 28px; }
   .rpt-header { background:linear-gradient(135deg,#5e40a6,#7c5cbf); padding:14px 20px; border-radius:12px; margin-bottom:18px; display:flex; align-items:center; justify-content:space-between; }
@@ -8780,7 +8813,7 @@ function printParentSheet() {
   win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>학부모 상담 자료 - ${escapeHTML(d.title)}</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
-  <style>
+  <style>*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     @page { size: A4; margin: 10mm; }
     body { font-family: 'Pretendard','Noto Sans KR',sans-serif; margin: 0 auto; max-width: 190mm; padding: 12px; color: #2d2540; font-size: 11px; }
     .head { background: linear-gradient(135deg,#5e40a6,#7c5cbf); border-radius: 10px; padding: 8px 16px; color: #fff; margin-bottom: 6px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -8810,7 +8843,7 @@ function printStat() {
   win.document.write(`<!DOCTYPE html><html><head>
     <meta charset="UTF-8">
     <title>성적 기본 분석 - ${studentNum}번 ${studentName}</title>
-    <style>
+    <style>*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
       body { font-family: 'Noto Sans KR', sans-serif; margin: 20px; color: #2d2540; font-size: 12px; }
       h2 { font-size: 16px; color: #5e40a6; margin-bottom: 4px; }
       .sub { font-size: 11px; color: #888; margin-bottom: 20px; }
@@ -8845,7 +8878,7 @@ function printAI() {
   win.document.write(`<!DOCTYPE html><html><head>
     <meta charset="UTF-8">
     <title>AI 심층 분석 - ${studentNum}번 ${studentName}</title>
-    <style>
+    <style>*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
       body { font-family: 'Noto Sans KR', sans-serif; margin: 20px; color: #2d2540; font-size: 12px; line-height: 1.6; }
       h2 { font-size: 16px; color: #5e40a6; margin-bottom: 4px; }
       .sub { font-size: 11px; color: #888; margin-bottom: 20px; }
@@ -9258,7 +9291,7 @@ function printSetukRoadmap() {
   const win = window.open('', '_blank');
   win.document.write(`<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8">
     <title>세특 로드맵 — ${num}번 ${name}</title>
-    <style>
+    <style>*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
       body { font-family: 'Malgun Gothic', sans-serif; padding: 24px 32px; color: #2d2540; }
       h1 { font-size: 16px; font-weight: 800; color: #5e40a6; margin-bottom: 4px; }
       .sub { font-size: 12px; color: #9e8fb8; margin-bottom: 20px; }
