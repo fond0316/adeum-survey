@@ -201,10 +201,11 @@ footer a{color:var(--ink);font-weight:900}
  */
 var SH_P = '참가자', SH_LOG = '풀이기록', SH_H = '힌트', SH_R = '도움요청', SH_B = '상자', SH_T = '조설정', SH_Q = '문항세트', SH_QI = '문항이미지';
 var NMAX = 10;                // 문항 최대 개수 (참가자 시트에 Q1~Q10 열을 항상 만들어 둬요)
-var DEFAULT_N = 5;             // 기본 세트의 문항 수
+var DEFAULT_N = 10;            // 기본 세트의 문항 수
 var MAX_TEAM = 6;              // 조당 최대 인원
-var TEAMS = [1, 2, 3, 4, 5];
-var ISLAND_DEFAULT = { 1: '🐢 거북이섬', 2: '🌴 야자섬', 3: '🌋 화산섬', 4: '🐠 산호섬', 5: '🐚 조개섬' };
+var NT_DEF = 6, NT_MAX = 10;   // 기본 조 수 / 최대 조 수 (관리자 [설정]에서 바꿀 수 있어요)
+function teams_() { var n = num_(props_().getProperty('NT')); n = (n >= 2 && n <= NT_MAX) ? n : NT_DEF; var a = [], i; for (i = 1; i <= n; i++) a.push(i); return a; }
+var ISLAND_DEFAULT = { 1: '🐢 거북이섬', 2: '🌴 야자섬', 3: '🌋 화산섬', 4: '🐠 산호섬', 5: '🐚 조개섬', 6: '🦀 꽃게섬', 7: '🐙 문어섬', 8: '🐳 고래섬', 9: '🦜 앵무섬', 10: '⭐ 별섬' };
 var ADMIN_CODE = 'islandescape';   // 처음 입장코드 (관리자 화면에서 각자 바꾸면 스크립트 속성 ADMIN_CODE에 저장돼요)
 var CHARS = ['🦊', '🐯', '🐻', '🐼', '🐰', '🐸', '🦁', '🐧', '🐶', '🐱', '🐹', '🐨', '🐵', '🐔', '🦄', '🐙', '🦖', '🐳', '🦋', '🐢'];
 var COIN_BASE = 10, COIN_FIRST = 5, COIN_HINT_PENALTY = 2, COIN_MIN = 5, COIN_HELP = 5, DOUBLE_CAP = 30;
@@ -275,7 +276,7 @@ function game_() {
 }
 function cfg_() {
   var pr = props_();
-  return { always: pr.getProperty('ALWAYS') === '1', minTeam: Math.max(1, num_(pr.getProperty('MINTEAM')) || 2) };
+  return { always: pr.getProperty('ALWAYS') === '1', minTeam: Math.max(1, num_(pr.getProperty('MINTEAM')) || 2), nTeam: teams_().length };
 }
 
 /* ===== 시트 읽기·쓰기 ===== */
@@ -384,7 +385,7 @@ function pubP_(p) { return { name: p.name, ch: p.ch, coins: p.coins, hasKey: p.h
 function lobby_() {
   var s = snap_(), cnt = {};
   s.P.forEach(function (p) { cnt[p.team] = (cnt[p.team] || 0) + 1; });
-  return { ok: true, now: Date.now(), game: game_(), qv: qv_(), iid: iid_(), teams: TEAMS.map(function (t) { return { team: t, label: labelOf_(s.T, t), n: cnt[t] || 0, max: MAX_TEAM }; }) };
+  return { ok: true, now: Date.now(), game: game_(), qv: qv_(), iid: iid_(), teams: teams_().map(function (t) { return { team: t, label: labelOf_(s.T, t), n: cnt[t] || 0, max: MAX_TEAM }; }) };
 }
 function state_(p) {
   var s = snap_(), team = num_(p.team), key = key_(team, p.name), me = null, members = [];
@@ -410,7 +411,7 @@ function state_(p) {
 /* ===== 입장·캐릭터 ===== */
 function join_(p) {
   var team = num_(p.team), name = clean_(p.name, 10);
-  if (TEAMS.indexOf(team) < 0) return { ok: false, error: '조를 다시 골라 주세요' };
+  if (teams_().indexOf(team) < 0) return { ok: false, error: '조를 다시 골라 주세요' };
   if (!name) return { ok: false, error: '이름을 입력해 주세요' };
   var R = readP_(), key = key_(team, name), ex = findP_(R.list, key), cnt = 0;
   R.list.forEach(function (x) { if (x.team === team) cnt++; });
@@ -572,7 +573,7 @@ function adminstate_(p) {
   return {
     ok: true, now: Date.now(), game: game_(), cfg: cfg_(), pwDefault: pwDefault_(), qv: qv_(), iid: iid_(),
     players: s.P.map(function (x) { return { team: x.team, name: x.name, ch: x.ch, coins: x.coins, hasKey: x.hasKey, helping: x.helping, done: sl_(x.done), wrong: sl_(x.wrong), hinted: sl_(x.hinted) }; }),
-    labels: TEAMS.map(function (t) { return { team: t, label: labelOf_(s.T, t), escapedAt: (s.T[t] && s.T[t].esc) || 0 }; }),
+    labels: teams_().map(function (t) { return { team: t, label: labelOf_(s.T, t), escapedAt: (s.T[t] && s.T[t].esc) || 0 }; }),
     board: board_(s),
     reqs: s.R.filter(function (r) { return r.kind === '담임'; }).slice(-20).reverse()
   };
@@ -593,13 +594,19 @@ function admincfg_(p) {
   }
   if (p.always !== undefined && p.always !== '') pr.setProperty('ALWAYS', String(p.always) === '1' ? '1' : '0');
   if (p.minteam !== undefined && p.minteam !== '') pr.setProperty('MINTEAM', String(Math.max(1, Math.min(MAX_TEAM, num_(p.minteam) || 2))));
+  if (p.nteam !== undefined && p.nteam !== '') {
+    var nt = Math.max(2, Math.min(NT_MAX, num_(p.nteam) || NT_DEF));
+    var busy = readP_().list.filter(function (y) { return y.team > nt; }).length;
+    if (busy) return { ok: false, error: nt + '조로 줄이려면 ' + (nt + 1) + '조 이상에 있는 참가자 ' + busy + '명을 먼저 다른 조로 옮기거나 삭제해 주세요' };
+    pr.setProperty('NT', String(nt));
+  }
   return { ok: true, game: game_(), cfg: cfg_() };
 }
 function adminmove_(p) {
   var e = needAdmin_(p); if (e) return e;
   var R = readP_(), team = num_(p.team), to = num_(p.to), x = findP_(R.list, key_(team, p.name));
   if (!x) return { ok: false, error: '대상을 찾을 수 없어요' };
-  if (TEAMS.indexOf(to) < 0) return { ok: false, error: '조 오류' };
+  if (teams_().indexOf(to) < 0) return { ok: false, error: '조 오류' };
   if (findP_(R.list, key_(to, x.name))) return { ok: false, error: '그 조에 같은 이름이 있어요' };
   var cnt = R.list.filter(function (y) { return y.team === to; }).length;
   if (cnt >= MAX_TEAM) return { ok: false, error: '그 섬은 가득 찼어요' };
@@ -842,8 +849,8 @@ var params=new URLSearchParams(location.search);
 var GAS=params.get('gas')||localStorage.getItem(K_GAS)||GAS_DEFAULT;
 if(params.get('gas')){try{localStorage.setItem(K_GAS,params.get('gas'));}catch(e){}}
 var TEAMS=[1,2,3,4,5];
-var ISLAND_DEFAULT={1:'🐢 거북이섬',2:'🌴 야자섬',3:'🌋 화산섬',4:'🐠 산호섬',5:'🐚 조개섬'};
-var TEAM_COLORS={1:'#2FA866',2:'#E5484D',3:'#F08A1C',4:'#8A55D6',5:'#14A6C9',9:'#3B6FE0'};
+var ISLAND_DEFAULT={1:'🐢 거북이섬',2:'🌴 야자섬',3:'🌋 화산섬',4:'🐠 산호섬',5:'🐚 조개섬',6:'🦀 꽃게섬',7:'🐙 문어섬',8:'🐳 고래섬',9:'🦜 앵무섬',10:'⭐ 별섬'};
+var TEAM_COLORS={1:'#2FA866',2:'#E5484D',3:'#F08A1C',4:'#8A55D6',5:'#14A6C9',6:'#D6409F',7:'#6B7A8F',8:'#A0522D',9:'#3B6FE0',10:'#C2A100'};
 var CHARS=[{e:'🦊',n:'여우'},{e:'🐯',n:'호랑이'},{e:'🐻',n:'곰'},{e:'🐼',n:'판다'},{e:'🐰',n:'토끼'},{e:'🐸',n:'개구리'},{e:'🦁',n:'사자'},{e:'🐧',n:'펭귄'},{e:'🐶',n:'강아지'},{e:'🐱',n:'고양이'},{e:'🐹',n:'햄스터'},{e:'🐨',n:'코알라'},{e:'🐵',n:'원숭이'},{e:'🐔',n:'병아리'},{e:'🦄',n:'유니콘'},{e:'🐙',n:'문어'},{e:'🦖',n:'공룡'},{e:'🐳',n:'고래'},{e:'🦋',n:'나비'},{e:'🐢',n:'거북이'}];
 var BOX_TXT={'X':['💨','꽝! 다음 기회를 노려보세요!'],'5':['🪙','+5 코인'],'10':['💰','+10 코인'],'20':['💎','+20 코인'],'D':['✨','코인 2배! (최대 +30)']};
 var CIRC=['①','②','③','④','⑤'];
@@ -862,71 +869,131 @@ var DEFAULT_HINTS=['문제를 천천히 다시 읽고, 구해야 하는 것이 �
 function placeDist(n){var b=Math.floor(n/5),e=n%5,c=[b,b,b,b,b],i;for(i=0;i<e;i++)c[EXTRA_ORDER[i]]++;return c;}
 var DEFAULT_SET={id:'',name:'집합과 명제 (기본)',unit:'집합과 명제',qs:[
  {lvl:'최하',type:'choice',
-  q:'집합 A={1, 2, 3}에 대하여 기호 표현이 옳지 않은 것은?',
-  choices:['1 ∈ A','4 ∉ A','{2} ⊂ A','2 ⊂ A','∅ ⊂ A'],ans:4,alts:[],
-  h1:'원소와 집합의 관계는 ∈, ∉ 로 쓰고, 집합과 집합의 관계는 ⊂ 로 써요. 보기마다 왼쪽이 "원소"인지 "집합"인지 먼저 구분해 보세요.',
-  h2:'⊂ 의 왼쪽에 { } 없이 숫자만 쓴 보기가 있는지 살펴보세요. 숫자 하나는 원소일까요, 집합일까요?',
-  bot:'보기의 왼쪽이 원소인지 집합인지부터 구분해 봐! 원소는 ∈, 집합끼리는 ⊂ 를 써.',
-  forb:['2⊂A'],
-  cp:{t:'원소와 집합, 부분집합',pg:'교과서 p.65 · p.67',
-   pts:['원소 a가 집합 A에 속하면 a ∈ A, 속하지 않으면 a ∉ A 로 써요. (원소 ↔ 집합)',
-        '집합 A의 모든 원소가 집합 B에도 속하면 A ⊂ B (A는 B의 부분집합)이라 써요. (집합 ↔ 집합)',
-        '모든 집합은 자기 자신의 부분집합이고, 공집합 ∅ 은 모든 집합의 부분집합이에요.',
-        '기호의 왼쪽이 "원소"인지 "집합({ }로 묶인 것)"인지 먼저 구분해요.'],
-   ex:'10보다 작은 홀수의 집합을 A라 하면 3 ∈ A, 4 ∉ A.  A={1, 4}, B={1, 4, 7}이면 A ⊂ B.'}},
- {lvl:'하',type:'choice',
-  q:'집합 A={x | x는 12의 약수}일 때, A의 원소가 아닌 것은?',
-  choices:['3','4','6','8','12'],ans:4,alts:[],
-  h1:'먼저 12의 약수를 작은 수부터 전부 나열해 보세요.',
-  h2:'약수는 12를 나누어 나머지가 0이 되는 수예요. 보기의 수를 하나씩 12로 나눠 보세요.',
-  bot:'12를 나누어떨어지게 하는 수를 작은 것부터 쭉 써 보고, 보기와 하나씩 비교해 봐!',
-  forb:['8'],
-  cp:{t:'집합의 표현 (조건제시법과 약수)',pg:'교과서 p.65',
-   pts:['원소를 { } 안에 나열하는 방법이 원소나열법, 원소들의 공통 성질을 쓰는 방법이 조건제시법이에요.',
-        '조건제시법은 {x | x는 ~} 꼴로 쓰고, 세로선 오른쪽이 "원소들이 갖는 공통된 성질"이에요.',
-        '어떤 수의 약수는 그 수를 나누어떨어지게 하는 자연수예요. (1과 자기 자신도 약수)',
-        '원소를 나열할 때 순서는 상관없고, 같은 원소를 중복해서 쓰지 않아요.'],
-   ex:'A = {x | x는 3의 약수}  →  원소나열법으로 A = {1, 3}'}},
+  q:'다음 중 집합인 것은?',
+  choices:['인구수가 많은 나라의 모임','π보다 작은 자연수의 모임','1에 가까운 실수의 모임','키가 큰 학생의 모임','아름다운 꽃의 모임'],ans:2,alts:[],
+  h1:'집합은 대상을 "분명하게" 정할 수 있어야 해요. 보기마다 누가 속하는지 모두가 똑같이 판단할 수 있는지 살펴보세요.',
+  h2:'"많은", "가까운", "큰", "아름다운"처럼 기준이 사람마다 달라지는 말이 들어 있으면 대상을 분명하게 정할 수 없어요.',
+  bot:'기준이 사람마다 달라질 수 있는 말이 있는 보기는 집합이 아니야! 누가 봐도 똑같이 정해지는 모임을 찾아 봐.',
+  forb:[],
+  cp:{t:'집합과 원소',pg:'교과서 p.78 (중단원 마무리)',
+   pts:['어떤 기준에 따라 대상을 분명하게 정할 수 있을 때, 그 대상들의 모임을 집합이라고 해요.',
+        '집합을 이루는 대상 하나하나를 그 집합의 원소라고 해요.',
+        '원소 a가 집합 A에 속하면 a ∈ A 로 나타내요.',
+        '"~한", "~에 가까운"처럼 기준이 사람마다 달라질 수 있는 표현이 들어 있으면 집합이 아니에요.'],
+   ex:'"10보다 작은 짝수의 모임"은 누구나 {2, 4, 6, 8}로 똑같이 정하므로 집합이에요.'}},
+ {lvl:'최하',type:'choice',
+  q:'다음 중 참인 명제는?',
+  choices:['√4는 유리수이다.','x는 100보다 큰 수이다.','26은 3의 배수이다.','우리나라는 아름다운 나라이다.'],ans:1,alts:[],
+  h1:'명제는 참 또는 거짓을 명확하게 판별할 수 있는 문장이에요. 먼저 명제인 보기만 골라 보세요.',
+  h2:'x의 값에 따라 달라지는 문장은 조건이고, 기준이 사람마다 다른 문장은 명제가 아니에요. 남은 보기의 참·거짓을 따져 보세요.',
+  bot:'명제는 참·거짓이 딱 정해지는 문장이야. x가 들어 있거나 느낌에 따라 달라지는 문장은 제외하고 남은 걸 계산해 봐!',
+  forb:[],
+  cp:{t:'명제와 조건',pg:'교과서 p.96 (중단원 마무리)',
+   pts:['참 또는 거짓을 명확하게 판별할 수 있는 문장이나 식을 명제라고 해요.',
+        '변수의 값에 따라 참, 거짓을 판별할 수 있는 문장이나 식을 조건이라고 해요.',
+        '"아름다운", "큰"처럼 기준이 사람마다 다른 표현이 있으면 참·거짓을 정할 수 없어 명제가 아니에요.'],
+   ex:'"3은 짝수이다"는 거짓이지만 명제예요. "x는 짝수이다"는 x에 따라 달라지므로 조건이에요.'}},
+ {lvl:'하',type:'text',
+  q:'집합 {x | x²-7x+6=0}을 원소나열법으로 나타냈을 때, 모든 원소의 합을 구하시오.\n(숫자만 입력)',
+  choices:[],ans:'7',alts:[],
+  h1:'x²−7x+6=0을 인수분해해서 방정식의 해를 구해 보세요. 그 해들이 집합의 원소예요.',
+  h2:'(x−a)(x−b)=0 꼴로 바꾸면 해는 x=a, x=b예요. 구한 원소를 모두 더해 보세요.',
+  bot:'먼저 x²−7x+6을 인수분해해서 해를 구해 봐! 해가 곧 원소니까, 원소를 전부 더하면 돼.',
+  forb:['=7','합은7','합이7'],
+  cp:{t:'조건제시법과 원소나열법',pg:'교과서 p.78 (중단원 마무리)',
+   pts:['{x | 조건} 꼴로 원소들의 공통 성질을 쓰는 방법이 조건제시법이에요.',
+        '원소를 { } 안에 직접 늘어놓는 방법이 원소나열법이에요.',
+        '조건이 방정식이면 방정식의 해를 구해서 원소로 나열해요.',
+        '원소를 나열할 때 같은 원소는 한 번만 써요.'],
+   ex:'{x | x²−5x+4=0}은 (x−1)(x−4)=0이므로 원소나열법으로 {1, 4}예요.'}},
  {lvl:'하~중',type:'text',
-  q:'집합 A={1, 2, 3, 4}의 부분집합 중에서 1, 2를 반드시 원소로 갖는 것의 개수를 구하시오.\n(숫자만 입력)',
-  choices:[],ans:'4',alts:['4개'],
-  h1:'A의 원소 4개 중 1, 2는 이미 정해졌어요. 아직 넣을지 말지 정해야 하는 원소는 몇 개일까요?',
-  h2:'남은 원소 하나하나를 "넣는다/안 넣는다" 두 가지씩 고를 수 있어요. 남은 원소가 k개면 2를 k번 곱해요.',
-  bot:'1, 2는 무조건 들어가니까 고민할 원소는 3, 4뿐이야. 각각 넣을지 말지 두 가지씩이니 곱해 봐!',
-  forb:['4개','4가지','네개','네가지','=4'],
-  cp:{t:'부분집합 구하기',pg:'교과서 p.67 · p.68',
-   pts:['A의 모든 원소가 B에 속하면 A는 B의 부분집합이에요.',
-        '공집합과 자기 자신도 부분집합에 꼭 들어가요.',
-        '"어떤 원소를 반드시 갖는다"는 건, 그 원소가 모든 부분집합 안에 들어 있다는 뜻이에요.',
-        '부분집합은 원소를 하나씩 "넣을까, 뺄까"로 정리하면 빠뜨리지 않고 셀 수 있어요.'],
-   ex:'A = {a, b, c}의 부분집합은 ∅, {a}, {b}, {c}, {a, b}, {a, c}, {b, c}, {a, b, c} 로 모두 8개예요.'}},
+  q:'두 집합 A, B에 대하여 n(A)=18, n(B)=23, n(A∪B)=30일 때, n(A∩B)를 구하시오.\n(숫자만 입력)',
+  choices:[],ans:'11',alts:['11개'],
+  h1:'합집합의 원소의 개수를 구하는 공식 n(A∪B)=n(A)+n(B)−n(A∩B)를 떠올려 보세요.',
+  h2:'공식에 주어진 세 값을 넣으면 n(A∩B)만 모르는 값이에요. 식을 n(A∩B)에 대해 정리해 보세요.',
+  bot:'n(A∪B)=n(A)+n(B)−n(A∩B) 공식에 숫자를 넣고, 모르는 n(A∩B)를 구해 봐!',
+  forb:['=11','답은11'],
+  cp:{t:'합집합의 원소의 개수',pg:'교과서 p.78 (중단원 마무리)',
+   pts:['두 유한집합 A, B에 대하여  n(A∪B)=n(A)+n(B)−n(A∩B)',
+        '겹치는 부분(A∩B)이 두 번 세어지므로 한 번 빼 주는 거예요.',
+        'A, B가 서로소(A∩B=∅)이면  n(A∪B)=n(A)+n(B)'],
+   ex:'n(A)=5, n(B)=4, n(A∩B)=2이면 n(A∪B)=5+4−2=7이에요.'}},
  {lvl:'중',type:'choice',
-  q:'명제 "x²=4이면 x=2이다"의 역과 대우의 참, 거짓을 바르게 나타낸 것은?',
+  q:'명제 "x(x+1)=0이면 x+1=0이다"의 역과 대우의 참, 거짓을 바르게 나타낸 것은?',
   choices:['역: 참, 대우: 참','역: 참, 대우: 거짓','역: 거짓, 대우: 참','역: 거짓, 대우: 거짓'],ans:2,alts:[],
-  h1:'역은 가정과 결론을 서로 바꾼 것, 대우는 바꾼 뒤 둘 다 부정한 것이에요. 먼저 역과 대우를 문장으로 써 보세요.',
-  h2:'x=-2를 넣어 보세요. x²의 값이 얼마인지, 그리고 이 값이 대우의 가정·결론에 맞는지 확인해 보면 반례가 보일 수 있어요.',
-  bot:'역은 "x=2이면 x²=4", 대우는 가정·결론을 바꾸고 둘 다 부정! 각각 반례가 있는지 x=-2도 넣어 봐.',
+  h1:'역은 가정과 결론을 바꾼 명제, 대우는 바꾼 뒤 둘 다 부정한 명제예요. 먼저 역과 대우를 문장으로 써 보세요.',
+  h2:'x(x+1)=0의 해는 x=0 또는 x=−1이에요. 이 값들을 대우와 역에 넣어서 반례가 있는지 확인해 보세요.',
+  bot:'역과 대우를 먼저 문장으로 써 봐! 그다음 x=0, x=−1을 넣어서 반례가 생기는 쪽이 거짓이야.',
   forb:['역은참','대우는거짓','역:참','대우:거짓'],
-  cp:{t:'명제의 역과 대우',pg:'교과서 p.86 · p.87 · p.88 · p.89',
+  cp:{t:'명제의 역과 대우',pg:'교과서 p.96 (중단원 마무리)',
    pts:['명제 p → q 에서 p는 가정, q는 결론이에요.',
         '역: 가정과 결론을 서로 바꾼 명제  q → p',
-        '대우: 가정과 결론을 서로 바꾸고 각각 부정한 명제  ~q → ~p',
-        '어떤 명제가 참이면 그 대우도 참이고, 거짓이면 대우도 거짓이에요. (역은 참일 수도, 거짓일 수도 있어요)',
+        '대우: 가정과 결론을 바꾸고 각각 부정한 명제  ~q → ~p',
+        '명제가 참이면 그 대우도 참이고, 거짓이면 대우도 거짓이에요. (역은 참일 수도, 거짓일 수도 있어요)',
         '명제가 거짓임을 보이려면 가정은 만족하지만 결론은 만족하지 않는 반례를 하나만 찾으면 돼요.'],
    ex:'명제 "x=1이면 x²=1이다"의 역은 "x²=1이면 x=1이다", 대우는 "x²≠1이면 x≠1이다".'}},
+ {lvl:'중',type:'choice',
+  q:'두 조건 p: x≤1, q: −3≤x≤0에 대하여, p는 q이기 위한 어떤 조건인가?',
+  choices:['충분조건이지만 필요조건은 아니다','필요조건이지만 충분조건은 아니다','필요충분조건이다','충분조건도 필요조건도 아니다'],ans:2,alts:[],
+  h1:'두 조건의 진리집합 P, Q를 각각 수직선에 그려 보세요.',
+  h2:'P ⊂ Q이면 p ⟹ q, Q ⊂ P이면 q ⟹ p예요. 어느 쪽 포함 관계가 성립하는지 보세요.',
+  bot:'수직선에 P와 Q를 그려서 어느 쪽이 다른 쪽 안에 들어가는지 봐! 그다음 p⟹q인지 q⟹p인지 정해.',
+  forb:['필요조건이'],
+  cp:{t:'충분조건과 필요조건',pg:'교과서 p.96 (중단원 마무리)',
+   pts:['p ⟹ q 가 참일 때, p는 q이기 위한 충분조건이고 q는 p이기 위한 필요조건이에요.',
+        'p ⟺ q 이면 p는 q이기 위한 필요충분조건이에요.',
+        '두 조건의 진리집합 P, Q에서 P ⊂ Q이면 p ⟹ q 예요.',
+        'P = Q이면 p ⟺ q 예요.'],
+   ex:'p: x=1, q: x²=1 이면 P={1}, Q={−1, 1}로 P ⊂ Q이므로 p는 q이기 위한 충분조건이에요.'}},
+ {lvl:'중상',type:'text',
+  q:'두 집합 A={x²+2x, 4, 6}, B={x, 6}에 대하여 A∩B=B를 만족시키는 모든 정수 x의 값의 합을 구하시오.\n(단, 집합의 원소는 서로 다르다.)\n(숫자만 입력)',
+  choices:[],ans:'3',alts:[],
+  h1:'A∩B=B이면 B는 A의 부분집합이에요. B의 원소 x가 A의 어느 원소와 같아야 하는지 따져 보세요.',
+  h2:'x는 x²+2x 또는 4와 같아야 해요. 경우마다 x를 구한 뒤, 집합의 원소가 서로 다른지 꼭 확인하세요.',
+  bot:'B ⊂ A 니까 x는 A의 원소여야 해! x=x²+2x일 때와 x=4일 때를 나눠서 구하고, 원소가 겹치지 않는지 확인해 봐.',
+  forb:['=3','합은3'],
+  cp:{t:'부분집합과 교집합',pg:'교과서 p.78 (중단원 마무리)',
+   pts:['A의 모든 원소가 B에 속하면 A ⊂ B (A는 B의 부분집합)이에요.',
+        'A∩B=B이면 B ⊂ A 예요.',
+        '집합의 원소는 서로 달라야 해요. 구한 x가 다른 원소와 같아지면 안 돼요.'],
+   ex:'A={1, 2, 3}, B={x, 2}에서 A∩B=B이면 B ⊂ A이므로 x는 1 또는 3이에요.'}},
  {lvl:'중상',type:'choice',
-  q:'두 조건 p: x=2, q: x²=4에 대하여, p는 q이기 위한 어떤 조건인가?',
-  choices:['충분조건이지만 필요조건은 아니다','필요조건이지만 충분조건은 아니다','필요충분조건이다','충분조건도 필요조건도 아니다'],ans:1,alts:[],
-  h1:'"p이면 q이다"가 참인지, "q이면 p이다"가 참인지 각각 따로 확인해 보세요.',
-  h2:'p: x=2일 때 x²의 값은 얼마일까요? 반대로 x²=4를 만족하는 x는 2뿐일까요?',
-  bot:'화살표 방향 두 개를 확인해! "p이면 q"가 참인지, "q이면 p"가 참인지 따로 따져 봐.',
-  forb:['충분조건이'],
-  cp:{t:'충분조건과 필요조건',pg:'교과서 p.89 · p.90',
-   pts:['p → q 가 참일 때 p ⟹ q 라 쓰고, p는 q이기 위한 충분조건, q는 p이기 위한 필요조건이라고 불러요.',
-        'p ⟹ q 이고 q ⟹ p 이면 p ⟺ q 로 쓰고, 이때 p와 q를 서로 필요충분조건 관계라고 불러요.',
-        '두 방향("p이면 q", "q이면 p")을 따로따로 참·거짓을 확인해야 해요.',
-        '진리집합 P, Q에서 P ⊂ Q 이면 p ⟹ q 이고, P = Q 이면 p ⟺ q 예요.'],
-   ex:'"a는 4의 배수" ⟹ "a는 2의 배수" 이므로, 4의 배수는 충분조건, 2의 배수는 필요조건 역할을 해요.'}}
+  q:'전체집합 U에 대하여 두 조건 p, q의 진리집합을 각각 P, Q라 하자. 명제 p → ~q가 참일 때, 옳은 것을 <보기>에서 모두 고른 것은?\nㄱ. P ⊂ Qᶜ\nㄴ. P∩Q=Q\nㄷ. Pᶜ∩Q=Q\nㄹ. Pᶜ∪Qᶜ=U',
+  choices:['ㄱ, ㄷ','ㄱ, ㄹ','ㄴ, ㄹ','ㄱ, ㄷ, ㄹ','ㄱ, ㄴ, ㄷ, ㄹ'],ans:4,alts:[],
+  h1:'p → ~q가 참이면 P ⊂ Qᶜ예요. 벤 다이어그램으로 P와 Q의 위치 관계를 그려 보세요.',
+  h2:'P와 Q가 서로소라는 점을 이용해서 ㄱ~ㄹ을 하나씩 확인해 보세요. 벤 다이어그램에 색칠하면 편해요.',
+  bot:'P ⊂ Qᶜ 는 P와 Q가 겹치지 않는다는 뜻이야! 벤 다이어그램을 그리고 ㄱ~ㄹ을 하나씩 색칠해서 확인해 봐.',
+  forb:[],
+  cp:{t:'진리집합 사이의 포함 관계',pg:'교과서 p.96 (중단원 마무리)',
+   pts:['두 조건 p, q의 진리집합을 P, Q라 할 때, P ⊂ Q이면 명제 p → q는 참이에요.',
+        '~q의 진리집합은 Qᶜ(Q의 여집합)이에요.',
+        'P ⊂ Qᶜ이면 P와 Q는 공통 원소가 없어요. (P∩Q=∅)',
+        '드모르간의 법칙  (P∩Q)ᶜ=Pᶜ∪Qᶜ  도 함께 떠올려 보세요.'],
+   ex:'p → q가 참이면 P ⊂ Q 이고, 이때 Qᶜ ⊂ Pᶜ 도 성립해요. (대우 ~q → ~p 도 참)'}},
+ {lvl:'상',type:'text',
+  q:'전체집합 U={x | x는 30 이하의 자연수}의 두 부분집합 A={x | x는 6의 배수}, B={x | x는 24의 약수}에 대하여 n(Aᶜ∩Bᶜ)를 구하시오.\n(숫자만 입력)',
+  choices:[],ans:'20',alts:['20개'],
+  h1:'드모르간의 법칙으로 Aᶜ∩Bᶜ=(A∪B)ᶜ예요. 먼저 A, B의 원소를 나열해 보세요.',
+  h2:'n((A∪B)ᶜ)=n(U)−n(A∪B)이고, n(A∪B)=n(A)+n(B)−n(A∩B)예요.',
+  bot:'Aᶜ∩Bᶜ는 (A∪B)ᶜ와 같아! A, B의 원소를 쓰고 겹치는 원소를 찾아서 n(A∪B)를 구한 뒤 전체에서 빼 봐.',
+  forb:['=20','답은20'],
+  cp:{t:'드모르간의 법칙',pg:'교과서 p.78 (중단원 마무리)',
+   pts:['(A∪B)ᶜ=Aᶜ∩Bᶜ,  (A∩B)ᶜ=Aᶜ∪Bᶜ  (드모르간의 법칙)',
+        'n(Aᶜ)=n(U)−n(A)  처럼 여집합의 원소의 개수는 전체에서 빼서 구해요.',
+        'n(A∪B)=n(A)+n(B)−n(A∩B)'],
+   ex:'n(U)=10, n(A∪B)=7이면 n(Aᶜ∩Bᶜ)=n((A∪B)ᶜ)=10−7=3이에요.'}},
+ {lvl:'상',type:'text',
+  q:'실수 x에 대하여 두 조건 p: x²−10x+9≤0, q: x≤a가 있다. p가 q이기 위한 충분조건이 되도록 하는 실수 a의 최솟값을 구하시오.\n(숫자만 입력)',
+  choices:[],ans:'9',alts:[],
+  h1:'먼저 p의 진리집합 P를 구하세요. 이차부등식 x²−10x+9≤0을 인수분해해 보세요.',
+  h2:'p가 q이기 위한 충분조건이면 P ⊂ Q예요. 수직선에 P와 Q={x | x≤a}를 그려서 a가 가질 수 있는 값의 범위를 찾아 보세요.',
+  bot:'(x−□)(x−△)≤0으로 P를 구한 다음, P ⊂ Q가 되려면 a가 P의 오른쪽 끝보다 작으면 안 된다는 걸 이용해 봐!',
+  forb:['=9','a≥9','a=9'],
+  cp:{t:'충분조건과 진리집합',pg:'교과서 p.96 (중단원 마무리)',
+   pts:['p가 q이기 위한 충분조건이면 p ⟹ q 이고, 진리집합은 P ⊂ Q 예요.',
+        '부등식으로 된 조건은 수직선에 범위를 그려서 포함 관계를 확인해요.',
+        '끝점이 포함되는지(등호 유무)를 꼭 확인해요.'],
+   ex:'p: 1≤x≤3, q: x≤b에서 p가 q이기 위한 충분조건이면 P ⊂ Q이므로 b≥3이에요.'}}
 ]};
 /* 지금 쓰는 세트 (applySet 이 채워요) */
 var QUESTIONS=[],NQ=5,QPL=[],PLFIRST=[],PLCNT=[],UNIT='',SETNAME='',QV='',QP=null;
@@ -1422,7 +1489,7 @@ function teacherGuideHtml(){
  d(1,'📊 4. 실시간 현황판 · 조별 섬 보기','<ul><li>관리자 화면 맨 위 [📊 현황판 열기]로 들어가요. <b>4초마다 자동</b>으로 갱신돼요. 프로젝터에 띄워 두기 좋아요.</li><li><b>📊 전체 탭</b>: 🏆 지금 순위와 조별 진행도, 학생별 현재 위치·풀이 현황·코인·오답·힌트 수가 보여요.</li><li><b>🆘 막힌 학생</b>은 노란 줄로 표시돼요. 어느 문제에서 막혔는지 바로 알 수 있어요.</li><li><b>조 탭(1조, 2조…)</b>: 그 조의 섬이 학생 화면과 똑같이 나와요. 조원 캐릭터가 각자 풀고 있는 장소에 서 있고, 문제를 풀면 다음 칸으로 이동해요. 장소별 인원도 함께 보여요.</li><li>탈출한 조는 조원이 배 위에 모여 있어요. 아무도 없는 조는 흐리게 표시돼요.</li></ul>')+
  d(0,'⏱ 5. 시간 조절','<ul><li><b>제한 시간(분)</b> 입력 후 [적용], 또는 <b>-5분 / +5분</b> 버튼으로 진행 중에도 조절할 수 있어요.</li><li><b>⏹ 지금 종료</b>: 그 순간 게임을 끝내요.</li><li><b>대기로 되돌리기</b>: 시작 전 상태로 돌려요. (참가자 기록은 그대로 남아요.)</li></ul>')+
  d(0,'🆘 6. 힌트와 담임 쪽지','<ul><li><b>📖 개념 다시보기</b>: 문제 화면마다 버튼이 있어요. 누르면 그 문제에 필요한 <b>교과서 개념 요약(쪽수 안내 포함)</b>이 떠요. 코인 차감 없이 언제든 볼 수 있고, 정답·풀이는 들어 있지 않아요. 힌트를 받기 전에 개념을 복습하고 다시 풀어 보게 하는 용도예요.</li><li>학생이 2번 틀리면 [🆘 도움 요청]이 열려요. <b>조원에게 요청</b>하면 그 문제를 푼 조원이 힌트를 보내요. (정답이 들어간 힌트는 자동으로 막혀요.)</li><li><b>담임 힌트 요청</b>을 누르면 문제별로 미리 적어 둔 <b>1단계 → 2단계 힌트</b>가 자동으로 나가요. 선생님이 옆에 없어도 돼요.</li><li>기본은 <b>푼 조원이 없을 때만</b> 담임 힌트를 받을 수 있어요. [⚙️ 설정]의 <b>"조원이 풀었어도 담임 힌트 허용"</b>을 켜면 언제든 받을 수 있어요.</li><li><b>✉️ 담임 쪽지</b>: 전체 학생·조 전체·학생 한 명에게 직접 힌트나 응원을 보낼 수 있어요. 학생 화면에 [담임 힌트]로 떠요.</li><li>[최근 담임 힌트 요청] 목록에서 누가 어느 문제에서 도움을 요청했는지 볼 수 있어요.</li></ul>')+
- d(0,'🏝️ 7. 조·학생 관리','<ul><li>[🏝️ 조별 현황]에서 <b>섬 이름 바꾸기</b>, 학생을 <b>다른 조로 이동</b>하거나 <b>삭제</b>할 수 있어요. (조당 최대 6명)</li><li>섬 이름은 각 조의 <b>조장(처음 입장한 학생 👑)</b>도 바꿀 수 있어요.</li><li>조를 잘못 고른 학생은 섬 화면의 [다시 입장할게요]로 나갈 수 있어요. (푼 문제와 코인은 새 조에서 처음부터예요.)</li><li><b>탈출 최소 인원</b>: 조원이 이 인원 이상이고 전원이 열쇠를 가져야 탈출해요. 한 명뿐인 조가 혼자 탈출하는 걸 막아 줘요. (기본 2명)</li></ul>')+
+ d(0,'🏝️ 7. 조·학생 관리','<ul><li>[🏝️ 조별 현황]에서 <b>섬 이름 바꾸기</b>, 학생을 <b>다른 조로 이동</b>하거나 <b>삭제</b>할 수 있어요. (조당 최대 6명)</li><li><b>조 수</b>는 처음에 6조예요. 조를 더 만들거나 줄이려면 [⚙️ 설정]의 <b>조 수</b>에서 바꿔요. (최대 10조 · 줄일 때는 큰 번호 조가 비어 있어야 해요 · GAS를 최신 코드로 수정 배포해야 해요)</li><li>섬 이름은 각 조의 <b>조장(처음 입장한 학생 👑)</b>도 바꿀 수 있어요.</li><li>조를 잘못 고른 학생은 섬 화면의 [다시 입장할게요]로 나갈 수 있어요. (푼 문제와 코인은 새 조에서 처음부터예요.)</li><li><b>탈출 최소 인원</b>: 조원이 이 인원 이상이고 전원이 열쇠를 가져야 탈출해요. 한 명뿐인 조가 혼자 탈출하는 걸 막아 줘요. (기본 2명)</li></ul>')+
  d(0,'🏆 8. 코인과 우승 기준','<ul><li><b>코인</b>: 문제당 기본 10, 한 번에 맞히고 힌트도 안 받으면 +5, 힌트 1개당 -2 (최소 5), 도와준 학생 +5. 문제를 풀 때마다 🎁 보석함이 열려요.</li><li><b>우승</b>: <b>탈출 속도 점수 + 평균 코인 점수</b>의 합이 가장 높은 조예요. 점수가 같으면 더 빨리 탈출한 조가 앞서요.</li></ul>')+
  d(0,'🛠️ 9. 문제·단원 바꾸기','<ul><li>관리자 화면 <b>[📚 문항 세트]</b>에서 세트를 만들고 고쳐요. 문항은 <b>5~10개</b>, 유형은 객관식·단답형이고 문항마다 난이도·힌트 1~2단계·개념 카드·그림(선택)을 넣을 수 있어요.</li><li>문항이 5개보다 많으면 섬의 장소 5곳에 자동으로 나눠 들어가요. (7문항=1·1·2·1·2, 10문항=2·2·2·2·2)</li><li><b>[이 세트로 진행]</b>을 누르면 수업에 쓰는 세트가 바뀌어요. 게임 시작 전에만 바꿀 수 있어요.</li><li>세트는 내 구글 시트의 <b>문항세트</b> 탭에 저장돼요.</li><li>정답이 학생 화면 코드에 들어 있어서 페이지 소스를 열면 볼 수 있어요. 수업용으로는 충분하지만 평가용으로 쓰기엔 주의가 필요해요.</li></ul>')+
  d(0,'🤖 9-2. AI로 문항 만들기','<ul><li>[📚 문항 세트] → <b>[🤖 AI로 문항 만들기]</b>에서 단원·문항 수·난이도를 고르면 AI가 문항 초안을 만들어요.</li><li><b>개인 API키</b>가 필요해요. Claude(console.anthropic.com), GPT(platform.openai.com), Gemini(aistudio.google.com) 중 하나를 골라 로그인한 뒤 <b>API키 만들기</b>로 키를 받아 붙여 넣어요. 화면 안의 [🔎 키는 어디서 받나요?]에도 안내가 있어요.</li><li>키는 <b>이 기기 브라우저에만</b> 저장되고 시트·학생·다른 선생님에게는 가지 않아요. 공용 컴퓨터라면 [이 기기에 키 기억하기]를 끄세요. 사용한 만큼 선생님 계정에 요금이 나올 수 있어요(10문항은 보통 아주 적은 금액).</li><li>[모델 이름]은 업체에서 바뀔 수 있어요. 오류가 나면 업체의 최신 모델 이름으로 고쳐 주세요.</li><li><b>교과서 자료</b>: 글을 붙여 넣거나, <b>PDF + 쪽 범위</b>(최대 10쪽)를 지정하거나, 쪽을 <b>캡처 사진</b>(최대 4장)으로 올릴 수 있어요. 스캔본 PDF는 쪽을 그림으로 바꿔 AI가 읽어요. 자료는 선생님이 고른 AI 업체로만 전달돼요.</li><li>만들어진 문항은 <b>바로 저장되지 않아요.</b> 편집 화면에서 <b>정답을 직접 풀어 확인</b>하고 고친 뒤 [세트 저장]을 눌러요. AI가 틀린 정답을 낼 수 있어요.</li><li>힌트에 정답이 드러나면 자동으로 비우고 알려 줘요. 수식은 x², √, ⊂ 같은 글자로 나와요.</li></ul>')+
@@ -1566,7 +1633,7 @@ function renderAdmin(){
  '<div class="card"><h2>⏱ 게임 진행</h2><div class="timer" id="agt">불러오는 중…</div><div class="row2"><button class="btn go small" id="astart">▶ 게임 시작</button><button class="btn ghost small" id="astop">⏹ 지금 종료</button></div><label for="adur">제한 시간 (분)</label><div class="row2"><input type="number" id="adur" min="1" max="600" step="1" placeholder="15"><button class="btn small" id="adset" style="margin-top:0">적용</button></div><div class="row2"><button class="btn ghost small" id="am5">-5분</button><button class="btn ghost small" id="ap5">+5분</button><button class="btn ghost small" id="aun">대기로 되돌리기</button></div><div class="sub" id="adinfo">시작을 누르면 그 순간부터 제한 시간이 흘러요. 진행 중에도 시간을 늘리거나 줄일 수 있어요.</div></div>'+
  '<div class="card"><h2>📚 문항 세트</h2><div class="sub">지금 진행할 세트: <b id="asetname">…</b></div><button class="btn small" id="aset">문항 세트 관리 · 만들기</button></div>'+
  '<div class="card"><h2>📊 실시간 현황판</h2><div class="sub">조별 진행 상황과 학생 개별 현황을 한눈에 보고, 조를 눌러 그 조의 섬 화면도 볼 수 있어요. (4초마다 자동 갱신)</div><button class="btn go" id="abd">현황판 열기</button></div>'+
- '<div class="card"><h2>⚙️ 설정</h2><label class="sw"><input type="checkbox" id="aalw"><span><b>조원이 풀었어도 담임 힌트 허용</b><br><small class="sub">꺼두면 푼 조원이 있는 문제는 조원에게만 요청할 수 있어요</small></span></label><label for="amin">탈출 최소 인원 (조원이 이 인원 이상이고 전원 열쇠를 가져야 탈출)</label><div class="row2"><input type="number" id="amin" min="1" max="6"><button class="btn small" id="aminset" style="margin-top:0">저장</button></div></div>'+
+ '<div class="card"><h2>⚙️ 설정</h2><label class="sw"><input type="checkbox" id="aalw"><span><b>조원이 풀었어도 담임 힌트 허용</b><br><small class="sub">꺼두면 푼 조원이 있는 문제는 조원에게만 요청할 수 있어요</small></span></label><label for="amin">탈출 최소 인원 (조원이 이 인원 이상이고 전원 열쇠를 가져야 탈출)</label><div class="row2"><input type="number" id="amin" min="1" max="6"><button class="btn small" id="aminset" style="margin-top:0">저장</button></div><label for="ant">조 수 (기본 6조 · 최대 10조 · 줄일 때는 큰 번호 조가 비어 있어야 해요)</label><div class="row2"><input type="number" id="ant" min="2" max="10"><button class="btn small" id="antset" style="margin-top:0">저장</button></div></div>'+
  '<div class="card"><h2>🏝️ 조별 현황</h2><div id="adteams"></div></div>'+
  '<div class="card"><h2>🏆 지금 순위</h2><div id="adrank"></div></div>'+
  '<div class="card"><h2>✉️ 담임 쪽지(힌트) 보내기</h2><label for="hsc">받는 사람</label><select id="hsc"></select><label for="hq">문항</label><select id="hq"><option value="0">일반 쪽지</option></select><textarea id="htx" maxlength="200" placeholder="학생 화면에 [담임 힌트]로 떠요 (200자)"></textarea><button class="btn small" id="hsend">보내기</button><div class="msg" id="hmsg"></div><div class="sub" style="margin-top:10px"><b>최근 담임 힌트 요청</b></div><div id="adreq"></div></div>'+
@@ -1593,6 +1660,7 @@ function paintAdmin(){
  var info=$('adinfo');if(info)info.innerHTML='제한 시간 <b>'+ADM.game.durationMin+'분</b> · 시작을 누르면 그 순간부터 시간이 흘러요.';
  var al=$('aalw');if(al&&document.activeElement!==al)al.checked=ADM.cfg.always;
  var mn=$('amin');if(mn&&document.activeElement!==mn&&!mn.value)mn.value=ADM.cfg.minTeam;
+ var nt=$('ant');if(nt&&document.activeElement!==nt&&!nt.value)nt.value=ADM.cfg.nTeam||'';
  var du=$('adur');if(du&&document.activeElement!==du&&!du.value)du.value=Math.round(ADM.game.durationMin);
  var tb=$('adteams');
  if(tb&&!(tb.contains(document.activeElement)&&document.activeElement!==document.body)){
@@ -1622,6 +1690,7 @@ function bindAdmin(){
  $('aun').onclick=function(){popup({icon:'↩️',title:'대기 상태로 되돌릴까요?',body:'시작 전 상태가 돼요. (참가자 기록은 그대로)',btns:[{t:'되돌리기',fn:function(){adm('admincfg',{unstart:1}).then(done);}},{t:'취소',ghost:true}]});};
  $('aalw').onchange=function(){adm('admincfg',{always:this.checked?1:0}).then(function(r){done(r,'설정을 저장했어요');});};
  $('aminset').onclick=function(){adm('admincfg',{minteam:$('amin').value}).then(function(r){done(r,'저장했어요');});};
+ $('antset').onclick=function(){adm('admincfg',{nteam:$('ant').value}).then(function(r){done(r,'조 수를 바꿨어요 ✅');});};
  $('hsend').onclick=function(){
   var v=$('hsc').value.split('|'),tx=$('htx').value.trim(),m=$('hmsg');
   if(!tx){m.className='msg err';m.textContent='내용을 적어 주세요.';return;}
