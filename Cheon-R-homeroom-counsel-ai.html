@@ -3939,6 +3939,13 @@ function startStatAnalysis() {
   const isCumulMode = uploadMode === 'cumul';
   let html = '';
 
+  // 항목 접기 안내 (접어 둔 항목은 출력에서 빠짐)
+  html += `<div class="no-print" style="padding:10px 20px 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+    <button type="button" onclick="foldAllStatSections(false)" style="min-height:36px;padding:0 12px;border-radius:8px;border:1.5px solid var(--border);background:#fff;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">모두 접기</button>
+    <button type="button" onclick="foldAllStatSections(true)" style="min-height:36px;padding:0 12px;border-radius:8px;border:1.5px solid var(--border);background:#fff;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">모두 펼치기</button>
+    <span style="font-size:11px;color:var(--text3);">🖨️ 접어 둔 항목은 출력에서 빠져요</span>
+  </div>`;
+
   // 어느 시험 기준인지 표시
   if (!isCumulMode && _selSlot) {
     html += `<div style="padding:14px 20px 0;"><span style="display:inline-block;background:var(--primary-bg);color:var(--primary-dark);border-radius:999px;padding:4px 12px;font-size:11px;font-weight:700;">📌 ${escapeHTML(slotShortLabel(_selSlot, new Set(_slotsAll.map(x => x.g)).size > 1))} 기준 분석</span></div>`;
@@ -4144,7 +4151,7 @@ function startStatAnalysis() {
   html += `
   <div style="padding:16px 20px 12px;">
     <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px;">📈 계열별 등급 변화 추이</div>
-    <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">Y축 위 = 1등급(높은 등급) · 탭으로 계열 전환</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">Y축 위 = 1등급(높은 등급)<span class="no-print"> · 탭으로 계열 전환</span></div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;" id="trendTabs">
       <button onclick="switchTrend('all')" class="trend-tab active" data-key="all">전체과목 (${grades.length})</button>
       <button onclick="switchTrend('korean')" class="trend-tab" data-key="korean">국어계열 (1)</button>
@@ -4472,20 +4479,20 @@ function startStatAnalysis() {
     // ══════════════════════════════════════════════
     // 5등급제 기준 대학군 매핑
     // ══════════════════════════════════════════════
-    // avg ≤ 1.2 : 서울대·연세·고려 (SKY) 도전권
-    // avg ≤ 1.5 : 성균관·서강·한양 경쟁력
-    // avg ≤ 2.0 : 중앙·경희·한국외대·이화
-    // avg ≤ 2.5 : 건국·동국·홍익·숙명
-    // avg ≤ 3.0 : 세종·국민·인하·아주
-    // avg >  3.0 : 수도권 하위권·지방 국립
+    // avg ≤ 1.0 : 서울대·연세·고려 (SKY) 도전권
+    // avg ≤ 1.3 : 성균관·서강·한양 경쟁력
+    // avg ≤ 1.7 : 중앙·경희·한국외대·이화
+    // avg ≤ 2.1 : 건국·동국·홍익·숙명
+    // avg ≤ 2.5 : 세종·국민·인하·아주
+    // avg >  2.5 : 수도권 하위권·지방 국립
 
     // ── 교과전형 점수 계산 (5등급제 기준) ──
     let kyoScore = 0;
-    if      (avg <= 1.2) kyoScore = 5;   // SKY 교과전형 도전권
-    else if (avg <= 1.5) kyoScore = 4;   // 성균관·서강·한양
-    else if (avg <= 2.0) kyoScore = 3;   // 중앙·경희·외대·이화
-    else if (avg <= 2.5) kyoScore = 2;   // 건국·동국·홍익·숙명
-    else if (avg <= 3.0) kyoScore = 1.5; // 세종·국민·인하
+    if      (avg <= 1.0) kyoScore = 5;   // SKY 교과전형 도전권
+    else if (avg <= 1.3) kyoScore = 4;   // 성균관·서강·한양
+    else if (avg <= 1.7) kyoScore = 3;   // 중앙·경희·외대·이화
+    else if (avg <= 2.1) kyoScore = 2;   // 건국·동국·홍익·숙명
+    else if (avg <= 2.5) kyoScore = 1.5; // 세종·국민·인하
     else                 kyoScore = 1;
 
     if (gradeVariance <= 0.3) kyoScore = Math.min(5, kyoScore + 0.5);
@@ -4494,11 +4501,11 @@ function startStatAnalysis() {
     const kyoGrade = Math.min(5, Math.max(1, Math.round(kyoScore)));
 
     const kyoTags = [];
-    if      (avg <= 1.2) kyoTags.push({ text: `평균 ${avg.toFixed(2)}등급 — SKY 교과전형 도전권`,    color: '#048a6c' });
-    else if (avg <= 1.5) kyoTags.push({ text: `평균 ${avg.toFixed(2)}등급 — 성균관·서강·한양 경쟁력`, color: '#48b89f' });
-    else if (avg <= 2.0) kyoTags.push({ text: `평균 ${avg.toFixed(2)}등급 — 중앙·경희 적합`,        color: '#5b9bd5' });
-    else if (avg <= 2.5) kyoTags.push({ text: `평균 ${avg.toFixed(2)}등급 — 건국·동국·홍익 (1.8등급대)`,   color: '#f0a500' });
-    else if (avg <= 3.0) kyoTags.push({ text: `평균 ${avg.toFixed(2)}등급 — 인서울 한계 — 숙·인·아·세·국·단 수준`,   color: '#f0a500' });
+    if      (avg <= 1.0) kyoTags.push({ text: `평균 ${avg.toFixed(2)}등급 — SKY 교과전형 도전권`,    color: '#048a6c' });
+    else if (avg <= 1.3) kyoTags.push({ text: `평균 ${avg.toFixed(2)}등급 — 성균관·서강·한양 경쟁력`, color: '#48b89f' });
+    else if (avg <= 1.7) kyoTags.push({ text: `평균 ${avg.toFixed(2)}등급 — 중앙·경희 적합`,        color: '#5b9bd5' });
+    else if (avg <= 2.1) kyoTags.push({ text: `평균 ${avg.toFixed(2)}등급 — 건국·동국·홍익 (1.7등급대)`,   color: '#f0a500' });
+    else if (avg <= 2.5) kyoTags.push({ text: `평균 ${avg.toFixed(2)}등급 — 인서울 한계 — 숙·인·아·세·국·단 수준`,   color: '#f0a500' });
     else                 kyoTags.push({ text: `평균 ${avg.toFixed(2)}등급 — 인서울 불가 — 가천·경기 외곽`, color: '#e05c5c' });
     if (grade1Count > 0) kyoTags.push({ text: `1등급 ${grade1Count}과목`, color: '#7c5cbf' });
     if (gradeVariance <= 0.3) kyoTags.push({ text: `편차 ${gradeVariance.toFixed(2)} — 균형 잡힌 내신`, color: '#48b89f' });
@@ -4506,17 +4513,17 @@ function startStatAnalysis() {
     if (grade3upCount > 0) kyoTags.push({ text: `3등급 이하 ${grade3upCount}과목`, color: '#e05c5c' });
 
     const kyoComment =
-      avg <= 1.2
-      ? `✅ SKY 교과전형 도전권이에요. 5등급제 기준 1.2등급 이내는 서울대(지역균형)·연세·고려 교과전형까지 충분히 노릴 수 있는 최상위 구간이에요. 교과전형은 단연 1순위 전략입니다.\n\n지원 가능 대학군: 서울대·연세·고려·성균관·서강·한양 전반. 수능최저(국·수·영·탐 조합) 충족 여부가 사실상 유일한 변수예요.\n\n📌 지금 당장 할 일: ① 지원 희망 대학 수능최저 기준 정확히 파악 ② 탐구 과목 선택 및 집중 준비 ③ 남은 학기 현상 유지 전략 수립`
-      : avg <= 1.5
-      ? `✅ 인서울 상위권 교과전형 경쟁력 충분. 5등급제 기준 1.5등급 이내는 성균관·서강·한양 교과전형에서 충분히 경쟁 가능하고, 연세·고려도 도전해볼 수 있는 구간이에요. ${grade3upCount > 0 ? grade3upCount+'과목 3등급 이하가 소폭 아쉽지만, 나머지 과목이 충분히 상쇄해요.' : '전 과목 고르게 안정적이에요.'}\n\n지원 가능 대학군: 성균관·서강·한양 안정권, 연세·고려 도전권. 수능최저 있는 학교 위주로 집중 시 실질 경쟁률 낮아지는 효과가 있어요.\n\n📌 지금 당장 할 일: ① 탐구·영어 수능최저 집중 관리 ② 학교별 과목 반영 비율 확인 ③ 남은 학기 현상 유지`
-      : avg <= 2.0
-      ? `✅ 인서울 중상위권 교과전형 경쟁력 있음. 5등급제 기준 2.0등급 이내는 중앙·경희·한국외대·이화 교과전형에서 안정적으로 지원 가능한 구간이에요. ${grade3upCount > 0 ? grade3upCount+'과목 3등급 이하 관리가 남은 과제예요.' : '전 과목 2등급 이상으로 균형 잡힌 상태예요.'}\n\n지원 가능 대학군: 중앙·경희·한국외대·이화 안정권, 성균관·한양 일부 도전. 수능최저 없는 학교도 지원 가능하지만 있는 학교 위주 집중 시 경쟁률 우위.\n\n📌 지금 당장 할 일: ① 3등급 이하 과목 남은 학기 집중 공략 ② 수능최저 탐구 관리 ③ 교과·종합 병행 여부 결정`
+      avg <= 1.0
+      ? `✅ SKY 교과전형 도전권이에요. 5등급제 기준 1.0등급 이내는 서울대(지역균형)·연세·고려 교과전형까지 도전해볼 수 있는 최상위 구간이에요. 교과전형은 단연 1순위 전략입니다.\n\n지원 가능 대학군: 서울대·연세·고려·성균관·서강·한양 전반. 수능최저(국·수·영·탐 조합) 충족 여부가 사실상 유일한 변수예요.\n\n📌 지금 당장 할 일: ① 지원 희망 대학 수능최저 기준 정확히 파악 ② 탐구 과목 선택 및 집중 준비 ③ 남은 학기 현상 유지 전략 수립`
+      : avg <= 1.3
+      ? `✅ 인서울 상위권 교과전형 경쟁력 충분. 5등급제 기준 1.3등급 이내는 성균관·서강·한양 교과전형에서 경쟁을 노려볼 수 있고, 연세·고려도 도전해볼 수 있는 구간이에요. ${grade3upCount > 0 ? grade3upCount+'과목 3등급 이하가 소폭 아쉽지만, 나머지 과목이 충분히 상쇄해요.' : '전 과목 고르게 안정적이에요.'}\n\n지원 가능 대학군: 성균관·서강·한양 적정~상향, 연세·고려 상향 도전. 수능최저 있는 학교 위주로 집중 시 실질 경쟁률 낮아지는 효과가 있어요.\n\n📌 지금 당장 할 일: ① 탐구·영어 수능최저 집중 관리 ② 학교별 과목 반영 비율 확인 ③ 남은 학기 현상 유지`
+      : avg <= 1.7
+      ? `✅ 인서울 중상위권 교과전형 경쟁력 있음. 5등급제 기준 1.7등급 이내는 중앙·경희·한국외대·이화 교과전형에서 적정~상향으로 검토할 구간이에요(보수적 추정). ${grade3upCount > 0 ? grade3upCount+'과목 3등급 이하 관리가 남은 과제예요.' : '전 과목 2등급 이상으로 균형 잡힌 상태예요.'}\n\n지원 가능 대학군: 중앙·경희·한국외대·이화 적정~상향, 성균관·한양은 상향 도전. 수능최저 없는 학교도 지원 가능하지만 있는 학교 위주 집중 시 경쟁률 우위.\n\n📌 지금 당장 할 일: ① 3등급 이하 과목 남은 학기 집중 공략 ② 수능최저 탐구 관리 ③ 교과·종합 병행 여부 결정`
+      : avg <= 2.1
+      ? `⚡ 인서울 하한선 구간. 5등급제 기준 1.7~2.1등급은 건국·동국·홍익·숙명·인하 등 인서울 하한선 대학 교과전형이 현실적인 상한이에요. ${gradeVariance >= 0.8 ? '편차('+gradeVariance.toFixed(2)+')가 있어 취약 과목 집중 관리가 우선이에요.' : '편차는 안정적이므로 전체 등급을 고르게 끌어올리는 전략이 맞아요.'}\n\n지원 가능 대학군: 건국·동국·홍익·숙명 도전권, 중앙·경희는 상향 도전. 인서울 마지노선 구간으로 0.3등급 개선이 지원 폭을 크게 확대해요.\n\n📌 지금 당장 할 일: ① 3등급 이하 과목 집중 관리 ② 교과·종합 동시 준비 ③ 수능최저 부담 적은 학교 우선 탐색`
       : avg <= 2.5
-      ? `⚡ 인서울 하한선 구간. 5등급제 기준 2.0~2.5등급은 건국·동국·홍익·숙명·인하 등 인서울 하한선 대학 교과전형이 현실적인 상한이에요. ${gradeVariance >= 0.8 ? '편차('+gradeVariance.toFixed(2)+')가 있어 취약 과목 집중 관리가 우선이에요.' : '편차는 안정적이므로 전체 등급을 고르게 끌어올리는 전략이 맞아요.'}\n\n지원 가능 대학군: 건국·동국·홍익·숙명 도전권, 중앙·경희는 상향 도전. 인서울 마지노선 구간으로 0.3등급 개선이 지원 폭을 크게 확대해요.\n\n📌 지금 당장 할 일: ① 3등급 이하 과목 집중 관리 ② 교과·종합 동시 준비 ③ 수능최저 부담 적은 학교 우선 탐색`
-      : avg <= 3.0
-      ? `⚠️ 인서울 교과전형 진입 어려운 구간. 5등급제 기준 2.5~3.0등급은 인서울 대학 교과전형이 사실상 어려워요. 경기권(세종·국민·단국·아주) 또는 종합·논술 전형으로 전략을 전환하는 것이 현실적이에요. ${gradeVariance >= 0.8 ? '편차('+gradeVariance.toFixed(2)+')가 커 취약 과목 집중 관리가 필요해요.' : ''}\n\n지원 가능 대학군: 세종·국민·단국·아주 (경기·수도권 외곽) 교과전형. 인서울은 논술·종합으로만 도전 가능해요.\n\n📌 지금 당장 할 일: ① 논술·종합 전형 병행 준비 ② 남은 학기 내신 최우선 관리 ③ 교과전형은 경기권 학교 위주로 탐색`
-      : `⚠️ 현재 내신으로는 인서울 교과전형 경쟁이 어려운 수준이에요. 5등급제 기준 3등급 초과는 주요 인서울 대학 교과전형 커트라인보다 높아요. 교과전형 집착보다 종합·논술 전형으로 전략을 전환하고, 남은 학기 내신을 최대한 끌어올리는 것이 현실적이에요.\n\n지원 가능 대학군: 교과전형은 수도권 하위권·지방 국립 위주. 종합·논술 병행 전략으로 접근 권장.\n\n📌 지금 당장 할 일: ① 종합·논술 전형 준비로 전략 전환 ② 남은 학기 내신 최우선 관리 ③ 교과전형은 수능최저 없는 학교만 선별 지원`;
+      ? `⚠️ 인서울 교과전형 진입 어려운 구간. 5등급제 기준 2.1~2.5등급은 인서울 대학 교과전형이 사실상 어려워요. 경기권(세종·국민·단국·아주) 또는 종합·논술 전형으로 전략을 전환하는 것이 현실적이에요. ${gradeVariance >= 0.8 ? '편차('+gradeVariance.toFixed(2)+')가 커 취약 과목 집중 관리가 필요해요.' : ''}\n\n지원 가능 대학군: 세종·국민·단국·아주 (경기·수도권 외곽) 교과전형. 인서울은 논술·종합으로만 도전 가능해요.\n\n📌 지금 당장 할 일: ① 논술·종합 전형 병행 준비 ② 남은 학기 내신 최우선 관리 ③ 교과전형은 경기권 학교 위주로 탐색`
+      : `⚠️ 현재 내신으로는 인서울 교과전형 경쟁이 어려운 수준이에요. 5등급제 기준 2.5등급 초과는 주요 인서울 대학 교과전형 커트라인보다 높아요. 교과전형 집착보다 종합·논술 전형으로 전략을 전환하고, 남은 학기 내신을 최대한 끌어올리는 것이 현실적이에요.\n\n지원 가능 대학군: 교과전형은 수도권 하위권·지방 국립 위주. 종합·논술 병행 전략으로 접근 권장.\n\n📌 지금 당장 할 일: ① 종합·논술 전형 준비로 전략 전환 ② 남은 학기 내신 최우선 관리 ③ 교과전형은 수능최저 없는 학교만 선별 지원`;
 
     // ── 종합전형 점수 계산 (5등급제 기준) ──
     // 종합전형은 내신보다 비교과·세특이 중요 — 2등급대가 황금 구간
@@ -4591,7 +4598,7 @@ function startStatAnalysis() {
       `<span style="display:inline-block;background:${t.color}18;color:${t.color};border:1px solid ${t.color}44;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:600;margin:2px 2px 0 0;">${t.text}</span>`
     ).join('');
 
-    html += `
+    html += wrapCollapsibleSection('kindIndicator', '🎯 전형 유불리 인디케이터', `
     <div style="padding:16px 20px 0;">
       <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:2px;">🎯 전형 유불리 인디케이터</div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:10px;">평균 ${avg.toFixed(2)}등급 · 편차 ${gradeVariance.toFixed(2)} · 1등급 ${grade1Count}과목 기준 분석</div>
@@ -4632,7 +4639,7 @@ function startStatAnalysis() {
         </div>
 
       </div>
-    </div>`;
+    </div>`, true);
   }
 
   // ── 선택과목 추천 (학년 자동 반영) ──
@@ -4643,7 +4650,7 @@ function startStatAnalysis() {
   html += buildConsultantSectionHTML(subjs, grades);
 
   // ── 현재학년/누적 공통 보조 진단 (기존 1학년 분석은 그대로 두고 읽기 전용으로 추가) ──
-  html += buildIntegratedAcademicInsightHTML();
+  html += wrapCollapsibleSection('integrated', '🧭 통합 성적 진단', buildIntegratedAcademicInsightHTML(), true);
 
   // ── AI 심층분석 버튼 (선택과목 추천 아래) ──
   html += `
@@ -4683,16 +4690,51 @@ function startStatAnalysis() {
 
 // ==================== 접고 펴는 섹션 (상담 때 필요 없는 부분 접어두기) ====================
 // 기본은 접힘. 펼침 상태는 이 기기 브라우저에 기억함 (실패해도 그냥 접힌 채로 동작)
-function wrapCollapsibleSection(id, title, innerHtml) {
-  if (!innerHtml) return '';
-  let open = false;
-  try { open = localStorage.getItem('admAI_sec_' + id) === '1'; } catch (e) {}
+function wrapCollapsibleSection(id, title, innerHtml, defaultOpen) {
+  if (!innerHtml || !String(innerHtml).trim()) return '';
+  let open = !!defaultOpen;
+  try { const v = localStorage.getItem('admAI_sec_' + id); if (v === '1') open = true; else if (v === '0') open = false; } catch (e) {}
   return `<details ${open ? 'open' : ''} ontoggle="try{localStorage.setItem('admAI_sec_${id}', this.open ? '1' : '0')}catch(e){}" style="margin:0 20px 16px;">
     <summary style="cursor:pointer;min-height:44px;display:flex;align-items:center;gap:8px;padding:0 14px;background:#f3effa;border:1.5px solid var(--border);border-radius:12px;font-size:13px;font-weight:800;color:var(--text);list-style:none;">
       <span>${title}</span><span style="margin-left:auto;font-size:11px;font-weight:600;color:var(--text3);">눌러서 펼치기 / 접기 ▾</span>
     </summary>
     <div style="margin:0 -20px;padding-top:10px;">${innerHtml}</div>
   </details>`;
+}
+
+// 모두 접기 / 모두 펼치기
+function foldAllStatSections(open) {
+  document.querySelectorAll('#statContent details').forEach(d => { d.open = open; });
+}
+
+// 출력용 정리: 접어 둔 항목은 출력에서 빼고, 펼친 항목은 제목줄 없이 내용만 / 버튼 제거 / 그래프(canvas)는 이미지로
+function buildStatPrintHtml() {
+  const src = document.getElementById('statContent');
+  if (!src) return '';
+  const tmp = document.createElement('div');
+  tmp.innerHTML = src.innerHTML;
+  src.querySelectorAll('canvas[id]').forEach(cv => {
+    const t = tmp.querySelector('#' + cv.id);
+    if (!t) return;
+    try {
+      const img = document.createElement('img');
+      img.src = cv.toDataURL('image/png');
+      img.style.cssText = 'width:100%;max-width:100%;';
+      t.replaceWith(img);
+    } catch (e) {}
+  });
+  tmp.querySelectorAll('details').forEach(d => {
+    if (!d.hasAttribute('open')) { d.remove(); return; }
+    const inner = d.querySelector(':scope > div');
+    const holder = document.createElement('div');
+    holder.innerHTML = inner ? inner.innerHTML : '';
+    d.replaceWith(holder);
+  });
+  // AI 서술문: 결과가 없으면 제목도 출력 안 함 (입력칸·버튼·안내문은 항상 제외)
+  const aiRes = tmp.querySelector('#trendAIResult');
+  if (!aiRes || !aiRes.textContent.trim()) tmp.querySelectorAll('.trendAIHead').forEach(el => el.remove());
+  tmp.querySelectorAll('.no-print, button, input, textarea, select, label').forEach(el => el.remove());
+  return tmp.innerHTML;
 }
 
 // ==================== 성적 기본 분석: 시험별 탭 + 누적 변화 탭 ====================
@@ -5012,8 +5054,8 @@ function renderTrendTab(slots) {
     ${buildTrendEvaluationHTML(ev, slots)}
   </div>
   <div style="padding:0 20px 20px;">
-    <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:6px;">✨ AI 상담용 서술문</div>
-    <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">위 계산 결과를 근거로 문장만 다듬어요. 원인은 단정하지 않고, 담임 메모를 적으면 반영해요.</div>
+    <div class="trendAIHead" style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:6px;">✨ AI 상담용 서술문</div>
+    <div class="no-print" style="font-size:11px;color:var(--text3);margin-bottom:8px;">위 계산 결과를 근거로 문장만 다듬어요. 원인은 단정하지 않고, 담임 메모를 적으면 반영해요.</div>
     <textarea id="trendMemo" oninput="trendMemoText=this.value" rows="2" placeholder="담임 메모 (선택) 예: 2학기 들어 수학 학원을 그만둠 / 동아리 대회 준비로 바빴음" style="width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:12px;font-family:'Noto Sans KR',sans-serif;margin-bottom:8px;resize:vertical;">${escapeHTML(trendMemoText)}</textarea>
     <button type="button" id="trendAIBtn" onclick="startTrendAI()" style="width:100%;min-height:44px;border-radius:10px;border:none;background:linear-gradient(135deg,#48b89f,#5dd4b8);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">${aiText ? '🔄 서술문 다시 만들기' : '✨ 서술문 만들기'}</button>
     <div id="trendAIResult" style="margin-top:10px;">${aiText ? trendAIHtml(aiText) : ''}</div>
@@ -5553,11 +5595,11 @@ function buildConsultantSectionHTML(subjs, grades) {
 
   // ── 교과전형 점수 (5등급제 기준) ──
   let kyoScore = 0;
-  if      (avg <= 1.2) kyoScore = 5;   // SKY 도전권
-  else if (avg <= 1.5) kyoScore = 4;   // 성균관·서강·한양
-  else if (avg <= 2.0) kyoScore = 3;   // 중앙·경희·외대·이화
-  else if (avg <= 2.5) kyoScore = 2;   // 건국·동국·홍익·숙명
-  else if (avg <= 3.0) kyoScore = 1.5; // 세종·국민·인하
+  if      (avg <= 1.0) kyoScore = 5;   // SKY 도전권
+  else if (avg <= 1.3) kyoScore = 4;   // 성균관·서강·한양
+  else if (avg <= 1.7) kyoScore = 3;   // 중앙·경희·외대·이화
+  else if (avg <= 2.1) kyoScore = 2;   // 건국·동국·홍익·숙명
+  else if (avg <= 2.5) kyoScore = 1.5; // 세종·국민·인하
   else                 kyoScore = 1;
   if (gradeVariance <= 0.3) kyoScore = Math.min(5, kyoScore + 0.5);
   else if (gradeVariance >= 1.0) kyoScore = Math.max(1, kyoScore - 0.5);
@@ -5589,11 +5631,11 @@ function buildConsultantSectionHTML(subjs, grades) {
   let kyoComment, jongComment, nonComment;
   const kyoTags = [], jongTags = [], nonTags = [];
 
-  if      (avg <= 1.2) { kyoTags.push({text:`평균 ${avg.toFixed(2)}등급 — SKY 도전권`,          color:'#048a6c'}); }
-  else if (avg <= 1.5) { kyoTags.push({text:`평균 ${avg.toFixed(2)}등급 — 성균관·서강·한양 경쟁력`, color:'#48b89f'}); }
-  else if (avg <= 2.0) { kyoTags.push({text:`평균 ${avg.toFixed(2)}등급 — 중경외이 (1.6등급대)`,   color:'#5b9bd5'}); }
-  else if (avg <= 2.5) { kyoTags.push({text:`평균 ${avg.toFixed(2)}등급 — 건국·동국·홍익 (1.8등급대)`,   color:'#f0a500'}); }
-  else if (avg <= 3.0) { kyoTags.push({text:`평균 ${avg.toFixed(2)}등급 — 인서울 한계 — 숙·인·아·세·국·단 수준`,   color:'#f0a500'}); }
+  if      (avg <= 1.0) { kyoTags.push({text:`평균 ${avg.toFixed(2)}등급 — SKY 도전권`,          color:'#048a6c'}); }
+  else if (avg <= 1.3) { kyoTags.push({text:`평균 ${avg.toFixed(2)}등급 — 성균관·서강·한양 경쟁력`, color:'#48b89f'}); }
+  else if (avg <= 1.7) { kyoTags.push({text:`평균 ${avg.toFixed(2)}등급 — 중경외이 (1.3등급대)`,   color:'#5b9bd5'}); }
+  else if (avg <= 2.1) { kyoTags.push({text:`평균 ${avg.toFixed(2)}등급 — 건국·동국·홍익 (1.7등급대)`,   color:'#f0a500'}); }
+  else if (avg <= 2.5) { kyoTags.push({text:`평균 ${avg.toFixed(2)}등급 — 인서울 한계 — 숙·인·아·세·국·단 수준`,   color:'#f0a500'}); }
   else                 { kyoTags.push({text:`평균 ${avg.toFixed(2)}등급 — 인서울 불가 — 가천·경기 외곽`, color:'#e05c5c'}); }
   if (grade1Count > 0) kyoTags.push({text:`1등급 ${grade1Count}과목`, color:'#7c5cbf'});
   if (gradeVariance <= 0.3) kyoTags.push({text:`편차 ${gradeVariance.toFixed(2)} — 균형 내신`, color:'#48b89f'});
@@ -5609,9 +5651,9 @@ function buildConsultantSectionHTML(subjs, grades) {
   // ── 학년별 맞춤 코멘트 ──
   if (gradeYear === 1) {
     // 1학년: 미래 지향적, 선택과목 결정 전 조언
-    kyoComment = avg <= 1.5
+    kyoComment = avg <= 1.3
       ? `✅ 현재 평균 ${avg.toFixed(2)}등급은 교과전형에서 인서울 최상위권(성균관·서강·한양)까지 도전 가능한 수준이에요. (5등급제 기준) ${grade3upCount > 0 ? grade3upCount+'과목 3등급 이하가 있지만, 2학년 선택과목에서 이 과목들을 피하거나 집중 보완하면 전체 평균을 크게 끌어올릴 수 있어요.' : '전과목 2등급 이상으로 균형이 잡혀 있어 교과전형에서 안정적인 출발점이에요.'}\n2학년 선택과목을 지금 성적 패턴에 맞게 설계하고, 강점 과목 위주로 편성하면 교과전형 경쟁력이 극대화돼요. 수능최저 충족(탐구·영어 관리)이 교과전형 합격의 핵심 열쇠예요.`
-      : avg <= 2.5
+      : avg <= 2.1
       ? `⚡ 평균 ${avg.toFixed(2)}등급은 인서울 중상위권 교과전형까지 현실적이에요. 지금 단계에서 가장 중요한 건 2학년 선택과목을 강점 과목 위주로 편성해 평균을 0.3~0.5등급 올리는 전략이에요. ${grade3upCount > 0 ? grade3upCount+'과목이 3등급 이하인데, 이 과목을 2학년에서 수강하지 않거나 집중 보완하면 평균이 확실히 올라요.' : ''}\n종합전형도 함께 준비하면 지원 폭이 크게 넓어져요.`
       : `⚠️ 현재 평균 ${avg.toFixed(2)}등급은 인서울 주요 대학 교과전형 커트라인을 상회해 쉽지 않아요. 2학년에서 성적이 오를 여지가 충분히 있으므로, 지금은 포기하기보다 2학년 선택과목을 전략적으로 편성하고 취약 과목을 집중 보완하는 게 우선이에요.\n종합전형 비교과·세특 준비를 병행해 두 방향을 동시에 챙기는 전략이 현명해요.`;
 
@@ -5625,9 +5667,9 @@ function buildConsultantSectionHTML(subjs, grades) {
 
   } else if (gradeYear === 2) {
     // 2학년: 현실적 전략 + 남은 기간 강조
-    kyoComment = avg <= 1.5
+    kyoComment = avg <= 1.3
       ? `✅ 평균 ${avg.toFixed(2)}등급으로 인서울 최상위권 교과전형 경쟁력을 갖추고 있어요. 2학년 현 시점에서 가장 중요한 건 이 수준을 3학년 1학기까지 유지하는 것이에요. ${grade3upCount > 0 ? '3등급 이하 과목('+grade3upCount+'개)을 3학년 선택과목에서 제외하거나, 이번 학기 안에 집중 보완해 전체 평균을 지키세요.' : '현재 전과목 2등급 이상인 안정적 상태예요.'}\n수능최저 충족(탐구 2과목 관리)을 최우선 과제로 잡고, 3학년 1학기가 교과전형 반영 마지막 학기임을 항상 염두에 두세요.`
-      : avg <= 2.5
+      : avg <= 2.1
       ? `⚡ 평균 ${avg.toFixed(2)}등급으로 인서울 중상위권 교과전형까지 도전 가능해요. 2학년 지금이 교과전형 결정적 시기예요 — 3학년 1학기까지 남은 학기 동안 0.2~0.3등급 향상이 실질적으로 가능해요. ${grade3upCount > 0 ? '3등급 이하 과목 '+grade3upCount+'개를 집중 공략해 전체 평균을 끌어올리는 게 가장 효과적이에요.' : ''}\n수능최저 있는 대학 위주로 집중 지원하면 실질 경쟁률에서 유리해요.`
       : `⚠️ 평균 ${avg.toFixed(2)}등급은 인서울 주요 대학 교과전형 커트라인을 넘어서 쉽지 않은 상황이에요. 2학년 지금부터 3학년 1학기까지 남은 학기를 집중 공략하면 아직 0.3~0.5등급 향상 여지가 있어요. ${gradeVariance >= 0.8 ? '편차('+gradeVariance.toFixed(2)+')가 있어 취약 과목 집중 공략이 가장 효과적이에요.' : ''}\n교과전형과 함께 종합·논술전형을 반드시 병행 준비하세요.`;
 
@@ -5643,9 +5685,9 @@ function buildConsultantSectionHTML(subjs, grades) {
 
   } else {
     // 3학년 또는 누적 최고학년 3학년
-    kyoComment = avg <= 1.5
+    kyoComment = avg <= 1.3
       ? `✅ 평균 ${avg.toFixed(2)}등급은 인서울 최상위권 교과전형 경쟁력이 충분해요. 3학년 1학기 성적이 마지막 반영 학기이므로, 지금 집중적으로 관리해 현재 수준을 유지·소폭 향상하는 게 목표예요. 수능최저 충족이 교과전형 합격의 유일한 변수로 남아 있어요.\n탐구 2과목·영어 등급을 목표 대학 수능최저 기준에 맞게 반드시 점검하세요. 수능최저 미충족은 내신이 아무리 좋아도 불합격이에요.`
-      : avg <= 2.5
+      : avg <= 2.1
       ? `⚡ 평균 ${avg.toFixed(2)}등급은 인서울 중상위권 교과전형까지 현실적이에요. 3학년 1학기가 마지막 내신 반영 기회예요 — 0.1~0.2등급만 올려도 지원 가능 대학군이 크게 바뀌어요. 수능최저 있는 대학 위주로 집중 지원하면 실질 경쟁률에서 유리해요.\n지금 당장 목표 대학별 교과전형 반영 과목과 수능최저 기준을 정확히 파악하고, 시험 일정에 맞춘 마지막 내신 전략을 세우세요.`
       : `⚠️ 현재 평균 ${avg.toFixed(2)}등급으로는 인서울 주요 대학 교과전형이 어려운 상황이에요. 남은 3학년 1학기 내신을 최대한 올리면서 교과전형보다 종합·논술·정시에 집중하는 전략 전환이 필요해요.\n교과전형은 수능최저 없는 학교만 선별 지원하고, 시간과 에너지를 수능 준비에 더 투자하는 게 현실적이에요.`;
 
@@ -5664,20 +5706,22 @@ function buildConsultantSectionHTML(subjs, grades) {
   // 컨설턴트 시뮬레이터
   // ────────────────────────────────────────────────────
   const getUnivRange = g => {
-    if (g <= 1.1) return {range:'SKY 최상위권', color:'#7c5cbf', desc:'5등급제 기준 최상위 구간. 수능최저 충족 시 SKY 교과전형 도전권. 세특 완성도가 종합전형 당락 결정.'};
-    if (g <= 1.3) return {range:'연·고·성균관·서강', color:'#5b9bd5', desc:'교과전형 인서울 최상위권 경쟁력. 세특·비교과 강화로 SKY 종합 도전 가능.'};
-    if (g <= 1.5) return {range:'성균관·서강·한양', color:'#48b89f', desc:'교과전형 상위권. 수능최저 충족 시 연·고 도전 가능. 세특 차별화가 관건.'};
-    if (g <= 1.8) return {range:'한양·중앙·경희·이화', color:'#38a3a5', desc:'교과·종합 중상위권 구간. 세특·비교과 강화로 성균관·서강 종합 도전 가능.'};
-    if (g <= 2.0) return {range:'건동홍·숙명·세종·국민', color:'#f0a500', desc:'인서울 하한선 구간. 0.2등급 향상 시 중앙·경희권 진입 가능. 수능최저 없는 전형 우선 탐색.'};
-    if (g <= 2.5) return {range:'경기·수도권 외곽', color:'#e08030', desc:'인서울 교과전형 사실상 어려운 구간. 논술·종합 병행 및 경기권 교과전형 중심 전략 필요.'};
-    if (g <= 3.2) return {range:'수도권 중하위·지방 국립', color:'#e05c5c', desc:'논술·정시 비중 확대 필요. 남은 학기 내신 향상 집중.'};
+    if (g <= 1.0) return {range:'SKY 최상위권', color:'#7c5cbf', desc:'5등급제 기준 최상위 구간. 수능최저 충족 시 SKY 교과전형 도전권. 세특 완성도가 종합전형 당락 결정.'};
+    if (g <= 1.15) return {range:'연·고·성균관·서강', color:'#5b9bd5', desc:'교과전형 인서울 최상위권 경쟁력. 세특·비교과 강화로 SKY 종합 도전 가능.'};
+    if (g <= 1.3) return {range:'성균관·서강·한양', color:'#48b89f', desc:'교과전형 상위권. 수능최저 충족 시 연·고 도전 가능. 세특 차별화가 관건.'};
+    if (g <= 1.5) return {range:'한양·중앙·경희·이화', color:'#38a3a5', desc:'교과·종합 중상위권 구간. 세특·비교과 강화로 성균관·서강 종합 도전 가능.'};
+    if (g <= 1.7) return {range:'건동홍·숙명·세종·국민', color:'#f0a500', desc:'인서울 하한선 구간. 0.2등급 향상 시 중앙·경희권 진입 가능. 수능최저 없는 전형 우선 탐색.'};
+    if (g <= 2.1) return {range:'경기·수도권 외곽', color:'#e08030', desc:'인서울 교과전형 사실상 어려운 구간. 논술·종합 병행 및 경기권 교과전형 중심 전략 필요.'};
+    if (g <= 2.7) return {range:'수도권 중하위·지방 국립', color:'#e05c5c', desc:'논술·정시 비중 확대 필요. 남은 학기 내신 향상 집중.'};
     return {range:'지방 주요 대학', color:'#888', desc:'정시 준비 병행, 내신 향상이 최우선.'};
   };
   const current = getUnivRange(avg);
   const simRows = [];
   for (let t = Math.max(1.0, avg-1.2); t <= avg+0.1; t = Math.round((t+0.3)*10)/10) {
-    simRows.push({avg:t.toFixed(1), ...getUnivRange(t)});
+    if (Math.abs(t - avg) >= 0.15) simRows.push({avg:t.toFixed(2), ...getUnivRange(t)});
   }
+  simRows.push({avg:avg.toFixed(2), ...getUnivRange(avg)});   // 현재 평균 행을 정확히 포함
+  simRows.sort((a, b) => parseFloat(a.avg) - parseFloat(b.avg));
 
   // ────────────────────────────────────────────────────
   // 수능최저 시뮬레이터 (모의고사 데이터)
@@ -5783,14 +5827,14 @@ function buildConsultantSectionHTML(subjs, grades) {
         <th style="padding:5px 8px;text-align:left;color:var(--text2);">지원 가능 대학군</th>
         <th style="padding:5px 8px;text-align:left;color:var(--text2);">전략 포인트</th>
       </tr></thead>
-      <tbody>${simRows.map(r => {
-        const isNow = Math.abs(parseFloat(r.avg)-avg) < 0.2;
+      <tbody>${(() => { const _md = Math.min(...simRows.map(x => Math.abs(parseFloat(x.avg)-avg))); return simRows.map(r => {
+        const isNow = Math.abs(parseFloat(r.avg)-avg) === _md;
         return `<tr style="border-bottom:1px solid var(--border);background:${isNow?'#fff3cd':'white'};">
           <td style="padding:6px 8px;text-align:center;"><span style="background:${r.color};color:white;padding:2px 10px;border-radius:10px;font-weight:700;">${r.avg}${isNow?' ◀현재':''}</span></td>
           <td style="padding:6px 8px;font-weight:600;color:${r.color};">${r.range}</td>
           <td style="padding:6px 8px;font-size:10px;color:var(--text2);line-height:1.5;">${r.desc}</td>
         </tr>`;
-      }).join('')}</tbody>
+      }).join(''); })()}</tbody>
     </table>
     </div>
     <div style="margin-top:8px;background:#fff;border-radius:8px;padding:8px 12px;border-left:3px solid #048a6c;font-size:11px;color:var(--text2);line-height:1.6;">${current.desc}</div>
@@ -5828,22 +5872,22 @@ function buildConsultantSectionHTML(subjs, grades) {
   </div>
 
   <!-- 이수 선택과목 → 지원 가능 학과 (입사관) -->
-  ${subjectFilterHtml}
+  ${wrapCollapsibleSection('subjFilter', '🏫 이수 선택과목 기반 지원 가능 학과', subjectFilterHtml, true)}
 
   <!-- 수시 안정/적정/도전 분류표 (컨설턴트) -->
-  ${susiStrategyHtml}
+  ${wrapCollapsibleSection('susi', '📋 수시 상향·적정·하향 추천 대학', susiStrategyHtml, true)}
 
   <!-- 컨설턴트 등급 시뮬 -->
-  ${univSimHtml}
+  ${wrapCollapsibleSection('univSim', '📊 등급별 대학 범위', univSimHtml, true)}
 
   <!-- 남은 학기 목표 계산기 (컨설턴트) -->
-  ${remainTermHtml}
+  ${wrapCollapsibleSection('remainTerm', '🎯 남은 학기 목표 계산기', remainTermHtml, true)}
 
   <!-- 수능최저 시뮬 -->
-  ${suneungHtml}
+  ${wrapCollapsibleSection('suneungMin', '📐 수능최저 충족 시뮬레이터', suneungHtml, true)}
 
   <!-- 다음 상담 액션 카드 (담임) -->
-  ${nextActionHtml}
+  ${wrapCollapsibleSection('nextAction', '👨‍🏫 다음 상담 전 액션 카드', nextActionHtml, true)}
 
   <!-- 담임 상담 문구 -->
   ${counselBtn}
@@ -6122,8 +6166,8 @@ function buildRemainingTermSimHTML(avg, gradeYear) {
       </tr></thead>
       <tbody>
         ${rows.map(r => {
-          const univRange = r.target <= 1.1 ? 'SKY 도전권' : r.target <= 1.3 ? '연·고·성균관·서강' : r.target <= 1.5 ? '성균관·서강·한양' : r.target <= 1.8 ? '한양·중앙·경희·이화' : r.target <= 2.0 ? '건동홍·숙명·세종·국민 (인서울 하한)' : r.target <= 2.5 ? '경기·수도권 외곽 (인서울 불가)' : '지방·경기 외곽 대학';
-          const rangeColor = r.target <= 1.3 ? '#7c5cbf' : r.target <= 1.8 ? '#5b9bd5' : r.target <= 2.5 ? '#48b89f' : r.target <= 3.2 ? '#f0a500' : '#e05c5c';
+          const univRange = r.target <= 1.0 ? 'SKY 도전권' : r.target <= 1.15 ? '연·고·성균관·서강' : r.target <= 1.3 ? '성균관·서강·한양' : r.target <= 1.5 ? '한양·중앙·경희·이화' : r.target <= 1.7 ? '건동홍·숙명·세종·국민 (인서울 하한)' : r.target <= 2.1 ? '경기·수도권 외곽 (인서울은 종합·논술 병행)' : '지방·경기 외곽 대학';
+          const rangeColor = r.target <= 1.15 ? '#7c5cbf' : r.target <= 1.5 ? '#5b9bd5' : r.target <= 2.1 ? '#48b89f' : r.target <= 2.7 ? '#f0a500' : '#e05c5c';
           return `<tr style="border-bottom:1px solid var(--border);background:${r.isCurrent?'#fff3cd':'white'};">
             <td style="padding:6px 8px;text-align:center;">
               <span style="background:${rangeColor};color:white;padding:2px 8px;border-radius:10px;font-weight:700;">${r.target.toFixed(1)}${r.isCurrent?' ◀현재':''}</span>
@@ -6284,7 +6328,12 @@ function buildSusiStrategyHTML(avg, gradeYear, career, careerTrack) {
     { univ:'가천대(인문)',     tier:2.3,  note:'가천바람개비 — 경기 외곽' },
   ];
 
-  const DB = isMed ? DB_MED : isNurse ? DB_NURSING : isGlobal ? DB_GLOBAL : isSci ? DB_SCI : DB_HUM;
+  // 5등급제 입결은 아직 공개된 게 없어서, 기존 표의 기준을 '보수적으로' 더 엄격하게 보정한다.
+  // (5등급제 1등급=상위 10%, 2등급=11~34%라 같은 평균이어도 9등급제보다 변별이 약함 → 적정/상향 판정을 약 15% 더 빡빡하게)
+  // 숫자를 키우면 느슨해지고, 줄이면 더 빡빡해짐. 1.0 = 보정 없음(예전 방식)
+  const SUSI_STRICT = 0.85;
+  const DB_RAW = isMed ? DB_MED : isNurse ? DB_NURSING : isGlobal ? DB_GLOBAL : isSci ? DB_SCI : DB_HUM;
+  const DB = DB_RAW.map(u => ({ ...u, tier: Math.max(1.0, Math.round(u.tier * SUSI_STRICT * 100) / 100) }));
 
   // ── 등급대별 자동 분류 ──
   // tier가 낮을수록 합격 어려운 대학 (tier < avg = 상향, tier > avg = 하향)
@@ -6359,7 +6408,7 @@ function buildSusiStrategyHTML(avg, gradeYear, career, careerTrack) {
       <span style="font-size:10px;font-weight:500;color:var(--primary-dark);background:var(--primary-bg);padding:1px 7px;border-radius:10px;margin-left:4px;">${basisLabel}</span>
     </div>
     <div style="font-size:11px;color:var(--text2);margin-bottom:10px;">
-      현재 내신 <strong style="color:var(--primary);">${avg.toFixed(2)}등급</strong> 기준 자동 추출 (5등급제) · 입결은 매년 변동하므로 실제 확인 필수
+      현재 내신 <strong style="color:var(--primary);">${avg.toFixed(2)}등급</strong> 기준 자동 추출 (5등급제 · <strong>보수적 환산 추정</strong>) · 입결은 매년 변동하므로 실제 확인 필수
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
       <span style="background:#fff8e6;color:#f0a500;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;">🎯 상향 — ${up.length}개</span>
@@ -6378,7 +6427,7 @@ function buildSusiStrategyHTML(avg, gradeYear, career, careerTrack) {
     </table>
     </div>
     <div style="margin-top:8px;background:#fff8e6;border-radius:6px;padding:6px 10px;font-size:10px;color:#b45309;line-height:1.6;">
-      ⚠️ 위 추천은 <strong>5등급제 기준 타이트한 참고값</strong>이에요. 인서울은 사실상 2등급 이내가 기준선이며, 수능최저·비교과·면접 등 변수가 크므로 <strong>대입정보포털 어디가(adiga.kr)</strong>에서 실제 입결을 반드시 확인하세요.
+      ⚠️ 5등급제 입결은 아직 공개된 자료가 없어서, 기존 기준을 <strong>상위%로 환산해 보수적으로(약 15% 더 엄격하게)</strong> 잡은 추정값이에요. 표의 '교과 기준'은 그 환산값이고, 실제 합격 평균이 아니에요. 인서울은 사실상 2등급 이내가 기준선이며, 수능최저·비교과·면접 등 변수가 크므로 <strong>대입정보포털 어디가(adiga.kr)</strong>에서 실제 입결을 반드시 확인하세요.
     </div>
   </div>`;
 }
@@ -8471,9 +8520,9 @@ function printFullReport() {
   const statEl = document.getElementById('statContent');
   if (!statEl || !statEl.innerHTML.trim()) { showToast('먼저 성적 기본 분석을 실행해주세요', 'error'); return; }
 
-  // DOM 복사 후 출력 불필요 요소 제거
+  // DOM 복사 후 출력 불필요 요소 제거 (접어 둔 항목 제외, 그래프는 이미지로)
   const tmpDiv = document.createElement('div');
-  tmpDiv.innerHTML = statEl.innerHTML;
+  tmpDiv.innerHTML = buildStatPrintHtml();
   tmpDiv.querySelectorAll('button').forEach(b => b.remove());
   tmpDiv.querySelectorAll('input, textarea, select').forEach(el => el.remove());
   ['counselScriptResult','counselBtn','counselScriptText'].forEach(id => {
@@ -8530,7 +8579,7 @@ ${cleanHtml}
   setTimeout(() => { win.print(); }, 300);
 }
 function printStat() {
-  const content = document.getElementById('statContent')?.innerHTML || '';
+  const content = buildStatPrintHtml();
   const studentName = selectedStudent?.name || '';
   const studentNum = selectedStudent?.num || '';
   const win = window.open('', '_blank');
