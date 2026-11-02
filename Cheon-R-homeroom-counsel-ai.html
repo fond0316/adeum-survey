@@ -6562,7 +6562,18 @@ function buildPathwayHTML(avg, career, track, forPrint) {
         <button type="button" onclick="pathSearch('career')" style="min-height:40px;padding:0 12px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">커리어넷 학과정보</button>
         <button type="button" onclick="pathSearch('academyinfo')" style="min-height:40px;padding:0 12px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">대학알리미 공시</button>
       </div>
-      <div style="font-size:10px;color:var(--text3);margin-top:4px;">해당 사이트 안에서 학과명을 검색한 결과가 새 창으로 열려요. 입결·모집단위는 꼭 사이트에서 확인하세요.</div>
+      <div style="margin-top:10px;background:#f8f6ff;border-radius:10px;padding:10px 12px;">
+        <div style="font-size:11px;font-weight:800;color:var(--text);margin-bottom:4px;">📚 커리어넷 학과 정보를 여기서 바로 보기 <span style="font-weight:500;color:var(--text3);">(공식 Open API)</span></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <input id="careerKeyInput" type="password" class="text-input" value="${e(careerKeyGet())}" placeholder="커리어넷 인증키 (한 번만 입력)" autocomplete="off" style="flex:1;min-width:150px;height:40px;">
+          <button type="button" onclick="careerKeySave()" style="min-height:40px;padding:0 12px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">저장</button>
+          <button type="button" onclick="careerSearch()" style="min-height:40px;padding:0 14px;border-radius:10px;border:none;background:#5e40a6;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">학과 정보 보기</button>
+        </div>
+        <div style="font-size:10px;color:var(--text3);margin-top:4px;">인증키는 이 기기(브라우저)에만 저장돼요. 커리어넷 오픈API 신청 페이지에서 무료로 신청하면 발급돼요. 위의 희망 학과 칸에 쓴 이름으로 검색해요.</div>
+        <div id="careerApiResult" style="margin-top:8px;"></div>
+      </div>
+      <label style="display:flex;align-items:center;gap:6px;min-height:36px;font-size:11px;color:var(--text2);margin-top:2px;"><input id="pathLucky" type="checkbox" checked> 검색 목록 없이 <b>첫 번째 결과 페이지로 바로 이동</b> <span style="color:var(--text3);">(안 열리면 체크를 끄면 목록이 보여요)</span></label>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px;">해당 사이트 안의 학과 페이지로 열려요. 입결·모집단위는 꼭 사이트에서 확인하세요.</div>
     </div>
     <div class="no-print" style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
       <div style="font-size:11px;font-weight:800;color:var(--text);margin-bottom:4px;">🤖 AI 후보 제안 <span style="font-weight:500;color:var(--text3);">(담임 참고용 · 출력 안 됨)</span></div>
@@ -6576,7 +6587,81 @@ function pathSearch(site) {
   if (!q) { showToast('희망 학과를 먼저 입력해 주세요 🙏', 'error'); return; }
   const dom = { adiga: 'adiga.kr', career: 'career.go.kr', academyinfo: 'academyinfo.go.kr' }[site];
   const add = { adiga: ' 입시결과', career: ' 학과', academyinfo: '' }[site];
-  window.open('https://www.google.com/search?q=' + encodeURIComponent('site:' + dom + ' ' + q + add), '_blank', 'noopener');
+  const lucky = (document.getElementById('pathLucky') || {}).checked;
+  window.open('https://www.google.com/search?q=' + encodeURIComponent('site:' + dom + ' ' + q + add) + (lucky ? '&btnI=1' : ''), '_blank', 'noopener');
+}
+// ── 커리어넷 학과정보 Open API (공식) — 키는 이 기기 localStorage에만 저장 (HTML에 넣지 않음) ──
+const CAREER_API_BASE = 'https://www.career.go.kr/cnet/openapi/getOpenApi';
+const CAREER_API_KEY_LS = 'admAI_careerKey_v1';
+const careerDetailCache = {};
+function careerKeyGet() { try { return localStorage.getItem(CAREER_API_KEY_LS) || ''; } catch (er) { return ''; } }
+function careerKeySave() {
+  const v = ((document.getElementById('careerKeyInput') || {}).value || '').trim();
+  try { localStorage.setItem(CAREER_API_KEY_LS, v); } catch (er) {}
+  showToast(v ? '커리어넷 키를 저장했어요 ✅' : '커리어넷 키를 지웠어요', v ? 'success' : 'info');
+}
+async function careerApiCall(params) {
+  const key = careerKeyGet();
+  const qs = new URLSearchParams(Object.assign({ apiKey: key, svcType: 'api', contentType: 'json', gubun: 'univ_list' }, params));
+  const res = await fetch(CAREER_API_BASE + '?' + qs.toString());
+  if (!res.ok) throw new Error('커리어넷 응답 오류 (' + res.status + ')');
+  const txt = await res.text();
+  let d; try { d = JSON.parse(txt); } catch (er) { throw new Error('응답을 읽지 못했어요'); }
+  if (d && d.result && d.result.content) { const c = Array.isArray(d.result.content) ? d.result.content[0] : d.result.content; throw new Error((c && c.message) || '커리어넷 오류'); }
+  const c = d && d.dataSearch ? d.dataSearch.content : null;
+  return Array.isArray(c) ? c : (c ? [c] : []);
+}
+function careerClean(x) {
+  return escapeHTML(String(x == null ? '' : x).replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim());
+}
+function careerList(x) { return Array.isArray(x) ? x : (x == null || x === '' ? [] : [x]); }
+async function careerSearch() {
+  const box = document.getElementById('careerApiResult');
+  const q = ((document.getElementById('pathQ') || {}).value || '').trim();
+  if (!q) { showToast('희망 학과를 먼저 입력해 주세요 🙏', 'error'); return; }
+  if (!careerKeyGet()) { showToast('커리어넷 인증키를 먼저 입력·저장해 주세요', 'error'); return; }
+  if (box) box.innerHTML = '<div style="font-size:11px;color:var(--text3);">⏳ 커리어넷에서 찾는 중…</div>';
+  try {
+    const list = await careerApiCall({ svcCode: 'MAJOR', searchTitle: q, thisPage: 1, perPage: 12 });
+    if (!list.length) { box.innerHTML = '<div style="font-size:11px;color:var(--text2);">검색 결과가 없어요. 학과명을 줄여서(예: 시각디자인) 다시 검색해 보세요.</div>'; return; }
+    box.innerHTML = `<div style="font-size:11px;color:var(--text2);margin-bottom:6px;">학과를 눌러 자세한 정보를 보세요 (${list.length}건)</div><div style="display:flex;flex-wrap:wrap;gap:6px;">${list.map(it => `<button type="button" onclick="careerDetail('${escapeHTML(String(it.majorSeq))}')" style="min-height:40px;padding:0 12px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;text-align:left;">${escapeHTML(it.mClass || it.facilName || '')}${it.lClass ? ` <span style="font-weight:500;color:var(--text3);">· ${escapeHTML(it.lClass)}</span>` : ''}</button>`).join('')}</div><div id="careerDetailBox" style="margin-top:10px;"></div>`;
+    careerDetail(String(list[0].majorSeq));
+  } catch (err) {
+    const net = /Failed to fetch|NetworkError|Load failed/i.test(err.message);
+    box.innerHTML = `<div style="font-size:11px;color:#c2410c;line-height:1.7;">⚠️ ${escapeHTML(net ? '커리어넷에 연결하지 못했어요. (인증키가 맞는지, 인터넷 연결이 되는지 확인해 주세요. 브라우저가 이 요청을 막는 경우도 있어요)' : err.message)}<br>위의 「커리어넷 학과정보」 버튼으로 사이트에서 직접 볼 수 있어요.</div>`;
+  }
+}
+async function careerDetail(seq) {
+  const box = document.getElementById('careerDetailBox');
+  if (!box) return;
+  box.innerHTML = '<div style="font-size:11px;color:var(--text3);">⏳ 불러오는 중…</div>';
+  try {
+    let c = careerDetailCache[seq];
+    if (!c) { const r = await careerApiCall({ svcCode: 'MAJOR_VIEW', majorSeq: seq }); c = r[0]; if (c) careerDetailCache[seq] = c; }
+    if (!c) { box.innerHTML = '<div style="font-size:11px;color:var(--text2);">상세 정보가 없어요.</div>'; return; }
+    const sec = (t, body) => body ? `<div style="margin-top:8px;"><div style="font-size:11px;font-weight:800;color:#5e40a6;margin-bottom:2px;">${t}</div><div style="font-size:11px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">${body}</div></div>` : '';
+    const subj22 = careerList(c.relate_subject_2022).map(x => careerClean(x && x.subject_name)).filter(Boolean);
+    const mainSub = careerList(c.main_subject).map(x => careerClean(x && x.SBJECT_NM)).filter(Boolean).slice(0, 12);
+    const enter = careerList(c.enter_field).map(x => x && x.gradeuate ? careerClean(x.gradeuate) + (x.description ? ' — ' + careerClean(x.description) : '') : '').filter(Boolean).slice(0, 6);
+    const univ = careerList(c.university);
+    const univHtml = univ.length ? `<div style="margin-top:8px;"><div style="font-size:11px;font-weight:800;color:#5e40a6;margin-bottom:4px;">🏫 개설 대학 (${univ.length}곳)</div><div style="display:flex;flex-wrap:wrap;gap:4px;max-height:130px;overflow-y:auto;">${univ.map(u => { const nm = escapeHTML((u.schoolName || '') + (u.campus_nm ? ' ' + u.campus_nm : '')); const mj = u.majorName ? `<span style="color:var(--text3);"> ${escapeHTML(u.majorName)}</span>` : ''; const url = /^https?:\/\//i.test(u.schoolURL || '') ? u.schoolURL : ''; return `<span style="background:#f3effa;border-radius:8px;padding:3px 8px;font-size:10.5px;">${url ? `<a href="${escapeHTML(url)}" target="_blank" rel="noopener" style="color:#5e40a6;text-decoration:none;">${nm}</a>` : nm}${mj}</span>`; }).join('')}</div></div>` : '';
+    const stat = [c.employment ? '취업률 ' + careerClean(c.employment) : '', c.salary ? '졸업 후 임금 ' + careerClean(c.salary) : ''].filter(Boolean).join(' · ');
+    box.innerHTML = `<div style="background:#faf8ff;border:1.5px solid #d8c9f5;border-radius:10px;padding:10px 12px;">
+      <div style="font-size:13px;font-weight:800;color:#5e40a6;">📚 ${careerClean(c.major)}</div>
+      ${c.department ? `<div style="font-size:10.5px;color:var(--text3);margin-top:2px;">세부 학과: ${careerClean(c.department)}</div>` : ''}
+      ${sec('학과 개요', careerClean(c.summary))}${sec('흥미와 적성', careerClean(c.interest))}${sec('학과 특성', careerClean(c.property))}
+      ${subj22.length ? sec('📘 관련 고교 선택과목 (2022 개정)', subj22.join(' · ')) : ''}
+      ${mainSub.length ? sec('대학 주요 교과목', mainSub.join(' · ')) : ''}
+      ${sec('관련 직업', careerList(c.job).map(x => careerClean(typeof x === 'object' ? (x && (x.job_nm || x.name)) : x)).filter(Boolean).join(', '))}
+      ${sec('관련 자격', careerList(c.qualifications).map(x => careerClean(x)).filter(Boolean).join(', '))}
+      ${enter.length ? sec('졸업 후 진출 분야', enter.join('\n')) : ''}
+      ${stat ? sec('졸업 후 현황', escapeHTML(stat)) : ''}
+      ${univHtml}
+      <div style="font-size:10px;color:var(--text3);margin-top:8px;">출처: 커리어넷(한국직업능력연구원) 학과정보 Open API · 입결은 포함되지 않아요 (대학어디가에서 확인)</div>
+    </div>`;
+  } catch (err) {
+    box.innerHTML = `<div style="font-size:11px;color:#c2410c;">⚠️ ${escapeHTML(err.message)}</div>`;
+  }
 }
 const pathAICache = {};
 function getPathCtx() {
