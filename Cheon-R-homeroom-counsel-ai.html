@@ -1216,8 +1216,7 @@
           <button onclick="copyStatResult()" style="padding:4px 12px;border-radius:6px;border:1.5px solid var(--border);background:white;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📋 복사</button>
           <button onclick="saveStatResult()" style="padding:4px 12px;border-radius:6px;border:1.5px solid var(--primary);background:var(--primary-bg);color:var(--primary-dark);font-size:11px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">💾 저장</button>
           <button onclick="printFullReport()" style="padding:4px 12px;border-radius:6px;border:1.5px solid #5e40a6;background:linear-gradient(135deg,#5e40a6,#7c5cbf);color:white;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🖨️ 전체 출력</button>
-          <button onclick="printStudentSummaryCard()" style="padding:4px 12px;border-radius:6px;border:1.5px solid #5e40a6;background:#f3effa;color:#5e40a6;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📄 학생 요약 카드</button>
-          <button onclick="openParentSheet()" style="padding:4px 12px;border-radius:6px;border:1.5px solid #48b89f;background:#f0faf7;color:#048a6c;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">👪 학부모 상담용 출력</button>
+          <button onclick="openParentSheet()" style="padding:4px 12px;border-radius:6px;border:1.5px solid #48b89f;background:#f0faf7;color:#048a6c;font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">👪 상담용 출력 (학부모·학생)</button>
           <button onclick="printStat()" style="padding:4px 12px;border-radius:6px;border:1.5px solid var(--border);background:white;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🖨️ 출력</button>
         </div>
       </div>
@@ -8674,10 +8673,15 @@ function openParentSheet() {
   ov.innerHTML = `
   <div style="background:#fff;border-radius:16px;max-width:560px;width:100%;padding:18px 18px 20px;box-shadow:0 10px 40px rgba(0,0,0,.25);">
     <div style="display:flex;align-items:center;gap:8px;">
-      <div style="font-size:16px;font-weight:800;color:var(--primary-dark);">👪 학부모 상담용 1장</div>
+      <div style="font-size:16px;font-weight:800;color:var(--primary-dark);">👪 상담용 출력 (학부모·학생)</div>
       <button type="button" onclick="closeParentSheet()" style="margin-left:auto;min-width:44px;min-height:44px;border:none;background:none;font-size:20px;cursor:pointer;">✕</button>
     </div>
     <div style="font-size:12px;color:var(--text2);line-height:1.6;">${escapeHTML(d.title)} · 가장 최근 시험(${escapeHTML(d.latestLabel)}) 기준 · 자동으로 채운 문장을 <b>자유롭게 고친 뒤</b> 출력하세요. 대학 예측은 넣지 않아요.</div>
+    <label style="${lab}">🎯 누구에게 드릴 자료인가요?</label>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      ${[['parent', '👪 학부모용'], ['student', '🎓 학생용']].map(([k, t]) => `<label style="display:flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border:1.5px solid var(--border);border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;"><input type="radio" name="ps_target" value="${k}" ${k === 'parent' ? 'checked' : ''} onchange="psTargetChange()">${t}</label>`).join('')}
+    </div>
+    <div style="${hint}">내용은 같고, <b>학부모용에만</b> 아래 '학부모님께만 전달할 말씀'이 추가돼요.</div>
     <label style="${lab}">👍 잘하고 있는 점 <span style="font-weight:500;color:var(--text3);">(한 줄에 하나)</span></label>
     <textarea id="ps_strengths" rows="4" style="${fld}">${escapeHTML(d.strengths)}</textarea>
     <label style="${lab}">🔎 함께 살펴볼 점</label>
@@ -8688,8 +8692,13 @@ function openParentSheet() {
     <textarea id="ps_goal" rows="2" style="${fld}" placeholder="예: 수학 오답노트 매주 1회 / 영어 단어 하루 20개"></textarea>
     <label style="${lab}">📅 다음 상담 예정일</label>
     <input id="ps_next" type="text" style="${fld}min-height:44px;" placeholder="예: 12월 둘째 주 (비워 두면 빈칸)">
-    <label style="${lab}">✏️ 담임 한마디 <span style="font-weight:500;color:var(--text3);">(선택)</span></label>
-    <textarea id="ps_memo" rows="2" style="${fld}" placeholder="학부모님께 드리고 싶은 말"></textarea>
+    <label style="${lab}">✏️ 담임 한마디 <span style="font-weight:500;color:var(--text3);">(선택 · 학부모·학생 공통)</span></label>
+    <textarea id="ps_memo" rows="2" style="${fld}" placeholder="격려나 당부 한마디"></textarea>
+    <div id="ps_pwrap">
+      <label style="${lab}">📩 학부모님께만 전달할 말씀 <span style="font-weight:500;color:var(--text3);">(학부모용에만 출력 · 상담에서 나눈 이야기 등)</span></label>
+      <textarea id="ps_pmemo" rows="3" style="${fld}" placeholder="예: 가정에서 수학 학습 시간을 함께 정해 보시면 좋겠어요"></textarea>
+      <button type="button" onclick="psFillMemo()" style="margin-top:6px;min-height:40px;padding:0 12px;border-radius:10px;border:1.5px solid var(--border);background:#fff;color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">📥 '추가 정보 입력'의 담임 메모 불러오기</button>
+    </div>
     ${d.slots.length >= 2 ? `
     <label style="${lab}">📈 누적 변화 그래프 <span style="font-weight:500;color:var(--text3);">(출력에 넣을 것만 고르세요)</span></label>
     <label style="display:flex;align-items:center;gap:8px;min-height:36px;font-size:12px;"><input id="ps_chart" type="checkbox" checked> 그래프 넣기</label>
@@ -8702,6 +8711,7 @@ function openParentSheet() {
       ${SUBJECTS.filter(sb => d.series[sb].length).map(sb => `<label style="display:flex;align-items:center;gap:6px;min-height:40px;padding:0 12px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;"><input type="checkbox" class="ps_subj" value="${sb}" checked><span style="width:9px;height:9px;border-radius:50%;background:${TREND_COLORS[sb] || '#999'};display:inline-block;"></span>${e2(trendSubjShort(sb))}</label>`).join('')}
     </div>` : ''}
     <div style="margin-top:12px;font-size:12px;color:var(--text2);line-height:1.9;">
+      <label style="display:flex;align-items:center;gap:8px;min-height:36px;"><input id="ps_career" type="checkbox" ${(document.getElementById('career') || {}).value && document.getElementById('career').value.trim() ? 'checked' : ''}> 희망 진로 표시하기${(document.getElementById('career') || {}).value && document.getElementById('career').value.trim() ? ' (' + escapeHTML(document.getElementById('career').value.trim()) + ')' : ' (입력된 진로 없음)'}</label>
       <label style="display:flex;align-items:center;gap:8px;min-height:36px;"><input id="ps_guide" type="checkbox" checked> 「숫자 읽는 법」 해설 박스 넣기</label>
       <label style="display:flex;align-items:center;gap:8px;min-height:36px;"><input id="ps_sites" type="checkbox" checked> 「참고하면 좋은 공식 사이트」 넣기</label>
     </div>
@@ -8711,6 +8721,18 @@ function openParentSheet() {
     </div>
   </div>`;
   document.body.appendChild(ov);
+}
+
+function psTargetChange() {
+  const t = (document.querySelector('input[name="ps_target"]:checked') || {}).value;
+  const w = document.getElementById('ps_pwrap');
+  if (w) w.style.display = t === 'student' ? 'none' : 'block';
+}
+function psFillMemo() {
+  const m = (document.getElementById('memo') || {}).value || '';
+  const el = document.getElementById('ps_pmemo');
+  if (!m.trim()) { showToast("'추가 정보 입력'의 담임 메모가 비어 있어요", 'error'); return; }
+  if (el) el.value = (el.value ? el.value + '\n' : '') + m.trim();
 }
 
 function closeParentSheet() {
@@ -8730,6 +8752,8 @@ function buildParentSheetHtml(d, v) {
   const bullets = (arr, emptyN) => arr.length
     ? `<ul style="margin:0;padding-left:18px;line-height:1.75;">${arr.map(x => `<li>${e(x)}</li>`).join('')}</ul>` : blank(emptyN);
   // 요약 한 줄
+  const isStu = v.target === 'student';
+  const careerTxt = ((document.getElementById('career') || {}).value || '').trim();
   let sum = '';
   if (ev.avgL) sum = `가장 최근 시험(${e(d.latestLabel)}) 평균 <b>${ev.avgL.avg.toFixed(2)}등급</b>`;
   if (slots.length >= 2 && ev.avgF && ev.avgL) {
@@ -8750,7 +8774,7 @@ function buildParentSheetHtml(d, v) {
   let chartBox = '';
   if (v.chart && slots.length >= 2 && v.subjOn.length) {
     const off = {}; SUBJECTS.forEach(sb => { off[sb] = !v.subjOn.includes(sb); });
-    const svg = buildTrendSVG(slots, d.series, v.metric, { W: 720, H: 175, padB: 36, off, font: "'Pretendard','Noto Sans KR',sans-serif" });
+    const svg = buildTrendSVG(slots, d.series, v.metric, { W: 720, H: 140, padB: 32, off, font: "'Pretendard','Noto Sans KR',sans-serif" });
     const mName = { pct: '상위 %', score: '원점수', grade: '등급' }[v.metric];
     const dirNote = v.metric === 'pct' ? '위쪽일수록 상위 %가 작아요(좋아요)' : v.metric === 'grade' ? '위쪽일수록 1등급에 가까워요' : '위쪽일수록 점수가 높아요';
     const legend = SUBJECTS.filter(sb => v.subjOn.includes(sb) && d.series[sb].length).map(sb =>
@@ -8778,9 +8802,10 @@ function buildParentSheetHtml(d, v) {
       <div style="line-height:1.65;font-size:10.5px;">${SITES.map(x => `<div><b>${e(x[0])}</b> <span style="color:#5e40a6;">${e(x[1])}</span> <span style="color:#8a80a8;">· ${e(x[2])}</span></div>`).join('')}</div>
       <div style="font-size:10px;color:#8a80a8;margin-top:3px;">※ 대학별 모집요강은 각 대학 입학처 홈페이지에서 꼭 확인해 주세요.</div>
     </div>` : '';
+  const pBox = (!isStu && v.pmemo.trim()) ? `<div class="box" style="border-color:#c9bdf0;background:#faf8ff;"><div class="bt">📩 학부모님께 전달드리는 말씀</div><div style="line-height:1.7;white-space:pre-wrap;">${e(v.pmemo.trim())}</div></div>` : '';
   return `
-  <div class="head"><div><div class="ttl">👪 학부모 상담 자료</div><div class="sub">${e(d.title)} · 2022개정 교육과정 · 5등급제 · ${new Date().toLocaleDateString('ko-KR')}</div></div></div>
-  <div class="sum">${sum}</div>
+  <div class="head"><div><div class="ttl">${isStu ? '🎓 학생 상담 자료' : '👪 학부모 상담 자료'}</div><div class="sub">${e(d.title)} · 2022개정 교육과정 · 5등급제 · ${new Date().toLocaleDateString('ko-KR')}</div></div></div>
+  <div class="sum">${sum}${v.career && careerTxt ? ` · 희망 진로 <b>${e(careerTxt)}</b>` : ''}</div>
   <table class="t"><thead><tr><th>과목</th><th>등급 흐름<div class="s">${e(flowHead)}</div></th><th>최근 등급</th><th>최근 상위 %</th><th>최근 원점수</th><th>변화</th></tr></thead><tbody>${rowsHtml}</tbody></table>
   ${chartBox}
   <div class="two">
@@ -8788,10 +8813,10 @@ function buildParentSheetHtml(d, v) {
     <div class="box" style="border-color:#f3d9b1;background:#fffaf2;"><div class="bt">🔎 함께 살펴볼 점</div>${bullets(psLines(v.weak), 3)}</div>
   </div>
   <div class="box"><div class="bt">✅ 앞으로 할 일</div>${psLines(v.todo).length ? `<ol style="margin:0;padding-left:20px;line-height:1.75;">${psLines(v.todo).map(x => `<li>${e(x)}</li>`).join('')}</ol>` : blank(3)}</div>
-  ${v.memo.trim() ? `<div class="box"><div class="bt">✏️ 담임 한마디</div><div style="line-height:1.7;white-space:pre-wrap;">${e(v.memo.trim())}</div></div>` : ''}
+  ${(pBox || v.memo.trim()) ? `<div style="display:grid;grid-template-columns:${pBox && v.memo.trim() ? '1fr 1fr' : '1fr'};gap:8px;">${v.memo.trim() ? `<div class="box"><div class="bt">✏️ ${isStu ? '선생님 한마디' : '담임 한마디'}</div><div style="line-height:1.6;white-space:pre-wrap;">${e(v.memo.trim())}</div></div>` : ''}${pBox}</div>` : ''}
   <div class="box" style="border-color:#c9bdf0;"><div class="bt">🤝 이번 학기 함께 정한 목표</div>${psLines(v.goal).length ? bullets(psLines(v.goal), 2) : blank(2)}
     <div style="margin-top:8px;display:flex;gap:14px;align-items:flex-end;"><span style="white-space:nowrap;font-weight:700;">다음 상담 예정일</span>${v.nextDate.trim() ? `<span style="font-weight:700;">${e(v.nextDate.trim())}</span>` : `<span style="flex:1;border-bottom:1px solid #b9aedb;height:20px;"></span>`}
-    <span style="white-space:nowrap;font-weight:700;margin-left:auto;">확인 (학부모 · 학생)</span><span style="width:130px;border-bottom:1px solid #b9aedb;height:20px;"></span></div>
+    <span style="white-space:nowrap;font-weight:700;margin-left:auto;">${isStu ? '확인 (학생)' : '확인 (학부모 · 학생)'}</span><span style="width:130px;border-bottom:1px solid #b9aedb;height:20px;"></span></div>
   </div>
   <div style="display:grid;grid-template-columns:${guide && sitesBox ? '1fr 1.25fr' : '1fr'};gap:8px;">${guide}${sitesBox}</div>
   <div class="foot">※ 이 자료는 시험 결과를 바탕으로 한 참고용 안내이며, 학생의 가능성을 단정하는 자료가 아니에요. 입시 결과는 해마다 달라지므로 대학별 모집요강을 꼭 확인해 주세요.<br>아듬's 담임상담 AI · Made by Cheon_R</div>`;
@@ -8805,28 +8830,31 @@ function printParentSheet() {
               guide: !!(document.getElementById('ps_guide') || {}).checked,
               sites: !!(document.getElementById('ps_sites') || {}).checked,
               chart: !!(document.getElementById('ps_chart') || {}).checked,
+              target: ((document.querySelector('input[name="ps_target"]:checked') || {}).value) || 'parent',
+              pmemo: g('ps_pmemo'),
+              career: !!(document.getElementById('ps_career') || {}).checked,
               metric: ((document.querySelector('input[name="ps_metric"]:checked') || {}).value) || 'pct',
               subjOn: [...document.querySelectorAll('.ps_subj')].filter(x => x.checked).map(x => x.value) };
   const body = buildParentSheetHtml(d, v);
   const win = window.open('', '_blank');
   if (!win) { showToast('팝업이 차단됐어요. 브라우저에서 팝업 허용 후 다시 눌러주세요 🖨️', 'error'); return; }
   win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>학부모 상담 자료 - ${escapeHTML(d.title)}</title>
+  <title>${v.target === 'student' ? '학생' : '학부모'} 상담 자료 - ${escapeHTML(d.title)}</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
   <style>*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     @page { size: A4; margin: 10mm; }
-    body { font-family: 'Pretendard','Noto Sans KR',sans-serif; margin: 0 auto; max-width: 190mm; padding: 12px; color: #2d2540; font-size: 11px; }
+    body { font-family: 'Pretendard','Noto Sans KR',sans-serif; margin: 0 auto; max-width: 190mm; padding: 12px; color: #2d2540; font-size: 10.5px; }
     .head { background: linear-gradient(135deg,#5e40a6,#7c5cbf); border-radius: 10px; padding: 8px 16px; color: #fff; margin-bottom: 6px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .ttl { font-size: 17px; font-weight: 800; } .sub { font-size: 11px; opacity: .9; margin-top: 2px; }
     .sum { font-size: 12px; margin: 4px 2px 6px; }
     table.t { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
-    table.t th { background: #f3effa; color: #5e40a6; padding: 3px 6px; border: 1px solid #ddd6f0; font-size: 11px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    table.t th { background: #f3effa; color: #5e40a6; padding: 2px 6px; border: 1px solid #ddd6f0; font-size: 11px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     table.t th .s { font-weight: 500; font-size: 9px; color: #7a6fa0; }
-    table.t td { padding: 3px 6px; border: 1px solid #ddd6f0; }
+    table.t td { padding: 2px 6px; border: 1px solid #ddd6f0; }
     .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .box { border: 1.5px solid #ddd6f0; border-radius: 10px; padding: 6px 12px; margin-bottom: 6px; break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .box { border: 1.5px solid #ddd6f0; border-radius: 10px; padding: 5px 12px; margin-bottom: 5px; break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .bt { font-weight: 800; color: #5e40a6; margin-bottom: 4px; font-size: 12px; }
-    .foot { font-size: 9.5px; color: #8a80a8; line-height: 1.6; margin-top: 4px; }
+    .foot { font-size: 9px; color: #8a80a8; line-height: 1.5; margin-top: 2px; }
     @media print { body { padding: 0; } }
   </style></head><body>${body}</body></html>`);
   win.document.close();
