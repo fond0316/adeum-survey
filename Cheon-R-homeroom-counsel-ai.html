@@ -4742,6 +4742,7 @@ function startStatAnalysis() {
   statCard.style.display = 'block';
   document.getElementById('statContent').innerHTML = html;
   autoFoldStatSections();
+  try { careerAutoRun(); } catch (er) {}
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('chartCard').style.display = 'none';
 
@@ -6647,14 +6648,27 @@ function careerClean(x) {
   return escapeHTML(String(x == null ? '' : x).replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim());
 }
 function careerList(x) { return Array.isArray(x) ? x : (x == null || x === '' ? [] : [x]); }
-async function careerSearch() {
+const careerListCache = {};
+// 희망 진로가 여러 개(쉼표·슬래시로 구분)면 첫 번째로 검색
+function careerFirstTerm(t) { return String(t || '').split(/[,，/·、]|\s{2,}/)[0].trim(); }
+// 분석 화면이 그려진 뒤 자동 호출: 키와 희망 진로가 있을 때만, 같은 검색어는 다시 호출하지 않고 저장된 결과를 사용
+function careerAutoRun() {
+  const q = document.getElementById('pathQ');
   const box = document.getElementById('careerApiResult');
-  const q = ((document.getElementById('pathQ') || {}).value || '').trim();
-  if (!q) { showToast('희망 학과를 먼저 입력해 주세요 🙏', 'error'); return; }
-  if (!careerKeyGet()) { showToast('커리어넷 인증키를 먼저 입력·저장해 주세요', 'error'); return; }
+  if (!q || !box) return;
+  if (!careerFirstTerm(q.value)) { box.innerHTML = '<div style="font-size:10.5px;color:var(--text3);">왼쪽 「희망 진로」를 입력하고 분석하면 커리어넷 학과 정보가 자동으로 여기에 나와요.</div>'; return; }
+  if (!careerKeyGet()) { box.innerHTML = '<div style="font-size:10.5px;color:#c2410c;">커리어넷 인증키를 상단 「API 키 설정」에 저장하면 학과 정보가 자동으로 나와요.</div>'; return; }
+  careerSearch(true);
+}
+async function careerSearch(auto) {
+  const box = document.getElementById('careerApiResult');
+  const q = careerFirstTerm((document.getElementById('pathQ') || {}).value || '');
+  if (!q) { if (!auto) showToast('희망 학과를 먼저 입력해 주세요 🙏', 'error'); return; }
+  if (!careerKeyGet()) { if (!auto) showToast('커리어넷 인증키를 먼저 입력·저장해 주세요', 'error'); return; }
   if (box) box.innerHTML = '<div style="font-size:11px;color:var(--text3);">⏳ 커리어넷에서 찾는 중…</div>';
   try {
-    const list = await careerApiCall({ svcCode: 'MAJOR', searchTitle: q, thisPage: 1, perPage: 12 });
+    let list = careerListCache[q];
+    if (!list) { list = await careerApiCall({ svcCode: 'MAJOR', searchTitle: q, thisPage: 1, perPage: 12 }); careerListCache[q] = list; }
     if (!list.length) { box.innerHTML = '<div style="font-size:11px;color:var(--text2);">검색 결과가 없어요. 학과명을 줄여서(예: 시각디자인) 다시 검색해 보세요.</div>'; return; }
     box.innerHTML = `<div style="font-size:11px;color:var(--text2);margin-bottom:6px;">학과를 눌러 자세한 정보를 보세요 (${list.length}건)</div><div style="display:flex;flex-wrap:wrap;gap:6px;">${list.map(it => `<button type="button" onclick="careerDetail('${escapeHTML(String(it.majorSeq))}')" style="min-height:40px;padding:0 12px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;text-align:left;">${escapeHTML(it.mClass || it.facilName || '')}${it.lClass ? ` <span style="font-weight:500;color:var(--text3);">· ${escapeHTML(it.lClass)}</span>` : ''}</button>`).join('')}</div><div id="careerDetailBox" style="margin-top:10px;"></div>`;
     careerDetail(String(list[0].majorSeq));
