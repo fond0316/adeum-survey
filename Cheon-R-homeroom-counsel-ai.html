@@ -1200,6 +1200,8 @@
         <!-- 기타 메모 -->
         <label class="form-label">💬 기타 메모 <span style="color:var(--text3);font-weight:400;">(선택)</span></label>
         <textarea class="text-input" id="memo" rows="2" placeholder="학생 특이사항, 학습 습관, 고민 등..."></textarea>
+        <div style="font-size:10.5px;color:var(--text3);margin-top:6px;">💾 입력한 내용은 학생별로 자동 저장돼요 (이 기기).</div>
+        <button type="button" onclick="clearStudentInputs()" style="margin-top:6px;min-height:40px;width:100%;border-radius:10px;border:1.5px solid var(--border);background:#fff;color:var(--text2);font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🧹 이 학생 입력 내용만 지우기</button>
 
       </div>
     </div>
@@ -2845,6 +2847,55 @@ function getSubjectName(raw) {
   return raw;
 }
 
+// ==================== 학생별 입력 내용 저장 (희망 진로·계열·비교과·상담 태그·메모) ====================
+// 학생을 고르면 이전에 쓴 내용이 자동으로 채워지고, 새로고침·재접속해도 이 기기에 남아요
+const STU_PROFILE_LS = 'admAI_stuProfile_v1';
+const STU_PROFILE_FIELDS = ['career', 'extra_auto', 'extra_career', 'extra_club', 'counsel_memo', 'memo'];
+function stuProfileKey() { return selectedStudent ? `${selectedStudent.num}_${selectedStudent.name || ''}` : ''; }
+function stuProfileAll() { try { return JSON.parse(localStorage.getItem(STU_PROFILE_LS) || '{}'); } catch (er) { return {}; } }
+function stuProfileSave() {
+  const k = stuProfileKey();
+  if (!k) return;
+  const d = {};
+  STU_PROFILE_FIELDS.forEach(id => { const el = document.getElementById(id); const v = el ? el.value : ''; if (v && v.trim()) d[id] = v; });
+  const tr = (document.getElementById('careerTrackVal') || {}).value || '';
+  if (tr) d.track = tr;
+  const tags = [...document.querySelectorAll('.stag.active')].map(el => (el.dataset.group || '') + '|' + el.textContent.trim());
+  if (tags.length) d.tags = tags;
+  const all = stuProfileAll();
+  if (Object.keys(d).length) all[k] = d; else delete all[k];
+  try { localStorage.setItem(STU_PROFILE_LS, JSON.stringify(all)); } catch (er) {}
+}
+function stuProfileRestore() {
+  const k = stuProfileKey();
+  if (!k) return;
+  const d = stuProfileAll()[k];
+  if (!d) return;
+  STU_PROFILE_FIELDS.forEach(id => { const el = document.getElementById(id); if (el && d[id] !== undefined) el.value = d[id]; });
+  if (d.tags) document.querySelectorAll('.stag').forEach(el => { if (d.tags.includes((el.dataset.group || '') + '|' + el.textContent.trim())) el.classList.add('active'); });
+  if (d.track) {
+    const b = [...document.querySelectorAll('.track-btn')].find(x => x.dataset.track === d.track);
+    if (b) {
+      b.style.background = 'var(--primary)'; b.style.borderColor = 'var(--primary)'; b.style.color = '#fff';
+      const tv = document.getElementById('careerTrackVal'); if (tv) tv.value = d.track;
+    }
+  }
+}
+// 이 학생이 쓴 입력만 지우기 (성적·분석 결과는 그대로)
+function clearStudentInputs() {
+  if (!selectedStudent) { showToast('먼저 학생을 선택해 주세요', 'error'); return; }
+  if (!confirm(`${selectedStudent.num}번 ${selectedStudent.name || ''} 학생의 입력 내용(희망 진로·계열·비교과·상담 태그·메모)만 지울까요?\n성적과 분석 결과는 그대로예요.`)) return;
+  resetStudentInputFields();
+  const all = stuProfileAll(); delete all[stuProfileKey()];
+  try { localStorage.setItem(STU_PROFILE_LS, JSON.stringify(all)); } catch (er) {}
+  try { renderSetukContent(); } catch (er) {}
+  try { refreshSusiStrategyWrap(); } catch (er) {}
+  showToast('이 학생의 입력 내용을 지웠어요 🧹', 'success');
+}
+document.addEventListener('DOMContentLoaded', () => {
+  STU_PROFILE_FIELDS.forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('input', stuProfileSave); });
+});
+
 // ==================== 학생 선택 ====================
 function resetStudentInputFields() {
   // 계열 버튼 초기화 (인라인 style 방식)
@@ -2877,6 +2928,7 @@ function resetStudentInputFields() {
 }
 
 function selectStudent() {
+  try { stuProfileSave(); } catch (er) {}   // 바꾸기 직전, 이전 학생 입력을 저장
   const num = document.getElementById('studentSelect').value;
   if (!num) {
     document.getElementById('gradePreview').style.display = 'none';
@@ -2890,6 +2942,7 @@ function selectStudent() {
     selectedStudent = { num: parseInt(num), name: d?.name || '' };
     selectedTrack = null;
     resetStudentInputFields();
+    try { stuProfileRestore(); } catch (er) {}
     buildTrackBtns();
     initMemoCard();
     document.getElementById('summaryCard').style.display = 'none';
@@ -2939,6 +2992,7 @@ function selectStudent() {
   statTab = 'slot'; statSlotKey = null; // 학생을 바꾸면 분석 탭을 가장 최근 시험으로 초기화
   selectedTrack = null;
   resetStudentInputFields();
+  try { stuProfileRestore(); } catch (er) {}
   initMokUI();
   buildTrackBtns();
   initMemoCard();
@@ -3303,7 +3357,8 @@ function showResetModal() {
       </div>
       <div style="padding:20px;">
         <div style="font-size:13px;color:var(--text);line-height:1.7;margin-bottom:6px;">저장된 <strong>모든 학생의 분석 결과</strong>가 삭제돼요.</div>
-        <div style="font-size:12px;color:var(--text3);margin-bottom:20px;">API 키는 유지돼요. 이 작업은 되돌릴 수 없어요.</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:10px;">API 키는 유지돼요. 이 작업은 되돌릴 수 없어요.</div>
+        <label style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:16px;cursor:pointer;"><input type="checkbox" id="resetAlsoInputs" style="margin-top:2px;"> 학생별로 적어 둔 입력 내용(희망 진로·계열·비교과·상담 메모)도 함께 삭제</label>
         <div style="display:flex;gap:8px;">
           <button onclick="document.getElementById('resetModal').remove()"
             style="flex:1;padding:10px;border-radius:8px;border:1.5px solid var(--border);background:#fff;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
@@ -3329,6 +3384,8 @@ function doResetAll() {
     if (key && key.startsWith('result_')) keysToDelete.push(key);
   }
   keysToDelete.forEach(k => localStorage.removeItem(k));
+  const alsoInputs = !!(document.getElementById('resetAlsoInputs') || {}).checked;
+  if (alsoInputs) { try { localStorage.removeItem(STU_PROFILE_LS); resetStudentInputFields(); } catch (er) {} }
   document.getElementById('resetModal').remove();
   showToast(`${keysToDelete.length}명 분석 결과가 초기화됐어요`, 'success');
 
@@ -3461,6 +3518,7 @@ function showGuideModal() {
 
 function toggleSchoolTag(el) {
   el.classList.toggle('active');
+  try { stuProfileSave(); } catch (er) {}
 }
 
 function getSelectedTags(group) {
@@ -3913,6 +3971,7 @@ function selectTrackBtn(el) {
   el.style.borderColor = 'var(--primary)';
   el.style.color = '#fff';
   document.getElementById('careerTrackVal').value = el.dataset.track;
+  try { stuProfileSave(); } catch (er) {}
   renderSetukContent();
   refreshSusiStrategyWrap();
 }
@@ -5253,16 +5312,34 @@ function switchStatMock() { statTab = 'mock'; startStatAnalysis(); }
 function setMockMetric(m) { mockMetric = m; startStatAnalysis(); }
 function toggleMockSubj(k) { mockSubjOff[k] = !mockSubjOff[k]; startStatAnalysis(); }
 
+// 첫 회 → 최근 회 변화 (좋아지면 d>0)
+function mockDeltaInfo(ms, k, metric) {
+  const pts = (ms.series[k] || []).filter(p => p[metric] !== null);
+  if (pts.length < 2) return null;
+  const a = pts[0], b = pts[pts.length - 1];
+  const d = metric === 'grade' ? a.grade - b.grade : b[metric] - a[metric];
+  const ad = Math.abs(d), eps = metric === 'grade' ? 0 : 0.05;
+  const big = ad >= (metric === 'grade' ? 2 : metric === 'pct' ? 3 : 5);
+  const nm = (k === '탐구1' || k === '탐구2') ? ((ms.label || {})[k] || k) : k;
+  const r1 = Math.round(ad * 10) / 10;
+  const amt = metric === 'grade' ? r1 + '등급' : metric === 'pct' ? r1 + 'p' : r1 + '점';
+  const arrow = ad <= eps ? '– 유지' : (d > 0 ? '▲ ' + amt : '▼ ' + amt);
+  const color = ad <= eps ? '#8a8aa0' : (big ? (d > 0 ? '#047857' : '#d32f2f') : '#8a8aa0');
+  return { k, d, big: big && ad > eps, text: nm + ' ' + arrow, color, lastVal: b[metric] };
+}
+
 function buildMockSVG(ms, metric, opt) {
   opt = opt || {};
+  const offMap = opt.off || mockSubjOff;
+  const emph = opt.emph !== false;
   const host = document.getElementById('statContent');
   const W = opt.W || Math.max(300, ((host && host.clientWidth) || 520) - 40);
-  const H = opt.H || 240, padL = 56, padR = 14, padT = 14, padB = 34;
+  const H = opt.H || 240, padL = 56, padR = emph ? 112 : 14, padT = 14, padB = opt.padB || 34;
   const plotW = W - padL - padR, plotH = H - padT - padB;
   const n = ms.rounds.length;
   const xAt = i => padL + (i + 0.5) / n * plotW;
   const vals = [];
-  MOCK_SUBJ.forEach(k => { if (mockSubjOff[k]) return; ms.series[k].forEach(p => { if (p[metric] !== null) vals.push(p[metric]); }); });
+  MOCK_SUBJ.forEach(k => { if (offMap[k]) return; ms.series[k].forEach(p => { if (p[metric] !== null) vals.push(p[metric]); }); });
   let ticks, yAt, fmt;
   if (metric === 'grade') {
     ticks = [1, 3, 5, 7, 9]; yAt = v => padT + (v - 1) / 8 * plotH; fmt = v => v + '등급';
@@ -5281,7 +5358,7 @@ function buildMockSVG(ms, metric, opt) {
   });
   ms.rounds.forEach((r, i) => { svg += `<text x="${xAt(i)}" y="${H - 10}" text-anchor="middle" font-size="11" font-weight="700" fill="#5e40a6">${escapeHTML(r)}</text>`; });
   MOCK_SUBJ.forEach(k => {
-    if (mockSubjOff[k]) return;
+    if (offMap[k]) return;
     const pts = ms.series[k].filter(p => p[metric] !== null);
     if (!pts.length) return;
     const c = MOCK_COLORS[k];
@@ -5291,6 +5368,17 @@ function buildMockSVG(ms, metric, opt) {
       svg += `<circle cx="${xAt(p.idx)}" cy="${yAt(p[metric])}" r="5" fill="${c}" stroke="#fff" stroke-width="1.5"><title>${escapeHTML(tip)}</title></circle>`;
     });
   });
+  if (emph) {
+    const items = [];
+    MOCK_SUBJ.forEach(k => { if (offMap[k]) return; const di = mockDeltaInfo(ms, k, metric); if (di) { di.y = yAt(di.lastVal) + 4; items.push(di); } });
+    items.sort((a, b) => a.y - b.y);
+    for (let i = 1; i < items.length; i++) if (items[i].y - items[i - 1].y < 13) items[i].y = items[i - 1].y + 13;
+    const yMax = H - 8;
+    for (let i = items.length - 1; i >= 0; i--) { if (items[i].y > yMax) items[i].y = yMax; if (i < items.length - 1 && items[i + 1].y - items[i].y < 13) items[i].y = items[i + 1].y - 13; }
+    items.forEach(it => {
+      svg += `<text x="${W - padR + 8}" y="${it.y}" font-size="${it.big ? 11.5 : 10.5}" font-weight="${it.big ? 800 : 500}" fill="${it.color}">${escapeHTML(it.text)}</text>`;
+    });
+  }
   return svg + '</svg>';
 }
 
@@ -5349,7 +5437,7 @@ function renderMockTab() {
   <div style="padding:14px 20px 0;">
     <div class="no-print" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">${mBtn('grade', '등급')}${mBtn('pct', '백분위')}${mBtn('score', '원점수', !hasScore)}</div>
     <div class="no-print" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">${chips}</div>
-    <div style="font-size:11px;color:var(--text3);margin-bottom:6px;">${mockMetric === 'grade' ? '위쪽 = 1등급(좋음) · 수능형 9등급제' : mockMetric === 'pct' ? '위쪽 = 백분위가 높음(좋음)' : '위쪽 = 높은 원점수'}${mockMetric === 'pct' ? ' · 영어·한국사는 절대평가라 백분위가 없어요' : ''}</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:6px;">${mockMetric === 'grade' ? '위쪽 = 1등급(좋음) · 수능형 9등급제' : mockMetric === 'pct' ? '위쪽 = 백분위가 높음(좋음)' : '위쪽 = 높은 원점수'}${mockMetric === 'pct' ? ' · 영어·한국사는 절대평가라 백분위가 없어요' : ''} · 오른쪽 = 첫 회(${e(first)}) → 최근 회(${e(last)}) 변화</div>
     <div style="margin-bottom:14px;">${ms.rounds.length ? buildMockSVG(ms, mockMetric) : ''}</div>
     <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px;">📋 회차별 성적표</div>
     <div style="overflow-x:auto;margin-bottom:14px;"><table style="width:100%;border-collapse:collapse;font-size:12px;">
@@ -9341,6 +9429,7 @@ function openParentSheet() {
   if (!selectedStudent) { showToast('먼저 학생을 선택해 주세요 🙏', 'error'); return; }
   const d = buildParentSheetDraft();
   if (!d) { showToast('이 학생의 성적 자료가 아직 없어요', 'error'); return; }
+  try { d.mock = hasAnyMock() ? getMockSeries() : null; } catch (er) { d.mock = null; }
   parentSheetCtx = d;
   closeParentSheet();
   const e2 = escapeHTML;
@@ -9390,6 +9479,18 @@ function openParentSheet() {
     <div style="display:flex;gap:6px;flex-wrap:wrap;">
       ${SUBJECTS.filter(sb => d.series[sb].length).map(sb => `<label style="display:flex;align-items:center;gap:6px;min-height:40px;padding:0 12px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;"><input type="checkbox" class="ps_subj" value="${sb}" checked><span style="width:9px;height:9px;border-radius:50%;background:${TREND_COLORS[sb] || '#999'};display:inline-block;"></span>${e2(trendSubjShort(sb))}</label>`).join('')}
     </div>` : ''}
+    ${d.mock ? (() => {
+      const hasP = MOCK_SUBJ.some(k => d.mock.series[k].some(p => p.pct !== null));
+      const hasS = MOCK_SUBJ.some(k => d.mock.series[k].some(p => p.score !== null));
+      const def = hasP ? 'pct' : 'grade';
+      return `
+    <label style="${lab}">📝 모의고사 누적 <span style="font-weight:500;color:var(--text3);">(2쪽째로 따로 출력돼요)</span></label>
+    <label style="display:flex;align-items:center;gap:8px;min-height:36px;font-size:12px;"><input id="ps_mock" type="checkbox" checked> 모의고사 누적 쪽 넣기 (${e2(d.mock.rounds.join(' → '))})</label>
+    <div style="${hint}">모의고사 그래프에서 보여줄 것</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      ${[['pct', '백분위', !hasP], ['grade', '등급', false], ['score', '원점수', !hasS]].map(([k, t, dis]) => `<label style="display:flex;align-items:center;gap:6px;min-height:40px;padding:0 12px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;font-weight:700;cursor:${dis ? 'default' : 'pointer'};${dis ? 'opacity:.4;' : ''}"><input type="radio" name="ps_mmetric" value="${k}" ${k === def ? 'checked' : ''} ${dis ? 'disabled' : ''}>${t}</label>`).join('')}
+    </div>`;
+    })() : ''}
     <div style="margin-top:12px;font-size:12px;color:var(--text2);line-height:1.9;">
       <label style="display:flex;align-items:center;gap:8px;min-height:36px;"><input id="ps_career" type="checkbox" ${(document.getElementById('career') || {}).value && document.getElementById('career').value.trim() ? 'checked' : ''}> 희망 진로 표시하기${(document.getElementById('career') || {}).value && document.getElementById('career').value.trim() ? ' (' + escapeHTML(document.getElementById('career').value.trim()) + ')' : ' (입력된 진로 없음)'}</label>
       <label style="display:flex;align-items:center;gap:8px;min-height:36px;"><input id="ps_pri" type="checkbox" checked> 「우선 올리면 좋은 과목 TOP」 카드 넣기 (현재 석차·목표 컷 포함)</label>
@@ -9515,7 +9616,60 @@ function buildParentSheetHtml(d, v) {
     <span style="white-space:nowrap;font-weight:700;margin-left:auto;">${isStu ? '확인 (학생)' : '확인 (학부모 · 학생)'}</span><span style="width:130px;border-bottom:1px solid #b9aedb;height:20px;"></span></div>
   </div>
   <div style="display:grid;grid-template-columns:${guide && sitesBox ? '1fr 1.25fr' : '1fr'};gap:8px;">${guide}${sitesBox}</div>
-  <div class="foot">※ 이 자료는 시험 결과를 바탕으로 한 참고용 안내이며, 학생의 가능성을 단정하는 자료가 아니에요. 입시 결과는 해마다 달라지므로 대학별 모집요강을 꼭 확인해 주세요.<br>아듬's 담임상담 AI · Made by Cheon_R</div>`;
+  <div class="foot">※ 이 자료는 시험 결과를 바탕으로 한 참고용 안내이며, 학생의 가능성을 단정하는 자료가 아니에요. 입시 결과는 해마다 달라지므로 대학별 모집요강을 꼭 확인해 주세요.<br>아듬's 담임상담 AI · Made by Cheon_R</div>
+  ${(v.mock && d.mock) ? buildMockPrintHtml(d.mock, v) : ''}`;
+}
+
+// 모의고사 누적 쪽 (상담용 출력 2쪽째)
+function buildMockPrintHtml(ms, v) {
+  const e = escapeHTML;
+  const metric = v.mmetric || 'pct';
+  const isStu = v.target === 'student';
+  const subs = MOCK_SUBJ.filter(k => ms.series[k].length);
+  const first = ms.rounds[0], last = ms.rounds[ms.rounds.length - 1];
+  const cell = p => {
+    if (!p) return '<td style="text-align:center;color:#bbb;">-</td>';
+    const gc = (typeof GRADE_COLOR !== 'undefined' && GRADE_COLOR[p.grade]) || '#5e40a6';
+    const sub = [p.pct !== null ? '백분위 ' + p.pct : '', p.score !== null ? p.score + '점' : ''].filter(Boolean).join(' · ');
+    return `<td style="text-align:center;line-height:1.45;">${p.grade ? `<b style="color:${gc};">${p.grade}등급</b>` : ''}${sub ? `<br><span style="font-size:9.5px;color:#8a80a8;">${sub}</span>` : ''}</td>`;
+  };
+  const rows = subs.map(k => {
+    const pts = ms.series[k], a = pts[0], b = pts[pts.length - 1];
+    let chip = '<span style="color:#888;">비교 전</span>', note = '';
+    if (pts.length >= 2 && a.grade && b.grade) {
+      const d = a.grade - b.grade, col = d > 0 ? '#048a6c' : d < 0 ? '#c2410c' : '#6b5aa8';
+      chip = `<span style="color:${col};font-weight:700;">${d > 0 ? '▲ ' + d + '등급 상승' : d < 0 ? '▼ ' + (-d) + '등급 하락' : '– 유지'}</span>`;
+      if (a.pct !== null && b.pct !== null) { const dp = Math.round((b.pct - a.pct) * 10) / 10; note = `<div style="font-size:9.5px;color:#8a80a8;">백분위 ${a.pct} → ${b.pct} (${dp >= 0 ? '+' : ''}${dp})</div>`; }
+    }
+    return `<tr><td style="font-weight:700;white-space:nowrap;">${e(mockSubjLabel(k, ms.label))}</td>${ms.rounds.map(r => cell(pts.find(p => p.round === r))).join('')}<td style="text-align:center;">${chip}${note}</td></tr>`;
+  }).join('');
+  const avgOf = r => { const g = ['국어', '수학', '영어', '탐구1', '탐구2'].map(k => (ms.series[k].find(p => p.round === r) || {}).grade).filter(Boolean); return g.length ? g.reduce((x, y) => x + y, 0) / g.length : null; };
+  const aF = avgOf(first), aL = avgOf(last);
+  let sum = aL !== null ? `가장 최근 모의고사(<b>${e(last)}</b>) 국·수·영·탐 평균 <b>${aL.toFixed(2)}등급</b>` : '';
+  if (ms.rounds.length >= 2 && aF !== null && aL !== null) {
+    const dd = aF - aL;
+    sum += Math.abs(dd) < 0.1 ? ` · ${e(first)}과 비슷한 수준이에요` : (dd > 0 ? ` · ${e(first)}보다 <b style="color:#048a6c;">${dd.toFixed(2)}등급 올랐어요</b>` : ` · ${e(first)}보다 <b style="color:#c2410c;">${(-dd).toFixed(2)}등급 내려갔어요</b>`);
+  } else if (ms.rounds.length < 2) sum += ' · 모의고사가 1회뿐이라 변화 비교는 아직 어려워요';
+  let chartBox = '';
+  if (ms.rounds.length >= 2) {
+    const svg = buildMockSVG(ms, metric, { W: 720, H: 210, padB: 30, off: {}, font: "'Pretendard','Noto Sans KR',sans-serif" });
+    const mName = { pct: '백분위', score: '원점수', grade: '등급' }[metric];
+    const dirNote = metric === 'grade' ? '위쪽일수록 1등급에 가까워요' : metric === 'pct' ? '위쪽일수록 백분위가 높아요(좋아요) · 영어·한국사는 절대평가라 백분위가 없어요' : '위쪽일수록 점수가 높아요';
+    const legend = subs.map(k => `<span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;"><i style="width:9px;height:9px;border-radius:50%;background:${MOCK_COLORS[k]};display:inline-block;"></i>${e(mockSubjLabel(k, ms.label))}</span>`).join('');
+    chartBox = `<div class="box" style="padding:6px 10px;"><div class="bt">📈 모의고사별 변화 (${mName}) <span style="font-weight:500;color:#8a80a8;font-size:10px;">${dirNote}</span></div>${svg}<div style="font-size:10.5px;margin-top:2px;">${legend}</div><div style="font-size:9.5px;color:#8a80a8;margin-top:2px;">오른쪽 숫자 = 첫 회(${e(first)}) → 최근 회(${e(last)}) 변화 · 크게 오르내린 과목만 굵게 표시</div></div>`;
+  }
+  return `<div style="break-before:page;page-break-before:always;">
+  <div class="head"><div><div class="ttl">📝 모의고사 누적</div><div class="sub">${e(selectedStudent ? selectedStudent.num + '번 ' + selectedStudent.name : '')} · ${e(ms.rounds.join(' → '))} · 수능형 9등급제 · ${isStu ? '학생' : '학부모'} 상담 자료</div></div></div>
+  ${sum ? `<div class="sum">${sum}</div>` : ''}
+  <table class="t"><thead><tr><th>과목</th>${ms.rounds.map(r => `<th>${e(r)}</th>`).join('')}<th>변화</th></tr></thead><tbody>${rows}</tbody></table>
+  ${chartBox}
+  <div class="box" style="background:#faf8ff;"><div class="bt">📖 모의고사 읽는 법</div>
+    <div style="line-height:1.7;">· 모의고사는 <b>수능형 9등급제</b>(상대평가)이고, 학교 내신은 <b>5등급제</b>예요. 두 등급 숫자는 서로 바로 비교하지 않아요.<br>
+    · <b>백분위</b>는 높을수록 좋아요. 예) 백분위 95 = 100명 중 상위 약 5%.<br>
+    · 영어·한국사는 <b>절대평가</b>라 등급만 나오고 백분위는 없어요.<br>
+    · 모의고사는 응시 집단과 난이도가 매번 달라, 한 번의 결과보다 <b>흐름</b>을 함께 봐 주세요.</div></div>
+  <div class="foot">※ 이 자료는 모의고사 결과를 바탕으로 한 참고용 안내이며, 학생의 가능성을 단정하는 자료가 아니에요.<br>아듬's 담임상담 AI · Made by Cheon_R</div>
+  </div>`;
 }
 
 function printParentSheet() {
@@ -9530,6 +9684,8 @@ function printParentSheet() {
               chart: !!(document.getElementById('ps_chart') || {}).checked,
               target: ((document.querySelector('input[name="ps_target"]:checked') || {}).value) || 'parent',
               pmemo: g('ps_pmemo'),
+              mock: !!(document.getElementById('ps_mock') || {}).checked,
+              mmetric: ((document.querySelector('input[name="ps_mmetric"]:checked') || {}).value) || 'pct',
               career: !!(document.getElementById('ps_career') || {}).checked,
               metric: ((document.querySelector('input[name="ps_metric"]:checked') || {}).value) || 'pct',
               subjOn: [...document.querySelectorAll('.ps_subj')].filter(x => x.checked).map(x => x.value) };
