@@ -91,6 +91,8 @@
   .api-toggle-btn:hover { background: rgba(255,255,255,0.25); }
 
   /* API 패널 */
+  .zoom-btn { border: none; background: transparent; color: #fff; font-size: 11px; font-weight: 700; padding: 5px 8px; border-radius: 6px; cursor: pointer; font-family: inherit; min-height: 30px; }
+  .zoom-btn.on { background: #fff; color: var(--primary-dark); }
   .api-panel {
     background: var(--primary-dark);
     padding: 16px 32px;
@@ -717,6 +719,12 @@
     <button onclick="showClassDashboard()" style="padding:7px 14px;border-radius:8px;border:1.5px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.15);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">📊 학급 대시보드</button>
     <button onclick="showGuideModal()" style="padding:7px 14px;border-radius:8px;border:1.5px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.12);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">❓ 사용가이드</button>
     <button onclick="showResetModal()" style="padding:7px 14px;border-radius:8px;border:1.5px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.12);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">🗑️ 초기화</button>
+    <span id="zoomCtl" class="no-print" style="display:inline-flex;align-items:center;gap:2px;background:rgba(255,255,255,0.12);border:1.5px solid rgba(255,255,255,0.4);border-radius:8px;padding:2px;" title="화면 글씨 크기">
+      <span style="font-size:11px;color:rgba(255,255,255,0.85);padding:0 6px;font-weight:700;">🔍 크기</span>
+      <button type="button" data-z="1" onclick="setUiZoom(1)" class="zoom-btn">100%</button>
+      <button type="button" data-z="1.1" onclick="setUiZoom(1.1)" class="zoom-btn">110%</button>
+      <button type="button" data-z="1.2" onclick="setUiZoom(1.2)" class="zoom-btn">120%</button>
+    </span>
     <button class="api-toggle-btn" onclick="toggleApiPanel()">🔑 API 키 설정</button>
   </div>
 </div>
@@ -1338,6 +1346,7 @@
 <!-- 프린트용 스타일 -->
 <style>
 @media print {
+  html, body { zoom: 1 !important; }
   .header, .api-panel, .main > div:first-child, #chartCard, #memoCard, .tabs, .toast { display: none !important; }
   .main { display: block !important; padding: 0 !important; }
   .result-panel { display: block !important; }
@@ -1423,12 +1432,27 @@ window.onload = () => {
   // 저장된 성적/누적/세특 데이터 복원 (학년 탭 렌더링보다 먼저 실행해야 완료 표시가 반영됨)
   restoreSavedDataOnLoad();
   try { careerKeyInit(); } catch (er) {}
+  try { uiZoomApply(); } catch (er) {}
 
   // 학년 탭 초기 렌더링
   switchGradeTab(1);
 };
 
 // ==================== API 키 ====================
+// ── 화면 글씨 크기 (전체 화면 배율) — 인쇄·출력물에는 영향 없음, 이 기기에 기억 ──
+const UI_ZOOM_LS = 'admAI_uiZoom_v1';
+function uiZoomGet() { try { const v = parseFloat(localStorage.getItem(UI_ZOOM_LS)); return [1, 1.1, 1.2].includes(v) ? v : 1.1; } catch (er) { return 1.1; } }
+function uiZoomApply() {
+  const want = uiZoomGet();
+  // 가운데 분석 칸이 너무 좁아지지 않도록, 실제 화면 폭이 1600px 아래로 내려가지 않는 범위까지만 적용 (좁은 노트북 화면은 브라우저 확대 Ctrl+ 를 쓰세요)
+  const eff = Math.max(1, Math.min(want, (window.innerWidth || 1400) / 1600));
+  document.body.style.zoom = eff === 1 ? '' : String(Math.round(eff * 100) / 100);
+  document.querySelectorAll('#zoomCtl .zoom-btn').forEach(b => b.classList.toggle('on', parseFloat(b.dataset.z) === want));
+  const ctl = document.getElementById('zoomCtl');
+  if (ctl) ctl.title = eff < want ? '화면이 좁아서 선택한 크기보다 작게 적용돼요' : '화면 글씨 크기';
+}
+function setUiZoom(z) { try { localStorage.setItem(UI_ZOOM_LS, String(z)); } catch (er) {} uiZoomApply(); }
+window.addEventListener('resize', () => { try { uiZoomApply(); } catch (er) {} });
 function toggleApiPanel() {
   const panel = document.getElementById('apiPanel');
   panel.classList.toggle('open');
@@ -4996,7 +5020,13 @@ function buildTrendSVG(slots, series, metric, opt) {
         worse = metric === 'score' ? dv < 0 : dv > 0;
         const mag = Math.abs(Math.round(dv * 10) / 10);
         dTxt = (worse ? '▼ ' : '▲ ') + mag + (metric === 'grade' ? '등급' : metric === 'pct' ? '%p' : '점');
-        labels.push({ y: yAt(b0), text: trendSubjShort(subj).replace('공통', '') + ' ' + dTxt, color: worse ? '#d32f2f' : '#047857' });
+        labels.push({ y: yAt(b0), text: trendSubjShort(subj).replace('공통', '') + ' ' + dTxt, color: worse ? '#d32f2f' : '#047857', big: true });
+      } else {
+        // 변화가 작은 과목도 옆에 표시 (작고 차분한 글씨)
+        const mag = Math.abs(Math.round(dv * 10) / 10);
+        const wr = metric === 'score' ? dv < 0 : dv > 0;
+        const sm = mag < 0.05 ? '– 유지' : (wr ? '▼ ' : '▲ ') + mag + (metric === 'grade' ? '등급' : metric === 'pct' ? '%p' : '점');
+        labels.push({ y: yAt(b0), text: trendSubjShort(subj).replace('공통', '') + ' ' + sm, color: '#8a8aa0', big: false });
       }
     }
     const lw = emph ? (big ? 3.6 : 1.6) : 2, op = emph ? (big ? 1 : 0.5) : 1;
@@ -5015,7 +5045,13 @@ function buildTrendSVG(slots, series, metric, opt) {
   // 변화량 라벨 (겹치지 않게 위아래로 조금씩 밀어서)
   labels.sort((a, b) => a.y - b.y);
   for (let i = 1; i < labels.length; i++) if (labels[i].y - labels[i - 1].y < 13) labels[i].y = labels[i - 1].y + 13;
-  labels.forEach(l => { svg += `<text x="${W - padR + 8}" y="${l.y + 4}" font-size="11" font-weight="800" fill="${l.color}">${escapeHTML(l.text)}</text>`; });
+  // 아래로 밀리다 그림 밖으로 나가면 위로 다시 끌어올림
+  const yMax = H - 8;
+  if (labels.length && labels[labels.length - 1].y > yMax) {
+    labels[labels.length - 1].y = yMax;
+    for (let i = labels.length - 2; i >= 0; i--) if (labels[i + 1].y - labels[i].y < 13) labels[i].y = labels[i + 1].y - 13;
+  }
+  labels.forEach(l => { svg += `<text x="${W - padR + 8}" y="${l.y + 4}" font-size="${l.big ? 11 : 10}" font-weight="${l.big ? 800 : 600}" fill="${l.color}">${escapeHTML(l.text)}</text>`; });
   return svg + '</svg>';
 }
 
