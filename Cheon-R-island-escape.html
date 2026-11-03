@@ -167,6 +167,30 @@ footer a{color:var(--ink);font-weight:900}
 .demobar button{min-height:36px;border:3px solid var(--ink);border-radius:6px;background:#fff;font:inherit;font-weight:900;cursor:pointer}
 .pw{-webkit-text-security:disc}
 .title b,.btn,.coin,.chip,.pill,h2,.banner{font-family:var(--game)}
+
+/* 귀여운 SOS 말풍선 · 고마워요 반응 · 연습장 · 중계 */
+.pc .sb{display:none;position:absolute;left:50%;top:auto;bottom:calc(100% + 3px);transform:translateX(-50%);font-style:normal;font-size:10px;font-weight:900;font-family:var(--game);color:#fff;background:#FF5C8A;border:2px solid var(--ink);border-radius:10px;padding:0 5px;white-space:nowrap;animation:sosb .7s ease-in-out infinite;z-index:8}
+.pc .sb::after{content:'';position:absolute;left:50%;top:100%;margin-left:-4px;border:4px solid transparent;border-top-color:var(--ink)}
+@keyframes sosb{0%,100%{transform:translateX(-50%) translateY(0) rotate(-4deg)}50%{transform:translateX(-50%) translateY(-5px) rotate(4deg)}}
+.thx{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.thx .btn{width:auto;min-height:44px;min-width:48px;font-size:20px;padding:0 12px;margin:0}
+.fdbox{max-height:34vh;overflow:auto}
+.fd{display:flex;gap:8px;align-items:baseline;padding:6px 8px;border-bottom:2px dashed #cfe0ff;font-size:14px}
+.fd .ft{font-size:11px;color:var(--sub);min-width:56px;font-family:var(--game)}
+.fd.new{background:#FFF6C9;animation:popin .4s}
+.fd.sos{color:#C2185B}
+.padfab{position:fixed;right:12px;bottom:78px;z-index:9;width:64px;height:64px;border-radius:50%;border:3px solid var(--ink);background:var(--gold);box-shadow:0 4px 0 var(--ink);font-size:24px;line-height:1;cursor:pointer;font-family:var(--game);color:var(--ink);padding:0}
+.padfab small{display:block;font-size:10px;font-weight:900}
+.padov{position:fixed;inset:0;z-index:90;background:rgba(22,41,77,.55);display:flex;align-items:center;justify-content:center}
+.padbox{width:96vw;height:94vh;max-width:1400px;background:#fff;border:4px solid var(--ink);border-radius:10px;display:flex;flex-direction:column;overflow:hidden}
+.padtop{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 10px;background:#CFE9FF;border-bottom:3px solid var(--ink)}
+.padtop b{font-family:var(--game);margin-right:4px}
+.padtop button{min-height:44px;min-width:44px;border:3px solid var(--ink);border-radius:8px;background:#fff;font:inherit;font-weight:900;font-size:14px;cursor:pointer;padding:0 10px}
+.padtop button.on{background:var(--gold);box-shadow:0 2px 0 var(--ink)}
+.padtop .sw{width:44px;padding:0}
+.padq{padding:6px 12px;font-size:14px;max-height:20vh;overflow:auto;white-space:pre-wrap;background:#FFFBEA;border-bottom:2px dashed var(--ink)}
+.padcv{flex:1;position:relative;min-height:0;background-color:#fff;background-image:linear-gradient(#e8eef9 1px,transparent 1px),linear-gradient(90deg,#e8eef9 1px,transparent 1px);background-size:28px 28px}
+.padcv canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 </style>
 </head>
 <body>
@@ -195,13 +219,13 @@ footer a{color:var(--ink);font-weight:900}
  *  문항세트 : 선생님이 만든 문항 세트 (문항 1개 = 1행, 보기·정답·힌트는 각각 별도 칸)
  *  문항이미지: 문항에 붙인 그림 (조각으로 나눠 저장)
  *
- * 문항은 5~10개이고, 관리자 화면 [문항 세트]에서 만들어요. 기본 세트(집합과 명제)는 HTML 안에 들어 있어요.
+ * 문항은 5~10개이고, 관리자 화면 [문항 세트]에서 만들어요. 기본 세트(집합 5문항)는 HTML 안에 들어 있어요.
  * 관리자 입장코드: 처음엔 islandescape -> 관리자 화면에서 각자 바꿔요 (바뀐 값은 스크립트 속성 ADMIN_CODE 에 저장)
  *   * 코드를 잊었다면: Apps Script > 프로젝트 설정 > 스크립트 속성에서 ADMIN_CODE 를 지우면 islandescape 로 돌아가요
  */
 var SH_P = '참가자', SH_LOG = '풀이기록', SH_H = '힌트', SH_R = '도움요청', SH_B = '상자', SH_T = '조설정', SH_Q = '문항세트', SH_QI = '문항이미지';
 var NMAX = 10;                // 문항 최대 개수 (참가자 시트에 Q1~Q10 열을 항상 만들어 둬요)
-var DEFAULT_N = 10;            // 기본 세트의 문항 수
+var DEFAULT_N = 5;             // 기본 세트의 문항 수
 var MAX_TEAM = 6;              // 조당 최대 인원
 var NT_DEF = 6, NT_MAX = 10;   // 기본 조 수 / 최대 조 수 (관리자 [설정]에서 바꿀 수 있어요)
 function teams_() { var n = num_(props_().getProperty('NT')); n = (n >= 2 && n <= NT_MAX) ? n : NT_DEF; var a = [], i; for (i = 1; i <= n; i++) a.push(i); return a; }
@@ -213,7 +237,7 @@ var BOX_CODES = ['X', '5', '10', '20', 'D'];
 
 var B_H = ['상자ID', '키', '문항', '상자1', '상자2', '상자3', '상자4', '상자5', '선택', '획득코인', '시각'];
 var LOG_H = ['시각', '조', '이름', '문항', '결과', '획득코인'];
-var H_H = ['ID', '시각', '조', '보낸이', '받는이', '문항', '종류', '내용', '감사'];
+var H_H = ['ID', '시각', '조', '보낸이', '받는이', '문항', '종류', '내용', '감사', '감사시각'];
 var R_H = ['ID', '시각', '조', '요청자', '문항', '종류', '상태'];
 var T_H = ['조', '섬이름', '탈출시각ms', '탈출시각'];
 var Q_H = ['세트ID', '세트이름', '단원', '번호', '난이도', '유형', '문제', '보기1', '보기2', '보기3', '보기4', '보기5', '정답', '인정1', '인정2', '인정3', '힌트1', '힌트2', '봇힌트', '금지1', '금지2', '금지3', '금지4', '금지5', '금지6', '개념제목', '개념쪽수', '요점1', '요점2', '요점3', '요점4', '요점5', '개념예시', '이미지', '수정시각'];
@@ -306,13 +330,14 @@ function newP_(team, name) {
   for (var q = 0; q < NMAX; q++) { p.done.push(false); p.wrong.push(0); p.hinted.push(0); }
   return p;
 }
+function ts_(v) { return (v instanceof Date) ? Utilities.formatDate(v, 'Asia/Seoul', 'yyyy-MM-dd HH:mm:ss') : String(v == null ? '' : v); }
 function readH_() {
   var sh = sheet_(SH_H, H_H), last = sh.getLastRow(), list = [];
   if (last >= 2) {
     var v = sh.getRange(2, 1, last - 1, H_H.length).getValues();
     for (var i = 0; i < v.length; i++) {
       var r = v[i];
-      list.push({ row: i + 2, id: num_(r[0]), t: String(r[1]), team: num_(r[2]), from: String(r[3]), to: String(r[4]), q: num_(r[5]), kind: String(r[6]), text: String(r[7]), thanks: String(r[8]) === 'O' });
+      list.push({ row: i + 2, id: num_(r[0]), t: ts_(r[1]), team: num_(r[2]), from: String(r[3]), to: String(r[4]), q: num_(r[5]), kind: String(r[6]), text: String(r[7]), thanks: String(r[8]) !== '', react: String(r[8]) === 'O' ? '👍' : String(r[8]), tt: ts_(r[9]) });
     }
   }
   return { sh: sh, list: list };
@@ -321,7 +346,7 @@ function readR_() {
   var sh = sheet_(SH_R, R_H), last = sh.getLastRow(), list = [];
   if (last >= 2) {
     var v = sh.getRange(2, 1, last - 1, R_H.length).getValues();
-    for (var i = 0; i < v.length; i++) { var r = v[i]; list.push({ row: i + 2, id: num_(r[0]), t: String(r[1]), team: num_(r[2]), name: String(r[3]), q: num_(r[4]), kind: String(r[5]), status: String(r[6]) }); }
+    for (var i = 0; i < v.length; i++) { var r = v[i]; list.push({ row: i + 2, id: num_(r[0]), t: ts_(r[1]), team: num_(r[2]), name: String(r[3]), q: num_(r[4]), kind: String(r[5]), status: String(r[6]) }); }
   }
   return { sh: sh, list: list };
 }
@@ -395,8 +420,8 @@ function state_(p) {
   var recv = [], sent = [];
   s.H.forEach(function (h) {
     if (h.team !== team) return;
-    if (h.to === me.name) recv.push({ id: h.id, t: h.t, from: h.from, q: h.q, kind: h.kind, text: h.text, thanks: h.thanks });
-    if (h.from === me.name && h.kind === '조원') sent.push({ id: h.id, to: h.to, q: h.q, thanks: h.thanks });
+    if (h.to === me.name) recv.push({ id: h.id, t: h.t, from: h.from, q: h.q, kind: h.kind, text: h.text, thanks: h.thanks, react: h.react });
+    if (h.from === me.name && h.kind === '조원') sent.push({ id: h.id, to: h.to, q: h.q, thanks: h.thanks, react: h.react });
   });
   return {
     ok: true, now: Date.now(), game: game_(), cfg: cfg_(), qv: qv_(), iid: iid_(),
@@ -540,7 +565,12 @@ function thanks_(p) {
   var H = readH_(), id = num_(p.id), team = num_(p.team);
   for (var i = 0; i < H.list.length; i++) {
     var h = H.list[i];
-    if (h.id === id && h.team === team && h.to === clean_(p.name, 10)) { H.sh.getRange(h.row, 9).setValue('O'); return { ok: true }; }
+    if (h.id === id && h.team === team && h.to === clean_(p.name, 10)) {
+      if (h.thanks) return { ok: true, already: true };
+      var emo = ['❤️', '👍', '🙏', '🥹'].indexOf(String(p.emo)) > -1 ? String(p.emo) : '👍';
+      H.sh.getRange(h.row, 9, 1, 2).setValues([[emo, nowKST_()]]);
+      return { ok: true };
+    }
   }
   return { ok: false, error: '힌트를 찾을 수 없어요' };
 }
@@ -567,6 +597,22 @@ function openbox_(p) {
 
 /* ===== 관리자 ===== */
 function needAdmin_(p) { return adminOk_(p.code) ? null : { ok: false, error: '입장코드가 달라요' }; }
+/* 교사 현황판 중계: SOS · 담임 힌트 요청 · 조원 힌트 · 고마워요 를 한 줄씩 (최근 40개) */
+function feed_(s) {
+  var ev = [];
+  (s.R || []).forEach(function (r) {
+    if (r.kind === '조원') ev.push({ k: 'sos', t: r.t, team: r.team, a: r.name, q: r.q });
+    else if (r.kind === '담임') ev.push({ k: 'ask', t: r.t, team: r.team, a: r.name, q: r.q });
+  });
+  (s.H || []).forEach(function (h) {
+    if (h.kind !== '조원') return;
+    ev.push({ k: 'hint', t: h.t, team: h.team, a: h.from, b: h.to, q: h.q });
+    if (h.thanks) ev.push({ k: 'thx', t: h.tt || h.t, team: h.team, a: h.to, b: h.from, q: h.q, emo: h.react });
+  });
+  var rk = { thx: 3, hint: 2, sos: 1, ask: 1 };
+  ev.sort(function (x, y) { return x.t < y.t ? 1 : (x.t > y.t ? -1 : (rk[y.k] - rk[x.k])); });
+  return ev.slice(0, 40);
+}
 function adminstate_(p) {
   var e = needAdmin_(p); if (e) return e;
   var s = snap_();
@@ -575,6 +621,7 @@ function adminstate_(p) {
     players: s.P.map(function (x) { return { team: x.team, name: x.name, ch: x.ch, coins: x.coins, hasKey: x.hasKey, helping: x.helping, done: sl_(x.done), wrong: sl_(x.wrong), hinted: sl_(x.hinted) }; }),
     labels: teams_().map(function (t) { return { team: t, label: labelOf_(s.T, t), escapedAt: (s.T[t] && s.T[t].esc) || 0 }; }),
     board: board_(s),
+    feed: feed_(s),
     reqs: s.R.filter(function (r) { return r.kind === '담임'; }).slice(-20).reverse()
   };
 }
@@ -633,7 +680,7 @@ function adminhint_(p) {
   });
   if (!targets.length) return { ok: false, error: '받을 사람이 없어요' };
   var H = readH_(), id = nextId_(H.sh), now = nowKST_();
-  var rows = targets.map(function (x, i) { return [id + i, now, x.team, '담임', x.name, q || 0, '담임', text, '']; });
+  var rows = targets.map(function (x, i) { return [id + i, now, x.team, '담임', x.name, q || 0, '담임', text, '', '']; });
   H.sh.getRange(H.sh.getLastRow() + 1, 1, rows.length, H_H.length).setValues(rows);
   return { ok: true, sent: targets.length };
 }
@@ -867,7 +914,7 @@ var PLACES=[{name:'모래사장',icon:'🏖️'},{name:'숲',icon:'🌴'},{name:
 var EXTRA_ORDER=[4,2,3,1,0];
 var DEFAULT_HINTS=['문제를 천천히 다시 읽고, 구해야 하는 것이 무엇인지 먼저 적어 보세요.','문제에 주어진 조건을 하나씩 정리하고, 교과서 개념을 다시 확인해 보세요.'];
 function placeDist(n){var b=Math.floor(n/5),e=n%5,c=[b,b,b,b,b],i;for(i=0;i<e;i++)c[EXTRA_ORDER[i]]++;return c;}
-var DEFAULT_SET={id:'',name:'집합과 명제 (기본)',unit:'집합과 명제',qs:[
+var DEFAULT_SET={id:'',name:'집합 (기본)',unit:'집합',qs:[
  {lvl:'최하',type:'choice',
   q:'다음 중 집합인 것은?',
   choices:['인구수가 많은 나라의 모임','π보다 작은 자연수의 모임','1에 가까운 실수의 모임','키가 큰 학생의 모임','아름다운 꽃의 모임'],ans:2,alts:[],
@@ -881,18 +928,6 @@ var DEFAULT_SET={id:'',name:'집합과 명제 (기본)',unit:'집합과 명제',
         '원소 a가 집합 A에 속하면 a ∈ A 로 나타내요.',
         '"~한", "~에 가까운"처럼 기준이 사람마다 달라질 수 있는 표현이 들어 있으면 집합이 아니에요.'],
    ex:'"10보다 작은 짝수의 모임"은 누구나 {2, 4, 6, 8}로 똑같이 정하므로 집합이에요.'}},
- {lvl:'최하',type:'choice',
-  q:'다음 중 참인 명제는?',
-  choices:['√4는 유리수이다.','x는 100보다 큰 수이다.','26은 3의 배수이다.','우리나라는 아름다운 나라이다.'],ans:1,alts:[],
-  h1:'명제는 참 또는 거짓을 명확하게 판별할 수 있는 문장이에요. 먼저 명제인 보기만 골라 보세요.',
-  h2:'x의 값에 따라 달라지는 문장은 조건이고, 기준이 사람마다 다른 문장은 명제가 아니에요. 남은 보기의 참·거짓을 따져 보세요.',
-  bot:'명제는 참·거짓이 딱 정해지는 문장이야. x가 들어 있거나 느낌에 따라 달라지는 문장은 제외하고 남은 걸 계산해 봐!',
-  forb:[],
-  cp:{t:'명제와 조건',pg:'교과서 p.96 (중단원 마무리)',
-   pts:['참 또는 거짓을 명확하게 판별할 수 있는 문장이나 식을 명제라고 해요.',
-        '변수의 값에 따라 참, 거짓을 판별할 수 있는 문장이나 식을 조건이라고 해요.',
-        '"아름다운", "큰"처럼 기준이 사람마다 다른 표현이 있으면 참·거짓을 정할 수 없어 명제가 아니에요.'],
-   ex:'"3은 짝수이다"는 거짓이지만 명제예요. "x는 짝수이다"는 x에 따라 달라지므로 조건이에요.'}},
  {lvl:'하',type:'text',
   q:'집합 {x | x²-7x+6=0}을 원소나열법으로 나타냈을 때, 모든 원소의 합을 구하시오.\n(숫자만 입력)',
   choices:[],ans:'7',alts:[],
@@ -918,33 +953,6 @@ var DEFAULT_SET={id:'',name:'집합과 명제 (기본)',unit:'집합과 명제',
         '겹치는 부분(A∩B)이 두 번 세어지므로 한 번 빼 주는 거예요.',
         'A, B가 서로소(A∩B=∅)이면  n(A∪B)=n(A)+n(B)'],
    ex:'n(A)=5, n(B)=4, n(A∩B)=2이면 n(A∪B)=5+4−2=7이에요.'}},
- {lvl:'중',type:'choice',
-  q:'명제 "x(x+1)=0이면 x+1=0이다"의 역과 대우의 참, 거짓을 바르게 나타낸 것은?',
-  choices:['역: 참, 대우: 참','역: 참, 대우: 거짓','역: 거짓, 대우: 참','역: 거짓, 대우: 거짓'],ans:2,alts:[],
-  h1:'역은 가정과 결론을 바꾼 명제, 대우는 바꾼 뒤 둘 다 부정한 명제예요. 먼저 역과 대우를 문장으로 써 보세요.',
-  h2:'x(x+1)=0의 해는 x=0 또는 x=−1이에요. 이 값들을 대우와 역에 넣어서 반례가 있는지 확인해 보세요.',
-  bot:'역과 대우를 먼저 문장으로 써 봐! 그다음 x=0, x=−1을 넣어서 반례가 생기는 쪽이 거짓이야.',
-  forb:['역은참','대우는거짓','역:참','대우:거짓'],
-  cp:{t:'명제의 역과 대우',pg:'교과서 p.96 (중단원 마무리)',
-   pts:['명제 p → q 에서 p는 가정, q는 결론이에요.',
-        '역: 가정과 결론을 서로 바꾼 명제  q → p',
-        '대우: 가정과 결론을 바꾸고 각각 부정한 명제  ~q → ~p',
-        '명제가 참이면 그 대우도 참이고, 거짓이면 대우도 거짓이에요. (역은 참일 수도, 거짓일 수도 있어요)',
-        '명제가 거짓임을 보이려면 가정은 만족하지만 결론은 만족하지 않는 반례를 하나만 찾으면 돼요.'],
-   ex:'명제 "x=1이면 x²=1이다"의 역은 "x²=1이면 x=1이다", 대우는 "x²≠1이면 x≠1이다".'}},
- {lvl:'중',type:'choice',
-  q:'두 조건 p: x≤1, q: −3≤x≤0에 대하여, p는 q이기 위한 어떤 조건인가?',
-  choices:['충분조건이지만 필요조건은 아니다','필요조건이지만 충분조건은 아니다','필요충분조건이다','충분조건도 필요조건도 아니다'],ans:2,alts:[],
-  h1:'두 조건의 진리집합 P, Q를 각각 수직선에 그려 보세요.',
-  h2:'P ⊂ Q이면 p ⟹ q, Q ⊂ P이면 q ⟹ p예요. 어느 쪽 포함 관계가 성립하는지 보세요.',
-  bot:'수직선에 P와 Q를 그려서 어느 쪽이 다른 쪽 안에 들어가는지 봐! 그다음 p⟹q인지 q⟹p인지 정해.',
-  forb:['필요조건이'],
-  cp:{t:'충분조건과 필요조건',pg:'교과서 p.96 (중단원 마무리)',
-   pts:['p ⟹ q 가 참일 때, p는 q이기 위한 충분조건이고 q는 p이기 위한 필요조건이에요.',
-        'p ⟺ q 이면 p는 q이기 위한 필요충분조건이에요.',
-        '두 조건의 진리집합 P, Q에서 P ⊂ Q이면 p ⟹ q 예요.',
-        'P = Q이면 p ⟺ q 예요.'],
-   ex:'p: x=1, q: x²=1 이면 P={1}, Q={−1, 1}로 P ⊂ Q이므로 p는 q이기 위한 충분조건이에요.'}},
  {lvl:'중상',type:'text',
   q:'두 집합 A={x²+2x, 4, 6}, B={x, 6}에 대하여 A∩B=B를 만족시키는 모든 정수 x의 값의 합을 구하시오.\n(단, 집합의 원소는 서로 다르다.)\n(숫자만 입력)',
   choices:[],ans:'3',alts:[],
@@ -957,19 +965,6 @@ var DEFAULT_SET={id:'',name:'집합과 명제 (기본)',unit:'집합과 명제',
         'A∩B=B이면 B ⊂ A 예요.',
         '집합의 원소는 서로 달라야 해요. 구한 x가 다른 원소와 같아지면 안 돼요.'],
    ex:'A={1, 2, 3}, B={x, 2}에서 A∩B=B이면 B ⊂ A이므로 x는 1 또는 3이에요.'}},
- {lvl:'중상',type:'choice',
-  q:'전체집합 U에 대하여 두 조건 p, q의 진리집합을 각각 P, Q라 하자. 명제 p → ~q가 참일 때, 옳은 것을 <보기>에서 모두 고른 것은?\nㄱ. P ⊂ Qᶜ\nㄴ. P∩Q=Q\nㄷ. Pᶜ∩Q=Q\nㄹ. Pᶜ∪Qᶜ=U',
-  choices:['ㄱ, ㄷ','ㄱ, ㄹ','ㄴ, ㄹ','ㄱ, ㄷ, ㄹ','ㄱ, ㄴ, ㄷ, ㄹ'],ans:4,alts:[],
-  h1:'p → ~q가 참이면 P ⊂ Qᶜ예요. 벤 다이어그램으로 P와 Q의 위치 관계를 그려 보세요.',
-  h2:'P와 Q가 서로소라는 점을 이용해서 ㄱ~ㄹ을 하나씩 확인해 보세요. 벤 다이어그램에 색칠하면 편해요.',
-  bot:'P ⊂ Qᶜ 는 P와 Q가 겹치지 않는다는 뜻이야! 벤 다이어그램을 그리고 ㄱ~ㄹ을 하나씩 색칠해서 확인해 봐.',
-  forb:[],
-  cp:{t:'진리집합 사이의 포함 관계',pg:'교과서 p.96 (중단원 마무리)',
-   pts:['두 조건 p, q의 진리집합을 P, Q라 할 때, P ⊂ Q이면 명제 p → q는 참이에요.',
-        '~q의 진리집합은 Qᶜ(Q의 여집합)이에요.',
-        'P ⊂ Qᶜ이면 P와 Q는 공통 원소가 없어요. (P∩Q=∅)',
-        '드모르간의 법칙  (P∩Q)ᶜ=Pᶜ∪Qᶜ  도 함께 떠올려 보세요.'],
-   ex:'p → q가 참이면 P ⊂ Q 이고, 이때 Qᶜ ⊂ Pᶜ 도 성립해요. (대우 ~q → ~p 도 참)'}},
  {lvl:'상',type:'text',
   q:'전체집합 U={x | x는 30 이하의 자연수}의 두 부분집합 A={x | x는 6의 배수}, B={x | x는 24의 약수}에 대하여 n(Aᶜ∩Bᶜ)를 구하시오.\n(숫자만 입력)',
   choices:[],ans:'20',alts:['20개'],
@@ -981,20 +976,9 @@ var DEFAULT_SET={id:'',name:'집합과 명제 (기본)',unit:'집합과 명제',
    pts:['(A∪B)ᶜ=Aᶜ∩Bᶜ,  (A∩B)ᶜ=Aᶜ∪Bᶜ  (드모르간의 법칙)',
         'n(Aᶜ)=n(U)−n(A)  처럼 여집합의 원소의 개수는 전체에서 빼서 구해요.',
         'n(A∪B)=n(A)+n(B)−n(A∩B)'],
-   ex:'n(U)=10, n(A∪B)=7이면 n(Aᶜ∩Bᶜ)=n((A∪B)ᶜ)=10−7=3이에요.'}},
- {lvl:'상',type:'text',
-  q:'실수 x에 대하여 두 조건 p: x²−10x+9≤0, q: x≤a가 있다. p가 q이기 위한 충분조건이 되도록 하는 실수 a의 최솟값을 구하시오.\n(숫자만 입력)',
-  choices:[],ans:'9',alts:[],
-  h1:'먼저 p의 진리집합 P를 구하세요. 이차부등식 x²−10x+9≤0을 인수분해해 보세요.',
-  h2:'p가 q이기 위한 충분조건이면 P ⊂ Q예요. 수직선에 P와 Q={x | x≤a}를 그려서 a가 가질 수 있는 값의 범위를 찾아 보세요.',
-  bot:'(x−□)(x−△)≤0으로 P를 구한 다음, P ⊂ Q가 되려면 a가 P의 오른쪽 끝보다 작으면 안 된다는 걸 이용해 봐!',
-  forb:['=9','a≥9','a=9'],
-  cp:{t:'충분조건과 진리집합',pg:'교과서 p.96 (중단원 마무리)',
-   pts:['p가 q이기 위한 충분조건이면 p ⟹ q 이고, 진리집합은 P ⊂ Q 예요.',
-        '부등식으로 된 조건은 수직선에 범위를 그려서 포함 관계를 확인해요.',
-        '끝점이 포함되는지(등호 유무)를 꼭 확인해요.'],
-   ex:'p: 1≤x≤3, q: x≤b에서 p가 q이기 위한 충분조건이면 P ⊂ Q이므로 b≥3이에요.'}}
+   ex:'n(U)=10, n(A∪B)=7이면 n(Aᶜ∩Bᶜ)=n((A∪B)ᶜ)=10−7=3이에요.'}}
 ]};
+
 /* 지금 쓰는 세트 (applySet 이 채워요) */
 var QUESTIONS=[],NQ=5,QPL=[],PLFIRST=[],PLCNT=[],UNIT='',SETNAME='',QV='',QP=null;
 function applySet(set,qv){
@@ -1101,6 +1085,9 @@ function applyState(r){
  var ids=r.hints.recv;
  if(!SEEN){SEEN={};ids.forEach(function(h){SEEN[h.id]=1;});}
  else ids.forEach(function(h){if(!SEEN[h.id]){SEEN[h.id]=1;sfx('msg');toast('💡 '+(h.kind==='담임'?'아듬샘':h.from+'님')+'의 힌트가 도착했어요!'+(h.q?' ('+h.q+'번)':''),3200);}});
+ var tn=r.hints.sent||[];
+ if(THXSEEN===null){THXSEEN={};tn.forEach(function(x){if(x.thanks)THXSEEN[x.id]=1;});}
+ else tn.forEach(function(x){if(x.thanks&&!THXSEEN[x.id]){THXSEEN[x.id]=1;var em=x.react||'👍';sfx('coin');toast(em+' '+x.to+'님이 힌트가 고맙대요!',3600);thxBub(r.me.name,em+' 고마워!');}});
  r.team.members.forEach(function(m){
   if(m.name===r.me.name){return;}
   var prev=HELPSEEN[m.name]||0;
@@ -1162,7 +1149,7 @@ function updateTimers(){
 var STAT_PH='';
 
 /* ===== 라우팅 ===== */
-function setTabs(on){var t=$('tabs');if(!on){t.classList.add('hide');return;}t.classList.remove('hide');
+function setTabs(on){if(typeof padFab==='function')padFab(on&&view==='q');var t=$('tabs');if(!on){t.classList.add('hide');return;}t.classList.remove('hide');
  var tl=[['island','🏝️','섬'],['rank','🏆','순위'],['guide','📖','가이드']],cur=view==='q'?'island':view;
  t.innerHTML=tl.map(function(a){return '<button data-t="'+a[0]+'" class="'+(cur===a[0]?'on':'')+'"><b>'+a[1]+'</b>'+a[2]+'</button>';}).join('');
  qsa('button',t).forEach(function(b){b.onclick=function(){go(b.getAttribute('data-t'));};});}
@@ -1201,7 +1188,7 @@ function renderNameEntry(team,teams){
    stop();btn.disabled=false;
    if(!r||!r.ok){m.className='msg err';m.textContent=(r&&r.error)||'입장하지 못했어요';return;}
    if(r.exists){popup({icon:'🙋',title:'다시 입장하시나요?',body:'<b>'+team+'조 '+esc(name)+'</b>님이 이미 있어요.<br>본인이 맞으면 이어서 해요!<br><span class="sub">다른 친구와 이름이 같다면 이름 뒤에 숫자를 붙여 주세요.</span>',btns:[{t:'네, 저예요!',fn:function(){doJoin(true);}},{t:'다른 이름 쓸게요',ghost:true}]});return;}
-   MODE='real';SES={team:team,name:name};store.set(K_SES,SES);SEEN=null;HELPSEEN={};
+   MODE='real';SES={team:team,name:name};store.set(K_SES,SES);SEEN=null;THXSEEN=null;HELPSEEN={};
    m.textContent='섬으로 이동 중…';
    api('state',idp(),30000).then(function(s){if(!s||!s.ok)throw new Error('x');applyState(s);return ensureQuiz(s.qv).then(enterGame);}).catch(function(e){errCard('접속이 안 됐어요 😢',noGasMsg(e),function(){doJoin(true);},renderTeamPick);});
   }).catch(function(e){stop();btn.disabled=false;m.className='msg err';m.textContent=noGasMsg(e);});};
@@ -1288,7 +1275,7 @@ function updateScene(){
    var el=PCN[m.name];if(!el){el=document.createElement('div');box.appendChild(el);PCN[m.name]=el;}
    el.className='pc'+(m.name===ST.me.name?' me':'')+(m.helping?' sos':'')+(esc_?' sail':'')+(el._hop?' hop':'');
    el.style.left=pos.x+'%';el.style.top=pos.y+'%';
-   el.innerHTML=(el._bub?'<span class="bub">'+el._bub+'</span>':'')+'<i class="sb">🆘</i>'+esc(m.ch||'🙂')+'<span class="pn">'+esc(m.name)+(m.hasKey?' 🗝️':'')+'</span>';
+   el.innerHTML=(el._bub?'<span class="bub">'+el._bub+'</span>':'')+'<i class="sb">SOS!</i>'+esc(m.ch||'🙂')+'<span class="pn">'+esc(m.name)+(m.hasKey?' 🗝️':'')+'</span>';
    seen[m.name]=1;});});
  Object.keys(PCN).forEach(function(k){if(!seen[k]){if(PCN[k].parentNode)PCN[k].parentNode.removeChild(PCN[k]);delete PCN[k];}});}
 function panelsHtml(){
@@ -1300,7 +1287,7 @@ function panelsHtml(){
    var can=me.done[m.helping-1],Q=QUESTIONS[m.helping-1],sent=ST.hints.sent.filter(function(s){return s.to===m.name&&s.q===m.helping;}).length;
    return '<div class="hcard"><b>'+esc(m.ch)+' '+esc(m.name)+'님 · '+m.helping+'번('+esc(Q.spot)+')에서 막혔어요</b>'+(can?'<button class="btn small go" data-hint="'+esc(m.name)+'" data-q="'+m.helping+'">💡 힌트 보내기'+(sent?' (보냄 '+sent+'번)':'')+'</button>':'<span class="sub">아직 이 문제를 풀지 않아서 도울 수 없어요. 먼저 풀어 보세요!</span>')+'</div>';}).join('')+'</div>';}
  var rv=ST.hints.recv.slice().sort(function(a,b){return b.id-a.id;}).slice(0,3);
- if(rv.length)h+='<div class="card"><h2>📬 받은 힌트</h2>'+rv.map(function(x){return '<div class="hcard"><b>'+(x.kind==='담임'?'👩‍🏫 담임':'👥 '+esc(x.from))+(x.q?' · '+x.q+'번':'')+'</b>'+esc(x.text)+(x.kind==='조원'&&!x.thanks?'<button class="btn small ghost" data-thx="'+x.id+'">👍 고마워요</button>':'')+'</div>';}).join('')+'</div>';
+ if(rv.length)h+='<div class="card"><h2>📬 받은 힌트</h2>'+rv.map(function(x){return '<div class="hcard"><b>'+(x.kind==='담임'?'👩‍🏫 담임':'👥 '+esc(x.from))+(x.q?' · '+x.q+'번':'')+'</b>'+esc(x.text)+(x.kind==='조원'&&!x.thanks?thxBtns(x.id):(x.kind==='조원'?thxDone(x):''))+'</div>';}).join('')+'</div>';
  h+='<div class="card"><h2>👥 우리 조 · '+esc(T.label)+'</h2>'+T.members.map(function(m){return '<div class="mrow"><span>'+esc(m.ch||'🙂')+'</span><span class="mn">'+esc(m.name)+(m.name===T.leader?' 👑':'')+(m.helping?' 🆘':'')+'</span><span class="pips">'+m.done.map(function(d){return '<i'+(d?' class="d"':'')+'></i>';}).join('')+'</span><span>'+(m.hasKey?'🗝️':'')+' 🪙'+m.coins+'</span></div>';}).join('')+'</div>';
  var nu=nextUndone();
  h+=(nu&&phase()==='running'?'<button class="btn go" id="pnext">▶ '+nu+'번 문제 풀러 가기 ('+esc(QUESTIONS[nu-1].spot)+')</button>':'')+
@@ -1310,12 +1297,16 @@ function panelsHtml(){
  return h;}
 function bindPanels(){
  qsa('[data-hint]').forEach(function(b){b.onclick=function(){hintModal(b.getAttribute('data-hint'),Number(b.getAttribute('data-q')));};});
- qsa('[data-thx]').forEach(function(b){b.onclick=function(){sendThanks(Number(b.getAttribute('data-thx')));};});
+ qsa('[data-thx]').forEach(function(b){b.onclick=function(){sendThanks(Number(b.getAttribute('data-thx')),b.getAttribute('data-emo'));};});
  var a=$('pnext');if(a)a.onclick=function(){renderQuestion(nextUndone());};
  a=$('psnd');if(a)a.onclick=function(){SND_ON=!SND_ON;store.set(K_SND,SND_ON);if(SND_ON)sfx('coin');paintIsland();};
  a=$('pren');if(a)a.onclick=renameIsland;
  a=$('pleave');if(a)a.onclick=leaveIsland;}
-function sendThanks(id){api('thanks',Object.assign({id:id},idp())).then(function(r){if(r&&r.ok){toast('👍 고마운 마음을 전했어요!',1800);pollNow();}});}
+var THX_EMO=['❤️','👍','🙏','🥹'],THXSEEN=null;
+function thxBtns(id){return '<div class="thx">'+THX_EMO.map(function(e){return '<button class="btn small ghost" data-thx="'+id+'" data-emo="'+e+'" aria-label="고마워요 '+e+'">'+e+'</button>';}).join('')+'<span class="sub">고마워요! 눌러서 전해요</span></div>';}
+function thxDone(x){return '<div class="sub">'+(x.react||'👍')+' 고마움을 전했어요</div>';}
+function thxBub(name,text){var el=PCN[name];if(!el)return;el._bub=text;if(view==='island'&&ST)updateScene();setTimeout(function(){if(PCN[name])PCN[name]._bub='';if(view==='island'&&ST)updateScene();},4200);}
+function sendThanks(id,emo){emo=emo||'👍';api('thanks',Object.assign({id:id,emo:emo},idp())).then(function(r){if(r&&r.ok){toast(emo+' 고마운 마음을 전했어요!',1800);pollNow();}});}
 function renameIsland(){
  popup({icon:'✏️',title:'우리 섬 이름',body:'<input type="text" id="isn" maxlength="12" placeholder="'+esc(ST.team.label)+'">',btns:[{t:'저장',pre:function(){var v=$('isn');return v?v.value.trim():'';},fn:function(v){if(!v)return;api('setisland',Object.assign({label:v},idp())).then(function(r){if(r&&r.ok){toast('섬 이름이 바뀌었어요!',2000);pollNow();}else toast((r&&r.error)||'바꾸지 못했어요',2600);});}},{t:'취소',ghost:true}]});}
 function leaveIsland(){
@@ -1345,7 +1336,7 @@ function paintQ(){
  }
  var cc=$('qconc');if(cc){var hc=Q.cp&&Q.cp.pts&&Q.cp.pts.length;cc.innerHTML=hc?'<button class="btn ghost" id="qconcb">📖 개념 다시보기</button>':'';if(hc)$('qconcb').onclick=function(){showConcept(q);};}
  $('qhelp').innerHTML=qHelpHtml(q);bindHelp(q);$('qhints').innerHTML=qHintsHtml(q);
- qsa('[data-thx]',$('qhints')).forEach(function(b){b.onclick=function(){sendThanks(Number(b.getAttribute('data-thx')));};});
+ qsa('[data-thx]',$('qhints')).forEach(function(b){b.onclick=function(){sendThanks(Number(b.getAttribute('data-thx')),b.getAttribute('data-emo'));};});
  updateTimers();}
 function qHelpHtml(q){
  var me=ST.me,T=ST.team;if(me.done[q-1])return '';
@@ -1360,7 +1351,7 @@ function qHelpHtml(q){
  return h+'</div>';}
 function qHintsHtml(q){
  var rv=recvFor(q).sort(function(a,b){return a.id-b.id;});if(!rv.length)return '';
- return '<div class="card"><h2>📬 받은 힌트</h2>'+rv.map(function(x){return '<div class="hcard"><b>'+(x.kind==='담임'?'👩‍🏫 담임':'👥 '+esc(x.from))+' · '+esc(x.t||'')+'</b>'+esc(x.text)+(x.kind==='조원'&&!x.thanks?'<button class="btn small ghost" data-thx="'+x.id+'">👍 고마워요</button>':(x.thanks?'<div class="sub">👍 고마움을 전했어요</div>':''))+'</div>';}).join('')+'</div>';}
+ return '<div class="card"><h2>📬 받은 힌트</h2>'+rv.map(function(x){return '<div class="hcard"><b>'+(x.kind==='담임'?'👩‍🏫 담임':'👥 '+esc(x.from))+' · '+esc(x.t||'')+'</b>'+esc(x.text)+(x.kind==='조원'&&!x.thanks?thxBtns(x.id):(x.thanks?thxDone(x):''))+'</div>';}).join('')+'</div>';}
 function bindHelp(q){
  var a=$('hq-team');if(a)a.onclick=function(){reqTeam(q);};
  a=$('hq-teacher');if(a)a.onclick=function(){reqTeacher(q,false);};}
@@ -1495,6 +1486,7 @@ function teacherGuideHtml(){
  d(0,'🤖 9-2. AI로 문항 만들기','<ul><li>[📚 문항 세트] → <b>[🤖 AI로 문항 만들기]</b>에서 단원·문항 수·난이도를 고르면 AI가 문항 초안을 만들어요.</li><li><b>개인 API키</b>가 필요해요. Claude(console.anthropic.com), GPT(platform.openai.com), Gemini(aistudio.google.com) 중 하나를 골라 로그인한 뒤 <b>API키 만들기</b>로 키를 받아 붙여 넣어요. 화면 안의 [🔎 키는 어디서 받나요?]에도 안내가 있어요.</li><li>키는 <b>이 기기 브라우저에만</b> 저장되고 시트·학생·다른 선생님에게는 가지 않아요. 공용 컴퓨터라면 [이 기기에 키 기억하기]를 끄세요. 사용한 만큼 선생님 계정에 요금이 나올 수 있어요(10문항은 보통 아주 적은 금액).</li><li>[모델 이름]은 업체에서 바뀔 수 있어요. 오류가 나면 업체의 최신 모델 이름으로 고쳐 주세요.</li><li><b>교과서 자료</b>: 글을 붙여 넣거나, <b>PDF + 쪽 범위</b>(최대 10쪽)를 지정하거나, 쪽을 <b>캡처 사진</b>(최대 4장)으로 올릴 수 있어요. 스캔본 PDF는 쪽을 그림으로 바꿔 AI가 읽어요. 자료는 선생님이 고른 AI 업체로만 전달돼요.</li><li>만들어진 문항은 <b>바로 저장되지 않아요.</b> 편집 화면에서 <b>정답을 직접 풀어 확인</b>하고 고친 뒤 [세트 저장]을 눌러요. AI가 틀린 정답을 낼 수 있어요.</li><li>힌트에 정답이 드러나면 자동으로 비우고 알려 줘요. 수식은 x², √, ⊂ 같은 글자로 나와요.</li></ul>')+
  d(0,'📖 9-3. 교재에서 문제 가져오기','<ul><li>[📚 문항 세트] → <b>[📖 교재에서 문제 가져오기]</b>. 교재·지도서의 <b>중단원 마무리 문제</b> 쪽 PDF와 쪽 범위(최대 6쪽)를 정하면 인쇄된 문제를 그대로 가져와요.</li><li><b>📝 글자로 찾기(무료)</b>: PDF 안의 글자로 문제 번호·소문항·작은 글씨 정답을 찾아요. 스캔본이거나 수식 기호가 깨지면 잘 안 될 수 있어요.</li><li><b>🤖 AI로 읽기</b>: PDF 쪽이나 캡처 사진을 AI가 읽어서 그대로 옮겨 적어요. 개인 API키가 필요해요(9-2 참고).</li><li>찾은 문제에서 <b>5~10개를 체크</b>하면 편집 화면으로 가요. 소문항 (1)(2)는 각각 한 문제로 나뉘어요. 서술형은 최종 답만 쓰는 단답형으로 바뀌어요.</li><li>그림이 있어야 풀리는 문제는 편집 화면에서 그림을 따로 붙여야 해요. 정답은 <b>원본 쪽과 꼭 비교</b>해 주세요.</li></ul>')+
  d(0,'🔗 10. 다른 선생님께 공유하기','<ul><li>관리자 화면 [🧑‍🏫 선생님 공유용 링크 · QR]을 복사해 전해 주세요.</li><li>받은 선생님은 <b>"처음이세요?" 화면</b>에서 자기 구글 시트에 설치해요. 내 시트·내 관리자 화면과는 완전히 분리돼요.</li><li>입장코드는 각자 바꿔서 써요. 학생용 링크·QR도 각자의 관리자 화면에서 만들어져요.</li></ul>')+
+ d(0,'📺 10-2. 교실 컴퓨터에서 내 시트로 들어가기','<ul><li>[⚙️ 설정 아래 🔑 내 관리자 접속 링크]를 <b>복사</b>해서 나에게 카톡 등으로 보내 두세요.</li><li>교실 컴퓨터에서 그 링크를 <b>한 번만 열면</b> 내 시트가 그 컴퓨터에 저장되고 입장코드 화면이 바로 나와요. 이후에는 앱 주소로 들어가 <b>입장코드만</b> 치면 돼요.</li><li>이 링크에는 내 시트 주소가 들어 있어요. <b>학생에게는 절대 보내지 말고</b>, 학생에게는 [📱 학생용 링크]를 주세요.</li><li>공용 컴퓨터라면 수업 뒤 브라우저의 사이트 데이터를 지워 주세요. (시트의 데이터는 그대로예요)</li></ul>');
  d(0,'🔧 11. 문제가 생겼어요','<ul><li><b>입장코드를 잊었어요</b>: Apps Script → 프로젝트 설정 → 스크립트 속성에서 <b>ADMIN_CODE</b>를 지우면 처음 코드로 돌아가요.</li><li><b>학생이 "명단에서 빠졌어요"</b>라고 떠요: 관리자가 삭제했거나 전체 초기화를 한 경우예요. 다시 입장하면 돼요.</li><li><b>GAS 코드를 고친 뒤</b>에는 [배포 관리 → 수정 → 새 버전]으로 재배포해요. "새 배포"는 주소가 바뀌어서 학생 링크가 깨져요.</li><li><b>화면이 느려요</b>: 구글 시트가 잠깐 느린 거예요. 몇 초 뒤 자동으로 다시 불러와요.</li><li>그 밖의 문의는 화면 아래 메일로 보내 주세요.</li></ul>');}
 var GTAB='s';
 function renderGuide(first,fromStart,tab){
@@ -1517,7 +1509,7 @@ function renderGuide(first,fromStart,tab){
 /* ===== 체험 모드 (가상 조원 봇 3명 · 시트에 저장 안 됨) ===== */
 var DEMO={s:null,iv:null};
 function startDemo(){
- MODE='demo';applySet(DEFAULT_SET,'demo');SES={team:9,name:'체험(나)'};SEEN=null;HELPSEEN={};SAIL={go:false,started:false};
+ MODE='demo';applySet(DEFAULT_SET,'demo');SES={team:9,name:'체험(나)'};SEEN=null;THXSEEN=null;HELPSEEN={};SAIL={go:false,started:false};
  demoInit();pollNow().then(function(){STAT_PH=phase();startPoll();if(guideFirst())renderGuide(true);else renderIsland();});}
 function demoStop(){clearInterval(DEMO.iv);DEMO.s=null;}
 function demoInit(){
@@ -1554,7 +1546,7 @@ function demoState(){
  return {ok:true,qv:'demo',iid:'',now:now,game:{phase:now>s.t0+s.dur*60000?'over':'running',startAt:s.t0,endAt:s.t0+s.dur*60000,durationMin:s.dur},cfg:{always:false,minTeam:2},
   me:{key:'demo',name:me.name,team:9,ch:me.ch,coins:me.coins,hasKey:me.hasKey,helping:me.helping,done:me.done.slice(),wrong:me.wrong.slice(),hinted:me.hinted.slice()},
   team:{team:9,label:s.label,leader:me.name,escapedAt:s.escAt,members:mem.map(function(m){return {name:m.name,ch:m.ch,coins:m.coins,hasKey:m.hasKey,helping:m.helping,done:m.done.slice()};})},
-  hints:{recv:s.H.filter(function(h){return h.to===me.name;}).map(function(h){return {id:h.id,t:h.t,from:h.from,q:h.q,kind:h.kind,text:h.text,thanks:h.thanks};}),sent:s.H.filter(function(h){return h.from===me.name&&h.kind==='조원';}).map(function(h){return {id:h.id,to:h.to,q:h.q,thanks:h.thanks};})},
+  hints:{recv:s.H.filter(function(h){return h.to===me.name;}).map(function(h){return {id:h.id,t:h.t,from:h.from,q:h.q,kind:h.kind,text:h.text,thanks:h.thanks,react:h.react};}),sent:s.H.filter(function(h){return h.from===me.name&&h.kind==='조원';}).map(function(h){return {id:h.id,to:h.to,q:h.q,thanks:h.thanks,react:h.react};})},
   boxes:s.B.filter(function(b){return b.pick==='';}).map(function(b){return {id:b.id,key:'demo',q:b.q};}),
   board:[{team:9,label:s.label,n:4,avg:Math.round(sum/4*10)/10,progress:Math.round(dn/20*100),escapedAt:s.escAt},fake('🌋 화산섬',3,4.5),fake('🐠 산호섬',4,7.5)]};}
 function demoCall(a,p){return new Promise(function(res){setTimeout(function(){res(demoDo(a,p));},120);});}
@@ -1565,7 +1557,7 @@ function demoDo(a,p){
  if(a==='setchar'){me.ch=p.char;return {ok:true};}
  if(a==='setisland'){s.label=p.label||s.label;return {ok:true,label:s.label};}
  if(a==='leave')return {ok:true};
- if(a==='thanks'){s.H.forEach(function(h){if(h.id===Number(p.id))h.thanks=true;});return {ok:true};}
+ if(a==='thanks'){s.H.forEach(function(h){if(h.id===Number(p.id))h.thanks=true;h.react=p.emo||'👍';});return {ok:true};}
  if(a==='result'){
   if(me.done[q-1])return {ok:true,already:true,coins:me.coins};
   if(q>1&&!me.done[q-2])return {ok:false,error:'앞 문제를 먼저 풀어야 해요'};
@@ -1634,9 +1626,11 @@ function renderAdmin(){
  '<div class="card"><h2>📚 문항 세트</h2><div class="sub">지금 진행할 세트: <b id="asetname">…</b></div><button class="btn small" id="aset">문항 세트 관리 · 만들기</button></div>'+
  '<div class="card"><h2>📊 실시간 현황판</h2><div class="sub">조별 진행 상황과 학생 개별 현황을 한눈에 보고, 조를 눌러 그 조의 섬 화면도 볼 수 있어요. (4초마다 자동 갱신)</div><button class="btn go" id="abd">현황판 열기</button></div>'+
  '<div class="card"><h2>⚙️ 설정</h2><label class="sw"><input type="checkbox" id="aalw"><span><b>조원이 풀었어도 담임 힌트 허용</b><br><small class="sub">꺼두면 푼 조원이 있는 문제는 조원에게만 요청할 수 있어요</small></span></label><label for="amin">탈출 최소 인원 (조원이 이 인원 이상이고 전원 열쇠를 가져야 탈출)</label><div class="row2"><input type="number" id="amin" min="1" max="6"><button class="btn small" id="aminset" style="margin-top:0">저장</button></div><label for="ant">조 수 (기본 6조 · 최대 10조 · 줄일 때는 큰 번호 조가 비어 있어야 해요)</label><div class="row2"><input type="number" id="ant" min="2" max="10"><button class="btn small" id="antset" style="margin-top:0">저장</button></div></div>'+
+ '<div class="card"><h2>📣 실시간 중계</h2><div id="adfeed"></div></div>'+
  '<div class="card"><h2>🏝️ 조별 현황</h2><div id="adteams"></div></div>'+
  '<div class="card"><h2>🏆 지금 순위</h2><div id="adrank"></div></div>'+
  '<div class="card"><h2>✉️ 담임 쪽지(힌트) 보내기</h2><label for="hsc">받는 사람</label><select id="hsc"></select><label for="hq">문항</label><select id="hq"><option value="0">일반 쪽지</option></select><textarea id="htx" maxlength="200" placeholder="학생 화면에 [담임 힌트]로 떠요 (200자)"></textarea><button class="btn small" id="hsend">보내기</button><div class="msg" id="hmsg"></div><div class="sub" style="margin-top:10px"><b>최근 담임 힌트 요청</b></div><div id="adreq"></div></div>'+
+ '<div class="card"><h2>🔑 내 관리자 접속 링크 · 교실 컴퓨터용</h2><div class="sub">교실 컴퓨터나 다른 기기에서 <b>이 링크를 한 번만 열면</b> 내 시트가 그 기기에 저장되고, 그다음부터는 <b>입장코드만</b> 치면 들어와요. 열자마자 입장코드 화면이 나와요.<br><b>⚠️ 학생에게 보내지 마세요.</b> 학생용 링크는 아래 [📱 학생용 링크 · QR]을 써요.</div><input type="text" id="admLink" readonly><button class="btn small" id="acpl">링크 복사</button><button class="btn ghost small" id="acpr">글자 링크로 복사 (섬탈출원정대 관리자_made by Cheon R)</button><div class="msg" id="alm"></div></div>'+
  '<div class="card"><h2>📱 학생용 링크 · QR</h2><input type="text" id="stuLink" readonly><button class="btn small" id="cpl">링크 복사</button><button class="btn ghost small" id="cpr">글자 링크로 복사 (섬탈출원정대_made by Cheon R)</button><button class="btn go small" id="qrb">QR 코드 만들기</button><div id="qrbox" class="hide" style="text-align:center"><canvas id="qrc" style="width:100%;max-width:300px;border:3px solid var(--ink);border-radius:8px;margin-top:10px"></canvas><button class="btn ghost small" id="qrd">QR 이미지 저장</button></div><div class="msg" id="lkm"></div></div>'+
  '<div class="card"><h2>🧑‍🏫 선생님 공유용 링크 · QR</h2><div class="sub">다른 선생님이 <b>자기 시트로 처음 설치</b>하는 링크예요. 이 링크로 들어오면 "처음이세요?" 설치 안내가 나오고, 내 시트나 내 관리자 화면과는 완전히 분리돼요.</div><input type="text" id="tchLink" readonly><button class="btn small" id="tcpl">링크 복사</button><button class="btn ghost small" id="tcpr">글자 링크로 복사 (섬탈출원정대 선생님용_made by Cheon R)</button><button class="btn go small" id="tqrb">QR 코드 만들기</button><div id="tqrbox" class="hide" style="text-align:center"><canvas id="tqrc" style="width:100%;max-width:300px;border:3px solid var(--ink);border-radius:8px;margin-top:10px"></canvas><button class="btn ghost small" id="tqrd">QR 이미지 저장</button></div><div class="msg" id="tlkm"></div></div>'+
  '<div class="card"><h2>⭐ 후기 · 개선점</h2><div class="sub">써 보신 느낌이나 고쳤으면 하는 점을 보내 주세요. 앱을 더 좋게 만드는 데 큰 도움이 돼요!</div><button class="btn ghost small" id="arev">후기 · 개선점 남기기</button></div>'+
@@ -1662,6 +1656,7 @@ function paintAdmin(){
  var mn=$('amin');if(mn&&document.activeElement!==mn&&!mn.value)mn.value=ADM.cfg.minTeam;
  var nt=$('ant');if(nt&&document.activeElement!==nt&&!nt.value)nt.value=ADM.cfg.nTeam||'';
  var du=$('adur');if(du&&document.activeElement!==du&&!du.value)du.value=Math.round(ADM.game.durationMin);
+ var fd=$('adfeed');if(fd)fd.innerHTML=feedHtml();
  var tb=$('adteams');
  if(tb&&!(tb.contains(document.activeElement)&&document.activeElement!==document.body)){
   tb.innerHTML=ADM.labels.map(function(L){
@@ -1698,13 +1693,25 @@ function bindAdmin(){
   m.className='msg';m.textContent='보내는 중…';
   adm('adminhint',p).then(function(r){if(r&&r.ok){m.className='msg ok';m.textContent='✅ '+r.sent+'명에게 보냈어요!';$('htx').value='';}else{m.className='msg err';m.textContent=(r&&r.error)||'못 보냈어요';}}).catch(function(){m.className='msg err';m.textContent='못 보냈어요. 다시 눌러 주세요.';});};
  $('areset').onclick=function(){popup({icon:'⚠️',title:'전체 초기화',body:'참가자·풀이·힌트·상자·섬 이름·타이머가 모두 사라져요.<br><br>맞다면 <b>초기화</b>라고 입력해 주세요<input type="text" id="rsc" autocomplete="off">',btns:[{t:'초기화 실행',pre:function(){var v=$('rsc');return v?v.value.trim():'';},fn:function(v){if(v!=='초기화'){toast('"초기화"를 정확히 입력해야 해요',2400);return;}adm('adminreset').then(function(r){done(r,'초기화했어요');});}},{t:'취소',ghost:true}]});};
- $('aout').onclick=function(){clearInterval(admT);try{sessionStorage.removeItem('ise_admin_code');}catch(e){}MODE='';renderStart();};
+ $('aout').onclick=function(){
+  var out=function(forget){clearInterval(admT);try{sessionStorage.removeItem('ise_admin_code');}catch(e){}
+   if(forget){try{localStorage.removeItem(K_GAS);localStorage.removeItem(K_SES);}catch(e){}location.href=location.pathname;return;}
+   MODE='';renderStart();};
+  popup({icon:'🚪',title:'나갈까요?',body:'이 기기에서 관리자 화면만 나가요. 다른 기기의 로그인과 시트 데이터는 그대로예요.<br><br><small>교실·공용 컴퓨터라면 아래 두 번째 버튼으로 <b>이 컴퓨터에 저장된 내 시트 연결도 지울 수 있어요.</b> (다시 들어올 땐 내 관리자 접속 링크가 필요해요)</small>',
+   btns:[{t:'나가기',fn:function(){out(false);}},{t:'나가기 + 이 기기에서 시트 연결 지우기',ghost:true,fn:function(){out(true);}},{t:'취소',ghost:true}]});};
  $('ademo').onclick=function(){clearInterval(admT);startDemo();};
  $('apw').onclick=function(){renderPwChange(false);};
  $('abd').onclick=renderBoard;
  $('aset').onclick=function(){clearInterval(admT);renderSets();};
  $('arev').onclick=function(){openReview('teacher');};
  $('atg').onclick=function(){clearInterval(admT);renderGuide(false,'admin','t');};
+ var al=$('admLink'),am=$('alm');al.value=(location.protocol==='file:'?location.href.split('?')[0].split('#')[0]:location.origin+location.pathname)+'?gas='+encodeURIComponent(GAS)+'&admin=1';
+ var anote=function(t,ok){am.className='msg '+(ok?'ok':'err');am.textContent=t;};
+ if(location.protocol==='file:')anote('⚠️ 지금은 내 컴퓨터 파일로 열려 있어요. 깃허브에 올린 주소에서 열어야 교실 컴퓨터에서도 열리는 링크가 만들어져요.');
+ $('acpl').onclick=function(){al.select();copyText(al.value).then(function(){anote('✅ 링크를 복사했어요! 나에게 카톡으로 보내 두면 편해요.',true);});};
+ $('acpr').onclick=function(){var url=al.value,label='섬탈출원정대 관리자_made by Cheon R',html='<a href="'+esc(url)+'">'+esc(label)+'</a>',plain=label+' 👉 '+url;
+  var d=function(){anote('✅ "'+label+'" 글자 링크로 복사했어요!',true);};
+  try{navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([plain],{type:'text/plain'})})]).then(d,function(){copyText(plain).then(d);});}catch(e){copyText(plain).then(d);}};
  var el=$('stuLink');el.value=(location.protocol==='file:'?location.href.split('?')[0].split('#')[0]:location.origin+location.pathname)+'?gas='+encodeURIComponent(GAS);
  var lm=$('lkm');function note(t,ok){lm.className='msg '+(ok?'ok':'err');lm.textContent=t;}
  if(location.protocol==='file:')note('⚠️ 지금은 내 컴퓨터 파일로 열려 있어요. 깃허브에 올린 주소에서 열어야 학생용 링크가 제대로 만들어져요.');
@@ -1796,7 +1803,7 @@ function boardSfx(n){if(!BSND)return;var o=SND_ON;SND_ON=true;try{sfx(n);}finall
 function bsndLabel(){return BSND?'🔊 효과음 켜짐 (눌러서 끄기)':'🔇 효과음 꺼짐 (눌러서 켜기)';}
 function renderBoard(){
  view='board';MODE='admin';setTabs(false);clearInterval(admT);clearInterval(BT);PCB={};BSCN=-1;BSEEN=null;BQ=[];BQBUSY=false;BKNOWN=null;BKEYT=null;BPH=null;BWARN=false;clearInterval(BTK);bgmOff();
- $('app').innerHTML='<div class="title" style="margin:6px 0 0"><b style="font-size:24px">📊 실시간 현황판</b><span>학생들이 지금 어디까지 왔는지 한눈에 보여요</span></div><div class="timer" id="bgt">불러오는 중…</div><button class="btn ghost small" id="bsnd">'+bsndLabel()+'</button><div id="btabs" class="btabs"></div><div id="bbody" class="bd"></div><button class="btn ghost small" id="bout">‹ 관리자 화면으로</button>'+footer();
+ $('app').innerHTML='<div class="title" style="margin:6px 0 0"><b style="font-size:24px">📊 실시간 현황판</b><span>학생들이 지금 어디까지 왔는지 한눈에 보여요</span></div><div class="timer" id="bgt">불러오는 중…</div><button class="btn ghost small" id="bsnd">'+bsndLabel()+'</button><div id="btabs" class="btabs"></div><div id="bfeed" class="card"></div><div id="bbody" class="bd"></div><button class="btn ghost small" id="bout">‹ 관리자 화면으로</button>'+footer();
  $('bout').onclick=function(){clearInterval(BT);clearInterval(BTK);bgmOff();renderAdmin();};
  $('bsnd').onclick=function(){BSND=!BSND;store.set('ise_bsnd_v1',BSND);$('bsnd').textContent=bsndLabel();if(BSND)boardSfx('fanfare');else bgmOff();};
  loadBoard();BT=setInterval(function(){if(view==='board')loadBoard();else clearInterval(BT);},4000);
@@ -1821,6 +1828,17 @@ function bdTeam(L,mem,full){
  return '<div class="card"><div><span class="dot" style="background:'+col+'"></span><b>'+L.team+'조 · '+esc(L.label)+'</b> <span class="sub">'+n+'명'+(esc_?' · 🚢 탈출 성공':'')+'</span></div>'+
   '<div class="bar"><i style="width:'+pct+'%"></i></div><div class="sub">진행 '+pct+'% · 🪙 평균 '+avg+'</div>'+bdRows(mem,esc_)+
   (full?'':'<button class="btn small go" data-bview="'+L.team+'">🏝️ 이 조의 섬 보기</button>')+'</div>';}
+/* ===== 교사 현황판 중계 (SOS · 힌트 · 고마워요 한 줄씩) ===== */
+var FEEDSEEN=null;
+function feedHtml(){
+ var f=(ADM&&ADM.feed)||[];
+ if(!f.length)return '<div class="sub">아직 이벤트가 없어요. SOS · 힌트 · 고마워요가 여기에 한 줄씩 나와요.</div>';
+ var first=FEEDSEEN===null;if(first)FEEDSEEN={};
+ return '<div class="fdbox">'+f.slice(0,30).map(function(e){
+  var key=e.k+'|'+e.t+'|'+e.a+'|'+(e.b||'')+'|'+e.q,isNew=!first&&!FEEDSEEN[key];FEEDSEEN[key]=1;
+  var tm=String(e.t||'').slice(11,19),tg='<b>'+e.team+'조 '+esc(e.a)+'</b>님',qn=e.q?e.q+'번':'';
+  var tx=e.k==='sos'?'🆘 '+tg+'이 '+qn+'에서 <b>SOS!</b>':e.k==='ask'?'🙋 '+tg+'이 '+qn+' 담임 힌트를 요청했어요':e.k==='hint'?'💡 '+tg+'이 <b>'+esc(e.b)+'</b>님에게 '+qn+' 힌트를 줬어요':(e.emo||'👍')+' <b>'+e.team+'조 '+esc(e.a)+'</b>님이 <b>'+esc(e.b)+'</b>님에게 고맙다고 했어요';
+  return '<div class="fd'+(e.k==='sos'?' sos':'')+(isNew?' new':'')+'"><span class="ft">'+tm+'</span><span>'+tx+'</span></div>';}).join('')+'</div>';}
 function paintBoard(){
  if(view!=='board'||!ADM)return;
  $('bgt').textContent=admPhaseTxt();
@@ -1829,6 +1847,7 @@ function paintBoard(){
  else escL.forEach(function(L,i){if(!BSEEN[L.team]){BSEEN[L.team]=1;BQ.push({L:L,n:i+1});}});
  bdSounds();
  bdNext();
+ var bf=$('bfeed');if(bf)bf.innerHTML='<h2 style="margin:0 0 4px">📣 실시간 중계</h2>'+feedHtml();
  var teams=ADM.labels.map(function(L){return {L:L,mem:ADM.players.filter(function(p){return p.team===L.team;})};});
  var tb=$('btabs');
  tb.innerHTML='<button data-b="0" class="'+(BSEL===0?'on':'')+'">📊 전체</button>'+teams.map(function(t){return '<button data-b="'+t.L.team+'" class="'+(BSEL===t.L.team?'on':'')+(t.mem.length?'':' off')+'">'+t.L.team+'조 ('+t.mem.length+')</button>';}).join('');
@@ -1878,7 +1897,7 @@ function boardChars(mem,esc_){
    var pos=sp==='0'?{x:SHIP_X+(j-(arr.length-1)/2)*5,y:SHIP_Y-6}:spotPos(Number(sp),j,arr.length);
    var el=PCB[m.name];if(!el){el=document.createElement('div');box.appendChild(el);PCB[m.name]=el;}
    el.className='pc'+(m.helping?' sos':'');el.style.left=pos.x+'%';el.style.top=pos.y+'%';
-   el.innerHTML='<i class="sb">🆘</i>'+esc(m.ch||'🙂')+'<span class="pn">'+esc(m.name)+(m.hasKey?' 🗝️':'')+'</span>';
+   el.innerHTML='<i class="sb">SOS!</i>'+esc(m.ch||'🙂')+'<span class="pn">'+esc(m.name)+(m.hasKey?' 🗝️':'')+'</span>';
    seen[m.name]=1;});});
  Object.keys(PCB).forEach(function(k){if(!seen[k]){if(PCB[k].parentNode)PCB[k].parentNode.removeChild(PCB[k]);delete PCB[k];}});}
 
@@ -2038,6 +2057,212 @@ function imgCompress(file,cb){
   cb(d.length<=120000?d:'');};im.onerror=function(){cb('');};im.src=fr.result;};
  fr.onerror=function(){cb('');};fr.readAsDataURL(file);}
 
+/* ===== 내장 문제 은행 ===== */
+/* ===== 내장 문제 은행 (교과서 중단원 마무리 문제 기반) =====
+   LIB = 카테고리(교과) > 단원(세트). 선생님이 [📥 내 세트로 가져오기]를 누르면 내 시트에 세트로 저장돼요.
+   새 교과·단원을 넣을 때는 아래 형식대로 LIB 에 항목만 추가해요. (세트 ID = 'L'+교과id+단원id)
+   mq(난이도, 유형, 문제, 보기[], 정답, 다른표기[], 힌트1, 힌트2, 봇힌트, 금지표현[], 개념이름, 쪽수, 핵심[], 예시) */
+function mq(l,t,q,ch,a,al,h1,h2,bot,fb,ct,pg,pts,ex){return {lvl:l,type:t,q:q,choices:ch,ans:a,alts:al,h1:h1,h2:h2,bot:bot,forb:fb,cp:{t:ct,pg:pg,pts:pts,ex:ex}};}
+var LIB_JIP=[DEFAULT_SET.qs[0],DEFAULT_SET.qs[1],DEFAULT_SET.qs[2],
+ mq('중','text','전체집합 U={1, 2, 3, 4, 5}의 부분집합 중에서 집합 A={1, 2, 4}와 서로소인 집합의 개수를 구하시오.\n(숫자만 입력)',[],'4',['4개'],
+  '서로소는 공통 원소가 하나도 없다는 뜻이에요. A의 원소를 뺀 U의 나머지 원소만으로 부분집합을 만들어요.',
+  '쓸 수 있는 원소가 k개이면 부분집합은 2를 k번 곱한 개수예요. 공집합도 서로소라는 점을 잊지 마세요.',
+  'A와 겹치면 안 되니까 3, 5만 쓸 수 있어! 이 두 원소로 만들 수 있는 부분집합을 전부 세 봐.',['=4','답은4'],
+  '서로소와 부분집합','교과서 p.78 (중단원 마무리)',
+  ['A∩B=∅ 일 때 A와 B는 서로소라고 해요.','공집합은 모든 집합과 서로소예요.','원소가 k개인 집합의 부분집합은 모두 2ᵏ개예요.'],
+  'A={1, 2}와 서로소인 U={1, 2, 3}의 부분집합은 ∅, {3} 두 개예요.'),
+ DEFAULT_SET.qs[3],DEFAULT_SET.qs[4],
+ mq('상','text','100 미만의 자연수 중에서 7의 배수가 아니거나 5로 나누었을 때의 나머지가 3이 아닌 수의 개수를 구하시오.\n(숫자만 입력)',[],'96',['96개'],
+  '7의 배수의 집합을 A, 5로 나누었을 때 나머지가 3인 수의 집합을 B라 하면, 구하는 개수는 n(Aᶜ∪Bᶜ)이에요.',
+  'Aᶜ∪Bᶜ=(A∩B)ᶜ예요. 전체에서 "7의 배수이면서 5로 나눈 나머지가 3인 수"의 개수를 빼요.',
+  '"~가 아니거나 ~가 아닌"은 드모르간으로 (A∩B)의 여집합이야! 겹치는 수가 몇 개인지 찾아서 전체에서 빼 봐.',['=96','답은96'],
+  '드모르간의 법칙','교과서 p.78 (중단원 마무리)',
+  ['(A∪B)ᶜ=Aᶜ∩Bᶜ,  (A∩B)ᶜ=Aᶜ∪Bᶜ  (드모르간의 법칙)','n(Aᶜ)=n(U)−n(A) 처럼 여집합의 원소 개수는 전체에서 빼서 구해요.','7의 배수이면서 5로 나눈 나머지가 3인 수는 일정한 간격으로 나타나요.'],
+  'U={1,…,10}에서 A={2의 배수}, B={3의 배수}이면 (A∩B)ᶜ는 6을 뺀 나머지 9개의 수예요.')];
+var LIB_MYEONG=[
+ mq('최하','choice','다음 중 참인 명제는?',['√4는 유리수이다.','x는 100보다 큰 수이다.','26은 3의 배수이다.','우리나라는 아름다운 나라이다.'],1,[],
+  '명제는 참 또는 거짓을 명확하게 판별할 수 있는 문장이에요. 먼저 명제인 보기만 골라 보세요.',
+  'x의 값에 따라 달라지는 문장은 조건이고, 기준이 사람마다 다른 문장은 명제가 아니에요. 남은 보기의 참·거짓을 따져 보세요.',
+  '명제는 참·거짓이 딱 정해지는 문장이야. x가 들어 있거나 느낌에 따라 달라지는 문장은 제외하고 남은 걸 계산해 봐!',[],
+  '명제와 조건','교과서 p.96 (중단원 마무리)',
+  ['참 또는 거짓을 명확하게 판별할 수 있는 문장이나 식을 명제라고 해요.','변수의 값에 따라 참, 거짓을 판별할 수 있는 문장이나 식을 조건이라고 해요.','"아름다운", "큰"처럼 기준이 사람마다 다른 표현이 있으면 참·거짓을 정할 수 없어 명제가 아니에요.'],
+  '"3은 짝수이다"는 거짓이지만 명제예요. "x는 짝수이다"는 x에 따라 달라지므로 조건이에요.'),
+ mq('하','text','전체집합 U={x | x는 7 이하의 자연수}에 대하여 조건 p: x²−6x+8=0 일 때, 조건 ~p의 진리집합의 원소의 개수를 구하시오.\n(숫자만 입력)',[],'5',['5개'],
+  'p의 진리집합 P를 먼저 구하세요. 이차방정식 x²−6x+8=0을 인수분해해 보세요.',
+  '~p의 진리집합은 P의 여집합 Pᶜ이에요. 전체집합의 원소 개수에서 P의 원소 개수를 빼세요.',
+  '먼저 x²−6x+8=0의 해로 P를 구해! ~p는 P가 아닌 원소니까, 전체에서 P를 빼면 돼.',['=5','답은5'],
+  '조건과 진리집합','교과서 p.96 (중단원 마무리)',
+  ['전체집합 U의 원소 중에서 조건 p가 참이 되게 하는 모든 원소의 집합을 p의 진리집합이라고 해요.','~p의 진리집합은 p의 진리집합 P의 여집합 Pᶜ이에요.','n(Pᶜ)=n(U)−n(P)'],
+  'U={1, 2, 3, 4}, p: x는 짝수 이면 P={2, 4}이고, ~p의 진리집합은 {1, 3}이에요.'),
+ mq('중','choice','두 조건 p: x≤1, q: −3≤x≤0에 대하여, p는 q이기 위한 어떤 조건인가?',['충분조건이지만 필요조건은 아니다','필요조건이지만 충분조건은 아니다','필요충분조건이다','충분조건도 필요조건도 아니다'],2,[],
+  '두 조건의 진리집합 P, Q를 각각 수직선에 그려 보세요.',
+  'P ⊂ Q이면 p ⟹ q, Q ⊂ P이면 q ⟹ p예요. 어느 쪽 포함 관계가 성립하는지 보세요.',
+  '수직선에 P와 Q를 그려서 어느 쪽이 다른 쪽 안에 들어가는지 봐! 그다음 p⟹q인지 q⟹p인지 정해.',['필요조건이'],
+  '충분조건과 필요조건','교과서 p.96 (중단원 마무리)',
+  ['p ⟹ q 가 참일 때, p는 q이기 위한 충분조건이고 q는 p이기 위한 필요조건이에요.','p ⟺ q 이면 p는 q이기 위한 필요충분조건이에요.','두 조건의 진리집합 P, Q에서 P ⊂ Q이면 p ⟹ q 예요.','P = Q이면 p ⟺ q 예요.'],
+  'p: x=1, q: x²=1 이면 P={1}, Q={−1, 1}로 P ⊂ Q이므로 p는 q이기 위한 충분조건이에요.'),
+ mq('중','choice','명제 "x(x+1)=0이면 x+1=0이다"의 역과 대우의 참, 거짓을 바르게 나타낸 것은?',['역: 참, 대우: 참','역: 참, 대우: 거짓','역: 거짓, 대우: 참','역: 거짓, 대우: 거짓'],2,[],
+  '역은 가정과 결론을 바꾼 명제, 대우는 바꾼 뒤 둘 다 부정한 명제예요. 먼저 역과 대우를 문장으로 써 보세요.',
+  'x(x+1)=0의 해는 x=0 또는 x=−1이에요. 이 값들을 대우와 역에 넣어서 반례가 있는지 확인해 보세요.',
+  '역과 대우를 먼저 문장으로 써 봐! 그다음 x=0, x=−1을 넣어서 반례가 생기는 쪽이 거짓이야.',['역은참','대우는거짓','역:참','대우:거짓'],
+  '명제의 역과 대우','교과서 p.96 (중단원 마무리)',
+  ['명제 p → q 에서 p는 가정, q는 결론이에요.','역: 가정과 결론을 서로 바꾼 명제  q → p','대우: 가정과 결론을 바꾸고 각각 부정한 명제  ~q → ~p','명제가 참이면 그 대우도 참이고, 거짓이면 대우도 거짓이에요. (역은 참일 수도, 거짓일 수도 있어요)','명제가 거짓임을 보이려면 가정은 만족하지만 결론은 만족하지 않는 반례를 하나만 찾으면 돼요.'],
+  '명제 "x=1이면 x²=1이다"의 역은 "x²=1이면 x=1이다", 대우는 "x²≠1이면 x≠1이다".'),
+ mq('중상','choice','전체집합 U에 대하여 두 조건 p, q의 진리집합을 각각 P, Q라 하자. 명제 p → ~q가 참일 때, 옳은 것을 <보기>에서 모두 고른 것은?\nㄱ. P ⊂ Qᶜ\nㄴ. P∩Q=Q\nㄷ. Pᶜ∩Q=Q\nㄹ. Pᶜ∪Qᶜ=U',['ㄱ, ㄷ','ㄱ, ㄹ','ㄴ, ㄹ','ㄱ, ㄷ, ㄹ','ㄱ, ㄴ, ㄷ, ㄹ'],4,[],
+  'p → ~q가 참이면 P ⊂ Qᶜ예요. 벤 다이어그램으로 P와 Q의 위치 관계를 그려 보세요.',
+  'P와 Q가 서로소라는 점을 이용해서 ㄱ~ㄹ을 하나씩 확인해 보세요. 벤 다이어그램에 색칠하면 편해요.',
+  'P ⊂ Qᶜ 는 P와 Q가 겹치지 않는다는 뜻이야! 벤 다이어그램을 그리고 ㄱ~ㄹ을 하나씩 색칠해서 확인해 봐.',[],
+  '진리집합 사이의 포함 관계','교과서 p.96 (중단원 마무리)',
+  ['두 조건 p, q의 진리집합을 P, Q라 할 때, P ⊂ Q이면 명제 p → q는 참이에요.','~q의 진리집합은 Qᶜ(Q의 여집합)이에요.','P ⊂ Qᶜ이면 P와 Q는 공통 원소가 없어요. (P∩Q=∅)','드모르간의 법칙  (P∩Q)ᶜ=Pᶜ∪Qᶜ  도 함께 떠올려 보세요.'],
+  'p → q가 참이면 P ⊂ Q 이고, 이때 Qᶜ ⊂ Pᶜ 도 성립해요. (대우 ~q → ~p 도 참)'),
+ mq('상','text','실수 x에 대하여 두 조건 p: x²−4a²≤0, q: |x−3|≤4 가 있다. 명제 p → q의 역이 참이 되도록 하는 자연수 a의 최솟값을 구하시오.\n(숫자만 입력)',[],'4',[],
+  '명제 p → q의 역은 q → p예요. 역이 참이면 Q ⊂ P예요. 먼저 두 조건의 진리집합을 구해 보세요.',
+  'Q={x | −1≤x≤7}이고, a가 자연수이면 P={x | −2a≤x≤2a}예요. Q ⊂ P가 되는 a의 범위를 수직선에 그려 구해 보세요.',
+  '역은 q → p! Q가 P 안에 쏙 들어가려면 P의 양 끝이 Q의 양 끝보다 바깥에 있어야 해. 수직선에 그려 봐.',['=4','a≥4','a=4'],
+  '역이 참이 되는 조건','교과서 p.96 (중단원 마무리)',
+  ['q → p 가 참이면 Q ⊂ P 예요.','|x−c|≤r 은 c−r≤x≤c+r 로 풀어요.','x²≤k² (k>0) 이면 −k≤x≤k 예요.','수직선에 그려서 양 끝점을 비교해요.'],
+  'p: x²≤9, q: −2≤x≤2 이면 P={x | −3≤x≤3}이고 Q ⊂ P 이므로 q → p 는 참이에요.'),
+ mq('상','text','실수 x에 대하여 두 조건 p: x²−10x+9≤0, q: x≤a가 있다. p가 q이기 위한 충분조건이 되도록 하는 실수 a의 최솟값을 구하시오.\n(숫자만 입력)',[],'9',[],
+  '먼저 p의 진리집합 P를 구하세요. 이차부등식 x²−10x+9≤0을 인수분해해 보세요.',
+  'p가 q이기 위한 충분조건이면 P ⊂ Q예요. 수직선에 P와 Q={x | x≤a}를 그려서 a가 가질 수 있는 값의 범위를 찾아 보세요.',
+  '(x−□)(x−△)≤0으로 P를 구한 다음, P ⊂ Q가 되려면 a가 P의 오른쪽 끝보다 작으면 안 된다는 걸 이용해 봐!',['=9','a≥9','a=9'],
+  '충분조건과 진리집합','교과서 p.96 (중단원 마무리)',
+  ['p가 q이기 위한 충분조건이면 p ⟹ q 이고, 진리집합은 P ⊂ Q 예요.','부등식으로 된 조건은 수직선에 범위를 그려서 포함 관계를 확인해요.','끝점이 포함되는지(등호 유무)를 꼭 확인해요.'],
+  'p: 1≤x≤3, q: x≤b에서 p가 q이기 위한 충분조건이면 P ⊂ Q이므로 b≥3이에요.')];
+var LIB_HAMSU=[
+ mq('최하','choice','두 집합 X={−1, 0, 1}, Y={0, 1, 2, 3}에 대하여 X에서 Y로의 함수인 것만을 <보기>에서 모두 고른 것은?\nㄱ. y=x+2\nㄴ. y=x²−1\nㄷ. y=|x−1|\nㄹ. y=3|x|',['ㄱ, ㄷ','ㄱ, ㄹ','ㄴ, ㄷ, ㄹ','ㄱ, ㄷ, ㄹ','ㄱ, ㄴ, ㄷ, ㄹ'],4,[],
+  '함수가 되려면 X의 모든 원소에 Y의 원소가 "꼭 하나씩" 대응되어야 해요. 식에 X의 원소를 하나씩 넣어 보세요.',
+  '넣은 값이 Y의 원소가 아니면 그 식은 함수가 아니에요. 각 식마다 x=−1, 0, 1을 모두 넣어 보세요.',
+  '식마다 x=−1, 0, 1을 전부 넣어 봐! 나온 값이 Y={0,1,2,3} 안에 모두 들어 있어야 함수야.',[],
+  '함수의 정의','교과서 p.118 (중단원 마무리)',
+  ['두 집합 X, Y에 대하여 X의 각 원소에 Y의 원소가 오직 하나씩 대응할 때, 이 대응을 X에서 Y로의 함수라고 해요.','f: X → Y 에서 X를 정의역, Y를 공역, {f(x) | x∈X}를 치역이라고 해요.','X의 어떤 원소에 대응하는 값이 Y에 없으면 함수가 아니에요.'],
+  'X={1, 2}, Y={1, 2, 3}에서 f(x)=x+1은 f(1)=2, f(2)=3이므로 함수예요. f(x)=x+2는 f(2)=4가 Y에 없어서 함수가 아니에요.'),
+ mq('하','choice','실수 전체의 집합에서 정의된 다음 함수 중 일대일대응인 것을 <보기>에서 모두 고른 것은?\nㄱ. y=−1\nㄴ. y=x\nㄷ. y=−4x+1\nㄹ. y=2x²−3',['ㄴ','ㄴ, ㄷ','ㄱ, ㄴ, ㄷ','ㄷ, ㄹ','ㄴ, ㄷ, ㄹ'],2,[],
+  '일대일대응은 정의역의 서로 다른 원소에 항상 서로 다른 값이 대응하고, 치역과 공역이 같은 함수예요.',
+  '그래프를 떠올려 보세요. 가로선 y=k를 그었을 때 그래프와 항상 한 점에서만 만나면 일대일대응이에요.',
+  '그래프를 떠올려서 가로선을 그어 봐! 어떤 가로선이든 딱 한 번만 만나야 일대일대응이야.',[],
+  '일대일함수와 일대일대응','교과서 p.118 (중단원 마무리)',
+  ['x₁≠x₂이면 f(x₁)≠f(x₂)인 함수를 일대일함수라고 해요.','일대일함수이고 치역과 공역이 같은 함수를 일대일대응이라고 해요.','일차함수 y=ax+b (a≠0)는 실수 전체에서 일대일대응이에요.','서로 다른 x에 같은 y가 대응하는 경우가 있으면 일대일함수가 아니에요.'],
+  'y=3x−2는 서로 다른 x마다 다른 y가 나오는 일대일대응이에요.'),
+ mq('하~중','text','함수 f(x)=4x+6에 대하여 f⁻¹(2)의 값을 구하시오.\n(숫자만 입력)',[],'-1',['−1'],
+  'f⁻¹(2)=k 는 f(k)=2 라는 뜻이에요.',
+  '4k+6=2 라는 방정식을 풀어 보세요.',
+  'f⁻¹(2)=k 라고 놓으면 f(k)=2 야! 방정식을 풀면 k가 나와.',['=-1','=−1','답은-1'],
+  '역함수의 함숫값','교과서 p.118 (중단원 마무리)',
+  ['일대일대응인 함수 f: X → Y에는 역함수 f⁻¹: Y → X가 존재해요.','y=f(x) ⟺ x=f⁻¹(y)','f⁻¹(a)=b 이면 f(b)=a 예요.'],
+  'f(x)=2x+1 이면 f(3)=7 이므로 f⁻¹(7)=3 이에요.'),
+ mq('중','text','두 함수 f(x)=x+1 (x≥2), f(x)=2x−1 (x<2) 와 g(x)=x²−3x 에 대하여 (f∘g)(−2)의 값을 구하시오.\n(숫자만 입력)',[],'11',[],
+  '(f∘g)(−2)=f(g(−2)) 예요. 안쪽 g(−2)부터 구해요.',
+  'g(−2)의 값이 2 이상인지 2 미만인지 확인해서 f의 알맞은 식에 넣어요.',
+  '안쪽 g(−2)를 먼저 계산! 그 값이 2 이상인지 보고 f의 어느 식을 쓸지 정해.',['=11','답은11'],
+  '합성함수의 함숫값','교과서 p.118 (중단원 마무리)',
+  ['두 함수 f: X → Y, g: Y → Z 의 합성함수는 (g∘f)(x)=g(f(x)) 예요.','(f∘g)(a)는 안쪽 g(a)를 먼저 구하고, 그 값을 f에 넣어요.','구간별로 식이 다른 함수는 값이 어느 구간에 속하는지 먼저 확인해요.'],
+  'f(x)=x+1, g(x)=2x 이면 (f∘g)(3)=f(6)=7 이에요.'),
+ mq('중상','text','정의역이 {1, 2}인 두 함수 f(x)=x+a, g(x)=x²+bx+5에 대하여 f=g가 성립할 때, 상수 a, b에 대하여 a+b의 값을 구하시오.\n(숫자만 입력)',[],'1',[],
+  'f=g이면 정의역의 모든 원소 x에서 f(x)=g(x)예요. x가 1일 때와 2일 때 각각 식을 세워 보세요.',
+  '두 식에서 a를 없애거나 대입해서 b를 먼저 구한 뒤, a를 구해요.',
+  '정의역의 두 원소를 각각 넣어서 f(x)=g(x)인 식 두 개를 만들고 연립해서 풀어 봐!',['a+b=1'],
+  '두 함수가 같을 조건','교과서 p.118 (중단원 마무리)',
+  ['정의역과 공역이 같고, 정의역의 모든 원소 x에 대하여 f(x)=g(x)이면 f=g예요.','정의역의 원소가 적으면 원소마다 식을 세워 연립방정식으로 풀어요.'],
+  'X={0, 1}에서 f(x)=x, g(x)=x²이면 f(0)=g(0), f(1)=g(1)이므로 f=g예요.'),
+ mq('상','text','일차함수 f(x)=ax+b가 f(−1)=1, f⁻¹(3)=−2를 만족시킬 때, f(4)의 값을 구하시오. (단, a, b는 상수)\n(숫자만 입력)',[],'-9',['−9'],
+  'f⁻¹(3)=−2 는 f(−2)=3 이라는 뜻이에요. f(−1)=1 과 함께 a, b에 대한 식 두 개를 세워 보세요.',
+  '두 식을 연립해서 a, b를 구한 뒤 f(4)를 계산해요.',
+  '역함수 조건을 f(−2)=3 으로 바꾸면 식이 두 개! 연립해서 a, b를 구하고 4를 넣어 봐.',['=-9','=−9','답은-9'],
+  '역함수의 성질','교과서 p.118 (중단원 마무리)',
+  ['f⁻¹(a)=b 이면 f(b)=a 예요.','y=f(x) ⟺ x=f⁻¹(y)','일차함수 f(x)=ax+b의 계수는 두 점의 함숫값으로 구할 수 있어요.'],
+  'f(x)=ax+1에서 f⁻¹(5)=2 이면 f(2)=5 이므로 2a+1=5, a=2 예요.'),
+ mq('상','text','두 함수 f(x)=x+a, g(x)=x² (x≥a), g(x)=2x−6 (x<a) 에 대하여 (g∘f)(1)+(f∘g)(4)=57을 만족시키는 모든 실수 a의 값의 합을 구하시오.\n(숫자만 입력)',[],'-2',['−2'],
+  'f(1)=1+a는 항상 a보다 커요. 그래서 (g∘f)(1)은 g의 어느 식을 쓰는지 바로 정해져요. (f∘g)(4)는 4와 a의 크기에 따라 나눠야 해요.',
+  'a≤4일 때와 a>4일 때로 나누어 이차방정식을 풀고, 각 경우의 조건에 맞는 a만 남겨요.',
+  '4가 a보다 큰지 작은지로 경우를 나눠 봐! 구한 a가 그 경우의 조건에 맞는지 꼭 확인!',['=-2','=−2','답은-2'],
+  '합성함수와 경우 나누기','교과서 p.118 (중단원 마무리)',
+  ['(g∘f)(x)=g(f(x))','구간으로 정의된 함수는 값이 어느 구간에 속하는지에 따라 경우를 나눠요.','구한 값이 경우의 조건을 만족하는지 꼭 확인해요.'],
+  'g(x)=x² (x≥1), g(x)=2x (x<1) 일 때 g(3)=9, g(0)=0 이에요.')];
+var LIB_YURI=[
+ mq('최하','text','x=3일 때, 식 (4x−5)/(x²+2x) − 1/(x+2) 의 값을 기약분수로 구하시오.\n(예: 2/3 꼴로 입력)',[],'4/15',[],
+  '분모를 인수분해해서 통분해 보세요. x²+2x=x(x+2)예요.',
+  '정리하면 (3x−5)/(x(x+2)) 꼴이 돼요. 여기에 x=3을 넣어 기약분수로 나타내요.',
+  '분모 x²+2x를 x(x+2)로 바꾸고 통분! 분자를 정리한 뒤 x=3을 넣어 봐.',['=4/15','답은4/15'],
+  '유리식의 덧셈과 뺄셈','교과서 p.133 (중단원 마무리)',
+  ['분모가 다른 유리식은 통분해서 더하거나 빼요.','분모를 인수분해하면 통분하기 쉬워요.','계산 결과는 약분해서 기약분수로 나타내요.'],
+  '1/x + 1/(x+1) = (2x+1)/(x(x+1)) 이에요.'),
+ mq('하','choice','유리함수 y=4/(x−1)−3 에 대한 설명으로 옳은 것은?',['정의역은 {x | x≠1}이고, 점근선은 x=1, y=−3이다.','정의역은 {x | x≠−1}이고, 점근선은 x=−1, y=−3이다.','정의역은 {x | x≠1}이고, 점근선은 x=1, y=3이다.','정의역은 {x | x≠3}이고, 점근선은 x=3, y=1이다.'],1,[],
+  'y=k/(x−p)+q 의 그래프는 y=k/x 를 x축 방향으로 p, y축 방향으로 q만큼 평행이동한 거예요.',
+  '분모가 0이 되는 x가 정의역에서 빠지는 값(점근선 x=p)이고, 더해진 상수가 y축 방향의 점근선 y=q예요.',
+  '식을 y=k/(x−p)+q 꼴과 비교해 봐! p와 q의 값이 곧 점근선이야.',[],
+  '유리함수의 그래프','교과서 p.133 (중단원 마무리)',
+  ['y=k/x (k≠0)의 정의역과 치역은 0이 아닌 실수 전체이고, 점근선은 x축과 y축이에요.','y=k/(x−p)+q 는 y=k/x 를 x축 방향으로 p, y축 방향으로 q만큼 평행이동한 그래프예요.','정의역은 {x | x≠p}, 치역은 {y | y≠q}, 점근선은 x=p, y=q 예요.'],
+  'y=2/(x+1)+5 는 점근선이 x=−1, y=5 예요.'),
+ mq('하~중','text','(1+√(x−5))(1−√(x−5)) 의 x=9일 때의 값을 구하시오.\n(숫자만 입력)',[],'-3',['−3'],
+  '(a+b)(a−b)=a²−b² 를 이용하면 근호가 없어져요.',
+  '(√(x−5))²=x−5 예요. 간단히 한 식에 x=9를 넣어 보세요.',
+  '곱셈 공식 (a+b)(a−b)로 근호를 없앤 다음 x=9를 넣어 봐!',['=-3','=−3','답은-3'],
+  '무리식의 계산','교과서 p.133 (중단원 마무리)',
+  ['√A 가 실수이려면 A≥0 이어야 해요.','(√A)²=A (A≥0)','분모에 근호가 있으면 분모와 분자에 켤레식을 곱해 유리화해요.'],
+  '(√3+1)(√3−1)=3−1=2 예요.'),
+ mq('중','choice','무리함수 y=√(2x−4)+3 의 정의역과 치역을 바르게 나타낸 것은?',['정의역: {x | x≥2}, 치역: {y | y≥3}','정의역: {x | x≥−2}, 치역: {y | y≥3}','정의역: {x | x≥2}, 치역: {y | y≥−3}','정의역: {x | x≤2}, 치역: {y | y≥3}'],1,[],
+  '근호 안 2x−4가 0 이상이어야 정의역이 정해져요. 먼저 정의역부터 구해 보세요.',
+  '√(2x−4)는 0 이상의 값을 가져요. 거기에 3을 더하면 치역은 어떻게 될까요?',
+  '근호 안은 0 이상! 부등식을 풀어 정의역을 구하고, 3을 더한 값의 범위가 치역이야.',[],
+  '무리함수의 정의역과 치역','교과서 p.133 (중단원 마무리)',
+  ['y=√(ax) 를 평행이동하면 y=√(a(x−p))+q 꼴이 돼요.','a>0이면 정의역은 {x | x≥p}, 치역은 {y | y≥q}예요.','a<0이면 정의역은 {x | x≤p}, 치역은 {y | y≥q}예요.'],
+  'y=√(x−1)+2 의 정의역은 {x | x≥1}, 치역은 {y | y≥2}예요.'),
+ mq('중상','text','함수 y=(−x+1)/(x+3) 의 그래프를 x축의 방향으로 m만큼, y축의 방향으로 n만큼 평행이동하면 함수 y=(−3x−2)/(x+2) 의 그래프와 일치한다. 상수 m, n에 대하여 m+n의 값을 구하시오.\n(숫자만 입력)',[],'-1',['−1'],
+  '두 식을 각각 y=k/(x−p)+q 꼴로 바꿔 보세요. 분자를 분모로 나누면 돼요.',
+  '평행이동하면 k는 변하지 않아요. 두 식의 분모의 x 쪽 상수와 더해진 상수를 비교해서 m, n을 정해요.',
+  '분자를 분모로 나눠서 y=k/(x−p)+q 꼴로! 두 식의 p, q가 얼마나 달라졌는지 보면 m, n이 나와.',['=-1','=−1','답은-1'],
+  '유리함수의 평행이동','교과서 p.133 (중단원 마무리)',
+  ['(ax+b)/(cx+d) 꼴은 분자를 분모로 나눠 y=k/(x−p)+q 꼴로 바꿔요.','y=f(x)를 x축 방향으로 m, y축 방향으로 n만큼 평행이동하면 y−n=f(x−m) 이에요.','점근선의 이동을 보면 m, n을 바로 알 수 있어요.'],
+  'y=1/x+2 를 x축 방향으로 3만큼 평행이동하면 y=1/(x−3)+2 예요.'),
+ mq('상','text','함수 f(x)=(ax+b)/(x+1) 에 대하여 y=f(x)의 그래프가 점 (3, 1)을 지나고 f=f⁻¹ 일 때, 상수 a, b에 대하여 a+b의 값을 구하시오.\n(숫자만 입력)',[],'6',[],
+  '역함수를 직접 구해서 f(x)와 같다고 놓아 보세요. y=(ax+b)/(x+1)에서 x를 y로 나타내면 돼요.',
+  'f=f⁻¹ 이면 분모와 분자를 비교해서 a의 값이 정해져요. 그다음 점 (3, 1)을 지난다는 조건으로 b를 구해요.',
+  'x와 y를 바꿔 역함수를 구하고 f(x)와 비교해 봐! a가 정해지면 (3,1)을 넣어서 b를 구해.',['=6','a+b=6','답은6'],
+  '역함수와 f=f⁻¹','교과서 p.133 (중단원 마무리)',
+  ['f=f⁻¹ 이면 f(f(x))=x 이고, 그래프가 직선 y=x에 대하여 대칭이에요.','y=f(x) ⟺ x=f⁻¹(y) 이므로 x와 y를 바꿔 역함수를 구해요.','점 (p, q)를 지난다 ⟹ f(p)=q'],
+  'f(x)=1/x 의 역함수는 f⁻¹(x)=1/x 이므로 f=f⁻¹ 예요.'),
+ mq('상','text','함수 f(x)=(2x+b)/(x−a) 가 다음 조건을 모두 만족시킬 때, 상수 a, b에 대하여 a+b의 값을 구하시오.\n(가) 2가 아닌 모든 실수 x에 대하여 f⁻¹(x)=f(x−4)−4\n(나) 함수 y=f(x)의 그래프를 평행이동하면 함수 y=3/x 의 그래프와 일치한다.\n(숫자만 입력)',[],'5',[],
+  '(나)에서 f(x)=2+(b+2a)/(x−a) 꼴이 돼요. 평행이동해서 y=3/x와 겹치려면 분자의 상수가 3이어야 해요.',
+  '(가)는 f⁻¹(x)를 직접 구해서 f(x−4)−4와 분모를 비교하면 a의 값이 나와요. 그다음 (나)로 b를 구해요.',
+  '(가)로 a부터 구하고, (나)로 b를 구해! 역함수는 x와 y를 바꿔서 구해 봐.',['=5','a+b=5','답은5'],
+  '유리함수의 역함수와 평행이동','교과서 p.133 (중단원 마무리)',
+  ['(ax+b)/(cx+d) 꼴은 y=k/(x−p)+q 꼴로 정리하면 평행이동을 읽기 쉬워요.','평행이동으로 겹쳐지는 두 유리함수는 k 값이 같아요.','역함수는 x와 y를 바꿔 구하고, 두 유리식이 같으면 분모와 분자를 비교해요.'],
+  'f(x)=(x+3)/(x+1)=1+2/(x+1) 이므로 y=2/x 를 평행이동한 그래프예요.')];
+var LIB=[{id:'m2',name:'공통수학2',icon:'📘',units:[
+ {id:'jip',name:'집합',src:'교과서 p.78~79 중단원 마무리',qs:LIB_JIP},
+ {id:'myj',name:'명제',src:'교과서 p.96~97 중단원 마무리',qs:LIB_MYEONG},
+ {id:'ham',name:'함수',src:'교과서 p.118~119 중단원 마무리',qs:LIB_HAMSU},
+ {id:'yuri',name:'유리함수와 무리함수',src:'교과서 p.133~134 중단원 마무리',qs:LIB_YURI}]}];
+function libId(c,u){return 'L'+c.id+u.id;}
+
+function libHtml(done){
+ return '<div class="card"><h2>🗂️ 내장 문제 은행</h2><div class="sub">교과서 중단원 마무리 문제를 난이도별로 7문제씩 골라 둔 세트예요. [내 세트로 가져오기]를 누르면 내 시트에 저장돼서 [이 세트로 진행]으로 바로 쓸 수 있고, 가져온 뒤 자유롭게 편집할 수도 있어요.</div>'+
+ LIB.map(function(c){return '<details class="lib"><summary><b>'+c.icon+' '+esc(c.name)+'</b> · '+c.units.length+'개 단원</summary>'+c.units.map(function(u){var id=libId(c,u),got=done[id];
+  return '<div class="hcard"><b>'+esc(u.name)+'</b><div class="sub">'+u.qs.length+'문항 · '+esc(u.qs.map(function(q){return q.lvl;}).join('→'))+'<br>'+esc(u.src)+'</div>'+
+  '<details><summary>👀 문제·정답 미리보기</summary><ol style="padding-left:18px;margin:6px 0;font-size:13px;line-height:1.5">'+u.qs.map(function(q){return '<li>['+esc(q.lvl)+'] '+esc(q.q.split('\n')[0].slice(0,50))+(q.q.length>50?'…':'')+' <b>→ '+esc(q.type==='choice'?CIRC[q.ans-1]:q.ans)+'</b></li>';}).join('')+'</ol></details>'+
+  '<button class="btn '+(got?'ghost':'go')+' small" data-lib="'+c.id+'|'+u.id+'">'+(got?'✅ 가져옴 · 다시 가져오기':'📥 내 세트로 가져오기')+'</button></div>';}).join('')+'</details>';}).join('')+'<div class="msg" id="lm"></div></div>';}
+function libImport(cid,uid,again){
+ var c=null,u=null;LIB.forEach(function(x){if(x.id===cid)x.units.forEach(function(y){if(y.id===uid){c=x;u=y;}});});
+ if(!u)return;
+ var m=$('lm'),set={id:libId(c,u),name:(c.name+' · '+u.name).slice(0,30),unit:u.name,qs:cloneSet(u.qs)};
+ var sv=ED;ED={set:set,open:0,isNew:true};var r=edNormalize();ED=sv;
+ if(r.err){m.className='msg err';m.textContent='가져오지 못했어요: '+r.err;return;}
+ var data=JSON.stringify(r.set),sg=sigOf(data),t0=Date.now(),tries=0;
+ m.className='msg';m.textContent='내 시트에 저장하는 중…';
+ postForm({action:'qsetsave',code:adminCode(),data:data}).then(function(cl){
+  (function chk(){
+   tries++;
+   adm('qsetinfo',{id:r.set.id},20000).then(function(x){
+    if(x&&x.ok&&x.sig===sg){cl();toast('가져왔어요 ✅',2200);renderSets();return;}
+    var er=null;try{er=x&&x.err?JSON.parse(x.err):null;}catch(e2){}
+    if(er&&er.t>t0-60000){cl();m.className='msg err';m.textContent='저장하지 못했어요: '+er.m;return;}
+    if(tries>=25){cl();m.className='msg err';m.textContent='저장 확인이 안 돼요. 인터넷과 GAS 최신 배포를 확인하고 다시 눌러 주세요.';return;}
+    setTimeout(chk,2000);
+   }).catch(function(e){if(tries>=25){cl();m.className='msg err';m.textContent=noGasMsg(e);return;}setTimeout(chk,2000);});
+  })();
+ }).catch(function(e){m.className='msg err';m.textContent=noGasMsg(e);});}
+
 function renderSets(){
  view='sets';setTabs(false);clearInterval(admT);
  $('app').innerHTML=titleHtml('문항 세트')+'<div class="card"><div class="msg" id="sm">불러오는 중…</div></div>'+backBtn('bk','‹ 관리자 화면으로')+footer();
@@ -2045,16 +2270,19 @@ function renderSets(){
  adm('qsets').then(function(r){
   if(!r||!r.ok)throw new Error((r&&r.error)||'x');
   var act=r.active||'';
+  var done={};r.sets.forEach(function(s){done[s.id]=1;});
+  var LIBID=function(p){return 'L'+p[0]+p[1];};
   var card=function(id,name,unit,n,isB){var on=act===id;return '<div class="hcard"><b>'+(on?'✅ 진행 중 · ':'')+esc(name)+'</b><div class="sub">'+(unit?esc(unit)+' · ':'')+n+'문항</div><div class="row2"><button class="btn small'+(on?' ghost':' go')+'" data-act="'+id+'"'+(on?' disabled':'')+'>▶ 이 세트로 진행</button><button class="btn ghost small" data-'+(isB?'cb':'ed')+'="'+id+'">'+(isB?'복제해서 편집':'✏️ 편집')+'</button></div>'+(isB?'':'<div class="row2"><button class="btn ghost small" data-cp="'+id+'">복제</button><button class="btn ghost small" data-del="'+id+'"'+(on?' disabled':'')+'>삭제</button></div>')+'</div>';};
   $('app').innerHTML=titleHtml('문항 세트')+'<div class="card"><h2>📚 내 문항 세트</h2><div class="sub">수업에서 쓸 세트를 골라 [이 세트로 진행]을 눌러요. 게임 시작 전에만 바꿀 수 있어요.</div>'+
    card('',DEFAULT_SET.name,DEFAULT_SET.unit,DEFAULT_SET.qs.length,true)+r.sets.map(function(s){return card(s.id,s.name,s.unit,s.n,false);}).join('')+
-   '<button class="btn" id="snew">➕ 새 세트 만들기</button><button class="btn go" id="sai">🤖 AI로 문항 만들기</button><button class="btn go" id="sim">📖 교재에서 문제 가져오기</button><div class="msg" id="sm"></div></div>'+backBtn('bk','‹ 관리자 화면으로')+footer();
+   '<button class="btn" id="snew">➕ 새 세트 만들기</button><button class="btn go" id="sai">🤖 AI로 문항 만들기</button><button class="btn go" id="sim">📖 교재에서 문제 가져오기</button><div class="msg" id="sm"></div></div>'+libHtml(done)+backBtn('bk','‹ 관리자 화면으로')+footer();
   $('bk').onclick=renderAdmin;
+  qsa('[data-lib]').forEach(function(b){b.onclick=function(){var p=b.getAttribute('data-lib').split('|');if(done[LIBID(p)])popup({icon:'📥',title:'다시 가져올까요?',body:'이미 가져온 세트예요. 다시 가져오면 그 세트를 처음 상태로 덮어써요. (고친 내용이 있다면 사라져요)',btns:[{t:'다시 가져오기',fn:function(){libImport(p[0],p[1]);}},{t:'취소',ghost:true}]});else libImport(p[0],p[1]);};});
   var msg=function(t,ok){var m=$('sm');m.className='msg '+(ok?'ok':'err');m.textContent=t;};
   qsa('[data-act]').forEach(function(b){b.onclick=function(){adm('qsetactive',{id:b.getAttribute('data-act')}).then(function(x){if(x&&x.ok){toast('이 세트로 진행해요 ✅',2000);renderSets();}else msg((x&&x.error)||'바꾸지 못했어요');}).catch(function(e){msg(noGasMsg(e));});};});
   qsa('[data-ed]').forEach(function(b){b.onclick=function(){adm('qsetget',{id:b.getAttribute('data-ed')}).then(function(x){if(!x||!x.ok)throw new Error((x&&x.error)||'x');ED={set:x.set,open:0,isNew:false};renderSetEdit();}).catch(function(e){msg((e&&e.message&&e.message!=='x'&&e.message.length<40)?e.message:noGasMsg(e));});};});
   qsa('[data-cp]').forEach(function(b){b.onclick=function(){adm('qsetget',{id:b.getAttribute('data-cp')}).then(function(x){if(!x||!x.ok)throw new Error((x&&x.error)||'x');var s=cloneSet(x.set);s.id=newSetId();s.name=(s.name+' (복사)').slice(0,30);ED={set:s,open:0,isNew:true};renderSetEdit();}).catch(function(e){msg((e&&e.message&&e.message!=='x'&&e.message.length<40)?e.message:noGasMsg(e));});};});
-  qsa('[data-cb]').forEach(function(b){b.onclick=function(){var s=cloneSet(DEFAULT_SET);s.id=newSetId();s.name='집합과 명제 (복사)';ED={set:s,open:0,isNew:true};renderSetEdit();};});
+  qsa('[data-cb]').forEach(function(b){b.onclick=function(){var s=cloneSet(DEFAULT_SET);s.id=newSetId();s.name='집합 (복사)';ED={set:s,open:0,isNew:true};renderSetEdit();};});
   qsa('[data-del]').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-del');popup({icon:'🗑️',title:'이 세트를 지울까요?',body:'지우면 되돌릴 수 없어요.',btns:[{t:'지우기',fn:function(){adm('qsetdel',{id:id}).then(function(x){if(x&&x.ok){toast('지웠어요',1800);renderSets();}else msg((x&&x.error)||'지우지 못했어요');});}},{t:'취소',ghost:true}]});};});
   $('sai').onclick=renderAI;$('sim').onclick=renderImport;
   $('snew').onclick=function(){var qs=[];for(var i=0;i<5;i++)qs.push(blankQ());ED={set:{id:newSetId(),name:'',unit:'',qs:qs},open:0,isNew:true};renderSetEdit();};
@@ -2767,9 +2995,63 @@ function qrPoster(url,o){o=o||{};
  x.font='700 28px Galmuri11,Pretendard,sans-serif';x.fillText(o.line||'📷 카메라로 찍어서 입장해요!',W/2,oy+sz+90);
  x.font='700 22px Galmuri11,Pretendard,sans-serif';x.fillText('Made by Cheon_R',W/2,H-40);}
 
+/* ===== 연습장 (태블릿 펜슬 필기 · 문제 화면 오른쪽 아래 ✏️ 버튼) ===== */
+var PAD={q:0,data:{},color:'#16294D',size:3,eraser:false,pen:false,cur:null,cv:null,ctx:null,clr:0};
+function padFab(on){
+ var f=$('padfab');
+ if(!on){if(f)f.classList.add('hide');return;}
+ if(!f){f=document.createElement('button');f.id='padfab';f.className='padfab';f.setAttribute('aria-label','연습장 열기');f.innerHTML='✏️<small>연습장</small>';f.onclick=function(){openPad(curQ);};document.body.appendChild(f);}
+ f.classList.remove('hide');}
+function padStrokes(){return PAD.data[PAD.q]||(PAD.data[PAD.q]=[]);}
+function padSeg(st,a,b){var c=PAD.ctx;c.save();c.lineCap='round';c.lineJoin='round';
+ c.globalCompositeOperation=st.e?'destination-out':'source-over';c.strokeStyle=st.c;c.lineWidth=(st.e?st.w*6:st.w)*(b[2]||1);
+ c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.stroke();c.restore();}
+function padRedraw(){var cv=PAD.cv,c=PAD.ctx;if(!cv)return;c.clearRect(0,0,cv.width,cv.height);
+ padStrokes().forEach(function(st){if(st.pts.length===1){padSeg(st,st.pts[0],[st.pts[0][0]+.01,st.pts[0][1]+.01,st.pts[0][2]]);}for(var i=1;i<st.pts.length;i++)padSeg(st,st.pts[i-1],st.pts[i]);});}
+function padFit(){var cv=PAD.cv,r=cv.parentNode.getBoundingClientRect(),d=window.devicePixelRatio||1;
+ cv.width=Math.max(1,Math.round(r.width*d));cv.height=Math.max(1,Math.round(r.height*d));PAD.ctx=cv.getContext('2d');PAD.ctx.setTransform(d,0,0,d,0,0);padRedraw();}
+function closePad(){var o=$('padov');if(o&&o.parentNode)o.parentNode.removeChild(o);PAD.cv=null;PAD.cur=null;}
+function openPad(q){
+ if($('padov'))return;
+ PAD.q=q||curQ||0;var Q=QUESTIONS[PAD.q-1]||{q:''};
+ var o=document.createElement('div');o.id='padov';o.className='padov';
+ var cols=[['#16294D','검정'],['#E5484D','빨강'],['#2F6BE0','파랑'],['#1E9E5A','초록']];
+ o.innerHTML='<div class="padbox"><div class="padtop"><b>✏️ 연습장 · '+(PAD.q?PAD.q+'번':'')+'</b>'+
+  cols.map(function(c){return '<button class="sw" data-pc="'+c[0]+'" style="background:'+c[0]+'" aria-label="'+c[1]+'"></button>';}).join('')+
+  '<button data-ps="2">가늘게</button><button data-ps="3">보통</button><button data-ps="6">굵게</button>'+
+  '<button id="pder">🧽 지우개</button><button id="pund">↩ 되돌리기</button><button id="pclr">🗑 전체 지우기</button><button id="pcls" style="margin-left:auto;background:#FFB3C7">✖ 닫기</button></div>'+
+  '<div class="padq" id="padq">'+esc(Q.q||'')+'</div><div class="padcv"><canvas id="padcv"></canvas></div></div>';
+ document.body.appendChild(o);
+ PAD.cv=$('padcv');padFit();
+ var mark=function(){qsa('[data-pc]',o).forEach(function(b){b.classList.toggle('on',!PAD.eraser&&b.getAttribute('data-pc')===PAD.color);b.style.outline=(!PAD.eraser&&b.getAttribute('data-pc')===PAD.color)?'4px solid #FFD43B':'';});
+  qsa('[data-ps]',o).forEach(function(b){b.classList.toggle('on',Number(b.getAttribute('data-ps'))===PAD.size);});$('pder').classList.toggle('on',PAD.eraser);};
+ mark();
+ qsa('[data-pc]',o).forEach(function(b){b.onclick=function(){PAD.color=b.getAttribute('data-pc');PAD.eraser=false;mark();};});
+ qsa('[data-ps]',o).forEach(function(b){b.onclick=function(){PAD.size=Number(b.getAttribute('data-ps'));mark();};});
+ $('pder').onclick=function(){PAD.eraser=!PAD.eraser;mark();};
+ $('pund').onclick=function(){padStrokes().pop();padRedraw();};
+ $('pclr').onclick=function(){var b=$('pclr');if(PAD.clr){clearTimeout(PAD.clr);PAD.clr=0;PAD.data[PAD.q]=[];padRedraw();b.textContent='🗑 전체 지우기';return;}
+  b.textContent='정말 지울까요? (한 번 더)';PAD.clr=setTimeout(function(){PAD.clr=0;if($('pclr'))$('pclr').textContent='🗑 전체 지우기';},2500);};
+ $('pcls').onclick=closePad;
+ $('padq').onclick=function(){this.style.maxHeight=this.style.maxHeight==='none'?'':'none';};
+ var cv=PAD.cv,pt=function(e){var r=cv.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top,e.pointerType==='pen'&&e.pressure?Math.max(.4,e.pressure*1.6):1];};
+ cv.addEventListener('pointerdown',function(e){
+  if(e.pointerType==='pen')PAD.pen=true;
+  if(e.pointerType==='touch'&&PAD.pen)return;   // 펜을 쓰는 중에는 손바닥 터치 무시
+  e.preventDefault();try{cv.setPointerCapture(e.pointerId);}catch(x){}
+  PAD.cur={c:PAD.color,w:PAD.size,e:PAD.eraser,pts:[pt(e)]};padSeg(PAD.cur,PAD.cur.pts[0],[PAD.cur.pts[0][0]+.01,PAD.cur.pts[0][1]+.01,PAD.cur.pts[0][2]]);});
+ cv.addEventListener('pointermove',function(e){
+  if(!PAD.cur)return;e.preventDefault();
+  var evs=(e.getCoalescedEvents&&e.getCoalescedEvents())||[e];if(!evs.length)evs=[e];
+  evs.forEach(function(ev){var a=PAD.cur.pts[PAD.cur.pts.length-1],b=pt(ev);PAD.cur.pts.push(b);padSeg(PAD.cur,a,b);});});
+ var end=function(e){if(!PAD.cur)return;padStrokes().push(PAD.cur);PAD.cur=null;};
+ cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);cv.addEventListener('pointerleave',end);
+ window.addEventListener('resize',function rs(){if(!$('padov')){window.removeEventListener('resize',rs);return;}padFit();});}
+
 /* ===== 시작 ===== */
 (function boot(){
  if(params.get('new')==='1'&&!params.get('gas')){goTeacherSetup();return;}
+ if(params.get('admin')==='1'&&GAS){try{history.replaceState(null,'',location.pathname);}catch(e){}renderAdminLogin();return;}
  var s=store.get(K_SES,null);
  if(s&&GAS){
   MODE='real';SES=s;view='boot';setTabs(false);
