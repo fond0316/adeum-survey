@@ -4851,7 +4851,7 @@ function foldAllStatSections(open) {
 }
 
 // 출력용 정리: 접어 둔 항목은 출력에서 빼고, 펼친 항목은 제목줄 없이 내용만 / 버튼 제거 / 그래프(canvas)는 이미지로
-function buildStatPrintHtml() {
+function buildStatPrintHtml(selKeys) {
   const src = document.getElementById('statContent');
   if (!src) return '';
   const tmp = document.createElement('div');
@@ -4867,7 +4867,8 @@ function buildStatPrintHtml() {
     } catch (e) {}
   });
   tmp.querySelectorAll('details').forEach(d => {
-    if (!d.hasAttribute('open')) { d.remove(); return; }
+    if (selKeys) { if (!selKeys.includes(printSecKey(d))) { d.remove(); return; } }
+    else if (!d.hasAttribute('open')) { d.remove(); return; }
     const inner = d.querySelector(':scope > div');
     const holder = document.createElement('div');
     holder.innerHTML = inner ? inner.innerHTML : '';
@@ -4876,6 +4877,9 @@ function buildStatPrintHtml() {
   // AI 서술문: 결과가 없으면 제목도 출력 안 함 (입력칸·버튼·안내문은 항상 제외)
   const aiRes = tmp.querySelector('#trendAIResult');
   if (!aiRes || !aiRes.textContent.trim()) tmp.querySelectorAll('.trendAIHead').forEach(el => el.remove());
+  // 상담 문구: 아직 생성 전이면(버튼 설명만 남는 빈 노란 박스) 출력에서 제외
+  const csr = tmp.querySelector('#counselScriptResult');
+  if (csr && (csr.style.display === 'none' || !csr.textContent.trim())) { const card = csr.parentElement; if (card) card.remove(); }
   tmp.querySelectorAll('.no-print, button, input, textarea, select, label').forEach(el => el.remove());
   return tmp.innerHTML;
 }
@@ -9161,7 +9165,66 @@ function printHTMLDocument(html) {
   }, 350);
 }
 
+// ── 전체 출력: 출력 전에 넣을 섹션을 고르는 창 (선택은 이 기기에 기억) ──
+const PRINT_SEL_LS = 'admAI_printSel_v1';
+// 담임이 속으로 보는 내부용 섹션은 기본으로 꺼 둠 (필요하면 체크해서 출력)
+const PRINT_DEFAULT_OFF = ['입학사정관 관점', '성적 급변 점검', '다음 상담 전 액션 카드', '학부모 상담 문구', '선택과목 추천'];
+function printSecTitle(d) {
+  const sm = d.querySelector(':scope > summary');
+  if (!sm) return '';
+  const c = sm.cloneNode(true);
+  c.querySelectorAll('.secHint').forEach(x => x.remove());
+  return c.textContent.replace(/[▾▴]/g, '').replace(/\s+/g, ' ').trim();
+}
+function printSecKey(d) { return printSecTitle(d).replace(/\s+/g, ''); }
+function printSelLoad() { try { return JSON.parse(localStorage.getItem(PRINT_SEL_LS) || '{}'); } catch (er) { return {}; } }
+function closePrintPicker() { const o = document.getElementById('printPickerOverlay'); if (o) o.remove(); }
 function printFullReport() {
+  if (!selectedStudent) { showToast('학생을 선택해주세요', 'error'); return; }
+  const statEl = document.getElementById('statContent');
+  if (!statEl || !statEl.innerHTML.trim()) { showToast('먼저 성적 기본 분석을 실행해주세요', 'error'); return; }
+  const secs = [...statEl.querySelectorAll('details')].filter(d => !d.parentElement.closest('details'));
+  if (!secs.length) { printFullReportRun(null); return; }   // 고를 섹션이 없는 탭(누적 변화 등)은 바로 출력
+  const saved = printSelLoad();
+  const rows = secs.map(d => {
+    const t = printSecTitle(d), k = printSecKey(d);
+    const def = !PRINT_DEFAULT_OFF.some(x => t.includes(x));
+    const on = saved[k] === undefined ? def : !!saved[k];
+    const internal = !def;
+    return `<label style="display:flex;align-items:center;gap:10px;min-height:44px;padding:0 10px;border-bottom:1px solid #eee;cursor:pointer;font-size:13px;">
+      <input type="checkbox" class="prtSel" data-k="${escapeHTML(k)}" ${on ? 'checked' : ''} style="width:18px;height:18px;">
+      <span style="flex:1;">${escapeHTML(t)}</span>${internal ? '<span style="font-size:10px;color:#b45309;background:#fff8e6;border-radius:8px;padding:1px 7px;">담임 내부용</span>' : ''}</label>`;
+  }).join('');
+  closePrintPicker();
+  const ov = document.createElement('div');
+  ov.id = 'printPickerOverlay';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(30,20,60,.45);z-index:9999;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:max(16px,env(safe-area-inset-top)) 12px 24px;';
+  ov.innerHTML = `<div style="background:#fff;border-radius:16px;max-width:520px;width:100%;padding:18px;box-shadow:0 10px 40px rgba(0,0,0,.25);">
+    <div style="display:flex;align-items:center;"><div style="font-size:16px;font-weight:800;color:var(--primary-dark);">🖨️ 전체 출력 — 넣을 항목 고르기</div>
+    <button type="button" onclick="closePrintPicker()" style="margin-left:auto;min-width:44px;min-height:44px;border:none;background:none;font-size:20px;cursor:pointer;">✕</button></div>
+    <div style="font-size:12px;color:var(--text2);line-height:1.6;margin:4px 0 8px;">지금 보고 있는 화면의 항목이에요. <b>담임 내부용</b>(입사관 코멘트·액션 카드 등)은 기본으로 꺼져 있고, 고른 선택은 기억돼요. 접어 둔 항목도 체크하면 출력돼요.</div>
+    <div style="display:flex;gap:6px;margin-bottom:6px;">
+      <button type="button" onclick="document.querySelectorAll('.prtSel').forEach(x=>x.checked=true)" style="min-height:36px;padding:0 12px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">모두 선택</button>
+      <button type="button" onclick="document.querySelectorAll('.prtSel').forEach(x=>x.checked=false)" style="min-height:36px;padding:0 12px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">모두 해제</button>
+    </div>
+    <div style="border:1.5px solid var(--border);border-radius:10px;max-height:52vh;overflow-y:auto;">${rows}</div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button type="button" onclick="printFullReportGo()" style="flex:1;min-height:48px;border-radius:12px;border:none;background:linear-gradient(135deg,#5e40a6,#7c5cbf);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;">🖨️ 출력</button>
+      <button type="button" onclick="closePrintPicker()" style="min-height:48px;padding:0 18px;border-radius:12px;border:1.5px solid var(--border);background:#fff;color:var(--text2);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">취소</button>
+    </div></div>`;
+  document.body.appendChild(ov);
+}
+function printFullReportGo() {
+  const boxes = [...document.querySelectorAll('.prtSel')];
+  const sel = boxes.filter(x => x.checked).map(x => x.dataset.k);
+  const map = printSelLoad();
+  boxes.forEach(x => { map[x.dataset.k] = x.checked; });
+  try { localStorage.setItem(PRINT_SEL_LS, JSON.stringify(map)); } catch (er) {}
+  closePrintPicker();
+  printFullReportRun(sel);
+}
+
+function printFullReportRun(selKeys) {
   if (!selectedStudent) { showToast('학생을 선택해주세요', 'error'); return; }
 
   const name = selectedStudent.name || '';
@@ -9175,10 +9238,10 @@ function printFullReport() {
 
   // DOM 복사 후 출력 불필요 요소 제거 (접어 둔 항목 제외, 그래프는 이미지로)
   const tmpDiv = document.createElement('div');
-  tmpDiv.innerHTML = buildStatPrintHtml();
+  tmpDiv.innerHTML = buildStatPrintHtml(selKeys || undefined);
   tmpDiv.querySelectorAll('button').forEach(b => b.remove());
   tmpDiv.querySelectorAll('input, textarea, select').forEach(el => el.remove());
-  ['counselScriptResult','counselBtn','counselScriptText'].forEach(id => {
+  if (!selKeys || !selKeys.some(k => k.includes('학부모상담문구'))) ['counselScriptResult','counselBtn','counselScriptText'].forEach(id => {
     const el = tmpDiv.querySelector('#' + id);
     if (el) el.remove();
   });
