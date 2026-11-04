@@ -195,7 +195,7 @@ input[type=password]{border:1.5px solid var(--line);border-radius:10px;padding:1
   <h1>🌟 아듬's 학년부 기획 상장 메이커</h1>
   <p>명단 엑셀 → 상장번호 부여 → 상장 바로 출력 · 협의록 복붙까지</p>
   <div class="mode" id="modeBar"><button data-m="subject" class="on">🏅 교과우수상</button><button data-m="attend">📅 개근상</button></div>
-  <div class="rgbar"><button id="rgRvBtn" class="rghide" onclick="rgOpenReview()">💬 후기 남기기</button><button id="rgAdmBtn" onclick="rgAdmOpen()">⚙️ 관리자</button></div>
+  <div class="rgbar"><button id="rgRvBtn" class="rghide" onclick="rgOpenReview()">💬 후기 남기기</button><button id="rgAdmBtn" onclick="rgAdmOpen()">⚙️ 관리자</button><button id="rgOwnBtn" class="rghide" onclick="rgOwnOpen()">👑 운영자</button></div>
 </header>
 <div id="rgBanner" class="rgbanner rghide"><span>💬 써 보시니 어떠세요? 별점과 한마디를 남겨 주시면 앱을 고치는 데 큰 도움이 돼요.</span><span class="rgrow"><button class="btn pri" onclick="rgOpenReview()">후기 남기기</button><button class="btn" onclick="document.getElementById('rgBanner').classList.add('rghide')">나중에</button></span></div>
 <div id="modeSubject">
@@ -576,6 +576,7 @@ input[type=password]{border:1.5px solid var(--line);border-radius:10px;padding:1
 </div></div>
 
 <div id="rgAdmin" class="rgfull rghide"></div>
+<div id="rgOwnWrap" class="rgfull rghide"></div>
 <div id="rgOv"></div>
 <div id="rgPriv"></div>
 
@@ -3717,7 +3718,7 @@ const RG_PURPOSES=['교과우수상 상장 만들기','개근상 상장 만들�
 const RG_CHIPS=['명단 엑셀만 올리면 상장이 바로 나와요','교과우수상·개근상을 한 곳에서 만들 수 있어요','엑셀과 비교해 점검할 수 있어요','협의록도 같이 만들어져요','인쇄 위치·양식이 잘 맞아요','설치 없이 바로 쓸 수 있어요'];   // 등록부 REVIEW_AWARDS.chips와 순서 동일
 const RG_LOWS=['사용법이 어려웠어요','엑셀 양식이 안 맞아요','인쇄 위치가 안 맞아요','기능이 부족해요','오류가 있었어요'];   // 등록부 REVIEW_AWARDS.lows와 순서 동일
 const RG_RKINDS=['기능 요청','오류','디자인','기타'];
-const RGS={iid:'',st:'',owner:false,revOn:true,pub:null,kind:'교사',region:'',level:'',purpose:'',own:null,rv:null};
+const RGS={iid:'',st:'',owner:false,revOn:true,pub:null,kind:'교사',region:'',level:'',purpose:'',own:null,rv:null,after:''};
 const RGm={};
 const rg$=id=>document.getElementById(id);
 function rgGet(k,d){try{const v=localStorage.getItem(k);if(v!==null)return JSON.parse(v)}catch(e){}return k in RGm?RGm[k]:d}
@@ -3837,6 +3838,8 @@ function rgUi(){
   const showB=revShow&&st.n>=3&&!st.shown&&!st.done;
   rg$('rgBanner').classList.toggle('rghide',!showB);
   if(showB){st.shown=true;rgSet(RG_K.rv,st)}   // 안내 배너는 딱 한 번만 보여요
+  rg$('rgOwnBtn').classList.toggle('rghide',!RGS.owner);
+  const os=rg$('rgOwnState');if(os)os.textContent=RGS.owner?'👑 운영자로 인식됐어요 (위쪽 👑 운영자 버튼)':RGS.st==='offline'?'등록부에 연결되지 않았어요':RGS.st===''?'확인 중…':'아직 운영자로 등록되지 않았어요';
   const p=RGS.pub;
   rg$('rgPub').textContent=(p&&typeof p.users==='number'&&(RGS.owner||p.users>=10))?`● 오늘 ${p.today}명 / 누적 ${p.users}명이 쓰고 있어요`:'';   // 누적 10명 미만이면 숨겨요 (아듬샘에겐 항상 보여요)
 }
@@ -3922,8 +3925,10 @@ async function rgHash(s){
   try{if(window.crypto&&crypto.subtle){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}}catch(e){}
   let h=5381;for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return 'x'+(h>>>0).toString(16);
 }
-function rgAdmOpen(){
-  if(rgSessGet(RG_K.adm)==='1')return rgAdmShow();
+function rgAdmOpen(){RGS.after='';rgLoginOrGo()}
+function rgOwnOpen(){RGS.after='own';rgLoginOrGo()}
+function rgLoginOrGo(){
+  if(rgSessGet(RG_K.adm)==='1')return rgGoAfter();
   rg$('rgOv').innerHTML=`<div class="rgov"><div class="rgbox"><h3>🔑 관리자 비밀번호</h3>
     <p class="rghint" style="margin:0 0 8px">배포 링크·QR 등 관리 기능을 여는 비밀번호예요. (이 기기에서만 적용되는 잠금이에요)</p>
     <input type="password" id="rgPwIn" autocomplete="off" onkeydown="if(event.key==='Enter')rgDoLogin()">
@@ -3939,8 +3944,9 @@ async function rgDoLogin(){
   if(st?st.h!==h:pw!==RG_INIT_PW){rgMsg('rgLoginMsg','비밀번호가 맞지 않아요.');return}
   rgSessSet(RG_K.adm,'1');
   if(!st)return rgNewPwBox();
-  rgCloseOv();rgAdmShow();
+  rgCloseOv();rgGoAfter();
 }
+function rgGoAfter(){if(RGS.after==='own'){RGS.after='';rgOwnShow()}else rgAdmShow()}
 function rgNewPwBox(){
   rg$('rgOv').innerHTML=`<div class="rgov"><div class="rgbox"><h3>새 비밀번호 정하기</h3>
     <p class="rghint" style="margin:0 0 8px">처음 비밀번호는 누구나 알 수 있어요. 나만 아는 비밀번호로 바꿔 주세요. (4자 이상)</p>
@@ -3953,7 +3959,7 @@ async function rgSaveFirstPw(){
   if(a.length<4){rgMsg('rgNpMsg','4자 이상으로 정해 주세요.');return}
   if(a===RG_INIT_PW){rgMsg('rgNpMsg','처음 비밀번호와 다르게 정해 주세요.');return}
   if(a!==b){rgMsg('rgNpMsg','두 칸이 서로 달라요.');return}
-  rgSet(RG_K.pw,{h:await rgHash(a)});rgCloseOv();toast('비밀번호를 바꿨어요 ✅');rgAdmShow();
+  rgSet(RG_K.pw,{h:await rgHash(a)});rgCloseOv();toast('비밀번호를 바꿨어요 ✅');rgGoAfter();
 }
 async function rgChangePw(){
   const v=rg$('rgCpw').value;
@@ -3962,7 +3968,7 @@ async function rgChangePw(){
   rgSet(RG_K.pw,{h:await rgHash(v)});rg$('rgCpw').value='';rgMsg('rgCpwMsg','바꿨어요 ✅ 다음부터 새 비밀번호로 들어가요.',true);
 }
 function rgAdmClose(){rg$('rgAdmin').classList.add('rghide');rg$('rgAdmin').innerHTML=''}
-function rgAdmLock(){rgSessSet(RG_K.adm,'');rgAdmClose();toast('잠갔어요 🔒')}
+function rgAdmLock(){rgSessSet(RG_K.adm,'');rgAdmClose();rgOwnClose();toast('잠갔어요 🔒')}
 /* 배포 주소: 연결 주소·모드가 없는 순수 주소 (+ 등록된 분이면 소개한 사람 번호) */
 function rgFromCode(){return(rgOk()&&RGS.iid)?RGS.iid.replace(/[^A-Za-z0-9]/g,'').slice(0,8):''}
 function rgPureUrl(){const base=location.href.split(/[?#]/)[0],f=rgFromCode();return base+(f?'?from='+f:'')}
@@ -3985,18 +3991,17 @@ function rgAdmShow(){
   <div class="rgsec"><h3>🔧 설치 ID · 관리자 등록</h3>
     <p class="rghint" style="margin:0 0 8px">이 기기의 설치 ID예요. 등록부 시트 <b>설정</b> 탭의 <b>관리자설치ID</b> 칸에 붙여넣으면(여러 개면 쉼표로 이어 적기) 아래 👑 이용 현황이 열려요.</p>
     <code style="user-select:all;word-break:break-all;display:block;background:var(--bg);padding:8px 10px;border-radius:8px">${esc(RGS.iid)}</code>
-    <div class="rgrow" style="margin-top:8px"><button class="btn" onclick="rgCopyIid()">📋 설치 ID 복사</button><span class="rghint">${RGS.owner?'👑 관리자로 인식됐어요':RGS.st==='offline'?'등록부에 연결되지 않았어요':'아직 관리자로 등록되지 않았어요'}</span></div><div class="rgmsg" id="rgIidMsg"></div></div>
+    <div class="rgrow" style="margin-top:8px"><button class="btn" onclick="rgCopyIid()">📋 설치 ID 복사</button><span class="rghint" id="rgOwnState"></span></div><div class="rgmsg" id="rgIidMsg"></div></div>
   <div class="rgsec"><h3>🔑 비밀번호 바꾸기</h3><div class="rgrow"><input type="password" id="rgCpw" placeholder="새 비밀번호 (4자 이상)" style="flex:1;min-width:200px" autocomplete="off"><button class="btn" onclick="rgChangePw()">변경</button></div><div class="rgmsg" id="rgCpwMsg"></div></div>
   <div class="rgsec"><h3>📋 내 등록 정보</h3>
     ${reg?`<p class="rghint" style="margin:0 0 6px;color:var(--text)">아이디 <b>${esc(reg.name)}</b> · ${esc(reg.kind)}${reg.region?' · '+esc(reg.region)+' '+esc(reg.level):''}<br>사용 목적: ${esc(reg.purpose)}</p>`:'<p class="rghint" style="margin:0">아직 등록 정보가 없어요.</p>'}
     ${RGS.st==='offline'||(reg&&reg.sent===false)?'<p class="rghint" style="margin:0 0 6px;color:var(--warn)">지금은 등록부에 연결되지 않았어요. 앱 사용에는 영향이 없고, 다음에 들어올 때 자동으로 다시 보내요.</p>':''}
     <p class="rghint" style="margin:0">수정·삭제 요청은 <a href="${rgMailHref()}">${RG_MAIL}</a>로 보내 주세요. · <a href="#" onclick="rgPriv();return false">개인정보 처리방침</a></p></div>
-  ${RGS.owner?'<div id="rgOwn"><div class="rgsec"><p class="rghint" style="margin:0">👑 불러오는 중…</p></div></div>':''}
   </div>`;
   window.scrollTo(0,0);
   try{const q=rgQrObj(url);rg$('rgQr').innerHTML=q.createSvgTag(5,2);const sv=rg$('rgQr').querySelector('svg');sv.setAttribute('width','200');sv.setAttribute('height','200');sv.setAttribute('role','img');sv.setAttribute('aria-label','배포 링크 QR코드')}
   catch(e){rg$('rgQr').textContent='QR을 만들지 못했어요. 링크를 복사해 주세요.'}
-  if(RGS.owner)rgOwnLoad(true);
+  rgUi();
 }
 async function rgCopyIid(){try{await navigator.clipboard.writeText(RGS.iid);rgMsg('rgIidMsg','복사했어요 ✅',true)}catch(e){rgMsg('rgIidMsg','자동 복사가 막혔어요. 번호를 직접 선택해 복사해 주세요.')}}
 async function rgCopyLink(){
@@ -4027,7 +4032,13 @@ function rgCopyQr(){
 }
 function rgSaveQr(){try{rgQrCanvas().toBlob(b=>rgDownload(b,'학년부기획상장메이커_QR.png'))}catch(e){rgMsg('rgShMsg','QR 저장에 실패했어요.')}}
 
-/* ----- 👑 아듬샘 전용 (등록부의 관리자설치ID로만 열려요) ----- */
+/* ----- 👑 운영자 (등록부의 관리자설치ID로만 열려요 · 이용현황·후기·사용자·차단) ----- */
+function rgOwnShow(){
+  rg$('rgOwnWrap').classList.remove('rghide');
+  rg$('rgOwnWrap').innerHTML=`<div class="rgpanel wide"><div class="rgrow" style="justify-content:space-between;margin-bottom:12px"><p class="rglogo" style="margin:0">👑 운영자</p><div class="rgrow"><button class="btn" onclick="rgOwnClose()">닫기</button><button class="btn" onclick="rgAdmLock()">🔒 잠그고 닫기</button></div></div><div id="rgOwn"><div class="rgsec"><p class="rghint" style="margin:0">불러오는 중…</p></div></div></div>`;
+  window.scrollTo(0,0);rgOwnLoad(true);
+}
+function rgOwnClose(){rg$('rgOwnWrap').classList.add('rghide');rg$('rgOwnWrap').innerHTML=''}
 async function rgOwnLoad(mark){
   const box=rg$('rgOwn');if(!box)return;
   try{
