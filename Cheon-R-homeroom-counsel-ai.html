@@ -9446,6 +9446,7 @@ function openParentSheet() {
       <button type="button" onclick="closeParentSheet()" style="margin-left:auto;min-width:44px;min-height:44px;border:none;background:none;font-size:20px;cursor:pointer;">✕</button>
     </div>
     <div style="font-size:12px;color:var(--text2);line-height:1.6;">${escapeHTML(d.title)} · 가장 최근 시험(${escapeHTML(d.latestLabel)}) 기준 · 자동으로 채운 문장을 <b>자유롭게 고친 뒤</b> 출력하세요. 대학 예측은 넣지 않아요.</div>
+    <div id="ps_logbox">${psLogHtml()}</div>
     <label style="${lab}">🎯 누구에게 드릴 자료인가요?</label>
     <div style="display:flex;gap:6px;flex-wrap:wrap;">
       ${[['parent', '👪 학부모용'], ['student', '🎓 학생용']].map(([k, t]) => `<label style="display:flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border:1.5px solid var(--border);border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;"><input type="radio" name="ps_target" value="${k}" ${k === 'parent' ? 'checked' : ''} onchange="psTargetChange()">${t}</label>`).join('')}
@@ -9504,6 +9505,44 @@ function openParentSheet() {
     </div>
   </div>`;
   document.body.appendChild(ov);
+}
+
+// ===== 상담 출력 기록 (누가기록) =====
+const PS_LOG_LS = 'admAI_psLog_v1';
+function psLogAll() { try { return JSON.parse(localStorage.getItem(PS_LOG_LS) || '{}'); } catch (er) { return {}; } }
+function psLogList() { return psLogAll()[stuProfileKey()] || []; }
+function psLogAdd(v) {
+  try {
+    const all = psLogAll(), k = stuProfileKey();
+    const arr = all[k] || [];
+    arr.unshift({ t: Date.now(), target: v.target, strengths: v.strengths, weak: v.weak, todo: v.todo, goal: v.goal, nextDate: v.nextDate, memo: v.memo, pmemo: v.pmemo });
+    all[k] = arr.slice(0, 30);
+    localStorage.setItem(PS_LOG_LS, JSON.stringify(all));
+  } catch (er) {}
+}
+function psLogHtml() {
+  const arr = psLogList();
+  if (!arr.length) return `<div style="font-size:11px;color:var(--text3);margin-top:10px;">📚 이 학생의 지난 상담 기록이 아직 없어요. 출력하면 자동으로 쌓여요.</div>`;
+  const rows = arr.map((x, i) => {
+    const d = new Date(x.t), ds = `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    const sn = (x.goal || x.memo || x.pmemo || x.weak || '').replace(/\s+/g, ' ').slice(0, 40);
+    return `<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-top:1px solid #eee;font-size:12px;"><div style="flex:1;min-width:0;"><b>${ds}</b> · ${x.target === 'student' ? '🎓 학생용' : '👪 학부모용'}<div style="color:var(--text3);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(sn)}</div></div><button type="button" onclick="psLogLoad(${i})" style="min-height:36px;padding:0 10px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">불러오기</button><button type="button" onclick="psLogDel(${i})" style="min-height:36px;padding:0 10px;border-radius:8px;border:1.5px solid var(--border);background:#fff;color:#c2410c;font-size:12px;cursor:pointer;font-family:inherit;">삭제</button></div>`;
+  }).join('');
+  return `<details style="margin-top:10px;border:1.5px solid var(--border);border-radius:10px;padding:8px 12px;"><summary style="cursor:pointer;font-size:12px;font-weight:800;color:var(--primary-dark);min-height:30px;">📚 지난 상담 기록 (${arr.length}건) · 누가기록</summary>${rows}</details>`;
+}
+function psLogLoad(i) {
+  const x = psLogList()[i]; if (!x) return;
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+  set('ps_strengths', x.strengths); set('ps_weak', x.weak); set('ps_todo', x.todo); set('ps_goal', x.goal);
+  set('ps_next', x.nextDate); set('ps_memo', x.memo); set('ps_pmemo', x.pmemo);
+  const r = document.querySelector(`input[name="ps_target"][value="${x.target}"]`); if (r) { r.checked = true; psTargetChange(); }
+  showToast('지난 기록을 불러왔어요 ✅');
+}
+function psLogDel(i) {
+  if (!confirm('이 기록을 삭제할까요?')) return;
+  const all = psLogAll(), k = stuProfileKey(); (all[k] || []).splice(i, 1);
+  try { localStorage.setItem(PS_LOG_LS, JSON.stringify(all)); } catch (er) {}
+  const box = document.getElementById('ps_logbox'); if (box) box.innerHTML = psLogHtml();
 }
 
 function psTargetChange() {
@@ -9689,6 +9728,8 @@ function printParentSheet() {
               career: !!(document.getElementById('ps_career') || {}).checked,
               metric: ((document.querySelector('input[name="ps_metric"]:checked') || {}).value) || 'pct',
               subjOn: [...document.querySelectorAll('.ps_subj')].filter(x => x.checked).map(x => x.value) };
+  psLogAdd(v);
+  const logBox = document.getElementById('ps_logbox'); if (logBox) logBox.innerHTML = psLogHtml();
   const body = buildParentSheetHtml(d, v);
   const win = window.open('', '_blank');
   if (!win) { showToast('팝업이 차단됐어요. 브라우저에서 팝업 허용 후 다시 눌러주세요 🖨️', 'error'); return; }
