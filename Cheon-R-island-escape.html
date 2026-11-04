@@ -384,14 +384,21 @@ function upsertT_(T, t, label, esc) {
 function labelOf_(T, t) { return (T[t] && T[t].label) || ISLAND_DEFAULT[t] || (t + '조'); }
 
 /* 읽기용 스냅샷 (4초 캐시: 학생 20명이 5초마다 불러도 시트를 덜 읽게) */
-function snap_() {
-  var c = CacheService.getScriptCache(), hit = c.get('snap');
-  if (hit) { try { return JSON.parse(hit); } catch (e) {} }
+/* 동시 접속이 많아도 시트를 한꺼번에 읽지 않게: 5초 캐시 + 누가 새로 읽는 중이면 직전 스냅샷(최대 2분)을 대신 보여줘요 */
+function snap_(force) {
+  var c = CacheService.getScriptCache();
+  if (!force) {
+    var hit = c.get('snap');
+    if (hit) { try { return JSON.parse(hit); } catch (e) {} }
+    if (c.get('snapbusy')) { var old = c.get('snapold'); if (old) { try { return JSON.parse(old); } catch (e) {} } }
+  }
+  try { c.put('snapbusy', '1', 8); } catch (e) {}
   var T = readT_().map, tt = {};
   Object.keys(T).forEach(function (k) { tt[k] = { label: T[k].label, esc: T[k].esc }; });
   var pend = readB_().list.filter(function (b) { return b.pick === ''; }).map(function (b) { return { id: b.id, key: b.key, q: b.q }; });
-  var s = { P: readP_().list, H: readH_().list, R: readR_().list.slice(-60), T: tt, B: pend };
-  try { c.put('snap', JSON.stringify(s), 4); } catch (e) {}
+  var s = { P: readP_().list, H: readH_().list.slice(-400), R: readR_().list.slice(-60), T: tt, B: pend };
+  try { var js = JSON.stringify(s); c.put('snap', js, 5); c.put('snapold', js, 120); } catch (e) {}
+  try { c.remove('snapbusy'); } catch (e) {}
   return s;
 }
 
@@ -416,8 +423,14 @@ function lobby_() {
   s.P.forEach(function (p) { cnt[p.team] = (cnt[p.team] || 0) + 1; });
   return { ok: true, now: Date.now(), game: game_(), qv: qv_(), iid: iid_(), teams: teams_().map(function (t) { return { team: t, label: labelOf_(s.T, t), n: cnt[t] || 0, max: MAX_TEAM }; }) };
 }
+/* 방금 입장한 학생이 오래된 캐시 때문에 '명단에 없음'으로 튕기지 않게: 못 찾으면 최신 시트로 한 번 더 확인해요 */
 function state_(p) {
-  var s = snap_(), team = num_(p.team), key = key_(team, p.name), me = null, members = [];
+  var r = stateFrom_(snap_(), p);
+  if (r && r.gone) r = stateFrom_(snap_(true), p);
+  return r;
+}
+function stateFrom_(s, p) {
+  var team = num_(p.team), key = key_(team, p.name), me = null, members = [];
   s.P.forEach(function (x) { if (x.key === key) me = x; if (x.team === team) members.push(x); });
   if (!me) return { ok: false, gone: true, error: '명단에 없어요. 다시 입장해 주세요' };
   var info = s.T[team] || {};
@@ -485,8 +498,8 @@ function resolveReq_(team, name, q) {
   var Rq = readR_();
   Rq.list.forEach(function (r) { if (r.team === team && r.name === name && r.q === q && r.status === '대기') Rq.sh.getRange(r.row, 7).setValue('해결'); });
 }
-function checkEscape_(team) {
-  var R = readP_(), mem = R.list.filter(function (x) { return x.team === team; }), T = readT_();
+function checkEscape_(team, list) {
+  var R = list ? { list: list } : readP_(), mem = R.list.filter(function (x) { return x.team === team; }), T = readT_();
   if (T.map[team] && T.map[team].esc) return 0;
   if (mem.length < cfg_().minTeam) return 0;
   for (var i = 0; i < mem.length; i++) if (!mem[i].hasKey) return 0;
@@ -513,16 +526,16 @@ function result_(p) {
   }
   var first = pl.wrong[q - 1] === 0 && pl.hinted[q - 1] === 0;
   var gained = Math.max(COIN_MIN, COIN_BASE + (first ? COIN_FIRST : 0) - COIN_HINT_PENALTY * pl.hinted[q - 1]);
+  var hadHelp = pl.helping === q;
   pl.done[q - 1] = true; pl.coins += gained;
   if (pl.helping === q) pl.helping = 0;
   if (q === nq_()) pl.hasKey = true;
   saveP_(R.sh, pl);
   lg.appendRow([nowKST_(), team, pl.name, q, '정답', gained]);
-  resolveReq_(team, pl.name, q);
-  var boxId = pl.key + '_' + q, codes = shuffle_(BOX_CODES.slice()), B = readB_(), dup = false;
-  B.list.forEach(function (b) { if (b.id === boxId) dup = true; });
+  if (hadHelp) resolveReq_(team, pl.name, q);   // 조원 도움 요청을 한 경우에만 요청 시트를 읽어요 (잠금 시간을 줄이려고)
+  var boxId = pl.key + '_' + q, codes = shuffle_(BOX_CODES.slice()), B = { sh: sheet_(SH_B, B_H) }, dup = false;   // 이미 푼 문제는 위에서 걸러지므로 중복 상자는 생기지 않아요
   if (!dup) B.sh.appendRow([boxId, pl.key, q, codes[0], codes[1], codes[2], codes[3], codes[4], '', '', nowKST_()]);
-  var esc = (q === nq_()) ? checkEscape_(team) : 0;
+  var esc = (q === nq_()) ? checkEscape_(team, R.list) : 0;
   try { rankEv_(team, R.list); if (esc > 0) evpush_({ k: 'esc', team: team, a: '' }); } catch (e) {}
   return { ok: true, correct: true, gained: gained, coins: pl.coins, boxId: dup ? '' : boxId, key: q === nq_(), escaped: esc > 0 };
 }
@@ -975,7 +988,7 @@ function doGet(e) {
 <script>
 /* ===== 설정 ===== */
 var GAS_DEFAULT='';
-var K_GAS='ise_gas_v1',K_SES='ise_session_v1',K_GUIDE='ise_guide_v1',K_GUIDEAUTO='ise_guideauto_v1',K_ESC='ise_escseen_v1',K_SND='ise_snd_v1',K_REG='ise_reg_v1',K_VIS='ise_vis_v1',K_NUDGE='ise_nudge_v1',K_REV='ise_rev_v1';
+var K_GAS='ise_gas_v1',K_SES='ise_session_v1',K_LAST='ise_last_v1',K_GUIDE='ise_guide_v1',K_GUIDEAUTO='ise_guideauto_v1',K_ESC='ise_escseen_v1',K_SND='ise_snd_v1',K_REG='ise_reg_v1',K_VIS='ise_vis_v1',K_NUDGE='ise_nudge_v1',K_REV='ise_rev_v1';
 var params=new URLSearchParams(location.search);
 var GAS=params.get('gas')||localStorage.getItem(K_GAS)||GAS_DEFAULT;
 if(params.get('gas')){try{localStorage.setItem(K_GAS,params.get('gas'));}catch(e){}}
@@ -1164,8 +1177,9 @@ function nextUndone(){return ST.me.done.indexOf(false)+1;}
 function doneCount(m){return m.done.filter(function(d){return d;}).length;}
 function recvFor(q){return ST.hints.recv.filter(function(h){return h.q===q;});}
 function applyState(r){
- if(!r||!r.ok){if(r&&r.gone)kicked();return;}
- ST=r;OFF=r.now-Date.now();
+ if(!r||!r.ok){if(r&&r.gone){GONEN++;if(GONEN>=3)kicked();else setTimeout(pollNow,1500);}return;}
+ GONEN=0;ST=r;OFF=r.now-Date.now();
+ if(MODE==='real'&&SES){var lk=SES.team+'|'+SES.name+'|'+(r.me.ch||'');if(lk!==LASTK){LASTK=lk;store.set(K_LAST,{team:SES.team,name:SES.name,ch:r.me.ch||''});}}
  var ids=r.hints.recv;
  if(!SEEN){SEEN={};ids.forEach(function(h){SEEN[h.id]=1;});}
  else ids.forEach(function(h){if(!SEEN[h.id]){SEEN[h.id]=1;sfx('msg');toast('💡 '+(h.kind==='담임'?'아듬샘':h.from+'님')+'의 힌트가 도착했어요!'+(h.q?' ('+h.q+'번)':''),3200);}});
@@ -1186,11 +1200,27 @@ function applyState(r){
  if(MODE==='real'&&r.qv&&r.qv!==QV){ensureQuiz(r.qv).then(function(){checkEnd();repaint();}).catch(function(){});return;}
  checkEnd();repaint();}
 function repaint(){if(modalOpen()&&view!=='island'&&view!=='q'&&view!=='rank')return;if(view==='island')paintIsland();else if(view==='q')paintQ();else if(view==='rank')paintRank();}
-function pollNow(){if(!SES)return Promise.resolve();return api('state',idp(),25000).then(applyState).catch(function(){});}
-function startPoll(){stopPoll();pollT=setInterval(function(){if(!document.hidden&&SES&&(view==='island'||view==='q'||view==='rank'))pollNow();},MODE==='demo'?3000:5000);tickT=setInterval(function(){updateTimers();},1000);}
-function stopPoll(){clearInterval(pollT);clearInterval(tickT);pollT=tickT=null;}
+/* 동시 접속이 많아도 서버가 밀리지 않게: 이전 요청이 안 끝났으면 새로 안 보내고, 간격에 무작위를 섞고, 실패하면 간격을 늘려요 */
+var POLLP=null,POLLFAIL=0,GONEN=0,POLLTOK=0;
+function pollNow(){if(!SES)return Promise.resolve();if(POLLP)return POLLP;POLLP=api('state',idp(),25000).then(function(r){POLLFAIL=0;applyState(r);}).catch(function(){POLLFAIL++;}).then(function(){POLLP=null;});return POLLP;}
+function startPoll(){stopPoll();var tok=++POLLTOK,base=MODE==='demo'?3000:6500;(function loop(){if(tok!==POLLTOK)return;pollT=setTimeout(function(){if(tok!==POLLTOK)return;if(!document.hidden&&SES&&(view==='island'||view==='q'||view==='rank'))pollNow().then(loop);else loop();},base*(0.8+Math.random()*0.5)+Math.min(POLLFAIL,5)*3000);})();tickT=setInterval(function(){updateTimers();},1000);}
+function stopPoll(){POLLTOK++;clearTimeout(pollT);clearInterval(pollT);clearInterval(tickT);pollT=tickT=null;}
 document.addEventListener('visibilitychange',function(){if(!document.hidden&&SES&&MODE)pollNow();});
-function kicked(){stopPoll();store.del(K_SES);SES=null;ST=null;popup({icon:'🌊',title:'명단에서 빠졌어요',body:'다시 입장해 주세요.',btns:[{t:'처음으로',fn:renderStart}]});}
+function kicked(){stopPoll();store.del(K_SES);SES=null;ST=null;rejoinPopup();}
+/* 튕겨도 이름·조·캐릭터를 기억해 뒀다가 버튼 한 번으로 다시 들어가요 */
+function rejoinPopup(){
+ var L=store.get(K_LAST,null);
+ if(!L||!L.team||!L.name){popup({icon:'🌊',title:'명단에서 빠졌어요',body:'다시 입장해 주세요.',btns:[{t:'처음으로',fn:renderStart}]});return;}
+ popup({icon:'🌊',title:'다시 들어갈까요?',body:'<b>'+L.team+'조 '+esc(L.name)+'</b>님 정보를 기억해 뒀어요.<br>버튼 한 번이면 바로 돌아가요!',btns:[{t:'🏝️ 다시 들어가기',fn:function(){rejoin(L);}},{t:'처음으로',ghost:true,fn:renderStart}]});}
+function rejoin(L){
+ MODE='real';SES={team:L.team,name:L.name};store.set(K_SES,SES);SEEN=null;THXSEEN=null;CHSEEN=null;TSOLV=null;HELPSEEN={};GONEN=0;
+ toast('다시 들어가는 중…',2500);
+ jsonp({action:'join',team:L.team,name:L.name,confirm:1},40000).then(function(r){
+  if(!r||!r.ok)throw new Error((r&&r.error)||'x');
+  return L.ch?jsonp({action:'setchar',team:L.team,name:L.name,char:L.ch},30000).catch(function(){}):null;
+ }).then(function(){return api('state',idp(),30000);}).then(function(s){if(!s||!s.ok)throw new Error('x');applyState(s);return ensureQuiz(s.qv).then(enterGame);})
+ .catch(function(e){SES=null;MODE='';store.del(K_SES);popup({icon:'😢',title:'아직 못 들어갔어요',body:esc((e&&e.message&&e.message!=='x'&&e.message.length<40)?e.message:'잠시 뒤 다시 눌러 주세요'),btns:[{t:'다시 시도',fn:function(){rejoin(L);}},{t:'처음으로',ghost:true,fn:renderStart}]});});}
+var LASTK='';
 function escSeenKey(){return (MODE==='demo'?'demo':'r')+'_'+ST.team.team+'_'+ST.game.startAt;}
 function checkEnd(){
  if(!ST)return;
@@ -1269,6 +1299,7 @@ function renderNameEntry(team,teams){
  view='name';var lb=(teams.filter(function(t){return t.team===team;})[0]||{}).label||'';
  $('app').innerHTML=titleHtml(team+'조 · '+esc(lb))+'<div class="card"><h2>✏️ 이름을 입력하세요</h2><div class="sub">별명도 괜찮아요 (10글자까지). 같은 조에서 서로 알아볼 수 있게 써 주세요.</div><input type="text" id="nm" maxlength="10" placeholder="예: 김OO" autocomplete="off"><button class="btn" id="go">입장하기 🏝️</button><div class="msg" id="nmm"></div></div>'+backBtn('bk','← 조 다시 선택')+footer();
  $('bk').onclick=renderTeamPick;
+ try{var L0=store.get(K_LAST,null);if(L0&&L0.team===team&&$('nm')&&!$('nm').value)$('nm').value=L0.name;}catch(e0){}
  var doJoin=function(confirm){
   var name=$('nm')?$('nm').value.trim():(SES&&SES.name),m=$('nmm'),btn=$('go');
   if(!name){m.className='msg err';m.textContent='이름을 입력해 주세요.';return;}
@@ -1417,7 +1448,7 @@ function renameIsland(){
  popup({icon:'✏️',title:'우리 섬 이름',body:'<input type="text" id="isn" maxlength="12" placeholder="'+esc(ST.team.label)+'">',btns:[{t:'저장',pre:function(){var v=$('isn');return v?v.value.trim():'';},fn:function(v){if(!v)return;api('setisland',Object.assign({label:v},idp())).then(function(r){if(r&&r.ok){toast('섬 이름이 바뀌었어요!',2000);pollNow();}else toast((r&&r.error)||'바꾸지 못했어요',2600);});}},{t:'취소',ghost:true}]});}
 function leaveIsland(){
  popup({icon:'🚪',title:'다시 입장할까요?',body:'지금 조에서 나가서 새로 입장해요.<br><span class="sub">⚠️ 푼 문제와 코인은 새 조에서 <b>처음부터 다시</b> 시작해요. 조를 잘못 골랐을 때만 눌러 주세요!</span>',btns:[{t:'네, 나갈게요',fn:function(){
-  var s=SES;api('leave',s).then(function(){stopPoll();store.del(K_SES);SES=null;ST=null;SEEN=null;MODE='';renderTeamPick();}).catch(function(){toast('나가지 못했어요. 다시 눌러 주세요',2600);});}},{t:'아니요',ghost:true}]});}
+  var s=SES;api('leave',s).then(function(){stopPoll();store.del(K_SES);store.del(K_LAST);SES=null;ST=null;SEEN=null;MODE='';renderTeamPick();}).catch(function(){toast('나가지 못했어요. 다시 눌러 주세요',2600);});}},{t:'아니요',ghost:true}]});}
 
 /* ===== 문제 화면 ===== */
 function renderQuestion(q){
@@ -1592,7 +1623,7 @@ function teacherGuideHtml(){
  d(0,'🤖 9-2. AI로 문항 만들기','<ul><li>[📚 문항 세트] → <b>[🤖 AI로 문항 만들기]</b>에서 단원·문항 수·난이도를 고르면 AI가 문항 초안을 만들어요.</li><li><b>개인 API키</b>가 필요해요. Claude(console.anthropic.com), GPT(platform.openai.com), Gemini(aistudio.google.com) 중 하나를 골라 로그인한 뒤 <b>API키 만들기</b>로 키를 받아 붙여 넣어요. 화면 안의 [🔎 키는 어디서 받나요?]에도 안내가 있어요.</li><li>키는 <b>이 기기 브라우저에만</b> 저장되고 시트·학생·다른 선생님에게는 가지 않아요. 공용 컴퓨터라면 [이 기기에 키 기억하기]를 끄세요. 사용한 만큼 선생님 계정에 요금이 나올 수 있어요(10문항은 보통 아주 적은 금액).</li><li>[모델 이름]은 업체에서 바뀔 수 있어요. 오류가 나면 업체의 최신 모델 이름으로 고쳐 주세요.</li><li><b>교과서 자료</b>: 글을 붙여 넣거나, <b>PDF + 쪽 범위</b>(최대 10쪽)를 지정하거나, 쪽을 <b>캡처 사진</b>(최대 4장)으로 올릴 수 있어요. 스캔본 PDF는 쪽을 그림으로 바꿔 AI가 읽어요. 자료는 선생님이 고른 AI 업체로만 전달돼요.</li><li>만들어진 문항은 <b>바로 저장되지 않아요.</b> 편집 화면에서 <b>정답을 직접 풀어 확인</b>하고 고친 뒤 [세트 저장]을 눌러요. AI가 틀린 정답을 낼 수 있어요.</li><li>힌트에 정답이 드러나면 자동으로 비우고 알려 줘요. 수식은 x², √, ⊂ 같은 글자로 나와요.</li></ul>')+
  d(0,'📖 9-3. 교재에서 문제 가져오기','<ul><li>[📚 문항 세트] → <b>[📖 교재에서 문제 가져오기]</b>. 교재·지도서의 <b>중단원 마무리 문제</b> 쪽 PDF와 쪽 범위(최대 6쪽)를 정하면 인쇄된 문제를 그대로 가져와요.</li><li><b>📝 글자로 찾기(무료)</b>: PDF 안의 글자로 문제 번호·소문항·작은 글씨 정답을 찾아요. 스캔본이거나 수식 기호가 깨지면 잘 안 될 수 있어요.</li><li><b>🤖 AI로 읽기</b>: PDF 쪽이나 캡처 사진을 AI가 읽어서 그대로 옮겨 적어요. 개인 API키가 필요해요(9-2 참고).</li><li>찾은 문제에서 <b>5~10개를 체크</b>하면 편집 화면으로 가요. 소문항 (1)(2)는 각각 한 문제로 나뉘어요. 서술형은 최종 답만 쓰는 단답형으로 바뀌어요.</li><li>그림이 있어야 풀리는 문제는 편집 화면에서 그림을 따로 붙여야 해요. 정답은 <b>원본 쪽과 꼭 비교</b>해 주세요.</li></ul>')+
  d(0,'🔗 10. 다른 선생님께 공유하기','<ul><li>관리자 화면 [🧑‍🏫 선생님 공유용 링크 · QR]을 복사해 전해 주세요.</li><li>받은 선생님은 <b>"처음이세요?" 화면</b>에서 자기 구글 시트에 설치해요. 내 시트·내 관리자 화면과는 완전히 분리돼요.</li><li>입장코드는 각자 바꿔서 써요. 학생용 링크·QR도 각자의 관리자 화면에서 만들어져요.</li></ul>')+
- d(0,'🎉 10-3. 응원 · 칭호 · 순위 중계','<ul><li>학생은 [우리 조] 목록에서 조원 옆 <b>💪 버튼</b>으로 응원(💪🔥👏🍀)을 보내요. 받은 친구 캐릭터 위에 말풍선이 떠요.</li><li>정답을 맞히면 보석이 팡! 터지고, 조원이 한 문제를 풀 때마다 우리 조 캐릭터가 폴짝 뛰어요.</li><li>[실시간 중계]에 <b>응원</b>과 <b>순위 역전(🔥 3조가 1조를 제치고 1위로!)</b>, 탈출이 한 줄씩 나와요.</li><li>🏅 <b>오늘의 칭호</b>(힌트 천사 · 끝까지 간 도전자 · 코인왕 · 문제 해결사 · 응원 요정)는 담임 화면·현황판에 실시간으로, 학생 순위 탭에는 <b>시간이 끝난 뒤</b> 나와요.</li><li>이 기능은 GAS를 최신 코드로 <b>수정 배포</b>해야 동작해요.</li></ul>')+
+ d(0,'🎉 10-3. 응원 · 칭호 · 순위 중계','<ul><li>학생은 [우리 조] 목록에서 조원 옆 <b>💪 버튼</b>으로 응원(💪🔥👏🍀)을 보내요. 받은 친구 캐릭터 위에 말풍선이 떠요.</li><li>정답을 맞히면 보석이 팡! 터지고, 조원이 한 문제를 풀 때마다 우리 조 캐릭터가 폴짝 뛰어요.</li><li>[실시간 중계]에 <b>응원</b>과 <b>순위 역전(🔥 3조가 1조를 제치고 1위로!)</b>, 탈출이 한 줄씩 나와요.</li><li>이 기능들은 <b>학생용 가이드 7번</b>에도 소개돼요. 수업을 시작하기 전에 학생들에게 가이드를 한 번 읽게 해 주세요.</li><li>🏅 <b>오늘의 칭호</b>(힌트 천사 · 끝까지 간 도전자 · 코인왕 · 문제 해결사 · 응원 요정)는 담임 화면·현황판에 실시간으로, 학생 순위 탭에는 <b>시간이 끝난 뒤</b> 나와요.</li><li>이 기능은 GAS를 최신 코드로 <b>수정 배포</b>해야 동작해요.</li></ul>')+
  d(0,'📺 10-2. 교실 컴퓨터에서 내 시트로 들어가기','<ul><li>[⚙️ 설정 아래 🔑 내 관리자 접속 링크]를 <b>복사</b>해서 나에게 카톡 등으로 보내 두세요.</li><li>교실 컴퓨터에서 그 링크를 <b>한 번만 열면</b> 내 시트가 그 컴퓨터에 저장되고 입장코드 화면이 바로 나와요. 이후에는 앱 주소로 들어가 <b>입장코드만</b> 치면 돼요.</li><li>이 링크에는 내 시트 주소가 들어 있어요. <b>학생에게는 절대 보내지 말고</b>, 학생에게는 [📱 학생용 링크]를 주세요.</li><li>공용 컴퓨터라면 수업 뒤 브라우저의 사이트 데이터를 지워 주세요. (시트의 데이터는 그대로예요)</li></ul>');
  d(0,'🔧 11. 문제가 생겼어요','<ul><li><b>입장코드를 잊었어요</b>: Apps Script → 프로젝트 설정 → 스크립트 속성에서 <b>ADMIN_CODE</b>를 지우면 처음 코드로 돌아가요.</li><li><b>학생이 "명단에서 빠졌어요"</b>라고 떠요: 관리자가 삭제했거나 전체 초기화를 한 경우예요. 다시 입장하면 돼요.</li><li><b>GAS 코드를 고친 뒤</b>에는 [배포 관리 → 수정 → 새 버전]으로 재배포해요. "새 배포"는 주소가 바뀌어서 학생 링크가 깨져요.</li><li><b>화면이 느려요</b>: 구글 시트가 잠깐 느린 거예요. 몇 초 뒤 자동으로 다시 불러와요.</li><li>그 밖의 문의는 화면 아래 메일로 보내 주세요.</li></ul>');}
 var GTAB='s';
@@ -1607,7 +1638,8 @@ function renderGuide(first,fromStart,tab){
  '<details><summary>💡 4. 힌트를 줄 때는</summary><div class="gb"><ul><li>친구의 도움 요청(🆘)이 보이면 [힌트 보내기]를 눌러요. 도와주면 <b>🪙 +5코인</b>!</li><li><b>정답을 직접 알려주면 안 돼요.</b> 보내면 "답은 보낼 수 없어요!"라고 막혀요.</li><li>친구가 스스로 풀 수 있게 <b>풀이 방향·개념·첫 단계</b>를 알려 주세요.</li></ul></div></details>'+
  '<details open><summary>🗝️ 5. 배 열쇠 (제일 중요!)</summary><div class="gb"><ul><li><b>마지막 문제('+NQ+'번)를 풀면 "배 열쇠" 🗝️를 얻어요.</b></li><li><b>조원 전원의 열쇠가 모이면 배가 출항해요!</b> 한 명이라도 못 풀면 섬을 떠날 수 없어요.</li><li>그러니 먼저 푼 친구는 끝까지 막힌 친구를 도와주세요 💪</li></ul></div></details>'+
  '<details><summary>🏆 6. 우승은?</summary><div class="gb"><ul><li><b>탈출 속도 점수 + 평균 코인 점수</b>를 합쳐서 가장 높은 조가 우승이에요.</li><li>제한 시간 안에 탈출하지 못하면 "탈출 실패 🌊"가 돼요. 남은 시간은 화면 위에 보여요.</li></ul></div></details>'+
- '<details><summary>🚪 7. 조를 잘못 골랐다면?</summary><div class="gb">섬 화면 맨 아래 <b>[다시 입장할게요]</b>를 눌러 새로 입장해요. (푼 문제와 코인은 새 조에서 처음부터 다시 시작해요.)</div></details>')+
+ '<details open><summary>✨ 7. 이런 재미있는 기능도 있어요!</summary><div class="gb"><ul><li><b>💎 정답 효과</b>: 정답을 맞히면 보석이 팡! 터져요. 한 번에 맞히면 색종이까지! 조원이 문제를 풀면 우리 조 캐릭터가 <b>폴짝</b> 뛰어요.</li><li><b>🆘 SOS 말풍선</b>: 막혀서 조원에게 도움을 요청하면 내 캐릭터 위에 SOS 말풍선이 떠요. 보면 힌트를 보내 주세요!</li><li><b>🙏 고마워요</b>: 힌트를 받으면 ❤️👍🙏🥹 중 하나로 고마움을 전할 수 있어요.</li><li><b>💪 응원하기</b>: 섬 화면의 [우리 조] 목록에서 조원 옆 <b>💪</b>를 누르면 💪🔥👏🍀 응원을 보낼 수 있어요. 받은 친구 머리 위에 말풍선이 떠요.</li><li><b>✏️ 연습장</b>: 문제 화면의 <b>연습장</b> 버튼을 누르면 풀이를 쓸 수 있는 메모장이 열려요. 태블릿 펜슬로 써도 돼요!</li><li><b>🏅 오늘의 칭호</b>: 시간이 끝나면 순위 탭에 <b>힌트 천사 · 끝까지 간 도전자 · 코인왕 · 문제 해결사 · 응원 요정</b>이 발표돼요. 점수가 낮아도 받을 수 있어요!</li></ul></div></details>'+
+ '<details><summary>🚪 8. 조를 잘못 골랐다면?</summary><div class="gb">섬 화면 맨 아래 <b>[다시 입장할게요]</b>를 눌러 새로 입장해요. (푼 문제와 코인은 새 조에서 처음부터 다시 시작해요.)</div></details>')+
  '<button class="btn" id="gmap">'+(fromStart==='admin'?'‹ 관리자 화면으로':fromStart?'‹ 처음으로':(first?'출발할까요! 🚀':'섬으로 가기 🏝️'))+'</button>'+footer();
  bindDemoBar();$('gts').onclick=function(){renderGuide(first,fromStart,'s');};$('gtt').onclick=function(){renderGuide(first,fromStart,'t');};
  if($('gauto'))$('gauto').onchange=function(){store.set(K_GUIDEAUTO,this.checked);toast(this.checked?'입장할 때마다 가이드를 보여줄게요 📖':'가이드는 처음 한 번만 보여요',2000);};
@@ -1701,9 +1733,34 @@ function demoDo(a,p){
 /* ===== 담임(관리자) ===== */
 var ADM=null,admT=null;
 function adminCode(){try{return sessionStorage.getItem('ise_admin_code')||'';}catch(e){return '';}}
+/* 시트가 아직 연결 안 된 기기: [이미 쓰고 있어요(코드로 로그인)] / [처음이에요(시트 연결)] 를 나눠서 보여줘요 */
+function renderAdminChoice(){
+ view='adminchoice';setTabs(false);
+ $('app').innerHTML=titleHtml('담임 선생님 입장')+
+  '<div class="card"><h2>🔑 이미 쓰고 있어요</h2><div class="sub">다른 컴퓨터에서 이미 설치했다면, 내 <b>관리자 접속 링크</b>(또는 웹 앱 주소)와 <b>입장코드</b>를 넣고 들어가요. 이 컴퓨터에는 한 번만 저장돼요.<br>링크는 관리자 화면 아래 [🔑 내 관리자 접속 링크]에서 복사할 수 있어요.</div>'+
+  '<label for="clink">내 관리자 접속 링크 또는 웹 앱 주소</label><input type="text" id="clink" placeholder="https://… (링크를 통째로 붙여넣어도 돼요)" autocomplete="off" autocapitalize="off" spellcheck="false">'+
+  '<label for="ccode">입장코드</label><input type="text" class="pw" id="ccode" placeholder="입장코드" autocomplete="off" autocapitalize="off" spellcheck="false">'+
+  '<button class="btn" id="cgo2">입장</button><div class="msg" id="cmsg2"></div></div>'+
+  '<div class="card"><h2>🌱 처음이에요</h2><div class="sub">아직 내 구글 시트를 연결한 적이 없어요. 설치 후 한 번만 연결하면 돼요.</div><button class="btn go" id="cfirst">내 구글 시트 연결하기</button></div>'+
+  backBtn('bk')+footer();
+ $('bk').onclick=renderStart;$('cfirst').onclick=renderGasSetup;
+ var go=function(){
+  var v=$('clink').value.trim(),code=$('ccode').value.trim(),m=$('cmsg2'),btn=$('cgo2');
+  var rgk=false;try{var pu=new URL(v);rgk=pu.searchParams.get('reg')==='1';if(pu.searchParams.get('gas'))v=pu.searchParams.get('gas');}catch(e0){}
+  if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(v)){m.className='msg err';m.textContent='주소가 맞는지 확인해 주세요. 관리자 접속 링크나 "https://script.google.com/…/exec" 주소를 넣어 주세요.';return;}
+  if(!code){m.className='msg err';m.textContent='입장코드를 입력해 주세요.';return;}
+  var old=GAS;GAS=v;btn.disabled=true;m.className='msg';m.textContent='확인 중…';
+  jsonp({action:'adminlogin',code:code},30000).then(function(r){
+   if(!r||!r.ok){GAS=old;btn.disabled=false;m.className='msg err';m.textContent=(r&&r.error)||'입장코드가 달라요';return;}
+   try{localStorage.setItem(K_GAS,v);}catch(e){}
+   try{sessionStorage.setItem('ise_admin_code',code);}catch(e){}IID=r.iid||'';
+   if(rgk&&!store.get(K_REG,null)){var rg1={pre:'pre-'+Date.now().toString(36)+Math.floor(Math.random()*46656).toString(36),role:'교사',uid:'',region:'',level:'',purpose:'',at:nowStr(),sent:true,linked:true,other:true};REG=rg1;store.set(K_REG,rg1);}
+   if(!store.get(K_REG,null)){renderRegister(function(){afterAdminLogin(r);});return;}afterAdminLogin(r);
+  }).catch(function(e){GAS=old;btn.disabled=false;m.className='msg err';m.textContent='연결이 안 돼요. 주소를 다시 확인해 주세요.';});};
+ $('cgo2').onclick=go;$('ccode').addEventListener('keydown',function(e){if(e.key==='Enter')go();});}
 function renderAdminLogin(){
  view='adminlogin';setTabs(false);
- if(!GAS){renderGasSetup();return;}
+ if(!GAS){renderAdminChoice();return;}
  $('app').innerHTML=titleHtml('담임 선생님 입장')+'<div class="card"><h2>👩‍🏫 입장코드</h2><input type="text" class="pw" id="acode" placeholder="입장코드" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="btn" id="ago">입장</button><div class="msg" id="amsg"></div></div>'+backBtn('bk')+footer();
  $('bk').onclick=renderStart;
  var go=function(){
@@ -1720,6 +1777,7 @@ function renderGasSetup(){
  $('bk').onclick=renderStart;
  $('gasgo').onclick=function(){
   var v=$('gasin').value.trim(),m=$('gasm'),btn=$('gasgo');
+  try{var pu=new URL(v);if(pu.searchParams.get('gas'))v=pu.searchParams.get('gas');}catch(e0){}
   if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(v)){m.className='msg err';m.textContent='주소가 맞는지 확인해 주세요. "https://script.google.com/…/exec" 모양이에요.';return;}
   var old=GAS;GAS=v;btn.disabled=true;m.className='msg';m.textContent='연결 확인 중…';
   jsonp({action:'lobby'},30000).then(function(r){
@@ -1739,7 +1797,7 @@ function renderAdmin(){
  '<div class="card"><h2>🏝️ 조별 현황</h2><div id="adteams"></div></div>'+
  '<div class="card"><h2>🏆 지금 순위</h2><div id="adrank"></div></div>'+
  '<div class="card"><h2>✉️ 담임 쪽지(힌트) 보내기</h2><label for="hsc">받는 사람</label><select id="hsc"></select><label for="hq">문항</label><select id="hq"><option value="0">일반 쪽지</option></select><textarea id="htx" maxlength="200" placeholder="학생 화면에 [담임 힌트]로 떠요 (200자)"></textarea><button class="btn small" id="hsend">보내기</button><div class="msg" id="hmsg"></div><div class="sub" style="margin-top:10px"><b>최근 담임 힌트 요청</b></div><div id="adreq"></div></div>'+
- '<div class="card"><h2>🔑 내 관리자 접속 링크 · 교실 컴퓨터용</h2><div class="sub">교실 컴퓨터나 다른 기기에서 <b>이 링크를 한 번만 열면</b> 내 시트가 그 기기에 저장되고, 그다음부터는 <b>입장코드만</b> 치면 들어와요. 열자마자 입장코드 화면이 나와요.<br><b>⚠️ 학생에게 보내지 마세요.</b> 학생용 링크는 아래 [📱 학생용 링크 · QR]을 써요.</div><input type="text" id="admLink" readonly><button class="btn small" id="acpl">링크 복사</button><button class="btn ghost small" id="acpr">글자 링크로 복사 (섬탈출원정대 관리자_made by Cheon R)</button><div class="msg" id="alm"></div></div>'+
+ '<div class="card"><h2>🔑 내 관리자 접속 링크 · 교실 컴퓨터용</h2><div class="sub">교실 컴퓨터나 다른 기기에서 <b>이 링크를 한 번만 열면</b> 내 시트가 그 기기에 저장되고, 그다음부터는 <b>입장코드만</b> 치면 들어와요. 열자마자 입장코드 화면이 나오고, 사용자 등록 화면은 다시 안 떠요.<br><b>⚠️ 학생에게 보내지 마세요.</b> 학생용 링크는 아래 [📱 학생용 링크 · QR]을 써요.</div><input type="text" id="admLink" readonly><button class="btn small" id="acpl">링크 복사</button><button class="btn ghost small" id="acpr">글자 링크로 복사 (섬탈출원정대 관리자_made by Cheon R)</button><div class="msg" id="alm"></div></div>'+
  '<div class="card"><h2>📱 학생용 링크 · QR</h2><input type="text" id="stuLink" readonly><button class="btn small" id="cpl">링크 복사</button><button class="btn ghost small" id="cpr">글자 링크로 복사 (섬탈출원정대_made by Cheon R)</button><button class="btn go small" id="qrb">QR 코드 만들기</button><div id="qrbox" class="hide" style="text-align:center"><canvas id="qrc" style="width:100%;max-width:300px;border:3px solid var(--ink);border-radius:8px;margin-top:10px"></canvas><button class="btn ghost small" id="qrd">QR 이미지 저장</button></div><div class="msg" id="lkm"></div></div>'+
  '<div class="card"><h2>🧑‍🏫 선생님 공유용 링크 · QR</h2><div class="sub">다른 선생님이 <b>자기 시트로 처음 설치</b>하는 링크예요. 이 링크로 들어오면 "처음이세요?" 설치 안내가 나오고, 내 시트나 내 관리자 화면과는 완전히 분리돼요.</div><input type="text" id="tchLink" readonly><button class="btn small" id="tcpl">링크 복사</button><button class="btn ghost small" id="tcpr">글자 링크로 복사 (섬탈출원정대 선생님용_made by Cheon R)</button><button class="btn go small" id="tqrb">QR 코드 만들기</button><div id="tqrbox" class="hide" style="text-align:center"><canvas id="tqrc" style="width:100%;max-width:300px;border:3px solid var(--ink);border-radius:8px;margin-top:10px"></canvas><button class="btn ghost small" id="tqrd">QR 이미지 저장</button></div><div class="msg" id="tlkm"></div></div>'+
  '<div class="card"><h2>⭐ 후기 · 개선점</h2><div class="sub">써 보신 느낌이나 고쳤으면 하는 점을 보내 주세요. 앱을 더 좋게 만드는 데 큰 도움이 돼요!</div><button class="btn ghost small" id="arev">후기 · 개선점 남기기</button></div>'+
@@ -1814,7 +1872,7 @@ function bindAdmin(){
  $('aset').onclick=function(){clearInterval(admT);renderSets();};
  $('arev').onclick=function(){openReview('teacher');};
  $('atg').onclick=function(){clearInterval(admT);renderGuide(false,'admin','t');};
- var al=$('admLink'),am=$('alm');al.value=(location.protocol==='file:'?location.href.split('?')[0].split('#')[0]:location.origin+location.pathname)+'?gas='+encodeURIComponent(GAS)+'&admin=1';
+ var al=$('admLink'),am=$('alm');al.value=(location.protocol==='file:'?location.href.split('?')[0].split('#')[0]:location.origin+location.pathname)+'?gas='+encodeURIComponent(GAS)+'&admin=1&reg=1';
  var anote=function(t,ok){am.className='msg '+(ok?'ok':'err');am.textContent=t;};
  if(location.protocol==='file:')anote('⚠️ 지금은 내 컴퓨터 파일로 열려 있어요. 깃허브에 올린 주소에서 열어야 교실 컴퓨터에서도 열리는 링크가 만들어져요.');
  $('acpl').onclick=function(){al.select();copyText(al.value).then(function(){anote('✅ 링크를 복사했어요! 나에게 카톡으로 보내 두면 편해요.',true);});};
@@ -3160,13 +3218,14 @@ function openPad(q){
 /* ===== 시작 ===== */
 (function boot(){
  if(params.get('new')==='1'&&!params.get('gas')){goTeacherSetup();return;}
+ if(params.get('reg')==='1'&&!store.get(K_REG,null)){var rg0={pre:'pre-'+Date.now().toString(36)+Math.floor(Math.random()*46656).toString(36),role:'교사',uid:'',region:'',level:'',purpose:'',at:nowStr(),sent:true,linked:true,other:true};REG=rg0;store.set(K_REG,rg0);}
  if(params.get('admin')==='1'&&GAS){try{history.replaceState(null,'',location.pathname);}catch(e){}renderAdminLogin();return;}
  var s=store.get(K_SES,null);
  if(s&&GAS){
   MODE='real';SES=s;view='boot';setTabs(false);
   $('app').innerHTML=titleHtml()+'<div class="card"><h2>섬으로 돌아가는 중… 🏝️</h2><div class="msg" id="bmsg"></div></div>';
   var stop=slowNote(function(t){var m=$('bmsg');if(m){m.className='msg slow';m.textContent=t;}});
-  api('state',idp(),35000).then(function(r){stop();if(r&&r.ok){applyState(r);return ensureQuiz(r.qv).then(enterGame);}else{store.del(K_SES);SES=null;MODE='';renderStart();}})
+  api('state',idp(),35000).then(function(r){stop();if(r&&r.ok){applyState(r);return ensureQuiz(r.qv).then(enterGame);}else{store.del(K_SES);SES=null;MODE='';if(r&&r.gone)rejoinPopup();else renderStart();}})
   .catch(function(e){stop();errCard('접속이 안 됐어요 😢',noGasMsg(e),function(){location.reload();},function(){store.del(K_SES);SES=null;MODE='';renderStart();});});
  }else renderStart();
 })();
