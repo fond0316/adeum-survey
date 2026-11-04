@@ -5264,15 +5264,16 @@ function buildTrendEvaluationHTML(ev, slots) {
 
 function buildTrendTableHTML(slots, series) {
   const multiG = new Set(slots.map(x => x.g)).size > 1;
-  let html = `<div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px;">📋 시험별 성적표</div><div style="overflow-x:auto;margin-bottom:14px;"><table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr style="background:var(--primary-bg);"><th style="padding:6px 8px;text-align:left;">과목</th>`;
-  slots.forEach(s => { html += `<th style="padding:6px 8px;text-align:center;white-space:nowrap;">${escapeHTML(slotShortLabel(s, multiG))}</th>`; });
+  let html = `<div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:8px;">📋 시험별 성적표</div><div style="overflow-x:auto;margin-bottom:14px;"><table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr style="background:var(--primary-bg);"><th style="padding:8px;text-align:left;">과목</th>`;
+  slots.forEach(s => { html += `<th style="padding:8px;text-align:center;white-space:nowrap;">${escapeHTML(slotShortLabel(s, multiG))}</th>`; });
   html += `</tr></thead><tbody>`;
   SUBJECTS.forEach(subj => {
     if (!series[subj].length) return;
-    html += `<tr style="border-bottom:1px solid #f0ecf8;"><td style="padding:6px 8px;font-weight:700;white-space:nowrap;">${escapeHTML(trendSubjShort(subj))}</td>`;
+    html += `<tr style="border-bottom:1px solid #f0ecf8;"><td style="padding:8px;font-weight:700;white-space:nowrap;">${escapeHTML(trendSubjShort(subj))}</td>`;
     slots.forEach((s, i) => {
       const p = series[subj].find(x => x.idx === i);
-      html += p ? `<td style="padding:6px 8px;text-align:center;line-height:1.5;"><b>${p.grade ? p.grade + '등급' : '-'}</b><br><span style="color:var(--text3);">${p.pct !== null ? '상위 ' + p.pct.toFixed(0) + '%' : ''}${p.score !== null ? ' · ' + p.score + '점' : ''}</span></td>` : `<td style="padding:6px 8px;text-align:center;color:#ccc;">-</td>`;
+      const gc = p && p.grade ? (GRADE_COLOR[p.grade] || '#9b8ec4') : '#9b8ec4';
+      html += p ? `<td style="padding:8px;text-align:center;line-height:1.5;"><b style="color:${gc};">${p.grade ? p.grade + '등급' : '-'}</b>${p.pct !== null ? `<br><span style="font-size:10px;color:var(--text3);">상위 ${p.pct.toFixed(0)}%</span>` : ''}${p.score !== null ? `<br><span style="font-size:10px;color:var(--text3);">${p.score}점</span>` : ''}</td>` : `<td style="padding:8px;text-align:center;color:#ccc;">-</td>`;
     });
     html += `</tr>`;
   });
