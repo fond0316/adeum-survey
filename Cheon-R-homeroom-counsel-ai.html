@@ -194,6 +194,11 @@
   }
 
   .card-body { padding: 20px 24px; }
+  .card.fold-closed > :not(.card-header) { display: none !important; }
+  .card.fold-ok > .card-header { cursor: pointer; }
+  .card.fold-closed > .card-header { border-bottom-color: transparent; }
+  .foldArrow { display:inline-block; margin-left:2px; font-size:12px; color:var(--primary-dark); transition:transform .2s; user-select:none; }
+  .card.fold-closed .foldArrow { transform: rotate(-90deg); }
 
   /* 단계 번호 */
   .step-num {
@@ -930,9 +935,11 @@
         <div class="divider"></div>
 
         <!-- 모의고사 -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-          <label class="form-label" style="margin-bottom:0;">📝 모의고사 성적 <span style="color:var(--text3);font-weight:400;">(선택 · 자동저장)</span></label>
-        </div>
+        <details id="mokFoldBox" open ontoggle="if(window._foldReady){try{localStorage.setItem('admAI_sec_mokInput', this.open ? '1' : '0')}catch(e){}}">
+        <summary style="cursor:pointer;min-height:40px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;list-style:none;">
+          <label class="form-label" style="margin-bottom:0;pointer-events:none;">📝 모의고사 성적 <span style="color:var(--text3);font-weight:400;">(선택 · 자동저장)</span></label>
+          <span class="secHint" style="font-size:11px;font-weight:700;color:var(--primary-dark);display:flex;align-items:center;gap:4px;"><span class="secLbl"></span><span class="secArr">▾</span></span>
+        </summary>
         <!-- 회차 탭 -->
         <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;" id="mokTabBtns"></div>
         <!-- 회차별 입력 -->
@@ -941,6 +948,7 @@
         <button onclick="saveMokData()" style="width:100%;margin-top:8px;padding:8px;background:var(--primary-bg2);border:1.5px solid var(--accent);border-radius:8px;color:var(--primary-dark);font-size:13px;font-weight:600;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
           💾 모의고사 저장
         </button>
+        </details>
 
         <div class="divider"></div>
 
@@ -1416,6 +1424,9 @@ const RESULT_TABS = [
 
 // ==================== 초기화 ====================
 window.onload = () => {
+  try { initCardFold(); } catch (e) {}
+  try { if (localStorage.getItem('admAI_sec_mokInput') === '0') { const mb = document.getElementById('mokFoldBox'); if (mb) mb.open = false; } } catch (e) {}
+  setTimeout(() => { window._foldReady = true; }, 300);
   // 모델 복원
   const savedModel = localStorage.getItem('admAIModel') || 'openai';
   selectedModel = savedModel;
@@ -3979,7 +3990,7 @@ function selectTrackBtn(el) {
 function refreshSusiStrategyWrap() {
   const wrap = document.getElementById('susiStrategyWrap');
   if (!wrap) return;
-  const avg = (() => {
+  const avg0 = (() => {
     if (!selectedStudent) return null;
     let grades = [];
     if (uploadMode === 'cumul' && cumulData[selectedStudent.num]) {
@@ -3988,14 +3999,12 @@ function refreshSusiStrategyWrap() {
       const last = keys[keys.length - 1];
       if (last) grades = Object.values(cumulD.grades[last]).map(v => v?.grade).filter(g => g && g > 0);
     } else {
-      grades = SUBJ_LIST.map(s => {
-        const safe = s.replace(/[^a-zA-Z0-9가-힣]/g, "_");
-        const el2 = document.getElementById("grade_" + safe);
-        return el2 ? parseInt(el2.value) : null;
-      }).filter(g => g && g > 0);
+      const _sl = getStudentSlots(), _sel = _sl.find(x => x.key === statSlotKey) || _sl[_sl.length - 1];
+      grades = _sel ? SUBJECTS.map(sb => _sel.subjects[sb] && _sel.subjects[sb].grade).filter(g => g && g > 0) : [];
     }
     return grades.length ? grades.reduce((a,b)=>a+b,0)/grades.length : null;
   })();
+  const avg = (statTab === 'admit' && admitAvgNow) ? admitAvgNow : avg0;
   if (!avg) return;
   const gradeYear = parseInt(document.getElementById("gradeYearVal")?.value || "1");
   const career = document.getElementById("career")?.value?.trim() || "";
@@ -4034,6 +4043,7 @@ function startStatAnalysis() {
   renderStatTabs(_slotsAll);
   if (uploadMode !== 'cumul' && statTab === 'trend' && _slotsAll.length) { renderTrendTab(_slotsAll); return; }
   if (uploadMode !== 'cumul' && statTab === 'mock' && hasAnyMock()) { renderMockTab(); return; }
+  if (uploadMode !== 'cumul' && statTab === 'admit' && _slotsAll.length) { renderAdmitTab(_slotsAll); return; }
   const _selSlot = _slotsAll.find(x => x.key === (statSlotKey || (_slotsAll.length ? _slotsAll[_slotsAll.length - 1].key : null)));
 
   // 최신 슬롯 기준 subjects
@@ -4792,7 +4802,7 @@ function startStatAnalysis() {
   html += wrapCollapsibleSection('subjRec', '📋 선택과목 추천', buildSubjectRecommendHTML(subjs, grades));
 
   // ── 컨설턴트 분석 섹션 추가 ──
-  html += buildConsultantSectionHTML(subjs, grades);
+  html += buildConsultantSectionHTML(subjs, grades, (uploadMode !== 'cumul' && _slotsAll.length) ? 'rest' : 'all');
 
   // ── 현재학년/누적 공통 보조 진단 (기존 1학년 분석은 그대로 두고 읽기 전용으로 추가) ──
   html += wrapCollapsibleSection('integrated', '🧭 통합 성적 진단', buildIntegratedAcademicInsightHTML(), true);
@@ -4905,6 +4915,29 @@ function autoFoldStatSections() {
   });
 }
 
+// ── 카드 제목줄을 눌러 접기/펼치기 (왼쪽·오른쪽 카드 공통, 접은 상태는 이 기기에 기억) ──
+const CARD_FOLD_LS = 'admAI_cardFold_v1';
+function cardFoldLoad() { try { return JSON.parse(localStorage.getItem(CARD_FOLD_LS) || '{}'); } catch (e) { return {}; } }
+function initCardFold() {
+  const st = cardFoldLoad();
+  document.querySelectorAll('.card').forEach(card => {
+    const hd = card.querySelector(':scope > .card-header');
+    if (!hd || card.classList.contains('fold-ok')) return;
+    const key = card.id || (hd.querySelector('.card-title') || {}).textContent || '';
+    if (!key) return;
+    card.classList.add('fold-ok');
+    const ar = document.createElement('span'); ar.className = 'foldArrow'; ar.textContent = '▾'; ar.title = '눌러서 접기/펼치기';
+    const tt = hd.querySelector('.card-title'); if (tt) tt.after(ar); else hd.appendChild(ar);
+    if (st[key]) card.classList.add('fold-closed');
+    hd.addEventListener('click', ev => {
+      if (ev.target.closest('button, input, select, textarea, a, label')) return;
+      card.classList.toggle('fold-closed');
+      const m = cardFoldLoad(); if (card.classList.contains('fold-closed')) m[key] = 1; else delete m[key];
+      try { localStorage.setItem(CARD_FOLD_LS, JSON.stringify(m)); } catch (e) {}
+    });
+  });
+}
+
 function foldAllStatSections(open) {
   document.querySelectorAll('#statContent details').forEach(d => { d.open = open; });
 }
@@ -4975,6 +5008,7 @@ function slotShortLabel(sl, multiG) {
 
 function switchStatSlot(key) { statTab = 'slot'; statSlotKey = key; startStatAnalysis(); }
 function switchStatTrend() { statTab = 'trend'; startStatAnalysis(); }
+function switchStatAdmit() { statTab = 'admit'; startStatAnalysis(); }
 
 function renderStatTabs(slots) {
   const bar = document.getElementById('statTabBar');
@@ -4987,6 +5021,7 @@ function renderStatTabs(slots) {
   let html = slots.map(sl => btn(escapeHTML(slotShortLabel(sl, multiG)), statTab === 'slot' && sl.key === activeKey, `switchStatSlot('${sl.key}')`)).join('');
   html += btn('📈 누적 변화', statTab === 'trend', 'switchStatTrend()');
   if (hasAnyMock()) html += btn('📝 모의고사 누적', statTab === 'mock', 'switchStatMock()');
+  if (slots.length) html += btn('🎓 진학·입시', statTab === 'admit', 'switchStatAdmit()');
   bar.innerHTML = html;
   bar.style.display = 'flex';
 }
@@ -5309,6 +5344,56 @@ function mockSubjLabel(k, label) { return (k === '탐구1' || k === '탐구2') ?
 function hasAnyMock() {
   try { return selectedStudent && getMockSeries().rounds.length > 0; } catch (e) { return false; }
 }
+// ==================== 🎓 진학·입시 탭 ====================
+const ADMIT_BASIS_LS = 'admAI_admitBasis_v1';
+let admitBasis = 'latest';   // 'latest' = 가장 최근 시험 | 'cumul' = 누적 평균
+try { if (localStorage.getItem(ADMIT_BASIS_LS) === 'cumul') admitBasis = 'cumul'; } catch (e) {}
+let admitAvgNow = null;
+function setAdmitBasis(b) { admitBasis = b; try { localStorage.setItem(ADMIT_BASIS_LS, b); } catch (e) {} startStatAnalysis(); }
+// 기준별 과목 등급·평균 계산 (누적 평균: 학기마다 대표 시험 1개 — 학기말>기말>중간 — 의 과목별 평균)
+function admitBasisData(slots) {
+  const multiG = new Set(slots.map(x => x.g)).size > 1;
+  const mean = a => a.reduce((x, y) => x + y, 0) / a.length;
+  const latest = slots[slots.length - 1];
+  if (admitBasis === 'cumul') {
+    const rep = {};
+    slots.forEach(sl => { const k = sl.g + '-' + sl.s, rank = { mid: 1, fin: 2, total: 3 }; if (!rep[k] || rank[sl.k] > rank[rep[k].k]) rep[k] = sl; });
+    const reps = Object.values(rep);
+    const subjs = {}, means = [];
+    SUBJECTS.forEach(sb => {
+      const gs = reps.map(r => r.subjects[sb] && r.subjects[sb].grade).filter(g => typeof g === 'number' && g >= 1 && g <= 5);
+      if (!gs.length) return;
+      const m = mean(gs);
+      const sc = reps.map(r => r.subjects[sb] && parseFloat(r.subjects[sb].score)).filter(x => x === 0 || x);
+      subjs[sb] = { grade: Math.round(m), score: sc.length ? Math.round(mean(sc) * 10) / 10 : null, rank: null, total: null };
+      means.push(m);
+    });
+    const grades = SUBJECTS.map(sb => subjs[sb] && subjs[sb].grade).filter(Boolean);
+    return { subjs, grades, avg: means.length ? mean(means) : null, label: '누적 평균', sub: reps.map(r => slotShortLabel(r, multiG)).join(' · ') + ' (학기마다 대표 시험 1개) · 세부 계산은 과목별 평균을 반올림한 등급 기준' };
+  }
+  const grades = SUBJECTS.map(sb => latest.subjects[sb] && latest.subjects[sb].grade).filter(Boolean);
+  return { subjs: latest.subjects, grades, avg: grades.length ? mean(grades) : null, label: '가장 최근 시험', sub: slotShortLabel(latest, multiG) };
+}
+function renderAdmitTab(slots) {
+  const bd = admitBasisData(slots);
+  admitAvgNow = bd.avg;
+  const chip = (b, t) => `<button type="button" onclick="setAdmitBasis('${b}')" style="min-height:40px;padding:0 14px;border-radius:20px;border:1.5px solid ${admitBasis === b ? 'var(--primary)' : 'var(--border)'};background:${admitBasis === b ? 'var(--primary-bg)' : '#fff'};color:${admitBasis === b ? 'var(--primary-dark)' : 'var(--text2)'};font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">${t}</button>`;
+  let html = `<div class="no-print" style="padding:10px 20px 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+    <button type="button" onclick="foldAllStatSections(false)" style="min-height:36px;padding:0 12px;border-radius:8px;border:1.5px solid var(--border);background:#fff;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">모두 접기</button>
+    <button type="button" onclick="foldAllStatSections(true)" style="min-height:36px;padding:0 12px;border-radius:8px;border:1.5px solid var(--border);background:#fff;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">모두 펼치기</button>
+    <span style="font-size:11px;color:var(--text3);">🖨️ 접어 둔 항목은 출력에서 빠져요</span></div>
+  <div class="no-print" style="padding:12px 20px 0;"><div style="font-size:11px;color:var(--text3);margin-bottom:6px;">분석 기준을 고르세요</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">${chip('latest', '가장 최근 시험')}${chip('cumul', '누적 평균')}</div></div>
+  <div style="padding:10px 20px 0;"><span style="display:inline-block;background:var(--primary-bg);color:var(--primary-dark);border-radius:999px;padding:4px 12px;font-size:11px;font-weight:700;">📌 기준: ${escapeHTML(bd.label)} · 평균 ${bd.avg !== null ? bd.avg.toFixed(2) + '등급' : '-'}</span>
+    <div style="font-size:10.5px;color:var(--text3);margin-top:4px;line-height:1.5;">${escapeHTML(bd.sub)}</div></div>`;
+  html += `<div style="padding-top:14px;"></div>` + buildConsultantSectionHTML(bd.subjs, bd.grades, 'admit', { avg: bd.avg });
+  document.getElementById('statCard').style.display = 'block';
+  document.getElementById('statContent').innerHTML = html;
+  try { careerAutoRun(); } catch (er) {}
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('chartCard').style.display = 'none';
+}
+
 function switchStatMock() { statTab = 'mock'; startStatAnalysis(); }
 function setMockMetric(m) { mockMetric = m; startStatAnalysis(); }
 function toggleMockSubj(k) { mockSubjOff[k] = !mockSubjOff[k]; startStatAnalysis(); }
@@ -5905,11 +5990,13 @@ function buildIntegratedAcademicPromptText() {
 
 
 // ==================== 컨설턴트/담임/입사관 분석 섹션 ====================
-function buildConsultantSectionHTML(subjs, grades) {
+function buildConsultantSectionHTML(subjs, grades, mode, opt) {
+  const _m = mode || 'all';   // 'all' = 전부 | 'rest' = 학기 탭에 남는 항목 | 'admit' = 진학·입시 탭 항목
+  const showAdm = _m === 'all' || _m === 'admit', showRest = _m === 'all' || _m === 'rest';
   const gradeYear = parseInt(document.getElementById('gradeYearVal')?.value || '1');
   const career = document.getElementById('career')?.value?.trim() || '';
   const careerTrack = document.getElementById('careerTrackVal')?.value || '';
-  const avg = grades.length ? grades.reduce((a,b)=>a+b,0)/grades.length : null;
+  const avg = (opt && opt.avg) ? opt.avg : (grades.length ? grades.reduce((a,b)=>a+b,0)/grades.length : null);
   const GC = { 1:'#7c5cbf', 2:'#5b9bd5', 3:'#48b89f', 4:'#f0a500', 5:'#e05c5c' };
   const stars = s => '★'.repeat(s) + '☆'.repeat(5-s);
   const bar = s => {
@@ -6311,41 +6398,42 @@ function buildConsultantSectionHTML(subjs, grades) {
 
   return `
   <div style="padding:16px 20px 0;">
-    <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:16px;">📌 입사관·컨설턴트·담임 종합 분석</div>
+    <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:${_m === 'rest' ? '6' : '16'}px;">📌 ${_m === 'admit' ? '진학·입시 분석' : _m === 'rest' ? '성적 점검·상담 준비' : '입사관·컨설턴트·담임 종합 분석'}</div>
+    ${_m === 'rest' ? `<div class="no-print" style="font-size:11px;color:var(--text3);margin-bottom:12px;">🎓 입학사정관 관점·희망 학과·수시 추천·수능최저는 위쪽 <button type="button" onclick="switchStatAdmit()" style="border:none;background:none;color:var(--primary-dark);font-weight:800;font-size:11px;cursor:pointer;padding:0;font-family:inherit;text-decoration:underline;">「🎓 진학·입시」 탭</button>에서 볼 수 있어요.</div>` : ''}
 
     <!-- 누적 입사관 트렌드 (cumul 모드만) -->
-    <div style="margin:0 -20px;">${wrapCollapsibleSection('cumulTrend', '👁️ 입학사정관 관점 — 학기별 성적 신뢰도 분석', cumulTrendHtml, true)}</div>
+    <div style="margin:0 -20px;">${showAdm ? wrapCollapsibleSection('cumulTrend', '👁️ 입학사정관 관점 — 학기별 성적 신뢰도 분석', cumulTrendHtml, true) : ''}</div>
 
     <!-- 성적 급변 경고 (cumul 모드만) -->
-    <div style="margin:0 -20px;">${wrapCollapsibleSection('gradeAlert', '⚠️ 성적 급변 점검', gradeAlertHtml, true)}</div>
+    <div style="margin:0 -20px;">${showRest ? wrapCollapsibleSection('gradeAlert', '⚠️ 성적 급변 점검', gradeAlertHtml, true) : ''}</div>
 
     <!-- 전형 유불리 인디케이터는 상단 기본 분석 영역에서만 표시합니다. -->
 
   </div>
 
   <!-- 이수 선택과목 → 지원 가능 학과 (입사관) -->
-  ${wrapCollapsibleSection('subjFilter', '🏫 이수 선택과목 기반 지원 가능 학과', subjectFilterHtml, true)}
+  ${showAdm ? wrapCollapsibleSection('subjFilter', '🏫 이수 선택과목 기반 지원 가능 학과', subjectFilterHtml, true) : ''}
 
   <!-- 수시 안정/적정/도전 분류표 (컨설턴트) -->
-  ${wrapCollapsibleSection('susi', '📋 수시 상향·적정·하향 추천 대학', susiStrategyHtml, true)}
+  ${showAdm ? wrapCollapsibleSection('susi', '📋 수시 상향·적정·하향 추천 대학', susiStrategyHtml, true) : ''}
 
   <!-- 성적대별 진학 방향 -->
-  ${wrapCollapsibleSection('pathway', '🧭 성적대별 진학 방향', buildPathwayHTML(avg, career, careerTrack, false), true)}
+  ${showAdm ? wrapCollapsibleSection('pathway', '🧭 성적대별 진학 방향', buildPathwayHTML(avg, career, careerTrack, false), true) : ''}
 
   <!-- 컨설턴트 등급 시뮬 -->
-  ${wrapCollapsibleSection('univSim', '📊 등급별 대학 범위', univSimHtml, true)}
+  ${showAdm ? wrapCollapsibleSection('univSim', '📊 등급별 대학 범위', univSimHtml, true) : ''}
 
   <!-- 남은 학기 목표 계산기 (컨설턴트) -->
-  ${wrapCollapsibleSection('remainTerm', '🎯 남은 학기 목표 계산기', remainTermHtml, true)}
+  ${showRest ? wrapCollapsibleSection('remainTerm', '🎯 남은 학기 목표 계산기', remainTermHtml, true) : ''}
 
   <!-- 수능최저 시뮬 -->
-  ${wrapCollapsibleSection('suneungMin', '📐 수능최저 충족 시뮬레이터', suneungHtml, true)}
+  ${showAdm ? wrapCollapsibleSection('suneungMin', '📐 수능최저 충족 시뮬레이터', suneungHtml, true) : ''}
 
   <!-- 다음 상담 액션 카드 (담임) -->
-  ${wrapCollapsibleSection('nextAction', '👨‍🏫 다음 상담 전 액션 카드', nextActionHtml, true)}
+  ${showRest ? wrapCollapsibleSection('nextAction', '👨‍🏫 다음 상담 전 액션 카드', nextActionHtml, true) : ''}
 
   <!-- 담임 상담 문구 -->
-  ${wrapCollapsibleSection('counselScript', '💬 학부모 상담 문구', counselBtn, true)}
+  ${showRest ? wrapCollapsibleSection('counselScript', '💬 학부모 상담 문구', counselBtn, true) : ''}
 `;
 }
 
