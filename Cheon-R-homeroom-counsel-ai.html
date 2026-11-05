@@ -2429,12 +2429,13 @@ function mokNum(v) { if (v === null || v === undefined || v === '') return null;
 function mokGrade(v) { const n = Number(v); return (v !== null && v !== '' && Number.isInteger(n) && n >= 1 && n <= 9) ? n : null; }   // 1~9 밖의 값(원점수 등)은 등급으로 쓰지 않음
 
 function parseMokFile(rows, fileName) {
-  // 회차 감지: 파일명에서 3/6/9/11월 찾기
+  // 회차 감지: 파일명에서 3/6/9/10/11월 찾기
   let round = null;
-  const roundMatch = fileName.match(/(11|3|6|9)\s*월/);
+  const roundMatch = fileName.match(/(10|11|3|6|9)\s*월/);
   if (roundMatch) {
     round = roundMatch[1] + '월';
   }
+  { const _cm = mokCustomList().find(c => fileName.includes(c.name)); if (_cm) round = _cm.name; }
 
   // 데이터 행 찾기 (학번이 숫자인 첫 행)
   let dataStart = -1;
@@ -2489,13 +2490,15 @@ function showRoundSelectModal(byName) {
       <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;">📝 회차를 선택해주세요</div>
       <div style="font-size:12px;color:var(--text3);margin-bottom:20px;">파일명에서 월을 찾지 못했어요</div>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-        ${['3월','6월','9월','11월'].map(r => `
+        ${MOK_ROUNDS.map(r => `
           <button onclick="applyMokFileData('${r}', pendingMokData.byName); document.getElementById('roundModal').remove();"
             style="padding:10px 18px;border-radius:10px;border:1.5px solid var(--primary);background:var(--primary-bg);color:var(--primary-dark);font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;">
             ${r}
           </button>
         `).join('')}
       </div>
+      ${mokCustomList().length < 3 ? `<button type="button" onclick="openMokCustomModal(name => { applyMokFileData(name, pendingMokData.byName); const rm = document.getElementById('roundModal'); if (rm) rm.remove(); })"
+        style="margin-top:12px;padding:10px 18px;border-radius:10px;border:1.5px dashed var(--primary);background:#fff;color:var(--primary-dark);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">＋ 기타 직접 입력</button><br>` : ''}
       <button onclick="document.getElementById('roundModal').remove();"
         style="margin-top:16px;background:none;border:none;color:var(--text3);font-size:12px;cursor:pointer;">취소</button>
     </div>
@@ -3165,8 +3168,59 @@ function renderChart() {
 }
 
 // ==================== 모의고사 누적 관리 ====================
-const MOK_ROUNDS = ['3월', '6월', '9월', '11월'];
+const MOK_BASE = [['3월', 3], ['6월', 6], ['9월', 9], ['10월', 10], ['11월', 11]];
+const MOK_ROUNDS = [];   // 기본 회차 + 직접 추가한 기타 회차 (시행 월 순서로 정렬)
+const MOK_CUSTOM_LS = 'admAI_mokCustom_v1';
+function mokCustomList() { try { const a = JSON.parse(localStorage.getItem(MOK_CUSTOM_LS) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+function rebuildMokRounds() {
+  const items = MOK_BASE.map((b, i) => ({ n: b[0], m: b[1], o: i }))
+    .concat(mokCustomList().map((c, i) => ({ n: c.name, m: c.month, o: 100 + i })));
+  items.sort((a, b) => a.m - b.m || a.o - b.o);
+  MOK_ROUNDS.length = 0; items.forEach(x => MOK_ROUNDS.push(x.n));
+}
+rebuildMokRounds();
 let currentMokRound = '3월';
+// 기타 회차 추가 창 (이름 + 시행 월). done(name) 은 추가 성공 후 호출
+function openMokCustomModal(done) {
+  const old = document.getElementById('mokCustomModal'); if (old) old.remove();
+  const ov = document.createElement('div');
+  ov.id = 'mokCustomModal';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:10001;display:flex;align-items:center;justify-content:center;padding:16px;';
+  ov.innerHTML = `<div style="background:#fff;border-radius:16px;padding:24px;width:min(340px,100%);box-shadow:0 8px 40px rgba(0,0,0,.2);">
+    <div style="font-size:15px;font-weight:800;margin-bottom:4px;">➕ 기타 모의고사 추가</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:14px;line-height:1.5;">교육청·사설 모의고사 등을 직접 추가해요. 시행한 월을 고르면 그 월 순서 사이에 들어가요.</div>
+    <label style="font-size:12px;font-weight:700;">이름</label>
+    <input id="mokCustomName" maxlength="10" placeholder="예: 교육청 4월, 사설 1회" style="width:100%;min-height:44px;margin:4px 0 12px;padding:0 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;box-sizing:border-box;">
+    <label style="font-size:12px;font-weight:700;">시행 월</label>
+    <select id="mokCustomMonth" style="width:100%;min-height:44px;margin:4px 0 14px;padding:0 10px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;box-sizing:border-box;">${[1,2,3,4,5,6,7,8,9,10,11,12].map(m => `<option value="${m}" ${m === 4 ? 'selected' : ''}>${m}월</option>`).join('')}</select>
+    <div id="mokCustomErr" style="font-size:11px;color:#c2410c;min-height:16px;margin-bottom:6px;"></div>
+    <div style="display:flex;gap:8px;"><button type="button" id="mokCustomCancel" style="flex:1;min-height:44px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-size:13px;cursor:pointer;font-family:inherit;">취소</button>
+    <button type="button" id="mokCustomOk" style="flex:2;min-height:44px;border-radius:10px;border:none;background:var(--primary);color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;">추가</button></div></div>`;
+  document.body.appendChild(ov);
+  document.getElementById('mokCustomName').focus();
+  document.getElementById('mokCustomCancel').onclick = () => ov.remove();
+  document.getElementById('mokCustomOk').onclick = () => {
+    const name = (document.getElementById('mokCustomName').value || '').replace(/['"\\<>&`]/g, '').trim().slice(0, 10);
+    const month = parseInt(document.getElementById('mokCustomMonth').value);
+    const err = document.getElementById('mokCustomErr');
+    if (!name) { err.textContent = '이름을 입력해 주세요.'; return; }
+    if (MOK_ROUNDS.includes(name)) { err.textContent = '같은 이름의 회차가 이미 있어요.'; return; }
+    if (mokCustomList().length >= 3) { err.textContent = '기타 회차는 최대 3개까지 만들 수 있어요.'; return; }
+    const list = mokCustomList(); list.push({ name, month });
+    try { localStorage.setItem(MOK_CUSTOM_LS, JSON.stringify(list)); } catch (e) {}
+    rebuildMokRounds(); ov.remove();
+    if (done) done(name);
+  };
+}
+function removeMokCustomRound(name) {
+  if (!confirm(`"${name}" 회차를 삭제할까요?\n(모든 학생의 이 회차 모의고사 입력값과 올린 파일도 함께 지워져요)`)) return;
+  try { localStorage.setItem(MOK_CUSTOM_LS, JSON.stringify(mokCustomList().filter(c => c.name !== name))); } catch (e) {}
+  try { const f = loadMokFiles(); delete f[name]; localStorage.setItem(MOK_FILES_KEY, JSON.stringify(f)); } catch (e) {}
+  try { Object.keys(localStorage).filter(k => /^mok_/.test(k)).forEach(k => { const a = JSON.parse(localStorage.getItem(k) || '{}'); if (a[name]) { delete a[name]; localStorage.setItem(k, JSON.stringify(a)); } }); } catch (e) {}
+  rebuildMokRounds();
+  if (currentMokRound === name) currentMokRound = '3월';
+  renderMokTabs(); renderMokInputs(); try { refreshMokFileList(); } catch (e) {}
+}
 
 function initMokUI() {
   // 학생 선택 시 호출 — 해당 학생 데이터 로드 후 UI 렌더
@@ -3186,7 +3240,22 @@ function renderMokTabs() {
     btn.textContent = round + (hasData ? ' ✓' : '');
     btn.onclick = () => { currentMokRound = round; renderMokTabs(); renderMokInputs(); };
     container.appendChild(btn);
+    const cm = mokCustomList().find(c => c.name === round);
+    if (cm) {
+      const x = document.createElement('button');
+      x.type = 'button'; x.textContent = '✕'; x.title = '이 기타 회차 삭제';
+      x.style.cssText = 'min-height:32px;min-width:32px;margin-left:-4px;border-radius:50%;border:none;background:none;color:#c2410c;font-size:12px;cursor:pointer;';
+      x.onclick = () => removeMokCustomRound(round);
+      container.appendChild(x);
+    }
   });
+  if (mokCustomList().length < 3) {
+    const add = document.createElement('button');
+    add.type = 'button'; add.textContent = '＋ 기타';
+    add.style.cssText = "padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans KR',sans-serif;border:1.5px dashed var(--primary);background:#fff;color:var(--primary-dark);";
+    add.onclick = () => openMokCustomModal(name => { currentMokRound = name; renderMokTabs(); renderMokInputs(); });
+    container.appendChild(add);
+  }
 }
 
 function getMokKey() {
@@ -6277,7 +6346,7 @@ function buildConsultantSectionHTML(subjs, grades, mode, opt) {
   // 수능최저 시뮬레이터 (모의고사 데이터)
   // ────────────────────────────────────────────────────
   const mokData = getAllMokData();
-  const lastRound = ['11월','9월','6월','3월'].find(r => mokData[r] && Object.values(mokData[r]).some(v => v.grade));
+  const lastRound = [...MOK_ROUNDS].reverse().find(r => mokData[r] && Object.values(mokData[r]).some(v => v.grade));
   let suneungHtml = '';
   if (lastRound) {
     const rd = mokData[lastRound];
