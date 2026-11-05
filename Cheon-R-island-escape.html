@@ -283,11 +283,22 @@ function jsonp_(cb, obj) {
   return ContentService.createTextOutput(txt).setMimeType(ContentService.MimeType.JSON);
 }
 function withLock_(fn) {
-  var lock = LockService.getScriptLock();
-  lock.waitLock(25000);
+  var lock = LockService.getScriptLock(), t0 = Date.now();
+  try { lock.waitLock(25000); } catch (e) { noteWait_(25000); throw e; }
+  noteWait_(Date.now() - t0);
   try { return fn(); } finally { try { lock.releaseLock(); } catch (x) {} }
 }
-function bust_() { try { CacheService.getScriptCache().remove('snap'); } catch (e) {} }
+/* 줄서기가 길어지면(1.5초 이상) 잠깐 기억해 뒀다가 학생 화면에 '혼잡' 신호로 알려줘요 */
+function noteWait_(ms) { if (ms >= 1500) { try { CacheService.getScriptCache().put('lw', String(ms), 20); } catch (e) {} } }
+function busy_() { try { var w = Number(CacheService.getScriptCache().get('lw')) || 0; return w >= 6000 ? 2 : (w >= 1500 ? 1 : 0); } catch (e) { return 0; } }
+/* 데이터 버전: 무언가 저장될 때마다 바뀌어요. 학생 화면이 같은 버전이면 '변화 없음'만 짧게 답해요 */
+function ver_() {
+  var c = CacheService.getScriptCache(), v = null;
+  try { v = c.get('ver'); } catch (e) {}
+  if (!v) { v = String(Date.now()) + Math.floor(Math.random() * 1000); try { c.put('ver', v, 21600); } catch (e) {} }
+  return v;
+}
+function bust_() { try { var c = CacheService.getScriptCache(); c.remove('snap'); c.put('ver', String(Date.now()) + Math.floor(Math.random() * 1000), 21600); } catch (e) {} }
 function shuffle_(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
 function nextId_(sh) {
   var last = sh.getLastRow();
@@ -393,10 +404,11 @@ function snap_(force) {
     if (c.get('snapbusy')) { var old = c.get('snapold'); if (old) { try { return JSON.parse(old); } catch (e) {} } }
   }
   try { c.put('snapbusy', '1', 8); } catch (e) {}
+  var v0 = ver_();
   var T = readT_().map, tt = {};
   Object.keys(T).forEach(function (k) { tt[k] = { label: T[k].label, esc: T[k].esc }; });
   var pend = readB_().list.filter(function (b) { return b.pick === ''; }).map(function (b) { return { id: b.id, key: b.key, q: b.q }; });
-  var s = { P: readP_().list, H: readH_().list.slice(-400), R: readR_().list.slice(-60), T: tt, B: pend };
+  var s = { ver: v0, P: readP_().list, H: readH_().list.slice(-400), R: readR_().list.slice(-60), T: tt, B: pend };
   try { var js = JSON.stringify(s); c.put('snap', js, 5); c.put('snapold', js, 120); } catch (e) {}
   try { c.remove('snapbusy'); } catch (e) {}
   return s;
@@ -425,8 +437,13 @@ function lobby_() {
 }
 /* 방금 입장한 학생이 오래된 캐시 때문에 '명단에 없음'으로 튕기지 않게: 못 찾으면 최신 시트로 한 번 더 확인해요 */
 function state_(p) {
+  if (p.ver && String(p.ver) === ver_()) {
+    var g = game_();
+    if (String(p.ph || '') === g.phase) return { ok: true, same: 1, ver: String(p.ver), now: Date.now(), game: g, busy: busy_() };
+  }
   var r = stateFrom_(snap_(), p);
   if (r && r.gone) r = stateFrom_(snap_(true), p);
+  if (r) r.busy = busy_();
   return r;
 }
 function stateFrom_(s, p) {
@@ -441,7 +458,7 @@ function stateFrom_(s, p) {
     if (h.from === me.name && h.kind === '조원') sent.push({ id: h.id, to: h.to, q: h.q, thanks: h.thanks, react: h.react });
   });
   return {
-    ok: true, now: Date.now(), game: game_(), cfg: cfg_(), qv: qv_(), iid: iid_(),
+    ok: true, ver: s.ver || '', now: Date.now(), game: game_(), cfg: cfg_(), qv: qv_(), iid: iid_(),
     me: { key: me.key, name: me.name, team: team, ch: me.ch, coins: me.coins, hasKey: me.hasKey, helping: me.helping, done: sl_(me.done), wrong: sl_(me.wrong), hinted: sl_(me.hinted) },
     team: { team: team, label: labelOf_(s.T, team), leader: members[0] ? members[0].name : '', escapedAt: info.esc || 0, members: members.map(pubP_) },
     hints: { recv: recv, sent: sent },
@@ -670,20 +687,27 @@ function awards_(s) {
 function openbox_(p) {
   var id = String(p.id || ''), pick = parseInt(p.pick, 10);
   if (!id || !(pick >= 1 && pick <= 5)) return { ok: false, error: '상자 선택 오류' };
-  var B = readB_(), R = readP_();
-  for (var i = 0; i < B.list.length; i++) {
-    var b = B.list[i];
-    if (b.id !== id) continue;
-    var me = findP_(R.list, b.key);
-    if (b.pick !== '') return { ok: true, already: true, codes: b.codes, pick: num_(b.pick), gained: b.gained, coins: me ? me.coins : 0 };
-    var code = b.codes[pick - 1], gained = 0;
-    if (code === 'D') gained = Math.min(DOUBLE_CAP, me ? me.coins : 0);
-    else if (code !== 'X') gained = parseInt(code, 10) || 0;
-    if (me && gained) { me.coins += gained; saveP_(R.sh, me); }
-    B.sh.getRange(b.row, 9, 1, 3).setValues([[pick, gained, nowKST_()]]);
-    return { ok: true, already: false, codes: b.codes, pick: pick, gained: gained, coins: me ? me.coins : 0 };
+  /* 시트 전체를 읽지 않고, 아이디 열만 훑어서 해당 줄만 읽고 코인 칸 하나만 고쳐요 (잠금 시간 단축) */
+  var sh = sheet_(SH_B, B_H), last = sh.getLastRow(), row = 0;
+  if (last < 2) return { ok: false, error: '상자를 찾을 수 없어요' };
+  var ids = sh.getRange(2, 1, last - 1, 1).getValues();
+  for (var i = ids.length - 1; i >= 0; i--) if (String(ids[i][0]) === id) { row = i + 2; break; }
+  if (!row) return { ok: false, error: '상자를 찾을 수 없어요' };
+  var r = sh.getRange(row, 1, 1, 10).getValues()[0];
+  var key = String(r[1]), codes = [r[3], r[4], r[5], r[6], r[7]].map(String), picked = String(r[8]);
+  var psh = sheet_(SH_P, pHeaders_()), pl = psh.getLastRow(), prow = 0, coins = 0;
+  if (pl >= 2) {
+    var ks = psh.getRange(2, 1, pl - 1, 1).getValues();
+    for (var j = 0; j < ks.length; j++) if (String(ks[j][0]) === key) { prow = j + 2; break; }
   }
-  return { ok: false, error: '상자를 찾을 수 없어요' };
+  if (prow) coins = Number(psh.getRange(prow, 5).getValue()) || 0;
+  if (picked !== '') return { ok: true, already: true, codes: codes, pick: num_(picked), gained: Number(r[9]) || 0, coins: coins };
+  var code = codes[pick - 1], gained = 0;
+  if (code === 'D') gained = Math.min(DOUBLE_CAP, coins);
+  else if (code !== 'X') gained = parseInt(code, 10) || 0;
+  if (prow && gained) { coins += gained; psh.getRange(prow, 5).setValue(coins); }
+  sh.getRange(row, 9, 1, 3).setValues([[pick, gained, nowKST_()]]);
+  return { ok: true, already: false, codes: codes, pick: pick, gained: gained, coins: coins };
 }
 
 /* ===== 관리자 ===== */
@@ -988,7 +1012,7 @@ function doGet(e) {
 <script>
 /* ===== 설정 ===== */
 var GAS_DEFAULT='';
-var K_GAS='ise_gas_v1',K_SES='ise_session_v1',K_LAST='ise_last_v1',K_GUIDE='ise_guide_v1',K_GUIDEAUTO='ise_guideauto_v1',K_ESC='ise_escseen_v1',K_SND='ise_snd_v1',K_REG='ise_reg_v1',K_VIS='ise_vis_v1',K_NUDGE='ise_nudge_v1',K_REV='ise_rev_v1';
+var K_GAS='ise_gas_v1',K_SES='ise_session_v1',K_LAST='ise_last_v1',K_SUBQ='ise_subq_v1',K_GUIDE='ise_guide_v1',K_GUIDEAUTO='ise_guideauto_v1',K_ESC='ise_escseen_v1',K_SND='ise_snd_v1',K_REG='ise_reg_v1',K_VIS='ise_vis_v1',K_NUDGE='ise_nudge_v1',K_REV='ise_rev_v1';
 var params=new URLSearchParams(location.search);
 var GAS=params.get('gas')||localStorage.getItem(K_GAS)||GAS_DEFAULT;
 if(params.get('gas')){try{localStorage.setItem(K_GAS,params.get('gas'));}catch(e){}}
@@ -1178,7 +1202,7 @@ function doneCount(m){return m.done.filter(function(d){return d;}).length;}
 function recvFor(q){return ST.hints.recv.filter(function(h){return h.q===q;});}
 function applyState(r){
  if(!r||!r.ok){if(r&&r.gone){GONEN++;if(GONEN>=3)kicked();else setTimeout(pollNow,1500);}return;}
- GONEN=0;ST=r;OFF=r.now-Date.now();
+ GONEN=0;qOverlay(r);ST=r;OFF=r.now-Date.now();VER=r.ver||'';BUSY=r.busy||0;
  if(MODE==='real'&&SES){var lk=SES.team+'|'+SES.name+'|'+(r.me.ch||'');if(lk!==LASTK){LASTK=lk;store.set(K_LAST,{team:SES.team,name:SES.name,ch:r.me.ch||''});}}
  var ids=r.hints.recv;
  if(!SEEN){SEEN={};ids.forEach(function(h){SEEN[h.id]=1;});}
@@ -1201,9 +1225,15 @@ function applyState(r){
  checkEnd();repaint();}
 function repaint(){if(modalOpen()&&view!=='island'&&view!=='q'&&view!=='rank')return;if(view==='island')paintIsland();else if(view==='q')paintQ();else if(view==='rank')paintRank();}
 /* 동시 접속이 많아도 서버가 밀리지 않게: 이전 요청이 안 끝났으면 새로 안 보내고, 간격에 무작위를 섞고, 실패하면 간격을 늘려요 */
-var POLLP=null,POLLFAIL=0,GONEN=0,POLLTOK=0;
-function pollNow(){if(!SES)return Promise.resolve();if(POLLP)return POLLP;POLLP=api('state',idp(),25000).then(function(r){POLLFAIL=0;applyState(r);}).catch(function(){POLLFAIL++;}).then(function(){POLLP=null;});return POLLP;}
-function startPoll(){stopPoll();var tok=++POLLTOK,base=MODE==='demo'?3000:6500;(function loop(){if(tok!==POLLTOK)return;pollT=setTimeout(function(){if(tok!==POLLTOK)return;if(!document.hidden&&SES&&(view==='island'||view==='q'||view==='rank'))pollNow().then(loop);else loop();},base*(0.8+Math.random()*0.5)+Math.min(POLLFAIL,5)*3000);})();tickT=setInterval(function(){updateTimers();},1000);}
+var POLLP=null,POLLFAIL=0,GONEN=0,POLLTOK=0,VER='',BUSY=0;
+function pollNow(){if(!SES)return Promise.resolve();if(POLLP)return POLLP;
+ var pp=idp();if(MODE==='real'&&ST&&VER){pp.ver=VER;pp.ph=phase();}
+ POLLP=api('state',pp,25000).then(function(r){POLLFAIL=0;
+  if(r&&r.same){GONEN=0;BUSY=r.busy||0;OFF=r.now-Date.now();if(ST){ST.game=r.game;ST.now=r.now;}checkEnd();return;}
+  applyState(r);}).catch(function(){POLLFAIL++;}).then(function(){POLLP=null;});return POLLP;}
+/* 서버가 혼잡하다고 알리면 간격을 늘리고, 문제 푸는 중에는 더 드물게 확인해요 */
+function pollGap(){var b=MODE==='demo'?3000:6500;if(MODE==='real'){b*=BUSY>=2?2.6:(BUSY===1?1.7:1);if(view==='q')b*=1.5;}return b*(0.8+Math.random()*0.5)+Math.min(POLLFAIL,5)*3000;}
+function startPoll(){stopPoll();var tok=++POLLTOK;if(MODE==='real')qFlush(300);(function loop(){if(tok!==POLLTOK)return;pollT=setTimeout(function(){if(tok!==POLLTOK)return;if(!document.hidden&&SES&&(view==='island'||view==='q'||view==='rank'))pollNow().then(loop);else loop();},pollGap());})();tickT=setInterval(function(){updateTimers();},1000);}
 function stopPoll(){POLLTOK++;clearTimeout(pollT);clearInterval(pollT);clearInterval(tickT);pollT=tickT=null;}
 document.addEventListener('visibilitychange',function(){if(!document.hidden&&SES&&MODE)pollNow();});
 function kicked(){stopPoll();store.del(K_SES);SES=null;ST=null;rejoinPopup();}
@@ -1506,6 +1536,37 @@ function reqTeacher(q,force){
   else if(r&&r.code==='blocked')popup({icon:'👥',title:'조원이 이미 풀었어요!',body:'먼저 [👥 조원에게 요청]을 눌러 보세요.<br><span class="sub">조원이 도와주면 서로 더 잘 배워요 😊</span>',btns:[{t:'확인'}]});
   else if(r&&r.code==='confirm')popup({icon:'👥',title:'조원이 이미 풀었어요!',body:'먼저 조원에게 요청해 보는 걸 추천해요.<br>그래도 담임 힌트를 받을까요?',btns:[{t:'그래도 받을래요',fn:function(){reqTeacher(q,true);}},{t:'조원에게 요청할게요',ghost:true}]});
   else toast((r&&r.error)||'요청하지 못했어요',2600);}).catch(function(){toast('요청이 안 갔어요. 다시 눌러 주세요',2600);});}
+/* ===== 정답 기록 대기열: 정답은 바로 인정하고, 서버 기록은 뒤에서 될 때까지 알아서 다시 보내요 ===== */
+var SUBQ=null,QRUN=false,QWAIT=0,QTM=null;
+function qLoad(){if(SUBQ===null){var a=store.get(K_SUBQ,[]);SUBQ=Array.isArray(a)?a:[];}return SUBQ;}
+function qSave(){store.set(K_SUBQ,SUBQ||[]);}
+function qMine(){return qLoad().filter(function(it){return SES&&it.team===SES.team&&it.name===SES.name;});}
+function qOverlay(r){try{if(MODE!=='real'||!SES||!r||!r.ok||!r.me)return;qMine().forEach(function(it){if(r.me.done&&it.q>=1)r.me.done[it.q-1]=true;});}catch(e){}}
+function qPush(q){var a=qLoad();if(!a.some(function(it){return it.team===SES.team&&it.name===SES.name&&it.q===q;})){a.push({team:SES.team,name:SES.name,q:q});qSave();}}
+function qFlush(delay){if(QRUN||MODE!=='real')return;QRUN=true;qStep(0,delay||0);}
+function qStep(fails,delay){
+ setTimeout(function(){
+  var it=qMine()[0];
+  if(!it||!SES){QRUN=false;return;}
+  api('result',{team:it.team,name:it.name,q:it.q,correct:1},40000).then(function(r){
+   if(!r){throw new Error('x');}
+   if(r.gone){QRUN=false;return;}
+   var a=qLoad();SUBQ=a.filter(function(x){return !(x.team===it.team&&x.name===it.name&&x.q===it.q);});qSave();
+   if(r.ok)qDone(it.q,r);
+   qStep(0,200);
+  }).catch(function(){var f=fails+1;qStep(f,Math.min(2500*f,15000)*(0.8+Math.random()*0.5));});
+ },delay);
+}
+function qDone(q,r){
+ if(!ST||!ST.me)return;
+ ST.me.done[q-1]=true;ST.me.coins=r.coins;if(ST.me.helping===q)ST.me.helping=0;if(r.key)ST.me.hasKey=true;
+ if(r.boxId&&!(ST.boxes||[]).some(function(b){return b.id===r.boxId;})){ST.boxes=(ST.boxes||[]).concat([{id:r.boxId,key:'',q:q}]);}
+ if(!r.already){toast('🪙 +'+r.gained,1800);if(r.gained>=15)confetti();}
+ if(QWAIT===q){QWAIT=0;clearTimeout(QTM);var msg=$('qmsg');if(msg){msg.className='msg ok';msg.textContent='✅ 클리어!';}paintQ();
+  if(r.boxId)setTimeout(function(){openBox(r.boxId,q);},500);else setTimeout(function(){afterSolve(q);},600);
+ }else if(r.boxId){toast('🎁 보석함이 도착했어요! 위쪽 🎁 버튼을 눌러 열어 보세요',3600);}
+ if(r.key&&!ST.team.escapedAt)pollNow();else repaint();
+}
 function doSubmit(q){
  var Q=QUESTIONS[q-1],msg=$('qmsg'),btn=$('qgo'),val;
  if(phase()!=='running'){msg.className='msg err';msg.textContent=phase()==='ready'?'아직 시작 전이에요!':'시간이 끝났어요 🌊';return;}
@@ -1516,16 +1577,15 @@ function doSubmit(q){
   msg.className='msg err';var c=$('qcard');c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake');
   ST.me.wrong[q-1]++;msg.textContent='땡! 다시 생각해 볼까요? 🤔'+(ST.me.wrong[q-1]>=2?' (아래에서 도움을 요청할 수 있어요)':'');
   api('result',Object.assign({q:q,correct:0},idp())).catch(function(){});paintQ();return;}
- btn.disabled=true;btn.textContent='확인 중…';msg.className='msg';msg.textContent='정답! 기록하는 중…';
- var stop=slowNote(function(t){msg.className='msg slow';msg.textContent=t;});
- api('result',Object.assign({q:q,correct:1},idp()),40000).then(function(r){
-  stop();if(!r||!r.ok)throw new Error((r&&r.error)||'x');
-  ST.me.done[q-1]=true;ST.me.coins=r.coins;if(ST.me.helping===q)ST.me.helping=0;if(r.key)ST.me.hasKey=true;
-  if(!r.already){sfx('coin');toast('정답! 🪙 +'+r.gained,2400);gemBurst(r.gained>=15?22:12);if(r.gained>=15)confetti();}
-  msg.className='msg ok';msg.textContent='✅ 클리어!';paintQ();
-  if(r.boxId)setTimeout(function(){openBox(r.boxId,q);},500);else setTimeout(function(){afterSolve(q);},600);
-  pollNow();
- }).catch(function(e){stop();btn.disabled=false;btn.textContent='제출하기';msg.className='msg err';msg.textContent='아직 기록이 안 됐어요 😢 '+((e&&e.message&&e.message.length<40&&e.message!=='x')?e.message:'구글 시트가 느린가 봐요. 같은 답으로 다시 눌러 주세요.');});}
+ /* 정답이 맞으면 서버를 기다리지 않고 바로 클리어로 인정 → 기록은 대기열이 알아서 보내요 */
+ btn.disabled=true;btn.textContent='클리어!';
+ ST.me.done[q-1]=true;sfx('coin');toast('정답! 🎉',1600);gemBurst(12);
+ msg.className='msg ok';msg.textContent='✅ 클리어! (기록하는 중…)';paintQ();
+ QWAIT=q;clearTimeout(QTM);
+ QTM=setTimeout(function(){if(QWAIT===q){QWAIT=0;afterSolve(q);}},1600);
+ if(MODE==='demo'){api('result',Object.assign({q:q,correct:1},idp())).then(function(r){if(r&&r.ok)qDone(q,r);});}
+ else{qPush(q);qFlush(0);}
+}
 function renderIslandMove(q){
  var nm=ST.me.name,Q=QUESTIONS[q];HOLD[nm]=QPL[q-1];renderIsland();
  try{$('scene').scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
@@ -1946,15 +2006,16 @@ SFX.warn=[[1175,.08,0],[1568,.1,.1],[1175,.08,.26],[1568,.2,.36]];
 SFX.tick=[[1760,.05,0]];
 SFX.key=[[784,.08,0],[988,.08,.09],[1319,.28,.18]];
 var BGM={iv:null,step:0},BGMN=[220,220,262,220,330,220,262,196,220,220,262,220,349,330,262,247],BTK=null,BPH=null,BWARN=false,BKEYT=null;
-function bgmOn(){
- if(BGM.iv||!BSND)return;
+function bgmOn(fast){
+ fast=!!fast;if(!BSND||(BGM.iv&&BGM.fast===fast))return;
+ if(BGM.iv){clearInterval(BGM.iv);BGM.iv=null;}else BGM.step=0;
+ BGM.fast=fast;
  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();}catch(e){return;}
- BGM.step=0;
  BGM.iv=setInterval(function(){
   try{var f=BGMN[BGM.step%16],t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();BGM.step++;
    o.type='square';o.frequency.value=f*2;g.gain.setValueAtTime(.035,t);g.gain.exponentialRampToValueAtTime(.001,t+.16);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+.18);
    if(BGM.step%4===1){var b=AC.createOscillator(),bg=AC.createGain();b.type='triangle';b.frequency.value=f/2;bg.gain.setValueAtTime(.06,t);bg.gain.exponentialRampToValueAtTime(.001,t+.5);b.connect(bg);bg.connect(AC.destination);b.start(t);b.stop(t+.52);}
-  }catch(e){}},190);}
+  }catch(e){}},fast?130:190);}
 function bgmOff(){clearInterval(BGM.iv);BGM.iv=null;}
 function bdTick(){
  if(view!=='board'||!ADM){clearInterval(BTK);bgmOff();return;}
@@ -1962,10 +2023,13 @@ function bdTick(){
  if(BPH!==null&&ph!==BPH){if(ph==='running'&&BPH==='ready')boardSfx('start');else if(ph==='over'&&BPH==='running')boardSfx('over');}
  BPH=ph;
  if(ph==='ready')BWARN=false;
- if(ph==='running'&&rem<=60000){
-  if(!BWARN){BWARN=true;boardSfx('warn');}
-  bgmOn();if(rem<=10000)boardSfx('tick');
- }else{bgmOff();if(ph==='running'&&rem>60000)BWARN=false;}}
+ if(ph==='running'){
+  /* 게임 내내 8비트 배경음, 마지막 1분은 빨라져요 */
+  if(rem<=60000){if(!BWARN){BWARN=true;boardSfx('warn');}bgmOn(true);if(rem<=10000)boardSfx('tick');}
+  else{BWARN=false;bgmOn(false);}
+ }else bgmOff();}
+/* 새로고침 뒤에는 브라우저가 소리를 잠가 둬서, 화면을 한 번 건드리면 다시 켜 줘요 */
+['click','touchstart','keydown'].forEach(function(ev){document.addEventListener(ev,function(){try{if(AC&&AC.state==='suspended')AC.resume();else if(!AC&&(BSND||SND_ON))AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}},{passive:true});});
 function boardSfx(n){if(!BSND)return;var o=SND_ON;SND_ON=true;try{sfx(n);}finally{SND_ON=o;}}
 function bsndLabel(){return BSND?'🔊 효과음 켜짐 (눌러서 끄기)':'🔇 효과음 꺼짐 (눌러서 켜기)';}
 function renderBoard(){
