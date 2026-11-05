@@ -196,6 +196,11 @@ mark{background:#FEF3C7;color:inherit;border-radius:3px;padding:0 1px}
 #statBn{display:none;position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:55;background:#fff;border:1.5px solid var(--main);border-radius:16px;padding:14px;box-shadow:0 6px 24px rgba(40,30,70,.25);max-width:420px;margin:0 auto;font-size:13.5px;line-height:1.6;color:var(--tx2)}
 #statBn.show{display:block}
 #statBn b{color:var(--tx)}
+#rvBn{display:none;position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:54;background:#fff;border:1.5px solid var(--main);border-radius:16px;padding:14px;box-shadow:0 6px 24px rgba(40,30,70,.25);max-width:420px;margin:0 auto;font-size:13.5px;line-height:1.6;color:var(--tx2);font-family:'Pretendard',sans-serif}
+#rvBn.show{display:block}
+#rvBn b{color:var(--tx)}
+#rvBn .rvBnT{font-size:15px;color:var(--main)}
+#rvDone{display:none;margin:0 0 10px;padding:9px 12px;border-radius:10px;background:#F4F2FA;color:var(--tx2);font-size:13px;line-height:1.5}
 .b1{background:var(--main);color:#fff}.b2{background:var(--bg);color:var(--tx2)}
 .err{color:#C0392B;font-size:13px;margin-top:8px;min-height:18px}
 .pop{border-top:8px solid var(--u-dot);text-align:center;padding-top:26px}
@@ -396,6 +401,14 @@ body.board .ti-row .tag{font-size:15px}
   <b>📊 이용 수는 이렇게 세요</b><br>
   앱이 얼마나 쓰이는지 알 수 있게, 이 기기가 하루에 처음 열릴 때 <b>'우리 반 코드 + 1'</b>만 보내요. <b>이름·학번·기기 번호는 보내지 않아요.</b> 나중에 ❓ 사용법에서 다시 볼 수 있어요.
   <div class="btns"><button class="b1" onclick="statSet('ack')">확인했어요</button></div>
+</div>
+
+<!-- 💬 후기 안내 배너 (기기마다 무작위 N번째 접속일에 딱 한 번) -->
+<div id="rvBn" role="dialog" aria-label="후기 남기기 안내">
+  <b class="rvBnT">💜 CLASS BOARD 써 보니 어때요?</b><br>
+  여러분의 의견이 이 앱을 더 좋게 만들어요!<br>
+  후기 남기러 가볼까요? <span style="color:var(--tx3)">(맨 아래 <b>[💬 후기 남기기]</b>에서도 언제든 쓸 수 있어요)</span>
+  <div class="btns"><button class="b2" onclick="rvBnClose(false)">다음에</button><button class="b1" onclick="rvBnClose(true)">후기 남기기</button></div>
 </div>
 
 <!-- 교실 화면 모드 -->
@@ -1025,6 +1038,78 @@ async function sendStuReview(){
 }
 (function(){ if (!REGISTRY_URL){ const b = document.getElementById('stuRvBtn'); if (b) b.style.display = 'none'; } })();
 
+/* ===== 후기 안내 배너 (추가 기능) =====
+   - 업데이트 후 기기마다 1~10 중 무작위 N을 한 번 뽑고, '접속한 날'을 세어(하루에 여러 번 열어도 1일) N번째 접속일에 안내를 딱 한 번 보여 줘요
+   - [후기 남기기]/[다음에] 어느 쪽이든 누르면 이 기기에서는 다시 안 떠요
+   - 교실 화면 모드·미리보기·체험 모드·후기를 안 받는 학급에는 안 떠요. 이름·학번은 전혀 쓰지 않아요
+   - 전부 try/catch로 감싸서, 여기서 문제가 나도 앱의 다른 기능에는 영향이 없어요 */
+const RVP_KEY = 'sn_rvprompt_v1', RVD_KEY = 'sn_rvdone_v1';
+function rvpTick(){
+  try{
+    if (DEMO || PREVIEW || BOARD || !REGISTRY_URL || !GAS) return null;
+    let st = lsGet(RVP_KEY, null);
+    if (!st || typeof st !== 'object' || !(st.n >= 1)) st = { n: 1 + Math.floor(Math.random() * 10), days: 0, last: '', shown: false };
+    if (st.last !== today()){ st.days = (Number(st.days) || 0) + 1; st.last = today(); }
+    lsSet(RVP_KEY, st);
+    return st;
+  }catch(e){ return null; }
+}
+function rvBnClose(go){
+  try{
+    const st = lsGet(RVP_KEY, null) || {}; st.shown = true; lsSet(RVP_KEY, st);
+    const b = document.getElementById('rvBn'); if (b) b.classList.remove('show');
+    if (go) openStuReview();
+  }catch(e){}
+}
+async function rvpInit(){
+  try{
+    const st = rvpTick();
+    if (!st || st.shown || st.days < st.n) return;
+    const cc = classCode(GAS);
+    let on = null;
+    const ck = lsGet('sn_stat_cf_v1', null);
+    if (ck && ck.d === today() && ck.c === cc) on = !!ck.on;
+    else{ try{ const r = await jsonp({ action:'reviewConf', cb:cc }, REGISTRY_URL); on = !!(r && r.on); }catch(e){ return; } }
+    if (!on) return;
+    let tries = 0;
+    const tick = () => {
+      try{
+        const cur = lsGet(RVP_KEY, null); if (!cur || cur.shown) return;
+        if (BOARD || PREVIEW || DEMO) return;
+        const sb = document.getElementById('statBn');
+        if (document.querySelector('.ov.show') || popShowing || !statGet() || (sb && sb.classList.contains('show'))){   // 이용 수 세기 안내를 아직 안 본 기기는 그 안내가 끝난 뒤에 (두 배너가 겹치지 않게)
+          if (tries++ < 60) setTimeout(tick, 2000);   // 계속 다른 창이 떠 있으면 오늘은 포기하고 다음 접속 때 다시 시도해요
+          return;
+        }
+        const b = document.getElementById('rvBn'); if (b) b.classList.add('show');
+      }catch(e){}
+    };
+    setTimeout(tick, 5000);
+  }catch(e){}
+}
+/* 이미 후기를 남긴 학생에게는 후기 창 맨 위에 '또 남길 수 있어요' 안내만 덧붙여요 (기존 함수는 그대로 두고 감싸서 확장) */
+(function(){
+  try{
+    const f = document.getElementById('rvForm');
+    if (f && !document.getElementById('rvDone')){
+      const d = document.createElement('div'); d.id = 'rvDone'; d.textContent = '이미 남겼어요, 또 남길 수 있어요 🙂';
+      f.insertBefore(d, f.firstChild);
+    }
+  }catch(e){}
+  const _open = openStuReview;
+  openStuReview = function(){
+    const r = _open.apply(this, arguments);
+    try{ const d = document.getElementById('rvDone'); if (d) d.style.display = lsGet(RVD_KEY, false) ? 'block' : 'none'; }catch(e){}
+    return r;
+  };
+  const _send = sendStuReview;
+  sendStuReview = async function(){
+    const r = await _send.apply(this, arguments);
+    try{ const n = document.getElementById('rvErr'); if (n && n.textContent.indexOf('고마워요') >= 0) lsSet(RVD_KEY, true); }catch(e){}
+    return r;
+  };
+})();
+
 /* ===== 이용 수 집계: 앱을 연 기기를 '하루에 한 번만', 이름·학번 없이 숫자로만 알려요 =====
    - 화면·속도에는 아무 영향 없이 뒤에서 조용히 보내요 (실패해도 아무 표시 없음, 다음에 다시 시도)
    - 담임 미리보기·교실 화면 모드(전자칠판)는 세지 않아요 */
@@ -1215,6 +1300,7 @@ if (!GAS){
   startPoll();
   schedulePing();
   setTimeout(statInit, 4000 + Math.random() * 16000);   // 공지 불러오기가 먼저, 등록부 확인은 4~20초 뒤에
+  try{ rvpInit(); }catch(e){}   // 후기 안내 배너 (N번째 접속일에 한 번)
   if (!me && !PREVIEW && !BOARD) setTimeout(openWho, 600);
 }
 /* ===== 🏫 학교 알림판 카드 (나이스 연동 — 급식·학사일정) =====
