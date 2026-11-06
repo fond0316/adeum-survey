@@ -5,11 +5,13 @@
  */
 
 /** GAS 코드 버전 — 코드를 고칠 때마다 1씩 올려요. 관리 화면이 이 번호로 업데이트가 필요한지 알려줘요. */
-var GAS_VER = 5;
+var GAS_VER = 7;
 
 var TZ = 'Asia/Seoul';
 var DEFAULT_PW = 'activitycheck';   // 초기 비밀번호 — 첫 로그인 때 변경 강제
 var CATS = ['자율', '진로', '교과', '동아리'];
+var SCATS = ['자율', '진로', '모르겠어요'];   // 학생이 직접 추가하는 활동의 분류 ('모르겠어요'는 담임이 정해 줘요)
+var MAX_SADD = 10;                  // 학생 1명이 추가할 수 있는 활동 수
 var ATYPES = ['독서', '탐구보고서', '실험', '토론', '발표', '프로젝트', '기타'];   // 교과 활동 유형
 var RTYPES = ['해성에듀', '학급자율활동앱', '직접링크', '없음'];
 var MAX_FAIL = 5;                   // 학생 PIN을 이만큼 틀리면 10분 동안 잠깐 막아요
@@ -19,7 +21,7 @@ var C_FRESH = 60;                   // 명단·항목·설정은 60초 동안 �
 var SHEETS = {
   settings: { name: '설정', headers: ['항목', '값'] },
   students: { name: '학생명단', headers: ['학번', '이름', 'PIN', '진로희망', 'PIN설정시각', '동아리'] },
-  items: { name: '항목', headers: ['ID', '분류', '항목명', '작성유의사항', '보고서종류', '기본링크', '담임제공', '순서', '사용', '교사용기재유의', '문구제공', '학기', '보낼곳', '확인필요', '마감일'] },
+  items: { name: '항목', headers: ['ID', '분류', '항목명', '작성유의사항', '보고서종류', '기본링크', '담임제공', '순서', '사용', '교사용기재유의', '문구제공', '학기', '보낼곳', '확인필요', '마감일', '추가한학생'] },
   records: { name: '기록', headers: ['학번', '항목ID', '번호', '참여', '보고서', '링크', '주제', '진로연결', '요약', '수정시각', '교사확인', '교사메모', '활동유형', '학기', '자료'] }
 };
 var DEFAULT_SETTINGS = [['학년도', String(new Date().getFullYear())], ['학급명', '우리 반'], ['관리자비번', DEFAULT_PW]];
@@ -52,12 +54,19 @@ function route_(p) {
     case 'sDelete': return sDelete_(p);
     case 'sCareer': return sCareer_(p);
     case 'sClub': return sClub_(p);
+    case 'sAddItem': return sAddItem_(p);
+    case 'sDelItem': return sDelItem_(p);
+    case 'promoteSItem': return promoteSItem_(p);
+    case 'mergeSItem': return mergeSItem_(p);
+    case 'delSItem': return delSItem_(p);
     case 'login': return login_(p);
     case 'adminLoad': return adminLoad_(p);
     case 'saveItem': return saveItem_(p);
     case 'saveItems': return saveItems_(p);
     case 'saveGuide': return saveGuide_(p);
     case 'deleteItem': return deleteItem_(p);
+    case 'deleteItems': return deleteItems_(p);
+    case 'saveImpLog': return saveImpLog_(p);
     case 'reorderItems': return reorderItems_(p);
     case 'saveStudents': return saveStudents_(p);
     case 'resetPin': return resetPin_(p);
@@ -222,7 +231,13 @@ function itemObjS_(r) {
 }
 function itemsS_(fresh) {
   return cached_('c_items_s', function () {
-    return sortItems_(rows_('items').filter(function (r) { return r[0] && r[8] !== 'N'; }).map(itemObjS_));
+    return sortItems_(rows_('items').filter(function (r) { return r[0] && r[8] !== 'N' && !r[15]; }).map(itemObjS_));
+  }, fresh);
+}
+/** 학생이 직접 추가한 활동 (추가한학생 칸에 학번이 있는 줄) — 담임이 정식 항목으로 올리기 전까지 그 학생에게만 보여요 */
+function ownedS_(fresh) {
+  return cached_('c_items_u', function () {
+    return rows_('items').filter(function (r) { return r[0] && r[15]; }).map(function (r) { return { id: r[0], cat: r[1], title: r[2], by: r[15] }; });
   }, fresh);
 }
 function sortItems_(list) {
@@ -294,7 +309,7 @@ function sLoad_(p) {
   var sid = st.v[0];
   var items = itemsS_();
   var recs = rows_('records').filter(function (r) { return r[0] === sid; }).map(recObj_);
-  return { ok: true, name: st.v[1], career: st.v[3], club: st.v[5] || '', className: getSetting_('학급명'), year: year_(), items: items, records: recs, gasVer: GAS_VER };
+  return { ok: true, name: st.v[1], career: st.v[3], club: st.v[5] || '', className: getSetting_('학급명'), year: year_(), items: items, mine: ownedS_().filter(function (o) { return o.by === sid; }), records: recs, gasVer: GAS_VER };
 }
 function sSave_(p) {
   var st = stuAuth_(p.sid, p.pin), sid = st.v[0];
@@ -302,6 +317,10 @@ function sSave_(p) {
   var iid0 = String(d.itemId);
   var byId = function (x) { return x.id === iid0; };
   var item = itemsS_().filter(byId)[0] || itemsS_(true).filter(byId)[0];
+  if (!item) {   // 내가 직접 추가한 활동이면 그것으로 저장해요
+    var ow = ownedS_().filter(byId)[0] || ownedS_(true).filter(byId)[0];
+    if (ow && ow.by === sid) item = { id: ow.id, cat: ow.cat };
+  }
   if (!item) throw new Error('없어진 항목이에요. 화면을 새로고침해 주세요.');
   if (item.cat === '동아리' && st.v[5] !== item.id) throw new Error('내 동아리로 고른 항목만 기록할 수 있어요.');
   var n = (item.cat === '교과' || item.cat === '동아리') ? Math.max(1, Math.min(9, parseInt(d.n, 10) || 1)) : 1;
@@ -318,6 +337,57 @@ function sSave_(p) {
     writeRow_(sh, idx >= 0 ? idx + 2 : sh.getLastRow() + 1, [sid, item.id, String(n), part, report, link, topic, career, summary, at, '', memo, atype, rterm, ref]);   // 학생이 고치면 교사확인은 풀려요
     return { ok: true, rec: { sid: sid, iid: item.id, n: n, part: part, report: report, link: link, topic: topic, career: career, summary: summary, at: at, tchk: false, tmemo: memo, atype: atype, rterm: rterm, ref: ref } };
   });
+}
+/** 학생이 놓친 활동을 직접 추가 (id가 있으면 분류만 바꿔요) */
+function sAddItem_(p) {
+  var st = stuAuth_(p.sid, p.pin), sid = st.v[0];
+  var d = JSON.parse(p.data || '{}');
+  var cat = String(d.cat || '');
+  if (SCATS.indexOf(cat) < 0) throw new Error('분류는 자율·진로·모르겠어요 중에서 골라 주세요.');
+  var id = String(d.id || '');
+  return lock_(function () {
+    var sh = sh_('items'), data = rows_('items'), idx = -1;
+    if (id) {
+      for (var i = 0; i < data.length; i++) if (data[i][0] === id) { idx = i; break; }
+      if (idx < 0 || data[idx][15] !== sid) throw new Error('내가 추가한 활동만 고칠 수 있어요.');
+      sh.getRange(idx + 2, 2).setNumberFormat('@').setValue(cat);
+      cdel_('c_items_u');
+      return { ok: true, item: { id: id, cat: cat, title: data[idx][2], by: sid } };
+    }
+    var title = cut_(d.title, 60);
+    if (!title) throw new Error('활동 이름을 적어 주세요.');
+    var key = normName_(title).toLowerCase(), cnt = 0;
+    data.forEach(function (r) {
+      if (!r[0]) return;
+      if (r[15] === sid) { cnt++; if (normName_(r[2]).toLowerCase() === key) throw new Error('이미 내가 추가한 활동이에요.'); }
+      else if (!r[15] && r[8] !== 'N' && r[1] !== '동아리' && normName_(r[2]).toLowerCase() === key) throw new Error('이미 목록에 있는 활동이에요. 자율·진로 목록에서 찾아보세요.');
+    });
+    if (cnt >= MAX_SADD) throw new Error('직접 추가는 ' + MAX_SADD + '개까지 할 수 있어요. 선생님께 말씀해 주세요.');
+    var nid = 'U' + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36);
+    writeRow_(sh, sh.getLastRow() + 1, [nid, cat, title, '', '직접링크', '', '', '0', '', '', '', '', '', '', '', sid]);
+    cdel_('c_items_u');
+    return { ok: true, item: { id: nid, cat: cat, title: title, by: sid } };
+  });
+}
+/** 내가 추가한 활동 지우기 (적어 둔 기록도 함께 지워져요) */
+function sDelItem_(p) {
+  var st = stuAuth_(p.sid, p.pin), sid = st.v[0], id = String(p.id || '');
+  return lock_(function () {
+    var sh = sh_('items'), data = rows_('items'), found = false;
+    for (var i = 0; i < data.length; i++) if (data[i][0] === id && data[i][15] === sid) { sh.deleteRow(i + 2); found = true; break; }
+    if (!found) throw new Error('내가 추가한 활동만 지울 수 있어요.');
+    delRecsOf_(id);
+    cdel_('c_items_u');
+    return { ok: true };
+  });
+}
+/** 어떤 항목의 학생 기록을 모두 지워요 (위에서부터 지우면 줄 번호가 밀려서 아래부터) */
+function delRecsOf_(iid) {
+  var sh = sh_('records'), last = sh.getLastRow();
+  if (last < 2) return 0;
+  var d = sh.getRange(2, 2, last - 1, 1).getValues(), n = 0;
+  for (var i = d.length - 1; i >= 0; i--) if (str_(d[i][0]) === iid) { sh.deleteRow(i + 2); n++; }
+  return n;
 }
 function sDelete_(p) {
   var st = stuAuth_(p.sid, p.pin), sid = st.v[0], iid = String(p.iid || ''), n = parseInt(p.n, 10) || 1;
@@ -352,11 +422,31 @@ function sCareer_(p) {
 /* ---------- 담임용 ---------- */
 function adminLoad_(p) {
   need_(p);
-  var items = sortItems_(rows_('items').filter(function (r) { return r[0]; }).map(itemObj_));
+  var allIt = rows_('items').filter(function (r) { return r[0]; });
+  var items = sortItems_(allIt.filter(function (r) { return !r[15]; }).map(itemObj_));
+  var nm = {}; rows_('students').forEach(function (r) { nm[r[0]] = r[1]; });
+  var sItems = allIt.filter(function (r) { return r[15]; }).map(function (r) { return { id: r[0], cat: r[1], title: r[2], by: r[15], byName: nm[r[15]] || '' }; });
   var students = rows_('students').filter(function (r) { return r[0]; }).map(function (r) { return { sid: r[0], name: r[1], hasPin: !!r[2], career: r[3], club: r[5] || '' }; });
   var records = rows_('records').filter(function (r) { return r[0]; }).map(recObj_);
-  return { ok: true, role: 'admin', gasVer: GAS_VER, className: getSetting_('학급명'), year: year_(), grade: getSetting_('학년'), guide: guide_(),
-    items: items, students: students, records: records, installId: installId_() };
+  return { ok: true, role: 'admin', gasVer: GAS_VER, className: getSetting_('학급명'), year: year_(), grade: getSetting_('학년'), guide: guide_(), impLog: impLog_(),
+    items: items, sItems: sItems, students: students, records: records, installId: installId_() };
+}
+/** 불러온 파일 기록 (엑셀·붙여넣기로 등록한 묶음) — 설정 탭에 JSON으로 보관 */
+function impLog_() {
+  try { var a = JSON.parse(getSetting_('불러온파일') || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; }
+}
+function saveImpLog_(p) {
+  need_(p);
+  var a = JSON.parse(p.data || '[]');
+  if (!Array.isArray(a)) throw new Error('기록 형식이 올바르지 않아요.');
+  var KINDS = ['items', 'club', 'tt', 'paste'];
+  var out = a.slice(-20).map(function (x) {
+    return { id: cut_(x.id, 20), name: cut_(x.name, 80), kind: KINDS.indexOf(x.kind) >= 0 ? x.kind : 'items', count: Number(x.count) || 0, at: cut_(x.at, 20),
+      ids: (Array.isArray(x.ids) ? x.ids : []).slice(0, 80).map(function (i) { return cut_(i, 30); }) };
+  });
+  var s = JSON.stringify(out);
+  while (s.length > 40000 && out.length > 1) { out.shift(); s = JSON.stringify(out); }
+  return lock_(function () { setSetting_('불러온파일', s); return { ok: true }; });
 }
 var GUIDE_KEYS = ['공통', '자율', '진로', '행발'];
 function guide_() {
@@ -413,24 +503,45 @@ function saveItems_(p) {
   return lock_(function () {
     var sh = sh_('items');
     if (d.mode === 'replace') {
-      var last = sh.getLastRow();
-      if (last >= 2) sh.deleteRows(2, last - 1);
+      var allr = rows_('items');   // 학생이 직접 추가한 활동(추가한학생 칸이 있는 줄)은 남겨 둬요
+      for (var q0 = allr.length - 1; q0 >= 0; q0--) if (!allr[q0][15]) sh.deleteRow(q0 + 2);
     } else if (d.mode === 'replaceCat') {   // 한 분류(예: 동아리)의 항목만 지우고 새로 넣기
       var cc = String(d.cat || '');
       if (CATS.indexOf(cc) < 0) throw new Error('분류가 올바르지 않아요.');
       var all = rows_('items');
-      for (var q = all.length - 1; q >= 0; q--) if (all[q][1] === cc) sh.deleteRow(q + 2);
+      for (var q = all.length - 1; q >= 0; q--) if (all[q][1] === cc && !all[q][15]) sh.deleteRow(q + 2);
     }
-    var data = rows_('items'), order = maxOrder_(data), rows = [];
+    var data = rows_('items'), order = maxOrder_(data), rows = [], ids = [];
     cleaned.forEach(function (c, i) {
-      rows.push(['I' + Date.now().toString(36) + i + Math.floor(Math.random() * 1296).toString(36), c.cat, c.title, c.note, c.rtype, c.url, c.prov, String(++order), c.on, c.tnote, c.give, c.term, c.dest, c.chk, c.due]);
+      var want = String((list[i] && list[i].id) || ''), idx = -1;
+      if (want) for (var k = 0; k < data.length; k++) if (data[k][0] === want) { idx = k; break; }
+      if (idx >= 0) {   // 이미 있는 항목은 새 내용으로 고쳐요 (ID·순서·보임 여부 그대로 → 학생 기록이 이어져요)
+        writeRow_(sh, idx + 2, [want, c.cat, c.title, c.note, c.rtype, c.url, c.prov, String(Number(data[idx][7]) || 0), data[idx][8] === 'N' ? 'N' : '', c.tnote, c.give, c.term, c.dest, c.chk, c.due]);
+        ids.push(want); return;
+      }
+      var nid = 'I' + Date.now().toString(36) + i + Math.floor(Math.random() * 1296).toString(36);
+      ids.push(nid);
+      rows.push([nid, c.cat, c.title, c.note, c.rtype, c.url, c.prov, String(++order), c.on, c.tnote, c.give, c.term, c.dest, c.chk, c.due]);
     });
     if (rows.length) {
       ensureRows_(sh, sh.getLastRow() + rows.length);
       sh.getRange(sh.getLastRow() + 1, 1, rows.length, 15).setNumberFormat('@').setValues(rows);
     }
     cdel_('c_items_s');
-    return { ok: true, count: rows.length };
+    return { ok: true, count: ids.length, ids: ids };
+  });
+}
+/** 항목 여러 개를 한 번에 지우기 (불러온 파일 삭제용) */
+function deleteItems_(p) {
+  need_(p);
+  var ids = JSON.parse(p.ids || '[]');
+  if (!Array.isArray(ids) || ids.length > 200) throw new Error('한 번에 200개까지만 지울 수 있어요.');
+  var set = {}; ids.forEach(function (x) { set[String(x)] = 1; });
+  return lock_(function () {
+    var sh = sh_('items'), data = rows_('items'), n = 0;
+    for (var i = data.length - 1; i >= 0; i--) if (set[data[i][0]]) { sh.deleteRow(i + 2); n++; }
+    cdel_('c_items_s');
+    return { ok: true, count: n };
   });
 }
 function deleteItem_(p) {
@@ -440,6 +551,65 @@ function deleteItem_(p) {
     var data = rows_('items');
     for (var i = 0; i < data.length; i++) if (data[i][0] === id) { sh_('items').deleteRow(i + 2); cdel_('c_items_s'); return { ok: true }; }
     throw new Error('삭제할 항목을 찾지 못했어요.');
+  });
+}
+/** 학생이 추가한 활동을 정식 항목으로 올리기 — ID가 그대로라 학생이 적어 둔 기록이 이어져요 */
+function promoteSItem_(p) {
+  need_(p);
+  var id = String(p.id || ''), cat = String(p.cat || '');
+  if (cat !== '자율' && cat !== '진로' && cat !== '교과') throw new Error('분류는 자율·진로·교과 중에서 골라 주세요.');
+  return lock_(function () {
+    var sh = sh_('items'), data = rows_('items'), idx = -1;
+    for (var i = 0; i < data.length; i++) if (data[i][0] === id && data[i][15]) { idx = i; break; }
+    if (idx < 0) throw new Error('학생이 추가한 활동을 찾지 못했어요. 화면을 새로고침해 주세요.');
+    var title = cut_(p.title, 60) || data[idx][2];
+    writeRow_(sh, idx + 2, [id, cat, title, '', '없음', '', '', String(maxOrder_(data) + 1), '', '', '', '', '', '', '', '']);
+    cdel_('c_items_s'); cdel_('c_items_u');
+    return { ok: true, id: id };
+  });
+}
+/** 학생이 추가한 활동의 기록을 같은 이름의 정식 항목으로 옮기고 학생 항목은 지우기 */
+function mergeSItem_(p) {
+  need_(p);
+  var id = String(p.id || ''), target = String(p.target || '');
+  return lock_(function () {
+    var ish = sh_('items'), items = rows_('items'), si = -1, tg = null;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i][0] === id && items[i][15]) si = i;
+      if (items[i][0] === target && !items[i][15]) tg = items[i];
+    }
+    if (si < 0) throw new Error('학생이 추가한 활동을 찾지 못했어요. 화면을 새로고침해 주세요.');
+    if (!tg) throw new Error('합칠 정식 항목을 찾지 못했어요.');
+    if (tg[1] === '동아리') throw new Error('동아리 항목에는 합칠 수 없어요.');
+    var rsh = sh_('records'), recs = rows_('records'), moved = 0, skipped = 0, multi = tg[1] === '교과';
+    for (var k = 0; k < recs.length; k++) {
+      if (recs[k][1] !== id) continue;
+      var sid = recs[k][0], n = 1;
+      if (multi) {
+        var used = {}; recs.forEach(function (r) { if (r[0] === sid && r[1] === target) used[Number(r[2]) || 1] = 1; });
+        n = 0; for (var q = 1; q <= 9; q++) if (!used[q]) { n = q; break; }
+      } else if (findRec_(recs, sid, target, 1) >= 0) n = 0;
+      if (!n) { skipped++; continue; }
+      rsh.getRange(k + 2, 2, 1, 2).setNumberFormat('@').setValues([[target, String(n)]]);
+      recs[k][1] = target; recs[k][2] = String(n); moved++;
+    }
+    var left = recs.filter(function (r) { return r[1] === id; }).length;
+    if (!left) ish.deleteRow(si + 2);   // 못 옮긴 기록이 남아 있으면 학생 항목을 남겨 둬요 (기록이 사라지지 않게)
+    cdel_('c_items_u');
+    return { ok: true, moved: moved, skipped: skipped, removed: !left };
+  });
+}
+/** 학생이 추가한 활동 지우기 (그 학생의 기록도 함께) */
+function delSItem_(p) {
+  need_(p);
+  var id = String(p.id || '');
+  return lock_(function () {
+    var sh = sh_('items'), data = rows_('items');
+    for (var i = 0; i < data.length; i++) if (data[i][0] === id && data[i][15]) {
+      sh.deleteRow(i + 2); var n = delRecsOf_(id); cdel_('c_items_u');
+      return { ok: true, records: n };
+    }
+    throw new Error('학생이 추가한 활동을 찾지 못했어요.');
   });
 }
 function reorderItems_(p) {
@@ -527,6 +697,9 @@ function yearReset_(p) {
     }
     var ssh = sh_('students'), sl = ssh.getLastRow();
     if (sl >= 2) ssh.getRange(2, 6, sl - 1, 1).clearContent();   // 새 학년도엔 동아리를 다시 고르게 해요
+    var ish = sh_('items'), idata = rows_('items');   // 학생이 직접 추가했던 활동도 정리해요 (기록과 함께 백업 탭·백업 파일에 남아 있어요)
+    for (var qi = idata.length - 1; qi >= 0; qi--) if (idata[qi][15]) ish.deleteRow(qi + 2);
+    cdel_('c_items_u'); cdel_('c_items_s');
     cdel_('c_stu');
     return { ok: true, count: Math.max(0, last - 1), backup: bk };
   });

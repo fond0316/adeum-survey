@@ -47,7 +47,10 @@ label.l{display:block;font-size:13px;font-weight:700;color:var(--tx2);margin:12p
 .cat[data-c="진로"]{background:var(--c2);color:var(--c2t)}
 .cat[data-c="교과"]{background:var(--c3);color:var(--c3t)}
 .cat[data-c="동아리"]{background:var(--c4);color:var(--c4t)}
+.cat[data-c="내활동"]{background:#FBE3EE;color:#8A2F5C}
 .cats.c4{grid-template-columns:repeat(4,1fr);gap:8px}.cats.c4 .cat{padding:10px 4px}
+.cats.c5{grid-template-columns:repeat(5,1fr);gap:6px}.cats.c5 .cat{padding:10px 2px}.cats.c5 .cat b{font-size:13px}.cats.c5 .cat small{font-size:11.5px}
+.myadd{grid-column:1/-1;background:#FFF5FA;border:1.5px solid #F2CBE0;border-radius:14px;padding:14px}.myadd input[type=text]{width:100%;min-height:46px;border:1.5px solid var(--line);border-radius:12px;padding:0 12px;font-size:16px;margin-top:8px}.myadd .why{font-size:12.5px;color:var(--tx3);line-height:1.6;margin-top:6px}.mycat{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}.mycat small{font-weight:700;color:var(--tx2)}.unk{font-size:12.5px;color:#8A2F5C;margin-top:6px;line-height:1.5}
 .clubbox{grid-column:1/-1;background:#F3F9FE;border:1.5px solid #CFE3F3;border-radius:14px;padding:14px}.clubbox select{width:100%;min-height:46px;border:1.5px solid var(--line);border-radius:12px;padding:0 10px;background:#fff;font-size:15px;margin-top:8px}
 .clubnow{grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;font-weight:700;color:var(--c4t)}
 .cat.on{border-color:currentColor;box-shadow:0 3px 10px rgba(80,60,130,.18)}
@@ -247,7 +250,8 @@ body.demo #demoBar{display:flex}body.demo #btnOut,body.demo #btnRe{display:none}
 const P = 'Cheon-R-activity-check';
 const K = { gas: 'ac_gas_v1', me: 'ac_me_v1', dv: 'ac_dv_v1', ping: 'ac_ping_v1', visit: 'ac_visit_v1', rvd: 'ac_review_v1' };
 const REGISTRY_URL = 'https://script.google.com/macros/s/AKfycbzrgeAlZhEGyvp7vo_j0hgesVoIoI6T_GMayKJCfvOFaV5Sb3wO1xvackSeQLc3HQxsnQ/exec';
-const CAT = { '자율': { e: '🌱', cc: '#B7ABE3' }, '진로': { e: '💡', cc: '#8FD0B1' }, '교과': { e: '📚', cc: '#F2B98B' }, '동아리': { e: '🎭', cc: '#8DBDE0' } };
+const CAT = { '자율': { e: '🌱', cc: '#B7ABE3' }, '진로': { e: '💡', cc: '#8FD0B1' }, '교과': { e: '📚', cc: '#F2B98B' }, '동아리': { e: '🎭', cc: '#8DBDE0' }, '내활동': { e: '🙋', cc: '#E6A9C4' } };
+const MYCATS = ['자율', '진로', '모르겠어요'];   // 내가 직접 추가한 활동의 분류
 let CATS = ['자율', '진로'];   // 교과·동아리 항목이 있을 때만 해당 탭이 나와요
 const ATYPES = ['독서', '탐구보고서', '실험', '토론', '발표', '프로젝트', '기타'];
 const RLABEL = { '해성에듀': '해성에듀', '학급자율활동앱': '학급자율활동 앱', '직접링크': '관련 링크', '없음': '' };
@@ -315,17 +319,23 @@ function demoApi(p){
   return new Promise((resolve, reject) => setTimeout(() => {
     demoSeed(); const a = p.action;
     if (a === 'ping') return resolve({ ok:true, className:'1학년 3반 (체험)', year:2026 });
-    if (a === 'sLoad') return resolve({ ok:true, name:'김하나', career:demoSt.career, className:'1학년 3반 (체험)', year:2026, club:demoSt.club, items:DEMO_ITEMS, records:demoSt.recs.map(x => ({ ...x })) });
+    if (a === 'sLoad') return resolve({ ok:true, name:'김하나', career:demoSt.career, className:'1학년 3반 (체험)', year:2026, club:demoSt.club, items:DEMO_ITEMS, mine:(demoSt.mine || []).map(x => ({ ...x })), records:demoSt.recs.map(x => ({ ...x })) });
     if (a === 'sCareer'){ demoSt.career = String(p.career || '').substring(0,80); return resolve({ ok:true, career:demoSt.career }); }
     if (a === 'sClub'){ demoSt.club = String(p.club || ''); return resolve({ ok:true, club:demoSt.club }); }
     if (a === 'sSave'){
-      const d = JSON.parse(p.data || '{}'), it = DEMO_ITEMS.find(x => x.id === d.itemId); if (!it) return reject(new Error('없어진 항목이에요.'));
+      const d = JSON.parse(p.data || '{}'), it = DEMO_ITEMS.find(x => x.id === d.itemId) || (demoSt.mine || []).find(x => x.id === d.itemId); if (!it) return reject(new Error('없어진 항목이에요.'));
       const n = (it.cat === '교과' || it.cat === '동아리') ? Math.max(1, Math.min(9, parseInt(d.n, 10) || 1)) : 1;
       const old = demoSt.recs.find(x => x.iid === it.id && x.n === n);
       const rec = { sid:'10101', iid:it.id, n, part:d.part || '', report:d.report || '', link:d.link || '', topic:String(d.topic || '').substring(0,60), career:String(d.career || '').substring(0,80), summary:String(d.summary || '').substring(0,500), atype:d.atype || '', rterm:d.rterm || '', ref:String(d.ref || '').substring(0,200), at:'', tchk:false, tmemo:old ? old.tmemo : '' };
       if (old) Object.assign(old, rec); else demoSt.recs.push(rec);
       return resolve({ ok:true, rec:{ ...rec } });
     }
+    if (a === 'sAddItem'){
+      demoSt.mine = demoSt.mine || []; const d = JSON.parse(p.data || '{}');
+      if (d.id){ const o = demoSt.mine.find(x => x.id === d.id); if (!o) return reject(new Error('내가 추가한 활동만 고칠 수 있어요.')); o.cat = d.cat; return resolve({ ok:true, item:{ ...o } }); }
+      const o = { id:'u' + Date.now(), cat:d.cat, title:String(d.title || '').substring(0,60), by:'10101' }; demoSt.mine.push(o); return resolve({ ok:true, item:{ ...o } });
+    }
+    if (a === 'sDelItem'){ demoSt.mine = (demoSt.mine || []).filter(x => x.id !== String(p.id)); demoSt.recs = demoSt.recs.filter(x => x.iid !== String(p.id)); return resolve({ ok:true }); }
     if (a === 'sDelete'){ demoSt.recs = demoSt.recs.filter(x => !(x.iid === String(p.iid) && x.n === (parseInt(p.n, 10) || 1))); return resolve({ ok:true }); }
     return reject(new Error('체험에서는 쓸 수 없는 기능이에요.'));
   }, 120));
@@ -344,7 +354,7 @@ let items = [], recs = {}, career = '', club = '', clubEdit = false, cat = '자�
 const D = {};                         // 쓰는 중인 초안  key: iid|n
 const extra = {};                     // 교과 항목에 새로 추가한 칸 번호들 iid -> [n..]
 const key = (iid, n) => iid + '|' + n;
-let onlyLeft = false; const SV = {};   // onlyLeft: 남은 것만 보기 / SV: 저장 실패 메시지
+let onlyLeft = false; const SV = {}; const LB = { '내활동': '내가 추가' }; const myNew = { title: '', cat: '' };   // onlyLeft: 남은 것만 보기 / SV: 저장 실패 메시지
 const dueInfo = it => { const m = String((it && it.due) || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!m) return null; const t = new Date(); t.setHours(0, 0, 0, 0); return { diff:Math.round((new Date(+m[1], +m[2] - 1, +m[3]) - t) / 86400000), txt:+m[2] + '/' + +m[3] }; };
 const snap = o => ['part', 'report', 'link', 'topic', 'career', 'summary', 'atype', 'rterm', 'ref'].map(f => String((o && o[f]) || '').trim()).join('\u0001');
 const isDirty = k => !!D[k] && snap(D[k]) !== snap(recs[k]);
@@ -426,7 +436,9 @@ async function loadAll(silent){
   const r = await jsonp({ action: 'sLoad', sid: me.sid, pin: me.pin, name: me.name });
   if (r.needPin) { show('login'); throw new Error('PIN이 초기화되어 있어요. 새로 만들어 주세요.'); }
   items = r.items || []; career = r.career || ''; club = r.club || '';
-  CATS = ['자율', '진로'].concat(items.some(i => i.cat === '교과') ? ['교과'] : [], items.some(i => i.cat === '동아리') ? ['동아리'] : []); if (!CATS.includes(cat)) cat = CATS[0];
+  CATS = ['자율', '진로'].concat(items.some(i => i.cat === '교과') ? ['교과'] : [], items.some(i => i.cat === '동아리') ? ['동아리'] : []);
+  items = items.concat((r.mine || []).map(myMap));
+  CATS.push('내활동'); if (!CATS.includes(cat)) cat = CATS[0];
   recs = {}; (r.records || []).forEach(x => { recs[key(x.iid, x.n)] = x; });
   $('sub').textContent = (r.className || '') + (r.year ? ' · ' + r.year + '학년도' : '');
   $('hello').textContent = `${r.name} 학생의 활동 점검`;
@@ -451,7 +463,7 @@ function sumRender(){
           + (r.summary ? `<div class="s">${esc(r.summary)}</div>` : '') + (r.link ? (okLink(r.link) ? `<div class="s"><a href="${esc(r.link)}" target="_blank" rel="noopener noreferrer">🔗 링크</a></div>` : `<div class="s">📍 경로: ${esc(r.link)}</div>`) : '') + '</div>';
       });
     });
-    if (part) h += `<div class="sm-h">${CAT[c].e} ${c}</div>` + part;
+    if (part) h += `<div class="sm-h">${CAT[c].e} ${LB[c] || c}</div>` + part;
   });
   $('sumHd').textContent = rs.length ? `지금까지 저장한 활동 ${rs.length}개가 쌓여 있어요. 활동이 늘어도 이전 기록은 그대로 남아요.` : '아직 저장한 활동이 없어요. 활동을 점검하고 💾 저장하면 여기에 쌓여요.';
   $('sumBody').innerHTML = h || '';
@@ -463,9 +475,9 @@ function render(){
   let tot = 0, chk = 0, sum = 0;
   $('cats').innerHTML = CATS.map(c => {
     const list = items.filter(i => i.cat === c && mine(i)), n = list.length, d = list.filter(i => statusOf(i) !== 'none').length, sm = list.filter(i => statusOf(i) === 'sum').length;
-    return `<button class="cat ${c === cat ? 'on' : ''}" data-c="${c}" data-act="cat"><span class="e">${CAT[c].e}</span><b>${c}</b><small>${c === '동아리' && !club ? '고르기' : d + ' / ' + n + (sm ? ' · ✍️' + sm : '')}</small></button>`;
+    return `<button class="cat ${c === cat ? 'on' : ''}" data-c="${c}" data-act="cat"><span class="e">${CAT[c].e}</span><b>${LB[c] || c}</b><small>${c === '동아리' && !club ? '고르기' : c === '내활동' && !n ? '＋ 추가' : d + ' / ' + n + (sm ? ' · ✍️' + sm : '')}</small></button>`;
   }).join('');
-  $('cats').classList.toggle('c4', CATS.length > 3);
+  $('cats').classList.toggle('c4', CATS.length > 3); $('cats').classList.toggle('c5', CATS.length > 4);
   items.filter(mine).forEach(i => { tot++; const s = statusOf(i); if (s !== 'none') chk++; if (s === 'sum') sum++; });
   $('pgTxt').textContent = `${chk} / ${tot}`;
   $('pgSub').innerHTML = (sum ? `✍️ 요약을 안 쓴 활동 ${sum}개 ` : (tot && chk === tot ? '🎉 모두 점검했어요!' : '')) + (tot && (chk < tot || sum) ? '<button class="lf" data-act="next">다음 할 일 →</button>' : '');
@@ -473,12 +485,23 @@ function render(){
   // 목록
   const all = items.filter(i => i.cat === cat && mine(i));
   const list = onlyLeft ? all.filter(i => statusOf(i) === 'none' || statusOf(i) === 'sum' || i.id === openId) : all;
-  $('secIcon').textContent = CAT[cat].e; $('secTitle').textContent = cat;
+  $('secIcon').textContent = CAT[cat].e; $('secTitle').textContent = LB[cat] || cat;
   $('secCnt').innerHTML = all.length ? `${onlyLeft ? list.length + ' / ' : ''}${all.length}개 활동<button class="lf ${onlyLeft ? 'on' : ''}" data-act="left">${onlyLeft ? '✓ 남은 것만' : '남은 것만 보기'}</button>` : '';
   $('grid').style.setProperty('--cc', CAT[cat].cc);
   if (cat === '동아리'){ $('grid').innerHTML = clubHtml() + list.map(itemHtml).join(''); return; }
+  if (cat === '내활동'){ $('grid').innerHTML = myAddHtml(all.length) + list.map(itemHtml).join(''); return; }
   $('grid').innerHTML = list.length ? list.map(itemHtml).join('') :
     (all.length ? `<div class="empty" style="grid-column:1/-1">이 분류는 모두 점검했어요 🎉</div>` : `<div class="empty" style="grid-column:1/-1">아직 등록된 활동이 없어요.<br>담임선생님이 활동을 등록하면 여기에 나타나요 😊</div>`);
+}
+function myAddHtml(cnt){
+  const full = cnt >= 10;
+  if (full) return '<div class="myadd"><b>🙋 내가 추가한 활동</b><div class="why">직접 추가는 10개까지 할 수 있어요. 더 필요하면 선생님께 말씀해 주세요.</div></div>';
+  return `<div class="myadd"><b>🙋 목록에 없는 활동이 있나요?</b>
+    <div class="why">자율·진로 목록에서 찾지 못한 활동이 있으면 직접 추가해 보세요. 아래에서 다른 활동처럼 똑같이 적을 수 있고, 선생님이 확인한 뒤 정식 활동으로 올려 줘요.</div>
+    <input type="text" id="myT" maxlength="60" placeholder="활동 이름 (예: 학급 환경 캠페인)" value="${esc(myNew.title)}">
+    <div class="mycat"><small>분류</small>${MYCATS.map(c => `<button class="chip ${myNew.cat === c ? 'on' : ''}" data-act="myCatNew" data-v="${c}">${c === '모르겠어요' ? '❓ ' : c === '자율' ? '🌱 ' : '💡 '}${c}</button>`).join('')}</div>
+    ${myNew.cat === '모르겠어요' ? '<div class="unk">괜찮아요! 선생님이 확인해서 알맞은 분류로 정해 줄 거예요.</div>' : ''}
+    <div class="acts" style="margin-top:10px"><button class="btn" data-act="myAdd">➕ 활동 추가</button></div></div>`;
 }
 function clubHtml(){
   const all = items.filter(i => i.cat === '동아리'), cur = all.find(i => i.id === club);
@@ -492,7 +515,7 @@ function itemHtml(it){
   const cnt = multi(it) ? recsOf(it.id).length : 0;
   return `<div class="it ${open ? 'open' : ''}" style="--cc:${CAT[it.cat].cc}" id="it-${esc(it.id)}">
     <button class="hd" data-act="toggle" data-id="${esc(it.id)}">
-      <div class="t"><b>${esc(it.title)}</b>${it.term ? ` <span class="tg">${esc(it.term)}</span>` : ''}${it.give ? ` <span class="tg g">문구는 선생님이 제공</span>` : ''} ${dueTag(it)}${it.note ? `<small>${esc(it.note)}</small>` : ''}</div>
+      <div class="t"><b>${esc(it.title)}</b>${it.mc ? ` <span class="tg">${it.mc === '모르겠어요' ? '❓ 분류 모르겠어요' : esc(it.mc)}</span>` : ''}${it.term ? ` <span class="tg">${esc(it.term)}</span>` : ''}${it.give ? ` <span class="tg g">문구는 선생님이 제공</span>` : ''} ${dueTag(it)}${it.note ? `<small>${esc(it.note)}</small>` : ''}</div>
       <span class="badge ${b[1]}">${b[0]}${cnt > 1 ? ' ' + cnt : ''}${recsOf(it.id).some(r => r.tchk) ? ' ✅' : ''}${recsOf(it.id).some(r => r.tmemo) ? ' 💬' : ''}</span>
     </button>
     ${open ? bodyHtml(it) : ''}
@@ -508,10 +531,12 @@ function entNums(it){
 function bodyHtml(it){
   const nums = entNums(it);
   let h = '<div class="body">';
+  if (it.cat === '내활동') h += `<div class="mycat"><small>분류</small>${MYCATS.map(c => `<button class="chip ${it.mc === c ? 'on' : ''}" data-act="myCatChg" data-id="${esc(it.id)}" data-v="${c}">${c}</button>`).join('')}</div>${it.mc === '모르겠어요' ? '<div class="unk">선생님이 확인해서 알맞은 분류로 정해 줄 거예요.</div>' : ''}`;
   if (it.cat === '동아리') h += `<div class="hint" style="margin-top:10px">📌 동아리에서 한 활동을 하나씩 나눠 적어요. 활동이 여러 개면 아래 <b>➕ 활동 추가</b>를 눌러요.</div>`;
   if (it.cat === '교과') h += `<div class="hint" style="margin-top:10px">📌 수행평가·탐구·실험 주제를 내 진로와 연결해 적어 보세요.${career ? ` (내 진로: <b>${esc(career)}</b>)` : ' 위쪽에 진로 희망을 적어 두면 편해요.'}</div>`;
   nums.forEach((n, idx) => { h += entHtml(it, n, nums.length > 1 ? idx + 1 : 0); });
   if (multi(it) && nums.length < 9) h += `<button class="add" data-act="addEnt" data-id="${esc(it.id)}">➕ 활동 추가</button>`;
+  if (it.cat === '내활동') h += `<div class="acts" style="margin-top:12px"><button class="btn del" data-act="myDel" data-id="${esc(it.id)}">🗑️ 이 활동 통째로 지우기</button></div>`;
   return h + '</div>';
 }
 function getDraft(iid, n){
@@ -563,6 +588,10 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   const act = b.dataset.act, k = b.dataset.k; let iid, n;
   if (k) { [iid, n] = k.split('|'); n = Number(n); }
+  if (act === 'myCatNew'){ myNew.cat = myNew.cat === b.dataset.v ? '' : b.dataset.v; const t = $('myT'); if (t) myNew.title = t.value; render(); return; }
+  if (act === 'myAdd'){ myAdd(b); return; }
+  if (act === 'myCatChg'){ myCatChg(b.dataset.id, b.dataset.v); return; }
+  if (act === 'myDel'){ myDel(b.dataset.id, b); return; }
   if (act === 'left'){ onlyLeft = !onlyLeft; render(); return; }
   if (act === 'next'){
     for (const st of ['none', 'sum']) for (const c of CATS) { const it = items.find(i => i.cat === c && mine(i) && statusOf(i) === st); if (it){ cat = c; openId = it.id; clubEdit = false; render(); const el = document.getElementById('it-' + it.id); el && el.scrollIntoView({ block:'center', behavior:'smooth' }); return; } }
@@ -610,6 +639,34 @@ $('btnCareer').onclick = async () => {
   $('btnCareer').disabled = false;
 };
 
+const myMap = x => ({ id: x.id, cat: '내활동', mc: x.cat, title: x.title, note: '', rtype: '직접링크', url: '', prov: false, order: 0, on: true, give: false, term: '', due: '' });
+document.addEventListener('input', e => { if (e.target && e.target.id === 'myT') myNew.title = e.target.value; });
+async function myAdd(btn){
+  const title = (($('myT') || {}).value || '').trim();
+  if (!title){ toast('활동 이름을 적어 주세요.'); return; }
+  if (!myNew.cat){ toast('분류를 골라 주세요. 모르겠으면 ❓모르겠어요를 눌러요.'); return; }
+  btn.disabled = true;
+  try {
+    const r = await jsonp({ action: 'sAddItem', sid: me.sid, pin: me.pin, data: JSON.stringify({ title, cat: myNew.cat }) });
+    items.push(myMap(r.item)); myNew.title = ''; myNew.cat = ''; openId = r.item.id; toast('추가했어요 🙋 아래에서 내용을 적고 💾 저장해 주세요'); render();
+    const el = document.getElementById('it-' + r.item.id); el && el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  } catch (e) { toast(e.message); btn.disabled = false; }
+}
+async function myCatChg(id, cat){
+  const it = items.find(x => x.id === id); if (!it || it.mc === cat) return;
+  try { await jsonp({ action: 'sAddItem', sid: me.sid, pin: me.pin, data: JSON.stringify({ id, cat }) }); it.mc = cat; toast('분류를 바꿨어요'); render(); }
+  catch (e) { toast(e.message); }
+}
+async function myDel(id, btn){
+  const it = items.find(x => x.id === id); if (!it) return;
+  if (!confirm(`"${it.title}" 활동을 통째로 지울까요?\n적어 둔 내용도 함께 지워져요.`)) return;
+  btn.disabled = true;
+  try {
+    await jsonp({ action: 'sDelItem', sid: me.sid, pin: me.pin, id });
+    items = items.filter(x => x.id !== id); Object.keys(recs).forEach(k => { if (k.split('|')[0] === id) delete recs[k]; }); Object.keys(D).forEach(k => { if (k.split('|')[0] === id) delete D[k]; });
+    openId = null; toast('지웠어요'); render();
+  } catch (e) { toast(e.message); btn.disabled = false; }
+}
 async function saveEnt(iid, n, btn){
   const d = getDraft(iid, n);
   if (!d.part) { toast('참여했는지 먼저 골라 주세요.'); return; }
