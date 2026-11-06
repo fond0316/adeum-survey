@@ -63,6 +63,24 @@ details.tsi ol{padding-left:18px}.tsi li{margin-bottom:4px}
 @media(min-width:760px){.grid2{grid-template-columns:1fr 1fr}}
 .catHd{display:flex;align-items:center;gap:8px;background:none;border:0;padding:4px 0;min-height:44px;cursor:pointer;font:inherit}
 .catAr{color:var(--tx3);font-size:15px}
+.ibbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.ibchip{padding:7px 12px;border-radius:var(--radius,8px);border:1px solid var(--line);font-size:13px;cursor:pointer;background:#fff;min-height:36px;display:inline-flex;align-items:center}
+.ibchip.on{background:#ECE7F8;border-color:#9B8EC4;color:#4F4380;font-weight:700}
+.ibmv{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 10px;margin-bottom:10px;border-radius:10px;background:#F7F5FC;font-size:13px;min-height:44px}
+.ibto{padding:6px 12px;border-radius:8px;border:1px solid #9B8EC4;background:#ECE7F8;color:#4F4380;cursor:pointer;white-space:nowrap}
+.ibclr{margin-left:auto;color:var(--tx3);cursor:pointer}.ibsub{font-size:12.5px;color:var(--tx2)}
+.ibcols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media(max-width:700px){.ibcols{grid-template-columns:1fr}}
+.ibcol{border:1.5px dashed transparent;border-radius:10px;padding:6px;min-height:120px}.ibcol.over{background:#ECE7F8;border-color:#9B8EC4}
+.ibh{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:14px;margin-bottom:8px;cursor:pointer;min-height:36px}.ibh i{font-style:normal;font-weight:500;font-size:12px;color:var(--tx3)}
+.ibc{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:6px;font-size:13px;cursor:grab;user-select:none}
+.ibc b{flex:1;min-width:90px;font-weight:700;word-break:keep-all}.ibc input[type=checkbox]{width:18px;height:18px;flex:none}
+.ibc.sel{border:2px solid #9B8EC4;background:#F4F0FC}.ibc.drag{opacity:.4}.ibc.off{opacity:.5}.ibc.uns,.ibf.uns{border-color:#E2B24A;background:#FFF8E6}
+.ibgrip{color:var(--tx3)}.ibb{font-size:11px;padding:1px 7px;border-radius:99px;background:#EEE9F8;color:#6B5FA0;white-space:nowrap}.ibb.g{background:#DDF1E6;color:#1E7A48}.ibb.w{background:#FFF1D6;color:#9A6A00}
+.ibf{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;background:#fff}
+.ibfh{display:flex;gap:8px;align-items:center}.ibfh input[type=checkbox]{width:20px;height:20px;flex:none}.ibfh select{width:auto;min-width:80px}
+.ibfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin-top:8px}.ibfg label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--tx2)}
+.ibfg .ibck{flex-direction:row;align-items:center;gap:6px;min-height:40px;font-size:13px;color:var(--tx)}.ibfg .ibck input{width:20px;height:20px}
 .dz{border:2px dashed #BDB3DB;background:#F7F5FC;border-radius:14px;padding:18px 12px;text-align:center;cursor:pointer;display:flex;flex-direction:column;gap:3px;align-items:center;color:var(--mainD,#6B5FA0)}
 .dz small{color:var(--tx3,#8a85a0);font-size:12px}
 .dz.dropOn{border-color:#9B8EC4;background:#ECE7F8}
@@ -423,7 +441,7 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
         <div class="msg" id="impMsg"></div>
         <div id="impBox" class="hide">
           <div id="impMeta" class="hide" style="margin-bottom:6px"><label style="display:flex;gap:6px;align-items:center;min-height:40px"><input type="checkbox" id="impMetaCk" checked style="width:20px;height:20px"> <span id="impMetaTx"></span></label></div>
-          <div class="scroll"><table class="tbl" id="impTbl"></table></div>
+          <div id="impBoard"></div>
           <div class="row"><label style="display:flex;gap:6px;align-items:center;min-height:40px"><input type="radio" name="impMode" value="append" checked style="width:20px;height:20px"> 지금 항목에 추가</label>
             <label style="display:flex;gap:6px;align-items:center;min-height:40px"><input type="radio" name="impMode" value="replace" style="width:20px;height:20px"> 전체 교체</label></div>
           <div class="row"><button class="btn" data-a="doImport">✅ 등록하기</button><button class="btn sub" data-a="cancelImp">취소</button></div>
@@ -1046,23 +1064,60 @@ function showImp(list, meta){
   $('impMeta').classList.toggle('hide', !IMPMETA);
   if (IMPMETA) $('impMetaTx').textContent = `학년도·학년(${IMPMETA.year || '-'}학년도 ${IMPMETA.grade || '-'}학년)과 기재 지침도 함께 적용`;
   if (!list.length){ msg('impMsg','읽을 수 있는 항목을 찾지 못했어요. 분류 / 항목명 / 학생에게 보이는 설명 순서인지 확인해 주세요.'); $('impBox').classList.add('hide'); return; }
-  msg('impMsg', `${list.length}개 항목을 찾았어요. 아래에서 확인·수정한 뒤 등록해 주세요. (분류를 못 찾은 줄은 노란색)`, true);
-  const SEL = (i, f, arr, v) => `<select data-imp="${i}" data-f="${f}">${arr.map(c => `<option value="${c[0] === '-' ? '' : esc(c)}"${(c[0] === '-' ? '' : c) === v ? ' selected' : ''}>${esc(c)}</option>`).join('')}</select>`;
-  $('impTbl').innerHTML = '<tr><th></th><th>분류</th><th>항목명</th><th>학생에게 보이는 설명</th><th>🔒교사용 유의</th><th>학기</th><th>보낼 곳</th><th>문구제공</th><th>확인필요</th><th>링크 종류</th></tr>' + list.map((x,i) => `<tr${x.unsure ? ' style="background:#FFF8E6"' : ''}>
-    <td><input type="checkbox" data-imp="${i}" data-f="inc" ${x.inc ? 'checked' : ''} style="width:20px;height:20px"></td>
-    <td><select data-imp="${i}" data-f="cat">${CATS.map(c => `<option${c === x.cat ? ' selected' : ''}>${c}</option>`).join('')}</select></td>
-    <td><input type="text" data-imp="${i}" data-f="title" value="${esc(x.title)}" style="min-width:160px"></td>
-    <td><input type="text" data-imp="${i}" data-f="note" value="${esc(x.note)}" style="min-width:140px"></td>
-    <td><input type="text" data-imp="${i}" data-f="tnote" value="${esc(x.tnote || '')}" style="min-width:160px"></td>
-    <td>${SEL(i, 'term', ['-', '1학기', '2학기'], x.term || '')}</td>
-    <td>${SEL(i, 'dest', ['-', '자율', '진로', '행발'], x.dest || '')}</td>
-    <td><input type="checkbox" data-imp="${i}" data-f="give" ${x.give ? 'checked' : ''} style="width:20px;height:20px"></td>
-    <td><input type="checkbox" data-imp="${i}" data-f="chk" ${x.chk ? 'checked' : ''} style="width:20px;height:20px"></td>
-    <td><select data-imp="${i}" data-f="rtype">${RTYPES.map(c => `<option${c === x.rtype ? ' selected' : ''}>${c}</option>`).join('')}</select></td></tr>`).join('');
+  msg('impMsg', `${list.length}개 항목을 찾았어요. 아래에서 확인·수정한 뒤 등록해 주세요. 카드를 끌어서 분류를 옮길 수 있어요. 분류를 못 찾은 항목은 노란 테두리예요.`, true);
+  impFocus = window.innerWidth < 700 ? 0 : -1; impSel = {}; impDraw();
   $('impBox').classList.remove('hide'); msg('impMsg2','');
 }
 document.addEventListener('input', e => { const t = e.target; if (t.dataset && t.dataset.imp !== undefined){ const x = IMP[Number(t.dataset.imp)]; if (x) x[t.dataset.f] = t.type === 'checkbox' ? t.checked : t.value; } });
 document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.imp !== undefined){ const x = IMP[Number(t.dataset.imp)]; if (x) x[t.dataset.f] = t.type === 'checkbox' ? t.checked : t.value; } });
+
+/* ===== 불러오기 미리보기: 분류별 보드 (끌어서 옮기기 · 선택해서 한꺼번에 옮기기 · 크게 보기) ===== */
+let impFocus = -1, impSel = {}, impDragIdx = -1;
+const IMPCOLS = ['자율','진로','행발','교과'];
+const impColOf = x => x.dest === '행발' ? '행발' : x.cat;
+function impSetCol(x, c){ if (c === '행발') x.dest = '행발'; else { x.cat = c; x.dest = ''; } x.unsure = false; }
+function impVisCols(){ return IMPCOLS.filter(c => c !== '교과' || IMP.some(x => impColOf(x) === '교과') || IMPCOLS[impFocus] === '교과'); }
+function impBadges(x){ return (x.give ? '<span class="ibb g">문구 제공</span>' : '') + (x.chk ? '<span class="ibb w">확인 필요</span>' : '') + (x.term ? `<span class="ibb">${esc(x.term)}</span>` : ''); }
+function impDraw(){
+  const cols = impVisCols(), box = $('impBoard'); if (!box) return;
+  const cnt = c => IMP.filter(x => impColOf(x) === c), nSel = Object.keys(impSel).filter(k => impSel[k]).length;
+  let h = `<div class="ibbar"><span class="ibchip${impFocus < 0 ? ' on' : ''}" data-if="-1">전체 보드</span>` + cols.map(c => { const l = cnt(c), w = l.filter(x => x.chk).length; return `<span class="ibchip${IMPCOLS[impFocus] === c ? ' on' : ''}" data-if="${IMPCOLS.indexOf(c)}">${c} ${l.length}${w ? ` · 확인 ${w}` : ''}</span>`; }).join('') + '</div>';
+  h += '<div class="ibmv">' + (nSel ? `<span>${nSel}개 선택됨 →</span>` + cols.concat(cols.includes('교과') ? [] : ['교과']).map(c => `<span class="ibto" data-ito="${c}">${c}으로 옮기기</span>`).join('') + '<span class="ibclr" data-iclr="1">선택 해제</span>'
+    : '<span class="ibsub">카드를 끌어서 다른 열에 놓으면 분류가 바뀌어요. 여러 개는 카드를 눌러 선택한 뒤 한꺼번에 옮겨요. 열 제목을 누르면 그 분류만 크게 봐요.</span>') + '</div>';
+  if (impFocus < 0){
+    h += '<div class="ibcols">' + cols.map(c => `<div class="ibcol" data-icol="${c}"><div class="ibh" data-if="${IMPCOLS.indexOf(c)}"><span>${c}</span><i>${cnt(c).length}개 · 크게 보기 ›</i></div>` +
+      IMP.map((x, i) => impColOf(x) !== c ? '' : `<div class="ibc${impSel[i] ? ' sel' : ''}${x.unsure ? ' uns' : ''}${x.inc ? '' : ' off'}" draggable="true" data-ic="${i}"><span class="ibgrip">⠿</span><input type="checkbox" data-imp="${i}" data-f="inc" ${x.inc ? 'checked' : ''} title="등록할 항목"><b>${esc(x.title)}</b>${impBadges(x)}</div>`).join('') + '</div>').join('') + '</div>';
+  } else {
+    const c = IMPCOLS[impFocus];
+    h += cnt(c).length ? IMP.map((x, i) => impColOf(x) !== c ? '' : `<div class="ibf${x.unsure ? ' uns' : ''}"><div class="ibfh"><input type="checkbox" data-imp="${i}" data-f="inc" ${x.inc ? 'checked' : ''} title="등록할 항목"><input type="text" data-imp="${i}" data-f="title" value="${esc(x.title)}" maxlength="60" style="flex:1;min-width:0">
+      <select data-impcol="${i}" title="분류 옮기기">${IMPCOLS.map(k => `<option${k === c ? ' selected' : ''}>${k}</option>`).join('')}</select></div>
+      <div class="ibfg"><label>학생에게 보이는 설명<input type="text" data-imp="${i}" data-f="note" value="${esc(x.note)}"></label><label>🔒 교사용 기재 유의<input type="text" data-imp="${i}" data-f="tnote" value="${esc(x.tnote || '')}"></label>
+      <label>학기<select data-imp="${i}" data-f="term">${[['', '구분 없음'], ['1학기', '1학기'], ['2학기', '2학기']].map(o => `<option value="${o[0]}"${(x.term || '') === o[0] ? ' selected' : ''}>${o[1]}</option>`).join('')}</select></label>
+      <label>링크 종류<select data-imp="${i}" data-f="rtype">${RTYPES.map(k => `<option${k === x.rtype ? ' selected' : ''}>${k}</option>`).join('')}</select></label>
+      <label class="ibck"><input type="checkbox" data-imp="${i}" data-f="give" ${x.give ? 'checked' : ''}> 문구 제공</label><label class="ibck"><input type="checkbox" data-imp="${i}" data-f="chk" ${x.chk ? 'checked' : ''}> 확인 필요</label></div></div>`).join('') : '<div class="ibsub" style="padding:16px;text-align:center">이 분류에는 항목이 없어요</div>';
+  }
+  box.innerHTML = h;
+}
+(function(){
+  const root = () => $('impBoard');
+  document.addEventListener('click', e => {
+    const box = root(); if (!box || !box.contains(e.target)) return;
+    const to = e.target.closest('[data-ito]'); if (to){ Object.keys(impSel).forEach(k => { if (impSel[k]) impSetCol(IMP[Number(k)], to.dataset.ito); }); impSel = {}; impDraw(); return; }
+    if (e.target.closest('[data-iclr]')){ impSel = {}; impDraw(); return; }
+    const f = e.target.closest('[data-if]'); if (f){ impFocus = Number(f.dataset.if); impDraw(); return; }
+    if (e.target.tagName === 'INPUT') return;
+    const c = e.target.closest('[data-ic]'); if (c){ const i = Number(c.dataset.ic); impSel[i] = !impSel[i]; impDraw(); }
+  });
+  document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.impcol !== undefined){ impSetCol(IMP[Number(t.dataset.impcol)], t.value); impDraw(); } });
+  document.addEventListener('dragstart', e => { const c = e.target.closest && e.target.closest('[data-ic]'); if (!c || !root() || !root().contains(c)) return; impDragIdx = Number(c.dataset.ic); c.classList.add('drag'); e.dataTransfer.setData('text/plain', String(impDragIdx)); e.dataTransfer.effectAllowed = 'move'; });
+  document.addEventListener('dragend', () => { impDragIdx = -1; document.querySelectorAll('#impBoard .drag,#impBoard .over').forEach(x => x.classList.remove('drag','over')); });
+  document.addEventListener('dragover', e => { const c = e.target.closest && e.target.closest('[data-icol]'); if (!c || impDragIdx < 0) return; e.preventDefault(); document.querySelectorAll('#impBoard .over').forEach(x => x.classList.remove('over')); c.classList.add('over'); });
+  document.addEventListener('drop', e => {
+    const c = e.target.closest && e.target.closest('[data-icol]'); if (!c || impDragIdx < 0) return; e.preventDefault(); e.stopPropagation();
+    const grp = impSel[impDragIdx] ? Object.keys(impSel).filter(k => impSel[k]).map(Number) : [impDragIdx];
+    grp.forEach(i => impSetCol(IMP[i], c.dataset.icol)); impSel = {}; impDragIdx = -1; impDraw();
+  }, true);
+})();
 function parsePaste(){
   const txt = $('pasteIn').value; if (!txt.trim()){ msg('impMsg','붙여넣은 내용이 없어요.'); return; }
   const rows = txt.split(/\r?\n/).map(l => l.includes('\t') ? l.split('\t') : [l]);
