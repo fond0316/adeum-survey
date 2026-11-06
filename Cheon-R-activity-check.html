@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
 :root{--main:#9B8EC4;--mainD:#6F62A3;--bg:#F4F2FA;--card:#fff;--tx:#2E2A3F;--tx2:#5E5873;--tx3:#8C87A0;--line:#E4E0F0;
-  --c1:#DCD6F5;--c1t:#433A8C;--c2:#CDEBDD;--c2t:#1F5C45;--c3:#FBE3CF;--c3t:#7A3F10;--ok:#2F8F63;--warn:#B7791F;--err:#C0392B}
+  --c1:#DCD6F5;--c1t:#433A8C;--c2:#CDEBDD;--c2t:#1F5C45;--c3:#FBE3CF;--c3t:#7A3F10;--c4:#D6E9F8;--c4t:#1E4F78;--ok:#2F8F63;--warn:#B7791F;--err:#C0392B}
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
 body{font-family:'Pretendard',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;
@@ -46,6 +46,10 @@ label.l{display:block;font-size:13px;font-weight:700;color:var(--tx2);margin:12p
 .cat[data-c="자율"]{background:var(--c1);color:var(--c1t)}
 .cat[data-c="진로"]{background:var(--c2);color:var(--c2t)}
 .cat[data-c="교과"]{background:var(--c3);color:var(--c3t)}
+.cat[data-c="동아리"]{background:var(--c4);color:var(--c4t)}
+.cats.c4{grid-template-columns:repeat(4,1fr);gap:8px}.cats.c4 .cat{padding:10px 4px}
+.clubbox{grid-column:1/-1;background:#F3F9FE;border:1.5px solid #CFE3F3;border-radius:14px;padding:14px}.clubbox select{width:100%;min-height:46px;border:1.5px solid var(--line);border-radius:12px;padding:0 10px;background:#fff;font-size:15px;margin-top:8px}
+.clubnow{grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;font-weight:700;color:var(--c4t)}
 .cat.on{border-color:currentColor;box-shadow:0 3px 10px rgba(80,60,130,.18)}
 /* 진행 패널 */
 .prog{margin-top:12px}
@@ -237,8 +241,8 @@ body.demo #demoBar{display:flex}body.demo #btnOut,body.demo #btnRe{display:none}
 const P = 'Cheon-R-activity-check';
 const K = { gas: 'ac_gas_v1', me: 'ac_me_v1', dv: 'ac_dv_v1', ping: 'ac_ping_v1', visit: 'ac_visit_v1', rvd: 'ac_review_v1' };
 const REGISTRY_URL = 'https://script.google.com/macros/s/AKfycbzrgeAlZhEGyvp7vo_j0hgesVoIoI6T_GMayKJCfvOFaV5Sb3wO1xvackSeQLc3HQxsnQ/exec';
-const CAT = { '자율': { e: '🌱', cc: '#B7ABE3' }, '진로': { e: '💡', cc: '#8FD0B1' }, '교과': { e: '📚', cc: '#F2B98B' } };
-const CATS = ['자율', '진로', '교과'];
+const CAT = { '자율': { e: '🌱', cc: '#B7ABE3' }, '진로': { e: '💡', cc: '#8FD0B1' }, '교과': { e: '📚', cc: '#F2B98B' }, '동아리': { e: '🎭', cc: '#8DBDE0' } };
+let CATS = ['자율', '진로'];   // 교과·동아리 항목이 있을 때만 해당 탭이 나와요
 const RLABEL = { '해성에듀': '해성에듀', '학급자율활동앱': '학급자율활동 앱', '직접링크': '관련 링크', '없음': '' };
 
 const DEMO = new URLSearchParams(location.search).get('demo') === '1';   // 🎬 체험 모드: 샘플 데이터만 쓰고 아무것도 저장·전송하지 않아요
@@ -255,7 +259,7 @@ function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('
 const okLink = (u) => /^https?:\/\/\S+$/i.test(u || '');
 
 let jpSeq = 0;
-const RETRY_OK = { sLoad:1, sCheck:1, sSave:1, sDelete:1, sCareer:1, sSetPin:0, ping:1 };   // 같은 값을 다시 보내도 안전한 요청만 자동 재시도
+const RETRY_OK = { sLoad:1, sCheck:1, sSave:1, sDelete:1, sCareer:1, sClub:1, sSetPin:0, ping:1 };   // 같은 값을 다시 보내도 안전한 요청만 자동 재시도
 async function jsonp(params, base){
   if (DEMO || base || !RETRY_OK[params.action]) return jsonp1(params, base);
   let last;
@@ -287,10 +291,10 @@ function jsonp1(params, base){
 }
 
 /* ===== 🎬 체험 모드용 가짜 서버 (이 화면을 닫으면 모두 사라져요) ===== */
-const demoSt = { career:'건축가', recs:[], seeded:false };
+const demoSt = { career:'건축가', club:'', recs:[], seeded:false };
 const DEMO_ITEMS = [['d1','자율','학교폭력 예방교육','소감문 1장 작성','학급자율활동앱',''],['d2','자율','학급 자치회 활동','활동 내용과 역할 정리','학급자율활동앱',''],['d3','자율','학교 축제 참여','맡은 역할 중심으로','없음',''],
   ['d4','진로','진로 체험의 날','체험 후 활동 보고서','해성에듀','https://example.com'],['d5','진로','학과 탐색 활동','관심 학과 조사','해성에듀','https://example.com'],
-  ['d6','교과','수학 수행평가 탐구','진로와 연결해 주제 정하기','없음',''],['d7','교과','과학 탐구 실험','진로 연계 실험 주제','없음','']].map((x,i) => ({ id:x[0], cat:x[1], title:x[2], note:x[3], rtype:x[4], url:x[5], prov:!!x[5], order:i + 1, on:true }));
+  ['d6','교과','수학 수행평가 탐구','진로와 연결해 주제 정하기','없음',''],['d7','교과','과학 탐구 실험','진로 연계 실험 주제','없음',''],['d8','동아리','창의수학','천아름 · 창의 수학 문제 만들기','없음',''],['d9','동아리','방송반','송진규 · 방송 콘텐츠 제작','없음','']].map((x,i) => ({ id:x[0], cat:x[1], title:x[2], note:x[3], rtype:x[4], url:x[5], prov:!!x[5], order:i + 1, on:true }));
 function demoSeed(){
   if (demoSt.seeded) return; demoSt.seeded = true;
   const r = (iid, n, o) => demoSt.recs.push({ sid:'10101', iid, n, part:'', report:'', link:'', topic:'', career:'', summary:'', at:'', tchk:false, tmemo:'', ...o });
@@ -304,12 +308,12 @@ function demoApi(p){
   return new Promise((resolve, reject) => setTimeout(() => {
     demoSeed(); const a = p.action;
     if (a === 'ping') return resolve({ ok:true, className:'1학년 3반 (체험)', year:2026 });
-    if (a === 'sLoad') return resolve({ ok:true, name:'김하나', career:demoSt.career, className:'1학년 3반 (체험)', year:2026, items:DEMO_ITEMS, records:demoSt.recs.map(x => ({ ...x })) });
+    if (a === 'sLoad') return resolve({ ok:true, name:'김하나', career:demoSt.career, className:'1학년 3반 (체험)', year:2026, club:demoSt.club, items:DEMO_ITEMS, records:demoSt.recs.map(x => ({ ...x })) });
     if (a === 'sCareer'){ demoSt.career = String(p.career || '').substring(0,80); return resolve({ ok:true, career:demoSt.career }); }
+    if (a === 'sClub'){ demoSt.club = String(p.club || ''); return resolve({ ok:true, club:demoSt.club }); }
     if (a === 'sSave'){
       const d = JSON.parse(p.data || '{}'), it = DEMO_ITEMS.find(x => x.id === d.itemId); if (!it) return reject(new Error('없어진 항목이에요.'));
-      const n = it.cat === '교과' ? Math.max(1, Math.min(9, parseInt(d.n, 10) || 1)) : 1;
-      if (d.link && !/^https?:\/\/\S+$/i.test(d.link)) return reject(new Error('링크는 https://로 시작하는 300자 이내 주소여야 해요.'));
+      const n = (it.cat === '교과' || it.cat === '동아리') ? Math.max(1, Math.min(9, parseInt(d.n, 10) || 1)) : 1;
       const old = demoSt.recs.find(x => x.iid === it.id && x.n === n);
       const rec = { sid:'10101', iid:it.id, n, part:d.part || '', report:d.report || '', link:d.link || '', topic:String(d.topic || '').substring(0,60), career:String(d.career || '').substring(0,80), summary:String(d.summary || '').substring(0,400), at:'', tchk:false, tmemo:old ? old.tmemo : '' };
       if (old) Object.assign(old, rec); else demoSt.recs.push(rec);
@@ -329,11 +333,13 @@ if (DEMO) document.body.classList.add('demo');
 /* ===== 상태 ===== */
 let me = lsGet(K.me, null);          // {sid,name,pin}
 if (DEMO) me = { sid:'10101', name:'김하나', pin:'0000' };   // 체험에서는 로그인을 건너뛰고 이 학생으로 봐요
-let items = [], recs = {}, career = '', cat = '자율', openId = null;
+let items = [], recs = {}, career = '', club = '', clubEdit = false, cat = '자율', openId = null;
 const D = {};                         // 쓰는 중인 초안  key: iid|n
 const extra = {};                     // 교과 항목에 새로 추가한 칸 번호들 iid -> [n..]
 const key = (iid, n) => iid + '|' + n;
 
+const multi = it => it.cat === '교과' || it.cat === '동아리';           // 한 항목에 활동을 여러 개 적을 수 있는 분류
+const mine = it => it.cat !== '동아리' || it.id === club;                // 동아리는 내가 고른 것만 보여요
 function recsOf(iid){ return Object.keys(recs).filter(k => k.split('|')[0] === iid).map(k => recs[k]).sort((a, b) => a.n - b.n); }
 function statusOf(it){
   const r = recsOf(it.id);
@@ -397,7 +403,8 @@ async function loadAll(silent){
   if (!silent) show('loading');
   const r = await jsonp({ action: 'sLoad', sid: me.sid, pin: me.pin, name: me.name });
   if (r.needPin) { show('login'); throw new Error('PIN이 초기화되어 있어요. 새로 만들어 주세요.'); }
-  items = r.items || []; career = r.career || '';
+  items = r.items || []; career = r.career || ''; club = r.club || '';
+  CATS = ['자율', '진로'].concat(items.some(i => i.cat === '교과') ? ['교과'] : [], items.some(i => i.cat === '동아리') ? ['동아리'] : []); if (!CATS.includes(cat)) cat = CATS[0];
   recs = {}; (r.records || []).forEach(x => { recs[key(x.iid, x.n)] = x; });
   $('sub').textContent = (r.className || '') + (r.year ? ' · ' + r.year + '학년도' : '');
   $('hello').textContent = `${r.name} 학생의 활동 점검`;
@@ -413,13 +420,13 @@ function sumRender(){
   const rs = Object.keys(recs).map(k => recs[k]);
   let h = '';
   CATS.forEach(c => {
-    const its = items.filter(i => i.cat === c); let part = '';
+    const its = items.filter(i => i.cat === c && mine(i)); let part = '';
     its.forEach(it => {
       recsOf(it.id).forEach(r => {
         const st = r.part === 'yes' ? '참여함' + (r.report === 'done' ? ' · 보고서 작성' : r.report === 'todo' ? ' · 보고서 아직' : '') : r.part === 'no' ? '참여 안 함' : '미선택';
         part += `<div class="sm-box"><b>${esc(it.title)}</b>${it.term ? ' <span class="tg">' + esc(it.term) + '</span>' : ''}<div class="m">${st}${r.at ? ' · 저장 ' + esc(String(r.at).slice(0, 10)) : ''}</div>`
           + (r.topic ? `<div class="s">주제: ${esc(r.topic)}</div>` : '') + (r.career ? `<div class="s">진로 연결: ${esc(r.career)}</div>` : '')
-          + (r.summary ? `<div class="s">${esc(r.summary)}</div>` : '') + (r.link && okLink(r.link) ? `<div class="s"><a href="${esc(r.link)}" target="_blank" rel="noopener noreferrer">🔗 링크</a></div>` : '') + '</div>';
+          + (r.summary ? `<div class="s">${esc(r.summary)}</div>` : '') + (r.link ? (okLink(r.link) ? `<div class="s"><a href="${esc(r.link)}" target="_blank" rel="noopener noreferrer">🔗 링크</a></div>` : `<div class="s">📍 경로: ${esc(r.link)}</div>`) : '') + '</div>';
       });
     });
     if (part) h += `<div class="sm-h">${CAT[c].e} ${c}</div>` + part;
@@ -433,24 +440,33 @@ function render(){
   // 분류 카드 + 진행
   let tot = 0, chk = 0, sum = 0;
   $('cats').innerHTML = CATS.map(c => {
-    const list = items.filter(i => i.cat === c), n = list.length, d = list.filter(i => statusOf(i) !== 'none').length;
-    return `<button class="cat ${c === cat ? 'on' : ''}" data-c="${c}" data-act="cat"><span class="e">${CAT[c].e}</span><b>${c}</b><small>${d} / ${n}</small></button>`;
+    const list = items.filter(i => i.cat === c && mine(i)), n = list.length, d = list.filter(i => statusOf(i) !== 'none').length;
+    return `<button class="cat ${c === cat ? 'on' : ''}" data-c="${c}" data-act="cat"><span class="e">${CAT[c].e}</span><b>${c}</b><small>${c === '동아리' && !club ? '고르기' : d + ' / ' + n}</small></button>`;
   }).join('');
-  items.forEach(i => { tot++; const s = statusOf(i); if (s !== 'none') chk++; if (s === 'sum') sum++; });
+  $('cats').classList.toggle('c4', CATS.length > 3);
+  items.filter(mine).forEach(i => { tot++; const s = statusOf(i); if (s !== 'none') chk++; if (s === 'sum') sum++; });
   $('pgTxt').textContent = `${chk} / ${tot}`;
   $('pgSub').textContent = sum ? `✍️ 요약을 안 쓴 활동 ${sum}개` : (tot && chk === tot ? '🎉 모두 점검했어요!' : '');
   $('pgBar').style.width = (tot ? Math.round(chk / tot * 100) : 0) + '%';
   // 목록
-  const list = items.filter(i => i.cat === cat);
+  const list = items.filter(i => i.cat === cat && mine(i));
   $('secIcon').textContent = CAT[cat].e; $('secTitle').textContent = cat;
   $('secCnt').textContent = list.length ? `${list.length}개 활동` : '';
   $('grid').style.setProperty('--cc', CAT[cat].cc);
+  if (cat === '동아리'){ $('grid').innerHTML = clubHtml() + list.map(itemHtml).join(''); return; }
   $('grid').innerHTML = list.length ? list.map(itemHtml).join('') :
     `<div class="empty" style="grid-column:1/-1">아직 등록된 활동이 없어요.<br>담임선생님이 활동을 등록하면 여기에 나타나요 😊</div>`;
 }
+function clubHtml(){
+  const all = items.filter(i => i.cat === '동아리'), cur = all.find(i => i.id === club);
+  if (cur && !clubEdit) return `<div class="clubnow">🎭 내 동아리: ${esc(cur.title)} <button class="btn sub sm" data-act="clubChg">바꾸기</button></div>`;
+  return `<div class="clubbox"><b>🎭 내 동아리를 골라 주세요</b><div class="hint">한 번 고르면 그 동아리 활동만 적을 수 있어요. 나중에 바꿀 수도 있어요.</div>
+    <select id="clubSel"><option value="">— 동아리 선택 —</option>${all.map(i => `<option value="${esc(i.id)}"${i.id === club ? ' selected' : ''}>${esc(i.title)}${i.note ? ' · ' + esc(i.note.slice(0, 30)) : ''}</option>`).join('')}</select>
+    <div class="acts" style="margin-top:10px"><button class="btn" data-act="clubSave">저장</button>${cur ? '<button class="btn sub" data-act="clubCancel">취소</button>' : ''}</div></div>`;
+}
 function itemHtml(it){
   const s = statusOf(it), b = BADGE[s], open = openId === it.id;
-  const cnt = it.cat === '교과' ? recsOf(it.id).length : 0;
+  const cnt = multi(it) ? recsOf(it.id).length : 0;
   return `<div class="it ${open ? 'open' : ''}" style="--cc:${CAT[it.cat].cc}" id="it-${esc(it.id)}">
     <button class="hd" data-act="toggle" data-id="${esc(it.id)}">
       <div class="t"><b>${esc(it.title)}</b>${it.term ? ` <span class="tg">${esc(it.term)}</span>` : ''}${it.give ? ` <span class="tg g">문구는 선생님이 제공</span>` : ''}${it.note ? `<small>${esc(it.note)}</small>` : ''}</div>
@@ -460,7 +476,7 @@ function itemHtml(it){
   </div>`;
 }
 function entNums(it){
-  if (it.cat !== '교과') return [1];
+  if (!multi(it)) return [1];
   const set = new Set(recsOf(it.id).map(r => r.n));
   (extra[it.id] || []).forEach(n => set.add(n));
   if (!set.size) set.add(1);
@@ -469,9 +485,10 @@ function entNums(it){
 function bodyHtml(it){
   const nums = entNums(it);
   let h = '<div class="body">';
+  if (it.cat === '동아리') h += `<div class="hint" style="margin-top:10px">📌 동아리에서 한 활동을 하나씩 나눠 적어요. 활동이 여러 개면 아래 <b>➕ 활동 추가</b>를 눌러요.</div>`;
   if (it.cat === '교과') h += `<div class="hint" style="margin-top:10px">📌 수행평가·탐구·실험 주제를 내 진로와 연결해 적어 보세요.${career ? ` (내 진로: <b>${esc(career)}</b>)` : ' 위쪽에 진로 희망을 적어 두면 편해요.'}</div>`;
   nums.forEach((n, idx) => { h += entHtml(it, n, nums.length > 1 ? idx + 1 : 0); });
-  if (it.cat === '교과' && nums.length < 9) h += `<button class="add" data-act="addEnt" data-id="${esc(it.id)}">➕ 활동 추가</button>`;
+  if (multi(it) && nums.length < 9) h += `<button class="add" data-act="addEnt" data-id="${esc(it.id)}">➕ 활동 추가</button>`;
   return h + '</div>';
 }
 function getDraft(iid, n){
@@ -487,23 +504,23 @@ function entHtml(it, n, label){
     <button class="chip ${d.part === 'yes' ? 'on' : ''}" data-act="part" data-k="${k}" data-v="yes">🙋 참여함</button>
     <button class="chip no ${d.part === 'no' ? 'on' : ''}" data-act="part" data-k="${k}" data-v="no">참여 안 함</button></div>`;
   if (d.part === 'yes') {
-    if (it.cat === '교과') {
-      h += `<label class="l">탐구·수행 주제</label><input type="text" maxlength="60" data-f="topic" data-k="${k}" value="${esc(d.topic)}" placeholder="예) 이차함수로 포물선 구조물 분석하기">
+    if (multi(it)) {
+      h += `<label class="l">${it.cat === '동아리' ? '활동 주제' : '탐구·수행 주제'}</label><input type="text" maxlength="60" data-f="topic" data-k="${k}" value="${esc(d.topic)}" placeholder="예) 이차함수로 포물선 구조물 분석하기">
         <label class="l">내 진로와 연결한 점</label><input type="text" maxlength="80" data-f="career" data-k="${k}" value="${esc(d.career)}" placeholder="예) 건축가가 되고 싶어서 구조물의 곡선을 수학으로 분석함">`;
     }
     h += `<label class="l">보고서</label><div class="chips">
       <button class="chip ${d.report === 'done' ? 'on' : ''}" data-act="rep" data-k="${k}" data-v="done">✍️ 작성했어요</button>
       <button class="chip ${d.report === 'todo' ? 'on' : ''}" data-act="rep" data-k="${k}" data-v="todo">아직이에요</button></div>`;
-    h += `<label class="l">관련 링크 <span style="font-weight:500;color:var(--tx3)">(선택)</span></label>`;
+    h += `<label class="l">링크 또는 경로 <span style="font-weight:500;color:var(--tx3)">(선택) — 주소를 붙이거나, 로그인이 필요한 곳은 찾아가는 길을 글로 적어요</span></label>`;
     if (it.url && okLink(it.url)) h += `<a class="linkbtn" href="${esc(it.url)}" target="_blank" rel="noopener noreferrer">🔗 ${esc(RLABEL[it.rtype] || '바로가기')} 열기</a>`;
-    h += `<input type="url" maxlength="300" data-f="link" data-k="${k}" value="${esc(d.link)}" placeholder="내 보고서·결과물 주소 (https://…)">`;
+    h += `<input type="text" maxlength="300" data-f="link" data-k="${k}" value="${esc(d.link)}" placeholder="예) https://… 또는 해성에듀 > 내 보고서 > 2학기 탐구보고서">`;
     h += `<label class="l">활동 요약 <span style="font-weight:500;color:var(--tx3)">— 나중에 생기부 쓸 때 선생님이 참고해요</span></label>
       <textarea maxlength="400" data-f="summary" data-k="${k}" placeholder="무엇을 했는지, 알게 된 점·느낀 점을 간단히 적어요">${esc(d.summary)}</textarea>
       <div class="cnt"><span id="cn-${k}">${d.summary.length}</span> / 400</div>`;
   }
   if (r && (r.tchk || r.tmemo)) h += `<div class="tmemo">👩‍🏫 선생님${r.tchk ? '<span class="tchk">✅ 확인했어요</span>' : ''}${r.tmemo ? '<br>' + esc(r.tmemo).replace(/\n/g, '<br>') : ''}</div>`;
   h += `<div class="acts"><button class="btn" data-act="save" data-k="${k}">💾 저장</button>`;
-  if (r || n > 1) h += `<button class="btn del" data-act="del" data-k="${k}">${it.cat === '교과' && n > 1 ? '이 칸 지우기' : '기록 지우기'}</button>`;
+  if (r || n > 1) h += `<button class="btn del" data-act="del" data-k="${k}">${multi(it) && n > 1 ? '이 칸 지우기' : '기록 지우기'}</button>`;
   return h + '</div></div>';
 }
 
@@ -531,7 +548,14 @@ document.addEventListener('click', e => {
   if (act === 'closeHelp'){ if (b.classList.contains('ov') && e.target !== b) return; $('helpOv').classList.add('hide'); return; }
   if (act === 'demoReg'){ demoAct('register'); return; }
   if (act === 'demoClose'){ demoAct('close'); return; }
-  if (act === 'cat') { cat = b.dataset.c; openId = null; render(); }
+  if (act === 'cat') { cat = b.dataset.c; openId = null; clubEdit = false; render(); }
+  else if (act === 'clubChg') { clubEdit = true; render(); }
+  else if (act === 'clubCancel') { clubEdit = false; render(); }
+  else if (act === 'clubSave') {
+    const v = ($('clubSel') || {}).value || ''; if (!v) { toast('동아리를 골라 주세요.'); return; }
+    b.disabled = true;
+    jsonp({ action: 'sClub', sid: me.sid, pin: me.pin, club: v }).then(r => { club = r.club || ''; clubEdit = false; openId = null; toast('내 동아리를 저장했어요 🎭'); render(); }).catch(e => { toast(e.message); b.disabled = false; });
+  }
   else if (act === 'toggle') { openId = openId === b.dataset.id ? null : b.dataset.id; render(); if (openId) { const el = document.getElementById('it-' + openId); el && el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } }
   else if (act === 'part') { getDraft(iid, n).part = b.dataset.v; render(); }
   else if (act === 'rep') { const d = getDraft(iid, n); d.report = d.report === b.dataset.v ? '' : b.dataset.v; render(); }
@@ -552,7 +576,7 @@ $('btnCareer').onclick = async () => {
 async function saveEnt(iid, n, btn){
   const d = getDraft(iid, n);
   if (!d.part) { toast('참여했는지 먼저 골라 주세요.'); return; }
-  if (d.part === 'yes' && d.link && !okLink(d.link.trim())) { toast('링크는 https://로 시작해야 해요.'); return; }
+  if (d.part === 'yes' && d.link && d.link.trim().length > 300) { toast('링크·경로는 300자 이내로 적어 주세요.'); return; }
   const data = d.part === 'yes' ? { itemId: iid, n, part: 'yes', report: d.report, link: d.link.trim(), topic: d.topic, career: d.career, summary: d.summary }
                                 : { itemId: iid, n, part: 'no' };
   btn.disabled = true;
