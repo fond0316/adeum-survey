@@ -949,21 +949,59 @@ function itemTags(it, withNote){
     + (withNote && it.tnote ? `<div class="tn">🔒 ${esc(it.tnote)}</div>` : '');
 }
 const catClosed = {};
+let itFocus = -1, itSel = {}, itDragId = '';
+const itColOf = it => it.dest === '행발' ? '행발' : it.cat;
+const itCols = () => IMPCOLS.filter(c => c !== '교과' || DATA.items.some(i => itColOf(i) === '교과') || IMPCOLS[itFocus] === '교과');
 function renderItems(){
-  const m = itemsByCat();
   $('itCnt').textContent = `(${DATA.items.length}개)`;
-  $('itList').innerHTML = DATA.items.length ? CATS.map(c => !m[c].length ? '' :
-    `<div style="margin:12px 0 4px"><button class="catHd" data-a="toggleCat" data-c="${c}" aria-expanded="${!catClosed[c]}"><span class="tag ${CATCLS[c]}">${CATE[c]} ${c} ${m[c].length}</span><span class="catAr">${catClosed[c] ? '▸' : '▾'}</span></button></div>` +
-    (catClosed[c] ? '' : m[c].map((it, k) => `<div class="it ${it.on ? '' : 'off'}">
+  if (!DATA.items.length){ $('itList').innerHTML = '<div class="hint" style="text-align:center;padding:16px">아직 항목이 없어요. 위 학년도 양식·엑셀로 불러오거나 하나씩 추가해 보세요.</div>'; return; }
+  const cols = itCols(), of = c => DATA.items.filter(i => itColOf(i) === c);
+  const ids = Object.keys(itSel).filter(k => itSel[k] && DATA.items.some(i => i.id === k)), nSel = ids.length;
+  let h = `<div class="ibbar"><span class="ibchip${itFocus < 0 ? ' on' : ''}" data-xf="-1">전체 보드</span>` + cols.map(c => { const l = of(c), w = l.filter(x => x.chk).length; return `<span class="ibchip${IMPCOLS[itFocus] === c ? ' on' : ''}" data-xf="${IMPCOLS.indexOf(c)}">${c} ${l.length}${w ? ` · 확인 ${w}` : ''}</span>`; }).join('') + '</div>';
+  h += '<div class="ibmv">' + (nSel ? `<span>${nSel}개 선택됨 →</span>` + cols.concat(cols.includes('교과') ? [] : ['교과']).map(c => `<span class="ibto" data-xto="${c}">${c}으로 옮기기</span>`).join('') + '<span class="ibclr" data-xclr="1">선택 해제</span>'
+    : '<span class="ibsub">카드를 끌어서 다른 열에 놓으면 분류가 바뀌어요. 여러 개는 카드를 눌러 선택한 뒤 한꺼번에 옮겨요. 열 제목이나 위 칩을 누르면 그 분류만 크게 보고, 거기서 수정·순서·숨김·삭제를 해요.</span>') + '</div>';
+  if (itFocus < 0){
+    h += '<div class="ibcols">' + cols.map(c => `<div class="ibcol" data-xcol="${c}"><div class="ibh" data-xf="${IMPCOLS.indexOf(c)}"><span>${c}</span><i>${of(c).length}개 · 크게 보기 ›</i></div>` +
+      of(c).map(it => `<div class="ibc${itSel[it.id] ? ' sel' : ''}${it.on ? '' : ' off'}" draggable="true" data-xc="${esc(it.id)}"><span class="ibgrip">⠿</span><b>${esc(it.title)}</b>${impBadges(it)}${it.on ? '' : '<span class="ibb">숨김</span>'}</div>`).join('') + '</div>').join('') + '</div>';
+  } else {
+    const c = IMPCOLS[itFocus], l = of(c);
+    h += l.length ? l.map((it, k) => `<div class="it ${it.on ? '' : 'off'}">
       <div class="t"><b>${esc(it.title)}</b>${itemTags(it, true)}${it.note ? `<small>${esc(it.note)}</small>` : ''}${it.url ? `<small>🔗 ${esc(it.rtype)} · ${esc(it.url)}</small>` : (it.rtype !== '없음' ? `<small>🔗 ${esc(it.rtype)}</small>` : '')}
-        <div style="margin-top:3px">${CATS.filter(x => x !== c).map(x => `<button class="mvc" data-a="mvCat" data-id="${esc(it.id)}" data-c="${x}">→ ${x}</button>`).join(' ')}</div></div>
+        <div style="margin-top:6px"><select data-xsel="${esc(it.id)}" title="분류 옮기기">${IMPCOLS.map(x => `<option${x === c ? ' selected' : ''}>${x}</option>`).join('')}</select></div></div>
       <button class="ib" data-a="mv" data-id="${esc(it.id)}" data-d="-1" ${k === 0 ? 'disabled style="opacity:.3"' : ''}>↑</button>
-      <button class="ib" data-a="mv" data-id="${esc(it.id)}" data-d="1" ${k === m[c].length - 1 ? 'disabled style="opacity:.3"' : ''}>↓</button>
+      <button class="ib" data-a="mv" data-id="${esc(it.id)}" data-d="1" ${k === l.length - 1 ? 'disabled style="opacity:.3"' : ''}>↓</button>
       <button class="ib" data-a="toggleOn" data-id="${esc(it.id)}" title="${it.on ? '학생에게 보임' : '숨김'}">${it.on ? '👁️' : '🚫'}</button>
       <button class="ib" data-a="editItem" data-id="${esc(it.id)}">✏️</button>
-      <button class="ib" data-a="delItem" data-id="${esc(it.id)}">🗑️</button></div>`).join(''))).join('')
-    : '<div class="hint" style="text-align:center;padding:16px">아직 항목이 없어요. 위 양식 라이브러리·엑셀로 불러오거나 하나씩 추가해 보세요.</div>';
+      <button class="ib" data-a="delItem" data-id="${esc(it.id)}">🗑️</button></div>`).join('') : '<div class="ibsub" style="padding:16px;text-align:center">이 분류에는 항목이 없어요</div>';
+  }
+  $('itList').innerHTML = h;
 }
+async function itMove(idList, col){
+  const list = idList.map(id => DATA.items.find(x => x.id === id)).filter(x => x && itColOf(x) !== col);
+  if (!list.length) return;
+  try{
+    for (const it of list) await api('saveItem', { data:JSON.stringify(col === '행발' ? { ...it, dest:'행발' } : { ...it, cat:col, dest:'' }) });
+    itSel = {}; await refresh(); toast(`${list.length}개를 ${col}으로 옮겼어요`);
+  }catch(e){ toast(e.message); await refresh(); }
+}
+(function(){
+  const root = () => $('itList');
+  document.addEventListener('click', e => {
+    const box = root(); if (!box || !box.contains(e.target)) return;
+    const to = e.target.closest('[data-xto]'); if (to){ itMove(Object.keys(itSel).filter(k => itSel[k]), to.dataset.xto); return; }
+    if (e.target.closest('[data-xclr]')){ itSel = {}; renderItems(); return; }
+    const f = e.target.closest('[data-xf]'); if (f){ itFocus = Number(f.dataset.xf); renderItems(); return; }
+    const c = e.target.closest('[data-xc]'); if (c){ const id = c.dataset.xc; itSel[id] = !itSel[id]; renderItems(); }
+  });
+  document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.xsel !== undefined && root() && root().contains(t)) itMove([t.dataset.xsel], t.value); });
+  document.addEventListener('dragstart', e => { const c = e.target.closest && e.target.closest('[data-xc]'); if (!c || !root() || !root().contains(c)) return; itDragId = c.dataset.xc; c.classList.add('drag'); e.dataTransfer.setData('text/plain', itDragId); e.dataTransfer.effectAllowed = 'move'; });
+  document.addEventListener('dragend', () => { itDragId = ''; document.querySelectorAll('#itList .drag,#itList .over').forEach(x => x.classList.remove('drag','over')); });
+  document.addEventListener('dragover', e => { const c = e.target.closest && e.target.closest('[data-xcol]'); if (!c || !itDragId) return; e.preventDefault(); document.querySelectorAll('#itList .over').forEach(x => x.classList.remove('over')); c.classList.add('over'); });
+  document.addEventListener('drop', e => {
+    const c = e.target.closest && e.target.closest('[data-xcol]'); if (!c || !itDragId) return; e.preventDefault(); e.stopPropagation();
+    const ids = itSel[itDragId] ? Object.keys(itSel).filter(k => itSel[k]) : [itDragId]; itDragId = ''; itMove(ids, c.dataset.xcol);
+  }, true);
+})();
 function itemFromForm(){ return { id:editId || '', cat:$('fCat').value, title:$('fTitle').value.trim(), note:$('fNote').value.trim(), rtype:$('fRtype').value, url:$('fUrl').value.trim(), prov:!!$('fUrl').value.trim(),
   tnote:$('fTnote').value.trim(), term:$('fTerm').value, dest:$('fDest').value, give:$('fGive').checked, chk:$('fChk').checked }; }
 async function saveItem(btn){
@@ -998,10 +1036,10 @@ async function toggleOn(id){
 }
 async function moveItem(id, d){
   const it = DATA.items.find(x => x.id === id); if (!it) return;
-  const list = DATA.items.filter(x => x.cat === it.cat), i = list.indexOf(it), j = i + d;
+  const col = itColOf(it), list = DATA.items.filter(x => itColOf(x) === col), i = list.indexOf(it), j = i + d;
   if (j < 0 || j >= list.length) return;
-  list.splice(i, 1); list.splice(j, 0, it);
-  try{ await api('reorderItems', { data:JSON.stringify(list.map((x,k) => ({ id:x.id, order:k + 1 }))) }); await refresh(); }catch(e){ toast(e.message); }
+  const o = list[j], a = it.order, b = o.order;
+  try{ await api('reorderItems', { data:JSON.stringify(a === b ? list.map((x,k) => ({ id:x.id, order:k + 1 })) : [{ id:it.id, order:b }, { id:o.id, order:a }]) }); await refresh(); }catch(e){ toast(e.message); }
 }
 /* ----- 교사용 기재 지침 ----- */
 const GD = [['공통','gdCom'],['자율','gdJa'],['진로','gdJi'],['행발','gdHa']];
