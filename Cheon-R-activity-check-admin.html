@@ -61,6 +61,7 @@ details.tsi ol{padding-left:18px}.tsi li{margin-bottom:4px}
 .pane{display:none}.pane.on{display:block}
 .grid2{display:grid;grid-template-columns:1fr;gap:12px}
 @media(min-width:760px){.grid2{grid-template-columns:1fr 1fr}}
+.dropOn{outline:3px dashed var(--main,#9B8EC4);outline-offset:-6px;background:#F4F2FA}
 .mini{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:99px;background:#EEE9F8;color:#6B5FA0;margin-right:4px}
 .mini.g{background:#FFF1D6;color:#9A6A00}.mini.c{background:#FFE3E3;color:#B03030}.mini.d{background:#DDF1E6;color:#1E7A48}
 .tn{font-size:12.5px;color:#7A4F00;background:#FFF8E6;border-radius:8px;padding:5px 8px;margin-top:4px}
@@ -402,6 +403,7 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
         <h3>📥 엑셀로 한 번에 불러오기</h3>
         <p class="hint" style="margin-top:0">양식을 받아 채우거나, 이미 있는 엑셀·표를 그대로 올리거나 붙여 넣으면 돼요. 한글(hwp) 표는 <b>표를 복사해서 아래 칸에 붙여넣기</b> 하세요.</p>
         <div class="row"><button class="btn sm" data-a="pickFile">📂 엑셀 파일 선택</button><input type="file" id="fileIn" accept=".xlsx,.xls,.csv" class="hide"></div>
+        <p class="hint" style="margin:6px 0 0">💡 엑셀 파일을 이 카드 위로 <b>끌어다 놓아도</b> 돼요.</p>
         <label class="f">또는 여기에 붙여넣기</label>
         <textarea id="pasteIn" placeholder="분류 / 항목명 / 작성 유의사항 순서로 붙여넣어요. 예)&#10;자율	학교폭력예방교육	(소감문 작성)&#10;진로	진로탐색 활동	보고서 제출"></textarea>
         <div class="row"><button class="btn sm" data-a="parsePaste">붙여넣은 내용 분석</button></div>
@@ -1665,6 +1667,14 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('change', e => { const el = e.target; if (el.tagName === 'INPUT' && el.dataset.a && ACT[el.dataset.a]) ACT[el.dataset.a](el, e); });
 $('fileIn').addEventListener('change', e => onItemFile(e.target.files[0]));
+/* 엑셀 파일을 불러오기 카드 위로 끌어다 놓아도 올라가요 */
+(function(){
+  const card = $('fileIn').closest('.card'); if (!card) return;
+  const has = e => e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files');
+  ['dragenter','dragover'].forEach(t => card.addEventListener(t, e => { if (!has(e)) return; e.preventDefault(); card.classList.add('dropOn'); }));
+  card.addEventListener('dragleave', e => { if (!card.contains(e.relatedTarget)) card.classList.remove('dropOn'); });
+  card.addEventListener('drop', e => { if (!has(e)) return; e.preventDefault(); card.classList.remove('dropOn'); const f = e.dataTransfer.files[0]; if (f) onItemFile(f); });
+})();
 $('stuFile').addEventListener('change', e => onStuFile(e.target.files[0]));
 $('statItem').addEventListener('change', e => { statItem = e.target.value; renderStat(); });
 $('statQ').addEventListener('input', renderStat);
