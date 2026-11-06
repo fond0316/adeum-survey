@@ -217,6 +217,8 @@ body.demo #demoBar{display:flex}body.demo #btnOut,body.demo #btnRe{display:none}
   <div class="hl"><div class="ic">🙋</div><div><b>참여 체크</b> 활동 카드를 누르면 펼쳐져요. <b>참여함</b> 또는 <b>참여 안 함</b>을 고르고 💾 저장해요. 참여 안 함도 꼭 눌러야 점검이 끝나요.</div></div>
   <div class="hl"><div class="ic">✍️</div><div><b>참여했다면</b> 보고서를 썼는지, 관련 링크(내 결과물 주소), 그리고 <b>활동 요약</b>을 적어요. 무엇을 했고 무엇을 알게 됐는지 짧게 써도 좋아요. 요약이 선생님께 가장 큰 도움이 돼요.</div></div>
   <div class="hl"><div class="ic">📚</div><div><b>교과 활동</b>은 수행평가·탐구·실험 주제를 <b>내 진로와 연결</b>해서 적어요. 활동이 여러 개면 <b>➕ 활동 추가</b>로 칸을 늘려요.</div></div>
+  <div class="hl"><div class="ic">🔎</div><div><b>목록에 내 활동이 안 보여요</b> 먼저 🌱 자율 · 💡 진로 · 📚 교과 목록을 <b>끝까지 찾아보세요.</b> 이미 선생님이 올려 둔 활동이면 거기서 눌러서 적어요. <b>정말 없을 때만</b> 🙋 <b>내가 추가</b>에서 직접 만들어요.</div></div>
+  <div class="hl"><div class="ic">🙋</div><div><b>내가 추가 쓰는 법</b> ① 활동 이름을 적어요 ② 자율인지 진로인지 골라요(헷갈리면 ❓모르겠어요) ③ <b>"목록에서 찾아봤는데 없어요"</b>에 체크하고 ➕ 활동 추가 ④ 열린 카드에 참여·보고서·요약을 똑같이 적고 💾 저장해요. 선생님이 확인해서 맞으면 정식 활동이 되고, 아니면 지울 수 있어요. 장난으로 만든 활동은 선생님이 지워요. (최대 10개)</div></div>
   <div class="hl"><div class="ic">🎯</div><div><b>진로 희망</b> 위쪽 칸에 적어 두면 선생님도 함께 봐요. 바뀌면 언제든 고쳐요.</div></div>
   <div class="hl"><div class="ic">🏷️</div><div><b>상태 표시</b> <b>미점검</b>(아직 안 눌렀어요) · <b>참여 안 함</b> · <b>요약 미작성</b>(참여했는데 요약이 비었어요) · <b>완료</b>.</div></div>
   <div class="hl"><div class="ic">👩‍🏫</div><div><b>선생님 확인</b> 선생님이 ✅ 확인하거나 한마디를 남기면 그 활동 카드에 보여요. 내용을 고치면 확인 표시는 다시 풀려요.</div></div>
@@ -354,7 +356,7 @@ let items = [], recs = {}, career = '', club = '', clubEdit = false, cat = '자�
 const D = {};                         // 쓰는 중인 초안  key: iid|n
 const extra = {};                     // 교과 항목에 새로 추가한 칸 번호들 iid -> [n..]
 const key = (iid, n) => iid + '|' + n;
-let onlyLeft = false; const SV = {}; const LB = { '내활동': '내가 추가' }; const myNew = { title: '', cat: '' };   // onlyLeft: 남은 것만 보기 / SV: 저장 실패 메시지
+let onlyLeft = false; const SV = {}; const LB = { '내활동': '내가 추가' }; const myNew = { title: '', cat: '', ok: false };   // onlyLeft: 남은 것만 보기 / SV: 저장 실패 메시지
 const dueInfo = it => { const m = String((it && it.due) || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!m) return null; const t = new Date(); t.setHours(0, 0, 0, 0); return { diff:Math.round((new Date(+m[1], +m[2] - 1, +m[3]) - t) / 86400000), txt:+m[2] + '/' + +m[3] }; };
 const snap = o => ['part', 'report', 'link', 'topic', 'career', 'summary', 'atype', 'rterm', 'ref'].map(f => String((o && o[f]) || '').trim()).join('\u0001');
 const isDirty = k => !!D[k] && snap(D[k]) !== snap(recs[k]);
@@ -498,10 +500,12 @@ function myAddHtml(cnt){
   if (full) return '<div class="myadd"><b>🙋 내가 추가한 활동</b><div class="why">직접 추가는 10개까지 할 수 있어요. 더 필요하면 선생님께 말씀해 주세요.</div></div>';
   return `<div class="myadd"><b>🙋 목록에 없는 활동이 있나요?</b>
     <div class="why">자율·진로 목록에서 찾지 못한 활동이 있으면 직접 추가해 보세요. 아래에서 다른 활동처럼 똑같이 적을 수 있고, 선생님이 확인한 뒤 정식 활동으로 올려 줘요.</div>
+ <div class="why" style="color:#8A2F5C;font-weight:700">⚠️ 먼저 자율·진로·교과 목록을 끝까지 찾아보세요. 이미 있는 활동이면 거기에 적어요. 없을 때만 추가해요.</div>
     <input type="text" id="myT" maxlength="60" placeholder="활동 이름 (예: 학급 환경 캠페인)" value="${esc(myNew.title)}">
     <div class="mycat"><small>분류</small>${MYCATS.map(c => `<button class="chip ${myNew.cat === c ? 'on' : ''}" data-act="myCatNew" data-v="${c}">${c === '모르겠어요' ? '❓ ' : c === '자율' ? '🌱 ' : '💡 '}${c}</button>`).join('')}</div>
     ${myNew.cat === '모르겠어요' ? '<div class="unk">괜찮아요! 선생님이 확인해서 알맞은 분류로 정해 줄 거예요.</div>' : ''}
-    <div class="acts" style="margin-top:10px"><button class="btn" data-act="myAdd">➕ 활동 추가</button></div></div>`;
+    <label style="display:flex;gap:8px;align-items:center;min-height:44px;margin-top:8px;font-size:14px;font-weight:600"><input type="checkbox" id="myOk" style="width:20px;height:20px"${myNew.ok ? ' checked' : ''}> 목록에서 찾아봤는데 없어요</label>
+    <div class="acts" style="margin-top:6px"><button class="btn" data-act="myAdd">➕ 활동 추가</button></div></div>`;
 }
 function clubHtml(){
   const all = items.filter(i => i.cat === '동아리'), cur = all.find(i => i.id === club);
@@ -588,7 +592,7 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   const act = b.dataset.act, k = b.dataset.k; let iid, n;
   if (k) { [iid, n] = k.split('|'); n = Number(n); }
-  if (act === 'myCatNew'){ myNew.cat = myNew.cat === b.dataset.v ? '' : b.dataset.v; const t = $('myT'); if (t) myNew.title = t.value; render(); return; }
+  if (act === 'myCatNew'){ myNew.cat = myNew.cat === b.dataset.v ? '' : b.dataset.v; const t = $('myT'); if (t) myNew.title = t.value; const o = $('myOk'); if (o) myNew.ok = o.checked; render(); return; }
   if (act === 'myAdd'){ myAdd(b); return; }
   if (act === 'myCatChg'){ myCatChg(b.dataset.id, b.dataset.v); return; }
   if (act === 'myDel'){ myDel(b.dataset.id, b); return; }
@@ -641,14 +645,16 @@ $('btnCareer').onclick = async () => {
 
 const myMap = x => ({ id: x.id, cat: '내활동', mc: x.cat, title: x.title, note: '', rtype: '직접링크', url: '', prov: false, order: 0, on: true, give: false, term: '', due: '' });
 document.addEventListener('input', e => { if (e.target && e.target.id === 'myT') myNew.title = e.target.value; });
+document.addEventListener('change', e => { if (e.target && e.target.id === 'myOk') myNew.ok = e.target.checked; });
 async function myAdd(btn){
   const title = (($('myT') || {}).value || '').trim();
   if (!title){ toast('활동 이름을 적어 주세요.'); return; }
   if (!myNew.cat){ toast('분류를 골라 주세요. 모르겠으면 ❓모르겠어요를 눌러요.'); return; }
+  if (!(($('myOk') || {}).checked)){ toast('목록에서 먼저 찾아보고, 없을 때만 추가해요. 체크해 주세요.'); return; }
   btn.disabled = true;
   try {
     const r = await jsonp({ action: 'sAddItem', sid: me.sid, pin: me.pin, data: JSON.stringify({ title, cat: myNew.cat }) });
-    items.push(myMap(r.item)); myNew.title = ''; myNew.cat = ''; openId = r.item.id; toast('추가했어요 🙋 아래에서 내용을 적고 💾 저장해 주세요'); render();
+    items.push(myMap(r.item)); myNew.title = ''; myNew.cat = ''; myNew.ok = false; openId = r.item.id; toast('추가했어요 🙋 아래에서 내용을 적고 💾 저장해 주세요'); render();
     const el = document.getElementById('it-' + r.item.id); el && el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   } catch (e) { toast(e.message); btn.disabled = false; }
 }
