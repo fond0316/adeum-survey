@@ -61,6 +61,9 @@ details.tsi ol{padding-left:18px}.tsi li{margin-bottom:4px}
 .pane{display:none}.pane.on{display:block}
 .grid2{display:grid;grid-template-columns:1fr;gap:12px}
 @media(min-width:760px){.grid2{grid-template-columns:1fr 1fr}}
+.dz{border:2px dashed #BDB3DB;background:#F7F5FC;border-radius:14px;padding:18px 12px;text-align:center;cursor:pointer;display:flex;flex-direction:column;gap:3px;align-items:center;color:var(--mainD,#6B5FA0)}
+.dz small{color:var(--tx3,#8a85a0);font-size:12px}
+.dz.dropOn{border-color:#9B8EC4;background:#ECE7F8}
 .dropOn{outline:3px dashed var(--main,#9B8EC4);outline-offset:-6px;background:#F4F2FA}
 .mini{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:99px;background:#EEE9F8;color:#6B5FA0;margin-right:4px}
 .mini.g{background:#FFF1D6;color:#9A6A00}.mini.c{background:#FFE3E3;color:#B03030}.mini.d{background:#DDF1E6;color:#1E7A48}
@@ -402,8 +405,8 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
       <div class="card">
         <h3>📥 엑셀로 한 번에 불러오기</h3>
         <p class="hint" style="margin-top:0">양식을 받아 채우거나, 이미 있는 엑셀·표를 그대로 올리거나 붙여 넣으면 돼요. 한글(hwp) 표는 <b>표를 복사해서 아래 칸에 붙여넣기</b> 하세요.</p>
-        <div class="row"><button class="btn sm" data-a="pickFile">📂 엑셀 파일 선택</button><input type="file" id="fileIn" accept=".xlsx,.xls,.csv" class="hide"></div>
-        <p class="hint" style="margin:6px 0 0">💡 엑셀 파일을 이 카드 위로 <b>끌어다 놓아도</b> 돼요.</p>
+        <div id="impDrop" class="dz" data-a="pickFile" role="button" tabindex="0"><div style="font-size:28px">📂</div><b>엑셀 파일을 여기로 끌어다 놓으세요</b><small>또는 이 칸을 눌러서 파일 선택 (.xlsx · .csv)</small></div>
+        <input type="file" id="fileIn" accept=".xlsx,.xls,.csv" class="hide">
         <label class="f">또는 여기에 붙여넣기</label>
         <textarea id="pasteIn" placeholder="분류 / 항목명 / 작성 유의사항 순서로 붙여넣어요. 예)&#10;자율	학교폭력예방교육	(소감문 작성)&#10;진로	진로탐색 활동	보고서 제출"></textarea>
         <div class="row"><button class="btn sm" data-a="parsePaste">붙여넣은 내용 분석</button></div>
@@ -1667,13 +1670,14 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('change', e => { const el = e.target; if (el.tagName === 'INPUT' && el.dataset.a && ACT[el.dataset.a]) ACT[el.dataset.a](el, e); });
 $('fileIn').addEventListener('change', e => onItemFile(e.target.files[0]));
-/* 엑셀 파일을 불러오기 카드 위로 끌어다 놓아도 올라가요 */
+/* 엑셀 파일을 끌어다 놓으면 올라가요 (항목 탭 어디에 놓아도 되고, 점선 박스에 놓아도 돼요) */
 (function(){
-  const card = $('fileIn').closest('.card'); if (!card) return;
-  const has = e => e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files');
-  ['dragenter','dragover'].forEach(t => card.addEventListener(t, e => { if (!has(e)) return; e.preventDefault(); card.classList.add('dropOn'); }));
-  card.addEventListener('dragleave', e => { if (!card.contains(e.relatedTarget)) card.classList.remove('dropOn'); });
-  card.addEventListener('drop', e => { if (!has(e)) return; e.preventDefault(); card.classList.remove('dropOn'); const f = e.dataTransfer.files[0]; if (f) onItemFile(f); });
+  const zone = $('impDrop'), has = e => e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files');
+  const on = v => { zone.classList.toggle('dropOn', v); zone.closest('.card').classList.toggle('dropOn', v); };
+  ['dragenter','dragover'].forEach(t => window.addEventListener(t, e => { if (!has(e)) return; e.preventDefault(); if (curTab === 'items') on(true); }));
+  window.addEventListener('dragleave', e => { if (!e.relatedTarget) on(false); });
+  window.addEventListener('drop', e => { if (!has(e)) return; e.preventDefault(); on(false); const f = e.dataTransfer.files[0]; if (!f) return; if (curTab === 'items' && !$('scrMain').classList.contains('hide')) onItemFile(f); else toast('📋 항목 탭에서 파일을 놓아 주세요'); });
+  zone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); $('fileIn').click(); } });
 })();
 $('stuFile').addEventListener('change', e => onStuFile(e.target.files[0]));
 $('statItem').addEventListener('change', e => { statItem = e.target.value; renderStat(); });
