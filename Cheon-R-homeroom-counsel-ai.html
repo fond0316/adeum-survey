@@ -869,7 +869,7 @@
           <div>
             <label class="form-label" style="font-size:11px;">📝 모의고사 <span style="color:var(--text3);font-weight:400;">선택</span></label>
             <div class="upload-zone" id="mokZone"
-              onclick="document.getElementById('mokFileInput').click()"
+              onclick="mokForceRound = null; document.getElementById('mokFileInput').value = ''; document.getElementById('mokFileInput').click()"
               ondragover="handleDragOver(event,'mokZone')"
               ondragleave="handleDragLeave(event,'mokZone')"
               ondrop="handleDrop(event,'mok')">
@@ -880,6 +880,7 @@
               </div>
             </div>
             <input type="file" id="mokFileInput" accept=".xlsx,.xls,.xlsm,.ods" style="display:none" onchange="handleFileSelect(event,'mok')">
+            <div id="mokFileList" style="margin-top:6px;display:flex;flex-direction:column;gap:6px;"></div>
           </div>
         </div>
 
@@ -2436,6 +2437,7 @@ function parseMokFile(rows, fileName) {
     round = roundMatch[1] + '월';
   }
   { const _cm = mokCustomList().find(c => fileName.includes(c.name)); if (_cm) round = _cm.name; }
+  if (mokForceRound) { round = mokForceRound; mokForceRound = null; }   // '교체' 버튼으로 올린 파일은 그 회차로
 
   // 데이터 행 찾기 (학번이 숫자인 첫 행)
   let dataStart = -1;
@@ -5627,12 +5629,41 @@ function saveMokFile(round, fileName, byName, byNo) {
 function refreshMokFileList() {
   const el = document.getElementById('mokFileName');
   const zone = document.getElementById('mokZone');
+  const list = document.getElementById('mokFileList');
   if (!el) return;
   const files = loadMokFiles();
-  const rows = MOK_ROUNDS.filter(r => files[r]).map(r => `<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escapeHTML(files[r].fileName || '')}">✅ <b>${r}</b> · ${escapeHTML(files[r].fileName || '파일')}</div>`);
+  const have = MOK_ROUNDS.filter(r => files[r]);
   el.style.whiteSpace = 'normal';
-  el.innerHTML = rows.join('');
-  if (zone) zone.classList.toggle('done', rows.length > 0);
+  el.textContent = have.length ? `${have.length}개 회차 저장됨 · 눌러서 추가` : '';
+  if (zone) zone.classList.toggle('done', have.length > 0);
+  if (!list) return;
+  const bs = 'min-height:34px;padding:0 10px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;background:#fff;';
+  list.innerHTML = have.map(r => `<div style="border:1.5px solid #8fd3b8;background:#f1fbf6;border-radius:10px;padding:6px 8px;">
+    <div style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escapeHTML(files[r].fileName || '')}">✅ <b>${escapeHTML(r)}</b> · ${escapeHTML(files[r].fileName || '파일')}</div>
+    <div style="display:flex;gap:6px;margin-top:4px;"><button type="button" onclick="mokReplaceFile(this.dataset.r)" data-r="${escapeHTML(r)}" style="${bs}border:1.5px solid var(--primary);color:var(--primary-dark);">교체</button><button type="button" onclick="mokDeleteFile(this.dataset.r)" data-r="${escapeHTML(r)}" style="${bs}border:1.5px solid #e57373;color:#c62828;">삭제</button></div></div>`).join('');
+}
+// 이 회차 파일 교체: 파일을 고르면 파일명과 상관없이 이 회차로 들어감
+let mokForceRound = null;
+function mokReplaceFile(round) {
+  mokForceRound = round;
+  const inp = document.getElementById('mokFileInput');
+  inp.value = ''; inp.click();
+}
+// 이 회차 파일 삭제: 파일에서 가져온 학생 성적도 함께 지움 (직접 고쳐 저장한 값은 유지)
+function mokDeleteFile(round) {
+  if (!confirm(`${round} 모의고사 파일을 삭제할까요?\n파일에서 가져온 ${round} 성적이 모든 학생에게서 지워져요.\n(직접 고쳐서 저장한 값은 남아요)`)) return;
+  try { const f = loadMokFiles(); delete f[round]; localStorage.setItem(MOK_FILES_KEY, JSON.stringify(f)); } catch (e) {}
+  try {
+    Object.keys(localStorage).filter(k => /^mok_/.test(k)).forEach(k => {
+      const a = JSON.parse(localStorage.getItem(k) || '{}');
+      if (a[round] && a[round]._fromFile) { delete a[round]; localStorage.setItem(k, JSON.stringify(a)); }
+    });
+  } catch (e) {}
+  if (pendingMokData && pendingMokData.round === round) pendingMokData = null;
+  try { refreshMokFileList(); } catch (e) {}
+  try { renderMokTabs(); renderMokInputs(); } catch (e) {}
+  try { if (selectedStudent && document.getElementById('statCard').style.display !== 'none') startStatAnalysis(); } catch (e) {}
+  showToast(`${round} 모의고사 파일을 삭제했어요`);
 }
 // 학생을 고르면, 보관된 모든 회차 파일에서 그 학생 성적을 꺼내 채움 (직접 고쳐 저장한 회차는 건드리지 않음)
 function applyStoredMokFiles() {
