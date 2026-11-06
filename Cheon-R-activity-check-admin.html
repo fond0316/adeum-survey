@@ -61,6 +61,8 @@ details.tsi ol{padding-left:18px}.tsi li{margin-bottom:4px}
 .pane{display:none}.pane.on{display:block}
 .grid2{display:grid;grid-template-columns:1fr;gap:12px}
 @media(min-width:760px){.grid2{grid-template-columns:1fr 1fr}}
+.catHd{display:flex;align-items:center;gap:8px;background:none;border:0;padding:4px 0;min-height:44px;cursor:pointer;font:inherit}
+.catAr{color:var(--tx3);font-size:15px}
 .dz{border:2px dashed #BDB3DB;background:#F7F5FC;border-radius:14px;padding:18px 12px;text-align:center;cursor:pointer;display:flex;flex-direction:column;gap:3px;align-items:center;color:var(--mainD,#6B5FA0)}
 .dz small{color:var(--tx3,#8a85a0);font-size:12px}
 .dz.dropOn{border-color:#9B8EC4;background:#ECE7F8}
@@ -993,19 +995,20 @@ function itemTags(it, withNote){
   return (it.term ? `<span class="mini">${esc(it.term)}</span>` : '') + (it.give ? '<span class="mini g">문구 제공</span>' : '') + (it.dest ? `<span class="mini d">보낼 곳: ${esc(it.dest)}</span>` : '') + (it.chk ? '<span class="mini c">확인 필요</span>' : '')
     + (withNote && it.tnote ? `<div class="tn">🔒 ${esc(it.tnote)}</div>` : '');
 }
+const catClosed = {};
 function renderItems(){
   const m = itemsByCat();
   $('itCnt').textContent = `(${DATA.items.length}개)`;
   $('itList').innerHTML = DATA.items.length ? CATS.map(c => !m[c].length ? '' :
-    `<div style="margin:12px 0 4px"><span class="tag ${CATCLS[c]}">${CATE[c]} ${c} ${m[c].length}</span></div>` +
-    m[c].map((it, k) => `<div class="it ${it.on ? '' : 'off'}">
+    `<div style="margin:12px 0 4px"><button class="catHd" data-a="toggleCat" data-c="${c}" aria-expanded="${!catClosed[c]}"><span class="tag ${CATCLS[c]}">${CATE[c]} ${c} ${m[c].length}</span><span class="catAr">${catClosed[c] ? '▸' : '▾'}</span></button></div>` +
+    (catClosed[c] ? '' : m[c].map((it, k) => `<div class="it ${it.on ? '' : 'off'}">
       <div class="t"><b>${esc(it.title)}</b>${itemTags(it, true)}${it.note ? `<small>${esc(it.note)}</small>` : ''}${it.url ? `<small>🔗 ${esc(it.rtype)} · ${esc(it.url)}</small>` : (it.rtype !== '없음' ? `<small>🔗 ${esc(it.rtype)}</small>` : '')}
         <div style="margin-top:3px">${CATS.filter(x => x !== c).map(x => `<button class="mvc" data-a="mvCat" data-id="${esc(it.id)}" data-c="${x}">→ ${x}</button>`).join(' ')}</div></div>
       <button class="ib" data-a="mv" data-id="${esc(it.id)}" data-d="-1" ${k === 0 ? 'disabled style="opacity:.3"' : ''}>↑</button>
       <button class="ib" data-a="mv" data-id="${esc(it.id)}" data-d="1" ${k === m[c].length - 1 ? 'disabled style="opacity:.3"' : ''}>↓</button>
       <button class="ib" data-a="toggleOn" data-id="${esc(it.id)}" title="${it.on ? '학생에게 보임' : '숨김'}">${it.on ? '👁️' : '🚫'}</button>
       <button class="ib" data-a="editItem" data-id="${esc(it.id)}">✏️</button>
-      <button class="ib" data-a="delItem" data-id="${esc(it.id)}">🗑️</button></div>`).join('')).join('')
+      <button class="ib" data-a="delItem" data-id="${esc(it.id)}">🗑️</button></div>`).join(''))).join('')
     : '<div class="hint" style="text-align:center;padding:16px">아직 항목이 없어요. 위 양식 라이브러리·엑셀로 불러오거나 하나씩 추가해 보세요.</div>';
 }
 function itemFromForm(){ return { id:editId || '', cat:$('fCat').value, title:$('fTitle').value.trim(), note:$('fNote').value.trim(), rtype:$('fRtype').value, url:$('fUrl').value.trim(), prov:!!$('fUrl').value.trim(),
@@ -1022,7 +1025,7 @@ async function saveItem(btn){
 }
 function editItem(id){
   const it = DATA.items.find(x => x.id === id); if (!it) return;
-  editId = id; $('fCat').value = it.cat; $('fTitle').value = it.title; $('fNote').value = it.note; $('fRtype').value = it.rtype; $('fUrl').value = it.url;
+  openItemCard($('fTitle')); editId = id; $('fCat').value = it.cat; $('fTitle').value = it.title; $('fNote').value = it.note; $('fRtype').value = it.rtype; $('fUrl').value = it.url;
   $('fTnote').value = it.tnote || ''; $('fTerm').value = it.term || ''; $('fDest').value = it.dest || ''; $('fGive').checked = !!it.give; $('fChk').checked = !!it.chk;
   $('formTitle').textContent = '✏️ 항목 수정'; $('fCancel').classList.remove('hide'); $('fTitle').scrollIntoView({ block:'center', behavior:'smooth' });
 }
@@ -1104,7 +1107,7 @@ function parseTable(rows){
 }
 let IMPMETA = null;
 function showImp(list, meta){
-  IMP = list; IMPMETA = meta || null;
+  IMP = list; IMPMETA = meta || null; openItemCard($('impBox'));
   $('impMeta').classList.toggle('hide', !IMPMETA);
   if (IMPMETA) $('impMetaTx').textContent = `학년도·학년(${IMPMETA.year || '-'}학년도 ${IMPMETA.grade || '-'}학년)과 기재 지침도 함께 적용`;
   if (!list.length){ msg('impMsg','읽을 수 있는 항목을 찾지 못했어요. 분류 / 항목명 / 학생에게 보이는 설명 순서인지 확인해 주세요.'); $('impBox').classList.add('hide'); return; }
@@ -1185,7 +1188,7 @@ function tplDown(){
 }
 function expItems(){ if (!DATA.items.length){ toast('저장할 항목이 없어요'); return; } xlsxItems(DATA.items, DATA.year, DATA.grade, DATA.guide, `ACTIVITY_CHECK_${DATA.year || ''}_${DATA.grade || ''}학년_항목.xlsx`); }
 function loadPreset(k){
-  const ps = PRESETS[k]; if (!ps) return;
+  const ps = PRESETS[k]; if (!ps) return; openItemCard($('impBox'));
   const list = ps.items.map(r => ({ cat:r[0], title:r[1], note:r[2], tnote:r[3], term:r[4], dest:r[5], give:!!r[6], chk:!!r[7], rtype:r[8], url:'', inc:true, unsure:false }));
   showImp(list, { year:ps.year, grade:ps.grade, guide:ps.guide });
   msg('impMsg', `${ps.label} ${list.length}개 항목을 불러왔어요. 아래에서 확인·수정한 뒤 등록해 주세요. (빨간 글씨였던 항목은 확인필요에 체크돼 있어요)`, true);
@@ -1650,6 +1653,7 @@ const ACT = {
   tab: el => goTab(el.dataset.t),
   copyStuText: () => copyText($('stuLink').value, '주소를 복사했어요'), copyStuRich, openStu: () => window.open($('stuLink').value, '_blank'),
   yearReset: el => yearReset(el),
+  toggleCat: el => { catClosed[el.dataset.c] = !catClosed[el.dataset.c]; renderItems(); },
   preset: el => loadPreset(el.dataset.k), expItems, saveGuide: el => saveGuide(el), mvCat: el => mvCat(el.dataset.id, el.dataset.c),
   tplDown, pickFile: () => $('fileIn').click(), parsePaste, doImport: el => doImport(el), cancelImp: () => { IMP = []; $('impBox').classList.add('hide'); msg('impMsg',''); },
   saveItem: el => saveItem(el), cancelEdit, editItem: el => editItem(el.dataset.id), delItem: el => delItem(el.dataset.id), toggleOn: el => toggleOn(el.dataset.id), mv: el => moveItem(el.dataset.id, Number(el.dataset.d)),
@@ -1697,6 +1701,25 @@ $('gasIn').addEventListener('keydown', e => { if (e.key === 'Enter') connect(); 
     b.classList.add('cbx'); if (open.includes(i)) b.classList.add('cbx-open');
     h.setAttribute('role','button'); h.setAttribute('tabindex','0'); h.setAttribute('aria-expanded', b.classList.contains('cbx-open'));
     const tog = () => { b.classList.toggle('cbx-open'); h.setAttribute('aria-expanded', b.classList.contains('cbx-open')); save(); };
+    h.addEventListener('click', tog);
+    h.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); tog(); } });
+  });
+})();
+
+/* 📋 항목 탭 카드 접었다 폈다 (펼친 것은 이 기기에 기억 · 처음엔 양식 라이브러리와 항목 목록만 펼침) */
+const ITEM_CARDS = [];
+function openItemCard(el){ const c = el && el.closest('#p-items > .card'); if (c && !c.classList.contains('cbx-open')){ c.classList.add('cbx-open'); const h = c.querySelector(':scope > h3'); if (h) h.setAttribute('aria-expanded', 'true'); saveItemCards(); } }
+function saveItemCards(){ try{ localStorage.setItem('ac_itemopen_v1', JSON.stringify(ITEM_CARDS.map((b,i) => b.classList.contains('cbx-open') ? i : -1).filter(i => i >= 0))); }catch(e){} }
+(function(){
+  let open = null; try{ open = JSON.parse(localStorage.getItem('ac_itemopen_v1')); }catch(e){}
+  const boxes = [...document.querySelectorAll('#p-items > .card')].filter(b => b.querySelector(':scope > h3'));
+  if (!Array.isArray(open)) open = [0, boxes.length - 1];
+  boxes.forEach((b, i) => {
+    ITEM_CARDS.push(b);
+    const h = b.querySelector(':scope > h3');
+    b.classList.add('cbx'); if (open.includes(i)) b.classList.add('cbx-open');
+    h.setAttribute('role','button'); h.setAttribute('tabindex','0'); h.setAttribute('aria-expanded', b.classList.contains('cbx-open'));
+    const tog = () => { b.classList.toggle('cbx-open'); h.setAttribute('aria-expanded', b.classList.contains('cbx-open')); saveItemCards(); };
     h.addEventListener('click', tog);
     h.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); tog(); } });
   });
