@@ -847,7 +847,7 @@ input[type=date]{min-width:0;max-width:100%}
         <label class="f">소개 자료에 써도 될까요?</label>
         <div class="chips" id="rvOk"></div>
         <div id="rvNameBox" class="hide"><label class="f">공개해도 되는 아이디 <small>(공개를 고르셨어요)</small></label><input type="text" id="rvName" maxlength="20"><p class="hint" style="margin:6px 0 0">이 이름은 등록 정보에도 저장돼요.</p></div>
-        <p class="hint" style="margin:6px 0 0">기본은 <b>쓰지 말아주세요</b>예요. 허락해 주신 경우에만 포트폴리오·소개 자료에 인용해요.</p>
+        <p class="hint" style="margin:6px 0 0">기본은 <b>아이디 없이 써도 돼요</b>예요. 바꾸고 싶으면 다른 걸 눌러 주세요. 허락해 주신 경우에만 포트폴리오·소개 자료에 인용해요.</p>
         <div class="row" style="margin-top:12px"><button class="btn" id="rvSend" onclick="sendReview()">보내기</button></div>
         <div class="msg" id="rvMsg"></div>
       </div>
@@ -1572,7 +1572,7 @@ function renderUseLine(){
   el.classList.toggle('hide', !show);
   if (show) el.innerHTML = '<b>● 오늘 ' + u.today + '명</b> / 누적 ' + u.users + '명 사용 중';
 }
-let reviewOn = false, rvRate = 0, rvPick = [], rvLow = [], rvLowOtherOn = false, rvOtherOn = false, rvKind = '', rvOk = 'no', rvSending = false;
+let reviewOn = false, rvRate = 0, rvPick = [], rvLow = [], rvLowOtherOn = false, rvOtherOn = false, rvKind = '', rvOk = 'anon', rvSending = false;
 function applyReviewUi(){
   const b = document.querySelector('#nav button[data-t="rv"]'); if (b) b.classList.toggle('hide', !reviewOn);
   renderSr();
@@ -1614,7 +1614,7 @@ async function sendReview(){
     await jsonp({ action:'review', id:installId, rate:rvRate, c:rvPick.join(','), lc: lowOn ? rvLow.join(',') : '', lo: lowOn && rvLowOtherOn ? $('rvLowOther').value.trim() : '', other: rvOtherOn ? $('rvOther').value.trim() : '', one:$('rvOne').value.trim(), ik:rvKind, imp, ok:rvOk }, REGISTRY_URL);
     const st = lsGet(K.rv, { n:0, shown:false, done:false }); st.done = true; lsSet(K.rv, st);
     $('rvBanner').classList.add('hide');
-    rvRate = 0; rvPick = []; rvLow = []; rvLowOtherOn = false; rvOtherOn = false; rvKind = ''; rvOk = 'no';
+    rvRate = 0; rvPick = []; rvLow = []; rvLowOtherOn = false; rvOtherOn = false; rvKind = ''; rvOk = 'anon';
     $('rvOther').value = ''; $('rvLowOther').value = ''; $('rvOne').value = ''; $('rvImp').value = ''; $('rvName').value = '';
     renderRv(); msg('rvMsg','💜 소중한 의견 감사합니다! 다음에 또 의견이 생기면 언제든 남겨 주세요.',true);
   }catch(e){ msg('rvMsg','보내지 못했어요. 입력한 내용은 그대로 있어요. (' + e.message + ')'); }

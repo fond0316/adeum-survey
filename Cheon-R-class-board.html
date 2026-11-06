@@ -388,7 +388,7 @@ body.board .ti-row .tag{font-size:15px}
       <textarea id="rvImp" maxlength="200" placeholder="불편했던 점, 있었으면 하는 기능을 편하게 적어 주세요"></textarea>
       <div class="rvl">소개 자료에 써도 될까요? <small>(이름은 안 나와요)</small></div>
       <div class="rvcw" id="rvOk"></div>
-      <div class="rvn">기본은 <b>쓰지 말아주세요</b>예요. 학번·이름·공지 내용은 전달되지 않아요.</div>
+      <div class="rvn">기본은 <b>써도 돼요 (이름 없이)</b>예요. 바꾸고 싶으면 다른 걸 눌러 주세요. 학번·이름·공지 내용은 전달되지 않아요.</div>
       <label class="rvag"><input type="checkbox" id="rvAgree"><span><b>[필수]</b> 내가 쓴 후기가 <b>이름·학번 없이</b> 앱을 만든 선생님께 전달되는 것에 동의해요.</span></label>
     </div>
     <div class="err" id="rvErr"></div>
@@ -987,7 +987,7 @@ const RVS_CHIPS = ['공지를 한눈에 볼 수 있어요','확인 버튼이 편
 const RVS_LOWS = ['공지가 눈에 잘 안 띄어요','글자·화면이 보기 불편해요','열리는 게 느리거나 잘 안 열려요','확인·호출 기능이 어려워요','필요한 공지를 찾기 힘들어요'];   // 별점 3점 이하일 때만 (SREVIEW.lows 와 순서 동일)
 const RVS_KINDS = ['기능 요청','오류','디자인','기타'];
 const RVS_OK = [['yes','써도 돼요 (이름 없이)'],['no','쓰지 말아주세요']];
-let rvRate = 0, rvPick = [], rvLow = [], rvOtherOn = false, rvLowOtherOn = false, rvKind = '', rvOk = 'no', rvSending = false, rvOn = null;
+let rvRate = 0, rvPick = [], rvLow = [], rvOtherOn = false, rvLowOtherOn = false, rvKind = '', rvOk = 'yes', rvSending = false, rvOn = null;
 function rvBtns(id, arr, on, fn){ document.getElementById(id).innerHTML = arr.map((t,i) => `<button type="button" class="rvc${on(i)?' on':''}" onclick="${fn}(${i})">${esc(t)}</button>`).join(''); }
 function renderRv(){
   const low = rvRate >= 1 && rvRate <= 3, $ = id => document.getElementById(id);
@@ -1029,7 +1029,7 @@ async function sendStuReview(){
   try{
     await jsonp({ action:'sreview', cb:classCode(GAS), dv:devId(), rate:rvRate, c:rvPick.join(','), other: rvOtherOn ? $('rvOther').value.trim() : '',
       lc: low ? rvLow.join(',') : '', lo: low && rvLowOtherOn ? $('rvLowOther').value.trim() : '', one:$('rvOne').value.trim(), ik:rvKind, imp, ok:rvOk }, REGISTRY_URL);
-    rvRate = 0; rvPick = []; rvLow = []; rvOtherOn = false; rvLowOtherOn = false; rvKind = ''; rvOk = 'no';
+    rvRate = 0; rvPick = []; rvLow = []; rvOtherOn = false; rvLowOtherOn = false; rvKind = ''; rvOk = 'yes';
     ['rvOther','rvLowOther','rvOne','rvImp'].forEach(id => $(id).value = ''); $('rvAgree').checked = false;
     note.style.color = '#2E7D32'; note.textContent = '💜 고마워요! 소중한 의견 잘 받았어요.'; renderRv();
     setTimeout(() => { closeOv('rvOv'); note.style.color = ''; note.textContent = ''; }, 1600);
