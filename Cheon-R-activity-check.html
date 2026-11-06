@@ -243,6 +243,7 @@ const K = { gas: 'ac_gas_v1', me: 'ac_me_v1', dv: 'ac_dv_v1', ping: 'ac_ping_v1'
 const REGISTRY_URL = 'https://script.google.com/macros/s/AKfycbzrgeAlZhEGyvp7vo_j0hgesVoIoI6T_GMayKJCfvOFaV5Sb3wO1xvackSeQLc3HQxsnQ/exec';
 const CAT = { '자율': { e: '🌱', cc: '#B7ABE3' }, '진로': { e: '💡', cc: '#8FD0B1' }, '교과': { e: '📚', cc: '#F2B98B' }, '동아리': { e: '🎭', cc: '#8DBDE0' } };
 let CATS = ['자율', '진로'];   // 교과·동아리 항목이 있을 때만 해당 탭이 나와요
+const ATYPES = ['독서', '탐구보고서', '실험', '토론', '발표', '프로젝트', '기타'];
 const RLABEL = { '해성에듀': '해성에듀', '학급자율활동앱': '학급자율활동 앱', '직접링크': '관련 링크', '없음': '' };
 
 const DEMO = new URLSearchParams(location.search).get('demo') === '1';   // 🎬 체험 모드: 샘플 데이터만 쓰고 아무것도 저장·전송하지 않아요
@@ -315,7 +316,7 @@ function demoApi(p){
       const d = JSON.parse(p.data || '{}'), it = DEMO_ITEMS.find(x => x.id === d.itemId); if (!it) return reject(new Error('없어진 항목이에요.'));
       const n = (it.cat === '교과' || it.cat === '동아리') ? Math.max(1, Math.min(9, parseInt(d.n, 10) || 1)) : 1;
       const old = demoSt.recs.find(x => x.iid === it.id && x.n === n);
-      const rec = { sid:'10101', iid:it.id, n, part:d.part || '', report:d.report || '', link:d.link || '', topic:String(d.topic || '').substring(0,60), career:String(d.career || '').substring(0,80), summary:String(d.summary || '').substring(0,400), at:'', tchk:false, tmemo:old ? old.tmemo : '' };
+      const rec = { sid:'10101', iid:it.id, n, part:d.part || '', report:d.report || '', link:d.link || '', topic:String(d.topic || '').substring(0,60), career:String(d.career || '').substring(0,80), summary:String(d.summary || '').substring(0,500), atype:d.atype || '', rterm:d.rterm || '', ref:String(d.ref || '').substring(0,200), at:'', tchk:false, tmemo:old ? old.tmemo : '' };
       if (old) Object.assign(old, rec); else demoSt.recs.push(rec);
       return resolve({ ok:true, rec:{ ...rec } });
     }
@@ -425,7 +426,7 @@ function sumRender(){
       recsOf(it.id).forEach(r => {
         const st = r.part === 'yes' ? '참여함' + (r.report === 'done' ? ' · 보고서 작성' : r.report === 'todo' ? ' · 보고서 아직' : '') : r.part === 'no' ? '참여 안 함' : '미선택';
         part += `<div class="sm-box"><b>${esc(it.title)}</b>${it.term ? ' <span class="tg">' + esc(it.term) + '</span>' : ''}<div class="m">${st}${r.at ? ' · 저장 ' + esc(String(r.at).slice(0, 10)) : ''}</div>`
-          + (r.topic ? `<div class="s">주제: ${esc(r.topic)}</div>` : '') + (r.career ? `<div class="s">진로 연결: ${esc(r.career)}</div>` : '')
+          + (r.atype || r.rterm ? `<div class="s">${[r.rterm, r.atype].filter(Boolean).map(esc).join(' · ')}</div>` : '') + (r.topic ? `<div class="s">주제: ${esc(r.topic)}</div>` : '') + (r.ref ? `<div class="s">읽은 책·자료: ${esc(r.ref)}</div>` : '') + (r.career ? `<div class="s">진로 연결: ${esc(r.career)}</div>` : '')
           + (r.summary ? `<div class="s">${esc(r.summary)}</div>` : '') + (r.link ? (okLink(r.link) ? `<div class="s"><a href="${esc(r.link)}" target="_blank" rel="noopener noreferrer">🔗 링크</a></div>` : `<div class="s">📍 경로: ${esc(r.link)}</div>`) : '') + '</div>';
       });
     });
@@ -493,7 +494,7 @@ function bodyHtml(it){
 }
 function getDraft(iid, n){
   const k = key(iid, n);
-  if (!D[k]) { const r = recs[k]; D[k] = r ? { part: r.part, report: r.report, link: r.link, topic: r.topic, career: r.career, summary: r.summary } : { part: '', report: '', link: '', topic: '', career: '', summary: '' }; }
+  if (!D[k]) { const r = recs[k]; D[k] = r ? { part: r.part, report: r.report, link: r.link, topic: r.topic, career: r.career, summary: r.summary, atype: r.atype || '', rterm: r.rterm || '', ref: r.ref || '' } : { part: '', report: '', link: '', topic: '', career: '', summary: '', atype: '', rterm: '', ref: '' }; }
   return D[k];
 }
 function entHtml(it, n, label){
@@ -504,9 +505,14 @@ function entHtml(it, n, label){
     <button class="chip ${d.part === 'yes' ? 'on' : ''}" data-act="part" data-k="${k}" data-v="yes">🙋 참여함</button>
     <button class="chip no ${d.part === 'no' ? 'on' : ''}" data-act="part" data-k="${k}" data-v="no">참여 안 함</button></div>`;
   if (d.part === 'yes') {
+    if (it.cat === '교과') {
+      h += `<label class="l">활동 유형</label><div class="chips">${ATYPES.map(a => `<button class="chip ${d.atype === a ? 'on' : ''}" data-act="atype" data-k="${k}" data-v="${a}">${a}</button>`).join('')}</div>
+        <label class="l">학기</label><div class="chips">${['1학기', '2학기'].map(a => `<button class="chip ${d.rterm === a ? 'on' : ''}" data-act="rterm" data-k="${k}" data-v="${a}">${a}</button>`).join('')}</div>`;
+    }
     if (multi(it)) {
       h += `<label class="l">${it.cat === '동아리' ? '활동 주제' : '탐구·수행 주제'}</label><input type="text" maxlength="60" data-f="topic" data-k="${k}" value="${esc(d.topic)}" placeholder="예) 이차함수로 포물선 구조물 분석하기">
-        <label class="l">내 진로와 연결한 점</label><input type="text" maxlength="80" data-f="career" data-k="${k}" value="${esc(d.career)}" placeholder="예) 건축가가 되고 싶어서 구조물의 곡선을 수학으로 분석함">`;
+        ${it.cat === '교과' ? `<label class="l">읽은 책 · 참고 자료 <span style="font-weight:500;color:var(--tx3)">(선택)</span></label><input type="text" maxlength="200" data-f="ref" data-k="${k}" value="${esc(d.ref)}" placeholder="예) 『사피엔스』 유발 하라리 / 통계청 자료">` : ''}
+        <label class="l">${it.cat === '교과' ? '내 진로·다른 활동과 연결한 점' : '내 진로와 연결한 점'}</label><input type="text" maxlength="80" data-f="career" data-k="${k}" value="${esc(d.career)}" placeholder="예) 건축가가 되고 싶어서 구조물의 곡선을 수학으로 분석함">`;
     }
     h += `<label class="l">보고서</label><div class="chips">
       <button class="chip ${d.report === 'done' ? 'on' : ''}" data-act="rep" data-k="${k}" data-v="done">✍️ 작성했어요</button>
@@ -515,8 +521,8 @@ function entHtml(it, n, label){
     if (it.url && okLink(it.url)) h += `<a class="linkbtn" href="${esc(it.url)}" target="_blank" rel="noopener noreferrer">🔗 ${esc(RLABEL[it.rtype] || '바로가기')} 열기</a>`;
     h += `<input type="text" maxlength="300" data-f="link" data-k="${k}" value="${esc(d.link)}" placeholder="예) https://… 또는 해성에듀 > 내 보고서 > 2학기 탐구보고서">`;
     h += `<label class="l">활동 요약 <span style="font-weight:500;color:var(--tx3)">— 나중에 생기부 쓸 때 선생님이 참고해요</span></label>
-      <textarea maxlength="400" data-f="summary" data-k="${k}" placeholder="무엇을 했는지, 알게 된 점·느낀 점을 간단히 적어요">${esc(d.summary)}</textarea>
-      <div class="cnt"><span id="cn-${k}">${d.summary.length}</span> / 400</div>`;
+      <textarea maxlength="500" data-f="summary" data-k="${k}" placeholder="무엇을 했는지, 알게 된 점·느낀 점을 간단히 적어요">${esc(d.summary)}</textarea>
+      <div class="cnt"><span id="cn-${k}">${d.summary.length}</span> / 500</div>`;
   }
   if (r && (r.tchk || r.tmemo)) h += `<div class="tmemo">👩‍🏫 선생님${r.tchk ? '<span class="tchk">✅ 확인했어요</span>' : ''}${r.tmemo ? '<br>' + esc(r.tmemo).replace(/\n/g, '<br>') : ''}</div>`;
   h += `<div class="acts"><button class="btn" data-act="save" data-k="${k}">💾 저장</button>`;
@@ -558,6 +564,8 @@ document.addEventListener('click', e => {
   }
   else if (act === 'toggle') { openId = openId === b.dataset.id ? null : b.dataset.id; render(); if (openId) { const el = document.getElementById('it-' + openId); el && el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } }
   else if (act === 'part') { getDraft(iid, n).part = b.dataset.v; render(); }
+  else if (act === 'atype') { const d = getDraft(iid, n); d.atype = d.atype === b.dataset.v ? '' : b.dataset.v; render(); }
+  else if (act === 'rterm') { const d = getDraft(iid, n); d.rterm = d.rterm === b.dataset.v ? '' : b.dataset.v; render(); }
   else if (act === 'rep') { const d = getDraft(iid, n); d.report = d.report === b.dataset.v ? '' : b.dataset.v; render(); }
   else if (act === 'addEnt') {
     const it = items.find(x => x.id === b.dataset.id), nums = entNums(it), nn = Math.max(...nums) + 1;
@@ -577,7 +585,7 @@ async function saveEnt(iid, n, btn){
   const d = getDraft(iid, n);
   if (!d.part) { toast('참여했는지 먼저 골라 주세요.'); return; }
   if (d.part === 'yes' && d.link && d.link.trim().length > 300) { toast('링크·경로는 300자 이내로 적어 주세요.'); return; }
-  const data = d.part === 'yes' ? { itemId: iid, n, part: 'yes', report: d.report, link: d.link.trim(), topic: d.topic, career: d.career, summary: d.summary }
+  const data = d.part === 'yes' ? { itemId: iid, n, part: 'yes', report: d.report, link: d.link.trim(), topic: d.topic, career: d.career, summary: d.summary, atype: d.atype, rterm: d.rterm, ref: d.ref }
                                 : { itemId: iid, n, part: 'no' };
   btn.disabled = true;
   try {

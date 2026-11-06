@@ -5,11 +5,12 @@
  */
 
 /** GAS 코드 버전 — 코드를 고칠 때마다 1씩 올려요. 관리 화면이 이 번호로 업데이트가 필요한지 알려줘요. */
-var GAS_VER = 3;
+var GAS_VER = 4;
 
 var TZ = 'Asia/Seoul';
 var DEFAULT_PW = 'activitycheck';   // 초기 비밀번호 — 첫 로그인 때 변경 강제
 var CATS = ['자율', '진로', '교과', '동아리'];
+var ATYPES = ['독서', '탐구보고서', '실험', '토론', '발표', '프로젝트', '기타'];   // 교과 활동 유형
 var RTYPES = ['해성에듀', '학급자율활동앱', '직접링크', '없음'];
 var MAX_FAIL = 5;                   // 학생 PIN을 이만큼 틀리면 10분 동안 잠깐 막아요
 var MAX_ADMIN_FAIL = 8;             // 담임 비밀번호를 이만큼 틀리면 10분 동안 잠깐 막아요
@@ -19,7 +20,7 @@ var SHEETS = {
   settings: { name: '설정', headers: ['항목', '값'] },
   students: { name: '학생명단', headers: ['학번', '이름', 'PIN', '진로희망', 'PIN설정시각', '동아리'] },
   items: { name: '항목', headers: ['ID', '분류', '항목명', '작성유의사항', '보고서종류', '기본링크', '담임제공', '순서', '사용', '교사용기재유의', '문구제공', '학기', '보낼곳', '확인필요'] },
-  records: { name: '기록', headers: ['학번', '항목ID', '번호', '참여', '보고서', '링크', '주제', '진로연결', '요약', '수정시각', '교사확인', '교사메모'] }
+  records: { name: '기록', headers: ['학번', '항목ID', '번호', '참여', '보고서', '링크', '주제', '진로연결', '요약', '수정시각', '교사확인', '교사메모', '활동유형', '학기', '자료'] }
 };
 var DEFAULT_SETTINGS = [['학년도', String(new Date().getFullYear())], ['학급명', '우리 반'], ['관리자비번', DEFAULT_PW]];
 
@@ -228,7 +229,7 @@ function sortItems_(list) {
   return list.sort(function (a, b) { return (CATS.indexOf(a.cat) - CATS.indexOf(b.cat)) || (a.order - b.order); });
 }
 function recObj_(r) {
-  return { sid: r[0], iid: r[1], n: Number(r[2]) || 1, part: r[3], report: r[4], link: r[5], topic: r[6], career: r[7], summary: r[8], at: r[9], tchk: r[10] === 'Y', tmemo: r[11] };
+  return { sid: r[0], iid: r[1], n: Number(r[2]) || 1, part: r[3], report: r[4], link: r[5], topic: r[6], career: r[7], summary: r[8], at: r[9], tchk: r[10] === 'Y', tmemo: r[11], atype: r[12] || '', rterm: r[13] || '', ref: r[14] || '' };
 }
 function findRec_(data, sid, iid, n) {
   for (var i = 0; i < data.length; i++) if (data[i][0] === sid && data[i][1] === iid && data[i][2] === String(n)) return i;
@@ -308,13 +309,14 @@ function sSave_(p) {
   var report = (d.report === 'done' || d.report === 'todo') ? d.report : '';
   var link = String(d.link || '').trim();
   if (link.length > 300) throw new Error('링크·경로는 300자 이내로 적어 주세요.');   // 주소(https://…)나 경로 글(예: 해성에듀 > 내 보고서) 모두 가능
-  var topic = cut_(d.topic, 60), career = cut_(d.career, 80), summary = cut_(d.summary, 400);
+  var topic = cut_(d.topic, 60), career = cut_(d.career, 80), summary = cut_(d.summary, 500);
+  var atype = ATYPES.indexOf(d.atype) >= 0 ? d.atype : '', rterm = (d.rterm === '1학기' || d.rterm === '2학기') ? d.rterm : '', ref = cut_(d.ref, 200);
   return lock_(function () {
     var sh = sh_('records'), idx = recIdx_(sh, sid, item.id, n);
     var memo = idx >= 0 ? str_(sh.getRange(idx + 2, 12).getValue()) : '';
     var at = now_();
-    writeRow_(sh, idx >= 0 ? idx + 2 : sh.getLastRow() + 1, [sid, item.id, String(n), part, report, link, topic, career, summary, at, '', memo]);   // 학생이 고치면 교사확인은 풀려요
-    return { ok: true, rec: { sid: sid, iid: item.id, n: n, part: part, report: report, link: link, topic: topic, career: career, summary: summary, at: at, tchk: false, tmemo: memo } };
+    writeRow_(sh, idx >= 0 ? idx + 2 : sh.getLastRow() + 1, [sid, item.id, String(n), part, report, link, topic, career, summary, at, '', memo, atype, rterm, ref]);   // 학생이 고치면 교사확인은 풀려요
+    return { ok: true, rec: { sid: sid, iid: item.id, n: n, part: part, report: report, link: link, topic: topic, career: career, summary: summary, at: at, tchk: false, tmemo: memo, atype: atype, rterm: rterm, ref: ref } };
   });
 }
 function sDelete_(p) {
