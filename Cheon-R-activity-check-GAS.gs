@@ -5,12 +5,13 @@
  */
 
 /** GAS 코드 버전 — 코드를 고칠 때마다 1씩 올려요. 관리 화면이 이 번호로 업데이트가 필요한지 알려줘요. */
-var GAS_VER = 7;
+var GAS_VER = 8;
 
 var TZ = 'Asia/Seoul';
 var DEFAULT_PW = 'activitycheck';   // 초기 비밀번호 — 첫 로그인 때 변경 강제
 var CATS = ['자율', '진로', '교과', '동아리'];
 var SCATS = ['자율', '진로', '모르겠어요'];   // 학생이 직접 추가하는 활동의 분류 ('모르겠어요'는 담임이 정해 줘요)
+var MAX_STAR = 3;                   // 자율·진로 분류별로 '진로와 연결하기 좋은 활동'(⭐)을 고를 수 있는 개수 (그중 대표 🌟는 1개)
 var MAX_SADD = 10;                  // 학생 1명이 추가할 수 있는 활동 수
 var ATYPES = ['독서', '탐구보고서', '실험', '토론', '발표', '프로젝트', '기타'];   // 교과 활동 유형
 var RTYPES = ['해성에듀', '학급자율활동앱', '직접링크', '없음'];
@@ -22,7 +23,7 @@ var SHEETS = {
   settings: { name: '설정', headers: ['항목', '값'] },
   students: { name: '학생명단', headers: ['학번', '이름', 'PIN', '진로희망', 'PIN설정시각', '동아리'] },
   items: { name: '항목', headers: ['ID', '분류', '항목명', '작성유의사항', '보고서종류', '기본링크', '담임제공', '순서', '사용', '교사용기재유의', '문구제공', '학기', '보낼곳', '확인필요', '마감일', '추가한학생'] },
-  records: { name: '기록', headers: ['학번', '항목ID', '번호', '참여', '보고서', '링크', '주제', '진로연결', '요약', '수정시각', '교사확인', '교사메모', '활동유형', '학기', '자료'] }
+  records: { name: '기록', headers: ['학번', '항목ID', '번호', '참여', '보고서', '링크', '주제', '진로연결', '요약', '수정시각', '교사확인', '교사메모', '활동유형', '학기', '자료', '대표', '심화'] }
 };
 var DEFAULT_SETTINGS = [['학년도', String(new Date().getFullYear())], ['학급명', '우리 반'], ['관리자비번', DEFAULT_PW]];
 
@@ -54,6 +55,7 @@ function route_(p) {
     case 'sDelete': return sDelete_(p);
     case 'sCareer': return sCareer_(p);
     case 'sClub': return sClub_(p);
+    case 'sStar': return sStar_(p);
     case 'sAddItem': return sAddItem_(p);
     case 'sDelItem': return sDelItem_(p);
     case 'promoteSItem': return promoteSItem_(p);
@@ -244,7 +246,7 @@ function sortItems_(list) {
   return list.sort(function (a, b) { return (CATS.indexOf(a.cat) - CATS.indexOf(b.cat)) || (a.order - b.order); });
 }
 function recObj_(r) {
-  return { sid: r[0], iid: r[1], n: Number(r[2]) || 1, part: r[3], report: r[4], link: r[5], topic: r[6], career: r[7], summary: r[8], at: r[9], tchk: r[10] === 'Y', tmemo: r[11], atype: r[12] || '', rterm: r[13] || '', ref: r[14] || '' };
+  return { sid: r[0], iid: r[1], n: Number(r[2]) || 1, part: r[3], report: r[4], link: r[5], topic: r[6], career: r[7], summary: r[8], at: r[9], tchk: r[10] === 'Y', tmemo: r[11], atype: r[12] || '', rterm: r[13] || '', ref: r[14] || '', star: r[15] === '1' || r[15] === '2' ? r[15] : '', deep: r[16] || '' };
 }
 function findRec_(data, sid, iid, n) {
   for (var i = 0; i < data.length; i++) if (data[i][0] === sid && data[i][1] === iid && data[i][2] === String(n)) return i;
@@ -328,14 +330,44 @@ function sSave_(p) {
   var report = (d.report === 'done' || d.report === 'todo') ? d.report : '';
   var link = String(d.link || '').trim();
   if (link.length > 300) throw new Error('링크·경로는 300자 이내로 적어 주세요.');   // 주소(https://…)나 경로 글(예: 해성에듀 > 내 보고서) 모두 가능
-  var topic = cut_(d.topic, 60), career = cut_(d.career, 80), summary = cut_(d.summary, 500);
+  var topic = cut_(d.topic, 60), career = cut_(d.career, 150), summary = cut_(d.summary, 500), deep = cut_(d.deep, 200);
   var atype = ATYPES.indexOf(d.atype) >= 0 ? d.atype : '', rterm = (d.rterm === '1학기' || d.rterm === '2학기') ? d.rterm : '', ref = cut_(d.ref, 200);
   return lock_(function () {
     var sh = sh_('records'), idx = recIdx_(sh, sid, item.id, n);
     var memo = idx >= 0 ? str_(sh.getRange(idx + 2, 12).getValue()) : '';
+    var star = idx >= 0 && part === 'yes' ? str_(sh.getRange(idx + 2, 16).getValue()) : '';   // ⭐ 표시는 그대로 지켜요 (참여 안 함으로 바꾸면 풀려요)
+    if (star !== '1' && star !== '2') star = '';
     var at = now_();
-    writeRow_(sh, idx >= 0 ? idx + 2 : sh.getLastRow() + 1, [sid, item.id, String(n), part, report, link, topic, career, summary, at, '', memo, atype, rterm, ref]);   // 학생이 고치면 교사확인은 풀려요
-    return { ok: true, rec: { sid: sid, iid: item.id, n: n, part: part, report: report, link: link, topic: topic, career: career, summary: summary, at: at, tchk: false, tmemo: memo, atype: atype, rterm: rterm, ref: ref } };
+    writeRow_(sh, idx >= 0 ? idx + 2 : sh.getLastRow() + 1, [sid, item.id, String(n), part, report, link, topic, career, summary, at, '', memo, atype, rterm, ref, star, part === 'yes' ? deep : '']);   // 학생이 고치면 교사확인은 풀려요
+    return { ok: true, rec: { sid: sid, iid: item.id, n: n, part: part, report: report, link: link, topic: topic, career: career, summary: summary, at: at, tchk: false, tmemo: memo, atype: atype, rterm: rterm, ref: ref, star: star, deep: part === 'yes' ? deep : '' } };
+  });
+}
+/** 진로와 연결하기 좋은 활동 표시 — level '0' 없음 / '1' ⭐ / '2' 🌟 대표 (분류별로 ⭐ 최대 3개, 대표는 1개) */
+function sStar_(p) {
+  var st = stuAuth_(p.sid, p.pin), sid = st.v[0], iid = String(p.iid || ''), level = String(p.level || '0');
+  if (level !== '0' && level !== '1' && level !== '2') throw new Error('표시가 올바르지 않아요.');
+  var catOf = {};
+  itemsS_().forEach(function (it) { catOf[it.id] = it.cat; });
+  ownedS_().forEach(function (o) { if (o.by === sid) catOf[o.id] = o.cat; });
+  var cat = catOf[iid];
+  if (!cat) throw new Error('없어진 항목이에요. 화면을 새로고침해 주세요.');
+  if (cat === '모르겠어요') throw new Error('분류를 먼저 자율 또는 진로로 바꿔 주세요.');
+  if (cat !== '자율' && cat !== '진로') throw new Error('자율·진로 활동에서만 고를 수 있어요.');
+  return lock_(function () {
+    var sh = sh_('records'), data = rows_('records'), idx = findRec_(data, sid, iid, 1);
+    if (idx < 0 || data[idx][3] !== 'yes') throw new Error('먼저 "참여함"으로 💾 저장한 활동에서만 고를 수 있어요.');
+    var changed = [], cnt = 0, mains = [];
+    data.forEach(function (r, i) {
+      if (r[0] !== sid || catOf[r[1]] !== cat || i === idx) return;
+      if (r[15] === '1' || r[15] === '2') { cnt++; if (r[15] === '2') mains.push(i); }
+    });
+    if (level !== '0' && cnt >= MAX_STAR) throw new Error(cat + ' 활동은 ⭐를 ' + MAX_STAR + '개까지 고를 수 있어요. 다른 ⭐를 먼저 풀어 주세요.');
+    if (level === '2') mains.forEach(function (i) {   // 대표는 하나뿐이라 이전 대표는 ⭐로 내려가요
+      sh.getRange(i + 2, 16).setNumberFormat('@').setValue('1'); changed.push({ iid: data[i][1], star: '1' });
+    });
+    sh.getRange(idx + 2, 16).setNumberFormat('@').setValue(level === '0' ? '' : level);
+    changed.push({ iid: iid, star: level === '0' ? '' : level });
+    return { ok: true, changed: changed };
   });
 }
 /** 학생이 놓친 활동을 직접 추가 (id가 있으면 분류만 바꿔요) */
