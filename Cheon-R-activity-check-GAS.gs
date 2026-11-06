@@ -5,7 +5,7 @@
  */
 
 /** GAS 코드 버전 — 코드를 고칠 때마다 1씩 올려요. 관리 화면이 이 번호로 업데이트가 필요한지 알려줘요. */
-var GAS_VER = 4;
+var GAS_VER = 5;
 
 var TZ = 'Asia/Seoul';
 var DEFAULT_PW = 'activitycheck';   // 초기 비밀번호 — 첫 로그인 때 변경 강제
@@ -19,7 +19,7 @@ var C_FRESH = 60;                   // 명단·항목·설정은 60초 동안 �
 var SHEETS = {
   settings: { name: '설정', headers: ['항목', '값'] },
   students: { name: '학생명단', headers: ['학번', '이름', 'PIN', '진로희망', 'PIN설정시각', '동아리'] },
-  items: { name: '항목', headers: ['ID', '분류', '항목명', '작성유의사항', '보고서종류', '기본링크', '담임제공', '순서', '사용', '교사용기재유의', '문구제공', '학기', '보낼곳', '확인필요'] },
+  items: { name: '항목', headers: ['ID', '분류', '항목명', '작성유의사항', '보고서종류', '기본링크', '담임제공', '순서', '사용', '교사용기재유의', '문구제공', '학기', '보낼곳', '확인필요', '마감일'] },
   records: { name: '기록', headers: ['학번', '항목ID', '번호', '참여', '보고서', '링크', '주제', '진로연결', '요약', '수정시각', '교사확인', '교사메모', '활동유형', '학기', '자료'] }
 };
 var DEFAULT_SETTINGS = [['학년도', String(new Date().getFullYear())], ['학급명', '우리 반'], ['관리자비번', DEFAULT_PW]];
@@ -213,12 +213,12 @@ function login_(p) {
 /* ---------- 항목 · 기록 변환 ---------- */
 function itemObj_(r) {
   return { id: r[0], cat: r[1], title: r[2], note: r[3], rtype: r[4] || '없음', url: r[5], prov: r[6] === 'Y', order: Number(r[7]) || 0, on: r[8] !== 'N',
-    tnote: r[9] || '', give: r[10] === 'Y', term: r[11] || '', dest: r[12] || '', chk: r[13] === 'Y' };
+    tnote: r[9] || '', give: r[10] === 'Y', term: r[11] || '', dest: r[12] || '', chk: r[13] === 'Y', due: r[14] || '' };
 }
 /** 학생에게 보내는 항목 — 교사용 기재 유의·보낼곳·확인필요는 절대 넣지 않아요 */
 function itemObjS_(r) {
   return { id: r[0], cat: r[1], title: r[2], note: r[3], rtype: r[4] || '없음', url: r[5], prov: r[6] === 'Y', order: Number(r[7]) || 0, on: true,
-    give: r[10] === 'Y', term: r[11] || '' };
+    give: r[10] === 'Y', term: r[11] || '', due: r[14] || '' };
 }
 function itemsS_(fresh) {
   return cached_('c_items_s', function () {
@@ -380,9 +380,10 @@ function cleanItem_(it) {
   var url = String(it.url || '').trim();
   if (url && !okUrl_(url)) throw new Error('"' + title + '"의 링크는 https://로 시작하는 300자 이내 주소여야 해요.');
   var term = (it.term === '1학기' || it.term === '2학기') ? it.term : '';
+  var due = /^\d{4}-\d{2}-\d{2}$/.test(String(it.due || '')) ? String(it.due) : '';   // 마감일(선택)
   var dest = (it.dest === '자율' || it.dest === '진로' || it.dest === '행발') ? it.dest : '';
   return { cat: cat, title: title, note: cut_(it.note, 300), rtype: rtype, url: url, prov: it.prov ? 'Y' : '', on: it.on === false ? 'N' : '',
-    tnote: cut_(it.tnote, 300), give: it.give ? 'Y' : '', term: term, dest: dest, chk: it.chk ? 'Y' : '' };
+    tnote: cut_(it.tnote, 300), give: it.give ? 'Y' : '', term: term, dest: dest, chk: it.chk ? 'Y' : '', due: due };
 }
 function maxOrder_(data) {
   var m = 0;
@@ -398,7 +399,7 @@ function saveItem_(p) {
     if (id && idx < 0) throw new Error('수정할 항목을 찾지 못했어요.');
     if (idx < 0) id = 'I' + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36);
     var order = idx >= 0 ? (Number(data[idx][7]) || 0) : maxOrder_(data) + 1;
-    writeRow_(sh, idx >= 0 ? idx + 2 : sh.getLastRow() + 1, [id, c.cat, c.title, c.note, c.rtype, c.url, c.prov, String(order), c.on, c.tnote, c.give, c.term, c.dest, c.chk]);
+    writeRow_(sh, idx >= 0 ? idx + 2 : sh.getLastRow() + 1, [id, c.cat, c.title, c.note, c.rtype, c.url, c.prov, String(order), c.on, c.tnote, c.give, c.term, c.dest, c.chk, c.due]);
     cdel_('c_items_s');
     return { ok: true, id: id };
   });
@@ -422,11 +423,11 @@ function saveItems_(p) {
     }
     var data = rows_('items'), order = maxOrder_(data), rows = [];
     cleaned.forEach(function (c, i) {
-      rows.push(['I' + Date.now().toString(36) + i + Math.floor(Math.random() * 1296).toString(36), c.cat, c.title, c.note, c.rtype, c.url, c.prov, String(++order), c.on, c.tnote, c.give, c.term, c.dest, c.chk]);
+      rows.push(['I' + Date.now().toString(36) + i + Math.floor(Math.random() * 1296).toString(36), c.cat, c.title, c.note, c.rtype, c.url, c.prov, String(++order), c.on, c.tnote, c.give, c.term, c.dest, c.chk, c.due]);
     });
     if (rows.length) {
       ensureRows_(sh, sh.getLastRow() + rows.length);
-      sh.getRange(sh.getLastRow() + 1, 1, rows.length, 14).setNumberFormat('@').setValues(rows);
+      sh.getRange(sh.getLastRow() + 1, 1, rows.length, 15).setNumberFormat('@').setValues(rows);
     }
     cdel_('c_items_s');
     return { ok: true, count: rows.length };

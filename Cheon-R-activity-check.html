@@ -117,6 +117,11 @@ body.demo #demoBar{display:flex}body.demo #btnOut,body.demo #btnRe{display:none}
 .rvbn .btn{flex:none}
 .tg{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:99px;background:#EEE9F8;color:#6B5FA0;vertical-align:middle;margin-left:2px}
 .tg.g{background:#FFF1D6;color:#9A6A00}
+.tg.due{background:#FFE3E0;color:#B3382C}
+.lf{font:inherit;font-size:12px;font-weight:700;border:1.5px solid var(--line);background:#fff;color:var(--tx2);border-radius:99px;padding:8px 12px;min-height:40px;cursor:pointer;margin-left:6px}
+.lf.on{background:var(--main);border-color:var(--main);color:#fff}
+.sv{margin-top:10px;font-size:13px;font-weight:700;border-radius:10px;padding:7px 10px}
+.sv.ok{background:#E4F5EC;color:var(--ok)}.sv.dirty{background:#FFF4DC;color:var(--warn)}.sv.err{background:#FFE3E0;color:#B3382C}
 .sm-box{border:1px solid #E4DFF2;border-radius:12px;padding:10px 12px;margin:8px 0;background:#fff}
 .sm-box b{font-size:14px}.sm-box .m{font-size:12px;color:#7a7590;margin-top:2px}.sm-box .s{font-size:13px;margin-top:6px;white-space:pre-wrap;word-break:break-all}
 .sm-h{font-weight:800;margin:14px 0 4px;font-size:14px}
@@ -155,6 +160,7 @@ body.demo #demoBar{display:flex}body.demo #btnOut,body.demo #btnRe{display:none}
         </div>
         <label style="display:flex;gap:8px;align-items:center;margin-top:12px;font-size:14px;min-height:44px"><input type="checkbox" id="inKeep" checked style="width:22px;height:22px"> 이 기기에서 로그인 유지</label>
         <div class="msg" id="m2"></div>
+        <div class="hint" id="pinForgot">PIN을 잊었다면 담임선생님께 <b>PIN 초기화</b>를 부탁해요. 새 PIN을 다시 만들 수 있어요.</div>
         <div style="display:flex;gap:8px;margin-top:6px">
           <button class="btn sub" id="btnBack" style="flex:none">← 뒤로</button>
           <button class="btn" style="flex:1" id="btn2">시작하기</button>
@@ -338,6 +344,21 @@ let items = [], recs = {}, career = '', club = '', clubEdit = false, cat = '자�
 const D = {};                         // 쓰는 중인 초안  key: iid|n
 const extra = {};                     // 교과 항목에 새로 추가한 칸 번호들 iid -> [n..]
 const key = (iid, n) => iid + '|' + n;
+let onlyLeft = false; const SV = {};   // onlyLeft: 남은 것만 보기 / SV: 저장 실패 메시지
+const dueInfo = it => { const m = String((it && it.due) || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!m) return null; const t = new Date(); t.setHours(0, 0, 0, 0); return { diff:Math.round((new Date(+m[1], +m[2] - 1, +m[3]) - t) / 86400000), txt:+m[2] + '/' + +m[3] }; };
+const snap = o => ['part', 'report', 'link', 'topic', 'career', 'summary', 'atype', 'rterm', 'ref'].map(f => String((o && o[f]) || '').trim()).join('\u0001');
+const isDirty = k => !!D[k] && snap(D[k]) !== snap(recs[k]);
+function svHtml(k){
+  if (SV[k]) return `<div class="sv err">❌ 저장하지 못했어요: ${esc(SV[k])}<br>인터넷을 확인하고 <b>💾 저장</b>을 다시 눌러 주세요. (쓴 내용은 그대로 있어요)</div>`;
+  if (isDirty(k)) return '<div class="sv dirty">✏️ 아직 저장하지 않았어요 — 💾 저장을 눌러야 기록돼요</div>';
+  const r = recs[k]; return r ? `<div class="sv ok">✅ 저장됨${r.at ? ' · ' + esc(String(r.at).slice(5, 16).replace('-', '/')) : ''}</div>` : '';
+}
+function dueTag(it){
+  const d = dueInfo(it); if (!d) return ''; const st = statusOf(it), done = st === 'done' || st === 'no';
+  if (d.diff < 0) return done ? `<span class="tg">마감 ${d.txt}</span>` : `<span class="tg due">⏰ 마감 지남 ${d.txt}</span>`;
+  if (d.diff <= 3 && !done) return `<span class="tg due">⏰ ${d.diff === 0 ? '오늘 마감' : 'D-' + d.diff}</span>`;
+  return `<span class="tg">마감 ${d.txt}</span>`;
+}
 
 const multi = it => it.cat === '교과' || it.cat === '동아리';           // 한 항목에 활동을 여러 개 적을 수 있는 분류
 const mine = it => it.cat !== '동아리' || it.id === club;                // 동아리는 내가 고른 것만 보여요
@@ -370,7 +391,7 @@ $('btn1').onclick = async () => {
     pend = { sid, name: r.name, needPin: r.needPin };
     $('st1').classList.add('hide'); $('st2').classList.remove('hide');
     $('inPin').value = ''; $('inPin2').value = ''; $('m2').textContent = '';
-    $('pin2wrap').classList.toggle('hide', !r.needPin);
+    $('pin2wrap').classList.toggle('hide', !r.needPin); $('pinForgot').classList.toggle('hide', !!r.needPin);
     $('pinTitle').textContent = r.needPin ? `${r.name} 학생, 처음이네요! PIN을 만들어요 🔐` : `${r.name} 학생, 반가워요! 👋`;
     $('pinHint').textContent = r.needPin ? '숫자 4자리를 정해서 두 번 입력해요. 잊지 않을 번호로!' : 'PIN 4자리를 입력해 주세요.';
     setTimeout(() => $('inPin').focus(), 50);
@@ -441,22 +462,23 @@ function render(){
   // 분류 카드 + 진행
   let tot = 0, chk = 0, sum = 0;
   $('cats').innerHTML = CATS.map(c => {
-    const list = items.filter(i => i.cat === c && mine(i)), n = list.length, d = list.filter(i => statusOf(i) !== 'none').length;
-    return `<button class="cat ${c === cat ? 'on' : ''}" data-c="${c}" data-act="cat"><span class="e">${CAT[c].e}</span><b>${c}</b><small>${c === '동아리' && !club ? '고르기' : d + ' / ' + n}</small></button>`;
+    const list = items.filter(i => i.cat === c && mine(i)), n = list.length, d = list.filter(i => statusOf(i) !== 'none').length, sm = list.filter(i => statusOf(i) === 'sum').length;
+    return `<button class="cat ${c === cat ? 'on' : ''}" data-c="${c}" data-act="cat"><span class="e">${CAT[c].e}</span><b>${c}</b><small>${c === '동아리' && !club ? '고르기' : d + ' / ' + n + (sm ? ' · ✍️' + sm : '')}</small></button>`;
   }).join('');
   $('cats').classList.toggle('c4', CATS.length > 3);
   items.filter(mine).forEach(i => { tot++; const s = statusOf(i); if (s !== 'none') chk++; if (s === 'sum') sum++; });
   $('pgTxt').textContent = `${chk} / ${tot}`;
-  $('pgSub').textContent = sum ? `✍️ 요약을 안 쓴 활동 ${sum}개` : (tot && chk === tot ? '🎉 모두 점검했어요!' : '');
+  $('pgSub').innerHTML = (sum ? `✍️ 요약을 안 쓴 활동 ${sum}개 ` : (tot && chk === tot ? '🎉 모두 점검했어요!' : '')) + (tot && (chk < tot || sum) ? '<button class="lf" data-act="next">다음 할 일 →</button>' : '');
   $('pgBar').style.width = (tot ? Math.round(chk / tot * 100) : 0) + '%';
   // 목록
-  const list = items.filter(i => i.cat === cat && mine(i));
+  const all = items.filter(i => i.cat === cat && mine(i));
+  const list = onlyLeft ? all.filter(i => statusOf(i) === 'none' || statusOf(i) === 'sum' || i.id === openId) : all;
   $('secIcon').textContent = CAT[cat].e; $('secTitle').textContent = cat;
-  $('secCnt').textContent = list.length ? `${list.length}개 활동` : '';
+  $('secCnt').innerHTML = all.length ? `${onlyLeft ? list.length + ' / ' : ''}${all.length}개 활동<button class="lf ${onlyLeft ? 'on' : ''}" data-act="left">${onlyLeft ? '✓ 남은 것만' : '남은 것만 보기'}</button>` : '';
   $('grid').style.setProperty('--cc', CAT[cat].cc);
   if (cat === '동아리'){ $('grid').innerHTML = clubHtml() + list.map(itemHtml).join(''); return; }
   $('grid').innerHTML = list.length ? list.map(itemHtml).join('') :
-    `<div class="empty" style="grid-column:1/-1">아직 등록된 활동이 없어요.<br>담임선생님이 활동을 등록하면 여기에 나타나요 😊</div>`;
+    (all.length ? `<div class="empty" style="grid-column:1/-1">이 분류는 모두 점검했어요 🎉</div>` : `<div class="empty" style="grid-column:1/-1">아직 등록된 활동이 없어요.<br>담임선생님이 활동을 등록하면 여기에 나타나요 😊</div>`);
 }
 function clubHtml(){
   const all = items.filter(i => i.cat === '동아리'), cur = all.find(i => i.id === club);
@@ -470,8 +492,8 @@ function itemHtml(it){
   const cnt = multi(it) ? recsOf(it.id).length : 0;
   return `<div class="it ${open ? 'open' : ''}" style="--cc:${CAT[it.cat].cc}" id="it-${esc(it.id)}">
     <button class="hd" data-act="toggle" data-id="${esc(it.id)}">
-      <div class="t"><b>${esc(it.title)}</b>${it.term ? ` <span class="tg">${esc(it.term)}</span>` : ''}${it.give ? ` <span class="tg g">문구는 선생님이 제공</span>` : ''}${it.note ? `<small>${esc(it.note)}</small>` : ''}</div>
-      <span class="badge ${b[1]}">${b[0]}${cnt > 1 ? ' ' + cnt : ''}</span>
+      <div class="t"><b>${esc(it.title)}</b>${it.term ? ` <span class="tg">${esc(it.term)}</span>` : ''}${it.give ? ` <span class="tg g">문구는 선생님이 제공</span>` : ''} ${dueTag(it)}${it.note ? `<small>${esc(it.note)}</small>` : ''}</div>
+      <span class="badge ${b[1]}">${b[0]}${cnt > 1 ? ' ' + cnt : ''}${recsOf(it.id).some(r => r.tchk) ? ' ✅' : ''}${recsOf(it.id).some(r => r.tmemo) ? ' 💬' : ''}</span>
     </button>
     ${open ? bodyHtml(it) : ''}
   </div>`;
@@ -525,7 +547,7 @@ function entHtml(it, n, label){
       <div class="cnt"><span id="cn-${k}">${d.summary.length}</span> / 500</div>`;
   }
   if (r && (r.tchk || r.tmemo)) h += `<div class="tmemo">👩‍🏫 선생님${r.tchk ? '<span class="tchk">✅ 확인했어요</span>' : ''}${r.tmemo ? '<br>' + esc(r.tmemo).replace(/\n/g, '<br>') : ''}</div>`;
-  h += `<div class="acts"><button class="btn" data-act="save" data-k="${k}">💾 저장</button>`;
+  h += `<div id="sv-${k}">${svHtml(key(it.id, n))}</div><div class="acts"><button class="btn" data-act="save" data-k="${k}">💾 저장</button>`;
   if (r || n > 1) h += `<button class="btn del" data-act="del" data-k="${k}">${multi(it) && n > 1 ? '이 칸 지우기' : '기록 지우기'}</button>`;
   return h + '</div></div>';
 }
@@ -533,13 +555,19 @@ function entHtml(it, n, label){
 /* ===== 이벤트 ===== */
 document.addEventListener('input', e => {
   const t = e.target, f = t.dataset && t.dataset.f; if (!f) return;
-  const [iid, n] = t.dataset.k.split('|'); getDraft(iid, n)[f] = t.value;
+  const [iid, n] = t.dataset.k.split('|'); getDraft(iid, n)[f] = t.value; delete SV[t.dataset.k];
+  { const sv = document.getElementById('sv-' + t.dataset.k); if (sv) sv.innerHTML = svHtml(t.dataset.k); }
   if (f === 'summary') { const c = document.getElementById('cn-' + t.dataset.k); if (c) c.textContent = t.value.length; }
 });
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   const act = b.dataset.act, k = b.dataset.k; let iid, n;
   if (k) { [iid, n] = k.split('|'); n = Number(n); }
+  if (act === 'left'){ onlyLeft = !onlyLeft; render(); return; }
+  if (act === 'next'){
+    for (const st of ['none', 'sum']) for (const c of CATS) { const it = items.find(i => i.cat === c && mine(i) && statusOf(i) === st); if (it){ cat = c; openId = it.id; clubEdit = false; render(); const el = document.getElementById('it-' + it.id); el && el.scrollIntoView({ block:'center', behavior:'smooth' }); return; } }
+    toast('남은 활동이 없어요 🎉'); return;
+  }
   if (act === 'help'){ $('helpOv').classList.remove('hide'); return; }
   if (act === 'sum'){ sumRender(); $('sumOv').classList.remove('hide'); return; }
   if (act === 'closeSum'){ if (b.classList.contains('ov') && e.target !== b) return; $('sumOv').classList.add('hide'); return; }
@@ -574,6 +602,7 @@ document.addEventListener('click', e => {
   else if (act === 'save') saveEnt(iid, n, b);
   else if (act === 'del') delEnt(iid, n, b);
 });
+window.addEventListener('beforeunload', e => { if (Object.keys(D).some(isDirty)) { e.preventDefault(); e.returnValue = ''; } });
 $('btnCareer').onclick = async () => {
   const v = $('inCareer').value.trim(); $('btnCareer').disabled = true;
   try { const r = await jsonp({ action: 'sCareer', sid: me.sid, pin: me.pin, career: v }); career = r.career; toast('진로 희망을 저장했어요 🎯'); if (openId) render(); }
@@ -587,13 +616,13 @@ async function saveEnt(iid, n, btn){
   if (d.part === 'yes' && d.link && d.link.trim().length > 300) { toast('링크·경로는 300자 이내로 적어 주세요.'); return; }
   const data = d.part === 'yes' ? { itemId: iid, n, part: 'yes', report: d.report, link: d.link.trim(), topic: d.topic, career: d.career, summary: d.summary, atype: d.atype, rterm: d.rterm, ref: d.ref }
                                 : { itemId: iid, n, part: 'no' };
-  btn.disabled = true;
+  btn.disabled = true; const bt = btn.textContent; btn.textContent = '저장 중…'; delete SV[key(iid, n)];
   try {
     const r = await jsonp({ action: 'sSave', sid: me.sid, pin: me.pin, data: JSON.stringify(data) });
     recs[key(iid, r.rec.n)] = r.rec; delete D[key(iid, n)];
     toast(d.part === 'yes' && !d.summary.trim() ? '저장했어요! 요약도 적으면 더 좋아요 ✍️' : '저장했어요 ✅');
     render();
-  } catch (e) { toast(e.message); btn.disabled = false; }
+  } catch (e) { SV[key(iid, n)] = e.message; const sv = document.getElementById('sv-' + key(iid, n)); if (sv) sv.innerHTML = svHtml(key(iid, n)); toast('저장하지 못했어요. 다시 눌러 주세요'); btn.disabled = false; btn.textContent = bt; }
 }
 async function delEnt(iid, n, btn){
   if (!confirm('이 기록을 지울까요?')) return;
