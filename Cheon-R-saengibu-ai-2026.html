@@ -12974,5 +12974,389 @@ window.NEIS={_t:{parseSheet:parseSheet,parseSST:parseSST,setCell:setCell,loadXls
 <script>
 try{ initOnboardGuide(); }catch(e){}
 </script>
+<script>
+/* ══════════════════════════════════════════════════════════════
+   🏫 나이스 연동 확장 (추가 모듈 · 기존 코드 수정 없음)
+   ① 명렬표 업로드에서 나이스 양식(.xlsx) 자동 인식 (번호·이름·희망분야)
+      - 나이스 양식이 아니면 기존 명렬표 업로드(보조 양식)가 그대로 동작
+   ② 나이스 양식 틀 저장 선택 (기본: 저장 안 함) + 저장된 학생 정보 일괄 삭제
+   ③ 양식 칸에 이미 있는 내용을 앱으로 가져오기
+   ══════════════════════════════════════════════════════════════ */
+(function(){
+"use strict";
+var T=(window.NEIS&&window.NEIS._t)||null;
+var LS_MODE="neis_ext_mode_v1",LS_TPL="neis_ext_tpl_v1";
+var XLSX_MIME="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+var busy=false;
+
+/* ── 유틸 ── */
+function hn(s){return String(s==null?"":s).replace(/[\s ]+/g,"");}
+function toInt(v){var n=parseInt(parseFloat(String(v==null?"":v).trim()),10);return isNaN(n)?0:n;}
+function normSubj(s){return hn(s).replace(/Ⅰ/g,"1").replace(/Ⅱ/g,"2").replace(/Ⅲ/g,"3");}
+function lastNum(s){var m=String(s==null?"":s).match(/(\d+)\D*$/);return m?m[1]:"";}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function getMode(){try{return localStorage.getItem(LS_MODE)==="save"?"save":"off";}catch(e){return "off";}}
+function setModeVal(v){try{localStorage.setItem(LS_MODE,v);}catch(e){}}
+function loadTpls(){try{return JSON.parse(localStorage.getItem(LS_TPL)||"{}")||{};}catch(e){return {};}}
+function saveTpls(o){try{localStorage.setItem(LS_TPL,JSON.stringify(o));return true;}catch(e){alert("저장 공간이 부족해서 양식을 저장하지 못했어요.");return false;}}
+function nums(a){return a.join(", ");}
+
+/* ── 나이스 양식 해석 (번호·이름·학생개인번호·희망분야) ── */
+function parseNeis(wb){
+  var ws=wb&&wb.Sheets&&wb.Sheets[wb.SheetNames[0]];if(!ws)return null;
+  var a=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
+  if(!a.length)return null;
+  var idx={};
+  a[0].forEach(function(h,i){var k=hn(h);if(k&&idx[k]===undefined)idx[k]=i;});
+  if(idx["성명"]===undefined||idx["학생개인번호"]===undefined)return null;
+  var isSubj=idx["반/번호"]!==undefined;
+  var hasHope=idx["희망분야"]!==undefined;
+  var rows=[],label="",subjName="",maxNo=0;
+  for(var r=1;r<a.length;r++){
+    var row=a[r];
+    var name=String(row[idx["성명"]]||"").trim();if(!name)continue;
+    var g=0,b=0,n=0;
+    if(isSubj){
+      var p=String(row[idx["반/번호"]]||"").split("/");
+      b=toInt(p[0]);n=toInt(p[1]);
+      g=idx["학년"]!==undefined?toInt(row[idx["학년"]]):0;
+    }else{
+      g=idx["학년"]!==undefined?toInt(row[idx["학년"]]):0;
+      b=idx["반"]!==undefined?toInt(row[idx["반"]]):0;
+      n=idx["번호"]!==undefined?toInt(row[idx["번호"]]):0;
+    }
+    if(!n)continue;
+    if(!label&&g&&b)label=g+"-"+b;
+    if(isSubj&&!subjName&&idx["과목"]!==undefined)subjName=String(row[idx["과목"]]||"").trim();
+    rows.push({no:n,name:name,hope:hasHope?String(row[idx["희망분야"]]||"").trim():""});
+    if(n>maxNo)maxNo=n;
+  }
+  if(!rows.length)return null;
+  return {kind:isSubj?"subj":"home",label:label,subjName:subjName,rows:rows,maxNo:maxNo,hasHope:hasHope};
+}
+
+/* ── 명렬표 계획 (새로 / 그대로 / 이름 변경 / 비움 / 유지) ── */
+function buildPlan(P,slots){
+  var byNo={};P.rows.forEach(function(r){byNo[r.no]=r;});
+  var pl={add:0,same:0,ren:[],clear:[],keep:[],byNo:byNo};
+  for(var i=0;i<slots.length&&i<40;i++){
+    var s=slots[i]||{},r=byNo[i+1],cur=String(s.name||"").trim();
+    if(r){
+      if(!cur)pl.add++;
+      else if(hn(cur)===hn(r.name))pl.same++;
+      else pl.ren.push({no:i+1,from:cur,to:r.name});
+    }else if(cur){
+      if(s.hasData)pl.keep.push(i+1);else pl.clear.push(i+1);
+    }
+  }
+  return pl;
+}
+function planText(pl,P,head){
+  var t=[head,""];
+  t.push("· 새로 들어오는 학생 "+pl.add+"명 / 그대로 "+pl.same+"명");
+  if(pl.ren.length)t.push("· 이름이 바뀌는 학생 "+pl.ren.length+"명 ("+pl.ren.slice(0,4).map(function(x){return x.no+"번 "+x.from+"→"+x.to;}).join(", ")+(pl.ren.length>4?" 외":"")+")");
+  if(pl.clear.length)t.push("· 양식에 없는 번호("+nums(pl.clear)+"번)는 이름을 비워요");
+  if(pl.keep.length)t.push("· 양식에 없지만 결과가 있는 번호("+nums(pl.keep)+"번)는 그대로 둬요");
+  return t;
+}
+function needConfirm(pl){return pl.ren.length>0||pl.clear.length>0;}
+
+/* ── 틀 저장 (저장 모드일 때만) ── */
+function clearCell(xml,L,rn){
+  var rowRe=new RegExp('<row\\b[^>]*?\\br="'+rn+'"[^>]*?(\\/>|>)');
+  var rm=rowRe.exec(xml);if(!rm||rm[1]==="/>")return xml;
+  var bodyStart=rm.index+rm[0].length,closeIdx=xml.indexOf("</row>",bodyStart);
+  if(closeIdx<0)return xml;
+  var body=xml.slice(bodyStart,closeIdx);
+  var cRe=/<c\b([^>]*?)(?:\/>|>[\s\S]*?<\/c>)/g,cm;
+  while((cm=cRe.exec(body))){
+    var rr=/\br="([A-Z]+)\d+"/.exec(cm[1]);
+    if(!rr||rr[1]!==L)continue;
+    var sm=/\bs="(\d+)"/.exec(cm[1]);
+    var nc='<c r="'+L+rn+'"'+(sm?' s="'+sm[1]+'"':"")+"/>";
+    return xml.slice(0,bodyStart)+body.slice(0,cm.index)+nc+body.slice(cm.index+cm[0].length)+xml.slice(closeIdx);
+  }
+  return xml;
+}
+async function storeTemplate(x){
+  if(!x||!T)return false;
+  var bytes=await x.zip.generateAsync({type:"uint8array"});
+  var z2=await JSZip.loadAsync(bytes);
+  var xml=x.xml;
+  if(x.targetCol)x.data.forEach(function(d){xml=clearCell(xml,x.targetCol,d.r);});
+  z2.file(x.sheetPath,xml,{createFolders:false});
+  var b64=await z2.generateAsync({type:"base64",compression:"DEFLATE"});
+  var key=[x.type||"",x.label||"",x.subj||""].join("|");
+  var had=0;
+  if(x.targetCol)x.data.forEach(function(d){if(String((x.rows[d.r]||{})[x.targetCol]||"").trim())had++;});
+  var tp=loadTpls();
+  tp[key]={name:x.fileName||"나이스양식.xlsx",type:x.type||"",label:x.label||"",subj:x.subj||"",savedAt:Date.now(),b64:b64};
+  if(!saveTpls(tp))return false;
+  return {had:had};
+}
+function hadNotice(n){
+  return "⚠️ 이 양식에는 나이스에 이미 내용이 있는 학생이 "+n+"명 있었어요.\n저장된 틀에는 그 내용을 넣지 않았어요(틀은 빈 칸으로 저장).\n\n앱에 가져오려면 [🏫 나이스 양식]에서 이 양식을 직접 올린 뒤 '⬆️ 앱으로 가져오기'를 먼저 눌러 주세요.\n그렇지 않으면 내려받은 파일에서 그 학생들의 칸이 빈 칸이 돼요.";
+}
+async function storeFromFile(file){
+  try{
+    var x=await T.loadXlsx(file);x.fileName=file.name;T.analyze(x);
+    return await storeTemplate(x);
+  }catch(e){return false;}
+}
+
+/* ── ① 명렬표 가져오기 ── */
+function applyHome(P){
+  if(typeof dStudents==="undefined"||!dStudents||!dStudents.length){alert("담임 화면이 아직 준비되지 않았어요.");return false;}
+  var changeClass=false;
+  if(P.label&&P.label!==dClassName){
+    if(!confirm("양식은 "+P.label+"인데 앱 담임 반은 "+dClassName+"이에요.\n담임 반을 "+P.label+"로 바꾸고 명렬표를 가져올까요?"))return false;
+    changeClass=true;
+  }
+  var slots=[];
+  for(var i=0;i<40;i++){
+    var s=dStudents[i]||{},rs=s.results||{};
+    slots.push({name:s.name,hasData:!!(rs["자율"]||rs["진로"]||rs["행발"])});
+  }
+  var pl=buildPlan(P,slots);
+  if(needConfirm(pl)){
+    if(!confirm(planText(pl,P,"나이스 양식("+P.label+")으로 담임 명렬표를 맞출게요.").concat(["","진행할까요?"]).join("\n")))return false;
+  }
+  if(changeClass&&typeof dSetClassName==="function")dSetClassName(P.label);
+  var hopeN=0;
+  for(var j=0;j<40;j++){
+    var st=dStudents[j];if(!st)continue;
+    var r=pl.byNo[j+1];
+    if(r){
+      st.name=r.name;
+      if(P.hasHope&&r.hope){
+        if(!st.info)st.info={};
+        if(!st.info.career){st.info.career=r.hope;hopeN++;}
+      }
+    }else if(pl.clear.indexOf(j+1)>=0){st.name="";}
+  }
+  if(P.maxNo>dCount&&typeof dSetCount==="function")dSetCount(P.maxNo);
+  dSaveStudents();dRenderStuList();dRenderHeader();
+  alert("명렬표 반영 완료! "+(pl.add+pl.same+pl.ren.length)+"명 ("+P.label+")"+(hopeN?"\n희망분야 "+hopeN+"명도 희망진로에 넣었어요.":""));
+  return true;
+}
+function applySubj(P){
+  var classes=getClasses(curName),cls=activeClass,warns=[];
+  if(P.label&&classes.indexOf(P.label)>=0)cls=P.label;
+  else{
+    var alt=P.label?classes.filter(function(c){return lastNum(c)===lastNum(P.label);})[0]:"";
+    if(alt)cls=alt;
+    else warns.push("양식의 반("+(P.label||"?")+")이 앱 반 목록에 없어서 현재 선택된 반("+cls+")에 넣어요.");
+  }
+  if(P.kind==="subj"&&P.subjName&&normSubj(P.subjName)!==normSubj(curName))
+    warns.push("양식 과목('"+P.subjName+"')과 앱의 현재 과목('"+curName+"')이 달라요.");
+  var cd=getClsData(cls);
+  var slots=[];
+  for(var i=0;i<40;i++){var s=cd.list[i]||{};slots.push({name:s.name,hasData:!!s.result});}
+  var pl=buildPlan(P,slots);
+  if(needConfirm(pl)||warns.length){
+    var t=planText(pl,P,"나이스 양식("+P.label+")으로 '"+curName+" · "+cls+"' 명렬표를 맞출게요.");
+    if(warns.length)t=t.concat([""],warns.map(function(w){return "⚠️ "+w;}));
+    if(!confirm(t.concat(["","진행할까요?"]).join("\n")))return false;
+  }
+  var cnt=0;
+  for(var j=0;j<40;j++){
+    var st=cd.list[j];if(!st)continue;
+    var r=pl.byNo[j+1];
+    if(r){st.name=r.name;cnt++;}
+    else if(pl.clear.indexOf(j+1)>=0){st.name="";}
+  }
+  if(P.maxNo>(cd.count||30))cd.count=P.maxNo;
+  saveClassData();renderStudentList();renderClassTabs();
+  alert("명렬표 반영 완료! "+cnt+"명 ("+curName+" · "+cls+")");
+  return true;
+}
+function handleRoster(ev,scope,orig){
+  var file=ev&&ev.target&&ev.target.files&&ev.target.files[0];
+  if(!file||typeof XLSX==="undefined"||!T)return orig(ev);
+  try{if(ev.target&&"value" in ev.target)ev.target.value="";}catch(e){}
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var P=null;
+    try{P=parseNeis(XLSX.read(e.target.result,{type:"array"}));}catch(err){P=null;}
+    if(!P){orig({target:{files:[file],value:""}});return;}
+    try{
+      var ok=false;
+      if(scope==="home"){
+        if(P.kind==="subj"){alert("이 파일은 교과 세특 양식이에요.\n교과 화면의 명렬표 업로드에 올려주세요.\n(담임 명렬표는 자율·진로·행동특성 양식으로 가져와요)");return;}
+        ok=applyHome(P);
+      }else ok=applySubj(P);
+      if(ok&&getMode()==="save")storeFromFile(file).then(function(saved){
+        if(saved)setTimeout(function(){alert("🏫 나이스 양식 틀도 이 기기에 저장했어요.\n(나이스 양식 창 > 저장된 양식에서 불러올 수 있어요)"+(saved.had?"\n\n"+hadNotice(saved.had):""));},50);
+      });
+    }catch(err){alert("명렬표를 가져오는 중 오류가 발생했어요: "+err.message);}
+  };
+  reader.readAsArrayBuffer(file);
+}
+var _up=window.uploadRoster,_dup=window.dUploadRoster;
+if(typeof _up==="function")window.uploadRoster=function(ev){handleRoster(ev,"subj",_up);};
+if(typeof _dup==="function")window.dUploadRoster=function(ev){handleRoster(ev,"home",_dup);};
+
+/* ── 안내 문구 (기존 양식 = 보조용) ── */
+function injectHints(){
+  var bs=document.querySelectorAll("button[onclick]");
+  for(var i=0;i<bs.length;i++){
+    var b=bs[i],oc=b.getAttribute("onclick")||"";
+    if((oc.indexOf("downloadRosterTemplate()")<0&&oc.indexOf("DownloadRosterTemplate()")<0)||b.getAttribute("data-neis-ext"))continue;
+    b.setAttribute("data-neis-ext","1");
+    b.textContent="📋 보조 양식 (나이스에서 못 받을 때만)";
+    var tip=document.createElement("div");
+    tip.style.cssText="font-size:9.5px;line-height:1.45;color:#2563eb;background:#eff6ff;border-radius:5px;padding:4px 6px;";
+    tip.textContent="🏫 나이스에서 받은 업로드용 빈 양식(.xlsx)을 그대로 올리면 번호·이름이 자동으로 들어와요.";
+    if(b.parentNode)b.parentNode.insertBefore(tip,b);
+  }
+}
+
+/* ── ③ 양식 기존 내용 → 앱 ── */
+function importCandidates(f){
+  var c=[],already=0;
+  (f.items||[]).forEach(function(it){
+    if(!it.exists)return;
+    if(it.status==="ok")already++;
+    else if(it.status==="blank"&&it.appName&&it.neisName&&it.appName.replace(/\s+/g,"")===it.neisName.replace(/\s+/g,""))c.push(it);
+  });
+  return {list:c,already:already};
+}
+function cleanForm(t){return String(t||"").replace(/\r/g,"").trim();}
+function importExisting(i){
+  var f=T&&T.st.files[i];if(!f||!f.targetCol)return;
+  var cand=importCandidates(f);
+  if(!cand.list.length){alert("가져올 내용이 없어요.\n(앱에 이름이 있고 결과가 비어 있는 학생만 가져와요. 먼저 명렬표를 가져와 주세요)");return;}
+  var cd=null;
+  if(f.type==="교과"){
+    var sd=classData[f.subj];cd=sd?sd[f.cls]:null;
+    if(!cd){alert("앱에서 '"+f.subj+" · "+f.cls+"' 반을 찾지 못했어요.");return;}
+  }else{
+    if(f.label&&lastNum(f.label)!==lastNum(dClassName)){alert("양식은 "+f.label+"인데 앱 담임 반은 "+dClassName+"이에요.\n담임 반을 먼저 맞춰주세요.");return;}
+  }
+  var msg="양식에 이미 들어 있는 내용 "+cand.list.length+"명을 앱 결과로 가져올까요?\n· 앱에 이미 결과가 있는 학생("+cand.already+"명)은 건드리지 않아요.";
+  if(!confirm(msg))return;
+  var n=0;
+  cand.list.forEach(function(it){
+    var text=cleanForm((f.rows[it.r]||{})[f.targetCol]);if(!text)return;
+    if(f.type==="교과"){
+      var s=cd.list[it.no-1];
+      if(s&&!s.result){s.result=text;s.done=true;n++;}
+    }else{
+      var st=dStudents[it.no-1];
+      if(st&&!(st.results&&st.results[f.type])){
+        if(!st.results)st.results={};if(!st.done)st.done={};
+        st.results[f.type]=text;st.done[f.type]=true;n++;
+      }
+    }
+  });
+  if(f.type==="교과"){saveClassData();try{renderStudentList();renderClassTabs();}catch(e){}}
+  else{dSaveStudents();try{dRenderStuList();}catch(e){}}
+  alert(n+"명의 내용을 앱으로 가져왔어요.");
+  window.neisSet(i,"ow",!!f.overwrite);
+}
+function injectImportButtons(){
+  var body=document.getElementById("neis-body");if(!body||!T)return;
+  var cards=body.children;
+  for(var i=0;i<cards.length;i++){
+    var f=T.st.files[i],card=cards[i];
+    if(!f||!f.items||card.querySelector(".neis-ext-imp"))continue;
+    var cand=importCandidates(f);
+    if(!cand.list.length)continue;
+    var d=document.createElement("div");
+    d.className="neis-ext-imp";
+    d.style.cssText="margin-top:10px;padding:10px;border:1.5px dashed #93c5fd;border-radius:9px;background:#eff6ff;display:flex;gap:8px;align-items:center;flex-wrap:wrap;";
+    d.innerHTML='<span style="flex:1;font-size:12px;color:#1d4ed8;">양식에 이미 내용이 있는 학생 <b>'+cand.list.length+'명</b> (앱 결과는 비어 있음)</span>'
+      +'<button onclick="neisExtImport('+i+')" style="padding:9px 14px;border:none;border-radius:9px;background:#2563eb;color:#fff;font-size:12px;font-weight:700;cursor:pointer;min-height:44px;">⬆️ 앱으로 가져오기</button>';
+    card.appendChild(d);
+  }
+}
+
+/* ── ② 저장 패널 (나이스 양식 창 안) ── */
+function renderPanel(){
+  var body=document.getElementById("neis-body");if(!body)return;
+  var host=document.getElementById("neis-ext-panel");
+  if(!host){
+    host=document.createElement("div");host.id="neis-ext-panel";
+    host.style.cssText="padding:12px 20px;border-bottom:1px solid #f3f4f6;background:#fafafa;font-size:12px;color:#374151;line-height:1.6;";
+    body.parentNode.insertBefore(host,body);
+  }
+  var mode=getMode(),tp=loadTpls(),ks=Object.keys(tp);
+  var h='<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;"><b style="color:#111;">양식 저장</b>'
+    +'<label style="cursor:pointer;min-height:36px;display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="neis-ext-mode" '+(mode==="off"?"checked":"")+' onchange="neisExtMode(\'off\')"/> 저장 안 함 (매번 올리기)</label>'
+    +'<label style="cursor:pointer;min-height:36px;display:inline-flex;align-items:center;gap:5px;"><input type="radio" name="neis-ext-mode" '+(mode==="save"?"checked":"")+' onchange="neisExtMode(\'save\')"/> 이 기기에만 저장</label></div>';
+  if(mode==="save"){
+    h+='<div style="margin-top:6px;color:#991b1b;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:7px 10px;">⚠️ 학생개인번호가 들어 있는 양식이 이 기기의 브라우저에만 저장돼요. 공용 PC에서는 쓰지 마시고, 다 쓴 뒤에는 <b>[🗑️ 저장된 학생 정보 삭제]</b>로 꼭 지워 주세요.</div>';
+  }else{
+    h+='<div style="margin-top:4px;color:#6b7280;">앱의 세특 결과는 그대로 남아요. 양식 파일(이름·학생개인번호)만 저장하지 않고, 내보낼 때마다 올려야 해요.</div>';
+  }
+  if(ks.length){
+    h+='<div style="margin-top:8px;">';
+    ks.forEach(function(k,idx){
+      var t=tp[k],d=new Date(t.savedAt||0);
+      h+='<div style="display:flex;gap:8px;align-items:center;padding:4px 0;"><span style="flex:1;word-break:break-all;">📄 '+esc(t.name)+' <span style="color:#9ca3af;">('+esc(t.label||"-")+' · '+(d.getMonth()+1)+'/'+d.getDate()+' 저장)</span></span>'
+        +'<button onclick="neisExtLoad('+idx+')" style="padding:6px 12px;border:1px solid #16a34a;border-radius:8px;background:#fff;color:#166534;font-size:12px;font-weight:700;cursor:pointer;min-height:36px;">불러오기</button></div>';
+    });
+    h+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">'
+      +(ks.length>1?'<button onclick="neisExtLoad(-1)" style="padding:9px 14px;border:none;border-radius:9px;background:#16a34a;color:#fff;font-size:12px;font-weight:700;cursor:pointer;min-height:44px;">📥 저장된 양식 전부 불러오기</button>':"")
+      +'<button onclick="neisExtClear()" style="padding:9px 14px;border:1px solid #fca5a5;border-radius:9px;background:#fff;color:#b91c1c;font-size:12px;font-weight:700;cursor:pointer;min-height:44px;">🗑️ 저장된 학생 정보 삭제</button></div></div>';
+  }else if(mode==="save"){
+    h+='<div style="margin-top:6px;color:#6b7280;">아직 저장된 양식이 없어요. 아래에서 양식을 한 번 올리면(또는 명렬표로 가져오면) 저장돼요.</div>';
+  }
+  host.innerHTML=h;
+}
+function setMode(v){
+  var ks=Object.keys(loadTpls());
+  if(v==="save"){
+    if(!confirm("이 기기에만 저장할게요.\n\n학생개인번호가 들어 있는 양식이 이 브라우저에 저장돼요.\n공용 PC에서는 쓰지 마시고, 다 쓴 뒤에는 꼭 '저장된 학생 정보 삭제'로 지워 주세요.\n\n켤까요?")){renderPanel();return;}
+  }else if(ks.length&&confirm("저장해 둔 양식도 지울까요?\n(확인=지움 / 취소=저장본은 남겨 둠)")){
+    try{localStorage.removeItem(LS_TPL);}catch(e){}
+  }
+  setModeVal(v);renderPanel();
+}
+function clearAll(){
+  if(!confirm("저장된 양식(학생 이름·학생개인번호 포함)을 이 기기에서 모두 지울까요?\n앱의 세특 결과는 지워지지 않아요."))return;
+  try{localStorage.removeItem(LS_TPL);}catch(e){}
+  renderPanel();alert("저장된 학생 정보를 삭제했어요.");
+}
+async function loadStored(i){
+  var tp=loadTpls(),ks=Object.keys(tp);
+  var pick=i<0?ks:[ks[i]];
+  var files=[];
+  pick.forEach(function(k){
+    var t=tp[k];if(!t)return;
+    var bin=atob(t.b64),u8=new Uint8Array(bin.length);
+    for(var q=0;q<bin.length;q++)u8[q]=bin.charCodeAt(q);
+    files.push(new File([u8],t.name,{type:XLSX_MIME}));
+  });
+  if(!files.length)return;
+  busy=true;
+  try{window.neisOpen();await window.neisPick({files:files,value:""});}
+  finally{busy=false;}
+  renderPanel();
+}
+var _open=window.neisOpen,_pick=window.neisPick;
+if(typeof _open==="function")window.neisOpen=function(){_open();renderPanel();};
+if(typeof _pick==="function")window.neisPick=async function(inp){
+  var before=T?T.st.files.length:0;
+  await _pick(inp);
+  if(!busy&&T&&getMode()==="save"){
+    var hadTot=0;
+    for(var i=before;i<T.st.files.length;i++){try{var rs=await storeTemplate(T.st.files[i]);if(rs&&rs.had)hadTot+=rs.had;}catch(e){}}
+    if(hadTot)setTimeout(function(){alert(hadNotice(hadTot));},50);
+  }
+  renderPanel();
+};
+window.neisExtMode=setMode;window.neisExtClear=clearAll;window.neisExtLoad=loadStored;window.neisExtImport=importExisting;
+
+/* ── DOM 변화 감시 (안내 문구 / 가져오기 버튼) ── */
+var tm=null;
+function tick(){tm=null;try{injectHints();injectImportButtons();}catch(e){}}
+try{
+  new MutationObserver(function(){if(tm)return;tm=setTimeout(tick,60);}).observe(document.body,{childList:true,subtree:true});
+}catch(e){}
+tick();
+window.NEISX={_t:{parseNeis:parseNeis,buildPlan:buildPlan,clearCell:clearCell,storeTemplate:storeTemplate,importCandidates:importCandidates}};
+})();
+</script>
 </body>
 </html>
