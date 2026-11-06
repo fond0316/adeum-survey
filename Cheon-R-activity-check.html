@@ -111,6 +111,11 @@ body.demo #demoBar{display:flex}body.demo #btnOut,body.demo #btnRe{display:none}
 .rvlbl{font-weight:700;font-size:14px;color:var(--mainD);margin:12px 0 6px}
 .rvbn{background:#fff;border:1.5px solid var(--main);border-radius:14px;padding:10px 12px;margin:10px 0;display:flex;gap:8px;align-items:center;font-size:14px}
 .rvbn .btn{flex:none}
+.tg{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:99px;background:#EEE9F8;color:#6B5FA0;vertical-align:middle;margin-left:2px}
+.tg.g{background:#FFF1D6;color:#9A6A00}
+.sm-box{border:1px solid #E4DFF2;border-radius:12px;padding:10px 12px;margin:8px 0;background:#fff}
+.sm-box b{font-size:14px}.sm-box .m{font-size:12px;color:#7a7590;margin-top:2px}.sm-box .s{font-size:13px;margin-top:6px;white-space:pre-wrap;word-break:break-all}
+.sm-h{font-weight:800;margin:14px 0 4px;font-size:14px}
 </style>
 </head>
 <body>
@@ -180,11 +185,17 @@ body.demo #demoBar{display:flex}body.demo #btnOut,body.demo #btnRe{display:none}
   </div>
 
   <footer>
-    <button class="guideBtn" data-act="help">❓ 사용법</button> <button class="guideBtn" id="rvBtn" data-act="rv" style="display:none">💬 후기 남기기</button><br>
+    <button class="guideBtn" data-act="sum">📒 내 활동 요약본</button> <button class="guideBtn" data-act="help">❓ 사용법</button> <button class="guideBtn" id="rvBtn" data-act="rv" style="display:none">💬 후기 남기기</button><br>
     Made by Cheon_R<br>
     <a id="mailA" href="mailto:fond7509@naver.com?subject=%5BACTIVITY%20CHECK%5D%20%EB%AC%B8%EC%9D%98">문의: fond7509@naver.com</a>
   </footer>
 </div>
+<div class="ov hide" id="sumOv" data-act="closeSum"><div class="in">
+  <h3 style="margin:0 0 4px">📒 내 활동 요약본</h3>
+  <div class="hint" id="sumHd" style="margin-bottom:6px"></div>
+  <div id="sumBody"></div>
+  <div class="acts" style="margin-top:12px"><button class="btn sub" data-act="closeSum">닫기</button></div>
+</div></div>
 <div class="ov hide" id="helpOv" data-act="closeHelp"><div class="in">
   <h2>❓ ACTIVITY CHECK 사용법</h2>
   <p class="hint" style="margin:0 0 6px">내가 한 활동을 스스로 점검하고 기록해 두는 곳이에요. 선생님이 나중에 생기부를 쓸 때 참고해요.</p>
@@ -244,18 +255,33 @@ function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('
 const okLink = (u) => /^https?:\/\/\S+$/i.test(u || '');
 
 let jpSeq = 0;
-function jsonp(params, base){
+const RETRY_OK = { sLoad:1, sCheck:1, sSave:1, sDelete:1, sCareer:1, sSetPin:0, ping:1 };   // 같은 값을 다시 보내도 안전한 요청만 자동 재시도
+async function jsonp(params, base){
+  if (DEMO || base || !RETRY_OK[params.action]) return jsonp1(params, base);
+  let last;
+  for (let i = 0; i < 4; i++){
+    try { return await jsonp1(params, base); }
+    catch (e) {
+      last = e;
+      if (!(e && (e.busy || e.net))) throw e;                       // 몰려서 밀렸거나 연결이 끊긴 경우에만
+      await new Promise(r => setTimeout(r, 700 * (i + 1) + Math.random() * 900));   // 학생마다 다른 간격으로 천천히 다시
+    }
+  }
+  throw last;
+}
+function jsonp1(params, base){
   if (DEMO) return demoApi(params);   // 체험 모드: 네트워크를 쓰지 않아요
+  if (base) params = { ...params, app: 'activity' };   // 등록부로 가는 요청에는 항상 앱 이름을 함께 보내요
   return new Promise((resolve, reject) => {
     if (!(base || GAS)) return reject(new Error('연결 주소가 없어요. 선생님이 알려준 링크로 다시 열어 주세요.'));
     const cb = '__ac' + Date.now() + (jpSeq++);
     const s = document.createElement('script');
-    const t = setTimeout(() => { cleanup(); reject(new Error('서버 응답이 없어요. 잠시 뒤 ↻를 눌러 다시 해 보세요.')); }, 25000);
+    const t = setTimeout(() => { cleanup(); const e = new Error('서버 응답이 없어요. 잠시 뒤 ↻를 눌러 다시 해 보세요.'); e.net = 1; reject(e); }, 25000);
     function cleanup(){ clearTimeout(t); delete window[cb]; s.remove(); }
-    window[cb] = (res) => { cleanup(); res && res.ok ? resolve(res) : reject(new Error((res && res.error) || '요청에 실패했어요.')); };
+    window[cb] = (res) => { cleanup(); if (res && res.ok) return resolve(res); const e = new Error((res && res.error) || '요청에 실패했어요.'); if (res && res.busy) e.busy = 1; reject(e); };
     const q = new URLSearchParams({ ...params, callback: cb, _: Date.now() });
     const U = base || GAS; s.src = U + (U.includes('?') ? '&' : '?') + q.toString();
-    s.onerror = () => { cleanup(); reject(new Error('서버에 연결하지 못했어요. 조금 있다 다시 해 보세요.')); };
+    s.onerror = () => { cleanup(); const e = new Error('서버에 연결하지 못했어요. 조금 있다 다시 해 보세요.'); e.net = 1; reject(e); };
     document.body.appendChild(s);
   });
 }
@@ -382,6 +408,26 @@ async function loadAll(silent){
   if (!silent && !loadAll._r){ loadAll._r = 1; regSetup(); }
 }
 
+/* ===== 내 활동 요약본: 지금까지 저장한 기록이 쌓여서 보여요 ===== */
+function sumRender(){
+  const rs = Object.keys(recs).map(k => recs[k]);
+  let h = '';
+  CATS.forEach(c => {
+    const its = items.filter(i => i.cat === c); let part = '';
+    its.forEach(it => {
+      recsOf(it.id).forEach(r => {
+        const st = r.part === 'yes' ? '참여함' + (r.report === 'done' ? ' · 보고서 작성' : r.report === 'todo' ? ' · 보고서 아직' : '') : r.part === 'no' ? '참여 안 함' : '미선택';
+        part += `<div class="sm-box"><b>${esc(it.title)}</b>${it.term ? ' <span class="tg">' + esc(it.term) + '</span>' : ''}<div class="m">${st}${r.at ? ' · 저장 ' + esc(String(r.at).slice(0, 10)) : ''}</div>`
+          + (r.topic ? `<div class="s">주제: ${esc(r.topic)}</div>` : '') + (r.career ? `<div class="s">진로 연결: ${esc(r.career)}</div>` : '')
+          + (r.summary ? `<div class="s">${esc(r.summary)}</div>` : '') + (r.link && okLink(r.link) ? `<div class="s"><a href="${esc(r.link)}" target="_blank" rel="noopener noreferrer">🔗 링크</a></div>` : '') + '</div>';
+      });
+    });
+    if (part) h += `<div class="sm-h">${CAT[c].e} ${c}</div>` + part;
+  });
+  $('sumHd').textContent = rs.length ? `지금까지 저장한 활동 ${rs.length}개가 쌓여 있어요. 활동이 늘어도 이전 기록은 그대로 남아요.` : '아직 저장한 활동이 없어요. 활동을 점검하고 💾 저장하면 여기에 쌓여요.';
+  $('sumBody').innerHTML = h || '';
+}
+
 /* ===== 그리기 ===== */
 function render(){
   // 분류 카드 + 진행
@@ -407,7 +453,7 @@ function itemHtml(it){
   const cnt = it.cat === '교과' ? recsOf(it.id).length : 0;
   return `<div class="it ${open ? 'open' : ''}" style="--cc:${CAT[it.cat].cc}" id="it-${esc(it.id)}">
     <button class="hd" data-act="toggle" data-id="${esc(it.id)}">
-      <div class="t"><b>${esc(it.title)}</b>${it.note ? `<small>${esc(it.note)}</small>` : ''}</div>
+      <div class="t"><b>${esc(it.title)}</b>${it.term ? ` <span class="tg">${esc(it.term)}</span>` : ''}${it.give ? ` <span class="tg g">문구는 선생님이 제공</span>` : ''}${it.note ? `<small>${esc(it.note)}</small>` : ''}</div>
       <span class="badge ${b[1]}">${b[0]}${cnt > 1 ? ' ' + cnt : ''}</span>
     </button>
     ${open ? bodyHtml(it) : ''}
@@ -472,6 +518,8 @@ document.addEventListener('click', e => {
   const act = b.dataset.act, k = b.dataset.k; let iid, n;
   if (k) { [iid, n] = k.split('|'); n = Number(n); }
   if (act === 'help'){ $('helpOv').classList.remove('hide'); return; }
+  if (act === 'sum'){ sumRender(); $('sumOv').classList.remove('hide'); return; }
+  if (act === 'closeSum'){ if (b.classList.contains('ov') && e.target !== b) return; $('sumOv').classList.add('hide'); return; }
   if (act === 'rv'){ rvS = { rate: 0, c: [], lc: [], ik: '', ok: 'no' }; ['rvOther','rvLowOther','rvOne','rvImp'].forEach(i => $(i).value = ''); $('rvAgree').checked = false; rvRender(); $('rvOv').classList.remove('hide'); return; }
   if (act === 'closeRv'){ if (b.classList.contains('ov') && e.target !== b) return; $('rvOv').classList.add('hide'); return; }
   if (act === 'rvBnX'){ const x = $('rvBn'); if (x) x.remove(); return; }
