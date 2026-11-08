@@ -545,7 +545,7 @@ function itemHtml(it){
   const sl = starCat(it) ? starOf(it) : '';
   return `<div class="it ${open ? 'open' : ''}${sl ? ' star' + sl : ''}" style="--cc:${CAT[it.cat].cc}" id="it-${esc(it.id)}">
     <button class="hd" data-act="toggle" data-id="${esc(it.id)}">
-      <div class="t"><b>${esc(it.title)}</b>${sl === '2' ? ' <span class="tg st2">🌟 대표</span>' : sl === '1' ? ' <span class="tg st1">⭐ 연결</span>' : ''}${it.mc ? ` <span class="tg">${it.mc === '모르겠어요' ? '❓ 분류 모르겠어요' : esc(it.mc)}</span>` : ''}${it.term ? ` <span class="tg">${esc(it.term)}</span>` : ''}${it.give ? ` <span class="tg g">문구는 선생님이 제공</span>` : ''} ${dueTag(it)}${it.note ? `<small>${esc(it.note)}</small>` : ''}</div>
+      <div class="t"><b>${esc(it.title)}</b>${sl === '2' ? ' <span class="tg st2">🌟 대표</span>' : sl === '1' ? ' <span class="tg st1">⭐ 연결</span>' : ''}${it.mc ? ` <span class="tg">${it.mc === '모르겠어요' ? '❓ 분류 모르겠어요' : esc(it.mc)}</span>` : ''}${it.term ? ` <span class="tg">${esc(it.term)}</span>` : ''}${dueTag(it)}${it.note ? `<small>${esc(it.note)}</small>` : ''}</div>
       <span class="badge ${b[1]}">${b[0]}${cnt > 1 ? ' ' + cnt : ''}${recsOf(it.id).some(r => r.tchk) ? ' ✅' : ''}${recsOf(it.id).some(r => r.tmemo) ? ' 💬' : ''}</span>
     </button>
     ${open ? bodyHtml(it) : ''}

@@ -75,6 +75,8 @@ details.tsi ol{padding-left:18px}.tsi li{margin-bottom:4px}
 .ibh{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:14px;margin-bottom:8px;cursor:pointer;min-height:36px}.ibh i{font-style:normal;font-weight:500;font-size:12px;color:var(--tx3)}
 .ibc{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:6px;font-size:13px;cursor:grab;user-select:none}
 .ibc b{flex:1;min-width:90px;font-weight:700;word-break:keep-all}.ibc input[type=checkbox]{width:18px;height:18px;flex:none}
+#itList .ibc{cursor:pointer}#itList .ibc:hover{border-color:#9B8EC4}#itList .ibgrip{cursor:grab;padding:6px 8px;margin:-6px -2px -6px -6px;color:var(--tx3)}
+.itd{display:flex;flex-direction:column;gap:8px}.itd h3{margin:0;font-size:17px;word-break:keep-all}.itd .itdb{display:flex;gap:5px;flex-wrap:wrap}.itd .itdn{display:flex;justify-content:space-between;align-items:center;gap:8px}.itd .itdn button{min-height:40px}
 .ibc.sel{border:2px solid #9B8EC4;background:#F4F0FC}.ibc.drag{opacity:.4}.ibc.off{opacity:.5}.ibc.uns,.ibf.uns{border-color:#E2B24A;background:#FFF8E6}
 .sa{border:1.5px solid #F0D9A8;background:#FFFBF0;border-radius:14px;padding:12px;margin-top:10px}.sa .sat{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.sa .sat b{font-size:15px}.sa .sar{font-size:13px;color:var(--tx2);margin-top:6px;line-height:1.55;white-space:pre-wrap;word-break:break-all}.sa .sab{display:grid;grid-template-columns:1fr auto;gap:6px;margin-top:8px;align-items:center}.sa .sab select{min-height:40px}.sa .sax{display:flex;justify-content:flex-end;margin-top:6px}.ibgrip{color:var(--tx3)}.ibb{font-size:11px;padding:1px 7px;border-radius:99px;background:#EEE9F8;color:#6B5FA0;white-space:nowrap}.ibb.g{background:#DDF1E6;color:#1E7A48}.ibb.w{background:#FFF1D6;color:#9A6A00}
 .xfg{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));gap:10px}
@@ -657,6 +659,7 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
   <iframe id="demoFrame" title="학생 화면 체험해보기" src="about:blank" style="width:100%;height:100%;border:0;background:var(--bg)"></iframe>
 </div>
 <div id="toast"></div>
+<div class="ov hide" id="itOv" data-a="closeOv"><div class="in" id="itBox" style="max-width:520px"></div></div>
 <div class="ov hide" id="sdOv" data-a="closeOv"><div class="in" id="sdBox" style="max-width:860px">
   <div class="sdh" id="sdHead"></div>
   <div class="sdi" id="sdInfo"></div>
@@ -1032,7 +1035,7 @@ function itemTags(it, withNote){
     + dueTag(it) + (withNote && it.tnote ? `<div class="tn">🔒 ${esc(it.tnote)}</div>` : '');
 }
 const catClosed = {};
-let itFocus = -1, itSel = {}, itDragId = '';
+let itFocus = -1, itSel = {}, itDragId = '', itSelMode = false, itGrip = false, itOpenId = '';
 const itColOf = it => it.dest === '행발' ? '행발' : it.cat;
 const itCols = () => IMPCOLS.filter(c => !XCOLS.includes(c) || DATA.items.some(i => itColOf(i) === c) || IMPCOLS[itFocus] === c);
 function renderItems(){
@@ -1042,7 +1045,8 @@ function renderItems(){
   const ids = Object.keys(itSel).filter(k => itSel[k] && DATA.items.some(i => i.id === k)), nSel = ids.length;
   let h = `<div class="ibbar"><span class="ibchip${itFocus < 0 ? ' on' : ''}" data-xf="-1">전체 보드</span>` + cols.map(c => { const l = of(c), w = l.filter(x => x.chk).length; return `<span class="ibchip${IMPCOLS[itFocus] === c ? ' on' : ''}" data-xf="${IMPCOLS.indexOf(c)}">${c} ${l.length}${w ? ` · 확인 ${w}` : ''}</span>`; }).join('') + '</div>';
   h += '<div class="ibmv">' + (nSel ? `<span>${nSel}개 선택됨 →</span>` + cols.concat(XCOLS.filter(c => !cols.includes(c))).map(c => `<span class="ibto" data-xto="${c}">${c}으로 옮기기</span>`).join('') + '<span class="ibclr" data-xclr="1">선택 해제</span>'
-    : '<span class="ibsub">카드를 끌어서 다른 열에 놓으면 분류가 바뀌어요. 여러 개는 카드를 눌러 선택한 뒤 한꺼번에 옮겨요. 열 제목이나 위 칩을 누르면 그 분류만 크게 보고, 거기서 수정·순서·숨김·삭제를 해요.</span>') + '</div>';
+    : itSelMode ? '<span class="ibsub">옮기거나 지울 카드를 눌러 선택해 주세요.</span><span class="ibto" data-xsm="0" style="margin-left:auto">선택 끝내기</span>'
+    : '<span class="ibsub">카드를 누르면 상세·수정 창이 열려요. <b>⠿ 손잡이</b>를 끌면 다른 열로 옮겨져요. 여러 개는 Ctrl(Shift)+클릭이나 오른쪽 버튼으로 골라요.</span><span class="ibto" data-xsm="1" style="margin-left:auto">☑ 여러 개 선택</span>') + '</div>';
   if (itFocus < 0){
     h += `<div class="ibcols" style="--n:${cols.length}">` + cols.map(c => `<div class="ibcol" data-xcol="${c}"><div class="ibh" data-xf="${IMPCOLS.indexOf(c)}"><span>${c}</span><i>${of(c).length}개 · 크게 보기 ›</i></div>` +
       of(c).map(it => `<div class="ibc${itSel[it.id] ? ' sel' : ''}${it.on ? '' : ' off'}" draggable="true" data-xc="${esc(it.id)}"><span class="ibgrip">⠿</span><b>${esc(it.title)}</b>${impBadges(it)}${it.on ? '' : '<span class="ibb">숨김</span>'}</div>`).join('') + '</div>').join('') + '</div>';
@@ -1057,6 +1061,25 @@ function renderItems(){
         <span class="xfa"><button class="ib" title="위로" data-a="mv" data-id="${esc(it.id)}" data-d="-1" ${k === 0 ? 'disabled style="opacity:.3"' : ''}>↑</button><button class="ib" title="아래로" data-a="mv" data-id="${esc(it.id)}" data-d="1" ${k === l.length - 1 ? 'disabled style="opacity:.3"' : ''}>↓</button><button class="ib" title="${it.on ? '학생에게 보임(누르면 숨김)' : '숨김(누르면 보임)'}" data-a="toggleOn" data-id="${esc(it.id)}">${it.on ? '👁️' : '🚫'}</button><button class="ib" title="수정" data-a="editItem" data-id="${esc(it.id)}">✏️</button><button class="ib" title="삭제" data-a="delItem" data-id="${esc(it.id)}">🗑️</button></span></div></div>`).join('') + '</div>' : '<div class="ibsub" style="padding:16px;text-align:center">이 분류에는 항목이 없어요</div>';
   }
   $('itList').innerHTML = h;
+  if (itOpenId) itDraw();
+}
+/* ----- 카드를 누르면 열리는 상세·수정 창 ----- */
+function itOpen(id){ itOpenId = id; itDraw(); $('itOv').classList.remove('hide'); }
+function itClose(){ itOpenId = ''; $('itOv').classList.add('hide'); }
+function itDraw(){
+  const ov = $('itOv'), it = DATA.items.find(x => x.id === itOpenId);
+  if (!it){ itClose(); return; }
+  const col = itColOf(it), list = DATA.items.filter(x => itColOf(x) === col), k = list.indexOf(it);
+  ov.querySelector('#itBox').innerHTML = `<div class="itd">
+    <div class="itdn"><button class="btn sm sub" data-a="itNav" data-d="-1" ${k <= 0 ? 'disabled style="opacity:.3"' : ''}>‹ 이전</button><span class="ibsub">${esc(col)} · ${k + 1}/${list.length}</span><button class="btn sm sub" data-a="itNav" data-d="1" ${k >= list.length - 1 ? 'disabled style="opacity:.3"' : ''}>다음 ›</button></div>
+    <h3>${esc(it.title)}</h3>
+    <div class="itdb">${impBadges(it)}${it.dest && it.dest !== '행발' ? `<span class="ibb">보낼 곳 ${esc(it.dest)}</span>` : ''}${it.on ? '' : '<span class="ibb">숨김</span>'}</div>
+    ${it.note ? `<div class="xfn">${esc(it.note)}</div>` : ''}
+    ${it.tnote ? `<div class="tn">🔒 ${esc(it.tnote)}</div>` : ''}
+    ${it.url || it.rtype !== '없음' ? `<div class="xfl">🔗 ${esc(it.rtype)}${it.url ? ' · ' + esc(it.url) : ''}</div>` : ''}
+    <div class="xff"><select data-itsel="1" title="분류 옮기기">${IMPCOLS.map(x => `<option${x === col ? ' selected' : ''}>${x}</option>`).join('')}</select>
+      <span class="xfa"><button class="ib" title="위로" data-a="mv" data-id="${esc(it.id)}" data-d="-1" ${k === 0 ? 'disabled style="opacity:.3"' : ''}>↑</button><button class="ib" title="아래로" data-a="mv" data-id="${esc(it.id)}" data-d="1" ${k === list.length - 1 ? 'disabled style="opacity:.3"' : ''}>↓</button><button class="ib" title="${it.on ? '학생에게 보임(누르면 숨김)' : '숨김(누르면 보임)'}" data-a="toggleOn" data-id="${esc(it.id)}">${it.on ? '👁️' : '🚫'}</button></span></div>
+    <div class="row"><button class="btn" data-a="itEdit" data-id="${esc(it.id)}">✏️ 수정</button><button class="btn sub" data-a="delItem" data-id="${esc(it.id)}">🗑️ 삭제</button><button class="btn sub" data-a="closeOv">닫기</button></div></div>`;
 }
 async function itMove(idList, col){
   const list = idList.map(id => DATA.items.find(x => x.id === id)).filter(x => x && itColOf(x) !== col);
@@ -1074,10 +1097,17 @@ async function itMove(idList, col){
     if (e.target.closest('[data-xclr]')){ itSel = {}; renderItems(); return; }
     const f = e.target.closest('[data-xf]'); if (f){ itFocus = Number(f.dataset.xf); renderItems(); return; }
     const tn = e.target.closest('[data-xtn]'); if (tn){ tn.classList.toggle('open'); return; }
-    const c = e.target.closest('[data-xc]'); if (c){ const id = c.dataset.xc; itSel[id] = !itSel[id]; renderItems(); }
+    const sm = e.target.closest('[data-xsm]'); if (sm){ itSelMode = sm.dataset.xsm === '1'; if (!itSelMode) itSel = {}; renderItems(); return; }
+    const c = e.target.closest('[data-xc]'); if (c){
+      if (e.target.closest('.ibgrip')) return;   // 손잡이는 끌기 전용
+      const id = c.dataset.xc, nSel = Object.keys(itSel).filter(k => itSel[k]).length;
+      if (itSelMode || nSel || e.ctrlKey || e.metaKey || e.shiftKey){ itSel[id] = !itSel[id]; renderItems(); }
+      else itOpen(id);
+    }
   });
-  document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.xsel !== undefined && root() && root().contains(t)) itMove([t.dataset.xsel], t.value); });
-  document.addEventListener('dragstart', e => { const c = e.target.closest && e.target.closest('[data-xc]'); if (!c || !root() || !root().contains(c)) return; itDragId = c.dataset.xc; c.classList.add('drag'); e.dataTransfer.setData('text/plain', itDragId); e.dataTransfer.effectAllowed = 'move'; });
+  document.addEventListener('pointerdown', e => { itGrip = !!(e.target.closest && e.target.closest('#itList .ibgrip')); }, true);
+  document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.itsel && itOpenId){ itMove([itOpenId], t.value); return; } if (t.dataset && t.dataset.xsel !== undefined && root() && root().contains(t)) itMove([t.dataset.xsel], t.value); });
+  document.addEventListener('dragstart', e => { const c = e.target.closest && e.target.closest('[data-xc]'); if (!c || !root() || !root().contains(c)) return; if (!itGrip){ e.preventDefault(); return; } itDragId = c.dataset.xc; c.classList.add('drag'); e.dataTransfer.setData('text/plain', itDragId); e.dataTransfer.effectAllowed = 'move'; });
   document.addEventListener('dragend', () => { itDragId = ''; document.querySelectorAll('#itList .drag,#itList .over').forEach(x => x.classList.remove('drag','over')); });
   document.addEventListener('dragover', e => { const c = e.target.closest && e.target.closest('[data-xcol]'); if (!c || !itDragId) return; e.preventDefault(); document.querySelectorAll('#itList .over').forEach(x => x.classList.remove('over')); c.classList.add('over'); });
   document.addEventListener('drop', e => {
@@ -1162,7 +1192,7 @@ async function saDel(el){
 async function delItem(id){
   const it = DATA.items.find(x => x.id === id); if (!it) return;
   if (!confirm(`"${it.title}" 항목을 삭제할까요?\n이 항목에 쓴 학생 기록은 화면에서 안 보이게 돼요. (잠시 숨기려면 👁️를 누르세요)`)) return;
-  try{ await api('deleteItem', { id }); await refresh(); toast('삭제했어요'); }catch(e){ toast(e.message); }
+  try{ await api('deleteItem', { id }); itClose(); await refresh(); toast('삭제했어요'); }catch(e){ toast(e.message); }
 }
 async function toggleOn(id){
   const it = DATA.items.find(x => x.id === id); if (!it) return;
@@ -2109,7 +2139,9 @@ admWide();
 const ACT = {
   admW: el => admWide(el.dataset.w || ''),
   priv: () => $('privOv').classList.remove('hide'),
-  closeOv: (el, e) => { if (el.classList.contains('ov') && e.target !== el) return; document.querySelectorAll('.ov').forEach(o => o.classList.add('hide')); },
+  closeOv: (el, e) => { if (el.classList.contains('ov') && e.target !== el) return; itOpenId = ''; document.querySelectorAll('.ov').forEach(o => o.classList.add('hide')); },
+  itEdit: el => { const id = el.dataset.id; itClose(); editItem(id); },
+  itNav: el => { const it = DATA.items.find(x => x.id === itOpenId); if (!it) return; const l = DATA.items.filter(x => itColOf(x) === itColOf(it)), n = l[l.indexOf(it) + Number(el.dataset.d)]; if (n){ itOpenId = n.id; itDraw(); } },
   mailContact: () => $('contactOv').classList.remove('hide'),
   openMailApp: () => { location.href = 'mailto:' + CONTACT_EMAIL + '?subject=' + encodeURIComponent(mailSubject()); },
   openGmail: () => window.open('https://mail.google.com/mail/?view=cm&fs=1&to=' + encodeURIComponent(CONTACT_EMAIL) + '&su=' + encodeURIComponent(mailSubject()), '_blank'),
