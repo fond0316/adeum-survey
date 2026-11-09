@@ -5,7 +5,8 @@
  */
 
 /** GAS 코드 버전 — 코드를 고칠 때마다 1씩 올려요. 관리 화면이 이 번호로 업데이트가 필요한지 알려줘요. */
-var GAS_VER = 9;
+var GAS_VER = 10;
+var MAX_Q = 100;     // 학생이 선생님께 남기는 질문 최대 글자수
 var MAX_SUM = 1000;   // 학생 활동 요약 최대 글자수
 
 var TZ = 'Asia/Seoul';
@@ -24,7 +25,7 @@ var SHEETS = {
   settings: { name: '설정', headers: ['항목', '값'] },
   students: { name: '학생명단', headers: ['학번', '이름', 'PIN', '진로희망', 'PIN설정시각', '동아리'] },
   items: { name: '항목', headers: ['ID', '분류', '항목명', '작성유의사항', '보고서종류', '기본링크', '담임제공', '순서', '사용', '교사용기재유의', '문구제공', '학기', '보낼곳', '확인필요', '마감일', '추가한학생'] },
-  records: { name: '기록', headers: ['학번', '항목ID', '번호', '참여', '보고서', '링크', '주제', '진로연결', '요약', '수정시각', '교사확인', '교사메모', '활동유형', '학기', '자료', '대표', '심화'] }
+  records: { name: '기록', headers: ['학번', '항목ID', '번호', '참여', '보고서', '링크', '주제', '진로연결', '요약', '수정시각', '교사확인', '교사메모', '활동유형', '학기', '자료', '대표', '심화', '반영한한마디', '반영시각', '학생질문', '질문시각', '질문확인'] }
 };
 var DEFAULT_SETTINGS = [['학년도', String(new Date().getFullYear())], ['학급명', '우리 반'], ['관리자비번', DEFAULT_PW]];
 
@@ -57,6 +58,7 @@ function route_(p) {
     case 'sCareer': return sCareer_(p);
     case 'sClub': return sClub_(p);
     case 'sStar': return sStar_(p);
+    case 'sAck': return sAck_(p);
     case 'sAddItem': return sAddItem_(p);
     case 'sDelItem': return sDelItem_(p);
     case 'promoteSItem': return promoteSItem_(p);
@@ -247,7 +249,7 @@ function sortItems_(list) {
   return list.sort(function (a, b) { return (CATS.indexOf(a.cat) - CATS.indexOf(b.cat)) || (a.order - b.order); });
 }
 function recObj_(r) {
-  return { sid: r[0], iid: r[1], n: Number(r[2]) || 1, part: r[3], report: r[4], link: r[5], topic: r[6], career: r[7], summary: r[8], at: r[9], tchk: r[10] === 'Y', tmemo: r[11], atype: r[12] || '', rterm: r[13] || '', ref: r[14] || '', star: r[15] === '1' || r[15] === '2' ? r[15] : '', deep: r[16] || '' };
+  return { sid: r[0], iid: r[1], n: Number(r[2]) || 1, part: r[3], report: r[4], link: r[5], topic: r[6], career: r[7], summary: r[8], at: r[9], tchk: r[10] === 'Y', tmemo: r[11], atype: r[12] || '', rterm: r[13] || '', ref: r[14] || '', star: r[15] === '1' || r[15] === '2' ? r[15] : '', deep: r[16] || '', ack: r[17] || '', ackAt: r[18] || '', q: r[19] || '', qAt: r[20] || '', qDone: r[21] || '' };
 }
 function findRec_(data, sid, iid, n) {
   for (var i = 0; i < data.length; i++) if (data[i][0] === sid && data[i][1] === iid && data[i][2] === String(n)) return i;
@@ -346,8 +348,9 @@ function sSave_(p) {
     var star = idx >= 0 && part === 'yes' ? str_(sh.getRange(idx + 2, 16).getValue()) : '';   // ⭐ 표시는 그대로 지켜요 (참여 안 함으로 바꾸면 풀려요)
     if (star !== '1' && star !== '2') star = '';
     var at = now_();
+    var ex = idx >= 0 ? sh.getRange(idx + 2, 18, 1, 5).getValues()[0].map(str_) : ['', '', '', '', ''];   // 반영·질문 칸은 그대로 지켜요 (writeRow_가 1~17칸만 쓰기 때문)
     writeRow_(sh, idx >= 0 ? idx + 2 : sh.getLastRow() + 1, [sid, item.id, String(n), part, report, link, topic, career, summary, at, '', memo, atype, rterm, ref, star, part === 'yes' ? deep : '']);   // 학생이 고치면 교사확인은 풀려요
-    return { ok: true, rec: { sid: sid, iid: item.id, n: n, part: part, report: report, link: link, topic: topic, career: career, summary: summary, at: at, tchk: false, tmemo: memo, atype: atype, rterm: rterm, ref: ref, star: star, deep: part === 'yes' ? deep : '' } };
+    return { ok: true, rec: { sid: sid, iid: item.id, n: n, part: part, report: report, link: link, topic: topic, career: career, summary: summary, at: at, tchk: false, tmemo: memo, atype: atype, rterm: rterm, ref: ref, star: star, deep: part === 'yes' ? deep : '', ack: ex[0], ackAt: ex[1], q: ex[2], qAt: ex[3], qDone: ex[4] } };
   });
 }
 /** 진로와 연결하기 좋은 활동 표시 — level '0' 없음 / '1' ⭐ / '2' 🌟 대표 (분류별로 ⭐ 최대 3개, 대표는 1개) */
@@ -712,6 +715,21 @@ function saveSettings_(p) {
   });
 }
 /** 담임 점검: 확인 표시 + 한마디 */
+/** 학생: 선생님 한마디에 '반영했어요' 누르기 / 선생님께 한 줄 질문 남기기 */
+function sAck_(p) {
+  var st = stuAuth_(p.sid, p.pin), sid = st.v[0], iid = String(p.iid || ''), n = parseInt(p.n, 10) || 1;
+  var q = cut_(p.q, MAX_Q), ack = p.ack === '1';
+  if (!ack && !q) throw new Error('보낼 내용이 없어요.');
+  return lock_(function () {
+    var sh = sh_('records'), idx = recIdx_(sh, sid, iid, n);
+    if (idx < 0) throw new Error('기록을 찾지 못했어요. 먼저 저장하거나 화면을 새로고침해 주세요.');
+    var row = idx + 2, cur = sh.getRange(row, 1, 1, 22).getValues()[0].map(str_), at = now_();
+    if (ack){ if (!cur[11]) throw new Error('선생님 한마디가 아직 없어요.'); cur[17] = cur[11]; cur[18] = at; }
+    if (q){ cur[19] = q; cur[20] = at; }
+    sh.getRange(row, 18, 1, 4).setNumberFormat('@').setValues([[cur[17], cur[18], cur[19], cur[20]]]);
+    return { ok: true, rec: recObj_(cur) };
+  });
+}
 function tReview_(p) {
   need_(p);
   var sid = String(p.sid || '').trim(), iid = String(p.iid || ''), n = String(parseInt(p.n, 10) || 1);
@@ -720,7 +738,11 @@ function tReview_(p) {
   return lock_(function () {
     var sh = sh_('records'), data = rows_('records'), idx = findRec_(data, sid, iid, n);
     if (idx < 0) writeRow_(sh, sh.getLastRow() + 1, [sid, iid, n, '', '', '', '', '', '', now_(), chk, memo]);
-    else sh.getRange(idx + 2, 11, 1, 2).setNumberFormat('@').setValues([[chk, memo]]);
+    else {
+      sh.getRange(idx + 2, 11, 1, 2).setNumberFormat('@').setValues([[chk, memo]]);
+      var qa = str_(sh.getRange(idx + 2, 21).getValue());   // 선생님이 저장하면 학생 질문은 '확인함'으로 처리
+      if (qa) sh.getRange(idx + 2, 22).setNumberFormat('@').setValue(qa);
+    }
     return { ok: true };
   });
 }

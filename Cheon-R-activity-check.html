@@ -95,6 +95,9 @@ textarea.sum{min-height:180px}
 @media(min-width:1100px){.wrap{max-width:1120px}.grid{grid-template-columns:repeat(3,1fr)}}
 .btn.del{background:#fff;color:var(--err);border:1.5px solid #EBC9C4;flex:none;min-width:0}
 .memobn{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;background:#FFF1BF;border:1.5px solid #F0CF72;border-radius:14px;padding:10px 14px;font-size:14px;font-weight:700;color:#6B5513}.memobn .sp{flex:1;min-width:120px}
+.ackrow{margin-top:8px}.ackd{margin-top:8px;font-size:13px;font-weight:700;color:var(--ok)}
+.qa{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}.qa .qt{font-size:13px;font-weight:700;color:var(--tx2)}.qa .qm{margin-top:6px;font-size:13px;color:var(--tx2);background:#EAF3FF;border-radius:10px;padding:7px 10px}
+.qrow{display:flex;gap:8px;margin-top:6px}.qrow input{flex:1;min-width:0}.qrow .btn{flex:none}
 .tmemo{margin-top:10px;background:#FFF8E6;border-radius:12px;padding:9px 12px;font-size:13.5px;color:#7A5A12}
 .tchk{display:inline-block;font-size:12px;font-weight:700;color:var(--ok);background:#D8F0E3;border-radius:14px;padding:2px 9px;margin-left:6px}
 .add{width:100%;min-height:46px;margin-top:12px;border:1.5px dashed var(--main);border-radius:12px;color:var(--mainD);font-weight:700;background:#fff}
@@ -337,6 +340,11 @@ function demoApi(p){
     if (a === 'sLoad') return resolve({ ok:true, name:'김하나', career:demoSt.career, className:'1학년 3반 (체험)', year:2026, club:demoSt.club, items:DEMO_ITEMS, mine:(demoSt.mine || []).map(x => ({ ...x })), records:demoSt.recs.map(x => ({ ...x })) });
     if (a === 'sCareer'){ demoSt.career = String(p.career || '').substring(0,80); return resolve({ ok:true, career:demoSt.career }); }
     if (a === 'sClub'){ demoSt.club = String(p.club || ''); return resolve({ ok:true, club:demoSt.club }); }
+    if (a === 'sAck'){
+      const rc = demoSt.recs.find(x => x.iid === p.iid && String(x.n) === String(p.n)); if (!rc) return reject(new Error('기록을 찾지 못했어요. 먼저 저장해 주세요.'));
+      if (p.ack === '1') rc.ack = rc.tmemo; const q = String(p.q || '').substring(0, 100); if (q){ rc.q = q; rc.qAt = new Date().toISOString().slice(0, 19).replace('T', ' '); }
+      return resolve({ ok:true, rec:{ ...rc } });
+    }
     if (a === 'sSave'){
       const d = JSON.parse(p.data || '{}'), it = DEMO_ITEMS.find(x => x.id === d.itemId) || (demoSt.mine || []).find(x => x.id === d.itemId); if (!it) return reject(new Error('없어진 항목이에요.'));
       const n = (it.cat === '교과' || it.cat === '동아리') ? Math.max(1, Math.min(9, parseInt(d.n, 10) || 1)) : 1;
@@ -637,6 +645,8 @@ function entHtml(it, n, label){
         + '</div>';
     } }
   if (r && (r.tchk || r.tmemo)) h += `<div class="tmemo">👩‍🏫 선생님${r.tchk ? '<span class="tchk">✅ 확인했어요</span>' : ''}${r.tmemo ? '<br>' + esc(r.tmemo).replace(/\n/g, '<br>') : ''}</div>`;
+  if (r && r.tmemo) h += r.ack === r.tmemo ? '<div class="ackd">✅ 반영했다고 선생님께 알렸어요</div>' : `<div class="ackrow"><button class="btn sm" data-act="ack" data-k="${k}">✅ 반영했어요</button> <span class="hint">한마디대로 고쳤다면 눌러 주세요. 선생님께 알려 드려요.</span></div>`;
+  if (r) h += `<div class="qa"><div class="qt">🙋 선생님께 질문 남기기 <span style="font-weight:500;color:var(--tx3)">(100자 · 선생님이 확인하면 한마디로 답해 줘요)</span></div>${r.q ? `<div class="qm">내 질문: ${esc(r.q)}${r.qDone === r.qAt ? ' · ✅ 선생님이 확인했어요' : ' · ⏳ 확인을 기다리는 중'}</div>` : ''}<div class="qrow"><input type="text" id="q-${k}" maxlength="100" placeholder="예) 요약에는 어떤 내용을 적으면 좋을까요?"><button class="btn sm" data-act="ask" data-k="${k}">보내기</button></div></div>`;
   h += `<div id="sv-${k}">${svHtml(key(it.id, n))}</div><div class="acts"><button class="btn" data-act="save" data-k="${k}">💾 저장</button>`;
   if (r || n > 1) h += `<button class="btn del" data-act="del" data-k="${k}">${multi(it) && n > 1 ? '이 칸 지우기' : '기록 지우기'}</button>`;
   return h + '</div></div>';
@@ -686,6 +696,13 @@ document.addEventListener('click', e => {
     jsonp({ action: 'sClub', sid: me.sid, pin: me.pin, club: v }).then(r => { club = r.club || ''; clubEdit = false; openId = null; toast('내 동아리를 저장했어요 🎭'); render(); }).catch(e => { toast(e.message); b.disabled = false; });
   }
   else if (act === 'stbT') { stbHide = !stbHide; lsSet('ac_stbhide_v1', stbHide); render(); }
+  else if (act === 'ack' || act === 'ask') {
+    const k = b.dataset.k, [iid, n] = k.split('|'), params = { action:'sAck', sid:me.sid, pin:me.pin, iid, n };
+    if (act === 'ack') params.ack = '1';
+    else { const v = ((document.getElementById('q-' + k) || {}).value || '').trim(); if (!v){ toast('질문을 적어 주세요.'); return; } params.q = v; }
+    b.disabled = true;
+    jsonp(params).then(r => { const rc = recs[k]; if (rc) Object.assign(rc, { ack:r.rec.ack, ackAt:r.rec.ackAt, q:r.rec.q, qAt:r.rec.qAt, qDone:r.rec.qDone }); toast(act === 'ack' ? '선생님께 알렸어요 ✅' : '질문을 보냈어요 🙋'); render(); }).catch(e => { toast(e.message || '보내지 못했어요. 다시 눌러 주세요'); b.disabled = false; });
+  }
   else if (act === 'memoGo') { const r = unreadMemos()[0]; if (r){ const it = items.find(i => i.id === r.iid); if (it){ cat = it.cat; openId = it.id; clubEdit = false; markMemoSeen(it.id); render(); const el = document.getElementById('it-' + it.id); el && el.scrollIntoView({ block: 'start', behavior: 'smooth' }); } } }
   else if (act === 'toggle') { openId = openId === b.dataset.id ? null : b.dataset.id; if (openId) markMemoSeen(openId); render(); if (openId) { const el = document.getElementById('it-' + openId); el && el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } }
   else if (act === 'part') { getDraft(iid, n).part = b.dataset.v; render(); }
