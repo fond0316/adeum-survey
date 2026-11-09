@@ -5,7 +5,8 @@
  */
 
 /** GAS 코드 버전 — 코드를 고칠 때마다 1씩 올려요. 관리 화면이 이 번호로 업데이트가 필요한지 알려줘요. */
-var GAS_VER = 8;
+var GAS_VER = 9;
+var MAX_SUM = 1000;   // 학생 활동 요약 최대 글자수
 
 var TZ = 'Asia/Seoul';
 var DEFAULT_PW = 'activitycheck';   // 초기 비밀번호 — 첫 로그인 때 변경 강제
@@ -313,9 +314,16 @@ function sLoad_(p) {
   var recs = rows_('records').filter(function (r) { return r[0] === sid; }).map(recObj_);
   return { ok: true, name: st.v[1], career: st.v[3], club: st.v[5] || '', className: getSetting_('학급명'), year: year_(), items: items, mine: ownedS_().filter(function (o) { return o.by === sid; }), records: recs, gasVer: GAS_VER };
 }
+function dataOf_(p) {   // 긴 글은 base64url(d64)로 와요 (주소 길이 줄이기). 예전 방식(data)도 그대로 받아요
+  if (p.d64) {
+    var s = Utilities.newBlob(Utilities.base64DecodeWebSafe(String(p.d64))).getDataAsString('UTF-8');
+    return JSON.parse(s || '{}');
+  }
+  return JSON.parse(p.data || '{}');
+}
 function sSave_(p) {
   var st = stuAuth_(p.sid, p.pin), sid = st.v[0];
-  var d = JSON.parse(p.data || '{}');
+  var d = dataOf_(p);
   var iid0 = String(d.itemId);
   var byId = function (x) { return x.id === iid0; };
   var item = itemsS_().filter(byId)[0] || itemsS_(true).filter(byId)[0];
@@ -330,7 +338,7 @@ function sSave_(p) {
   var report = (d.report === 'done' || d.report === 'todo') ? d.report : '';
   var link = String(d.link || '').trim();
   if (link.length > 300) throw new Error('링크·경로는 300자 이내로 적어 주세요.');   // 주소(https://…)나 경로 글(예: 해성에듀 > 내 보고서) 모두 가능
-  var topic = cut_(d.topic, 60), career = cut_(d.career, 150), summary = cut_(d.summary, 500), deep = cut_(d.deep, 200);
+  var topic = cut_(d.topic, 60), career = cut_(d.career, 150), summary = cut_(d.summary, MAX_SUM), deep = cut_(d.deep, 200);
   var atype = ATYPES.indexOf(d.atype) >= 0 ? d.atype : '', rterm = (d.rterm === '1학기' || d.rterm === '2학기') ? d.rterm : '', ref = cut_(d.ref, 200);
   return lock_(function () {
     var sh = sh_('records'), idx = recIdx_(sh, sid, item.id, n);
