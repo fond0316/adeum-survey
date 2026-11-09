@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#9B8EC4">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ACTIVITY CHECK · 담임 관리">
+<meta property="og:description" content="학생이 자율·진로·교과·동아리 활동을 직접 체크하고, 담임은 생기부 참고용으로 한눈에 모아 보는 앱 · Made by Cheon_R">
+<meta property="og:image" content="https://fond0316.github.io/adeum-survey/Cheon-R-og2.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://fond0316.github.io/adeum-survey/Cheon-R-og2.png">
 <title>ACTIVITY CHECK · 담임 관리</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -313,13 +319,17 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
     <div class="row" style="margin:0 0 10px"><button class="btn sub sm" data-a="showIntro">📖 앱 소개</button><button class="btn sub sm" data-a="openDemo">🎬 체험해보기</button></div>
     <h2>📝 사용자 등록</h2>
     <p class="hint">처음 한 번만 입력하면 돼요. 입력한 정보는 사용 현황 파악을 위해 개발자에게 전달돼요. (다음 단계에서 구글 시트를 연결하면 등록이 자동으로 완료돼요)</p>
+    <label class="f">구분 <small>(필수)</small></label><div class="chips" id="preKind" style="margin-bottom:10px"></div>
+    <div id="preSchoolBox">
     <label class="f">학교 위치·종류 <small>(필수)</small></label>
     <div class="row" style="flex-wrap:nowrap;margin-top:0"><select id="preRegion" class="sel" style="flex:1"><option value="">지역</option><option>서울</option><option>부산</option><option>대구</option><option>인천</option><option>광주</option><option>대전</option><option>울산</option><option>세종</option><option>경기</option><option>강원</option><option>충북</option><option>충남</option><option>전북</option><option>전남</option><option>경북</option><option>경남</option><option>제주</option></select><select id="preLevel" class="sel" style="flex:1"><option value="">학교급</option><option>초등학교</option><option>중학교</option><option>고등학교</option><option>특수·기타</option></select></div>
     <p class="hint">학교 이름과 학급은 받지 않아요. 지역과 학교급만 골라 주세요.</p>
+    </div>
     <label class="f">아이디 <small>(필수)</small></label><input type="text" id="preName" maxlength="20"><p class="hint"><b>실명이 아닌 아이디를 권해요.</b></p>
+    <label class="f">사용 목적 <small>(필수 · 1개)</small></label><div class="chips" id="prePur"></div>
     <label class="agree"><input type="checkbox" id="preAgree"><span><b>[필수]</b> 개인정보 수집·이용에 동의합니다</span></label>
     <details class="agd"><summary>자세히 보기 ▾</summary><div class="agb"><ul>
-      <li><b>수집 항목</b>: 학교의 지역·학교급(필수), 아이디(필수 · 실명이 아닌 아이디 권장), 앱 사용 기록(접속한 날짜·횟수), 남겨 주신 후기·개선점. <b>학교 이름과 학급은 받지 않아요.</b></li>
+      <li><b>수집 항목</b>: 구분(교사/학생/기타)·사용 목적(필수), 학교의 지역·학교급(교사·학생은 필수), 아이디(필수 · 실명이 아닌 아이디 권장), 앱 사용 기록(접속한 날짜·횟수), 남겨 주신 후기·개선점. <b>학교 이름과 학급은 받지 않아요.</b></li>
       <li><b>이용 목적</b>: 이용 현황 파악, 문의 응대, 앱 개선, 개발자의 활동 기록 정리. 소개 자료에는 <b>숫자 통계로만</b> 쓰고, 개인이 드러나게 쓰지 않아요. (후기 인용은 후기를 쓰실 때 따로 허락하신 경우에만)</li>
       <li><b>저장 장소</b>: 개발자의 구글 시트예요. 구글 서버에 저장되고, 구글 서버는 해외에 있을 수 있어요. 개발자 본인만 열어 봐요. 제3자에게 제공하지 않아요.</li>
       <li><b>보유 기간</b>: 앱을 운영하는 동안. 삭제를 요청하시면 지체 없이 삭제해요.</li>
@@ -380,9 +390,13 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
 <div id="scrReg" class="center hide">
   <div class="box">
     <h2>📝 사용자 등록</h2>
+    <label class="f">구분</label><div class="chips" id="regKind" style="margin-bottom:10px"></div>
+    <div id="regSchoolBox">
     <label class="f">학교 위치·종류</label>
     <div class="row" style="flex-wrap:nowrap;margin-top:0"><select id="regRegion" class="sel" style="flex:1"><option value="">지역</option><option>서울</option><option>부산</option><option>대구</option><option>인천</option><option>광주</option><option>대전</option><option>울산</option><option>세종</option><option>경기</option><option>강원</option><option>충북</option><option>충남</option><option>전북</option><option>전남</option><option>경북</option><option>경남</option><option>제주</option></select><select id="regLevel" class="sel" style="flex:1"><option value="">학교급</option><option>초등학교</option><option>중학교</option><option>고등학교</option><option>특수·기타</option></select></div>
+    </div>
     <label class="f">아이디</label><input type="text" id="regName" maxlength="20">
+    <label class="f">사용 목적 <small>(1개)</small></label><div class="chips" id="regPur"></div>
     <label class="agree"><input type="checkbox" id="regAgree"><span><b>[필수]</b> 개인정보 수집·이용에 동의합니다 <a href="#" data-a="priv" style="color:var(--mainD)">(내용 보기)</a></span></label>
     <div class="row"><button class="btn" data-a="doRegister">등록하기</button></div>
     <div class="msg" id="regMsg"></div>
@@ -433,7 +447,9 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
         <p class="hint" style="margin-top:6px">메일·구글 문서·한글·워드에 붙여넣으면 주소 대신 <b>ACTIVITY CHECK_made by Cheon R</b> 글자에 링크가 걸려요. (메신저 앱은 글자 링크를 지원하지 않아 주소가 같이 보여요)</p>
         <div class="qrw"><canvas id="qrCv" width="440" height="440" aria-label="학생용 링크 QR코드"></canvas>
           <div class="qrt"><b>📱 학생용 QR</b><span>학생이 카메라로 비추면 바로 열려요. 칠판·화면에 띄우거나 이미지로 저장해 인쇄하세요.</span>
-            <div class="row" style="margin-top:6px"><button class="btn sub" data-a="qrSave">🖼️ QR 이미지 저장</button></div></div></div>
+            <div class="row" style="margin-top:6px"><button class="btn sub" data-a="qrSave">🖼️ QR 이미지 저장</button></div>
+            <div class="row" style="margin-top:6px"><button class="btn" data-a="qrBig" data-t="stuLink" data-n="학생용">📺 전자칠판용 QR 크게 보기</button></div></div></div>
+        <div class="row"><button class="btn sub" data-a="msgCopy" data-k="stuKakao">💬 학생 안내 문구 복사 (카톡·알림장)</button></div>
         <div class="msg ok" id="linkMsg"></div>
         <details class="gd">
           <summary>📖 학생 설치 방법 (디벗·핸드폰)</summary>
@@ -447,6 +463,26 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
           </ol>
           <p class="hint" style="margin-top:8px">⚠️ 링크만 있으면 로그인 화면이 열리니, 학생들에게 <b>링크는 우리 반끼리만</b> 쓰도록 안내해 주세요.</p>
         </details>
+      </div>
+      <div class="box">
+        <h2>🔑 내 관리자 링크</h2>
+        <p class="hint">내 폰·태블릿·다른 컴퓨터에서 <b>관리자 화면</b>을 바로 열 때 쓰는 링크예요. 시트 연결 주소가 들어 있어서 따로 연결하지 않아도 돼요. <b>비밀번호는 들어 있지 않지만 학생에게는 주지 마세요.</b></p>
+        <div class="link"><input type="text" id="admLink" readonly onclick="this.select()"><button class="btn" data-a="copyLk" data-t="admLink">복사</button></div>
+        <div class="row"><button class="btn" data-a="richLk" data-t="admLink" data-l="ACTIVITY CHECK 관리자_made by Cheon R">🔗 글자 링크로 복사 (ACTIVITY CHECK 관리자_made by Cheon R)</button></div>
+        <div class="qrw"><canvas id="qrCv2" width="440" height="440" aria-label="내 관리자 링크 QR코드"></canvas>
+          <div class="qrt"><b>🔑 내 관리자 QR</b><span>다른 기기 카메라로 비추면 관리자 화면이 열려요. 화면에 띄운 채로 다른 사람이 찍지 않게 조심하세요.</span>
+            <div class="row" style="margin-top:6px"><button class="btn sub" data-a="qrSv" data-t="admLink" data-n="내 관리자">🖼️ QR 이미지 저장</button></div></div></div>
+      </div>
+      <div class="box">
+        <h2>📤 다른 선생님께 공유</h2>
+        <p class="hint">다른 선생님께는 <b>이 링크</b>를 보내 주세요. 내 시트 연결은 들어 있지 않아서 선생님마다 <b>자기 구글 시트</b>에 따로 설치해요. (내 학생 기록은 보이지 않아요)</p>
+        <div class="link"><input type="text" id="shLink" readonly onclick="this.select()"><button class="btn" data-a="copyLk" data-t="shLink">복사</button></div>
+        <div class="row"><button class="btn" data-a="richLk" data-t="shLink" data-l="ACTIVITY CHECK_made by Cheon R">🔗 글자 링크로 복사 (ACTIVITY CHECK_made by Cheon R)</button></div>
+        <div class="row"><button class="btn sub" data-a="msgCopy" data-k="tcKakao">💬 카톡용 안내 문구 복사</button><button class="btn sub" data-a="msgCopy" data-k="tcMail">✉️ 메일용 안내 문구 복사</button></div>
+        <div class="qrw"><canvas id="qrCv3" width="440" height="440" aria-label="공유용 링크 QR코드"></canvas>
+          <div class="qrt"><b>📤 공유용 QR</b><span>연수·교무실에서 화면에 띄우거나 이미지로 저장해 안내문에 붙여요.</span>
+            <div class="row" style="margin-top:6px"><button class="btn sub" data-a="qrSv" data-t="shLink" data-n="선생님 공유">🖼️ QR 이미지 저장</button><button class="btn" data-a="qrBig" data-t="shLink" data-n="선생님 공유">📺 크게 보기</button></div></div></div>
+        <div class="msg ok" id="shMsg"></div>
       </div>
       <div class="box">
         <h2>⚙️ 학급 설정</h2>
@@ -592,9 +628,9 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
         <label class="f">좋았던 점 <small>(여러 개 선택)</small></label><div class="chips" id="rvChips"></div>
         <input type="text" id="rvOther" class="hide" maxlength="30" placeholder="기타 좋았던 점" style="margin-top:8px">
         <div id="rvLowBox" class="hide"><label class="f">아쉬웠던 점</label><div class="chips" id="rvLows"></div><input type="text" id="rvLowOther" class="hide" maxlength="30" placeholder="기타 아쉬운 점" style="margin-top:8px"></div>
-        <label class="f">한줄 후기 <small>(선택)</small></label><input type="text" id="rvOne" maxlength="80">
+        <label class="f">한줄 후기 <small>(선택)</small></label><textarea id="rvOne" maxlength="300" placeholder="자유롭게 적어 주세요 (300자까지)" style="min-height:64px"></textarea>
         <label class="f">개선점 <small>(선택)</small></label><div class="chips" id="rvKinds"></div>
-        <textarea id="rvImp" maxlength="200" style="margin-top:8px" placeholder="이런 기능이 있으면 좋겠어요 / 이런 오류가 있었어요"></textarea>
+        <textarea id="rvImp" maxlength="300" style="margin-top:8px" placeholder="이런 기능이 있으면 좋겠어요 / 이런 오류가 있었어요"></textarea>
         <label class="f">소개자료·포트폴리오에 후기를 써도 될까요?</label><div class="chips" id="rvOk"></div>
         <p class="hint" style="margin-top:6px">기본은 <b>아이디 없이 써도 돼요</b>예요. 바꾸고 싶으면 다른 걸 눌러 주세요. 허락해 주신 경우에만 포트폴리오·소개 자료에 인용해요.</p>
         <div class="row"><button class="btn" id="rvSend" data-a="sendReview">보내기</button></div>
@@ -689,7 +725,7 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
 <div class="ov hide" id="privOv" data-a="closeOv"><div class="in">
   <h3>📄 개인정보 처리방침</h3>
   <ul style="padding-left:18px">
-    <li><b>수집 항목</b>: 학교 지역·학교급, 아이디, 앱 사용 기록(접속일·횟수), 후기·개선점.</li>
+    <li><b>수집 항목</b>: 구분(교사/학생/기타), 사용 목적, 학교 지역·학교급, 아이디, 앱 사용 기록(접속일·횟수), 후기·개선점.</li>
     <li><b>이용 목적</b>: 이용 현황 파악, 문의 응대, 앱 개선. 소개 자료에는 숫자 통계로만 쓰고 개인이 드러나게 쓰지 않아요.</li>
     <li><b>보관·제3자 제공</b>: 개발자의 구글 시트에 앱 운영 기간 동안 보관하며 제3자에게 제공하지 않아요. 삭제를 요청하면 지체 없이 삭제해요.</li>
     <li><b>학생 정보</b>: 학생의 이름·학번·PIN·활동 기록은 <b>선생님 본인의 구글 시트에만</b> 저장되고 개발자에게 전달되지 않아요. 학생이 앱을 열면 '학급 코드 + 1'(열린 횟수)만 세고, 학생 후기는 이름·학번 없이 학생이 동의 체크를 한 경우에만 받아요. 초·중학교는 제외돼요.</li>
@@ -3061,6 +3097,28 @@ function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('
 function msg(id, text, ok){ const el = $(id); if (!el) return; el.textContent = text || ''; el.className = 'msg ' + (ok ? 'ok' : 'no'); }
 function readSchool(p){ const r = $(p+'Region').value, l = $(p+'Level').value; return (r && l) ? r + ' · ' + l : ''; }
 function setSchool(p, v){ const a = String(v||'').split(' · '); $(p+'Region').value = ''; $(p+'Level').value = ''; if (a.length === 2){ $(p+'Region').value = a[0]; $(p+'Level').value = a[1]; } }
+
+/* ===== 사용자 등록: 구분·사용목적 칩 (등록부 공용 형식) ===== */
+const KP_KINDS = ['교사','학생','기타'];
+const KP_PUR = { '교사':['학생 활동 기록 모으기','생기부 쓸 때 참고 자료','학급 점검·관리','기타'], '학생':['내 활동 정리하기','선생님께 제출하기','기타'], '기타':['앱 구경·체험','개발·연구 참고','기타'] };
+const KPS = { pre:{ kind:'교사', pur:'' }, reg:{ kind:'교사', pur:'' } };
+function kpRender(p){
+  const s = KPS[p];
+  $(p+'Kind').innerHTML = KP_KINDS.map(k => `<button type="button" class="chip${s.kind === k ? ' on' : ''}" data-a="kpKind" data-p="${p}" data-k="${k}">${k}</button>`).join('');
+  $(p+'Pur').innerHTML = KP_PUR[s.kind].map(t => `<button type="button" class="chip${s.pur === t ? ' on' : ''}" data-a="kpPur" data-p="${p}" data-k="${esc(t)}">${esc(t)}</button>`).join('');
+  $(p+'SchoolBox').classList.toggle('hide', s.kind === '기타');
+}
+function kpSet(p, kind, pur){ KPS[p].kind = KP_KINDS.includes(kind) ? kind : '교사'; KPS[p].pur = (KP_PUR[KPS[p].kind] || []).includes(pur) ? pur : ''; kpRender(p); }
+function kpRead(p){   // 화면에서 읽기: 학교 칸은 '기타'면 받지 않아요
+  const s = KPS[p], other = s.kind === '기타', region = other ? '' : $(p+'Region').value, level = other ? '' : $(p+'Level').value;
+  return { kind:s.kind, purpose:s.pur, region, level, school: other ? '(기타)' : ((region && level) ? region + ' · ' + level : '') };
+}
+function kpCheck(i, id){   // 빠진 칸이 있으면 안내 글, 괜찮으면 ''
+  if (!i.school) return '학교의 지역과 학교급을 골라 주세요.';
+  if (!i.purpose) return '사용 목적을 1개 골라 주세요.';
+  return '';
+}
+const kpParams = i => ({ kind:i.kind || '교사', region:i.region || '', level:i.level || '', purpose:i.purpose || '' });
 function baseUrl(){ return location.href.split('?')[0].split('#')[0].replace(/[^/]*$/, ''); }
 
 const SCREENS = ['scrIntro','scrPre','scrConnect','scrLogin','scrMain','scrReg','scrGate','scrPw','scrLoading'];
@@ -3185,19 +3243,19 @@ window.addEventListener('message', e => {   // 체험 화면(학생 앱)이 보�
 /* ===== 사전 등록 · 연결 · 로그인 ===== */
 function showPre(){
   const i = lsGet(K.pre, null) || lsGet(K.reg, {});
-  $('preName').value = nm(i.name); setSchool('pre', i.school); $('preAgree').checked = !!i.agree;
+  $('preName').value = nm(i.name); setSchool('pre', i.school); $('preAgree').checked = !!i.agree; kpSet('pre', i.kind, i.purpose);
   msg('preMsg',''); show('scrPre');
 }
 function savePre(){
-  const info = { name:$('preName').value.trim(), school:readSchool('pre'), cls:'' };
-  if (!info.school){ msg('preMsg','학교의 지역과 학교급을 골라 주세요.'); return; }
+  const info = Object.assign({ name:$('preName').value.trim(), cls:'' }, kpRead('pre'));
+  { const er = kpCheck(info); if (er){ msg('preMsg', er); return; } }
   if (!info.name){ msg('preMsg','아이디를 입력해 주세요.'); return; }
   if (!$('preAgree').checked){ msg('preMsg','개인정보 수집·이용에 동의해 주세요. (필수)'); return; }
   info.agree = true; lsSet(K.pre, info);
   if (REGISTRY_URL){
     let pid = lsGet(K.preId, '');
     if (!pid){ pid = 'pre-' + (window.crypto && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 10)); lsSet(K.preId, pid); }
-    reg({ action:'register', id:pid, name:info.name || NONAME, school:info.school, cls:'', agree:'1' }).catch(()=>{});
+    reg(Object.assign({ action:'register', id:pid, name:info.name || NONAME, school:info.school, cls:'', agree:'1' }, kpParams(info))).catch(()=>{});
   }
   showConnect();
 }
@@ -3241,10 +3299,10 @@ let autoRegTried = false;
 async function autoRegister(pre){
   show('scrLoading'); msg('loadMsg','사용자 등록 중…',true);
   try{
-    const r = await reg({ action:'register', id:installId, old:lsGet(K.preId,''), name:pre.name || NONAME, school:pre.school, cls:'', agree: pre.agree ? '1' : '', cb:classCode(GAS) });
-    lsSet(K.reg, { name:nm(pre.name), school:pre.school, cls:'' }); clearPre(); return handleStatus(r.status);
+    const r = await reg(Object.assign({ action:'register', id:installId, old:lsGet(K.preId,''), name:pre.name || NONAME, school:pre.school, cls:'', agree: pre.agree ? '1' : '', cb:classCode(GAS) }, kpParams(pre)));
+    lsSet(K.reg, { name:nm(pre.name), school:pre.school, cls:'', kind:pre.kind, purpose:pre.purpose, region:pre.region, level:pre.level }); clearPre(); return handleStatus(r.status);
   }catch(e){
-    $('regName').value = nm(pre.name); setSchool('reg', pre.school);
+    $('regName').value = nm(pre.name); setSchool('reg', pre.school); kpSet('reg', pre.kind, pre.purpose);
     msg('regMsg','자동 등록에 실패했어요. 아래 [등록하기]를 눌러 주세요. (' + e.message + ')'); show('scrReg');
   }
 }
@@ -3254,9 +3312,9 @@ function handleStatus(st){
   if (st === 'owner' || st === 'ok') return enterMain();
   if (st === 'unregistered'){
     const pre = lsGet(K.pre, null);
-    if (pre && pre.name && pre.school && pre.agree && !autoRegTried){ autoRegTried = true; return autoRegister(pre); }
+    if (pre && pre.name && pre.school && pre.purpose && pre.agree && !autoRegTried){ autoRegTried = true; return autoRegister(pre); }
     const info = lsGet(K.reg, null) || pre || {};
-    $('regAgree').checked = false; $('regName').value = nm(info.name); setSchool('reg', info.school);
+    $('regAgree').checked = false; $('regName').value = nm(info.name); setSchool('reg', info.school); kpSet('reg', info.kind, info.purpose);
     msg('regMsg',''); return show('scrReg');
   }
   if (st === 'pending') return gate('⏳', '승인 대기 중이에요', '개발자가 승인하면 사용할 수 있어요. 승인 후 [다시 확인]을 눌러 주세요.');
@@ -3272,13 +3330,13 @@ async function recheck(btn){
   btn.disabled = false;
 }
 async function doRegister(btn){
-  const info = { name:$('regName').value.trim(), school:readSchool('reg'), cls:'' };
-  if (!info.school){ msg('regMsg','학교의 지역과 학교급을 골라 주세요.'); return; }
+  const info = Object.assign({ name:$('regName').value.trim(), cls:'' }, kpRead('reg'));
+  { const er = kpCheck(info); if (er){ msg('regMsg', er); return; } }
   if (!info.name){ msg('regMsg','아이디를 입력해 주세요.'); return; }
   if (!$('regAgree').checked){ msg('regMsg','개인정보 수집·이용에 동의해 주세요. (필수)'); return; }
   btn.disabled = true; msg('regMsg','등록 중…',true);
   try{
-    const r = await reg({ action:'register', id:installId, old:lsGet(K.preId,''), name:info.name || NONAME, school:info.school, cls:'', agree:'1', cb:classCode(GAS) });
+    const r = await reg(Object.assign({ action:'register', id:installId, old:lsGet(K.preId,''), name:info.name || NONAME, school:info.school, cls:'', agree:'1', cb:classCode(GAS) }, kpParams(info)));
     lsSet(K.reg, info); clearPre(); await handleStatus(r.status);
   }catch(e){ msg('regMsg', e.message); }
   btn.disabled = false;
@@ -3357,6 +3415,7 @@ function renderAll(){
   const stu = baseUrl() + P + '.html?gas=' + encodeURIComponent(GAS);
   $('stuLink').value = stu;
   drawQr($('qrCv'), stu);
+  { const lk = lkUrls(); $('admLink').value = lk.adm; $('shLink').value = lk.sh; drawQr($('qrCv2'), lk.adm); drawQr($('qrCv3'), lk.sh); }
   $('instNow').value = installId || '-'; $('gasVerNow').textContent = DATA.gasVer ? 'v' + DATA.gasVer : '확인 불가'; $('gasNow').value = GAS;
   const old = !DATA.gasVer || DATA.gasVer < NEED_GAS_VER, b = $('gasBanner');
   b.classList.toggle('hide', !old);
@@ -4322,6 +4381,41 @@ function exportXlsx(){
 }
 
 /* ===== 설정 ===== */
+/* ===== 링크 카드 3종 · 큰 QR · 안내 문구 ===== */
+function lkUrls(){ return { stu: baseUrl() + P + '.html?gas=' + encodeURIComponent(GAS), adm: baseUrl() + P + '-admin.html?gas=' + encodeURIComponent(GAS), sh: baseUrl() + P + '-admin.html' }; }
+async function richLk(id, label){
+  const url = $(id).value; if (!url) return toast('먼저 시트를 연결해 주세요');
+  const mid = id === 'shLink' ? 'shMsg' : 'linkMsg';
+  try{ await navigator.clipboard.write([new ClipboardItem({ 'text/html':new Blob([`<a href="${esc(url)}">${esc(label)}</a>`], { type:'text/html' }), 'text/plain':new Blob([label + ' ' + url], { type:'text/plain' }) })]); msg(mid, '복사했어요! 메일·구글 문서·한글·워드에 붙여넣으면 글자에 링크가 걸려요.', true); }
+  catch(e){ await copyText(url); msg(mid, '이 브라우저는 글자 링크 복사를 지원하지 않아 주소를 복사했어요.', true); }
+}
+function qrBig(id, name){
+  const url = $(id).value; if (!url) return toast('먼저 시트를 연결해 주세요');
+  $('qrOvT').textContent = 'ACTIVITY CHECK' + (name === '학생용' ? ' · ' + (DATA.className || '우리 반') : '');
+  $('qrOvS').textContent = name === '학생용' ? '학생 활동 점검' : (name === '선생님 공유' ? '선생님용 설치 링크' : '관리자 화면');
+  drawQr($('qrBigCv'), url); $('qrOv').classList.remove('hide');
+}
+function qrSaveGen(id, name){
+  const url = $(id).value; if (!url){ toast('먼저 시트를 연결해 주세요'); return; }
+  const W = 700, H = 860, cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const c = cv.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, W, H);
+  c.fillStyle = '#9B8EC4'; c.fillRect(0, 0, W, 8);
+  c.textAlign = 'center'; c.fillStyle = '#2E2A3F'; c.font = '800 40px Pretendard, sans-serif'; c.fillText('ACTIVITY CHECK', W / 2, 78);
+  c.fillStyle = '#5E5873'; c.font = '600 26px Pretendard, sans-serif'; c.fillText(name === '선생님 공유' ? '학생 활동 자체점검 · 선생님용' : '내 관리자 화면', W / 2, 122);
+  const q = document.createElement('canvas'); q.width = 600; q.height = 600; drawQr(q, url);
+  c.drawImage(q, 50, 150, 600, 600);
+  c.fillStyle = '#5E5873'; c.font = '600 24px Pretendard, sans-serif'; c.fillText('📱 카메라로 비추면 열려요', W / 2, 790);
+  c.fillStyle = '#8C87A0'; c.font = '500 18px Pretendard, sans-serif'; c.fillText('Made by Cheon_R', W / 2, 830);
+  cv.toBlob(b => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'ACTIVITY-CHECK_' + name.replace(/\s+/g, '') + '_QR.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); toast('QR 이미지를 저장했어요 🖼️'); });
+}
+function msgText(k){
+  const u = lkUrls(), cls = DATA.className || '우리 반';
+  if (k === 'stuKakao') return `📱 [${cls}] 활동 점검(ACTIVITY CHECK) 안내\n\n우리 반 자율·진로·교과·동아리 활동을 내가 직접 체크하고, 한 일을 요약해서 남기는 앱이에요.\n\n1) 아래 링크를 열어요\n${u.stu}\n2) 학번과 이름을 넣고, 처음에는 PIN(숫자 4자리)을 만들어요\n3) 홈 화면에 추가해 두면 앱처럼 바로 열려요\n   · 디벗·안드로이드: 크롬 ⋮ → 홈 화면에 추가\n   · 아이폰: 사파리 공유(□↑) → 홈 화면에 추가\n\n※ 링크는 우리 반 친구들에게만 알려 주세요.`;
+  const tc = `ACTIVITY CHECK는 학생이 자율·진로·교과·동아리 활동을 직접 체크하고 요약을 남기면, 담임이 생기부 참고용으로 한눈에 모아 보는 앱이에요.\n\n▶ 시작하기: ${u.sh}\n1) 링크를 열고 사용자 등록\n2) 안내에 따라 내 구글 시트에 코드 붙여넣기·배포 (약 10분)\n3) 초기 비밀번호는 activitycheck 이고, 처음 로그인할 때 바꿔요\n\n학생 이름·학번·활동 기록은 선생님 본인의 구글 시트에만 저장돼요.\n문의: ${CONTACT_EMAIL}\nMade by Cheon_R`;
+  if (k === 'tcKakao') return `📋 ACTIVITY CHECK(학생 활동 자체점검) 소개\n\n${tc}`;
+  return `[제목] ACTIVITY CHECK(학생 활동 자체점검 앱) 소개드려요\n\n안녕하세요, 선생님.\n\n${tc}`;
+}
+function msgCopy(k){ copyText(msgText(k), '안내 문구를 복사했어요'); }
 async function copyStuRich(){
   const url = $('stuLink').value, label = 'ACTIVITY CHECK_made by Cheon R';
   try{ await navigator.clipboard.write([new ClipboardItem({ 'text/html':new Blob([`<a href="${esc(url)}">${label}</a>`], { type:'text/html' }), 'text/plain':new Blob([label + ' ' + url], { type:'text/plain' }) })]); msg('linkMsg','복사했어요! 붙여넣으면 글자에 링크가 걸려 있어요.', true); }
@@ -4628,6 +4722,7 @@ const ACT = {
   refresh: () => refresh().then(() => toast('새로 불러왔어요')).catch(e => toast(e.message)),
   tab: el => goTab(el.dataset.t),
   qrSave,
+  copyLk: el => copyText($(el.dataset.t).value, '주소를 복사했어요'), richLk: el => richLk(el.dataset.t, el.dataset.l), qrBig: el => qrBig(el.dataset.t, el.dataset.n), qrSv: el => qrSaveGen(el.dataset.t, el.dataset.n), qrBigClose: () => $('qrOv').classList.add('hide'), msgCopy: el => msgCopy(el.dataset.k),
   statView: el => { statView = el.dataset.k === 'card' ? 'card' : 'table'; try{ localStorage.setItem('ac_statview_v1', statView); }catch(e){} renderStat(); },
   ordSet: el => { ordMode = el.dataset.k; try{ localStorage.setItem('ac_ord_v1', ordMode); }catch(e){} ordRedraw(); },
   impTog: el => { impOnly = !impOnly; try{ localStorage.setItem('ac_imponly_v1', impOnly ? '1' : '0'); }catch(e){} ordRedraw(); },
@@ -4648,6 +4743,7 @@ const ACT = {
   rvSet: el => { rvRate = Number(el.dataset.i); if (rvRate > 3){ rvLow = []; rvLowOtherOn = false; } renderRv(); },
   rvTog: el => { const i = Number(el.dataset.i); if (i < 0) rvOtherOn = !rvOtherOn; else rvPick = rvPick.includes(i) ? rvPick.filter(x => x !== i) : [...rvPick, i].sort(); renderRv(); },
   rvLowTog: el => { const i = Number(el.dataset.i); if (i < 0) rvLowOtherOn = !rvLowOtherOn; else rvLow = rvLow.includes(i) ? rvLow.filter(x => x !== i) : [...rvLow, i].sort(); renderRv(); },
+  kpKind: el => { const p = el.dataset.p; KPS[p].kind = el.dataset.k; KPS[p].pur = ''; kpRender(p); }, kpPur: el => { const p = el.dataset.p; KPS[p].pur = el.dataset.k; kpRender(p); },
   rvKind: el => { rvKind = rvKind === el.dataset.k ? '' : el.dataset.k; renderRv(); }, rvOkSet: el => { rvOk = el.dataset.k; renderRv(); }, sendReview: el => sendReview(el)
 };
 document.addEventListener('click', e => {
@@ -4677,8 +4773,8 @@ $('gasIn').addEventListener('keydown', e => { if (e.key === 'Enter') connect(); 
 
 /* ⚙️ 설정 탭 박스 접었다 폈다 (처음엔 모두 접힘 · 펼친 것은 이 기기에 기억) */
 (function(){
-  const KEY = 'ac_setopen_v1'; let open = [];
-  try{ open = JSON.parse(localStorage.getItem(KEY) || '[]') || []; }catch(e){}
+  const KEY = 'ac_setopen_v2'; let open = [0, 1, 2];   // 링크 카드 3장(학생용·내 관리자·선생님 공유)은 처음에 펼쳐 둬요
+  try{ const sv = localStorage.getItem(KEY); if (sv !== null) open = JSON.parse(sv) || []; }catch(e){}
   const boxes = [...document.querySelectorAll('#p-set > .box')].filter(b => b.querySelector(':scope > h2'));
   const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(boxes.map((b,i) => b.classList.contains('cbx-open') ? i : -1).filter(i => i >= 0))); }catch(e){} };
   boxes.forEach((b, i) => {
@@ -4721,5 +4817,12 @@ function saveItemCards(){ try{ localStorage.setItem('ac_itemopen_v1', JSON.strin
   show('scrLogin');
 })();
 </script>
+<div class="ov hide" id="qrOv"><div class="in" style="max-width:820px;text-align:center">
+  <div id="qrOvT" style="font-size:22px;font-weight:800;color:#2E2A3F"></div>
+  <div id="qrOvS" style="font-size:15px;color:#5E5873;margin:4px 0 10px"></div>
+  <canvas id="qrBigCv" width="1000" height="1000" style="width:min(78vw,68vh);height:min(78vw,68vh);border:1px solid var(--line);border-radius:12px;background:#fff"></canvas>
+  <div style="font-size:15px;color:#5E5873;margin-top:8px">📱 카메라로 비추면 열려요</div>
+  <div class="row" style="justify-content:center"><button class="btn sub" data-a="qrBigClose">닫기 (ESC)</button></div>
+</div></div>
 </body>
 </html>
