@@ -13699,14 +13699,18 @@ function buildTopbar(){
 /* ── 담임 앱 ── */
 function buildDamin(){
   var c="";
+  /* 결과 패널: 글 길이(약 500~900자)에 맞는 폭, 높이는 내용에 맞게 늘어나다 화면 높이에서 멈춤 */
+  c+="#d-body-saengiboo>div:nth-child(2){flex:0 0 min(calc(560px * var(--gbn)),46%)!important;height:auto!important;max-height:var(--gb-dh,640px);min-height:calc(380px * var(--gbn));}\n";
+  c+="#d-body-saengiboo>div:nth-child(2)>div{min-height:0;}\n";
+  c+="#d-body-saengiboo>div:nth-child(1){max-width:calc(980px * var(--gbn));}\n";
   c+="#app-damin .gb-dbar{height:calc(56px * var(--gbn))!important;padding:0 18px!important;border-bottom:1px solid #E4E0F0!important;}\n";
   c+="#app-damin .gb-dbar button[id^=d-maintab]{height:calc(56px * var(--gbn))!important;font-size:calc(14px * var(--gbn))!important;padding:0 calc(20px * var(--gbn))!important;border-bottom-width:3px!important;}\n";
   c+="#app-damin .gb-dbar .top-logo-link{font-size:calc(15px * var(--gbn))!important;display:flex;align-items:center;}\n";
   c+="#app-damin .gb-dbar button:not([id^=d-maintab]){min-height:calc(32px * var(--gbn));border-radius:8px!important;}\n";
   c+="#d-view-write>div:first-child{width:calc(172px * var(--gbf,1.2))!important;}\n";
   c+="#d-body-saengiboo{align-items:flex-start!important;}\n";
-  c+="#d-body-saengiboo>div:nth-child(1){flex:5 1 0!important;min-width:0;}\n";
-  c+="#d-body-saengiboo>div:nth-child(2){width:auto!important;flex:6 1 0!important;position:sticky;top:0;align-self:flex-start;height:var(--gb-dh,640px);}\n";
+  c+="#d-body-saengiboo>div:nth-child(1){flex:1 1 0!important;min-width:0;}\n";
+  c+="#d-body-saengiboo>div:nth-child(2){width:auto!important;position:sticky;top:0;align-self:flex-start;}\n";
   c+="#d-result-area{line-height:1.95!important;padding:18px 22px!important;font-size:calc(14px * var(--gbn))!important;overflow-y:auto;min-height:0;}\n";
   c+="#d-result-empty{font-size:calc(13px * var(--gbn));}\n";
   c+="#d-result-btns button{min-height:calc(38px * var(--gbn));}\n";
@@ -13733,6 +13737,8 @@ function buildDamin(){
 /* ── 교과 현황 표 ── */
 function buildStatus(){
   var c="";
+  c+="#col4-body>div:first-child{flex:1 1 0!important;max-width:calc(980px * var(--gbn));}\n";
+  c+="#result-col{flex:0 0 min(calc(620px * var(--gbn)),46%)!important;height:auto!important;max-height:var(--gb-rh,640px);min-height:calc(420px * var(--gbn));}\n";
   c+="#status-view{padding:18px 22px!important;}\n";
   c+="#status-toolbar{gap:10px!important;margin-bottom:14px!important;}\n";
   c+="#status-toolbar input,#status-toolbar select{min-height:calc(36px * var(--gbn))!important;font-size:calc(13px * var(--gbn))!important;border-radius:10px!important;}\n";
