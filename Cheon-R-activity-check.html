@@ -94,6 +94,7 @@ label.l{display:block;font-size:13px;font-weight:700;color:var(--tx2);margin:12p
 textarea.sum{min-height:180px}
 @media(min-width:1100px){.wrap{max-width:1120px}.grid{grid-template-columns:repeat(3,1fr)}}
 .btn.del{background:#fff;color:var(--err);border:1.5px solid #EBC9C4;flex:none;min-width:0}
+.memobn{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;background:#FFF1BF;border:1.5px solid #F0CF72;border-radius:14px;padding:10px 14px;font-size:14px;font-weight:700;color:#6B5513}.memobn .sp{flex:1;min-width:120px}
 .tmemo{margin-top:10px;background:#FFF8E6;border-radius:12px;padding:9px 12px;font-size:13.5px;color:#7A5A12}
 .tchk{display:inline-block;font-size:12px;font-weight:700;color:var(--ok);background:#D8F0E3;border-radius:14px;padding:2px 9px;margin-left:6px}
 .add{width:100%;min-height:46px;margin-top:12px;border:1.5px dashed var(--main);border-radius:12px;color:var(--mainD);font-weight:700;background:#fff}
@@ -199,6 +200,7 @@ body.demo #demoBar{display:flex}body.demo #btnOut,body.demo #btnRe{display:none}
         <button class="btn sub sm" id="btnCareer">저장</button>
       </div>
     </div>
+    <div id="memoBn" class="hide"></div>
     <div class="sec"><span id="secIcon" style="font-size:20px"></span><div id="secTitle"></div><span id="secCnt"></span></div>
     <div class="grid" id="grid"></div>
   </div>
@@ -401,6 +403,17 @@ const starCat = it => it.cat === '자율' || it.cat === '진로' ? it.cat : (it.
 const starOf = it => { const r = recs[key(it.id, 1)]; return r && r.part === 'yes' && (r.star === '1' || r.star === '2') ? r.star : ''; };
 const starCount = c => items.filter(i => starCat(i) === c && starOf(i)).length;
 const mainOf = c => items.find(i => starCat(i) === c && starOf(i) === '2');                // 동아리는 내가 고른 것만 보여요
+/* 💬 선생님 한마디 새 알림 (읽음 표시는 이 기기에만 저장) */
+const memoSeenKey = () => 'ac_memoseen_v1_' + (me && me.sid || '');
+function memoSeen(){ const m = lsGet(memoSeenKey(), {}); return m && typeof m === 'object' ? m : {}; }
+function unreadMemos(){ const sn = memoSeen(); return Object.keys(recs).map(k => recs[k]).filter(r => r.tmemo && sn[key(r.iid, r.n)] !== r.tmemo && items.some(i => i.id === r.iid)); }
+function markMemoSeen(iid){ const sn = memoSeen(); let ch = false; Object.keys(recs).forEach(k => { const r = recs[k]; if (r.iid === iid && r.tmemo && sn[k] !== r.tmemo){ sn[k] = r.tmemo; ch = true; } }); if (ch) lsSet(memoSeenKey(), sn); }
+function memoBanner(){
+  const el = $('memoBn'); if (!el) return;
+  const u = unreadMemos(), n = new Set(u.map(r => r.iid)).size;
+  el.classList.toggle('hide', !n);
+  el.innerHTML = n ? `<div class="memobn">💬 <span>선생님 한마디가 도착했어요 (${n}개)</span><span class="sp"></span><button class="btn sm" data-act="memoGo">보러 가기</button></div>` : '';
+}
 function recsOf(iid){ return Object.keys(recs).filter(k => k.split('|')[0] === iid).map(k => recs[k]).sort((a, b) => a.n - b.n); }
 function statusOf(it){
   const r = recsOf(it.id);
@@ -500,6 +513,7 @@ function sumRender(){
 
 /* ===== 그리기 ===== */
 function render(){
+  memoBanner();
   // 분류 카드 + 진행
   let tot = 0, chk = 0, sum = 0;
   $('cats').innerHTML = CATS.map(c => {
@@ -554,7 +568,7 @@ function itemHtml(it){
   const sl = starCat(it) ? starOf(it) : '';
   return `<div class="it ${open ? 'open' : ''}${sl ? ' star' + sl : ''}" style="--cc:${CAT[it.cat].cc}" id="it-${esc(it.id)}">
     <button class="hd" data-act="toggle" data-id="${esc(it.id)}">
-      <div class="t"><b>${esc(it.title)}</b>${sl === '2' ? ' <span class="tg st2">🌟 대표</span>' : sl === '1' ? ' <span class="tg st1">⭐ 연결</span>' : ''}${it.mc ? ` <span class="tg">${it.mc === '모르겠어요' ? '❓ 분류 모르겠어요' : esc(it.mc)}</span>` : ''}${it.term ? ` <span class="tg">${esc(it.term)}</span>` : ''}${dueTag(it)}${it.note ? `<small>${esc(it.note)}</small>` : ''}</div>
+      <div class="t"><b>${esc(it.title)}</b>${unreadMemos().some(r => r.iid === it.id) ? ' <span class="tg due">💬 새 한마디</span>' : ''}${sl === '2' ? ' <span class="tg st2">🌟 대표</span>' : sl === '1' ? ' <span class="tg st1">⭐ 연결</span>' : ''}${it.mc ? ` <span class="tg">${it.mc === '모르겠어요' ? '❓ 분류 모르겠어요' : esc(it.mc)}</span>` : ''}${it.term ? ` <span class="tg">${esc(it.term)}</span>` : ''}${dueTag(it)}${it.note ? `<small>${esc(it.note)}</small>` : ''}</div>
       <span class="badge ${b[1]}">${b[0]}${cnt > 1 ? ' ' + cnt : ''}${recsOf(it.id).some(r => r.tchk) ? ' ✅' : ''}${recsOf(it.id).some(r => r.tmemo) ? ' 💬' : ''}</span>
     </button>
     ${open ? bodyHtml(it) : ''}
@@ -672,7 +686,8 @@ document.addEventListener('click', e => {
     jsonp({ action: 'sClub', sid: me.sid, pin: me.pin, club: v }).then(r => { club = r.club || ''; clubEdit = false; openId = null; toast('내 동아리를 저장했어요 🎭'); render(); }).catch(e => { toast(e.message); b.disabled = false; });
   }
   else if (act === 'stbT') { stbHide = !stbHide; lsSet('ac_stbhide_v1', stbHide); render(); }
-  else if (act === 'toggle') { openId = openId === b.dataset.id ? null : b.dataset.id; render(); if (openId) { const el = document.getElementById('it-' + openId); el && el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } }
+  else if (act === 'memoGo') { const r = unreadMemos()[0]; if (r){ const it = items.find(i => i.id === r.iid); if (it){ cat = it.cat; openId = it.id; clubEdit = false; markMemoSeen(it.id); render(); const el = document.getElementById('it-' + it.id); el && el.scrollIntoView({ block: 'start', behavior: 'smooth' }); } } }
+  else if (act === 'toggle') { openId = openId === b.dataset.id ? null : b.dataset.id; if (openId) markMemoSeen(openId); render(); if (openId) { const el = document.getElementById('it-' + openId); el && el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } }
   else if (act === 'part') { getDraft(iid, n).part = b.dataset.v; render(); }
   else if (act === 'atype') { const d = getDraft(iid, n); d.atype = d.atype === b.dataset.v ? '' : b.dataset.v; render(); }
   else if (act === 'rterm') { const d = getDraft(iid, n); d.rterm = d.rterm === b.dataset.v ? '' : b.dataset.v; render(); }
