@@ -342,7 +342,7 @@ function demoApi(p){
     if (a === 'sClub'){ demoSt.club = String(p.club || ''); return resolve({ ok:true, club:demoSt.club }); }
     if (a === 'sAck'){
       const rc = demoSt.recs.find(x => x.iid === p.iid && String(x.n) === String(p.n)); if (!rc) return reject(new Error('기록을 찾지 못했어요. 먼저 저장해 주세요.'));
-      if (p.ack === '1') rc.ack = rc.tmemo; const q = String(p.q || '').substring(0, 100); if (q){ rc.q = q; rc.qAt = new Date().toISOString().slice(0, 19).replace('T', ' '); }
+      if (p.ack === '1') rc.ack = rc.tmemo; if ((p.ack === '1' || p.seen === '1') && rc.tmemo && !rc.readAt) rc.readAt = new Date().toISOString().slice(0, 19).replace('T', ' '); const q = String(p.q || '').substring(0, 100); if (q){ rc.q = q; rc.qAt = new Date().toISOString().slice(0, 19).replace('T', ' '); }
       return resolve({ ok:true, rec:{ ...rc } });
     }
     if (a === 'sSave'){
@@ -415,7 +415,18 @@ const mainOf = c => items.find(i => starCat(i) === c && starOf(i) === '2');     
 const memoSeenKey = () => 'ac_memoseen_v1_' + (me && me.sid || '');
 function memoSeen(){ const m = lsGet(memoSeenKey(), {}); return m && typeof m === 'object' ? m : {}; }
 function unreadMemos(){ const sn = memoSeen(); return Object.keys(recs).map(k => recs[k]).filter(r => r.tmemo && sn[key(r.iid, r.n)] !== r.tmemo && items.some(i => i.id === r.iid)); }
-function markMemoSeen(iid){ const sn = memoSeen(); let ch = false; Object.keys(recs).forEach(k => { const r = recs[k]; if (r.iid === iid && r.tmemo && sn[k] !== r.tmemo){ sn[k] = r.tmemo; ch = true; } }); if (ch) lsSet(memoSeenKey(), sn); }
+function markMemoSeen(iid){
+  const sn = memoSeen(); let ch = false;
+  Object.keys(recs).forEach(k => {
+    const r = recs[k]; if (r.iid !== iid || !r.tmemo) return;
+    if (sn[k] !== r.tmemo){ sn[k] = r.tmemo; ch = true; }
+    if (!r.readAt){   // 선생님이 '봤어요'를 알 수 있게 서버에 한 번만 알려요
+      r.readAt = 'sending'; const [i2, n2] = k.split('|');
+      jsonp({ action:'sAck', sid:me.sid, pin:me.pin, iid:i2, n:n2, seen:'1' }).then(x => { if (recs[k]) recs[k].readAt = x.rec.readAt || ''; }).catch(() => { if (recs[k]) recs[k].readAt = ''; });
+    }
+  });
+  if (ch) lsSet(memoSeenKey(), sn);
+}
 function memoBanner(){
   const el = $('memoBn'); if (!el) return;
   const u = unreadMemos(), n = new Set(u.map(r => r.iid)).size;
@@ -701,7 +712,7 @@ document.addEventListener('click', e => {
     if (act === 'ack') params.ack = '1';
     else { const v = ((document.getElementById('q-' + k) || {}).value || '').trim(); if (!v){ toast('질문을 적어 주세요.'); return; } params.q = v; }
     b.disabled = true;
-    jsonp(params).then(r => { const rc = recs[k]; if (rc) Object.assign(rc, { ack:r.rec.ack, ackAt:r.rec.ackAt, q:r.rec.q, qAt:r.rec.qAt, qDone:r.rec.qDone }); toast(act === 'ack' ? '선생님께 알렸어요 ✅' : '질문을 보냈어요 🙋'); render(); }).catch(e => { toast(e.message || '보내지 못했어요. 다시 눌러 주세요'); b.disabled = false; });
+    jsonp(params).then(r => { const rc = recs[k]; if (rc) Object.assign(rc, { ack:r.rec.ack, ackAt:r.rec.ackAt, q:r.rec.q, qAt:r.rec.qAt, qDone:r.rec.qDone, readAt:r.rec.readAt, memoAt:r.rec.memoAt }); toast(act === 'ack' ? '선생님께 알렸어요 ✅' : '질문을 보냈어요 🙋'); render(); }).catch(e => { toast(e.message || '보내지 못했어요. 다시 눌러 주세요'); b.disabled = false; });
   }
   else if (act === 'memoGo') { const r = unreadMemos()[0]; if (r){ const it = items.find(i => i.id === r.iid); if (it){ cat = it.cat; openId = it.id; clubEdit = false; markMemoSeen(it.id); render(); const el = document.getElementById('it-' + it.id); el && el.scrollIntoView({ block: 'start', behavior: 'smooth' }); } } }
   else if (act === 'toggle') { openId = openId === b.dataset.id ? null : b.dataset.id; if (openId) markMemoSeen(openId); render(); if (openId) { const el = document.getElementById('it-' + openId); el && el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } }
