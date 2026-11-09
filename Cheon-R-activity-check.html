@@ -246,6 +246,7 @@ body.demo #demoBar{display:flex}body.demo #btnOut,body.demo #btnRe{display:none}
   <textarea id="rvImp" maxlength="200" placeholder="고쳤으면 하는 점을 적어 주세요" style="margin-top:8px;min-height:70px"></textarea>
   <div class="rvlbl">후기를 소개 자료에 써도 될까요?</div>
   <div class="chips" id="rvOks"></div>
+  <div style="font-size:12px;color:var(--tx2);margin-top:6px;line-height:1.5">기본은 <b>이름 없이 써도 돼요</b>예요. 바꾸고 싶으면 다른 걸 눌러 주세요. 허락해 주신 경우에만 포트폴리오·소개 자료에 인용해요.</div>
   <label style="display:flex;gap:8px;align-items:flex-start;margin-top:14px;font-size:13.5px;line-height:1.5"><input type="checkbox" id="rvAgree" style="width:22px;height:22px;flex:none;margin-top:1px"><span>이 후기가 <b>이름·학번 없이 익명으로</b> 앱을 만든 선생님께 전달되는 것에 동의해요. (필수)</span></label>
   <div style="margin-top:12px;display:flex;gap:8px"><button class="btn sub" data-act="closeRv" style="flex:1">닫기</button><button class="btn" id="rvSend" data-act="rvSend" style="flex:2">보내기</button></div>
 </div></div>
@@ -643,7 +644,7 @@ document.addEventListener('click', e => {
   if (act === 'help'){ $('helpOv').classList.remove('hide'); return; }
   if (act === 'sum'){ sumRender(); $('sumOv').classList.remove('hide'); return; }
   if (act === 'closeSum'){ if (b.classList.contains('ov') && e.target !== b) return; $('sumOv').classList.add('hide'); return; }
-  if (act === 'rv'){ rvS = { rate: 0, c: [], lc: [], ik: '', ok: 'no' }; ['rvOther','rvLowOther','rvOne','rvImp'].forEach(i => $(i).value = ''); $('rvAgree').checked = false; rvRender(); $('rvOv').classList.remove('hide'); return; }
+  if (act === 'rv'){ rvS = { rate: 0, c: [], lc: [], ik: '', ok: 'yes' }; ['rvOther','rvLowOther','rvOne','rvImp'].forEach(i => $(i).value = ''); $('rvAgree').checked = false; rvRender(); $('rvOv').classList.remove('hide'); return; }
   if (act === 'closeRv'){ if (b.classList.contains('ov') && e.target !== b) return; $('rvOv').classList.add('hide'); return; }
   if (act === 'rvBnX'){ const x = $('rvBn'); if (x) x.remove(); return; }
   if (act === 'rvStar'){ rvS.rate = Number(b.dataset.n); if (rvS.rate > 3) rvS.lc = []; rvRender(); return; }
@@ -760,7 +761,7 @@ function devId(){ let d = lsGet(K.dv, ''); if (!d){ d = Math.random().toString(3
 const todayStr = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
 const RV = { chips: ['내가 한 활동을 한곳에 정리할 수 있어요', '참여 여부 체크가 쉬워요', '요약을 쓰니 도움이 돼요', '선생님 확인·한마디가 좋아요', '폰·디벗에서 잘 열려요', '화면이 보기 좋아요'],
   lows: ['쓸 게 너무 많아요', '어떻게 쓰는지 헷갈려요', '열리는 게 느리거나 잘 안 열려요', '요약 쓰기가 어려워요', '내 기록을 찾기 어려워요'], kinds: ['기능 요청', '오류', '디자인', '기타'] };
-let rvOn = false, rvS = { rate: 0, c: [], lc: [], ik: '', ok: 'no' };
+let rvOn = false, rvS = { rate: 0, c: [], lc: [], ik: '', ok: 'yes' };
 async function regSetup(){   // 로그인 뒤에 한 번: 하루 한 번 집계 + 후기 버튼 노출 여부 확인 (실패해도 앱에는 영향 없어요)
   if (DEMO || !GAS) return;
   const cb = classCode(GAS);
@@ -786,7 +787,7 @@ function rvRender(){
   $('rvStars').innerHTML = [1,2,3,4,5].map(n => '<button type="button" class="' + (n <= rvS.rate ? 'on' : '') + '" data-act="rvStar" data-n="' + n + '" aria-label="' + n + '점">★</button>').join('');
   rvChipsRender('rvChips', RV.chips, 'c', true); rvChipsRender('rvLows', RV.lows, 'lc', true); rvChipsRender('rvKinds', RV.kinds, 'ik', false);
   $('rvLowBox').classList.toggle('hide', !(rvS.rate >= 1 && rvS.rate <= 3));
-  $('rvOks').innerHTML = [['yes', '이름 없이 써도 좋아요'], ['no', '쓰지 말아주세요']].map(o => '<button type="button" class="chip' + (rvS.ok === o[0] ? ' on' : '') + '" data-act="rvOk" data-v="' + o[0] + '">' + o[1] + '</button>').join('');
+  $('rvOks').innerHTML = [['yes', '이름 없이 써도 돼요'], ['no', '쓰지 말아주세요']].map(o => '<button type="button" class="chip' + (rvS.ok === o[0] ? ' on' : '') + '" data-act="rvOk" data-v="' + o[0] + '">' + o[1] + '</button>').join('');
 }
 async function rvSubmit(){
   if (!rvS.rate) return toast('별점을 눌러 주세요 ⭐');
