@@ -108,6 +108,11 @@ table.mx{border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:10
 .mx td.c i.tt{position:absolute;right:1px;bottom:1px;width:0;height:0;border-left:7px solid transparent;border-bottom:7px solid var(--ok)}
 .mx .d{background:#D8F0E3;color:var(--ok)}.mx .s{background:#FCEFD2;color:var(--warn)}.mx .n{background:#E3EAF3;color:#4B6384}.mx .z{background:#fff}.mx .na{background:repeating-linear-gradient(45deg,#F3F1F8,#F3F1F8 3px,#fff 3px,#fff 6px);cursor:default}
 .mx td.c:hover{outline:2px solid #9B8EC4;outline-offset:-2px}
+/* 필터(질문·반영 대기·안 읽음)에 해당하는 칸/기록 강조 */
+.mx td.c.hl{min-width:46px;outline-width:3px;outline-style:solid;outline-offset:-3px}
+.mx td.c.hl-q{outline-color:#D63A2B;background:#FFE9E6}.mx td.c.hl-w{outline-color:#EC8A0E;background:#FFF0D6}.mx td.c.hl-u{outline-color:#2F7BD9;background:#E3EFFD}
+.mx td.c .hli{font-size:16px;margin-left:2px}
+.ir.hl-q,.ir.hl-w,.ir.hl-u{outline:3px solid;outline-offset:2px;border-radius:10px}.ir.hl-q{outline-color:#D63A2B}.ir.hl-w{outline-color:#EC8A0E}.ir.hl-u{outline-color:#2F7BD9}
 .mx .mxs{min-width:96px;padding:0 8px;text-align:center;white-space:nowrap}
 .mx tfoot td{position:sticky;bottom:0;background:#F7F5FC;font-weight:800;text-align:center;height:28px;border-top:2px solid var(--line);z-index:2}
 .mx tfoot td.mxn{z-index:4}
@@ -609,7 +614,7 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
     <div class="pane" id="p-stat">
       <div class="card">
         <div class="chips" style="margin-top:0"><button class="chip on" data-a="statMode" data-m="stu">👤 학생별</button><button class="chip" data-a="statMode" data-m="item">📋 항목별</button><button class="chip" data-a="statMode" data-m="memo">💬 한마디 <span id="memoBadge"></span></button></div>
-        <div class="row"><div class="grid2" style="flex:1"><input type="text" id="statQ" placeholder="학번·이름 검색" class="hide"></div><button class="btn sm sub" data-a="exportXlsx">📤 엑셀로 저장</button><button class="btn sm sub" data-a="exportBackup">💾 전체 백업</button><button class="btn sm sub" data-a="printAll">🖨️ 전체 학생 출력</button></div>
+        <div class="row"><div class="grid2" style="flex:1"><input type="text" id="statQ" placeholder="학번·이름 검색" class="hide"></div><button class="btn sm sub" data-a="exportXlsx">📤 엑셀로 저장</button><button class="btn sm sub" data-a="exportBackup">💾 전체 백업</button><button class="btn sm sub" data-a="printAll">🖨️ 전체 학생 출력</button><button class="btn sm sub" data-a="psOpen">🖨️ 선택 학생 출력</button></div>
         <div class="chips hide" id="viewSel"></div>
         <div class="chips hide" id="stuFilt"></div>
         <div class="row" style="margin-top:6px"><button class="btn sm sub" data-a="copyPend">📋 지금 보이는 목록 복사 (독촉용)</button></div>
@@ -776,6 +781,14 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
   <label style="display:flex;gap:8px;align-items:center;min-height:44px;margin-top:6px"><input type="checkbox" id="prMemo" style="width:20px;height:20px"> 선생님 한마디 포함</label>
   <div class="hint" style="margin:0">고른 옵션은 기억해 둬요. 교사용 기재 유의·보낼 곳은 항상 빼고 출력해요.</div>
   <div class="row" style="margin-top:10px"><button class="btn" data-a="prGo">🖨️ 출력</button><button class="btn sub" data-a="closeOv">취소</button></div>
+</div></div>
+
+<div class="ov hide" id="psOv" data-a="closeOv"><div class="in" style="max-width:520px">
+  <h2 style="margin:0 0 4px">🖨️ 출력할 학생 고르기</h2>
+  <div class="hint" style="margin:0 0 6px" id="psCnt"></div>
+  <div class="chips" style="margin:0 0 8px"><button class="chip" data-a="psAll">전체 선택</button><button class="chip" data-a="psNone">모두 해제</button><button class="chip" data-a="psFilt">지금 현황에 보이는 학생만</button></div>
+  <div class="chips" id="psList"></div>
+  <div class="row" style="margin-top:10px"><button class="btn" data-a="psGo">다음 · 출력 옵션</button><button class="btn sub" data-a="closeOv">취소</button></div>
 </div></div>
 
 <div id="printArea" class="pa"></div>
@@ -4058,10 +4071,16 @@ const memoSt = r => !r.tmemo ? '' : (r.ack === r.tmemo ? 'ack' : (r.memoAt && r.
 const mt = v => String(v || '').slice(5, 16).replace('-', '/');
 const qPend = r => !!(r.q && r.qDone !== r.qAt);          // 학생 질문이 답을 기다리는 중
 const ackWait = r => !!(r.tmemo && r.ack !== r.tmemo);    // 선생님 한마디를 학생이 아직 '반영했어요' 안 누름
+const hlKind = () => (statMode === 'stu' && (stuFilt === 'q' || stuFilt === 'w' || stuFilt === 'u')) ? stuFilt : '';   // 질문·반영 대기·안 읽음 필터가 켜졌을 때만
+const hlTest = { q:qPend, w:ackWait, u:r => memoSt(r) === 'unread' }, HLI = { q:'🙋', w:'⏳', u:'👀' };
+const hlOf = rs => { const k = hlKind(); return k && rs.some(hlTest[k]) ? k : ''; };
+let mxJump = false;
+function firstHl(sid){ if (!hlKind()) return ''; const s = DATA.students.find(x => x.sid === sid); if (!s) return ''; const f = itemsFor(s, DATA.items.filter(i => i.on)).find(it => hlOf(recsOf(sid, it.id))); return f ? f.id : ''; }
+function jumpHl(){ const w = document.querySelector('#statBody .mxw'), c = w && w.querySelector('td.c.hl'); if (!c) return; const a = w.getBoundingClientRect(), b = c.getBoundingClientRect(); w.scrollLeft += (b.left - a.left) - w.clientWidth / 2 + b.width / 2; w.scrollTop += (b.top - a.top) - w.clientHeight / 2 + b.height / 2; }
 function qwOf(sid){ let q = 0, w = 0, u = 0; DATA.records.forEach(r => { if (r.sid !== sid) return; if (qPend(r)) q++; if (ackWait(r)) w++; if (memoSt(r) === 'unread') u++; }); return { q, w, u }; }
 function recHtml(sid, it){
   const rs = recsOf(sid, it.id), st = statusOfRecs(rs);
-  let h = `<div class="ir" data-iid="${esc(it.id)}"><div class="hd"><span class="tag ${CATCLS[it.cat]}">${CATE[it.cat]}</span><b>${esc(it.title)}</b>${rs.some(r => r.star === '2') ? '<span class="ibb" style="background:#FF9A4D;color:#fff;font-size:12.5px">🌟 대표</span>' : rs.some(r => r.star === '1') ? '<span class="ibb" style="background:#FFE48A;color:#6B5513">⭐ 연결</span>' : ''}${badge(st)}</div>${itemTags(it, true)}`;
+  let h = `<div class="ir${hlOf(rs) ? ' hl-' + hlOf(rs) : ''}" data-iid="${esc(it.id)}"><div class="hd"><span class="tag ${CATCLS[it.cat]}">${CATE[it.cat]}</span><b>${esc(it.title)}</b>${rs.some(r => r.star === '2') ? '<span class="ibb" style="background:#FF9A4D;color:#fff;font-size:12.5px">🌟 대표</span>' : rs.some(r => r.star === '1') ? '<span class="ibb" style="background:#FFE48A;color:#6B5513">⭐ 연결</span>' : ''}${badge(st)}</div>${itemTags(it, true)}`;
   rs.forEach(r => {
     h += `<div class="rec">`;
     if (r.part === 'yes'){
@@ -4091,15 +4110,15 @@ function mxHtml(shown, items){
     h += `<tr><td class="mxn" data-a="sdOpen" data-sid="${esc(s.sid)}"><b>${esc(s.sid)} ${esc(s.name)}</b></td>`;
     cols.forEach(it => {
       if (it.cat === '동아리' && it.id !== s.club && !recsOf(s.sid, it.id).length){ h += '<td class="c na"></td>'; return; }
-      const rs = recsOf(s.sid, it.id), st = statusOfRecs(rs), m = BT[st], star = rs.some(r => r.star === '2' || r.star === '1');
-      h += `<td class="c ${m[0]}${impOnly && !isImp(s.sid, it) ? ' dim' : ''}" data-a="mxOpen" data-sid="${esc(s.sid)}" data-iid="${esc(it.id)}" title="${esc(s.name)} · ${esc(it.title)} · ${BADGE[st][0]}${star ? ' · ⭐' : ''}${rs.some(r => r.tchk) ? ' · 선생님 확인' : ''}">${m[1]}${star ? '<sup>★</sup>' : ''}${rs.some(qPend) ? '<sup style="color:#C0392B">?</sup>' : ''}${rs.some(r => r.tchk) ? '<i class="tt"></i>' : ''}</td>`;
+      const rs = recsOf(s.sid, it.id), st = statusOfRecs(rs), m = BT[st], hk = hlOf(rs), star = rs.some(r => r.star === '2' || r.star === '1');
+      h += `<td class="c ${m[0]}${impOnly && !isImp(s.sid, it) ? ' dim' : ''}${hk ? ' hl hl-' + hk : ''}" data-a="mxOpen" data-sid="${esc(s.sid)}" data-iid="${esc(it.id)}" title="${esc(s.name)} · ${esc(it.title)} · ${BADGE[st][0]}${star ? ' · ⭐' : ''}${rs.some(r => r.tchk) ? ' · 선생님 확인' : ''}">${m[1]}${hk ? '<span class="hli">' + HLI[hk] + '</span>' : ''}${star ? '<sup>★</sup>' : ''}${rs.some(qPend) ? '<sup style="color:#C0392B">?</sup>' : ''}${rs.some(r => r.tchk) ? '<i class="tt"></i>' : ''}</td>`;
     });
     h += `<td class="mxs"><span class="badge b-none">${chk}/${sitems.length}</span>${sum ? ` <span class="badge b-sum">${sum}</span>` : ''}${(() => { const qw = qwOf(s.sid); return (qw.q ? ` <span class="badge b-sum" title="학생 질문 ${qw.q}개 대기">🙋${qw.q}</span>` : '') + (qw.w ? ` <span class="badge b-none" title="반영 대기 ${qw.w}개">⏳${qw.w}</span>` : ''); })()}</td></tr>`;
   });
   h += '</tbody><tfoot><tr><td class="mxn">참여한 학생 수</td>' + cols.map(it => {
     const n = DATA.students.filter(x => { const st = statusOfRecs(recsOf(x.sid, it.id)); return st === 'done' || st === 'sum'; }).length; return `<td title="${esc(it.title)}">${n || ''}</td>`;
   }).join('') + '<td></td></tr></tfoot></table></div>'
-    + '<div class="mxlg"><span><i class="d">✓</i>완료</span><span><i class="s">✎</i>요약 미작성</span><span><i class="n">–</i>참여 안 함</span><span><i class="z" style="border:1px solid var(--line)"></i>미점검</span><span>★ 진로 연결 표시</span><span><b style="color:#C0392B">?</b> 학생 질문 대기</span><span><i class="tt" style="width:0;height:0;border-left:9px solid transparent;border-bottom:9px solid var(--ok);background:none"></i>선생님 확인</span><span style="color:var(--tx3)">칸을 누르면 그 기록이 열려요 · 항목 이름은 마우스를 올리면 전체가 보여요</span></div>';
+    + '<div class="mxlg"><span><i class="d">✓</i>완료</span><span><i class="s">✎</i>요약 미작성</span><span><i class="n">–</i>참여 안 함</span><span><i class="z" style="border:1px solid var(--line)"></i>미점검</span><span>★ 진로 연결 표시</span><span><b style="color:#C0392B">?</b> 학생 질문 대기</span><span><i class="tt" style="width:0;height:0;border-left:9px solid transparent;border-bottom:9px solid var(--ok);background:none"></i>선생님 확인</span><span style="color:var(--tx3)">칸을 누르면 그 기록이 열려요 · 항목 이름은 마우스를 올리면 전체가 보여요</span>' + (hlKind() ? '<span style="font-weight:700">' + HLI[hlKind()] + ' 테두리 친 칸이 해당 활동이에요</span>' : '') + '</div>';
   return h;
 }
 function cardsHtml(shown){
@@ -4131,6 +4150,7 @@ function renderStat(){
     statCopy = { head:'[' + ({ all:'전체', none:'미점검 있는 학생', sum:'요약 미작성 있는 학생', q:'질문 있는 학생', u:'한마디 안 읽은 학생', w:'한마디 반영 대기 학생' })[stuFilt] + ']', lines:shown.map(x => `${x.s.sid} ${x.s.name}${x.none ? ' · 미점검 ' + x.none : ''}${x.sum ? ' · 요약 미작성 ' + x.sum : ''}`) };
     $('viewSel').innerHTML = [['table', '📊 한눈에 표'], ['card', '🗂️ 카드']].map(([k, t]) => `<button class="chip ${statView === k ? 'on' : ''}" data-a="statView" data-k="${k}">${t}</button>`).join('') + ordBar();
     body.innerHTML = !shown.length ? '<div class="card hint">검색 결과가 없어요.</div>' : statView === 'table' ? mxHtml(shown, items) : cardsHtml(shown);
+    if (mxJump){ mxJump = false; jumpHl(); }
   } else {
     const sel = $('statItem');
     sel.innerHTML = CATS.map(c => `<optgroup label="${CATE[c]} ${c}">${items.filter(i => i.cat === c).map(i => `<option value="${esc(i.id)}"${i.id === statItem ? ' selected' : ''}>${esc(i.title)}</option>`).join('')}</optgroup>`).join('');
@@ -4202,7 +4222,7 @@ function sdDraw(){
 }
 function sdNav(d){
   const list = sdList.includes(sdSid) ? sdList : DATA.students.map(x => x.sid), k = list.indexOf(sdSid) + d;
-  if (k < 0 || k >= list.length) return; sdSid = list[k]; sdShow = {}; sdDraw();
+  if (k < 0 || k >= list.length) return; sdSid = list[k]; sdShow = {}; sdFocus = firstHl(sdSid); sdDraw();
 }
 async function tSave(btn){
   const { sid, iid, n } = btn.dataset, box = btn.closest('.tc');
@@ -4268,6 +4288,17 @@ const PO_K = 'ac_print_v1';
 let PO = { cats:{ '자율':true, '진로':true, '교과':true, '동아리':true }, memo:true, sum:'full' }, prPending = [];
 try{ const v = JSON.parse(localStorage.getItem(PO_K) || 'null'); if (v && v.cats) PO = { ...PO, ...v, cats:{ ...PO.cats, ...v.cats } }; }catch(e){}
 const poSave = () => { try{ localStorage.setItem(PO_K, JSON.stringify(PO)); }catch(e){} };
+let PS = new Set();
+function psDraw(){
+  $('psList').innerHTML = DATA.students.map(s => `<button class="chip ${PS.has(s.sid) ? 'on' : ''}" data-a="psTog" data-sid="${esc(s.sid)}">${esc(s.sid)} ${esc(s.name)}</button>`).join('');
+  $('psCnt').textContent = PS.size + '명 선택 (전체 ' + DATA.students.length + '명) · 이름을 눌러 고르거나 풀어요';
+}
+function psOpen(){ if (!DATA.students.length){ toast('명단을 먼저 저장해 주세요'); return; } PS = new Set(); psDraw(); $('psOv').classList.remove('hide'); }
+function psTog(el){ const k = el.dataset.sid; if (PS.has(k)) PS.delete(k); else PS.add(k); psDraw(); }
+function psAll(){ PS = new Set(DATA.students.map(s => s.sid)); psDraw(); }
+function psNone(){ PS = new Set(); psDraw(); }
+function psFilt(){ if (!sdList.length){ toast('현황 탭 학생별 보기에서 먼저 목록을 만들어 주세요'); return; } PS = new Set(sdList); psDraw(); }
+function psGo(){ const sids = DATA.students.filter(s => PS.has(s.sid)).map(s => s.sid); if (!sids.length){ toast('출력할 학생을 한 명 이상 골라 주세요'); return; } $('psOv').classList.add('hide'); printAsk(sids); }
 function printAsk(sids){
   if (!sids.length){ toast('출력할 학생이 없어요'); return; }
   prPending = sids; drawPO(); $('prOv').classList.remove('hide');
@@ -4769,10 +4800,10 @@ const ACT = {
   saPromote, saMerge, saDel,
   saveItem: el => saveItem(el), cancelEdit, editItem: el => editItem(el.dataset.id), delItem: el => delItem(el.dataset.id), toggleOn: el => toggleOn(el.dataset.id), mv: el => moveItem(el.dataset.id, Number(el.dataset.d)),
   saveStu: el => saveStu(el), pickStuFile: () => $('stuFile').click(), resetPin: el => resetPin(el.dataset.sid),
-  statMode: el => { statMode = el.dataset.m; renderStat(); }, memoFilt: el => { memoFilt = el.dataset.k; renderStat(); }, itemFilt: el => { itemFilt = el.dataset.k; renderStat(); }, stuFilt: el => { stuFilt = el.dataset.k; renderStat(); }, copyPend, exportBackup, sdOpen: el => sdOpen(el.dataset.sid), sdNav: el => sdNav(Number(el.dataset.d)),
+  statMode: el => { statMode = el.dataset.m; renderStat(); }, memoFilt: el => { memoFilt = el.dataset.k; renderStat(); }, itemFilt: el => { itemFilt = el.dataset.k; renderStat(); }, stuFilt: el => { stuFilt = el.dataset.k; mxJump = true; renderStat(); }, copyPend, exportBackup, sdOpen: el => { sdFocus = firstHl(el.dataset.sid); sdOpen(el.dataset.sid); }, sdNav: el => sdNav(Number(el.dataset.d)),
   poCat: el => { PO.cats[el.dataset.c] = !PO.cats[el.dataset.c]; drawPO(); }, poSum: el => { PO.sum = el.dataset.k; drawPO(); }, prGo,
   toggleStu: el => { openStu = openStu === el.dataset.sid ? null : el.dataset.sid; renderStat(); },
-  printStu: el => printAsk([el.dataset.sid]), pfOpen: el => openProfile(el.dataset.sid), pfCopy, pfPrint, printAll: () => { if (!DATA.students.length){ toast('명단을 먼저 저장해 주세요'); return; } printAsk(DATA.students.map(x => x.sid)); }, copyStu: el => copyText(stuText(el.dataset.sid), '생기부 참고용으로 복사했어요 📋'), tSave: el => tSave(el), exportXlsx,
+  printStu: el => printAsk([el.dataset.sid]), pfOpen: el => openProfile(el.dataset.sid), pfCopy, pfPrint, psOpen, psTog, psAll, psNone, psFilt, psGo, printAll: () => { if (!DATA.students.length){ toast('명단을 먼저 저장해 주세요'); return; } printAsk(DATA.students.map(x => x.sid)); }, copyStu: el => copyText(stuText(el.dataset.sid), '생기부 참고용으로 복사했어요 📋'), tSave: el => tSave(el), exportXlsx,
   rvSet: el => { rvRate = Number(el.dataset.i); if (rvRate > 3){ rvLow = []; rvLowOtherOn = false; } renderRv(); },
   rvTog: el => { const i = Number(el.dataset.i); if (i < 0) rvOtherOn = !rvOtherOn; else rvPick = rvPick.includes(i) ? rvPick.filter(x => x !== i) : [...rvPick, i].sort(); renderRv(); },
   rvLowTog: el => { const i = Number(el.dataset.i); if (i < 0) rvLowOtherOn = !rvLowOtherOn; else rvLow = rvLow.includes(i) ? rvLow.filter(x => x !== i) : [...rvLow, i].sort(); renderRv(); },
