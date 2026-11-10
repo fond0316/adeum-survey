@@ -5,7 +5,7 @@
  */
 
 /** GAS 코드 버전 — 코드를 고칠 때마다 1씩 올려요. 관리 화면이 이 번호로 업데이트가 필요한지 알려줘요. */
-var GAS_VER = 8;
+var GAS_VER = 9;
 
 var TZ = 'Asia/Seoul';
 var SHEETS = {
@@ -26,6 +26,8 @@ SHEETS.scheduleOv = { name: '학사일정수정', headers: ['날짜', '원래일
 SHEETS.teacherPlan = { name: '담임일정', headers: ['ID', '날짜', '제목', '메모', '완료', '완료시각', '작성시각', '수정시각'] };   // 담임만 보는 업무 일정 (adminLoad로만 내려줌 · 학생 불러오기엔 절대 안 들어감)
 SHEETS.ledgerFunds = { name: '담임가계부재원', headers: ['ID', '이름', '색', '처음예산', '순서', '작성시각', '수정시각'] };   // 담임 가계부의 재원(학급비·서울희망교실 등) — 담임만
 SHEETS.ledger = { name: '담임가계부', headers: ['ID', '날짜', '구분', '재원ID', '내용', '금액', '기안', '기안메모', '메모', '작성시각', '수정시각'] };   // 담임 가계부 기록 — adminLoad로만 내려줌
+SHEETS.dm = { name: '쪽지', headers: ['ID', '묶음', '학번', '이름', '제목', '내용', '보낸시각', '읽음시각', '답장', '답장시각', '답장확인', '보관'] };   // 담임 → 학생 개별 쪽지 (학생 1명당 1행) · v9
+SHEETS.dmPin = { name: '쪽지PIN', headers: ['학번', 'PIN해시', '설정시각', '실패횟수', '잠금해제'] };   // 학생별 쪽지 비밀번호(4자리) — 암호화된 값만 저장 · v9
 var PRESIDENT_TYPES = ['확인', '교과', '일반'];
 var DEFAULT_PW = 'classboard';   // 초기 비밀번호 — 첫 로그인 때 변경 강제
 var DEFAULT_SETTINGS = [['학년도', String(new Date().getFullYear())], ['학급명', '우리 반'], ['관리자비번', DEFAULT_PW], ['회장코드', '']];
@@ -88,6 +90,18 @@ function route_(p) {
     case 'ledgerFundDelete': return ledgerFundDelete_(p);
     case 'ledgerSave': return ledgerSave_(p);
     case 'ledgerDelete': return ledgerDelete_(p);
+    case 'dmCount': return dmCount_(p);         // 쪽지 — 학생: 안 읽은 쪽지 수 (내용은 안 내려줌)
+    case 'dmPinSet': return dmPinSet_(p);
+    case 'dmPinCheck': return dmPinCheck_(p);
+    case 'dmInbox': return dmInbox_(p);
+    case 'dmRead': return dmRead_(p);
+    case 'dmReply': return dmReply_(p);
+    case 'dmSend': return dmSend_(p);           // 쪽지 — 담임 전용
+    case 'dmList': return dmList_(p);
+    case 'dmKeep': return dmKeep_(p);
+    case 'dmSeen': return dmSeen_(p);
+    case 'dmDelete': return dmDelete_(p);
+    case 'dmPinReset': return dmPinReset_(p);
     default: return { ok: false, error: '알 수 없는 요청이에요.' };
   }
 }
@@ -975,6 +989,228 @@ function saveSettings_(p) {
   });
 }
 
+
+/* =====================================================================
+ * 📮 쪽지 (v9) — 담임이 학생 한 명(또는 여러 명)에게만 보내는 개별 안내
+ *  - 공지(load)와는 완전히 따로 움직여요. 쪽지 내용은 '학번+쪽지 비밀번호'를 통과한 학생에게만 내려가요.
+ *  - 쪽지 비밀번호(PIN 4자리)는 학생이 쪽지함을 처음 열 때 정해요. 시트에는 암호화한 값만 저장해요.
+ *  - 안 읽은 쪽지 '수'(dmCount)만 비밀번호 없이 알려줘요 — 배지를 띄우기 위해서예요. 내용·제목은 안 나가요.
+ *  - 60일이 지난 쪽지는 자동으로 정리돼요 (담임이 '보관'을 눌러 둔 쪽지는 제외).
+ * ===================================================================== */
+var DM_MAX_TO = 60, DM_TITLE_MAX = 40, DM_BODY_MAX = 1000, DM_REPLY_MAX = 300, DM_KEEP_DAYS = 60;
+var DM_FAIL_MAX = 5, DM_LOCK_MIN = 10;
+/** 쪽지 전용 저장 잠금 — 끝나면 쪽지 수 기억(캐시)만 비워요 (공지 캐시는 건드리지 않아요) */
+function dmLock_(fn) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try { return fn(); } finally { try { CacheService.getScriptCache().put('gen_dm', String(Date.now()) + Math.floor(Math.random() * 1000), 21600); } catch (e) {} lock.releaseLock(); }
+}
+function dmGen_() { try { return CacheService.getScriptCache().get('gen_dm') || '0'; } catch (e) { return '0'; } }
+function dmHash_(s) {
+  var b = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(s), Utilities.Charset.UTF_8);
+  return b.map(function (x) { var v = (x < 0 ? x + 256 : x).toString(16); return v.length < 2 ? '0' + v : v; }).join('');
+}
+function dmPinHash_(sid, pin) { return dmHash_(installId_() + '|' + sid + '|' + pin); }
+function dmTok_(sid, pinHash) { return dmHash_(pinHash + '|tok|' + sid); }   // 이 기기에 기억해 둘 열쇠 — 비밀번호가 바뀌면 저절로 못 쓰게 돼요
+function dmPinRow_(sid) {
+  var d = rows_('dmPin');
+  for (var i = 0; i < d.length; i++) if (d[i][0] === sid) return { row: i + 2, hash: d[i][1], at: d[i][2], fail: Number(d[i][3]) || 0, lockUntil: Number(d[i][4]) || 0 };
+  return null;
+}
+function dmStudent_(sid) { return rows_('students').filter(function (x) { return x[0] === sid; })[0]; }
+/** 학번 + 기기 열쇠 확인 — 통과해야 쪽지 내용을 줘요 */
+function dmAuth_(p) {
+  var sid = String(p.sid || '').trim(), tok = String(p.tok || '');
+  var st = dmStudent_(sid);
+  if (!st) throw new Error('명단에 없는 학번이에요.');
+  var pr = dmPinRow_(sid);
+  if (!pr || !pr.hash) throw new Error('쪽지 비밀번호를 먼저 정해 주세요.');
+  if (!tok || tok !== dmTok_(sid, pr.hash)) throw new Error('쪽지 비밀번호를 다시 입력해 주세요.');
+  return { sid: sid, name: st[1] };
+}
+function dmObj_(r) {
+  return { id: r[0], batch: r[1], sid: r[2], name: r[3], title: r[4], body: r[5], sent: r[6], read: r[7], reply: r[8], replyAt: r[9], seen: r[10] === 'Y', keep: r[11] === 'Y' };
+}
+function dmSet_(sh, rowNum, col, vals) { sh.getRange(rowNum, col, 1, vals.length).setNumberFormat('@').setValues([vals]); }
+
+/* ----- 학생용 ----- */
+/** 안 읽은 쪽지 수 — 비밀번호 없이 (내용은 안 줘요) */
+function dmCount_(p) {
+  var sid = String(p.sid || '').trim();
+  if (!/^\d{3,10}$/.test(sid)) return { ok: false, error: '학번이 올바르지 않아요.' };
+  var ck = 'dmc_' + dmGen_() + '_' + sid, hit = null;
+  try { hit = CacheService.getScriptCache().get(ck); } catch (e) {}
+  if (hit) { try { return JSON.parse(hit); } catch (e2) {} }
+  var ids = [];
+  rows_('dm').forEach(function (r) { if (r[0] && r[2] === sid && !r[7]) ids.push(r[0]); });
+  var pr = dmPinRow_(sid);
+  var out = { ok: true, unread: ids.length, ids: ids.slice(0, 50), hasPin: !!(pr && pr.hash) };
+  try { CacheService.getScriptCache().put(ck, JSON.stringify(out), 30); } catch (e3) {}
+  return out;
+}
+/** 처음 한 번 — 쪽지 비밀번호 정하기 */
+function dmPinSet_(p) {
+  var sid = String(p.sid || '').trim(), pin = String(p.pin || '');
+  if (!dmStudent_(sid)) return { ok: false, error: '명단에 없는 학번이에요.' };
+  if (!/^\d{4}$/.test(pin)) return { ok: false, error: '숫자 4자리로 정해 주세요.' };
+  return dmLock_(function () {
+    var pr = dmPinRow_(sid);
+    if (pr && pr.hash) return { ok: false, error: '이미 비밀번호가 정해져 있어요. 기억이 안 나면 담임선생님께 초기화를 부탁하세요.' };
+    var h = dmPinHash_(sid, pin), row = [sid, h, now_(), '0', '0'];
+    if (pr) dmSet_(sh_('dmPin'), pr.row, 1, row);
+    else { var sh = sh_('dmPin'); ensureRows_(sh, sh.getLastRow() + 1); dmSet_(sh, sh.getLastRow() + 1, 1, row); }
+    return { ok: true, tok: dmTok_(sid, h) };
+  });
+}
+/** 쪽지 비밀번호 입력 — 5번 틀리면 10분 잠김 */
+function dmPinCheck_(p) {
+  var sid = String(p.sid || '').trim(), pin = String(p.pin || '');
+  if (!dmStudent_(sid)) return { ok: false, error: '명단에 없는 학번이에요.' };
+  return dmLock_(function () {
+    var pr = dmPinRow_(sid);
+    if (!pr || !pr.hash) return { ok: false, error: '아직 비밀번호를 정하지 않았어요.' };
+    var nowMs = Date.now();
+    if (pr.lockUntil > nowMs) return { ok: false, error: '비밀번호를 여러 번 틀려서 잠겼어요. ' + Math.ceil((pr.lockUntil - nowMs) / 60000) + '분 뒤에 다시 해 주세요.' };
+    var sh = sh_('dmPin');
+    if (dmPinHash_(sid, pin) === pr.hash) {
+      if (pr.fail) dmSet_(sh, pr.row, 4, ['0', '0']);
+      return { ok: true, tok: dmTok_(sid, pr.hash) };
+    }
+    var f = pr.fail + 1;
+    if (f >= DM_FAIL_MAX) { dmSet_(sh, pr.row, 4, ['0', String(nowMs + DM_LOCK_MIN * 60000)]); return { ok: false, error: '비밀번호를 ' + DM_FAIL_MAX + '번 틀려서 ' + DM_LOCK_MIN + '분 동안 잠겼어요.' }; }
+    dmSet_(sh, pr.row, 4, [String(f), '0']);
+    return { ok: false, error: '비밀번호가 달라요. (남은 기회 ' + (DM_FAIL_MAX - f) + '번)' };
+  });
+}
+function dmInbox_(p) {
+  var me = dmAuth_(p);
+  var list = rows_('dm').filter(function (r) { return r[0] && r[2] === me.sid; })
+    .sort(function (a, b) { return a[6] < b[6] ? 1 : a[6] > b[6] ? -1 : 0; }).slice(0, 100)
+    .map(function (r) { return { id: r[0], title: r[4], body: r[5], sent: r[6], read: r[7], reply: r[8], replyAt: r[9] }; });
+  return { ok: true, name: me.name, list: list };
+}
+function dmRead_(p) {
+  var me = dmAuth_(p), id = String(p.id || '');
+  return dmLock_(function () {
+    var d = rows_('dm');
+    for (var i = 0; i < d.length; i++) if (d[i][0] === id && d[i][2] === me.sid) {
+      if (!d[i][7]) dmSet_(sh_('dm'), i + 2, 8, [now_()]);
+      return { ok: true };
+    }
+    return { ok: false, error: '쪽지를 찾지 못했어요.' };
+  });
+}
+function dmReply_(p) {
+  var me = dmAuth_(p), id = String(p.id || ''), text = String(p.text || '').trim();
+  if (!text) return { ok: false, error: '답장 내용을 입력해 주세요.' };
+  if (text.length > DM_REPLY_MAX) text = text.slice(0, DM_REPLY_MAX);
+  return dmLock_(function () {
+    var d = rows_('dm');
+    for (var i = 0; i < d.length; i++) if (d[i][0] === id && d[i][2] === me.sid) {
+      if (d[i][8]) return { ok: false, error: '이미 답장을 보냈어요.' };
+      var sh = sh_('dm');
+      if (!d[i][7]) dmSet_(sh, i + 2, 8, [now_()]);
+      dmSet_(sh, i + 2, 9, [text, now_(), '']);   // 답장 · 답장시각 · 답장확인(담임이 보면 Y)
+      return { ok: true };
+    }
+    return { ok: false, error: '쪽지를 찾지 못했어요.' };
+  });
+}
+
+/* ----- 담임용 ----- */
+function okDmCid_(s) { return typeof s === 'string' && /^D[a-z0-9]{10,30}$/.test(s); }
+function dmSend_(p) {
+  need_(p, ['admin']);
+  var n = JSON.parse(p.data || '{}');
+  var sids = Array.isArray(n.sids) ? n.sids.map(String) : [];
+  var title = String(n.title || '').trim().slice(0, DM_TITLE_MAX), body = String(n.body || '').trim();
+  if (!sids.length) throw new Error('받을 학생을 골라 주세요.');
+  if (sids.length > DM_MAX_TO) throw new Error('한 번에 ' + DM_MAX_TO + '명까지 보낼 수 있어요.');
+  if (!body) throw new Error('쪽지 내용을 입력해 주세요.');
+  if (body.length > DM_BODY_MAX) throw new Error('내용은 ' + DM_BODY_MAX + '자까지예요.');
+  if (!title) title = body.replace(/\s+/g, ' ').slice(0, 20);
+  var cid = okDmCid_(n.cid) ? n.cid : 'D' + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
+  return dmLock_(function () {
+    var d = rows_('dm');
+    for (var j = 0; j < d.length; j++) if (d[j][1] === cid) return { ok: true, already: true, count: 0 };   // 응답이 늦어 다시 보낸 같은 요청
+    var roster = {}; rows_('students').forEach(function (r) { roster[r[0]] = r[1]; });
+    var seen = {}, rows = [], skipped = 0, t = now_();
+    sids.forEach(function (sid) {
+      if (seen[sid]) return; seen[sid] = true;
+      if (roster[sid] === undefined) { skipped++; return; }
+      rows.push([cid + '-' + sid, cid, sid, roster[sid], title, body, t, '', '', '', '', '']);
+    });
+    if (!rows.length) throw new Error('명단에 있는 학생이 없어요.');
+    var sh = sh_('dm');
+    ensureRows_(sh, sh.getLastRow() + rows.length);
+    sh.getRange(sh.getLastRow() + 1, 1, rows.length, rows[0].length).setNumberFormat('@').setValues(rows);
+    dmClean_();
+    return { ok: true, count: rows.length, skipped: skipped, cid: cid };
+  });
+}
+/** 60일 지난 쪽지 정리 (보관 표시한 쪽지는 그대로) — dmLock_ 안에서만 불러요 */
+function dmClean_() {
+  var cutoff = Utilities.formatDate(new Date(Date.now() - DM_KEEP_DAYS * 86400000), TZ, 'yyyy-MM-dd HH:mm:ss');
+  var d = rows_('dm'), sh = sh_('dm'), n = 0;
+  for (var i = d.length - 1; i >= 0; i--) if (d[i][0] && d[i][6] && d[i][6] < cutoff && d[i][11] !== 'Y') { sh.deleteRow(i + 2); n++; }
+  return n;
+}
+function dmList_(p) {
+  need_(p, ['admin']);
+  var cutoff = Utilities.formatDate(new Date(Date.now() - DM_KEEP_DAYS * 86400000), TZ, 'yyyy-MM-dd HH:mm:ss');
+  var d = rows_('dm');
+  if (d.some(function (r) { return r[0] && r[6] && r[6] < cutoff && r[11] !== 'Y'; })) { dmLock_(function () { dmClean_(); }); d = rows_('dm'); }
+  var list = d.filter(function (r) { return r[0]; }).map(dmObj_);
+  var pins = {};
+  rows_('dmPin').forEach(function (r) { if (r[0] && r[1]) pins[r[0]] = r[2]; });
+  var unseen = list.filter(function (m) { return m.reply && !m.seen; }).length;
+  return { ok: true, list: list, pins: pins, unseen: unseen, keepDays: DM_KEEP_DAYS };
+}
+function dmIds_(p) {
+  var ids = JSON.parse(p.ids || '[]');
+  if (!Array.isArray(ids)) throw new Error('쪽지 목록이 올바르지 않아요.');
+  var m = {}; ids.forEach(function (x) { m[String(x)] = true; });
+  return m;
+}
+function dmKeep_(p) {
+  need_(p, ['admin']);
+  var ids = dmIds_(p), on = p.on === '1';
+  return dmLock_(function () {
+    var d = rows_('dm'), sh = sh_('dm'), n = 0;
+    for (var i = 0; i < d.length; i++) if (ids[d[i][0]]) { dmSet_(sh, i + 2, 12, [on ? 'Y' : '']); n++; }
+    return { ok: true, count: n };
+  });
+}
+/** 답장을 확인했다고 표시 — ids를 안 보내면 답장이 달린 쪽지 전부 */
+function dmSeen_(p) {
+  need_(p, ['admin']);
+  var all = !p.ids, ids = all ? {} : dmIds_(p);
+  return dmLock_(function () {
+    var d = rows_('dm'), sh = sh_('dm'), n = 0;
+    for (var i = 0; i < d.length; i++) if (d[i][8] && d[i][10] !== 'Y' && (all || ids[d[i][0]])) { dmSet_(sh, i + 2, 11, ['Y']); n++; }
+    return { ok: true, count: n };
+  });
+}
+function dmDelete_(p) {
+  need_(p, ['admin']);
+  var ids = dmIds_(p);
+  return dmLock_(function () {
+    var d = rows_('dm'), sh = sh_('dm'), n = 0;
+    for (var i = d.length - 1; i >= 0; i--) if (ids[d[i][0]]) { sh.deleteRow(i + 2); n++; }
+    return { ok: true, count: n };
+  });
+}
+/** 학생이 쪽지 비밀번호를 잊었을 때 — 지우면 학생이 다시 정할 수 있어요 */
+function dmPinReset_(p) {
+  need_(p, ['admin']);
+  var sid = String(p.sid || '').trim();
+  return dmLock_(function () {
+    var pr = dmPinRow_(sid);
+    if (!pr) return { ok: true, had: false };
+    sh_('dmPin').deleteRow(pr.row);
+    return { ok: true, had: true };
+  });
+}
 
 /* =====================================================================
  * 나이스(NEIS) 교육정보 개방포털 연동 — v2에서 추가
