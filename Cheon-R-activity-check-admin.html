@@ -131,6 +131,10 @@ table.mx{border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:10
 .sdidle button:hover{border-color:#9B8EC4}
 .ir.flash{animation:flash 1.6s ease}@keyframes flash{0%,60%{background:#FFF1B8}100%{background:transparent}}
 #pinList{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:0 22px}
+/* 저장·출력 드롭다운 메뉴 */
+.ddw{position:relative;display:inline-block}.ddm{position:absolute;left:0;top:100%;margin-top:4px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:4px;min-width:200px;z-index:30;box-shadow:0 6px 20px rgba(60,45,100,.16)}
+.ddm button{display:block;width:100%;text-align:left;min-height:42px;border:none;background:none;padding:8px 12px;border-radius:8px;font:inherit;font-size:13.5px;font-weight:600;color:var(--tx);cursor:pointer}.ddm button:hover{background:#F4F2FA}
+.grid2:has(> #statQ.hide){display:none}
 .ibsrt{display:inline-flex;gap:3px;margin:0 6px}.ibsrt button{font:inherit;font-size:11px;font-weight:700;border:1px solid var(--line);background:#fff;border-radius:8px;padding:3px 7px;min-height:28px;cursor:pointer;color:var(--tx2)}.ibsrt button:hover{background:#ECE7F8;border-color:#9B8EC4}
 .ibc.ins-b{box-shadow:0 -3px 0 #9B8EC4}.ibc.ins-a{box-shadow:0 3px 0 #9B8EC4}
 .ibc.sel{border:2px solid #9B8EC4;background:#F4F0FC}.ibc.drag{opacity:.4}.ibc.off{opacity:.5}.ibc.uns,.ibf.uns{border-color:#E2B24A;background:#FFF8E6}
@@ -422,7 +426,7 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
 
 <div id="scrLoading" class="center hide"><div class="box" style="text-align:center"><div style="font-size:34px">⏳</div><div class="msg" id="loadMsg" style="font-size:15px"></div></div></div>
 
-<footer id="ftGlobal">Made by Cheon_R<br><a href="#" data-a="mailContact">문의: fond7509@naver.com</a></footer>
+<footer id="ftGlobal">Made by Cheon_R<br><small id="buildStamp" style="color:var(--tx3)">화면 버전 11/10-3</small><br><a href="#" data-a="mailContact">문의: fond7509@naver.com</a></footer>
 
 <!-- 메인 -->
 <div id="scrMain" class="hide">
@@ -616,7 +620,7 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
     <div class="pane" id="p-stat">
       <div class="card">
         <div class="chips" style="margin-top:0"><button class="chip on" data-a="statMode" data-m="stu">👤 학생별</button><button class="chip" data-a="statMode" data-m="item">📋 항목별</button><button class="chip" data-a="statMode" data-m="memo">💬 한마디 <span id="memoBadge"></span></button></div>
-        <div class="row"><div class="grid2" style="flex:1"><input type="text" id="statQ" placeholder="학번·이름 검색" class="hide"></div><button class="btn sm sub" data-a="exportXlsx">📤 엑셀로 저장</button><button class="btn sm sub" data-a="exportBackup">💾 전체 백업</button><button class="btn sm sub" data-a="printAll">🖨️ 전체 학생 출력</button><button class="btn sm sub" data-a="psOpen">🖨️ 선택 학생 출력</button><button class="btn sm sub" data-a="psOpen" data-m="xlsx">📤 선택 학생 엑셀 저장</button></div>
+        <div class="row"><div class="grid2" style="flex:0 1 320px"><input type="text" id="statQ" placeholder="학번·이름 검색" class="hide"></div><div class="ddw"><button class="btn sm sub" data-a="ddTog" data-d="dlMenu">📥 저장 ▾</button><div class="ddm hide" id="dlMenu"><button type="button" data-a="exportXlsx">📤 전체 학생 엑셀</button><button type="button" data-a="psOpen" data-m="xlsx">📤 선택 학생 엑셀…</button><button type="button" data-a="exportBackup">💾 전체 백업</button></div></div><div class="ddw"><button class="btn sm sub" data-a="ddTog" data-d="prMenu">🖨️ 출력 ▾</button><div class="ddm hide" id="prMenu"><button type="button" data-a="printAll">🖨️ 전체 학생 출력</button><button type="button" data-a="psOpen">🖨️ 선택 학생 출력…</button></div></div></div>
         <div class="chips hide" id="viewSel"></div>
         <div class="chips hide" id="stuFilt"></div>
         <div class="row" style="margin-top:6px"><button class="btn sm sub" data-a="copyPend">📋 지금 보이는 목록 복사 (독촉용)</button></div>
@@ -4837,7 +4841,7 @@ const ACT = {
   copyStuText: () => copyText($('stuLink').value, '주소를 복사했어요'), copyStuRich, openStu: () => window.open($('stuLink').value, '_blank'),
   yearReset: el => yearReset(el),
   toggleCat: el => { catClosed[el.dataset.c] = !catClosed[el.dataset.c]; renderItems(); },
-  newYear: el => newYear(el), expItems, expSelItems, saveGuide: el => saveGuide(el), mvCat: el => mvCat(el.dataset.id, el.dataset.c),
+  newYear: el => newYear(el), expItems, expSelItems, ddTog: el => { const m = $(el.dataset.d); if (m) m.classList.toggle('hide'); }, saveGuide: el => saveGuide(el), mvCat: el => mvCat(el.dataset.id, el.dataset.c),
   tplDown, pickFile: () => $('fileIn').click(), parsePaste, doImport: el => doImport(el), cancelImp: () => { IMP = []; IMPREPL = ''; $('impBox').classList.add('hide'); msg('impMsg',''); renderImpLog(); }, impRepl: el => impRepl(el.dataset.l), impGroup, impDel: el => impDel(el.dataset.l), impReplCancel: () => { IMPREPL = ''; renderImpLog(); },
   saPromote, saMerge, saDel,
   saveItem: el => saveItem(el), cancelEdit, editItem: el => editItem(el.dataset.id), delItem: el => delItem(el.dataset.id), toggleOn: el => toggleOn(el.dataset.id), mv: el => moveItem(el.dataset.id, Number(el.dataset.d)),
@@ -4872,6 +4876,7 @@ $('fileIn').addEventListener('change', e => onItemFile(e.target.files[0]));
 $('stuFile').addEventListener('change', e => onStuFile(e.target.files[0]));
 $('statItem').addEventListener('change', e => { statItem = e.target.value; renderStat(); });
 $('statQ').addEventListener('input', renderStat);
+document.addEventListener('click', e => { const t = e.target.closest('.ddm button, [data-a="ddTog"]'); document.querySelectorAll('.ddm').forEach(m => { if (!(t && t.dataset.a === 'ddTog' && t.dataset.d === m.id)) m.classList.add('hide'); }); });   // 메뉴 밖이나 메뉴 항목을 누르면 닫혀요
 ['pwIn'].forEach(i => $(i).addEventListener('keydown', e => { if (e.key === 'Enter') login(); }));
 document.addEventListener('keydown', e => { if (e.key !== 'Escape') return; const o = [...document.querySelectorAll('.ov:not(.hide)')].pop(); if (!o) return; if (o.id === 'itOv') itOpenId = ''; o.classList.add('hide'); });   // ESC로 열린 창 닫기 (맨 위 창부터)
 $('gasIn').addEventListener('keydown', e => { if (e.key === 'Enter') connect(); });
