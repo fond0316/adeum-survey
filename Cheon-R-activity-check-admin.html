@@ -141,7 +141,8 @@ table.mx{border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:10
 .irow:has(#impBox:not(.hide)){grid-template-columns:minmax(0,1fr)!important}
 .g2c{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 12px;align-items:end}.g3c{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 12px;align-items:end}
 @media(max-width:560px){.g2c,.g3c{grid-template-columns:minmax(0,1fr)}}
-.ibsrt{display:inline-flex;gap:3px;margin:0 6px}.ibsrt button{font:inherit;font-size:11px;font-weight:700;border:1px solid var(--line);background:#fff;border-radius:8px;padding:3px 7px;min-height:28px;cursor:pointer;color:var(--tx2)}.ibsrt button:hover{background:#ECE7F8;border-color:#9B8EC4}
+#itList.busy{opacity:.55;pointer-events:none;transition:opacity .1s}
+.ibsrt{display:inline-flex;gap:0;margin:0 6px;background:#F4F2FA;border-radius:999px;padding:2px}.ibsrt button{font:inherit;font-size:11.5px;font-weight:700;border:none;background:none;border-radius:999px;padding:4px 10px;min-height:26px;cursor:pointer;color:#6B5FA0}.ibsrt button:hover{background:#E6E0F5}.ibsrt button.on{background:#9B8EC4;color:#fff}
 .ibc.ins-b{box-shadow:0 -3px 0 #9B8EC4}.ibc.ins-a{box-shadow:0 3px 0 #9B8EC4}
 .ibc.sel{border:2px solid #9B8EC4;background:#F4F0FC}.ibc.drag{opacity:.4}.ibc.off{opacity:.5}.ibc.uns,.ibf.uns{border-color:#E2B24A;background:#FFF8E6}
 .sa{border:1.5px solid #F0D9A8;background:#FFFBF0;border-radius:14px;padding:12px;margin-top:10px}.sa .sat{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.sa .sat b{font-size:15px}.sa .sar{font-size:13px;color:var(--tx2);margin-top:6px;line-height:1.55;white-space:pre-wrap;word-break:break-all}.sa .sab{display:grid;grid-template-columns:1fr auto;gap:6px;margin-top:8px;align-items:center}.sa .sab select{min-height:40px}.sa .sax{display:flex;justify-content:flex-end;margin-top:6px}.ibgrip{color:var(--tx3)}.ibb{font-size:11px;padding:1px 7px;border-radius:99px;background:#EEE9F8;color:#6B5FA0;white-space:nowrap}.ibb.g{background:#DDF1E6;color:#1E7A48}.ibb.w{background:#FFF1D6;color:#9A6A00}
@@ -432,7 +433,7 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
 
 <div id="scrLoading" class="center hide"><div class="box" style="text-align:center"><div style="font-size:34px">⏳</div><div class="msg" id="loadMsg" style="font-size:15px"></div></div></div>
 
-<footer id="ftGlobal">Made by Cheon_R<br><small id="buildStamp" style="color:var(--tx3)">화면 버전 11/10-4</small><br><a href="#" data-a="mailContact">문의: fond7509@naver.com</a></footer>
+<footer id="ftGlobal">Made by Cheon_R<br><small id="buildStamp" style="color:var(--tx3)">화면 버전 11/10-6</small><br><a href="#" data-a="mailContact">문의: fond7509@naver.com</a></footer>
 
 <!-- 메인 -->
 <div id="scrMain" class="hide">
@@ -3137,6 +3138,8 @@ function lsGet(k,d){ try{ const v = localStorage.getItem(k); return v === null ?
 function lsSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
 function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
 function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove('on'), 2400); }
+function toastBusy(t){ const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast._t); }   // 끝나면 toast()로 바꿔 줘요 — 오래 걸리는 저장에서 '눌렸다'는 걸 바로 알려요
+function itBusyOn(on){ const b = $('itList'); if (b) b.classList.toggle('busy', !!on); }
 function msg(id, text, ok){ const el = $(id); if (!el) return; el.textContent = text || ''; el.className = 'msg ' + (ok ? 'ok' : 'no'); }
 function readSchool(p){ const r = $(p+'Region').value, l = $(p+'Level').value; return (r && l) ? r + ' · ' + l : ''; }
 function setSchool(p, v){ const a = String(v||'').split(' · '); $(p+'Region').value = ''; $(p+'Level').value = ''; if (a.length === 2){ $(p+'Region').value = a[0]; $(p+'Level').value = a[1]; } }
@@ -3499,7 +3502,7 @@ function renderItems(){
   let h = `<div class="ibbar"><span class="ibchip${itFocus < 0 ? ' on' : ''}" data-xf="-1">전체 보드</span>` + cols.map(c => { const l = of(c), w = l.filter(x => x.chk).length; return `<span class="ibchip${IMPCOLS[itFocus] === c ? ' on' : ''}" data-xf="${IMPCOLS.indexOf(c)}">${c} ${l.length}${w ? ` · 확인 ${w}` : ''}</span>`; }).join('') + '</div>';
   h += '<div class="ibmv">' + (nSel ? `<span>${nSel}개 선택됨 →</span>` + cols.concat(XCOLS.filter(c => !cols.includes(c))).map(c => `<span class="ibto" data-xto="${c}">${c}으로 옮기기</span>`).join('') + '<span class="ibto" data-a="expSelItems">📤 선택한 ' + nSel + '개 엑셀로</span><span class="ibclr" data-xclr="1">선택 해제</span>'
     : itSelMode ? '<span class="ibsub">옮기거나 지울 카드를 눌러 선택해 주세요.</span><span class="ibto" data-xsm="0" style="margin-left:auto">선택 끝내기</span>'
-    : '<span class="ibsub">카드를 누르면 상세·수정 창이 열려요. <b>⠿ 손잡이</b>를 끌면 다른 열로 옮겨져요. 여러 개는 Ctrl(Shift)+클릭이나 오른쪽 버튼으로 골라요.</span><span class="ibto" data-xsm="1" style="margin-left:auto">☑ 여러 개 선택</span><span class="ibto" data-a="expItems">📤 엑셀로 내려받기</span>') + '</div>';
+    : '<span class="ibsub">카드를 누르면 상세·수정 창이 열려요. <b>⠿ 손잡이</b>를 끌면 <b>다른 열로 이동</b>하고, <b>같은 열 안에서 끌면 순서가 바뀌어요</b>. 열 제목의 <b>가→하 · 하→가</b>로 한 번에 정렬해요. 여러 개는 Ctrl(Shift)+클릭이나 오른쪽 버튼으로 골라요.</span><span class="ibto" data-xsm="1" style="margin-left:auto">☑ 여러 개 선택</span><span class="ibto" data-a="expItems">📤 엑셀로 내려받기</span>') + '</div>';
   if (itFocus < 0){
     h += `<div class="ibcols" style="--n:${cols.length}">` + cols.map(c => `<div class="ibcol" data-xcol="${c}"><div class="ibh" data-xf="${IMPCOLS.indexOf(c)}"><span>${c}</span>${sortBtns(c)}<i>${of(c).length}개 · 크게 보기 ›</i></div>` +
       of(c).map(it => `<div class="ibc${itSel[it.id] ? ' sel' : ''}${it.on ? '' : ' off'}" draggable="true" data-xc="${esc(it.id)}"><span class="ibgrip">⠿</span><b>${esc(it.title)}</b>${impBadges(it)}${it.on ? '' : '<span class="ibb">숨김</span>'}</div>`).join('') + '</div>').join('') + '</div>';
@@ -3534,11 +3537,12 @@ function itDraw(){
       <span class="xfa"><button class="ib" title="위로" data-a="mv" data-id="${esc(it.id)}" data-d="-1" ${k === 0 ? 'disabled style="opacity:.3"' : ''}>↑</button><button class="ib" title="아래로" data-a="mv" data-id="${esc(it.id)}" data-d="1" ${k === list.length - 1 ? 'disabled style="opacity:.3"' : ''}>↓</button><button class="ib" title="${it.on ? '학생에게 보임(누르면 숨김)' : '숨김(누르면 보임)'}" data-a="toggleOn" data-id="${esc(it.id)}">${it.on ? '👁️' : '🚫'}</button></span></div>
     <div class="row"><button class="btn" data-a="itEdit" data-id="${esc(it.id)}">✏️ 수정</button><button class="btn sub" data-a="delItem" data-id="${esc(it.id)}">🗑️ 삭제</button><button class="btn sub" data-a="closeOv">닫기</button></div></div>`;
 }
-const sortBtns = c => `<span class="ibsrt"><button type="button" data-xsort="asc" data-col="${c}" title="${c} 열을 가나다순으로 정렬">가→하</button><button type="button" data-xsort="desc" data-col="${c}" title="${c} 열을 가나다 역순으로 정렬">하→가</button></span>`;
+const itSortDir = {};
+const sortBtns = c => `<span class="ibsrt"><button type="button" class="${itSortDir[c] === 'asc' ? 'on' : ''}" data-xsort="asc" data-col="${c}" title="${c} 열을 가나다순으로 정렬">가→하</button><button type="button" class="${itSortDir[c] === 'desc' ? 'on' : ''}" data-xsort="desc" data-col="${c}" title="${c} 열을 가나다 역순으로 정렬">하→가</button></span>`;
 let itBusy = false;
 /* 열 안에서 순서 바꾸기 — 정렬·끌어서 옮기기 모두 '순서' 숫자만 다시 매겨요 (다른 열의 순서는 그대로) */
 async function itApplyOrder(list, okMsg){
-  if (itBusy) return; const by = {}; list.forEach(x => (by[x.cat] = by[x.cat] || []).push(x));
+  if (itBusy){ toast('저장 중이에요. 잠깐만요 ⏳'); return; } const by = {}; list.forEach(x => (by[x.cat] = by[x.cat] || []).push(x));
   const out = [];
   Object.keys(by).forEach(cat => {
     const g = by[cat], vals = g.map(x => Number(x.order) || 0).sort((a, b) => a - b);
@@ -3547,18 +3551,22 @@ async function itApplyOrder(list, okMsg){
   });
   if (!out.length){ toast('이미 그 순서예요'); return; }
   itBusy = true;
-  try{ await api('reorderItems', { data:JSON.stringify(out) }); await refresh(); toast(okMsg || '순서를 바꿨어요'); }catch(e){ toast(e.message); try{ await refresh(); }catch(_){} }
-  itBusy = false;
+  out.forEach(o => { const x = DATA.items.find(y => y.id === o.id); if (x) x.order = o.order; });   // 서버 응답을 기다리지 않고 화면부터 바꿔요
+  DATA.items.sort((a, b) => (CATS.indexOf(a.cat) - CATS.indexOf(b.cat)) || ((Number(a.order) || 0) - (Number(b.order) || 0)));
+  renderItems(); itBusyOn(true); toastBusy('저장하는 중이에요… ⏳');
+  try{ await api('reorderItems', { data:JSON.stringify(out) }); await refresh(); toast(okMsg || '순서를 바꿨어요 ✅'); }catch(e){ toast(e.message); try{ await refresh(); }catch(_){} }
+  itBusyOn(false); itBusy = false;
 }
 function itSort(col, dir){
   const list = DATA.items.filter(x => itColOf(x) === col).sort((a, b) => String(a.title).localeCompare(String(b.title), 'ko', { numeric:true }) * (dir === 'desc' ? -1 : 1));
   if (list.length < 2){ toast('정렬할 항목이 없어요'); return; }
+  if (!itBusy) itSortDir[col] = dir;
   itApplyOrder(list, `${col} 열을 ${dir === 'desc' ? '가나다 역순' : '가나다순'}으로 정렬했어요`);
 }
 function itReorder(ids, tid, after){
   const first = DATA.items.find(x => x.id === ids[0]), t = DATA.items.find(x => x.id === tid);
   if (!first || ids.includes(tid)) return;
-  const col = itColOf(t || first); let list = DATA.items.filter(x => itColOf(x) === col);
+  const col = itColOf(t || first); delete itSortDir[col]; let list = DATA.items.filter(x => itColOf(x) === col);
   const mv = list.filter(x => ids.includes(x.id)); list = list.filter(x => !ids.includes(x.id));
   if (t){ const i = list.indexOf(t); list.splice(after ? i + 1 : i, 0, ...mv); } else list.push(...mv);
   itApplyOrder(list);
@@ -3566,10 +3574,13 @@ function itReorder(ids, tid, after){
 async function itMove(idList, col){
   const list = idList.map(id => DATA.items.find(x => x.id === id)).filter(x => x && itColOf(x) !== col);
   if (!list.length) return;
+  list.forEach(x => { delete itSortDir[itColOf(x)]; }); delete itSortDir[col];
+  itBusyOn(true); toastBusy('옮기는 중이에요… ⏳');
   try{
     for (const it of list) await api('saveItem', { data:JSON.stringify(col === '행발' ? { ...it, dest:'행발' } : { ...it, cat:col, dest:'' }) });
-    itSel = {}; await refresh(); toast(`${list.length}개를 ${col}으로 옮겼어요`);
+    itSel = {}; await refresh(); toast(`${list.length}개를 ${col}으로 옮겼어요 ✅`);
   }catch(e){ toast(e.message); await refresh(); }
+  itBusyOn(false);
 }
 (function(){
   const root = () => $('itList');
