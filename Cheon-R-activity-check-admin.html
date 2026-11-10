@@ -614,7 +614,7 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
     <div class="pane" id="p-stat">
       <div class="card">
         <div class="chips" style="margin-top:0"><button class="chip on" data-a="statMode" data-m="stu">👤 학생별</button><button class="chip" data-a="statMode" data-m="item">📋 항목별</button><button class="chip" data-a="statMode" data-m="memo">💬 한마디 <span id="memoBadge"></span></button></div>
-        <div class="row"><div class="grid2" style="flex:1"><input type="text" id="statQ" placeholder="학번·이름 검색" class="hide"></div><button class="btn sm sub" data-a="exportXlsx">📤 엑셀로 저장</button><button class="btn sm sub" data-a="exportBackup">💾 전체 백업</button><button class="btn sm sub" data-a="printAll">🖨️ 전체 학생 출력</button><button class="btn sm sub" data-a="psOpen">🖨️ 선택 학생 출력</button></div>
+        <div class="row"><div class="grid2" style="flex:1"><input type="text" id="statQ" placeholder="학번·이름 검색" class="hide"></div><button class="btn sm sub" data-a="exportXlsx">📤 엑셀로 저장</button><button class="btn sm sub" data-a="exportBackup">💾 전체 백업</button><button class="btn sm sub" data-a="printAll">🖨️ 전체 학생 출력</button><button class="btn sm sub" data-a="psOpen">🖨️ 선택 학생 출력</button><button class="btn sm sub" data-a="psOpen" data-m="xlsx">📤 선택 학생 엑셀 저장</button></div>
         <div class="chips hide" id="viewSel"></div>
         <div class="chips hide" id="stuFilt"></div>
         <div class="row" style="margin-top:6px"><button class="btn sm sub" data-a="copyPend">📋 지금 보이는 목록 복사 (독촉용)</button></div>
@@ -784,11 +784,11 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
 </div></div>
 
 <div class="ov hide" id="psOv" data-a="closeOv"><div class="in" style="max-width:520px">
-  <h2 style="margin:0 0 4px">🖨️ 출력할 학생 고르기</h2>
+  <h2 style="margin:0 0 4px" id="psTitle">🖨️ 출력할 학생 고르기</h2>
   <div class="hint" style="margin:0 0 6px" id="psCnt"></div>
   <div class="chips" style="margin:0 0 8px"><button class="chip" data-a="psAll">전체 선택</button><button class="chip" data-a="psNone">모두 해제</button><button class="chip" data-a="psFilt">지금 현황에 보이는 학생만</button></div>
   <div class="chips" id="psList"></div>
-  <div class="row" style="margin-top:10px"><button class="btn" data-a="psGo">다음 · 출력 옵션</button><button class="btn sub" data-a="closeOv">취소</button></div>
+  <div class="row" style="margin-top:10px"><button class="btn" data-a="psGo" id="psNext">다음 · 출력 옵션</button><button class="btn sub" data-a="closeOv">취소</button></div>
 </div></div>
 
 <div id="printArea" class="pa"></div>
@@ -4288,17 +4288,17 @@ const PO_K = 'ac_print_v1';
 let PO = { cats:{ '자율':true, '진로':true, '교과':true, '동아리':true }, memo:true, sum:'full' }, prPending = [];
 try{ const v = JSON.parse(localStorage.getItem(PO_K) || 'null'); if (v && v.cats) PO = { ...PO, ...v, cats:{ ...PO.cats, ...v.cats } }; }catch(e){}
 const poSave = () => { try{ localStorage.setItem(PO_K, JSON.stringify(PO)); }catch(e){} };
-let PS = new Set();
+let PS = new Set(), PSMODE = 'print';
 function psDraw(){
   $('psList').innerHTML = DATA.students.map(s => `<button class="chip ${PS.has(s.sid) ? 'on' : ''}" data-a="psTog" data-sid="${esc(s.sid)}">${esc(s.sid)} ${esc(s.name)}</button>`).join('');
   $('psCnt').textContent = PS.size + '명 선택 (전체 ' + DATA.students.length + '명) · 이름을 눌러 고르거나 풀어요';
 }
-function psOpen(){ if (!DATA.students.length){ toast('명단을 먼저 저장해 주세요'); return; } PS = new Set(); psDraw(); $('psOv').classList.remove('hide'); }
+function psOpen(el){ if (!DATA.students.length){ toast('명단을 먼저 저장해 주세요'); return; } PSMODE = el && el.dataset && el.dataset.m === 'xlsx' ? 'xlsx' : 'print'; $('psTitle').textContent = PSMODE === 'xlsx' ? '📤 엑셀로 저장할 학생 고르기' : '🖨️ 출력할 학생 고르기'; $('psNext').textContent = PSMODE === 'xlsx' ? '📤 엑셀로 저장' : '다음 · 출력 옵션'; PS = new Set(); psDraw(); $('psOv').classList.remove('hide'); }
 function psTog(el){ const k = el.dataset.sid; if (PS.has(k)) PS.delete(k); else PS.add(k); psDraw(); }
 function psAll(){ PS = new Set(DATA.students.map(s => s.sid)); psDraw(); }
 function psNone(){ PS = new Set(); psDraw(); }
 function psFilt(){ if (!sdList.length){ toast('현황 탭 학생별 보기에서 먼저 목록을 만들어 주세요'); return; } PS = new Set(sdList); psDraw(); }
-function psGo(){ const sids = DATA.students.filter(s => PS.has(s.sid)).map(s => s.sid); if (!sids.length){ toast('출력할 학생을 한 명 이상 골라 주세요'); return; } $('psOv').classList.add('hide'); printAsk(sids); }
+function psGo(){ const sids = DATA.students.filter(s => PS.has(s.sid)).map(s => s.sid); if (!sids.length){ toast('학생을 한 명 이상 골라 주세요'); return; } $('psOv').classList.add('hide'); if (PSMODE === 'xlsx'){ exportXlsx(sids); toast(sids.length + '명 엑셀을 저장했어요 📤'); return; } printAsk(sids); }
 function printAsk(sids){
   if (!sids.length){ toast('출력할 학생이 없어요'); return; }
   prPending = sids; drawPO(); $('prOv').classList.remove('hide');
@@ -4407,15 +4407,16 @@ function exportBackup(){
   add('기록', [recHead].concat(recRows), [8, 8, 6, 26, 5, 9, 8, 26, 24, 28, 50, 16, 8, 24, 10, 9, 24, 8, 30]);
   XLSX.writeFile(wb, nm + '.xlsx'); toast('전체 백업 엑셀을 저장했어요 💾');
 }
-function exportXlsx(){
+function exportXlsx(sel){
+  const only = Array.isArray(sel) ? new Set(sel) : null;   // 학생 학번 목록을 주면 그 학생들만 저장 (버튼에서 바로 부르면 전체)
   const stLabel = { none:'미점검', no:'참여 안 함', sum:'참여(요약 미작성)', done:'참여(요약 작성)' };
   const rows = [['학번','이름','진로희망','분류','항목','상태','보고서','링크','주제','진로연결','요약','교사확인','교사메모','학기','보낼곳','문구제공','활동유형','학기(기록)','읽은자료','대표(⭐)','더 깊이 해보고 싶은 점']];
-  DATA.students.forEach(s => itemsFor(s, DATA.items.filter(i => i.on)).forEach(it => {
+  DATA.students.filter(s => !only || only.has(s.sid)).forEach(s => itemsFor(s, DATA.items.filter(i => i.on)).forEach(it => {
     const rs = recsOf(s.sid, it.id);
     if (!rs.length) rows.push([s.sid, s.name, s.career, it.cat, it.title, '미점검', '', '', '', '', '', '', '', it.term || '', effDest(it), it.give ? 'O' : '', '', '', '', '', '']);
     rs.forEach(r => rows.push([s.sid, s.name, s.career, it.cat, it.title, stLabel[r.part === 'yes' ? (r.summary ? 'done' : 'sum') : r.part === 'no' ? 'no' : 'none'], r.report === 'done' ? '작성' : r.report === 'todo' ? '아직' : '', r.link, r.topic, r.career, r.summary, r.tchk ? '확인' : '', r.tmemo, it.term || '', effDest(it), it.give ? 'O' : '', r.atype || '', r.rterm || '', r.ref || '', r.star === '2' ? '🌟대표' : r.star === '1' ? '⭐' : '', r.deep || '']));
   }));
-  const name = `ACTIVITY_CHECK_${DATA.year || ''}_${(DATA.className || '').replace(/\s+/g, '')}.xlsx`;
+  const name = `ACTIVITY_CHECK_${DATA.year || ''}_${(DATA.className || '').replace(/\s+/g, '')}${only ? '_선택' + only.size + '명' : ''}.xlsx`;
   if (typeof XLSX === 'undefined'){ const csv = '﻿' + rows.map(r => r.map(c => '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"').join(',')).join('\r\n'); return dl(new Blob([csv], { type:'text/csv;charset=utf-8' }), name.replace('.xlsx', '.csv')); }
   const wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet(rows); ws['!cols'] = [{wch:8},{wch:8},{wch:14},{wch:6},{wch:26},{wch:14},{wch:8},{wch:24},{wch:24},{wch:30},{wch:50},{wch:8},{wch:24},{wch:8},{wch:8},{wch:9},{wch:10},{wch:9},{wch:24},{wch:8},{wch:30}];
   XLSX.utils.book_append_sheet(wb, ws, '활동기록'); XLSX.writeFile(wb, name);
