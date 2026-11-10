@@ -627,7 +627,7 @@ textarea{resize:vertical;}
           <input id="ac-pw-input" type="password" placeholder="액티비티체크 관리자 비밀번호" autocomplete="off" style="flex:1;min-width:0;box-sizing:border-box;border:1px solid #e0e5ed;border-radius:8px;padding:8px 12px;font-size:12px;outline:none;color:#111;">
           <button onclick="acFetch()" style="padding:8px 14px;border-radius:8px;border:none;background:#9B8EC4;color:white;font-size:12px;font-weight:700;cursor:pointer;min-height:44px;white-space:nowrap;">📥 불러오기</button>
         </div>
-        <div style="font-size:10px;color:#9ca3af;">비밀번호는 저장되지 않고 이번 접속 동안만 기억해요. 어느 칸(자율·진로·행발)으로 갈지는 액티비티체크 관리자 화면 👑 탭에서 정해요.</div>
+        <div style="font-size:10px;color:#9ca3af;">비밀번호는 저장되지 않고 이번 접속 동안만 기억해요. 불러온 뒤 아래 목록에서 항목마다 어느 칸(자율·진로·행발)으로 보낼지 바로 고를 수 있어요.</div>
       </div>
       <div style="padding:10px 18px;flex:1;overflow-y:auto;">
         <div id="ac-saved-info" style="font-size:11px;color:#6b7280;line-height:1.6;"></div>
@@ -3972,8 +3972,8 @@ function acJsonp(params) {
 async function acFetch() {
   acSetMsg('⏳ 액티비티체크에서 가져오는 중...');
   try {
-    var d = await acJsonp({});
-    var store = { importedAt: new Date().toLocaleString(), className: d.className || '', year: d.year || '', students: {} };
+    var d = await acJsonp({ all: '1' });
+    var store = { importedAt: new Date().toLocaleString(), className: d.className || '', year: d.year || '', students: {}, items: (d.items || []).filter(function (x) { return x.on !== false; }).map(function (x) { return { id: x.id, cat: x.cat, title: x.title, dest: x.dest }; }) };
     var cnt = 0;
     (d.students || []).forEach(function (s) {
       if (!s || !s.name || !s.entries || !s.entries.length) return;
@@ -3990,13 +3990,35 @@ async function acFetch() {
     if (typeof dRenderAcSection === 'function') dRenderAcSection();
   } catch (e) { acSetMsg('❌ ' + e.message, true); }
 }
+var AC_LS_MAP = 'adum_activity_map_v1';   // 생기부AI에서 고른 항목별 보낼 곳 { 항목ID: '자율'|'진로'|'행발'|'안보냄' }
+function acMapLoad() { try { var m = JSON.parse(localStorage.getItem(AC_LS_MAP) || '{}'); return (m && typeof m === 'object') ? m : {}; } catch (e) { return {}; } }
+function acDestOf(e) { var m = acMapLoad(); return m[e.iid] || e.dest || '안보냄'; }
+function acSetItemDest(iid, v) {
+  var m = acMapLoad(); m[iid] = v;
+  try { localStorage.setItem(AC_LS_MAP, JSON.stringify(m)); } catch (e) {}
+  acRenderSaved();
+  if (typeof dRenderAcSection === 'function') dRenderAcSection();
+}
 function acRenderSaved() {
   var el = document.getElementById('ac-saved-info'); if (!el) return;
   var s = acLoad(), n = Object.keys(s.students).length;
   if (!n) { el.innerHTML = '아직 가져온 활동 자체점검 자료가 없어요.'; return; }
-  var by = { '자율': 0, '진로': 0, '행발': 0 };
-  Object.keys(s.students).forEach(function (k) { s.students[k].forEach(function (e) { if (by[e.dest] != null) by[e.dest]++; }); });
-  el.innerHTML = '<b>저장된 자료</b> (' + dEsc(s.importedAt) + ')<br>· ' + dEsc(s.className || '') + ' ' + dEsc(s.year || '') + ' · 학생 ' + n + '명<br>· 자율 ' + by['자율'] + '건 · 진로 ' + by['진로'] + '건 · 행발 ' + by['행발'] + '건';
+  var cnt = {}, by = { '자율': 0, '진로': 0, '행발': 0, '안보냄': 0 };
+  Object.keys(s.students).forEach(function (k) { s.students[k].forEach(function (e) { cnt[e.iid] = (cnt[e.iid] || 0) + 1; by[acDestOf(e)] = (by[acDestOf(e)] || 0) + 1; }); });
+  var m = acMapLoad(), items = (s.items && s.items.length) ? s.items : [];
+  var html = '<b>저장된 자료</b> (' + dEsc(s.importedAt) + ') · ' + dEsc(s.className || '') + ' ' + dEsc(s.year || '') + ' · 학생 ' + n + '명<br>'
+    + '지금 설정으로 → 자율 ' + by['자율'] + '건 · 진로 ' + by['진로'] + '건 · 행발 ' + by['행발'] + '건 · 안 보냄 ' + by['안보냄'] + '건'
+    + '<div style="margin-top:8px;font-weight:700;color:#374151;">항목별로 보낼 칸을 골라 주세요</div>';
+  items.forEach(function (it) {
+    if (!cnt[it.id]) return;
+    var cur = m[it.id] || it.dest || '안보냄';
+    html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;margin-top:4px;border:1px solid #e5e7eb;border-radius:8px;background:white;">'
+      + '<div style="flex:1;min-width:0;"><span style="font-size:10px;background:#EEE9F8;color:#6B5FA0;border-radius:99px;padding:1px 7px;">' + dEsc(it.cat || '') + '</span> '
+      + '<span style="font-size:12px;color:#111;font-weight:600;">' + dEsc(it.title) + '</span> <span style="font-size:10px;color:#9ca3af;">' + cnt[it.id] + '건</span></div>'
+      + '<select onchange="acSetItemDest(\'' + String(it.id).replace(/[^A-Za-z0-9_\-]/g, '') + '\',this.value)" style="border:1px solid #e0e5ed;border-radius:6px;padding:4px 6px;font-size:12px;color:#374151;min-height:36px;">'
+      + ['자율', '진로', '행발', '안보냄'].map(function (t) { return '<option value="' + t + '"' + (t === cur ? ' selected' : '') + '>' + (t === '안보냄' ? '안 보냄' : t + ' 탭으로') + '</option>'; }).join('') + '</select></div>';
+  });
+  el.innerHTML = html;
 }
 function acClearSaved() {
   if (!confirm('가져온 활동 자체점검 자료만 삭제할까요?\n(클래스스터디·설문 연동 자료는 그대로 남아요)')) return;
@@ -4021,7 +4043,7 @@ function acItemsForCurrent() {
   var list = acLoad().students[csKey(dSelStu + 1, stu.name)] || [];
   var out = [];
   list.forEach(function (e) {
-    if (e.dest !== dActiveTab) return;
+    if (acDestOf(e) !== dActiveTab) return;
     var text = acEntryText(e); if (!text) return;
     out.push({ key: 'ac_' + e.iid + '_' + (e.n || 1), name: (e.cat ? e.cat + ' · ' : '') + e.title + ((e.n || 1) > 1 ? ' (' + e.n + '회차)' : ''), star: e.star, text: text });
   });

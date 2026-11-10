@@ -49,7 +49,7 @@ function sgbExport_(p) {
     var sid = r[0], entries = [];
     (recsBy[sid] || []).forEach(function (rc) {
       var it = by[rc.iid];
-      if (!it || !it.on || it.dest === '안보냄') return;   // 정식 항목이 아니거나, 숨김·보내지 않음 항목은 제외
+      if (!it || !it.on || (it.dest === '안보냄' && String(p.all) !== '1')) return;   // 정식 항목이 아니거나 숨김 항목은 제외 · 안보냄은 all=1(생기부AI가 직접 고를 때)이면 포함
       if (rc.part !== 'yes' && !rc.summary) return;       // 참여했거나 요약을 적은 기록만
       entries.push({ iid: rc.iid, cat: it.cat, dest: it.dest, title: it.title, n: rc.n, part: rc.part, report: rc.report, topic: rc.topic,
         career: rc.career, summary: rc.summary, link: rc.link, tchk: rc.tchk, star: rc.star, deep: rc.deep, atype: rc.atype, rterm: rc.rterm });
