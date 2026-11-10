@@ -139,6 +139,11 @@ table.mx{border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:10
 .irow{display:grid;grid-template-columns:minmax(0,1fr);gap:0 12px;align-items:start}
 @media(min-width:900px){.irow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
 .irow:has(#impBox:not(.hide)){grid-template-columns:minmax(0,1fr)!important}
+.irow{align-items:stretch}.irow:has(> .card:not(.cbx-open)){align-items:start}   /* 두 카드가 펼쳐져 있으면 높이를 맞추고, 하나라도 접혀 있으면 각자 높이 */
+.irow>.card.cbx-open{display:flex;flex-direction:column}
+.card:has(#gdCom) .g2c{flex:1;grid-template-rows:minmax(0,1fr) minmax(0,1fr);align-items:stretch}.card:has(#gdCom) .g2c>div{display:flex;flex-direction:column;min-height:0}.card:has(#gdCom) .g2c textarea{flex:1;min-height:84px;resize:none}
+.card:has(#pasteIn) #pasteIn{flex:1;min-height:90px}
+.card:has(#fCat) > .row:nth-last-child(2){margin-top:auto;padding-top:8px}
 .g2c{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 12px;align-items:end}.g3c{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 12px;align-items:end}
 @media(max-width:560px){.g2c,.g3c{grid-template-columns:minmax(0,1fr)}}
 #itList.busy{opacity:.55;pointer-events:none;transition:opacity .1s}
@@ -433,7 +438,7 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
 
 <div id="scrLoading" class="center hide"><div class="box" style="text-align:center"><div style="font-size:34px">⏳</div><div class="msg" id="loadMsg" style="font-size:15px"></div></div></div>
 
-<footer id="ftGlobal">Made by Cheon_R<br><small id="buildStamp" style="color:var(--tx3)">화면 버전 11/10-6</small><br><a href="#" data-a="mailContact">문의: fond7509@naver.com</a></footer>
+<footer id="ftGlobal">Made by Cheon_R<br><small id="buildStamp" style="color:var(--tx3)">화면 버전 11/10-7</small><br><a href="#" data-a="mailContact">문의: fond7509@naver.com</a></footer>
 
 <!-- 메인 -->
 <div id="scrMain" class="hide">
