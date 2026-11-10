@@ -131,6 +131,8 @@ table.mx{border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:10
 .sdidle button:hover{border-color:#9B8EC4}
 .ir.flash{animation:flash 1.6s ease}@keyframes flash{0%,60%{background:#FFF1B8}100%{background:transparent}}
 #pinList{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:0 22px}
+.ibsrt{display:inline-flex;gap:3px;margin:0 6px}.ibsrt button{font:inherit;font-size:11px;font-weight:700;border:1px solid var(--line);background:#fff;border-radius:8px;padding:3px 7px;min-height:28px;cursor:pointer;color:var(--tx2)}.ibsrt button:hover{background:#ECE7F8;border-color:#9B8EC4}
+.ibc.ins-b{box-shadow:0 -3px 0 #9B8EC4}.ibc.ins-a{box-shadow:0 3px 0 #9B8EC4}
 .ibc.sel{border:2px solid #9B8EC4;background:#F4F0FC}.ibc.drag{opacity:.4}.ibc.off{opacity:.5}.ibc.uns,.ibf.uns{border-color:#E2B24A;background:#FFF8E6}
 .sa{border:1.5px solid #F0D9A8;background:#FFFBF0;border-radius:14px;padding:12px;margin-top:10px}.sa .sat{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.sa .sat b{font-size:15px}.sa .sar{font-size:13px;color:var(--tx2);margin-top:6px;line-height:1.55;white-space:pre-wrap;word-break:break-all}.sa .sab{display:grid;grid-template-columns:1fr auto;gap:6px;margin-top:8px;align-items:center}.sa .sab select{min-height:40px}.sa .sax{display:flex;justify-content:flex-end;margin-top:6px}.ibgrip{color:var(--tx3)}.ibb{font-size:11px;padding:1px 7px;border-radius:99px;background:#EEE9F8;color:#6B5FA0;white-space:nowrap}.ibb.g{background:#DDF1E6;color:#1E7A48}.ibb.w{background:#FFF1D6;color:#9A6A00}
 .xfg{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));gap:10px}
@@ -3477,21 +3479,21 @@ function renderItems(){
   const cols = itCols(), of = c => DATA.items.filter(i => itColOf(i) === c);
   const ids = Object.keys(itSel).filter(k => itSel[k] && DATA.items.some(i => i.id === k)), nSel = ids.length;
   let h = `<div class="ibbar"><span class="ibchip${itFocus < 0 ? ' on' : ''}" data-xf="-1">전체 보드</span>` + cols.map(c => { const l = of(c), w = l.filter(x => x.chk).length; return `<span class="ibchip${IMPCOLS[itFocus] === c ? ' on' : ''}" data-xf="${IMPCOLS.indexOf(c)}">${c} ${l.length}${w ? ` · 확인 ${w}` : ''}</span>`; }).join('') + '</div>';
-  h += '<div class="ibmv">' + (nSel ? `<span>${nSel}개 선택됨 →</span>` + cols.concat(XCOLS.filter(c => !cols.includes(c))).map(c => `<span class="ibto" data-xto="${c}">${c}으로 옮기기</span>`).join('') + '<span class="ibclr" data-xclr="1">선택 해제</span>'
+  h += '<div class="ibmv">' + (nSel ? `<span>${nSel}개 선택됨 →</span>` + cols.concat(XCOLS.filter(c => !cols.includes(c))).map(c => `<span class="ibto" data-xto="${c}">${c}으로 옮기기</span>`).join('') + '<span class="ibto" data-a="expSelItems">📤 선택한 ' + nSel + '개 엑셀로</span><span class="ibclr" data-xclr="1">선택 해제</span>'
     : itSelMode ? '<span class="ibsub">옮기거나 지울 카드를 눌러 선택해 주세요.</span><span class="ibto" data-xsm="0" style="margin-left:auto">선택 끝내기</span>'
-    : '<span class="ibsub">카드를 누르면 상세·수정 창이 열려요. <b>⠿ 손잡이</b>를 끌면 다른 열로 옮겨져요. 여러 개는 Ctrl(Shift)+클릭이나 오른쪽 버튼으로 골라요.</span><span class="ibto" data-xsm="1" style="margin-left:auto">☑ 여러 개 선택</span>') + '</div>';
+    : '<span class="ibsub">카드를 누르면 상세·수정 창이 열려요. <b>⠿ 손잡이</b>를 끌면 다른 열로 옮겨져요. 여러 개는 Ctrl(Shift)+클릭이나 오른쪽 버튼으로 골라요.</span><span class="ibto" data-xsm="1" style="margin-left:auto">☑ 여러 개 선택</span><span class="ibto" data-a="expItems">📤 엑셀로 내려받기</span>') + '</div>';
   if (itFocus < 0){
-    h += `<div class="ibcols" style="--n:${cols.length}">` + cols.map(c => `<div class="ibcol" data-xcol="${c}"><div class="ibh" data-xf="${IMPCOLS.indexOf(c)}"><span>${c}</span><i>${of(c).length}개 · 크게 보기 ›</i></div>` +
+    h += `<div class="ibcols" style="--n:${cols.length}">` + cols.map(c => `<div class="ibcol" data-xcol="${c}"><div class="ibh" data-xf="${IMPCOLS.indexOf(c)}"><span>${c}</span>${sortBtns(c)}<i>${of(c).length}개 · 크게 보기 ›</i></div>` +
       of(c).map(it => `<div class="ibc${itSel[it.id] ? ' sel' : ''}${it.on ? '' : ' off'}" draggable="true" data-xc="${esc(it.id)}"><span class="ibgrip">⠿</span><b>${esc(it.title)}</b>${impBadges(it)}${it.on ? '' : '<span class="ibb">숨김</span>'}</div>`).join('') + '</div>').join('') + '</div>';
   } else {
     const c = IMPCOLS[itFocus], l = of(c);
-    h += l.length ? '<div class="xfg">' + l.map((it, k) => `<div class="xf${it.on ? '' : ' off'}${it.chk ? ' w' : ''}">
+    h += (l.length > 1 ? `<div class="ibsub" style="margin:0 0 8px">정렬 ${sortBtns(c)}</div>` : '') + (l.length ? '<div class="xfg">' + l.map((it, k) => `<div class="xf${it.on ? '' : ' off'}${it.chk ? ' w' : ''}">
       <div class="xfh"><b>${esc(it.title)}</b><span class="xfb">${impBadges(it)}${it.dest && it.dest !== '행발' ? `<span class="ibb">보낼 곳 ${esc(it.dest)}</span>` : ''}${it.on ? '' : '<span class="ibb">숨김</span>'}</span></div>
       ${it.note ? `<div class="xfn">${esc(it.note)}</div>` : ''}
       ${it.tnote ? `<div class="tn xft" data-xtn="1" title="눌러서 펼치기·접기">🔒 ${esc(it.tnote)}</div>` : ''}
       ${it.url || it.rtype !== '없음' ? `<div class="xfl">🔗 ${esc(it.rtype)}${it.url ? ' · ' + esc(it.url) : ''}</div>` : ''}
       <div class="xff"><select data-xsel="${esc(it.id)}" title="분류 옮기기">${IMPCOLS.map(x => `<option${x === c ? ' selected' : ''}>${x}</option>`).join('')}</select>
-        <span class="xfa"><button class="ib" title="위로" data-a="mv" data-id="${esc(it.id)}" data-d="-1" ${k === 0 ? 'disabled style="opacity:.3"' : ''}>↑</button><button class="ib" title="아래로" data-a="mv" data-id="${esc(it.id)}" data-d="1" ${k === l.length - 1 ? 'disabled style="opacity:.3"' : ''}>↓</button><button class="ib" title="${it.on ? '학생에게 보임(누르면 숨김)' : '숨김(누르면 보임)'}" data-a="toggleOn" data-id="${esc(it.id)}">${it.on ? '👁️' : '🚫'}</button><button class="ib" title="수정" data-a="editItem" data-id="${esc(it.id)}">✏️</button><button class="ib" title="삭제" data-a="delItem" data-id="${esc(it.id)}">🗑️</button></span></div></div>`).join('') + '</div>' : '<div class="ibsub" style="padding:16px;text-align:center">이 분류에는 항목이 없어요</div>';
+        <span class="xfa"><button class="ib" title="위로" data-a="mv" data-id="${esc(it.id)}" data-d="-1" ${k === 0 ? 'disabled style="opacity:.3"' : ''}>↑</button><button class="ib" title="아래로" data-a="mv" data-id="${esc(it.id)}" data-d="1" ${k === l.length - 1 ? 'disabled style="opacity:.3"' : ''}>↓</button><button class="ib" title="${it.on ? '학생에게 보임(누르면 숨김)' : '숨김(누르면 보임)'}" data-a="toggleOn" data-id="${esc(it.id)}">${it.on ? '👁️' : '🚫'}</button><button class="ib" title="수정" data-a="editItem" data-id="${esc(it.id)}">✏️</button><button class="ib" title="삭제" data-a="delItem" data-id="${esc(it.id)}">🗑️</button></span></div></div>`).join('') + '</div>' : '<div class="ibsub" style="padding:16px;text-align:center">이 분류에는 항목이 없어요</div>');
   }
   $('itList').innerHTML = h;
   if (itOpenId) itDraw();
@@ -3514,6 +3516,35 @@ function itDraw(){
       <span class="xfa"><button class="ib" title="위로" data-a="mv" data-id="${esc(it.id)}" data-d="-1" ${k === 0 ? 'disabled style="opacity:.3"' : ''}>↑</button><button class="ib" title="아래로" data-a="mv" data-id="${esc(it.id)}" data-d="1" ${k === list.length - 1 ? 'disabled style="opacity:.3"' : ''}>↓</button><button class="ib" title="${it.on ? '학생에게 보임(누르면 숨김)' : '숨김(누르면 보임)'}" data-a="toggleOn" data-id="${esc(it.id)}">${it.on ? '👁️' : '🚫'}</button></span></div>
     <div class="row"><button class="btn" data-a="itEdit" data-id="${esc(it.id)}">✏️ 수정</button><button class="btn sub" data-a="delItem" data-id="${esc(it.id)}">🗑️ 삭제</button><button class="btn sub" data-a="closeOv">닫기</button></div></div>`;
 }
+const sortBtns = c => `<span class="ibsrt"><button type="button" data-xsort="asc" data-col="${c}" title="${c} 열을 가나다순으로 정렬">가→하</button><button type="button" data-xsort="desc" data-col="${c}" title="${c} 열을 가나다 역순으로 정렬">하→가</button></span>`;
+let itBusy = false;
+/* 열 안에서 순서 바꾸기 — 정렬·끌어서 옮기기 모두 '순서' 숫자만 다시 매겨요 (다른 열의 순서는 그대로) */
+async function itApplyOrder(list, okMsg){
+  if (itBusy) return; const by = {}; list.forEach(x => (by[x.cat] = by[x.cat] || []).push(x));
+  const out = [];
+  Object.keys(by).forEach(cat => {
+    const g = by[cat], vals = g.map(x => Number(x.order) || 0).sort((a, b) => a - b);
+    if (vals.some((v, i) => i && v === vals[i - 1])) for (let i = 0; i < vals.length; i++) vals[i] = vals[0] + i;
+    g.forEach((x, i) => { if ((Number(x.order) || 0) !== vals[i]) out.push({ id:x.id, order:vals[i] }); });
+  });
+  if (!out.length){ toast('이미 그 순서예요'); return; }
+  itBusy = true;
+  try{ await api('reorderItems', { data:JSON.stringify(out) }); await refresh(); toast(okMsg || '순서를 바꿨어요'); }catch(e){ toast(e.message); try{ await refresh(); }catch(_){} }
+  itBusy = false;
+}
+function itSort(col, dir){
+  const list = DATA.items.filter(x => itColOf(x) === col).sort((a, b) => String(a.title).localeCompare(String(b.title), 'ko', { numeric:true }) * (dir === 'desc' ? -1 : 1));
+  if (list.length < 2){ toast('정렬할 항목이 없어요'); return; }
+  itApplyOrder(list, `${col} 열을 ${dir === 'desc' ? '가나다 역순' : '가나다순'}으로 정렬했어요`);
+}
+function itReorder(ids, tid, after){
+  const first = DATA.items.find(x => x.id === ids[0]), t = DATA.items.find(x => x.id === tid);
+  if (!first || ids.includes(tid)) return;
+  const col = itColOf(t || first); let list = DATA.items.filter(x => itColOf(x) === col);
+  const mv = list.filter(x => ids.includes(x.id)); list = list.filter(x => !ids.includes(x.id));
+  if (t){ const i = list.indexOf(t); list.splice(after ? i + 1 : i, 0, ...mv); } else list.push(...mv);
+  itApplyOrder(list);
+}
 async function itMove(idList, col){
   const list = idList.map(id => DATA.items.find(x => x.id === id)).filter(x => x && itColOf(x) !== col);
   if (!list.length) return;
@@ -3528,6 +3559,7 @@ async function itMove(idList, col){
     const box = root(); if (!box || !box.contains(e.target)) return;
     const to = e.target.closest('[data-xto]'); if (to){ itMove(Object.keys(itSel).filter(k => itSel[k]), to.dataset.xto); return; }
     if (e.target.closest('[data-xclr]')){ itSel = {}; renderItems(); return; }
+    const so = e.target.closest('[data-xsort]'); if (so){ itSort(so.dataset.col, so.dataset.xsort); return; }
     const f = e.target.closest('[data-xf]'); if (f){ itFocus = Number(f.dataset.xf); renderItems(); return; }
     const tn = e.target.closest('[data-xtn]'); if (tn){ tn.classList.toggle('open'); return; }
     const sm = e.target.closest('[data-xsm]'); if (sm){ itSelMode = sm.dataset.xsm === '1'; if (!itSelMode) itSel = {}; renderItems(); return; }
@@ -3541,11 +3573,19 @@ async function itMove(idList, col){
   document.addEventListener('pointerdown', e => { itGrip = !!(e.target.closest && e.target.closest('#itList .ibgrip')); }, true);
   document.addEventListener('change', e => { const t = e.target; if (t.dataset && t.dataset.itsel && itOpenId){ itMove([itOpenId], t.value); return; } if (t.dataset && t.dataset.xsel !== undefined && root() && root().contains(t)) itMove([t.dataset.xsel], t.value); });
   document.addEventListener('dragstart', e => { const c = e.target.closest && e.target.closest('[data-xc]'); if (!c || !root() || !root().contains(c)) return; if (!itGrip){ e.preventDefault(); return; } itDragId = c.dataset.xc; c.classList.add('drag'); e.dataTransfer.setData('text/plain', itDragId); e.dataTransfer.effectAllowed = 'move'; });
-  document.addEventListener('dragend', () => { itDragId = ''; document.querySelectorAll('#itList .drag,#itList .over').forEach(x => x.classList.remove('drag','over')); });
-  document.addEventListener('dragover', e => { const c = e.target.closest && e.target.closest('[data-xcol]'); if (!c || !itDragId) return; e.preventDefault(); document.querySelectorAll('#itList .over').forEach(x => x.classList.remove('over')); c.classList.add('over'); });
+  document.addEventListener('dragend', () => { itDragId = ''; document.querySelectorAll('#itList .drag,#itList .over,#itList .ins-a,#itList .ins-b').forEach(x => x.classList.remove('drag','over','ins-a','ins-b')); });
+  document.addEventListener('dragover', e => { const c = e.target.closest && e.target.closest('[data-xcol]'); if (!c || !itDragId) return; e.preventDefault(); document.querySelectorAll('#itList .over').forEach(x => x.classList.remove('over')); c.classList.add('over');
+    document.querySelectorAll('#itList .ins-a,#itList .ins-b').forEach(x => x.classList.remove('ins-a', 'ins-b'));
+    const tc = e.target.closest('[data-xc]'); const di = DATA.items.find(x => x.id === itDragId);
+    if (tc && tc.dataset.xc !== itDragId && di && itColOf(di) === c.dataset.xcol){ const r = tc.getBoundingClientRect(); tc.classList.add(e.clientY > r.top + r.height / 2 ? 'ins-a' : 'ins-b'); } });
   document.addEventListener('drop', e => {
     const c = e.target.closest && e.target.closest('[data-xcol]'); if (!c || !itDragId) return; e.preventDefault(); e.stopPropagation();
-    const ids = itSel[itDragId] ? Object.keys(itSel).filter(k => itSel[k]) : [itDragId]; itDragId = ''; itMove(ids, c.dataset.xcol);
+    const ids = itSel[itDragId] ? Object.keys(itSel).filter(k => itSel[k]) : [itDragId]; itDragId = '';
+    document.querySelectorAll('#itList .ins-a,#itList .ins-b').forEach(x => x.classList.remove('ins-a', 'ins-b'));
+    if (ids.every(id => { const x = DATA.items.find(y => y.id === id); return x && itColOf(x) === c.dataset.xcol; })){   // 같은 열 안에서 끌면 순서만 바꿔요
+      const tc = e.target.closest('[data-xc]'), r = tc && tc.getBoundingClientRect(); itReorder(ids, tc ? tc.dataset.xc : '', !!tc && e.clientY > r.top + r.height / 2); return;
+    }
+    itMove(ids, c.dataset.xcol);
   }, true);
 })();
 function itemFromForm(){ return { id:editId || '', cat:$('fCat').value, title:$('fTitle').value.trim(), note:$('fNote').value.trim(), rtype:$('fRtype').value, url:$('fUrl').value.trim(), prov:!!$('fUrl').value.trim(),
@@ -3941,6 +3981,7 @@ function tplDown(){
     { cat:'교과', title:'(예시) 수학 수행평가 탐구', note:'진로와 연결해 주제 정하기', tnote:'', rtype:'없음' }], DATA.year || '2026', DATA.grade || '1', DATA.guide, 'ACTIVITY_CHECK_항목양식.xlsx');
 }
 function expItems(){ if (!DATA.items.length){ toast('저장할 항목이 없어요'); return; } xlsxItems(DATA.items, DATA.year, DATA.grade, DATA.guide, `ACTIVITY_CHECK_${DATA.year || ''}_${DATA.grade || ''}학년_항목.xlsx`); }
+function expSelItems(){ const ids = Object.keys(itSel).filter(k => itSel[k]), l = DATA.items.filter(i => ids.includes(i.id)); if (!l.length){ toast('먼저 항목을 골라 주세요'); return; } xlsxItems(l, DATA.year, DATA.grade, DATA.guide, `ACTIVITY_CHECK_${DATA.year || ''}_${DATA.grade || ''}학년_선택항목${l.length}개.xlsx`); }
 function dl(blob, name){ const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); }
 async function doImport(btn){
   const mode = document.querySelector('input[name=impMode]:checked').value;
@@ -4796,7 +4837,7 @@ const ACT = {
   copyStuText: () => copyText($('stuLink').value, '주소를 복사했어요'), copyStuRich, openStu: () => window.open($('stuLink').value, '_blank'),
   yearReset: el => yearReset(el),
   toggleCat: el => { catClosed[el.dataset.c] = !catClosed[el.dataset.c]; renderItems(); },
-  newYear: el => newYear(el), expItems, saveGuide: el => saveGuide(el), mvCat: el => mvCat(el.dataset.id, el.dataset.c),
+  newYear: el => newYear(el), expItems, expSelItems, saveGuide: el => saveGuide(el), mvCat: el => mvCat(el.dataset.id, el.dataset.c),
   tplDown, pickFile: () => $('fileIn').click(), parsePaste, doImport: el => doImport(el), cancelImp: () => { IMP = []; IMPREPL = ''; $('impBox').classList.add('hide'); msg('impMsg',''); renderImpLog(); }, impRepl: el => impRepl(el.dataset.l), impGroup, impDel: el => impDel(el.dataset.l), impReplCancel: () => { IMPREPL = ''; renderImpLog(); },
   saPromote, saMerge, saDel,
   saveItem: el => saveItem(el), cancelEdit, editItem: el => editItem(el.dataset.id), delItem: el => delItem(el.dataset.id), toggleOn: el => toggleOn(el.dataset.id), mv: el => moveItem(el.dataset.id, Number(el.dataset.d)),
