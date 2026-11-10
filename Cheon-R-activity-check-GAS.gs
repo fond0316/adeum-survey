@@ -78,6 +78,8 @@ function route_(p) {
     case 'saveSettings': return saveSettings_(p);
     case 'tReview': return tReview_(p);
     case 'yearReset': return yearReset_(p);
+    case 'adminExportForSaengibu':   // 생기부AI 연동 (아듬샘 시트에만 '생기부연동' 파일이 있어요 — 없으면 안내만 나가요)
+    case 'saengibuSaveMap': return (typeof sgbRoute_ === 'function') ? sgbRoute_(p) : { ok: false, error: '생기부AI 연동 코드가 이 시트에는 설치되어 있지 않아요.' };
     default: return { ok: false, error: '알 수 없는 요청이에요.' };
   }
 }
