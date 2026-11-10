@@ -135,6 +135,12 @@ table.mx{border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:10
 .ddw{position:relative;display:inline-block}.ddm{position:absolute;left:0;top:100%;margin-top:4px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:4px;min-width:200px;z-index:30;box-shadow:0 6px 20px rgba(60,45,100,.16)}
 .ddm button{display:block;width:100%;text-align:left;min-height:42px;border:none;background:none;padding:8px 12px;border-radius:8px;font:inherit;font-size:13.5px;font-weight:600;color:var(--tx);cursor:pointer}.ddm button:hover{background:#F4F2FA}
 .grid2:has(> #statQ.hide){display:none}
+/* 항목 탭: 카드 두 칸씩 */
+.irow{display:grid;grid-template-columns:minmax(0,1fr);gap:0 12px;align-items:start}
+@media(min-width:900px){.irow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.irow:has(#impBox:not(.hide)){grid-template-columns:minmax(0,1fr)!important}
+.g2c{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 12px;align-items:end}.g3c{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 12px;align-items:end}
+@media(max-width:560px){.g2c,.g3c{grid-template-columns:minmax(0,1fr)}}
 .ibsrt{display:inline-flex;gap:3px;margin:0 6px}.ibsrt button{font:inherit;font-size:11px;font-weight:700;border:1px solid var(--line);background:#fff;border-radius:8px;padding:3px 7px;min-height:28px;cursor:pointer;color:var(--tx2)}.ibsrt button:hover{background:#ECE7F8;border-color:#9B8EC4}
 .ibc.ins-b{box-shadow:0 -3px 0 #9B8EC4}.ibc.ins-a{box-shadow:0 3px 0 #9B8EC4}
 .ibc.sel{border:2px solid #9B8EC4;background:#F4F0FC}.ibc.drag{opacity:.4}.ibc.off{opacity:.5}.ibc.uns,.ibf.uns{border-color:#E2B24A;background:#FFF8E6}
@@ -426,7 +432,7 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
 
 <div id="scrLoading" class="center hide"><div class="box" style="text-align:center"><div style="font-size:34px">⏳</div><div class="msg" id="loadMsg" style="font-size:15px"></div></div></div>
 
-<footer id="ftGlobal">Made by Cheon_R<br><small id="buildStamp" style="color:var(--tx3)">화면 버전 11/10-3</small><br><a href="#" data-a="mailContact">문의: fond7509@naver.com</a></footer>
+<footer id="ftGlobal">Made by Cheon_R<br><small id="buildStamp" style="color:var(--tx3)">화면 버전 11/10-4</small><br><a href="#" data-a="mailContact">문의: fond7509@naver.com</a></footer>
 
 <!-- 메인 -->
 <div id="scrMain" class="hide">
@@ -537,6 +543,7 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
         <p class="hint" style="margin-top:0">학생이 목록에서 못 찾아 직접 적은 활동이에요. <b>맞는 활동이면 [정식 항목으로 추가]</b>(적어 둔 기록이 그대로 이어져요), 이미 있는 항목과 같으면 <b>[기존 항목에 합치기]</b>를 누르세요. 정식으로 올리기 전에는 <b>현황·엑셀·인쇄·생기부AI에 들어가지 않아요</b>.</p>
         <div id="saList"></div>
       </div>
+      <div class="irow">
       <div class="card">
         <h3>📚 학년도 양식 <span class="hint" id="yrNow"></span></h3>
         <p class="hint" style="margin-top:0">해마다 항목이 조금씩 바뀌니까, <b>작년 항목을 그대로 가져와서 고치거나</b> 엑셀로 내려받아 정리한 뒤 다시 올리면 돼요.</p>
@@ -554,12 +561,16 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
       </div>
       <div class="card">
         <h3>📌 교사용 기재 지침 <span class="hint">학생에게는 안 보여요</span></h3>
-        <label class="f" style="margin-top:0">공통</label><textarea id="gdCom" maxlength="500" style="min-height:70px"></textarea>
-        <label class="f">자율활동 (1500byte)</label><textarea id="gdJa" maxlength="500" style="min-height:70px"></textarea>
-        <label class="f">진로활동 (1500byte)</label><textarea id="gdJi" maxlength="500" style="min-height:70px"></textarea>
-        <label class="f">종합의견·행동특성 (900byte)</label><textarea id="gdHa" maxlength="500" style="min-height:70px"></textarea>
+        <div class="g2c">
+          <div><label class="f" style="margin-top:0">공통</label><textarea id="gdCom" maxlength="500" style="min-height:70px"></textarea></div>
+          <div><label class="f" style="margin-top:0">자율활동 (1500byte)</label><textarea id="gdJa" maxlength="500" style="min-height:70px"></textarea></div>
+          <div><label class="f" style="margin-top:0">진로활동 (1500byte)</label><textarea id="gdJi" maxlength="500" style="min-height:70px"></textarea></div>
+          <div><label class="f" style="margin-top:0">종합의견·행동특성 (900byte)</label><textarea id="gdHa" maxlength="500" style="min-height:70px"></textarea></div>
+        </div>
         <div class="row"><button class="btn sm" data-a="saveGuide">지침 저장</button></div><div class="msg" id="gdMsg"></div>
       </div>
+      </div>
+      <div class="irow">
       <div class="card">
         <h3>📥 엑셀로 한 번에 불러오기</h3>
         <p class="hint" style="margin-top:0">양식을 받아 채우거나, 이미 있는 엑셀·표를 그대로 올리거나 붙여 넣으면 돼요. 한글(hwp) 표는 <b>표를 복사해서 아래 칸에 붙여넣기</b> 하세요.</p>
@@ -582,23 +593,26 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
       </div>
       <div class="card">
         <h3 id="formTitle">➕ 항목 추가</h3>
-        <div class="grid2">
+        <div class="g3c">
           <div><label class="f" style="margin-top:0">분류</label><select id="fCat" class="sel"><option>자율</option><option>진로</option></select></div>
           <div><label class="f" style="margin-top:0">보고서 종류 <small>(링크 버튼 이름)</small></label><select id="fRtype" class="sel"><option>없음</option><option>해성에듀</option><option>학급자율활동앱</option><option>직접링크</option></select></div>
+          <div><label class="f" style="margin-top:0">학기</label><select id="fTerm" class="sel"><option value="">구분 없음</option><option>1학기</option><option>2학기</option></select></div>
         </div>
         <label class="f">항목명</label><input type="text" id="fTitle" maxlength="60" placeholder="예) 학교폭력 예방교육">
-        <label class="f">작성 유의사항 <small>(선택)</small></label><input type="text" id="fNote" maxlength="300" placeholder="예) 소감문 1장 작성">
-        <label class="f">기본 링크 <small>(선택 · 학생 화면에 열기 버튼으로 나와요)</small></label><input type="url" id="fUrl" maxlength="300" placeholder="https://…">
-        <label class="f">🔒 교사용 기재 유의 <small>(선생님만 봐요 · 학생 화면에는 안 나와요)</small></label><input type="text" id="fTnote" maxlength="300" placeholder="예) 임기 2026.03.01.-2026.08.17. / 대회 용어 금지">
-        <div class="grid2">
-          <div><label class="f">학기</label><select id="fTerm" class="sel"><option value="">구분 없음</option><option>1학기</option><option>2학기</option></select></div>
-          <div><label class="f">보낼 곳 <small>(생기부)</small></label><select id="fDest" class="sel"><option value="">분류와 같음</option><option>자율</option><option>진로</option><option>행발</option></select></div>
+        <div class="g2c">
+          <div><label class="f">작성 유의사항 <small>(선택)</small></label><input type="text" id="fNote" maxlength="300" placeholder="예) 소감문 1장 작성"></div>
+          <div><label class="f">기본 링크 <small>(선택 · 학생 화면에 열기 버튼으로 나와요)</small></label><input type="url" id="fUrl" maxlength="300" placeholder="https://…"></div>
         </div>
-        <label class="f">마감일 <small>(선택 · 지나면 학생 화면에 '마감 지남'으로 보여요)</small></label><input type="date" id="fDue">
+        <label class="f">🔒 교사용 기재 유의 <small>(선생님만 봐요 · 학생 화면에는 안 나와요)</small></label><input type="text" id="fTnote" maxlength="300" placeholder="예) 임기 2026.03.01.-2026.08.17. / 대회 용어 금지">
+        <div class="g2c">
+          <div><label class="f">보낼 곳 <small>(생기부)</small></label><select id="fDest" class="sel"><option value="">분류와 같음</option><option>자율</option><option>진로</option><option>행발</option></select></div>
+          <div><label class="f">마감일 <small>(선택 · 지나면 학생 화면에 '마감 지남'으로 보여요)</small></label><input type="date" id="fDue"></div>
+        </div>
         <div class="row" style="margin-top:8px"><label style="display:flex;gap:6px;align-items:center;min-height:40px"><input type="checkbox" id="fGive" style="width:20px;height:20px"> 문구 제공 <small>(담당샘이 최종 문구를 보내줘요)</small></label>
           <label style="display:flex;gap:6px;align-items:center;min-height:40px"><input type="checkbox" id="fChk" style="width:20px;height:20px"> 확인 필요</label></div>
         <div class="row"><button class="btn" data-a="saveItem">저장</button><button class="btn sub hide" id="fCancel" data-a="cancelEdit">수정 취소</button></div>
         <div class="msg" id="itMsg"></div>
+      </div>
       </div>
       <div class="card"><h3>📋 항목 목록 <span class="hint" id="itCnt"></span></h3><div id="itList"></div></div>
     </div>
@@ -4900,11 +4914,11 @@ $('gasIn').addEventListener('keydown', e => { if (e.key === 'Enter') connect(); 
 
 /* 📋 항목 탭 카드 접었다 폈다 (펼친 것은 이 기기에 기억 · 처음엔 양식 라이브러리와 항목 목록만 펼침) */
 const ITEM_CARDS = [];
-function openItemCard(el){ const c = el && el.closest('#p-items > .card'); if (c && !c.classList.contains('cbx-open')){ c.classList.add('cbx-open'); const h = c.querySelector(':scope > h3'); if (h) h.setAttribute('aria-expanded', 'true'); saveItemCards(); } }
+function openItemCard(el){ const c = el && el.closest('#p-items > .card, #p-items > .irow > .card'); if (c && !c.classList.contains('cbx-open')){ c.classList.add('cbx-open'); const h = c.querySelector(':scope > h3'); if (h) h.setAttribute('aria-expanded', 'true'); saveItemCards(); } }
 function saveItemCards(){ try{ localStorage.setItem('ac_itemopen_v1', JSON.stringify(ITEM_CARDS.map((b,i) => b.classList.contains('cbx-open') ? i : -1).filter(i => i >= 0))); }catch(e){} }
 (function(){
   let open = null; try{ open = JSON.parse(localStorage.getItem('ac_itemopen_v1')); }catch(e){}
-  const boxes = [...document.querySelectorAll('#p-items > .card')].filter(b => b.querySelector(':scope > h3'));
+  const boxes = [...document.querySelectorAll('#p-items > .card, #p-items > .irow > .card')].filter(b => b.querySelector(':scope > h3'));
   if (!Array.isArray(open)) open = [0, boxes.length - 1];
   boxes.forEach((b, i) => {
     ITEM_CARDS.push(b);
