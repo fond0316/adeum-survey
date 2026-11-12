@@ -56,6 +56,7 @@ label.l{display:block;font-size:13px;font-weight:700;color:var(--tx2);margin:12p
 .cat[data-c="내활동"]{background:#FBE3EE;color:#8A2F5C}
 .cats.c4{grid-template-columns:repeat(4,1fr);gap:8px}.cats.c4 .cat{padding:10px 4px}
 .cats.c5{grid-template-columns:repeat(5,1fr);gap:6px}.cats.c5 .cat{padding:10px 2px}.cats.c5 .cat b{font-size:13px}.cats.c5 .cat small{font-size:11.5px}
+.rule{margin-top:12px;background:#F4F2FA;border:1.5px solid #D9D2EE;border-radius:14px;padding:11px 14px;font-size:13.5px;line-height:1.65;color:var(--tx2)}.rule b{color:var(--tx)}.rule .rk{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.rule .rk span{padding:3px 10px;border-radius:999px;font-size:12.5px;font-weight:700;background:#fff;border:1px solid #D9D2EE}.rule .rk span.ok{background:#E7F6EC;border-color:#B7E1C4;color:#1E6B3A}.rule .rk span.todo{background:#FFF3E3;border-color:#F3D3A2;color:#8A5200}.rule.done{padding:8px 14px;font-size:13px}
 .stbar{grid-column:1/-1;background:#FFFBEA;border:1.5px solid #F3DE9A;border-radius:14px;padding:12px 14px;font-size:13.5px;line-height:1.6;color:#6B5513}.stbar b{color:#8A6A00}.stbar .stn{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.stbar .stn span{background:#fff;border:1px solid #F3DE9A;border-radius:99px;padding:2px 10px;font-weight:700;font-size:12.5px}
 .tg.st1{background:#FFF1BF;color:#8A6A00;font-weight:800}.tg.st2{background:linear-gradient(90deg,#FFB347,#FF8A3D);color:#fff;font-weight:800;font-size:13.5px;padding:2px 10px}.it.star2{border-color:#FF9A4D;box-shadow:0 0 0 2px #FFE0C2}.it.star1{border-color:#F3DE9A}
 .stpan{margin-top:12px;padding:12px;border-radius:14px;background:#FFFBEA;border:1.5px dashed #F0CF72}.stpan .stq{font-weight:800;font-size:14px;color:#6B5513}.stpan .stw{font-size:12.5px;color:#8A6A00;margin-top:4px;line-height:1.55}.stlv{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.stlv .chip.on.l1{background:#FFE48A;border-color:#E6B800;color:#6B5513}.stlv .chip.on.l2{background:#FF9A4D;border-color:#E87A22;color:#fff;font-size:15px}
@@ -203,6 +204,7 @@ body.demo #demoBar{display:flex}body.demo #btnOut,body.demo #btnRe{display:none}
         <div class="row"><div>전체 점검 <span id="pgTxt"></span></div><span id="pgSub"></span></div>
         <div class="bar"><i id="pgBar" style="width:0"></i></div>
       </div>
+      <div class="rule hide" id="ruleNote"></div>
       <div class="career">
         <label for="inCareer">🎯 나의 진로 희망</label>
         <input type="text" id="inCareer" maxlength="80" placeholder="예) 건축가, 데이터 분석가">
@@ -231,6 +233,7 @@ body.demo #demoBar{display:flex}body.demo #btnOut,body.demo #btnRe{display:none}
   <p class="hint" style="margin:0 0 6px">내가 한 활동을 스스로 점검하고 기록해 두는 곳이에요. 선생님이 나중에 생기부를 쓸 때 참고해요.</p>
   <div class="hl"><div class="ic">🔐</div><div><b>로그인</b> 학번과 이름을 넣어요. 처음이면 <b>PIN(숫자 4자리)</b>을 직접 만들어요. 한 번 만들면 다음엔 PIN만 입력하면 돼요. 이 기기에서는 로그인이 유지돼요.</div></div>
   <div class="hl"><div class="ic">🗂️</div><div><b>분류 고르기</b> 🌱 자율 · 💡 진로 · 📚 교과 카드를 눌러 활동 목록을 바꿔 봐요. 카드의 숫자는 <b>점검한 활동 / 전체 활동</b>이에요.</div></div>
+  <div class="hl"><div class="ic">📌</div><div><b>꼭 기억해요</b> 활동한 것도 안 한 것도 <b>모두</b> 눌러야 해요. 그리고 🌱 자율과 💡 진로에는 각각 <b>참여한 활동이 최소 1개 이상</b> 있어요. 다른 활동을 못 했더라도 진로시간·자율시간에 한 활동을 찾아서 <b>참여함</b>으로 체크하고 적어 주세요.</div></div>
   <div class="hl"><div class="ic">🙋</div><div><b>참여 체크</b> 활동 카드를 누르면 펼쳐져요. <b>참여함</b> 또는 <b>참여 안 함</b>을 고르고 💾 저장해요. 참여 안 함도 꼭 눌러야 점검이 끝나요.</div></div>
   <div class="hl"><div class="ic">✍️</div><div><b>참여했다면</b> 보고서를 썼는지, 관련 링크(내 결과물 주소), 그리고 <b>활동 요약</b>을 적어요. 요약은 <b>최대 1,000자까지</b> 쓸 수 있어요. <b>글자를 최대한 채워서 자세히</b> 적어요! 무엇을 했는지 · 어떻게 참여했는지 · 알게 된 점 · 느낀 점 · 내 진로와 이어지는 점까지 쓰면 좋아요. 요약이 선생님께 가장 큰 도움이 돼요.</div></div>
   <div class="hl"><div class="ic">📚</div><div><b>교과 활동</b>은 수행평가·탐구·실험 주제를 <b>내 진로와 연결</b>해서 적어요. 활동이 여러 개면 <b>➕ 활동 추가</b>로 칸을 늘려요.</div></div>
@@ -550,6 +553,7 @@ function render(){
   $('pgTxt').textContent = `${chk} / ${tot}`;
   $('pgSub').innerHTML = (sum ? `✍️ 요약을 안 쓴 활동 ${sum}개 ` : (tot && chk === tot ? '🎉 모두 점검했어요!' : '')) + (tot && (chk < tot || sum) ? '<button class="lf" data-act="next">다음 할 일 →</button>' : '');
   $('pgBar').style.width = (tot ? Math.round(chk / tot * 100) : 0) + '%';
+  ruleNote();
   // 목록
   const all = items.filter(i => i.cat === cat && mine(i));
   const list = onlyLeft ? all.filter(i => statusOf(i) === 'none' || statusOf(i) === 'sum' || i.id === openId) : all;
@@ -562,6 +566,19 @@ function render(){
   $('grid').innerHTML = stb + (list.length ? list.map(itemHtml).join('') :
     (all.length ? `<div class="empty" style="grid-column:1/-1">이 분류는 모두 점검했어요 🎉</div>` : `<div class="empty" style="grid-column:1/-1">아직 등록된 활동이 없어요.<br>담임선생님이 활동을 등록하면 여기에 나타나요 😊</div>`));
 }
+/* 안내: 활동한 것·안 한 것 모두 체크 / 자율·진로는 각각 참여한 활동이 최소 1개 이상 */
+function ruleNote(){
+  const el = $('ruleNote'); if (!el) return;
+  const need = ['자율', '진로'].filter(c => items.some(i => starCat(i) === c && mine(i)));
+  if (!tot0()){ el.classList.add('hide'); return; }
+  const cnt = c => items.filter(i => mine(i) && starCat(i) === c && recsOf(i.id).some(x => x.part === 'yes')).length;
+  const ok = need.every(c => cnt(c) > 0), E = { '자율':'🌱', '진로':'💡' };
+  el.classList.remove('hide'); el.classList.toggle('done', ok);
+  el.innerHTML = (ok ? '✅ 자율·진로 모두 <b>참여한 활동</b>이 있어요. 목록의 <b>다른 활동도 참여했는지 안 했는지 모두 눌러야</b> 점검이 끝나요.'
+    : '✅ <b>활동한 것도, 안 한 것도 모두 눌러야</b> 점검이 끝나요.<br>📌 🌱 자율과 💡 진로에는 각각 <b>참여한 활동이 최소 1개 이상</b> 꼭 있어요. 다른 활동을 못 했더라도 <b>진로시간·자율시간에 한 활동</b>을 찾아서 <b>참여함</b>으로 체크하고 적어 주세요.')
+    + (need.length && !ok ? `<div class="rk">${need.map(c => cnt(c) ? `<span class="ok">${E[c]} ${c} 참여 ${cnt(c)}개 ✓</span>` : `<span class="todo">${E[c]} ${c} 참여한 활동 아직 없어요</span>`).join('')}</div>` : '');
+}
+const tot0 = () => items.some(mine);
 function myAddHtml(cnt){
   const full = cnt >= 10;
   if (full) return '<div class="myadd"><b>🙋 내가 추가한 활동</b><div class="why">직접 추가는 10개까지 할 수 있어요. 더 필요하면 선생님께 말씀해 주세요.</div></div>';
