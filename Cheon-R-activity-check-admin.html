@@ -141,7 +141,12 @@ table.mx{border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:10
 .irow:has(#impBox:not(.hide)){grid-template-columns:minmax(0,1fr)!important}
 .irow{align-items:stretch}.irow:has(> .card:not(.cbx-open)){align-items:start}   /* 두 카드가 펼쳐져 있으면 높이를 맞추고, 하나라도 접혀 있으면 각자 높이 */
 .irow>.card.cbx-open{display:flex;flex-direction:column}
-@media(min-width:900px){.irow{grid-template-columns:repeat(3,minmax(0,1fr))}}   /* 양식 | 엑셀 불러오기 | 교사용 지침 한 줄 3칸 */
+@media(min-width:900px){.irow{grid-template-columns:repeat(2,minmax(0,1fr))}}   /* 학년도 양식 | 엑셀 불러오기 한 줄 2칸 (교사용 지침 카드는 숨기고 항목 목록 아래 '작성 지침' 행으로 옮김) */
+#gdCard{display:none}
+.gbyte{font-size:11px;font-weight:600;color:var(--tx3);background:#fff;border:1px dashed var(--line,#c9c3de);border-radius:10px;padding:1px 8px;cursor:pointer;margin-left:6px;white-space:nowrap}.gbyte:hover{border-color:var(--pri,#9B8EC4);color:var(--pri,#6f5fa8)}
+.gdrow{margin-top:14px;border:1px solid var(--line,#e3dff0);border-radius:12px;padding:10px 12px;background:#faf9fd}.gdrow>summary{cursor:pointer;font-weight:700;font-size:14px;min-height:32px;display:flex;align-items:center;gap:6px}.gdrow>summary small{font-weight:500;color:var(--tx3)}
+.gdv{margin-top:8px}.gdv b{font-size:12px;color:var(--tx3)}.gdv p{margin:2px 0 0;font-size:13px;line-height:1.6;white-space:pre-wrap}
+#gdEdit .g2c{margin-top:8px}#gdEdit .g2c textarea{min-height:96px}
 .irow>.card:nth-child(3){order:2}.irow>.card:nth-child(2){order:3}   /* 화면 순서만 바꿈(저장된 접힘 순서는 그대로) */
 .card:has(#gdCom) .g2c{flex:1;grid-template-rows:minmax(0,1fr) minmax(0,1fr);align-items:stretch}.card:has(#gdCom) .g2c>div{display:flex;flex-direction:column;min-height:0}.card:has(#gdCom) .g2c textarea{flex:1;min-height:84px;resize:none}
 .card:has(#pasteIn) #pasteIn{flex:1;min-height:90px}
@@ -572,7 +577,7 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
           <div class="row"><button class="btn sm" data-a="newYear">새 학년도로 시작</button></div><div class="msg" id="nyMsg"></div>
         </div>
       </div>
-      <div class="card">
+      <div class="card" id="gdCard">
         <h3>📌 교사용 기재 지침 <span class="hint">학생에게는 안 보여요</span></h3>
         <div class="g2c">
           <div><label class="f" style="margin-top:0">공통</label><textarea id="gdCom" maxlength="500" style="min-height:70px"></textarea></div>
@@ -627,7 +632,11 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
         <div class="row"><button class="btn" data-a="saveItem">저장</button><button class="btn sub hide" id="fCancel" data-a="cancelEdit">수정 취소</button></div>
         <div class="msg" id="itMsg"></div>
       </div>
-      <div class="card"><h3>📋 항목 목록 <span class="hint" id="itCnt"></span></h3><div id="itList"></div></div>
+      <div class="card"><h3>📋 항목 목록 <span class="hint" id="itCnt"></span></h3><div id="itList"></div>
+        <details class="gdrow" id="gdDet"><summary>📌 작성 지침 <small>(참고용 · 학생에게는 안 보여요)</small></summary>
+          <div id="gdView"></div><div id="gdEdit" class="hide"></div>
+          <div class="row" style="margin-top:8px"><button class="btn sm sub" data-a="gdToggle" id="gdTogBtn">✏️ 수정</button></div>
+        </details></div>
     </div>
 
     <!-- 👥 명단 -->
@@ -3516,7 +3525,7 @@ function renderItems(){
     : itSelMode ? '<span class="ibsub">옮기거나 지울 카드를 눌러 선택해 주세요.</span><span class="ibto" data-xsm="0" style="margin-left:auto">선택 끝내기</span>'
     : '<span class="ibsub">카드를 누르면 상세·수정 창이 열려요. <b>⠿ 손잡이</b>를 끌면 <b>다른 열로 이동</b>하고, <b>같은 열 안에서 끌면 순서가 바뀌어요</b>. 열 제목의 <b>가→하 · 하→가</b>로 한 번에 정렬해요. 여러 개는 Ctrl(Shift)+클릭이나 오른쪽 버튼으로 골라요.</span><span class="ibto" data-xsm="1" style="margin-left:auto">☑ 여러 개 선택</span><span class="ibto" data-a="expItems">📤 엑셀로 내려받기</span>') + '</div>';
   if (itFocus < 0){
-    h += `<div class="ibcols" style="--n:${cols.length}">` + cols.map(c => `<div class="ibcol" data-xcol="${c}"><div class="ibh" data-xf="${IMPCOLS.indexOf(c)}"><span>${c}</span>${sortBtns(c)}<i>${of(c).length}개 · 크게 보기 ›</i></div>` +
+    h += `<div class="ibcols" style="--n:${cols.length}">` + cols.map(c => `<div class="ibcol" data-xcol="${c}"><div class="ibh" data-xf="${IMPCOLS.indexOf(c)}"><span>${c}${gbyteChip(c)}</span>${sortBtns(c)}<i>${of(c).length}개 · 크게 보기 ›</i></div>` +
       of(c).map(it => `<div class="ibc${itSel[it.id] ? ' sel' : ''}${it.on ? '' : ' off'}" draggable="true" data-xc="${esc(it.id)}"><span class="ibgrip">⠿</span><b>${esc(it.title)}</b>${impBadges(it)}${it.on ? '' : '<span class="ibb">숨김</span>'}</div>`).join('') + '</div>').join('') + '</div>';
   } else {
     const c = IMPCOLS[itFocus], l = of(c);
@@ -3601,6 +3610,7 @@ async function itMove(idList, col){
     const to = e.target.closest('[data-xto]'); if (to){ itMove(Object.keys(itSel).filter(k => itSel[k]), to.dataset.xto); return; }
     if (e.target.closest('[data-xclr]')){ itSel = {}; renderItems(); return; }
     const so = e.target.closest('[data-xsort]'); if (so){ itSort(so.dataset.col, so.dataset.xsort); return; }
+    const gb = e.target.closest('[data-xgb]'); if (gb){ e.stopPropagation(); gdByteEdit(gb.dataset.xgb); return; }
     const f = e.target.closest('[data-xf]'); if (f){ itFocus = Number(f.dataset.xf); renderItems(); return; }
     const tn = e.target.closest('[data-xtn]'); if (tn){ tn.classList.toggle('open'); return; }
     const sm = e.target.closest('[data-xsm]'); if (sm){ itSelMode = sm.dataset.xsm === '1'; if (!itSelMode) itSel = {}; renderItems(); return; }
@@ -3722,6 +3732,25 @@ async function moveItem(id, d){
 /* ----- 교사용 기재 지침 ----- */
 const GD = [['공통','gdCom'],['자율','gdJa'],['진로','gdJi'],['행발','gdHa']];
 function renderGuide(){ const g = DATA.guide || {}; GD.forEach(([k, id]) => { const el = $(id); if (el && document.activeElement !== el) el.value = g[k] || ''; }); }
+/* ----- 작성 지침(참고용) 행 · 칸 머리 byte ----- */
+const GD_BYTE = /(\d[\d,]*)\s*byte/i, GD_LBL = [['공통','공통'],['자율','자율활동'],['진로','진로활동'],['행발','종합의견·행동특성']];
+const gdByteOf = c => { const m = String((DATA.guide || {})[c] || '').match(GD_BYTE); return m ? m[1].replace(/,/g, '') : ''; };
+const gbyteChip = c => (c === '자율' || c === '진로' || c === '행발') ? `<span class="gbyte" data-xgb="${c}" title="눌러서 byte 수를 고쳐요">${gdByteOf(c) ? gdByteOf(c) + 'byte' : 'byte 입력'} ✎</span>` : '';
+async function gdByteEdit(c){
+  const v = prompt(`${c}에 쓸 수 있는 byte 수를 적어 주세요 (숫자만)`, gdByteOf(c)); if (v === null) return;
+  const n = String(v).replace(/[^\d]/g, ''); if (!n){ toast('숫자만 적어 주세요'); return; }
+  let t = String((DATA.guide || {})[c] || ''); t = GD_BYTE.test(t) ? t.replace(GD_BYTE, n + 'byte') : (n + 'byte. ' + t).trim();
+  if (t.length > 500){ toast('지침 글이 너무 길어요 (500자까지)'); return; }
+  try{ await api('saveGuide', { key:c, text:t }); await refresh(); toast(`${c} ${n}byte로 저장했어요`); }catch(e){ toast(e.message); }
+}
+function renderGuideRow(){
+  const ed = $('gdEdit'); if (!ed) return;
+  if (!ed.contains($('gdCom'))){ const g = $('gdCom').closest('.g2c'), r = $('saveGuideRow') || document.querySelector('#gdCard [data-a="saveGuide"]').closest('.row'); ed.appendChild(g); ed.appendChild(r); ed.appendChild($('gdMsg')); }
+  const g = DATA.guide || {}, v = GD_LBL.filter(([k]) => g[k]).map(([k, l]) => `<div class="gdv"><b>${l}</b><p>${esc(g[k])}</p></div>`).join('');
+  $('gdView').innerHTML = v || '<div class="hint" style="margin-top:8px">아직 적어 둔 지침이 없어요. [✏️ 수정]으로 적어 두면 여기서 참고할 수 있어요.</div>';
+}
+function gdToggle(){ const on = $('gdEdit').classList.toggle('hide'); $('gdView').classList.toggle('hide', !on); $('gdTogBtn').textContent = on ? '✏️ 수정' : '닫기'; if (!on) $('gdDet').open = true; }
+{ const _rg0 = renderGuide; renderGuide = function(){ _rg0.apply(this, arguments); renderGuideRow(); }; }
 async function saveGuide(btn){
   btn.disabled = true; msg('gdMsg','저장 중…',true);
   try{ for (const [k, id] of GD){ if (($(id).value || '') !== ((DATA.guide || {})[k] || '')) await api('saveGuide', { key:k, text:$(id).value }); } await refresh(); msg('gdMsg','저장했어요.',true); }
@@ -5000,7 +5029,7 @@ const ACT = {
   copyStuText: () => copyText($('stuLink').value, '주소를 복사했어요'), copyStuRich, openStu: () => window.open($('stuLink').value, '_blank'),
   yearReset: el => yearReset(el),
   toggleCat: el => { catClosed[el.dataset.c] = !catClosed[el.dataset.c]; renderItems(); },
-  newYear: el => newYear(el), expItems, expSelItems, ddTog: el => { const m = $(el.dataset.d); if (m) m.classList.toggle('hide'); }, saveGuide: el => saveGuide(el), mvCat: el => mvCat(el.dataset.id, el.dataset.c),
+  newYear: el => newYear(el), gdToggle: () => gdToggle(), expItems, expSelItems, ddTog: el => { const m = $(el.dataset.d); if (m) m.classList.toggle('hide'); }, saveGuide: el => saveGuide(el), mvCat: el => mvCat(el.dataset.id, el.dataset.c),
   tplDown, pickFile: () => $('fileIn').click(), parsePaste, doImport: el => doImport(el), cancelImp: () => { IMP = []; IMPREPL = ''; $('impBox').classList.add('hide'); msg('impMsg',''); renderImpLog(); }, impRepl: el => impRepl(el.dataset.l), impGroup, impDel: el => impDel(el.dataset.l), impReplCancel: () => { IMPREPL = ''; renderImpLog(); },
   saPromote, saMerge, saDel,
   presetLoad: el => presetLoad(el.dataset.p), presetDown: el => presetDown(el.dataset.p),
