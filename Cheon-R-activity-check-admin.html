@@ -142,6 +142,10 @@ table.mx{border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:10
 .irow{align-items:stretch}.irow:has(> .card:not(.cbx-open)){align-items:start}   /* 두 카드가 펼쳐져 있으면 높이를 맞추고, 하나라도 접혀 있으면 각자 높이 */
 .irow>.card.cbx-open{display:flex;flex-direction:column}
 @media(min-width:900px){.irow{grid-template-columns:repeat(2,minmax(0,1fr))}}   /* 학년도 양식 | 엑셀 불러오기 한 줄 2칸 (교사용 지침 카드는 숨기고 항목 목록 아래 '작성 지침' 행으로 옮김) */
+.stwrap{container-type:inline-size}.stgrid{display:grid;grid-template-columns:minmax(0,1fr);gap:0 24px}   /* 현황 위쪽: 왼쪽 보기·걸러내기 / 오른쪽 정렬·내보내기 (넓을 때만 2열) */
+@container (min-width:900px){.stgrid{grid-template-columns:minmax(0,1fr) auto}.stR{justify-self:end}.stR .row{justify-content:flex-end}.stR #ordBox{text-align:right}}
+.stmode{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center}.stmode>.chips{margin-top:0}.stmode>.chips.hide{display:none}
+#ordBox .ordb{margin:0}#ordBox:not(.hide){margin-bottom:2px}
 #gdCard{display:none}
 .gbyte{font-size:11px;font-weight:600;color:var(--tx3);background:#fff;border:1px dashed var(--line,#c9c3de);border-radius:10px;padding:1px 8px;cursor:pointer;margin-left:6px;white-space:nowrap}.gbyte:hover{border-color:var(--pri,#9B8EC4);color:var(--pri,#6f5fa8)}
 .gdrow{margin-top:14px;border:1px solid var(--line,#e3dff0);border-radius:12px;padding:10px 12px;background:#faf9fd}.gdrow>summary{cursor:pointer;font-weight:700;font-size:14px;min-height:32px;display:flex;align-items:center;gap:6px}.gdrow>summary small{font-weight:500;color:var(--tx3)}
@@ -654,15 +658,20 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
 
     <!-- 📊 현황 -->
     <div class="pane" id="p-stat">
-      <div class="card">
-        <div class="chips" style="margin-top:0"><button class="chip on" data-a="statMode" data-m="stu">👤 학생별</button><button class="chip" data-a="statMode" data-m="item">📋 항목별</button><button class="chip" data-a="statMode" data-m="memo">💬 한마디 <span id="memoBadge"></span></button></div>
-        <div class="row"><div class="grid2" style="flex:0 1 320px"><input type="text" id="statQ" placeholder="학번·이름 검색" class="hide"></div><div class="ddw"><button class="btn sm sub" data-a="ddTog" data-d="dlMenu">📥 저장 ▾</button><div class="ddm hide" id="dlMenu"><button type="button" data-a="exportXlsx">📤 전체 학생 엑셀</button><button type="button" data-a="psOpen" data-m="xlsx">📤 선택 학생 엑셀…</button><button type="button" data-a="exportBackup">💾 전체 백업</button></div></div><div class="ddw"><button class="btn sm sub" data-a="ddTog" data-d="prMenu">🖨️ 출력 ▾</button><div class="ddm hide" id="prMenu"><button type="button" data-a="printAll">🖨️ 전체 학생 출력</button><button type="button" data-a="psOpen">🖨️ 선택 학생 출력…</button></div></div></div>
-        <div class="chips hide" id="viewSel"></div>
-        <div class="chips hide" id="stuFilt"></div>
-        <div class="row" style="margin-top:6px"><button class="btn sm sub" data-a="copyPend">📋 지금 보이는 목록 복사 (독촉용)</button></div>
+      <div class="card"><div class="stwrap"><div class="stgrid">
+        <div class="stL">
+          <div class="stmode"><div class="chips" style="margin-top:0"><button class="chip on" data-a="statMode" data-m="stu">👤 학생별</button><button class="chip" data-a="statMode" data-m="item">📋 항목별</button><button class="chip" data-a="statMode" data-m="memo">💬 한마디 <span id="memoBadge"></span></button></div>
+          <div class="chips hide" id="viewSel"></div></div>
+        <div class="row"><div class="grid2" style="flex:0 1 320px"><input type="text" id="statQ" placeholder="학번·이름 검색" class="hide"></div></div>
+          <div class="chips hide" id="stuFilt"></div>
         <div id="itemSel" class="hide"><select id="statItem" class="sel" style="margin-top:8px"></select>
           <div class="chips" id="itemFilt"></div></div>
-      </div>
+        </div>
+        <div class="stR">
+          <div id="ordBox" class="hide"></div>
+          <div class="row"><div class="ddw"><button class="btn sm sub" data-a="ddTog" data-d="dlMenu">📥 저장 ▾</button><div class="ddm hide" id="dlMenu"><button type="button" data-a="exportXlsx">📤 전체 학생 엑셀</button><button type="button" data-a="psOpen" data-m="xlsx">📤 선택 학생 엑셀…</button><button type="button" data-a="exportBackup">💾 전체 백업</button></div></div><div class="ddw"><button class="btn sm sub" data-a="ddTog" data-d="prMenu">🖨️ 출력 ▾</button><div class="ddm hide" id="prMenu"><button type="button" data-a="printAll">🖨️ 전체 학생 출력</button><button type="button" data-a="psOpen">🖨️ 선택 학생 출력…</button></div></div><button class="btn sm sub" data-a="copyPend">📋 지금 보이는 목록 복사 (독촉용)</button></div>
+        </div>
+      </div></div></div>
       <div id="statBody"></div>
     </div>
 
@@ -4359,7 +4368,7 @@ function cardsHtml(shown){
 }
 function memoBadge(){ const el = $('memoBadge'); if (!el) return; const n = memoRows().filter(x => x.qp || x.t === 'unread').length; el.textContent = n ? '(' + n + ')' : ''; }
 function renderStat(){
-  $('stuFilt').classList.toggle('hide', statMode !== 'stu'); $('viewSel').classList.toggle('hide', statMode !== 'stu'); $('statQ').classList.toggle('hide', statMode !== 'stu'); $('itemSel').classList.toggle('hide', statMode !== 'item');
+  $('stuFilt').classList.toggle('hide', statMode !== 'stu'); $('viewSel').classList.toggle('hide', statMode !== 'stu'); $('statQ').classList.toggle('hide', statMode !== 'stu'); $('itemSel').classList.toggle('hide', statMode !== 'item'); $('ordBox').classList.toggle('hide', statMode === 'memo');
   document.querySelectorAll('[data-a="statMode"]').forEach(b => b.classList.toggle('on', b.dataset.m === statMode));
   const body = $('statBody');
   if (!DATA.students.length){ body.innerHTML = '<div class="card hint" style="text-align:center">👥 명단 탭에서 학생 명단을 먼저 저장해 주세요.</div>'; return; }
@@ -4381,7 +4390,7 @@ function renderStat(){
     }
     sdList = shown.map(x => x.s.sid);
     statCopy = { head:'[' + ({ all:'전체', none:'미점검 있는 학생', sum:'요약 미작성 있는 학생', q:'질문 있는 학생', u:'한마디 안 읽은 학생', w:'한마디 반영 대기 학생' })[stuFilt] + ']', lines:shown.map(x => `${x.s.sid} ${x.s.name}${x.none ? ' · 미점검 ' + x.none : ''}${x.sum ? ' · 요약 미작성 ' + x.sum : ''}`) };
-    $('viewSel').innerHTML = [['table', '📊 한눈에 표'], ['card', '🗂️ 카드']].map(([k, t]) => `<button class="chip ${statView === k ? 'on' : ''}" data-a="statView" data-k="${k}">${t}</button>`).join('') + ordBar();
+    $('viewSel').innerHTML = [['table', '📊 한눈에 표'], ['card', '🗂️ 카드']].map(([k, t]) => `<button class="chip ${statView === k ? 'on' : ''}" data-a="statView" data-k="${k}">${t}</button>`).join(''); $('ordBox').innerHTML = ordBar();
     body.innerHTML = !shown.length ? '<div class="card hint">검색 결과가 없어요.</div>' : statView === 'table' ? mxHtml(shown, items) : cardsHtml(shown);
     if (mxJump){ mxJump = false; jumpHl(); }
   } else {
@@ -4390,7 +4399,7 @@ function renderStat(){
     if (!items.some(i => i.id === statItem)) statItem = items[0] ? items[0].id : '';
     sel.value = statItem;
     const FL = [['all','전체'],['yes','참여'],['no','참여 안 함'],['none','미점검'],['sum','요약 미작성']];
-    $('itemFilt').innerHTML = FL.map(([k,t]) => `<button class="chip ${itemFilt === k ? 'on' : ''}" data-a="itemFilt" data-k="${k}">${t}</button>`).join('') + ordBar();
+    $('itemFilt').innerHTML = FL.map(([k,t]) => `<button class="chip ${itemFilt === k ? 'on' : ''}" data-a="itemFilt" data-k="${k}">${t}</button>`).join(''); $('ordBox').innerHTML = ordBar();
     const it = items.find(i => i.id === statItem); if (!it){ body.innerHTML = ''; return; }
     const cnt = { done:0, sum:0, no:0, none:0 };
     const rows = DATA.students.filter(s => it.cat !== '동아리' || s.club === it.id || recsOf(s.sid, it.id).length).map(s => { const st = statusOfRecs(recsOf(s.sid, it.id)); cnt[st]++; return { s, st }; });
