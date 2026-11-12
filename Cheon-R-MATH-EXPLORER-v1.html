@@ -2318,7 +2318,7 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
 </div>
 
 <!-- 합성·역함수 법칙 모달 -->
-<div id="compLawModal" style="display:none;position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:500;width:420px;max-width:95vw;">
+<div id="compLawModal" style="display:none;position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:500;width:680px;max-width:95vw;">
   <div style="background:#fff;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,0.22);border:1px solid var(--bor);overflow:hidden;user-select:none;">
     <div id="compLawHandle" style="padding:12px 16px 10px;cursor:grab;border-bottom:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between;gap:8px;">
       <div style="display:flex;align-items:center;gap:8px">
@@ -2334,7 +2334,7 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
     <div id="compLawStats" style="padding:12px 16px;border-bottom:1px solid var(--bor);background:var(--bg);font-size:13px;line-height:1.9;font-family:'JetBrains Mono',monospace;min-height:48px">
       <span style="color:var(--tx3);font-size:12px;font-family:inherit">← 위 법칙을 선택하면 수치가 표시돼요</span>
     </div>
-    <div id="compLawDesc" style="padding:12px 16px;font-size:13px;color:var(--tx2);line-height:1.8;max-height:300px;overflow-y:auto;min-height:48px"></div>
+    <div id="compLawDesc" style="padding:14px 20px;font-size:14px;color:var(--tx2);line-height:1.8;max-height:max(260px,min(760px,calc(100vh - 390px)));overflow-y:auto;min-height:48px"></div>
   </div>
 </div>
 
@@ -8401,6 +8401,179 @@ function setMmLaw(idx){
 })();
 
 // ════════════════════════════════════════
+// ✏️ 꺾은선(꺾인 1차) f, g 합성 — 화살표로 개형 빨리 그리기 (⑥번 카드)
+//   ※ 합성 모드 슬라이더(SComp)와 무관한 고정 예제. 상태는 CP 하나만 사용.
+// ════════════════════════════════════════
+const CP={step:0};
+const CP_COL=['#1A5FB4','#C0392B'];   // 구간① 파랑 · 구간② 빨강
+const CP_STEPS=['① 구간 나누기','② f 화살표','③ g에 올리기','④ 꺾임점 x','⑤ 이어서 완성'];
+const CP_RULES=[
+  '<b>①</b> x는 항상 왼쪽→오른쪽 순서로 읽고, 화살표는 "x가 커질 때 값이 어디서 어디로 움직이는지"를 뜻해요 (예: 1→2).',
+  '<b>②</b> f 열에는 그 구간에서 f의 시작값→끝값을 적어요 (예: 1→2, 2→0).',
+  '<b>③</b> g∘f 열은 f의 화살표를 g 그래프 위에 올려놓고, g의 y값을 따라 읽어요.',
+  '<b>④</b> 화살표가 g의 꺾임 입력값(예제에서는 1) 안쪽을 지나가면 g값도 꺾이면서 중간값이 하나 끼어요 (2→0→2). 끝에서 출발하거나 도착만 하면 꺾이지 않아요.',
+  '<b>⑤</b> 꺾임점의 x는 "f(t) = g의 꺾임 입력값"을 풀어서 구하고(t=3/2), 끝점과 꺾임점을 이으면 완성이에요.'
+];
+const CP_RULE_ON=[[],[],[0,1],[2,3],[4],[4]];   // 단계(0~5)별로 강조할 규칙 번호
+const CP_CAPS=[
+  '꺾은선 모양의 f, g가 주어졌어요 (0≤x≤2). 식을 전개하지 않고 g∘f의 개형을 그려볼게요. <b>다음 ▶</b>을 눌러 시작!',
+  '<b>① 구간 나누기</b> — f가 x=1에서 꺾이니까 x를 <b>0&lt;x&lt;1</b>, <b>1&lt;x&lt;2</b> 두 구간으로 나눠요. 각 구간 안에서 f는 직선이에요.',
+  '<b>② f 화살표</b> — 구간마다 f의 값이 어디서 어디로 가는지 화살표로 적어요. ①구간은 <b>1→2</b>, ②구간은 <b>2→0</b>.',
+  '<b>③ g에 올리기</b> — f의 화살표를 g 그래프에 올려서 g의 값을 읽어요. ①구간 1→2는 g의 오른쪽 가지만 지나서 <b>0→2</b>(안 꺾임). ②구간 2→0은 g의 꺾임 입력값 1을 안쪽에서 지나가서 <b>2→0→2</b>(꺾임!).',
+  '<b>④ 꺾임점 x</b> — ②구간에서 g가 꺾이는 곳은 f(t)=1일 때예요. f(x)=−2x+4 → −2t+4=1 → <b>t=3/2</b>. 그래서 꺾임점은 <b>(3/2, 0)</b>.',
+  '<b>⑤ 이어서 완성</b> — 끝점 (0,0), (1,2), (2,2)와 꺾임점 (3/2,0)을 직선으로 이으면 g∘f의 개형 완성! 식은 한 번도 전개하지 않았어요 ✨'
+];
+
+const cpX=x=>30+78*x, cpY=y=>140-58*y;
+const cpN=v=>v.toFixed(1);
+function cpSeg(x1,y1,x2,y2,col,w){
+  return `<line x1="${cpN(cpX(x1))}" y1="${cpN(cpY(y1))}" x2="${cpN(cpX(x2))}" y2="${cpN(cpY(y2))}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`;
+}
+function cpSegOff(x1,y1,x2,y2,col,w,dx){   // 가로로 dx(px)만큼 밀어서 겹치는 선을 구분
+  return `<line x1="${cpN(cpX(x1)+dx)}" y1="${cpN(cpY(y1))}" x2="${cpN(cpX(x2)+dx)}" y2="${cpN(cpY(y2))}" stroke="${col}" stroke-width="${w}" stroke-linecap="round" opacity=".85"/>`;
+}
+function cpDot(x,y,col){ return `<circle cx="${cpN(cpX(x))}" cy="${cpN(cpY(y))}" r="3.8" fill="${col}" stroke="#fff" stroke-width="1"/>`; }
+function cpTxt(px,py,t,col,anchor,bold){
+  return `<text x="${cpN(px)}" y="${cpN(py)}" font-size="9.5" fill="${col}" text-anchor="${anchor||'middle'}"${bold?' font-weight="700"':''} stroke="#fff" stroke-width="3" paint-order="stroke">${t}</text>`;
+}
+function cpVDash(x,col){ return `<line x1="${cpN(cpX(x))}" y1="${cpN(cpY(0))}" x2="${cpN(cpX(x))}" y2="${cpN(cpY(2)-4)}" stroke="${col}" stroke-width="1.2" stroke-dasharray="3 3"/>`; }
+function cpArrow(x1,y1,x2,y2,col){   // 선분 위 62% 지점에 진행 방향 화살촉
+  const px1=cpX(x1),py1=cpY(y1),px2=cpX(x2),py2=cpY(y2);
+  const mx=px1+(px2-px1)*0.62, my=py1+(py2-py1)*0.62;
+  const ang=Math.atan2(py2-py1,px2-px1), L=9, W=4.5;
+  const bx=mx-Math.cos(ang)*L, by=my-Math.sin(ang)*L;
+  const nx=-Math.sin(ang)*W, ny=Math.cos(ang)*W;
+  return `<polygon points="${cpN(mx)},${cpN(my)} ${cpN(bx+nx)},${cpN(by+ny)} ${cpN(bx-nx)},${cpN(by-ny)}" fill="${col}"/>`;
+}
+function cpAxes(showHalf){
+  let s=`<line x1="30" y1="140" x2="192" y2="140" stroke="#5A5852" stroke-width="1.2"/><line x1="30" y1="140" x2="30" y2="14" stroke="#5A5852" stroke-width="1.2"/>`;
+  [0,1,2].forEach(v=>{ s+=`<text x="${cpN(cpX(v))}" y="153" font-size="10" text-anchor="middle" fill="#5A5852">${v}</text>`; });
+  if(showHalf) s+=`<text x="${cpN(cpX(1.5))}" y="153" font-size="10" text-anchor="middle" fill="#8B5E00" font-weight="700">3/2</text>`;
+  [1,2].forEach(v=>{ s+=`<line x1="27" y1="${cpN(cpY(v))}" x2="30" y2="${cpN(cpY(v))}" stroke="#5A5852"/><text x="23" y="${cpN(cpY(v)+3.5)}" font-size="10" text-anchor="end" fill="#5A5852">${v}</text>`; });
+  s+=`<text x="195" y="144" font-size="10" fill="#5A5852">x</text><text x="34" y="18" font-size="10" fill="#5A5852">y</text>`;
+  return s;
+}
+function cpPanel(title,body,showHalf){
+  return `<div style="background:#fff;border:1px solid var(--bor);border-radius:10px;padding:6px 6px 2px">
+    <div style="font-size:12px;font-weight:800;color:var(--tx2);text-align:center;margin-bottom:2px">${title}</div>
+    <svg viewBox="0 0 200 160" style="width:100%;height:auto;display:block" xmlns="http://www.w3.org/2000/svg">${cpAxes(showHalf)}${body}</svg>
+  </div>`;
+}
+function cpPanelsHTML(){
+  const s=CP.step, B='#1C1B18', AM='#8B5E00';
+  const c0=s>=1?CP_COL[0]:B, c1=s>=1?CP_COL[1]:B;
+  // ── f ──
+  let fb='';
+  if(s>=1) fb+=cpVDash(1,AM)+cpTxt(cpX(1),11,'x=1에서 꺾임',AM,'middle',true);
+  if(s>=4) fb+=`<line x1="${cpN(cpX(0))}" y1="${cpN(cpY(1))}" x2="${cpN(cpX(2))}" y2="${cpN(cpY(1))}" stroke="${AM}" stroke-width="1.2" stroke-dasharray="3 3"/>`;
+  fb+=cpSeg(0,1,1,2,c0,3.2)+cpSeg(1,2,2,0,c1,3.2);
+  if(s>=2){
+    fb+=cpArrow(0,1,1,2,c0)+cpArrow(1,2,2,0,c1);
+    fb+=cpTxt(cpX(0.5)-5,cpY(1.5)-4,'1→2',c0,'end',true)+cpTxt(cpX(1.5)+6,cpY(1)-6,'2→0',c1,'start',true);
+  }
+  if(s>=4) fb+=cpDot(1.5,1,AM)+cpTxt(cpX(1.5)-7,cpY(1)+13,'f(t)=1',AM,'end',true);
+  // ── g ──
+  let gb='';
+  if(s>=3){
+    gb+=cpVDash(1,AM)+cpTxt(cpX(1),11,'g의 꺾임 입력값 1',AM,'middle',true);
+    gb+=cpSegOff(0,2,1,0,CP_COL[1],4,-3.5)+cpSegOff(1,0,2,2,CP_COL[1],4,-3.5);   // ②구간: f값 2→0, g 전체를 훑음
+    gb+=cpSegOff(1,0,2,2,CP_COL[0],4,3.5);                                       // ①구간: f값 1→2, g 오른쪽 가지만
+  }
+  gb+=cpSeg(0,2,1,0,B,2)+cpSeg(1,0,2,2,B,2);
+  // ── g∘f ──
+  let hb='';
+  if(s>=4) hb+=cpVDash(1.5,AM);
+  if(s>=5) hb+=cpSeg(0,0,1,2,CP_COL[0],3.2)+cpSeg(1,2,1.5,0,CP_COL[1],3.2)+cpSeg(1.5,0,2,2,CP_COL[1],3.2);
+  if(s>=3){
+    hb+=cpDot(0,0,CP_COL[0])+cpDot(1,2,B)+cpDot(2,2,CP_COL[1]);
+    hb+=cpTxt(cpX(0)+6,cpY(0)-6,'(0,0)',B,'start')+cpTxt(cpX(1),cpY(2)-7,'(1,2)',B,'middle')+cpTxt(cpX(2),cpY(2)-7,'(2,2)',B,'end');
+  }
+  if(s>=4) hb+=cpDot(1.5,0,CP_COL[1])+cpTxt(cpX(1.5),cpY(0)-36,'꺾임',AM,'middle',true);
+  return cpPanel('y = f(x)',fb,false)+cpPanel('y = g(x)',gb,false)+cpPanel('y = g(f(x))',hb,s>=4);
+}
+function cpTableHTML(){
+  const s=CP.step;
+  const th=t=>`<th style="padding:6px 6px;background:var(--bg);border:1px solid var(--bor);font-size:12px;color:var(--tx2);font-weight:700">${t}</th>`;
+  const ph='<span style="color:var(--tx3);font-weight:400">…</span>';
+  const td=(t,col,sub)=>`<td style="padding:7px 6px;border:1px solid var(--bor);text-align:center;vertical-align:top;font-family:'JetBrains Mono',monospace;font-size:13.5px;font-weight:700;color:${col};background:#fff">${t}${sub?`<div style="font-family:inherit;font-size:11px;font-weight:600;line-height:1.5;margin-top:3px;color:var(--tx3)">${sub}</div>`:''}</td>`;
+  const row=(i,xs,fs,gs,gsub)=>`<tr>${td(['①','②'][i],CP_COL[i])}${td(s>=1?xs:ph,CP_COL[i])}${td(s>=2?fs:ph,CP_COL[i])}${td(s>=3?gs:ph,CP_COL[i],s>=3?gsub:'')}</tr>`;
+  return `<table style="width:100%;border-collapse:collapse;table-layout:fixed">
+    <colgroup><col style="width:11%"><col style="width:25%"><col style="width:22%"><col style="width:42%"></colgroup>
+    <tr>${th('구간')}${th('x')}${th('f(x)')}${th('g∘f(x)')}</tr>
+    ${row(0,'0 &lt; x &lt; 1','1 → 2','0 → 2','g(1)=0 → g(2)=2<br><span style="color:var(--gn)">안 꺾임 (1에서 출발만)</span>')}
+    ${row(1,'1 &lt; x &lt; 2','2 → 0','2 → 0 → 2','g(2)=2 → g(1)=0 → g(0)=2<br><span style="color:var(--am)">꺾임 ✔ (1을 안쪽에서 지남)</span>')}
+  </table>`;
+}
+function renderCompPoly(){
+  const panels=document.getElementById('cp-panels');
+  if(!panels) return;   // ⑥번이 아니거나 카드가 없는 경우
+  const s=CP.step;
+  panels.innerHTML=cpPanelsHTML();
+  document.getElementById('cp-legend').innerHTML=s>=1
+    ? `<span style="color:${CP_COL[0]}">■</span> 구간① (0&lt;x&lt;1) &nbsp; <span style="color:${CP_COL[1]}">■</span> 구간② (1&lt;x&lt;2)`+(s>=3?` &nbsp;·&nbsp; g 위의 색깔 선 = 그 구간에서 f값이 훑고 지나가는 부분`:'')
+    : '';
+  document.getElementById('cp-cap').innerHTML=CP_CAPS[s];
+  document.getElementById('cp-table').innerHTML=cpTableHTML();
+  document.getElementById('cp-rules').innerHTML=CP_RULES.map((t,i)=>{
+    const on=CP_RULE_ON[s].includes(i);
+    return `<div style="padding:6px 10px;border-radius:8px;margin-bottom:4px;line-height:1.7;${on?'background:var(--am-bg);border:1px solid var(--am-lt);color:var(--tx)':'border:1px solid transparent;color:var(--tx2)'}">${t}</div>`;
+  }).join('');
+  document.querySelectorAll('#cp-nav .cp-chip').forEach((b,i)=>{
+    const on=(i+1===s), done=(i+1<s);
+    b.style.background=on?'var(--pu)':(done?'var(--pu-bg)':'#fff');
+    b.style.color=on?'#fff':(done?'var(--pu)':'var(--tx2)');
+    b.style.borderColor=on||done?'var(--pu)':'var(--bor2)';
+  });
+  const pv=document.getElementById('cp-prev'), nx=document.getElementById('cp-next');
+  if(pv) pv.style.opacity=s<=0?'.4':'1';
+  if(nx) nx.style.opacity=s>=5?'.4':'1';
+}
+function cpGo(n){ CP.step=Math.max(0,Math.min(5,n)); renderCompPoly(); }
+// ⑥번 탭: 0=기본 규칙(원래 글) · 1=꺾은선 예제 카드 (1차∘1차일 때만 생김)
+const CL6={tab:0};
+function cl6TabsHTML(){
+  const st='flex:1;min-height:44px;padding:8px 10px;border-radius:10px;border:1px solid var(--bor2);background:#fff;font-size:13.5px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--tx2)';
+  return `<div id="cl6-tabs" style="position:sticky;top:-14px;z-index:2;display:flex;gap:8px;background:#fff;margin:-14px -20px 12px;padding:12px 20px 10px;border-bottom:1px solid var(--bor)">
+    <button style="${st}" onclick="cl6Tab(0)">📐 기본 규칙</button>
+    <button style="${st}" onclick="cl6Tab(1)">✏️ 꺾은선 합성 예제</button>
+  </div>`;
+}
+function cl6Tab(i){
+  CL6.tab=i;
+  const r=document.getElementById('cl6-rule'), c=document.getElementById('cl6-card');
+  if(!r||!c) return;
+  r.style.display=i===0?'':'none';
+  c.style.display=i===1?'':'none';
+  document.querySelectorAll('#cl6-tabs button').forEach((b,k)=>{
+    const on=(k===i);
+    b.style.background=on?'var(--bl)':'#fff';
+    b.style.color=on?'#fff':'var(--tx2)';
+    b.style.borderColor=on?'var(--bl)':'var(--bor2)';
+  });
+  // 상단 회색 박스: 기본 규칙 탭 = 슬라이더 f,g의 구간 표 / 예제 탭 = 별개 예제 안내
+  document.getElementById('compLawStats').innerHTML = i===1
+    ? '<span style="color:var(--tx3);font-size:12.5px;font-family:inherit">✏️ 아래 예제는 슬라이더의 f, g(직선)와 <b>별개인 꺾은선 예제</b>예요.</span>'
+    : compMonoTableHTML();
+  document.getElementById('compLawDesc').scrollTop=0;
+}
+function compPolyCardHTML(){
+  const chip='flex:1 1 110px;min-height:44px;padding:8px 6px;border-radius:10px;border:1px solid var(--bor2);background:#fff;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--tx2)';
+  const nav='min-height:44px;padding:8px 16px;border-radius:10px;border:1px solid var(--pu-lt);background:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--pu)';
+  return `<div id="cp-nav" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">${CP_STEPS.map((t,i)=>`<button class="cp-chip" style="${chip}" onclick="cpGo(${i+1})">${t}</button>`).join('')}</div>
+    <div style="display:flex;gap:6px;margin-bottom:10px">
+      <button id="cp-prev" style="${nav}" onclick="cpGo(CP.step-1)">◀ 이전</button>
+      <button id="cp-next" style="${nav};background:var(--pu);color:#fff;border-color:var(--pu)" onclick="cpGo(CP.step+1)">다음 ▶</button>
+      <button style="${nav};margin-left:auto;color:var(--tx3);border-color:var(--bor2)" onclick="cpGo(0)">↺ 처음</button>
+    </div>
+    <div id="cp-cap" style="background:#fff;border:1px solid var(--pu-lt);border-left:4px solid var(--pu);border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.8;color:var(--tx);margin-bottom:10px;min-height:48px"></div>
+    <div id="cp-panels" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px"></div>
+    <div id="cp-legend" style="font-size:11.5px;color:var(--tx2);margin:6px 2px 10px;line-height:1.6;min-height:18px"></div>
+    <div id="cp-table" style="margin-bottom:10px"></div>
+    <div style="font-size:11px;font-weight:700;color:var(--tx3);margin:4px 0 4px">📏 화살표 규칙</div>
+    <div id="cp-rules" style="font-size:12.5px"></div>`;
+}
+
+// ════════════════════════════════════════
 // 🔗 합성·역함수 법칙 모달
 // ════════════════════════════════════════
 // 합성함수 모드별 버튼 정의
@@ -8591,8 +8764,8 @@ function setCompLaw(idx){
         그 값 범위에서 f가 증가인지 감소인지 확인해서 방향 규칙 적용<br>
         ③ 꼭짓점·절편 등 핵심 x값 몇 개에서만 f(g(x))를 계산<br>
         ④ 그 점들을 방향대로 이어서 개형 완성 — 전부 계산할 필요 없어!<br><br>
-        <b>📊 지금 f, g 기준 구간별 방향 (자동 계산)</b><br>
-        ${compMonoTableHTML()}<br><br>
+        <b>📊 지금 f, g 기준 구간별 방향</b><br>
+        <span style="color:var(--tx3)">☝️ 이 창 맨 위 회색 박스의 표가 자동 계산 결과야. 구간마다 "실제로 대입" 값도 같이 보여줘.</span><br><br>
         오른쪽 그래프에 <b style="color:var(--gn)">"📐 증가·감소 구간 보기"</b>를 켜면<br>
         이 표와 똑같은 경계선·화살표가 그래프 위에 바로 표시돼.`,
         `사실 이 규칙은 연쇄법칙의 부호만 보는 거야:<br>
@@ -8611,6 +8784,11 @@ function setCompLaw(idx){
     }
     if(idx===5){
       if(!SComp.monoOn) toggleCompMono();
+      if(fDeg===1&&gDeg===1){   // 1차∘1차: [기본 규칙] [꺾은선 예제] 탭
+        document.getElementById('compLawDesc').innerHTML=
+          cl6TabsHTML()+`<div id="cl6-rule">${descs[5]}</div><div id="cl6-card" style="display:none"><div style="background:var(--pu-bg);border:1px solid var(--pu-lt);border-radius:8px;padding:12px 14px">${compPolyCardHTML()}</div></div>`;
+        CP.step=0; renderCompPoly(); cl6Tab(0);
+      }
     }
 
   } else if(fDeg===1){
