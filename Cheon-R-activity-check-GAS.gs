@@ -5,7 +5,7 @@
  */
 
 /** GAS 코드 버전 — 코드를 고칠 때마다 1씩 올려요. 관리 화면이 이 번호로 업데이트가 필요한지 알려줘요. */
-var GAS_VER = 11;
+var GAS_VER = 12;
 var MAX_Q = 100;     // 학생이 선생님께 남기는 질문 최대 글자수
 var MAX_SUM = 1000;   // 학생 활동 요약 최대 글자수
 
@@ -72,6 +72,8 @@ function route_(p) {
     case 'deleteItem': return deleteItem_(p);
     case 'deleteItems': return deleteItems_(p);
     case 'saveImpLog': return saveImpLog_(p);
+    case 'syncGet': return syncGet_(p);
+    case 'syncSave': return syncSave_(p);
     case 'reorderItems': return reorderItems_(p);
     case 'saveStudents': return saveStudents_(p);
     case 'resetPin': return resetPin_(p);
@@ -492,6 +494,13 @@ function saveImpLog_(p) {
   var s = JSON.stringify(out);
   while (s.length > 40000 && out.length > 1) { out.shift(); s = JSON.stringify(out); }
   return lock_(function () { setSetting_('불러온파일', s); return { ok: true }; });
+}
+/** 마지막으로 항목을 불러오거나 갱신한 기록 — 관리자 화면에 '마지막 불러오기·갱신' 시각으로 보여요 */
+function syncGet_(p) { need_(p); return { ok: true, log: getSetting_('항목갱신기록') }; }
+function syncSave_(p) {
+  need_(p);
+  var s = String(p.data || '').substring(0, 400);
+  return lock_(function () { setSetting_('항목갱신기록', s); return { ok: true }; });
 }
 var GUIDE_KEYS = ['공통', '자율', '진로', '행발'];
 function guide_() {
