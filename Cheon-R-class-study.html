@@ -330,6 +330,30 @@ input[type=file]{display:none;}
 .hub-tv td{padding:8px 10px;border-top:1px solid var(--gray-100);vertical-align:top;min-width:140px;max-width:320px;white-space:pre-wrap;word-break:break-word;line-height:1.6;}
 .hub-tv td.f{min-width:0;white-space:nowrap;color:var(--gray-500);}
 </style>
+<style id="hubV11css">
+.hub-pinbox{margin:-4px 0 16px;padding:12px;border-radius:12px;background:#F7F5FC;border:1.5px solid #E3DEF3;}
+.hub-pinbox input{width:100%;}
+.hub-mine-btn{display:block;width:100%;min-height:44px;margin:0 0 14px;padding:10px 12px;border-radius:12px;border:1.5px dashed #B8AEDB;background:#FAF8FF;color:#5E4F94;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;}
+.hub-tvbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center;}
+.hub-tvbar .btn{min-height:44px;}
+.hub-tv th.srt{cursor:pointer;user-select:none;}
+.hub-tv th.srt:hover{background:#E2DBF5;}
+.hub-tv th .ar{margin-left:4px;font-size:10px;color:#7C6BC0;}
+.hub-tv td.pn{min-width:0;white-space:nowrap;}
+.hub-pnbtn{min-height:36px;padding:4px 10px;border-radius:8px;border:1.5px solid #E5B4B4;background:#FFF5F5;color:#B91C1C;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;}
+.hub-pnno{font-size:11px;color:var(--gray-400);}
+#hubPrintArea{display:none;}
+@media print{
+  body.hub-printing > *:not(#hubPrintArea){display:none !important;}
+  body.hub-printing #hubPrintArea{display:block !important;}
+  #hubPrintArea h2{font-size:15px;margin:0 0 4px;}
+  #hubPrintArea .pm{font-size:11px;color:#555;margin-bottom:8px;}
+  #hubPrintArea table{border-collapse:collapse;width:100%;font-size:10px;}
+  #hubPrintArea th,#hubPrintArea td{border:1px solid #888;padding:4px 5px;vertical-align:top;white-space:pre-wrap;word-break:break-word;line-height:1.5;}
+  #hubPrintArea th{background:#eee;}
+  #hubPrintArea tr{page-break-inside:avoid;}
+}
+</style>
 </head>
 <body>
 
@@ -445,6 +469,30 @@ input[type=file]{display:none;}
       <button class="btn btn-secondary" style="flex:1" onclick="closeGasUrlModal()">취소</button>
       <button class="btn btn-primary" style="flex:2" onclick="doGasUrlSave()">저장</button>
     </div>
+  </div>
+</div>
+
+
+<!-- v11: 내 제출 불러오기 (핀) -->
+<div class="round-modal-overlay" id="hubMineModal">
+  <div class="round-modal" style="border-radius:20px 20px 0 0;">
+    <div class="round-modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div class="round-modal-title">📥 내 제출 불러오기</div>
+      <button onclick="hubMineClose()" aria-label="닫기" style="background:none;border:none;font-size:22px;color:var(--gray-400);cursor:pointer;padding:0 4px;min-width:44px;min-height:44px;">✕</button>
+    </div>
+    <div class="info-box" style="margin-bottom:14px;">반·번호·이름과 <b>내 핀</b>을 입력하면 지금까지 낸 답변을 불러와요.<br>예전에 냈는데 핀이 아직 없다면, <b>처음 낼 때 쓴 이름</b>과 같을 때 지금 입력한 핀이 내 핀이 돼요. (처음 만들 땐 핀을 한 번 더 입력)</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <div style="flex:1;min-width:0;"><label class="hub-lb" for="hubMCls">반</label><input type="text" id="hubMCls" inputmode="numeric" maxlength="2"/></div>
+      <div style="flex:1;min-width:0;"><label class="hub-lb" for="hubMNum">번호</label><input type="text" id="hubMNum" inputmode="numeric" maxlength="2"/></div>
+      <div style="flex:2;min-width:0;"><label class="hub-lb" for="hubMName">이름</label><input type="text" id="hubMName" maxlength="10"/></div>
+    </div>
+    <label class="hub-lb" for="hubMPin">🔑 내 핀 (숫자 4자리 이상)</label>
+    <input type="password" id="hubMPin" inputmode="numeric" maxlength="12" autocomplete="off" style="margin-bottom:10px;"/>
+    <label class="hub-lb" for="hubMPin2">핀 확인 (처음 만들 때만 한 번 더)</label>
+    <input type="password" id="hubMPin2" inputmode="numeric" maxlength="12" autocomplete="off" style="margin-bottom:10px;"/>
+    <div id="hubMErr" class="hub-err" style="display:none;"></div>
+    <button class="btn btn-primary" id="hubMBtn" onclick="hubMineRun()">📥 불러오기</button>
   </div>
 </div>
 
@@ -1324,7 +1372,7 @@ input[type=file]{display:none;}
 // ════════════════════════════════════════
 const GAS_URL_KEY = 'studyGasUrl';
 const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbxDl-Nz6w293AEMomFATe_m2GOoOBwpDSsL154Nxc9QnNzRUccs6aKYh1_AFAw6pxr9/exec';   // 우리 반 전용: 링크만 열면 자동 연결 (이 기기에 따로 저장된 주소가 있으면 그게 우선)
-const ADMIN_PW = '0413';
+let ADMIN_PW = null;   // v11: 관리자 암호는 이 파일에 두지 않아요. 로그인할 때 GAS가 확인해요. (GAS 파일 맨 위 ADMIN_PW)
 
 // URL 파라미터로 GAS URL이 전달된 경우 자동 세팅 (배포용)
 const _paramGasUrl = new URLSearchParams(window.location.search).get('gas');
@@ -3341,6 +3389,7 @@ function hubFormHtml(it){
     + '<div style="flex:1;min-width:0;"><label class="hub-lb" for="hubSCls">반</label><input type="text" id="hubSCls" inputmode="numeric" maxlength="2" value="' + hubEsc(info.cls || '') + '"/></div>'
     + '<div style="flex:1;min-width:0;"><label class="hub-lb" for="hubSNum">번호</label><input type="text" id="hubSNum" inputmode="numeric" maxlength="2" value="' + hubEsc(info.num || '') + '"/></div>'
     + '<div style="flex:2;min-width:0;"><label class="hub-lb" for="hubSName">이름</label><input type="text" id="hubSName" maxlength="10" value="' + hubEsc(info.name || '') + '"/></div></div>';
+  h += hubPinFieldsHtml(it);   // v11: 핀 + 내 제출 불러오기
   qs.forEach(q=>{
     const v = my.a ? my.a[q.id] : undefined;
     const idA = 'hubA_' + hubSanId(q.id);
@@ -3391,6 +3440,9 @@ async function hubSubmit(itemId){
   const name = document.getElementById('hubSName').value.trim();
   if(!cls || !num || !name){ setErr('반, 번호, 이름을 모두 입력해 주세요.'); return; }
   if(!/^\d{1,2}$/.test(cls) || !/^\d{1,2}$/.test(num)){ setErr('반과 번호는 숫자로 입력해 주세요.'); return; }
+  const pinEl = document.getElementById('hubSPin'), pin2El = document.getElementById('hubSPin2');
+  const pin = pinEl ? pinEl.value.trim() : '', pin2 = pin2El ? pin2El.value.trim() : '';
+  if(!/^\d{4,12}$/.test(pin)){ setErr('내 핀을 입력해 주세요. (숫자 4자리 이상) 처음이면 새로 만들어 주세요.'); if(pinEl) pinEl.focus(); return; }
   const qs = hubGetForm(it.id).map(hubNormQ);
   const answers = [];
   for(const q of qs){
@@ -3416,6 +3468,10 @@ async function hubSubmit(itemId){
     if(hubIsClosed(srv)){ it.closed = true; hubCache(); setErr('🔒 이 활동은 제출이 마감됐어요. 선생님께 문의해 주세요.'); if(btn) btn.style.display = 'none'; return; }
     const subId = 'u' + Date.now() + Math.floor(Math.random()*1e6).toString(36);
     const payload = { type:'submitActivity', itemId:String(itemId), itemName:it.name, subId:subId, cls:cls, num:num, name:name, answers:answers };
+    // v11: 핀 — 아직 핀이 없는 학생이면 '핀 확인'과 같아야 해요
+    const ps = await hubPinStatus(cls, num);
+    if(ps && ps.status === 'ok' && ps.hasPin === false && pin !== pin2){ setErr('처음 만드는 핀이에요. 아래 "핀 확인"에 같은 핀을 한 번 더 입력해 주세요.'); if(pin2El) pin2El.focus(); if(btn) btn.textContent = label; return; }
+    payload.pin = pin;
     let res = null;
     try{
       res = await postGASRead(payload);
@@ -3429,9 +3485,12 @@ async function hubSubmit(itemId){
       const my = hubMy[itemId] = hubMy[itemId] || { a:{}, at:'' };
       my.at = at; hubMySave();
       try{ saveStudentInfo(name, cls, num); }catch(e){}
+      hubPinKeep(cls, num, pin);
       ok.innerHTML = hubDoneText(at); ok.style.display = 'block';
       if(btn) btn.textContent = '다시 제출하기';
       showToast('✅ 제출 완료');
+    } else if(res && res.status === 'pin'){
+      setErr('🔑 ' + (res.message || '핀을 확인해 주세요.')); if(btn) btn.textContent = label; if(pinEl) pinEl.focus();
     } else if(res && res.status === 'closed'){
       it.closed = true; hubCache(); setErr('🔒 ' + (res.message || '이 활동은 제출이 마감됐어요.')); if(btn) btn.textContent = label;
     } else {
@@ -4040,6 +4099,7 @@ function hubTvRender(res){
   hubTvBuild(res, out);
 }
 function hubTvBuild(res, out){
+  if(typeof hubTvBuildV2 === 'function') return hubTvBuildV2(res, out);   // v11: 정렬·엑셀·인쇄·핀 초기화 버전
   const qs = res.questions || [], rows = res.rows || [];
   if(!rows.length){ return; }
   const heads = ['반','번호','이름','제출시각'].concat(qs);
@@ -4084,6 +4144,320 @@ function hubTvBuild(res, out){
   renderHub();
   applyStudyMenu();
   hubSyncFromGAS();
+})();
+
+// ════════════════════════════════════════
+// v11 추가: 학생 핀 · 내 제출 불러오기 / 교사 정렬·엑셀·인쇄·핀 초기화
+// ════════════════════════════════════════
+const HUB_PIN_KEY = 'class_hub_pin_v1';   // 이 탭(세션)에서만 기억해요. 창을 닫으면 사라져요.
+function hubPinKeep(cls, num, pin){ try{ sessionStorage.setItem(HUB_PIN_KEY, JSON.stringify({ cls:String(cls), num:String(num), pin:String(pin) })); }catch(e){} }
+function hubPinRecall(cls, num){
+  try{
+    const o = JSON.parse(sessionStorage.getItem(HUB_PIN_KEY) || 'null');
+    return (o && String(o.cls) === String(cls) && String(o.num) === String(num)) ? String(o.pin || '') : '';
+  }catch(e){ return ''; }
+}
+async function hubPinStatus(cls, num){
+  try{ return await postGASRead({ type:'pinStatus', cls:cls, num:num }); }catch(e){ return null; }
+}
+function hubPinFieldsHtml(it){
+  const info = hubStudentInfo();
+  const pre = hubPinRecall(info.cls || '', info.num || '');
+  let h = '<button type="button" class="hub-mine-btn" onclick="hubMineOpen()">📥 내가 낸 답변 불러오기 (다른 기기에서도 볼 수 있어요)</button>';
+  if(hubIsClosed(it)) return h;
+  h += '<div class="hub-pinbox"><label class="hub-lb" for="hubSPin">🔑 내 핀 (숫자 4자리 이상) <b class="req">*</b></label>'
+    + '<input type="password" id="hubSPin" inputmode="numeric" maxlength="12" autocomplete="off" value="' + hubEsc(pre) + '"/>'
+    + '<div class="hub-hint" style="margin-top:6px;">처음이면 새 핀을 만들고, 아래 "핀 확인"에 한 번 더 입력해요. 이미 만들었다면 그 핀만 입력해요. 핀은 내 답변을 나만 보고 고치게 지켜줘요. 잊어버리면 선생님께 말해 초기화해요.</div>'
+    + '<label class="hub-lb" for="hubSPin2" style="margin-top:8px;">핀 확인 (처음 만들 때만)</label>'
+    + '<input type="password" id="hubSPin2" inputmode="numeric" maxlength="12" autocomplete="off" value="' + hubEsc(pre) + '"/></div>';
+  return h;
+}
+
+// ── 학생: 내 제출 불러오기 ──
+function hubMineOpen(){
+  const info = hubStudentInfo();
+  document.getElementById('hubMCls').value = info.cls || '';
+  document.getElementById('hubMNum').value = info.num || '';
+  document.getElementById('hubMName').value = info.name || '';
+  const pre = hubPinRecall(info.cls || '', info.num || '');
+  document.getElementById('hubMPin').value = pre;
+  document.getElementById('hubMPin2').value = pre;
+  const er = document.getElementById('hubMErr'); er.style.display = 'none'; er.textContent = '';
+  document.getElementById('hubMineModal').classList.add('show');
+}
+function hubMineClose(){ document.getElementById('hubMineModal').classList.remove('show'); }
+async function hubMineRun(){
+  const er = document.getElementById('hubMErr'), btn = document.getElementById('hubMBtn');
+  const setErr = m => { er.textContent = m || ''; er.style.display = m ? 'block' : 'none'; };
+  setErr('');
+  const cls = document.getElementById('hubMCls').value.trim(), num = document.getElementById('hubMNum').value.trim();
+  const name = document.getElementById('hubMName').value.trim();
+  const pin = document.getElementById('hubMPin').value.trim(), pin2 = document.getElementById('hubMPin2').value.trim();
+  if(!cls || !num || !name){ setErr('반, 번호, 이름을 모두 입력해 주세요.'); return; }
+  if(!/^\d{1,2}$/.test(cls) || !/^\d{1,2}$/.test(num)){ setErr('반과 번호는 숫자로 입력해 주세요.'); return; }
+  if(!/^\d{4,12}$/.test(pin)){ setErr('핀을 입력해 주세요. (숫자 4자리 이상)'); return; }
+  if(!GAS_URL){ setErr('아직 연결이 안 되어 있어요. 선생님께 알려주세요.'); return; }
+  btn.disabled = true; const label = btn.textContent; btn.textContent = '불러오는 중…';
+  try{
+    const ps = await hubPinStatus(cls, num);
+    if(ps && ps.status === 'ok' && ps.hasPin === false && pin !== pin2){ setErr('처음 만드는 핀이에요. "핀 확인"에 같은 핀을 한 번 더 입력해 주세요.'); return; }
+    const res = await postGASRead({ type:'getMySubmission', cls:cls, num:num, name:name, pin:pin });
+    if(!res || res.status !== 'ok'){ setErr(((res && res.status === 'pin') ? '🔑 ' : '') + ((res && res.message) || '불러오지 못했어요. 다시 시도해 주세요.')); return; }
+    const n = hubMineMerge(res.items || []);
+    try{ saveStudentInfo(name, cls, num); }catch(e){}
+    hubPinKeep(cls, num, pin);
+    hubMineClose();
+    renderHub();
+    const onItem = document.getElementById('screen-hubitem').classList.contains('active');
+    if(onItem && hubCurItem){ const keep = window.scrollY; openHubItem(hubCurItem); window.scrollTo(0, keep); }
+    showToast(n ? ('✅ 내 답변 ' + n + '개를 불러왔어요') : '불러올 답변이 아직 없어요');
+  }catch(e){
+    setErr('불러오지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.');
+  }finally{
+    btn.disabled = false; btn.textContent = label;
+  }
+}
+function hubMineMerge(items){
+  let n = 0;
+  items.forEach(r=>{
+    const it = hubItems.find(x=>String(x.id) === String(r.itemId));
+    if(!it || it.type !== 'submit') return;
+    const qa = (r.qa || []).slice();
+    const a = {};
+    hubGetForm(it.id).map(hubNormQ).forEach(q=>{
+      const k = qa.findIndex(x=>x.label === q.label);
+      if(k < 0) return;
+      const v = qa.splice(k, 1)[0].value;
+      a[q.id] = q.type === 'check' ? (v === 'O') : v;
+    });
+    hubMy[it.id] = { a:a, at: r.at || (hubMy[it.id] && hubMy[it.id].at) || '' };
+    n++;
+  });
+  hubMySave();
+  return n;
+}
+
+// ── 교사: 정렬 · 엑셀 · 인쇄 · 핀 초기화 ──
+let hubTvSortState = {};
+function hubTvCmp(a, b, numeric){
+  if(a === '' && b === '') return 0;
+  if(a === '') return 1;           // 빈 칸은 항상 맨 아래
+  if(b === '') return -1;
+  if(numeric){ const x = Number(a), y = Number(b); if(!isNaN(x) && !isNaN(y)) return x - y; }
+  return String(a).localeCompare(String(b), 'ko', { numeric:true });
+}
+function hubTvRowsOf(res){
+  const st = hubTvSortState[res.item.id] || { col:-1, dir:1 };
+  const idx = (res.rows || []).map((r, i)=>({ r:r, i:i }));
+  if(st.col >= 0){
+    idx.sort((p, q)=>{
+      const vp = hubTvCell(p.r, st.col), vq = hubTvCell(q.r, st.col);
+      if(vp === '' || vq === '') return hubTvCmp(vp, vq, false) || (p.i - q.i);
+      return (hubTvCmp(vp, vq, st.col < 2) * st.dir) || (p.i - q.i);
+    });
+  }
+  return idx.map(x=>x.r);
+}
+function hubTvCell(r, c){
+  const v = c === 0 ? r.ban : c === 1 ? r.num : c === 2 ? r.name : c === 3 ? r.at : (r.answers || [])[c - 4];
+  return v == null ? '' : String(v);
+}
+function hubTvBuildV2(res, out){
+  const qs = res.questions || [];
+  if(!(res.rows || []).length) return;
+  const heads = ['반','번호','이름','제출시각'].concat(qs);
+  const itemId = String(res.item.id);
+  const box = document.createElement('div');
+  out.appendChild(box);
+  const matrix = () => hubTvRowsOf(res).map(r=>[0,1,2,3].concat(qs.map((q, i)=>4 + i)).map(c=>hubTvCell(r, c)));
+  function paint(){
+    box.innerHTML = '';
+    const st = hubTvSortState[itemId] || { col:-1, dir:1 };
+    const tip = document.createElement('div'); tip.className = 'hub-hint'; tip.style.margin = '8px 0 0';
+    tip.textContent = '💡 열 제목을 누르면 정렬돼요 (한 번 ▲ 오름차순 · 두 번 ▼ 내림차순 · 세 번 처음 순서). 엑셀·인쇄·복사도 지금 보이는 순서대로 나와요.';
+    box.appendChild(tip);
+    const wrap = document.createElement('div'); wrap.className = 'hub-tv-wrap';
+    const table = document.createElement('table'); table.className = 'hub-tv';
+    const thead = document.createElement('thead'), hr = document.createElement('tr');
+    heads.forEach((t, c)=>{
+      const th = document.createElement('th'); th.className = 'srt'; th.textContent = t;
+      th.setAttribute('role', 'button'); th.tabIndex = 0;
+      if(st.col === c){ const ar = document.createElement('span'); ar.className = 'ar'; ar.textContent = st.dir === 1 ? '▲' : '▼'; th.appendChild(ar); }
+      const go = ()=>{
+        const cur = hubTvSortState[itemId] || { col:-1, dir:1 };
+        if(cur.col !== c) hubTvSortState[itemId] = { col:c, dir:1 };
+        else if(cur.dir === 1) hubTvSortState[itemId] = { col:c, dir:-1 };
+        else hubTvSortState[itemId] = { col:-1, dir:1 };
+        paint();
+      };
+      th.addEventListener('click', go);
+      th.addEventListener('keydown', e=>{ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } });
+      hr.appendChild(th);
+    });
+    const thp = document.createElement('th'); thp.textContent = '🔑 핀'; hr.appendChild(thp);
+    thead.appendChild(hr); table.appendChild(thead);
+    const tb = document.createElement('tbody');
+    hubTvRowsOf(res).forEach(r=>{
+      const tr = document.createElement('tr');
+      [r.ban, r.num, r.name, r.at].concat(r.answers || []).forEach((v, i)=>{
+        const td = document.createElement('td'); if(i < 4) td.className = 'f';
+        td.textContent = v == null ? '' : String(v);   // 학생 글은 항상 텍스트로만 표시
+        tr.appendChild(td);
+      });
+      const tdp = document.createElement('td'); tdp.className = 'pn';
+      if(r.pin){
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'hub-pnbtn'; b.textContent = '초기화';
+        b.title = r.ban + '반 ' + r.num + '번 ' + r.name + ' 핀 초기화';
+        b.addEventListener('click', ()=>hubPinReset(res, r, paint));
+        tdp.appendChild(b);
+      } else { const s = document.createElement('span'); s.className = 'hub-pnno'; s.textContent = '미설정'; tdp.appendChild(s); }
+      tr.appendChild(tdp);
+      tb.appendChild(tr);
+    });
+    table.appendChild(tb); wrap.appendChild(table); box.appendChild(wrap);
+    const bar = document.createElement('div'); bar.className = 'hub-tvbar';
+    const mk = (txt, fn)=>{ const b = document.createElement('button'); b.type = 'button'; b.className = 'btn btn-secondary btn-sm'; b.textContent = txt; b.onclick = fn; bar.appendChild(b); };
+    mk('📊 엑셀로 저장 (.xlsx)', ()=>{
+      try{ hubXlsxSave(res, heads, matrix()); showToast('✅ 엑셀 파일을 저장했어요'); }
+      catch(e){ showToast('엑셀 저장에 실패했어요. "표 복사"를 이용해 주세요.'); }
+    });
+    mk('🖨️ 인쇄', ()=>hubTvPrint(res, heads, matrix()));
+    mk('📋 표 복사 (엑셀·시트에 붙여넣기)', ()=>{
+      const text = [heads].concat(matrix()).map(a=>a.map(hubTsvCell).join('\t')).join('\n');
+      const done = () => showToast('✅ 복사했어요');
+      if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done, ()=>hubTvMsg('복사에 실패했어요. 표를 직접 선택해서 복사해 주세요.', 'warn')); }
+      else { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); done(); }catch(e){} document.body.removeChild(ta); }
+    });
+    box.appendChild(bar);
+  }
+  paint();
+}
+async function hubPinReset(res, r, repaint){
+  if(!confirm(r.ban + '반 ' + r.num + '번 ' + r.name + ' 학생의 핀을 초기화할까요?\n(답변은 그대로 남고, 학생이 다음에 새 핀을 만들어요)')) return;
+  const pw = hubGetPw();
+  if(!pw){ hubPwNeed(); showToast('관리자 암호를 먼저 입력해 주세요'); return; }
+  try{
+    const out = await postGASRead({ type:'adminResetPin', pw:pw, cls:r.ban, num:r.num });
+    if(out && out.status === 'ok'){ r.pin = false; repaint(); showToast('🔑 핀을 초기화했어요'); }
+    else if(out && out.status === 'auth'){ showToast('🔒 ' + (out.message || '관리자 암호가 달라요')); hubPwNeed(); }
+    else showToast('⚠️ ' + ((out && out.message) || '초기화하지 못했어요'));
+  }catch(e){ showToast('❌ 초기화하지 못했어요. 인터넷과 GAS "수정 배포"를 확인해 주세요.'); }
+}
+
+// 인쇄: 화면의 표 대신 인쇄 전용 영역만 출력
+function hubTvPrint(res, heads, rows){
+  let area = document.getElementById('hubPrintArea');
+  if(!area){ area = document.createElement('div'); area.id = 'hubPrintArea'; document.body.appendChild(area); }   // body 바로 아래에 둬야 인쇄 때 이것만 나와요
+  area.innerHTML = '';
+  const h = document.createElement('h2'); h.textContent = res.item.areaLabel + ' · ' + res.item.name + ' — 제출 현황';
+  const m = document.createElement('div'); m.className = 'pm'; m.textContent = rows.length + '명 제출 · 출력일 ' + new Date().toLocaleDateString('ko-KR');
+  const t = document.createElement('table');
+  const th = document.createElement('thead'), hr = document.createElement('tr');
+  heads.forEach(x=>{ const c = document.createElement('th'); c.textContent = x; hr.appendChild(c); });
+  th.appendChild(hr); t.appendChild(th);
+  const tb = document.createElement('tbody');
+  rows.forEach(r=>{ const tr = document.createElement('tr'); r.forEach(v=>{ const c = document.createElement('td'); c.textContent = v; tr.appendChild(c); }); tb.appendChild(tr); });
+  t.appendChild(tb);
+  area.appendChild(h); area.appendChild(m); area.appendChild(t);
+  const pg = document.createElement('style'); pg.id = 'hubPrintPage'; pg.textContent = '@page{size:A4 landscape;margin:10mm;}';
+  document.head.appendChild(pg);
+  document.body.classList.add('hub-printing');
+  const clean = ()=>{ document.body.classList.remove('hub-printing'); area.innerHTML = ''; const e = document.getElementById('hubPrintPage'); if(e) e.remove(); window.removeEventListener('afterprint', clean); };
+  window.addEventListener('afterprint', clean);
+  setTimeout(()=>{ window.print(); }, 50);
+}
+
+// 엑셀(.xlsx) 저장 — 라이브러리 없이 직접 만들어요 (압축 없는 zip)
+function hubXmlEsc(v){ return String(v == null ? '' : v).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function hubColName(i){ let s = '', n = i + 1; while(n > 0){ const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); } return s; }
+const HUB_CRC = (function(){ const t = []; for(let n = 0; n < 256; n++){ let c = n; for(let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; } return t; })();
+function hubCrc32(b){ let c = 0xFFFFFFFF; for(let i = 0; i < b.length; i++) c = HUB_CRC[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function hubZipStore(files){
+  const enc = new TextEncoder(), parts = [], cen = [];
+  let off = 0;
+  const u16 = v => [v & 255, (v >>> 8) & 255], u32 = v => [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255];
+  files.forEach(f=>{
+    const nm = enc.encode(f.name), data = enc.encode(f.data), crc = hubCrc32(data);
+    const lh = new Uint8Array([0x50,0x4B,3,4, 20,0, 0,8, 0,0, 0,0, 0,0x21].concat(u32(crc), u32(data.length), u32(data.length), u16(nm.length), [0,0]));
+    parts.push(lh, nm, data);
+    cen.push({ nm:nm, crc:crc, len:data.length, off:off });
+    off += lh.length + nm.length + data.length;
+  });
+  let cs = 0; const cparts = [];
+  cen.forEach(c=>{
+    const ch = new Uint8Array([0x50,0x4B,1,2, 20,0, 20,0, 0,8, 0,0, 0,0, 0,0x21].concat(u32(c.crc), u32(c.len), u32(c.len), u16(c.nm.length), [0,0, 0,0, 0,0, 0,0, 0,0,0,0], u32(c.off)));
+    cparts.push(ch, c.nm); cs += ch.length + c.nm.length;
+  });
+  const end = new Uint8Array([0x50,0x4B,5,6, 0,0, 0,0].concat(u16(cen.length), u16(cen.length), u32(cs), u32(off), [0,0]));
+  return new Blob(parts.concat(cparts, [end]), { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+function hubXlsxSave(res, heads, rows){
+  const widths = heads.map((h, i)=> i === 0 || i === 1 ? 7 : i === 2 ? 11 : i === 3 ? 20 : 60);
+  let sd = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+    + '<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>'
+    + '<cols>' + widths.map((w, i)=>'<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>').join('') + '</cols><sheetData>';
+  const cellS = (r, c, v, st)=>'<c r="' + hubColName(c) + r + '" t="inlineStr" s="' + st + '"><is><t xml:space="preserve">' + hubXmlEsc(v) + '</t></is></c>';
+  sd += '<row r="1">' + heads.map((h, c)=>cellS(1, c, h, 1)).join('') + '</row>';
+  rows.forEach((row, ri)=>{
+    const r = ri + 2;
+    sd += '<row r="' + r + '">' + row.map((v, c)=>{
+      if(c < 2 && /^\d+$/.test(v)) return '<c r="' + hubColName(c) + r + '" s="2"><v>' + v + '</v></c>';
+      return cellS(r, c, v, 2);
+    }).join('') + '</row>';
+  });
+  sd += '</sheetData></worksheet>';
+  const styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+    + '<fonts count="2"><font><sz val="11"/><name val="Malgun Gothic"/></font><font><b/><sz val="11"/><name val="Malgun Gothic"/></font></fonts>'
+    + '<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFEDE9F8"/><bgColor indexed="64"/></patternFill></fill></fills>'
+    + '<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFCCCCCC"/></left><right style="thin"><color rgb="FFCCCCCC"/></right><top style="thin"><color rgb="FFCCCCCC"/></top><bottom style="thin"><color rgb="FFCCCCCC"/></bottom><diagonal/></border></borders>'
+    + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+    + '<cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+    + '<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>'
+    + '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf></cellXfs>'
+    + '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+  const sheetName = (String(res.item.name || '제출현황').replace(/[\[\]:*?\/\\]/g, ' ').trim() || '제출현황').slice(0, 31);
+  const files = [
+    { name:'[Content_Types].xml', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>' },
+    { name:'_rels/.rels', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>' },
+    { name:'xl/workbook.xml', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="' + hubXmlEsc(sheetName).replace(/"/g,'&quot;') + '" sheetId="1" r:id="rId1"/></sheets></workbook>' },
+    { name:'xl/_rels/workbook.xml.rels', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>' },
+    { name:'xl/styles.xml', data:styles },
+    { name:'xl/worksheets/sheet1.xml', data:sd }
+  ];
+  const blob = hubZipStore(files);
+  const fname = ((res.item.areaLabel || '') + '_' + (res.item.name || '제출현황') + '_제출현황').replace(/[\\/:*?"<>|]/g, '_') + '.xlsx';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = fname;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+
+// ── v11: 관리자 로그인은 GAS가 확인 (HTML 소스에 암호가 남지 않아요) ──
+(function(){
+  const orig = window.checkPw;
+  let busy = false;
+  window.checkPw = async function(){
+    if(busy) return;
+    const inp = document.getElementById('pwInput'), err = document.getElementById('pwError');
+    const v = inp.value;
+    const show = m => { err.textContent = m; err.style.display = 'block'; };
+    if(!v){ show('비밀번호가 올바르지 않아요.'); return; }
+    if(!GAS_URL){ show('GAS 연결 주소가 없어서 로그인할 수 없어요. 링크를 다시 열어 주세요.'); return; }
+    busy = true;
+    err.style.display = 'none';
+    let res = null;
+    try{ res = await postGASRead({ type:'adminLogin', pw:v }); }
+    catch(e){ show('로그인 확인에 실패했어요. 인터넷과 GAS "수정 배포" 상태를 확인해 주세요.'); busy = false; return; }
+    busy = false;
+    if(res && res.status === 'ok'){
+      ADMIN_PW = v;                      // 원래 로그인 처리 함수가 그대로 동작하도록 이번 한 번만 맞춰 줘요
+      try{ orig(); } finally { ADMIN_PW = null; }
+      return;
+    }
+    if(res && res.status === 'auth' && /잠겼/.test(res.message || '')){ show('🔒 ' + res.message); return; }
+    err.textContent = '비밀번호가 올바르지 않아요.';
+    try{ orig(); } catch(e){}            // 틀린 경우: 원래 동작(오류 표시 + 입력칸 비우기)
+  };
 })();
 </script>
 
