@@ -57,6 +57,7 @@ body{min-height:100vh;display:flex;flex-direction:column}
 .card{background:var(--sur);border:1px solid var(--bor);border-radius:var(--rl);padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 .ctit{font-size:14px;font-weight:700;margin-bottom:10px;color:var(--tx)}
 .g2{display:grid;grid-template-columns:340px 1fr;gap:14px}
+.g2>*{min-width:0}
 @media(max-width:900px){.g2{grid-template-columns:1fr}}
 .sdiv{height:1px;background:var(--bor);margin:12px 0}
 
@@ -204,11 +205,11 @@ canvas{width:100%;height:440px;display:block}
 .btn-p{background:var(--bl);border-color:var(--bl);color:#fff}
 
 /* 관점 카드 */
-.pcard{min-width:100%;min-height:200px;padding:18px 20px;box-sizing:border-box;}
+.pcard{min-width:100%;min-height:200px;padding:20px 28px;box-sizing:border-box;}
 .pcard-icon{font-size:28px;margin-bottom:6px}
-.pcard-title{font-size:15px;font-weight:800;margin-bottom:8px}
+.pcard-title{font-size:16px;font-weight:800;margin-bottom:8px}
 .pcard-eq{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;margin-bottom:8px;padding:8px 12px;background:rgba(255,255,255,0.7);border-radius:8px;line-height:1.8}
-.pcard-desc{font-size:13px;color:var(--tx2);line-height:1.7;margin-bottom:8px}
+.pcard-desc{font-size:14px;color:var(--tx2);line-height:1.8;margin-bottom:8px}
 .pcard-key{font-size:12px;font-weight:700;padding:5px 10px;border-radius:6px;border:1px solid;display:inline-block}
 
 /* 법칙 토글 버튼 */
@@ -571,6 +572,7 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
       <div class="mx-sec" id="mx-sec-consent" style="order:4">
         <div class="mx-lbl">한줄 후기를 소개 자료에 써도 될까요? <span style="font-weight:500;color:#9ca3af">(개선사항은 쓰지 않아요)</span></div>
         <div class="mx-chips" id="mx-rv-consent"></div>
+        <div class="mx-hint" id="mx-rv-consent-hint"></div>
       </div>
     </div>
 
@@ -679,9 +681,20 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
           <button type="button" class="mx-chip" data-f="imp">개선점 있음</button>
           <button type="button" class="mx-chip" data-f="low">별점 3점 이하</button>
         </div>
+        <div class="mx-lbl" style="margin-top:10px">소개자료 허락 <span style="font-weight:500;color:#9ca3af">(위 필터와 함께 적용돼요)</span></div>
+        <div class="mx-chips" id="mx-rv-filter2">
+          <button type="button" class="mx-chip on" data-c="all">전체</button>
+          <button type="button" class="mx-chip" data-c="아이디 공개 가능">아이디 공개 가능</button>
+          <button type="button" class="mx-chip" data-c="아이디 없이 가능">아이디 없이 가능</button>
+          <button type="button" class="mx-chip" data-c="사용 불가">쓰지 말아주세요</button>
+        </div>
+        <div class="mx-admprev" id="mx-rv-count" style="min-height:0;font-size:12.5px;color:#374151;margin-top:10px"></div>
+        <div class="mx-admrow"><button type="button" id="mx-rv-copy">📋 표로 복사</button><button type="button" class="mx-main" id="mx-rv-csv">⬇ 엑셀(CSV) 저장</button></div>
+        <div class="mx-hint">지금 걸러진 후기가 그대로 저장·복사돼요. '쓰지 말아주세요'를 고르면 그것도 저장되니, 엑셀 마지막 칸(소개자료 허락)을 보고 필요 없는 줄은 빼 주세요.</div>
+        <div class="mx-admprev" id="mx-rv-tally" style="min-height:0;font-size:12.5px;color:#374151;margin-top:10px;line-height:1.8"></div>
         <div class="mx-rvlist" id="mx-rv-list"></div>
         <div class="mx-hint" id="mx-rv-more"></div>
-        <div class="mx-admrow"><button type="button" id="mx-rv-refresh">새로고침</button></div>
+        <div class="mx-admrow"><button type="button" id="mx-rv-refresh">새로고침</button><button type="button" id="mx-rv-all">전체 불러오기</button></div>
       </div>
       <div id="mx-adm-tab-stat" style="display:none">
         <div class="mx-admsub" id="mx-st-asof">불러오는 중...</div>
@@ -1896,7 +1909,7 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
 
 <!-- 관점 전환 모달 (부등식) -->
 <!-- 방정식 그래프 특징 모달 -->
-<div id="eqFeatModal" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:500;width:420px;max-width:95vw;">
+<div id="eqFeatModal" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:500;width:600px;max-width:95vw;">
   <div style="background:#fff;border-radius:16px;padding:0;box-shadow:0 8px 40px rgba(0,0,0,0.22);border:1px solid var(--bor);overflow:hidden;user-select:none;">
     <div id="eqFeatHandle" style="padding:12px 16px 10px;cursor:grab;border-bottom:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between;gap:8px;">
       <div style="display:flex;align-items:center;gap:8px">
@@ -1921,7 +1934,7 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
 </div>
 
 <!-- 부등식 그래프 특징 모달 -->
-<div id="ineqFeatModal" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:500;width:420px;max-width:95vw;">
+<div id="ineqFeatModal" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:500;width:600px;max-width:95vw;">
   <div style="background:#fff;border-radius:16px;padding:0;box-shadow:0 8px 40px rgba(0,0,0,0.22);border:1px solid var(--bor);overflow:hidden;user-select:none;">
     <div id="ineqFeatHandle" style="padding:12px 16px 10px;cursor:grab;border-bottom:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between;gap:8px;">
       <div style="display:flex;align-items:center;gap:8px">
@@ -1946,7 +1959,7 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
 </div>
 
 <!-- 그래프 특징 모달 -->
-<div id="featModal" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:500;width:420px;max-width:95vw;">
+<div id="featModal" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:500;width:600px;max-width:95vw;">
   <div style="background:#fff;border-radius:16px;padding:0;box-shadow:0 8px 40px rgba(0,0,0,0.22);border:1px solid var(--bor);overflow:hidden;user-select:none;">
 
     <!-- 드래그 핸들 -->
@@ -1980,7 +1993,7 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
   </div>
 </div>
 
-<div id="ineqModal" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:500;width:460px;max-width:95vw;">
+<div id="ineqModal" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:500;width:600px;max-width:95vw;">
   <div id="ineqBox" style="background:#fff;border-radius:16px;padding:0;box-shadow:0 8px 40px rgba(0,0,0,0.22);border:1px solid var(--bor);overflow:hidden;user-select:none;">
 
     <div id="ineqHandle" style="padding:14px 18px 10px;cursor:grab;border-bottom:1px solid var(--bor);display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
@@ -2041,7 +2054,7 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
 </div>
 
 
-<div id="perspModal" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:500;width:460px;max-width:95vw;">
+<div id="perspModal" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:500;width:600px;max-width:95vw;">
   <div id="perspBox" style="background:#fff;border-radius:16px;padding:0;box-shadow:0 8px 40px rgba(0,0,0,0.22);border:1px solid var(--bor);overflow:hidden;user-select:none;">
 
     <!-- 드래그 핸들 (헤더) -->
@@ -2105,7 +2118,7 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
 </div>
 
 <!-- ── 이차 vs 일차 부등식 모달 (일차함수 ON 전용) ── -->
-<div id="ineqLinearModal" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:500;width:460px;max-width:95vw;">
+<div id="ineqLinearModal" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:500;width:600px;max-width:95vw;">
   <div style="background:#fff;border-radius:16px;padding:0;box-shadow:0 8px 40px rgba(0,0,0,0.22);border:1px solid var(--bor);overflow:hidden;user-select:none;">
     <div id="ineqLinearHandle" style="padding:14px 18px 10px;cursor:grab;border-bottom:1px solid var(--bor);display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
       <div>
@@ -2154,7 +2167,7 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
 </div>
 
 <!-- ── 이차=일차 관점 모달 (일차함수 ON 전용) ── -->
-<div id="perspLinearModal" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:500;width:460px;max-width:95vw;">
+<div id="perspLinearModal" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:500;width:600px;max-width:95vw;">
   <div style="background:#fff;border-radius:16px;padding:0;box-shadow:0 8px 40px rgba(0,0,0,0.22);border:1px solid var(--bor);overflow:hidden;user-select:none;">
     <div id="perspLinearHandle" style="padding:14px 18px 10px;cursor:grab;border-bottom:1px solid var(--bor);display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
       <div>
@@ -2211,7 +2224,7 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
 </div>
 
 <!-- 사차 법칙 모달 -->
-<div id="c4LawModal" style="display:none;position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:500;width:400px;max-width:95vw;">
+<div id="c4LawModal" style="display:none;position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:500;width:680px;max-width:95vw;">
   <div style="background:#fff;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,0.22);border:1px solid var(--bor);overflow:hidden;user-select:none;">
     <div id="c4LawHandle" style="padding:12px 16px 10px;cursor:grab;border-bottom:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between;gap:8px;">
       <div style="display:flex;align-items:center;gap:8px">
@@ -2231,12 +2244,12 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
     <div id="c4LawStats" style="padding:12px 16px;border-bottom:1px solid var(--bor);background:var(--bg);font-size:13px;line-height:1.9;font-family:'JetBrains Mono',monospace;min-height:48px">
       <span style="color:var(--tx3);font-size:12px;font-family:inherit">← 위 법칙을 선택하면 그래프가 변하고 수치가 표시돼요</span>
     </div>
-    <div id="c4LawDesc" style="padding:12px 16px;font-size:13px;color:var(--tx2);line-height:1.8;max-height:300px;overflow-y:auto;min-height:48px"></div>
+    <div id="c4LawDesc" style="padding:14px 20px;font-size:14px;color:var(--tx2);line-height:1.8;max-height:max(260px,min(760px,calc(100vh - 430px)));overflow-y:auto;min-height:48px"></div>
   </div>
 </div>
 
 <!-- 절댓값 함수 모달 -->
-<div id="absModal" style="display:none;position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:500;width:400px;max-width:95vw;">
+<div id="absModal" style="display:none;position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:500;width:680px;max-width:95vw;">
   <div style="background:#fff;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,0.22);border:1px solid var(--bor);overflow:hidden;user-select:none;">
     <div id="absModalHandle" style="padding:12px 16px 10px;cursor:grab;border-bottom:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between;gap:8px;">
       <div style="display:flex;align-items:center;gap:8px">
@@ -2261,12 +2274,12 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
     <div id="absModalStats" style="padding:12px 16px;border-bottom:1px solid var(--bor);background:var(--bg);font-size:13px;line-height:1.9;font-family:'JetBrains Mono',monospace;min-height:48px">
       <span style="color:var(--tx3);font-size:12px;font-family:inherit">← 변환 방식을 선택하면 그래프가 바뀌어요</span>
     </div>
-    <div id="absModalDesc" style="padding:12px 16px;font-size:13px;color:var(--tx2);line-height:1.8;max-height:300px;overflow-y:auto;min-height:48px"></div>
+    <div id="absModalDesc" style="padding:14px 20px;font-size:14px;color:var(--tx2);line-height:1.8;max-height:max(260px,min(760px,calc(100vh - 430px)));overflow-y:auto;min-height:48px"></div>
   </div>
 </div>
 
 <!-- 조각함수 법칙 모달 -->
-<div id="pwLawModal" style="display:none;position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:500;width:420px;max-width:95vw;">
+<div id="pwLawModal" style="display:none;position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:500;width:680px;max-width:95vw;">
   <div style="background:#fff;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,0.22);border:1px solid var(--bor);overflow:hidden;user-select:none;">
     <div id="pwLawHandle" style="padding:12px 16px 10px;cursor:grab;border-bottom:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between;gap:8px;">
       <div style="display:flex;align-items:center;gap:8px">
@@ -2287,12 +2300,12 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
     <div id="pwLawStats" style="padding:12px 16px;border-bottom:1px solid var(--bor);background:var(--bg);font-size:13px;line-height:1.9;font-family:'JetBrains Mono',monospace;min-height:48px">
       <span style="color:var(--tx3);font-size:12px;font-family:inherit">← 위 법칙을 선택하면 수치가 표시돼요</span>
     </div>
-    <div id="pwLawDesc" style="padding:12px 16px;font-size:13px;color:var(--tx2);line-height:1.8;max-height:300px;overflow-y:auto;min-height:48px"></div>
+    <div id="pwLawDesc" style="padding:14px 20px;font-size:14px;color:var(--tx2);line-height:1.8;max-height:max(260px,min(760px,calc(100vh - 430px)));overflow-y:auto;min-height:48px"></div>
   </div>
 </div>
 
 <!-- 최대·최소 법칙 모달 -->
-<div id="mmLawModal" style="display:none;position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:500;width:420px;max-width:95vw;">
+<div id="mmLawModal" style="display:none;position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:500;width:680px;max-width:95vw;">
   <div style="background:#fff;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,0.22);border:1px solid var(--bor);overflow:hidden;user-select:none;">
     <div id="mmLawHandle" style="padding:12px 16px 10px;cursor:grab;border-bottom:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between;gap:8px;">
       <div style="display:flex;align-items:center;gap:8px">
@@ -2313,7 +2326,7 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
     <div id="mmLawStats" style="padding:12px 16px;border-bottom:1px solid var(--bor);background:var(--bg);font-size:13px;line-height:1.9;font-family:'JetBrains Mono',monospace;min-height:48px">
       <span style="color:var(--tx3);font-size:12px;font-family:inherit">← 위 법칙을 선택하면 수치가 표시돼요</span>
     </div>
-    <div id="mmLawDesc" style="padding:12px 16px;font-size:13px;color:var(--tx2);line-height:1.8;max-height:300px;overflow-y:auto;min-height:48px"></div>
+    <div id="mmLawDesc" style="padding:14px 20px;font-size:14px;color:var(--tx2);line-height:1.8;max-height:max(260px,min(760px,calc(100vh - 430px)));overflow-y:auto;min-height:48px"></div>
   </div>
 </div>
 
@@ -2339,7 +2352,7 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
 </div>
 
 <!-- 평행이동 법칙 모달 -->
-<div id="trLawModal" style="display:none;position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:500;width:420px;max-width:95vw;">
+<div id="trLawModal" style="display:none;position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:500;width:680px;max-width:95vw;">
   <div style="background:#fff;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,0.22);border:1px solid var(--bor);overflow:hidden;user-select:none;">
     <div id="trLawHandle" style="padding:12px 16px 10px;cursor:grab;border-bottom:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between;gap:8px;">
       <div style="display:flex;align-items:center;gap:8px">
@@ -2358,10 +2371,10 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
     <div id="trLawStats" style="padding:12px 16px;border-bottom:1px solid var(--bor);background:var(--bg);font-size:13px;line-height:1.9;font-family:'JetBrains Mono',monospace;min-height:48px">
       <span style="color:var(--tx3);font-size:12px;font-family:inherit">← 위 항목을 선택하면 수치가 표시돼요</span>
     </div>
-    <div id="trLawDesc" style="padding:12px 16px;font-size:13px;color:var(--tx2);line-height:1.8;max-height:300px;overflow-y:auto;min-height:48px"></div>
+    <div id="trLawDesc" style="padding:14px 20px;font-size:14px;color:var(--tx2);line-height:1.8;max-height:max(260px,min(760px,calc(100vh - 430px)));overflow-y:auto;min-height:48px"></div>
   </div>
 </div>
-<div id="c3LawModal" style="display:none;position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:500;width:400px;max-width:95vw;">
+<div id="c3LawModal" style="display:none;position:fixed;top:90px;left:50%;transform:translateX(-50%);z-index:500;width:680px;max-width:95vw;">
   <div style="background:#fff;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,0.22);border:1px solid var(--bor);overflow:hidden;user-select:none;">
     <!-- 드래그 핸들 헤더 -->
     <div id="c3LawHandle" style="padding:12px 16px 10px;cursor:grab;border-bottom:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between;gap:8px;">
@@ -2388,7 +2401,7 @@ try{ if(localStorage.getItem('mathexp_user_v1')) document.getElementById('mx-reg
       <span style="color:var(--tx3);font-size:12px;font-family:inherit">← 위 법칙을 선택하면 그래프가 변하고 수치가 표시돼요</span>
     </div>
     <!-- 개념 설명 -->
-    <div id="c3LawDesc" style="padding:12px 16px;font-size:13px;color:var(--tx2);line-height:1.8;max-height:300px;overflow-y:auto;min-height:48px"></div>
+    <div id="c3LawDesc" style="padding:14px 20px;font-size:14px;color:var(--tx2);line-height:1.8;max-height:max(260px,min(760px,calc(100vh - 430px)));overflow-y:auto;min-height:48px"></div>
   </div>
 </div>
 
@@ -4847,6 +4860,10 @@ function drawAdvLabel(g, labelText, color){
   ctx.fillText(labelText,rx+pad,ry+rh-(7*dpr));
 }
 
+function advInnerW(cv,outer){
+  const c=getComputedStyle(cv.parentElement);
+  return Math.max(50,outer-(parseFloat(c.paddingLeft)||0)-(parseFloat(c.paddingRight)||0)-(parseFloat(c.borderLeftWidth)||0)-(parseFloat(c.borderRightWidth)||0));
+}
 function makeAdvGraph(id, onUpdate){
   const cv=document.getElementById(id);
   const ctx=cv.getContext('2d');
@@ -7055,7 +7072,7 @@ function buildPwSliders(){buildPwUI();}
 function scheduleRenderPw(){if(rafPw)cancelAnimationFrame(rafPw);rafPw=requestAnimationFrame(renderPw);}
 
 function renderPw(){
-  if(!gPw){gPw=makeAdvGraph('gc_pw',scheduleRenderPw);const _r=gPw.cv.parentElement.getBoundingClientRect();if(_r.width>0){gPw.cv.width=_r.width*devicePixelRatio;gPw.cv.style.width=_r.width+'px';}}
+  if(!gPw){gPw=makeAdvGraph('gc_pw',scheduleRenderPw);const _r=gPw.cv.parentElement.getBoundingClientRect();if(_r.width>0){{const _w=advInnerW(gPw.cv,_r.width);gPw.cv.width=_w*devicePixelRatio;gPw.cv.style.width=_w+'px';}}}
   const{ctx,cv}=gPw;
   ctx.clearRect(0,0,cv.width,cv.height);
   drawAxes(gPw);
@@ -7173,7 +7190,7 @@ function setMmMode(mode){SMm.mode=mode;document.querySelectorAll('#mm-mode-row .
 function scheduleRenderMm(){if(rafMm)cancelAnimationFrame(rafMm);rafMm=requestAnimationFrame(renderMm);}
 
 function renderMm(){
-  if(!gMm){gMm=makeAdvGraph('gc_mm',scheduleRenderMm);const _r=gMm.cv.parentElement.getBoundingClientRect();if(_r.width>0){gMm.cv.width=_r.width*devicePixelRatio;gMm.cv.style.width=_r.width+'px';}}
+  if(!gMm){gMm=makeAdvGraph('gc_mm',scheduleRenderMm);const _r=gMm.cv.parentElement.getBoundingClientRect();if(_r.width>0){{const _w=advInnerW(gMm.cv,_r.width);gMm.cv.width=_w*devicePixelRatio;gMm.cv.style.width=_w+'px';}}}
   const{ctx,cv}=gMm;
   ctx.clearRect(0,0,cv.width,cv.height);
   drawAxes(gMm);
@@ -7644,7 +7661,7 @@ function fmtLinear(fn){
 }
 
 function renderComp(){
-  if(!gComp){gComp=makeAdvGraph('gc_comp',scheduleRenderComp);const _r=gComp.cv.parentElement.getBoundingClientRect();if(_r.width>0){gComp.cv.width=_r.width*devicePixelRatio;gComp.cv.style.width=_r.width+'px';}}
+  if(!gComp){gComp=makeAdvGraph('gc_comp',scheduleRenderComp);const _r=gComp.cv.parentElement.getBoundingClientRect();if(_r.width>0){{const _w=advInnerW(gComp.cv,_r.width);gComp.cv.width=_w*devicePixelRatio;gComp.cv.style.width=_w+'px';}}}
   const{ctx,cv}=gComp;
   ctx.clearRect(0,0,cv.width,cv.height);
   drawAxes(gComp);
@@ -8012,7 +8029,7 @@ function renderTr(){
   if(!gTr){
     gTr=makeAdvGraph('gc_tr',scheduleRenderTr);
     const _r=gTr.cv.parentElement.getBoundingClientRect();
-    if(_r.width>0){gTr.cv.width=_r.width*devicePixelRatio;gTr.cv.style.width=_r.width+'px';}
+    if(_r.width>0){{const _w=advInnerW(gTr.cv,_r.width);gTr.cv.width=_w*devicePixelRatio;gTr.cv.style.width=_w+'px';}}
   }
   const {ctx,cv}=gTr;
   ctx.clearRect(0,0,cv.width,cv.height);
@@ -8597,6 +8614,17 @@ function openCompLawModal(){
   document.getElementById('compLawStats').innerHTML=`<span style="color:var(--tx3);font-size:12px;font-family:inherit">← 위 항목을 선택하면 내용이 표시돼요</span>`;
   document.getElementById('compLawDesc').innerHTML='';
 }
+
+/* ESC로 떠 있는 팝업 닫기 (등록·관리자 등 mx 창이 열려 있으면 그쪽이 먼저 처리) */
+document.addEventListener('keydown',function(e){
+  if(e.key!=='Escape')return;
+  if(document.querySelector('.mx-open'))return;
+  var map=[['perspLinearModal','closePerspLinearModal'],['perspModal','closePerspModal'],['ineqLinearModal','closeIneqLinearModal'],['ineqModal','closeIneqModal'],['ineqFeatModal','closeIneqFeatModal'],['eqFeatModal','closeEqFeatModal'],['featModal','closeFeatModal'],['trLawModal','closeTrLawModal'],['compLawModal','closeCompLawModal'],['mmLawModal','closeMmLawModal'],['pwLawModal','closePwLawModal'],['absModal','closeAbsModal'],['c4LawModal','closeC4LawModal'],['c3LawModal','closeC3LawModal']];
+  for(var i=0;i<map.length;i++){
+    var el=document.getElementById(map[i][0]);
+    if(el&&el.style.display!=='none'&&el.style.display!==''&&typeof window[map[i][1]]==='function'){window[map[i][1]]();return;}
+  }
+});
 function closeCompLawModal(){
   const m=document.getElementById('compLawModal');
   m.style.display='none';
@@ -11400,7 +11428,7 @@ function mxFillPolicy(box){
     + '<h4>3. 제3자 제공과 소개 자료 활용</h4><ul>'
     + '<li>수집한 정보를 다른 곳에 넘기지 않아요.</li>'
     + '<li>소개 자료·포트폴리오에는 이용자 수 같은 <b>숫자 통계</b>만 써요.</li>'
-    + '<li>후기 문장은 후기를 쓰실 때 \'써도 돼요\'라고 허락하신 경우에만 인용해요. 기본값은 \'쓰지 말아주세요\'예요.</li></ul>'
+    + '<li>후기 문장은 후기를 쓰실 때 \'써도 돼요\'라고 허락하신 경우에만 인용해요. 후기 창의 기본 선택은 \'아이디 없이 써도 돼요\'이고, 바꾸고 싶으면 다른 걸 눌러 주시면 돼요.</li></ul>'
     + '<h4>4. 저장 장소</h4><ul>'
     + '<li>정보는 개발자의 구글 계정(구글 시트)에 저장돼요. 구글 서버는 해외에 있을 수 있어요.</li>'
     + '<li>앱과 서버 사이의 통신은 HTTPS로 이뤄져요. 수집한 정보는 개발자만 열람하도록 관리해요.</li></ul>'
@@ -11662,7 +11690,7 @@ const MXR_CONSENT = {                            // v = 시트에 저장되는 �
   '기타':[{v:'아이디 공개 가능',t:'아이디 공개해도 돼요'},{v:'아이디 없이 가능',t:'아이디 없이 써도 돼요'},{v:'사용 불가',t:'쓰지 말아주세요'}],
   '학생':[{v:'아이디 없이 가능',t:'써도 돼요 (아이디는 안 나가요)'},{v:'사용 불가',t:'쓰지 말아주세요'}]
 };
-const mxr = { stars:0, chips:{}, etc:false, consent:'사용 불가', sending:false };
+const mxr = { stars:0, chips:{}, etc:false, consent:'아이디 없이 가능', sending:false };
 
 function mxrLoad(){ try{ return JSON.parse(localStorage.getItem(MXR_KEY)||'null') || {visits:0,asked:false,done:false}; }catch(e){ return {visits:0,asked:false,done:false}; } }
 function mxrSave(s){ try{ localStorage.setItem(MXR_KEY, JSON.stringify(s)); }catch(e){} }
@@ -11711,7 +11739,7 @@ function mxrAsk(force){
 }
 
 function mxrBuild(){
-  mxr.stars = 0; mxr.chips = {}; mxr.etc = false; mxr.consent = '사용 불가';
+  mxr.stars = 0; mxr.chips = {}; mxr.etc = false; mxr.consent = '아이디 없이 가능';
   const role = mx.cur ? mx.cur.role : '기타';
   $mx('mx-rv-q').textContent = MXR_Q[role] || MXR_Q['기타'];
   document.querySelectorAll('.mx-star').forEach(s=>s.classList.remove('on'));
@@ -11739,10 +11767,13 @@ function mxrBuild(){
   box.appendChild(etc);
   const cb = $mx('mx-rv-consent'); cb.innerHTML = '';
   (MXR_CONSENT[role] || MXR_CONSENT['기타']).forEach(o=>{
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'mx-chip' + (o.v==='사용 불가' ? ' on' : ''); b.textContent = o.t;
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'mx-chip' + (o.v==='아이디 없이 가능' ? ' on' : ''); b.textContent = o.t;
     b.onclick = ()=>{ mxr.consent = o.v; [...cb.children].forEach(x=>x.classList.toggle('on', x===b)); };
     cb.appendChild(b);
   });
+  const defOpt = (MXR_CONSENT[role] || MXR_CONSENT['기타']).find(o=>o.v==='아이디 없이 가능');
+  const dm = defOpt ? defOpt.t.match(/^(.*?)\s*\((.*)\)$/) : null;   // 학생: "써도 돼요 (아이디는 안 나가요)" → 괄호는 굵게 안 하고 뒤에
+  $mx('mx-rv-consent-hint').innerHTML = '기본은 ' + (dm ? '<b>' + dm[1] + '</b>예요 (' + dm[2] + ')' : '<b>' + (defOpt ? defOpt.t : '아이디 없이 써도 돼요') + '</b>예요') + '. 바꾸고 싶으면 다른 걸 눌러 주세요. 허락해 주신 경우에만 포트폴리오·소개 자료에 인용해요.';
   mxrCheck();
 }
 /* 별점 1~2점이면 "아쉬운 점"을 맨 위로 올려 강조, 아니면 원래 자리 */
@@ -11903,7 +11934,7 @@ function mxaRvStat(){
   $mx('mx-adm-rvstat').textContent = '이 기기 방문 ' + (s.visits||0) + '회 · 3회째 안내 ' + (s.asked ? '이미 띄움' : '아직') + ' · 후기 ' + (s.done ? '작성함' : '없음');
 }
 /* ── 관리자: 받은 후기 보기 ── */
-let mxaRvData = null, mxaRvFilter = 'all';
+let mxaRvData = null, mxaRvFilter = 'all', mxaRvConsent = 'all', mxaRvLim = '50';
 function mxaSeenGet(){ try{ return Number(localStorage.getItem(MXA_SEEN_KEY)) || 0; }catch(e){ return 0; } }
 function mxaSeenSet(n){ try{ localStorage.setItem(MXA_SEEN_KEY, String(n)); }catch(e){} }
 function mxaBadgeSet(n){
@@ -11920,14 +11951,67 @@ async function mxaRvBadge(){
   }catch(e){}
 }
 function mxaStars(n){ return '★'.repeat(n) + '☆'.repeat(Math.max(0, 5 - n)); }
+/* ── 후기 걸러내기(소개자료 허락) · 엑셀(CSV) 저장 · 표 복사 · 칩 집계 ── */
+const MXA_RV_CAP = 100;   // 화면에 그리는 카드 수 상한 (저장·복사는 걸러진 전부 포함)
+function mxaRvFiltered(){
+  let items = (mxaRvData && mxaRvData.items) ? mxaRvData.items.slice() : [];
+  if(mxaRvFilter === 'imp') items = items.filter(x=>x.improve || (x.warn && x.warn.length));
+  if(mxaRvFilter === 'low') items = items.filter(x=>x.stars <= 3);
+  if(mxaRvConsent !== 'all') items = items.filter(x=>x.consent === mxaRvConsent);
+  return items;
+}
+const MXA_RV_COLS = ['일시','아이디','구분','학교','학년','별점','좋았던 점','아쉬운 점','기타','한줄 후기','개선사항','소개자료 허락'];
+function mxaRvRow(x){
+  return [x.t||'', x.name||'', x.role||'', x.school||'', x.grade||'', x.stars||'', (x.good||[]).join(', '), (x.warn||[]).join(', '), x.etc||'', x.one||'', x.improve||'', x.consent||''];
+}
+function mxaSafeCell(v){   // 엑셀이 =,+,-,@ 로 시작하는 글을 수식으로 실행하지 않게 앞에 ' 를 붙여요
+  let t = (v == null) ? '' : String(v);
+  if(/^[=+\-@\t\r]/.test(t)) t = "'" + t;
+  return t;
+}
+function mxaCsv(items){
+  const q = v => '"' + mxaSafeCell(v).replace(/"/g,'""') + '"';
+  return '﻿' + [MXA_RV_COLS].concat(items.map(mxaRvRow)).map(r=>r.map(q).join(',')).join('\r\n');   // BOM: 엑셀에서 한글이 안 깨져요
+}
+function mxaTsv(items){
+  const c = v => mxaSafeCell(v).replace(/[\t\r\n]+/g,' ');
+  return [MXA_RV_COLS].concat(items.map(mxaRvRow)).map(r=>r.map(c).join('\t')).join('\n');
+}
+function mxaRvDownload(){
+  const items = mxaRvFiltered(); if(!items.length){ mxaFlash('저장할 후기가 없어요'); return; }
+  const blob = new Blob([mxaCsv(items)], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  const d = new Date(); a.download = 'math-explorer-reviews-' + d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0') + '.csv';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+  mxaFlash('후기 ' + items.length + '건을 저장했어요 ✅ 엑셀에서 열어 보세요');
+}
+function mxaRvCopyTable(){
+  const items = mxaRvFiltered(); if(!items.length){ mxaFlash('복사할 후기가 없어요'); return; }
+  mxaCopy(mxaTsv(items), '후기 ' + items.length + '건을 표로 복사했어요 ✅ 엑셀·구글시트에 붙여넣기 하세요');
+}
+/* 걸러진 목록 기준 건수 + 좋았던 점/아쉬운 점 칩 집계 */
+function mxaRvExtras(items){
+  const cnt = $mx('mx-rv-count'), box = $mx('mx-rv-tally'); if(!cnt || !box) return;
+  const d = mxaRvData || {}, loaded = (d.items||[]).length;
+  cnt.textContent = '조건에 맞는 후기 ' + items.length + '건' + (d.total > loaded ? ' · 전체 ' + d.total + '건 중 불러온 ' + loaded + '건 기준 (아래 「전체 불러오기」)' : '');
+  const tally = key => { const m = {}; items.forEach(x=>(x[key]||[]).forEach(t=>{ m[t] = (m[t]||0) + 1; })); return Object.keys(m).map(k=>[k, m[k]]).sort((a,b)=>b[1]-a[1]); };
+  box.textContent = '';
+  const add = (title, arr)=>{
+    const p = document.createElement('div'), b = document.createElement('b'); b.textContent = title; p.appendChild(b);
+    p.appendChild(document.createTextNode('  ' + (arr.length ? arr.map(a=>a[0] + ' ' + a[1]).join(' · ') : '없음'))); box.appendChild(p);
+  };
+  add('👍 좋았던 점', tally('good')); add('😥 아쉬운 점', tally('warn'));
+  const p = document.createElement('div'); p.textContent = '💡 개선사항 글 ' + items.filter(x=>x.improve).length + '건'; box.appendChild(p);
+  box.style.display = items.length ? '' : 'none';
+}
 function mxaRvRender(){
   const d = mxaRvData; if(!d) return;
   const list = $mx('mx-rv-list'); list.textContent = '';
-  let items = d.items || [];
-  if(mxaRvFilter === 'imp') items = items.filter(x=>x.improve || (x.warn && x.warn.length));
-  if(mxaRvFilter === 'low') items = items.filter(x=>x.stars <= 3);
+  let items = mxaRvFiltered();
+  mxaRvExtras(items);
+  const moreEl = $mx('mx-rv-more'); if(moreEl) moreEl.textContent = items.length > MXA_RV_CAP ? '화면에는 앞 ' + MXA_RV_CAP + '건만 보여요. 저장·복사에는 걸러진 ' + items.length + '건이 전부 들어가요.' : '';
   if(!items.length){ const e = document.createElement('div'); e.className = 'mx-hint'; e.style.textAlign = 'center'; e.textContent = (d.items && d.items.length) ? '조건에 맞는 후기가 없어요' : '아직 받은 후기가 없어요'; list.appendChild(e); }
-  items.forEach(x=>{
+  items.slice(0, MXA_RV_CAP).forEach(x=>{
     const c = document.createElement('div'); c.className = 'mx-rvc' + (x.stars <= 3 ? ' low' : '');
     const top = document.createElement('div'); top.className = 'top';
     const st = document.createElement('span'); st.className = 'st'; st.textContent = mxaStars(x.stars);
@@ -11944,15 +12028,16 @@ function mxaRvRender(){
     list.appendChild(c);
   });
 }
-async function mxaLoadReviews(){
+async function mxaLoadReviews(arg){
+  if(arg === 'all') mxaRvLim = '2000';   // 새로고침 버튼은 이벤트가 넘어오므로 'all'일 때만 바꿔요
   const sum = $mx('mx-rv-sum');
   if(!MX_GAS_URL){ sum.textContent = '기록 서버(GAS)가 아직 연결되지 않았어요'; return; }
   sum.textContent = '불러오는 중...';
   try{
-    const r = await mxJsonp({action:'reviews', pw:mxaPw, limit:'50'}, 12000);
+    const r = await mxJsonp({action:'reviews', pw:mxaPw, limit:mxaRvLim}, mxaRvLim === '50' ? 12000 : 25000);
     if(r && r.ok){
       mxaRvData = r;
-      sum.textContent = '받은 후기 ' + mxsNum(r.total) + '건 · 평균 ★' + (r.total ? r.avg.toFixed(1) : '-') + (r.total > (r.shown||0) ? ' · 최근 ' + r.shown + '건을 보여줘요' : '');
+      sum.textContent = '받은 후기 ' + mxsNum(r.total) + '건 · 평균 ★' + (r.total ? r.avg.toFixed(1) : '-') + (r.total > (r.shown||0) ? ' · 최근 ' + r.shown + '건을 보여줘요' + (mxaRvLim !== '50' ? ' (서버가 한 번에 보내 주는 한도예요)' : '') : '');
       const box = $mx('mx-rv-dist'); box.textContent = '';
       const mx5 = Math.max(1, ...(r.dist||[0]));
       for(let i=4;i>=0;i--){
@@ -11983,7 +12068,7 @@ function mxaOpen(){
   $mx('mx-adm').classList.add('mx-open');
   setTimeout(()=>{ try{ $mx('mx-adm-pwin').focus(); }catch(e){} }, 50);
 }
-function mxaClose(){ $mx('mx-adm').classList.remove('mx-open'); $mx('mx-adm-pwin').value = ''; mxaPw = ''; }
+function mxaClose(){ $mx('mx-adm').classList.remove('mx-open'); $mx('mx-adm-pwin').value = ''; mxaPw = ''; mxaRvLim = '50'; }
 let mxaChecking = false;
 async function mxaCheckPw(){
   if(mxaChecking) return;
@@ -12181,6 +12266,13 @@ function mxsSavePng(){
 window.addEventListener('DOMContentLoaded', ()=>{
   $mx('mx-st-refresh').onclick = mxsLoadAdmin;
   $mx('mx-st-save').onclick = mxsSavePng;
+  $mx('mx-rv-all').onclick = ()=>mxaLoadReviews('all');
+  $mx('mx-rv-copy').onclick = mxaRvCopyTable;
+  $mx('mx-rv-csv').onclick = mxaRvDownload;
+  document.querySelectorAll('#mx-rv-filter2 .mx-chip').forEach(b=>b.onclick = ()=>{
+    mxaRvConsent = b.dataset.c;
+    document.querySelectorAll('#mx-rv-filter2 .mx-chip').forEach(x=>x.classList.toggle('on', x===b)); mxaRvRender();
+  });
   $mx('mx-rv-refresh').onclick = mxaLoadReviews;
   document.querySelectorAll('#mx-rv-filter .mx-chip').forEach(b=>b.onclick = ()=>{
     mxaRvFilter = b.dataset.f;
