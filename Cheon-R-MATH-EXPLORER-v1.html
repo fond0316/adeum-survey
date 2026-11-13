@@ -5228,6 +5228,66 @@ function updateC3LawModal(n){
 }
 
 // 법칙별 모달 내용 (stats + desc)
+// ── 역함수 예제: 감소함수에서는 f와 f⁻¹의 교점이 y=x 밖에도 생긴다 ──
+function invCrossSvg(){
+  const X=x=>25+(x+1)*45, Y=y=>185-(y+1)*45;
+  let f='',g='';
+  for(let i=0;i<=60;i++){const x=-0.6+1.6*i/60;f+=(i?'L':'M')+X(x).toFixed(1)+' '+Y((x-1)*(x-1)).toFixed(1);}
+  for(let i=0;i<=60;i++){const x=2.56*i/60;g+=(i?'L':'M')+X(x).toFixed(1)+' '+Y(1-Math.sqrt(x)).toFixed(1);}
+  const r=(3-Math.sqrt(5))/2;
+  const dot=(x,y,t,dx,dy)=>`<circle cx="${X(x)}" cy="${Y(y)}" r="4.5" fill="#dc2626" stroke="#fff" stroke-width="1.5"/><text x="${X(x)+dx}" y="${Y(y)+dy}" font-size="10" font-weight="700" fill="#dc2626" stroke="#fff" stroke-width="3" paint-order="stroke">${t}</text>`;
+  return `<svg viewBox="0 0 215 215" style="width:100%;max-width:260px;display:block;margin:0 auto" role="img" aria-label="f(x)=(x-1)^2 (x<=1), 역함수, y=x의 그래프와 세 교점">
+    <line x1="${X(-1)}" y1="${Y(0)}" x2="${X(3)}" y2="${Y(0)}" stroke="#9ca3af" stroke-width="1"/>
+    <line x1="${X(0)}" y1="${Y(-1)}" x2="${X(0)}" y2="${Y(3)}" stroke="#9ca3af" stroke-width="1"/>
+    <line x1="${X(-1)}" y1="${Y(-1)}" x2="${X(3)}" y2="${Y(3)}" stroke="#6b7280" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <path d="${f}" fill="none" stroke="#1d5fb5" stroke-width="2.2"/>
+    <path d="${g}" fill="none" stroke="#15803d" stroke-width="2.2"/>
+    <text x="${X(3)-4}" y="${Y(3)+12}" font-size="10" fill="#6b7280" text-anchor="end">y=x</text>
+    <text x="${X(-0.6)+4}" y="${Y(2.4)}" font-size="10" font-weight="700" fill="#1d5fb5">f</text>
+    <text x="${X(2.4)}" y="${Y(-0.45)-4}" font-size="10" font-weight="700" fill="#15803d">f⁻¹</text>
+    ${dot(0,1,'(0, 1)',6,-4)}${dot(1,0,'(1, 0)',6,-6)}${dot(r,r,'y=x 위의 점',-4,-9)}
+  </svg>`;
+}
+function invCrossExHTML(){
+  return `<div style="margin-top:6px;margin-bottom:10px">
+    <div style="font-size:11px;font-weight:700;color:var(--rd);letter-spacing:.05em;margin-bottom:4px">✏️ 예제 1 — 감소함수는 y=x 밖에서도 만나!</div>
+    <div style="background:var(--rd-bg);border:1px solid var(--rd-lt);border-radius:6px;padding:10px 12px;font-size:13px;color:var(--tx2);line-height:1.9">
+      <b>f(x) = (x−1)² (x ≤ 1)</b> → x ≤ 1에서 <b>감소함수</b>이고, f⁻¹(x) = 1 − √x (x ≥ 0)<br>
+      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:6px 0">
+        <div style="flex:1 1 260px;min-width:220px">${invCrossSvg()}</div>
+        <div style="flex:1 1 260px;min-width:220px">
+          <b>① y=x 위의 교점</b><br>
+          f(x)=x → (x−1)²=x → x²−3x+1=0<br>
+          x ≤ 1이므로 x = (3−√5)/2 한 개<br>
+          <b>② y=x 밖의 교점</b><br>
+          f(0)=1, f(1)=0 → 점 (0, 1), (1, 0)은 f 위의 점이야.<br>
+          이 두 점은 y=x에 대칭이라 <b>f⁻¹ 위에도</b> 있어 → f와 f⁻¹의 교점!
+        </div>
+      </div>
+      <b>왜 증가함수는 안 될까?</b> f(a)=b, f(b)=a (a&lt;b)라 하면,<br>
+      증가함수는 a&lt;b → f(a)&lt;f(b) → b&lt;a 가 되어 모순이야. 그래서 a=b (y=x 위)뿐.<br>
+      감소함수는 a&lt;b → f(a)&gt;f(b) → b&gt;a 로 모순이 없어서 a≠b인 교점이 생길 수 있어.<br>
+      <button onclick="invCrossTry()" style="margin-top:8px;background:var(--bl-bg);border:1px solid var(--bl-lt);border-radius:16px;padding:5px 14px;font-size:12px;font-weight:700;color:var(--bl);cursor:pointer">▶ 이 예제를 그래프에 넣어보기</button>
+      <span style="font-size:11px;color:var(--tx3)"> (f를 2차 · a=1, b=−2, c=1 · x≤1로 설정해요)</span>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--pu);letter-spacing:.05em;margin:12px 0 4px">✏️ 예제 2 — 교점이 y=x 밖에만 있을 수도 있을까?</div>
+    <div style="background:var(--pu-bg);border:1px solid var(--pu-lt);border-radius:6px;padding:10px 12px;font-size:13px;color:var(--tx2);line-height:1.9">
+      <b>결론:</b> f가 <b>연속</b>이고 정의역이 <b>끊기지 않은 구간</b>이면, f와 f⁻¹이 만날 때 <b>y=x 위에도 교점이 반드시 하나 이상</b> 있어.<br>
+      <b>이유:</b> y=x 밖의 교점 (a, b) (a&lt;b)가 있으면 f(a)=b, f(b)=a야.<br>
+      g(x)=f(x)−x라 하면 g(a)=b−a&gt;0, g(b)=a−b&lt;0 → 사잇값 정리로 a와 b 사이에 g(c)=0인 c가 있어.<br>
+      즉 f(c)=c → (c, c)가 y=x 위의 교점이야. (예제 1의 (3−√5)/2가 바로 이 점!)<br>
+      <b>반례:</b> 정의역이 {1, 2}이고 f(1)=2, f(2)=1이면 f=f⁻¹이야.<br>
+      교점은 (1, 2), (2, 1)뿐이고 y=x 위에는 없어 — 정의역이 끊겨 있으면 사잇값 정리를 쓸 수 없거든.
+    </div>
+  </div>`;
+}
+function invCrossTry(){
+  if(SComp.mode!=='inv') return;
+  setCompDeg('f',2);
+  fromCompSlider('f',0,1); fromCompSlider('f',1,-2); fromCompSlider('f',2,1);
+  setInvSide('left'); fromInvBoundary(1);
+  setCompLaw(1);
+}
 function lawDesc(formula, why, tip, adeum=''){
   return `
     <div style="margin-bottom:10px">
@@ -8883,7 +8943,7 @@ function setCompLaw(idx){
       )
     ];
     document.getElementById('compLawStats').innerHTML=stats[idx];
-    document.getElementById('compLawDesc').innerHTML=descs[idx];
+    document.getElementById('compLawDesc').innerHTML=descs[idx]+(idx===1?invCrossExHTML():'');
   } else {
     // ── 역함수 모드 (2차, 정의역 제한) ──
     const vx=invVertexX(), yv=compF(vx);
@@ -8948,7 +9008,7 @@ function setCompLaw(idx){
       )
     ];
     document.getElementById('compLawStats').innerHTML=stats[idx];
-    document.getElementById('compLawDesc').innerHTML=descs[idx];
+    document.getElementById('compLawDesc').innerHTML=descs[idx]+(idx===1?invCrossExHTML():'');
   }
 }
 
