@@ -130,7 +130,7 @@ table.mx{border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:10
 .sdidle{display:flex;gap:5px;flex-wrap:wrap;align-items:center;padding:8px 0;font-size:12px;color:var(--tx3)}
 .sdidle button{border:1px solid var(--line);background:#FAF9FD;border-radius:14px;padding:3px 10px;font-size:12px;color:var(--tx2);cursor:pointer;min-height:28px}
 .sdidle button:hover{border-color:#9B8EC4}
-.ir.flash{animation:flash 1.6s ease}@keyframes flash{0%,60%{background:#FFF1B8}100%{background:transparent}}
+.ir.flash,.qbox.flash{animation:flash 1.6s ease}@keyframes flash{0%,60%{background:#FFF1B8}100%{background:transparent}}
 #pinList{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:0 22px}
 /* 저장·출력 드롭다운 메뉴 */
 .ddw{position:relative;display:inline-block}.ddm{position:absolute;left:0;top:100%;margin-top:4px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:4px;min-width:200px;z-index:30;box-shadow:0 6px 20px rgba(60,45,100,.16)}
@@ -4320,6 +4320,7 @@ const hlOf = rs => { const k = hlKind(); return k && rs.some(hlTest[k]) ? k : ''
 let mxJump = false;
 function firstHl(sid){ if (!hlKind()) return ''; const s = DATA.students.find(x => x.sid === sid); if (!s) return ''; const f = itemsFor(s, DATA.items.filter(i => i.on)).find(it => hlOf(recsOf(sid, it.id))); return f ? f.id : ''; }
 function jumpHl(){ const w = document.querySelector('#statBody .mxw'), c = w && w.querySelector('td.c.hl'); if (!c) return; const a = w.getBoundingClientRect(), b = c.getBoundingClientRect(); w.scrollLeft += (b.left - a.left) - w.clientWidth / 2 + b.width / 2; w.scrollTop += (b.top - a.top) - w.clientHeight / 2 + b.height / 2; }
+function qItems(sid){ const seen = {}, out = []; DATA.records.forEach(r => { if (r.sid !== sid || !qPend(r) || seen[r.iid]) return; seen[r.iid] = 1; const it = DATA.items.find(i => i.id === r.iid); out.push({ iid:r.iid, title: it ? it.title : '(삭제된 항목)' }); }); return out; }
 function qwOf(sid){ let q = 0, w = 0, u = 0; DATA.records.forEach(r => { if (r.sid !== sid) return; if (qPend(r)) q++; if (ackWait(r)) w++; if (memoSt(r) === 'unread') u++; }); return { q, w, u }; }
 function recHtml(sid, it){
   const rs = recsOf(sid, it.id), st = statusOfRecs(rs);
@@ -4356,7 +4357,7 @@ function mxHtml(shown, items){
       const rs = recsOf(s.sid, it.id), st = statusOfRecs(rs), m = BT[st], hk = hlOf(rs), star = rs.some(r => r.star === '2' || r.star === '1');
       h += `<td class="c ${m[0]}${impOnly && !isImp(s.sid, it) ? ' dim' : ''}${hk ? ' hl hl-' + hk : ''}" data-a="mxOpen" data-sid="${esc(s.sid)}" data-iid="${esc(it.id)}" title="${esc(s.name)} · ${esc(it.title)} · ${BADGE[st][0]}${star ? ' · ⭐' : ''}${rs.some(r => r.tchk) ? ' · 선생님 확인' : ''}">${m[1]}${hk ? '<span class="hli">' + HLI[hk] + '</span>' : ''}${star ? '<sup>★</sup>' : ''}${rs.some(qPend) ? '<sup style="color:#C0392B">?</sup>' : ''}${rs.some(r => r.tchk) ? '<i class="tt"></i>' : ''}</td>`;
     });
-    h += `<td class="mxs"><span class="badge b-none">${chk}/${sitems.length}</span>${sum ? ` <span class="badge b-sum">${sum}</span>` : ''}${(() => { const qw = qwOf(s.sid); return (qw.q ? ` <span class="badge b-sum" title="학생 질문 ${qw.q}개 대기">🙋${qw.q}</span>` : '') + (qw.w ? ` <span class="badge b-none" title="반영 대기 ${qw.w}개">⏳${qw.w}</span>` : ''); })()}</td></tr>`;
+    h += `<td class="mxs"><span class="badge b-none">${chk}/${sitems.length}</span>${sum ? ` <span class="badge b-sum">${sum}</span>` : ''}${(() => { const qw = qwOf(s.sid); return (qw.q ? ` <span class="badge b-sum" style="cursor:pointer" data-a="qGo" data-sid="${esc(s.sid)}" title="${esc('학생 질문 ' + qw.q + '개 대기 — 누르면 해당 활동으로 이동\n' + qItems(s.sid).map(x => '· ' + x.title).join('\n'))}">🙋${qw.q}</span>` : '') + (qw.w ? ` <span class="badge b-none" title="반영 대기 ${qw.w}개">⏳${qw.w}</span>` : ''); })()}</td></tr>`;
   });
   h += '</tbody><tfoot><tr><td class="mxn">참여한 학생 수</td><td class="mxc"></td>' + cols.map(it => {
     const n = DATA.students.filter(x => { const st = statusOfRecs(recsOf(x.sid, it.id)); return st === 'done' || st === 'sum'; }).length; return `<td title="${esc(it.title)}">${n || ''}</td>`;
@@ -4450,7 +4451,7 @@ function sdDraw(){
   sitems.forEach(it => { const rs = recsOf(s.sid, it.id), st = statusOfRecs(rs); if (st !== 'none') chk++; if (st === 'sum') sum++; if (rs.some(r => r.tchk)) tc++; });
   const list = sdList.includes(sdSid) ? sdList : DATA.students.map(x => x.sid), k = list.indexOf(sdSid);
   $('sdHead').innerHTML = `<button class="btn sm sub" data-a="sdNav" data-d="-1" ${k <= 0 ? 'disabled' : ''}>◀ 이전</button><h2>${esc(s.sid)} ${esc(s.name)} <small>(${k + 1}/${list.length})</small></h2><button class="btn sm sub" data-a="sdNav" data-d="1" ${k >= list.length - 1 ? 'disabled' : ''}>다음 ▶</button>`;
-  $('sdInfo').innerHTML = `<span class="badge b-none">점검 ${chk}/${sitems.length}</span>${sum ? `<span class="badge b-sum">요약 미작성 ${sum}</span>` : ''}<span class="badge b-done">선생님 확인 ${tc}</span>${(() => { const qw = qwOf(s.sid); return (qw.q ? `<span class="badge b-sum">🙋 질문 ${qw.q}</span>` : '') + (qw.w ? `<span class="badge b-none">⏳ 반영 대기 ${qw.w}</span>` : ''); })()}${s.career ? `<span>🎯 ${esc(s.career)}</span>` : ''}${clubOf(s) ? `<span>🎭 ${esc(clubOf(s))}</span>` : ''}${starSum(s.sid)}`
+  $('sdInfo').innerHTML = `<span class="badge b-none">점검 ${chk}/${sitems.length}</span>${sum ? `<span class="badge b-sum">요약 미작성 ${sum}</span>` : ''}<span class="badge b-done">선생님 확인 ${tc}</span>${(() => { const qw = qwOf(s.sid); return (qw.q ? `<span class="badge b-sum">🙋 질문 ${qw.q}</span>` + qItems(s.sid).map(x => `<button type="button" class="btn sm sub" data-a="qGo" data-sid="${esc(s.sid)}" data-iid="${esc(x.iid)}" title="이 활동으로 이동">🙋 ${esc(x.title)} ▶</button>`).join('') : '') + (qw.w ? `<span class="badge b-none">⏳ 반영 대기 ${qw.w}</span>` : ''); })()}${s.career ? `<span>🎯 ${esc(s.career)}</span>` : ''}${clubOf(s) ? `<span>🎭 ${esc(clubOf(s))}</span>` : ''}${starSum(s.sid)}`
     + ` <button class="btn sm sub" data-a="copyStu" data-sid="${esc(s.sid)}">📋 복사</button><button class="btn sm sub" data-a="printStu" data-sid="${esc(s.sid)}">🖨️ 출력</button><button class="btn sm sub" data-a="pfOpen" data-sid="${esc(s.sid)}">🧾 프로필 시트</button>` + `<div style="flex-basis:100%">${ordBar()}</div>`;
   $('sdBody').innerHTML = CATS.map(c => {
     const li = sitems.filter(i => i.cat === c); if (!li.length) return '';
@@ -5035,6 +5036,7 @@ const ACT = {
   ordSet: el => { ordMode = el.dataset.k; try{ localStorage.setItem('ac_ord_v1', ordMode); }catch(e){} ordRedraw(); },
   impTog: el => { impOnly = !impOnly; try{ localStorage.setItem('ac_imponly_v1', impOnly ? '1' : '0'); }catch(e){} ordRedraw(); },
   mxOpen: el => { sdFocus = el.dataset.iid || ''; sdOpen(el.dataset.sid); },
+  qGo: el => { const sid = el.dataset.sid, q = qItems(sid), iid = el.dataset.iid || (q[0] && q[0].iid) || ''; if ($('sdOv').classList.contains('hide') || sdSid !== sid) sdOpen(sid); sdShow[iid] = true; sdFocus = iid; sdDraw(); const b = $('sdBody').querySelector('[data-iid="' + iid.replace(/"/g, '') + '"] .qbox.pend'); if (b){ b.classList.add('flash'); setTimeout(() => b.classList.remove('flash'), 1800); } },
   sdShowItem: el => { sdShow[el.dataset.iid] = true; sdFocus = el.dataset.iid; sdDraw(); },
   copyStuText: () => copyText($('stuLink').value, '주소를 복사했어요'), copyStuRich, openStu: () => window.open($('stuLink').value, '_blank'),
   yearReset: el => yearReset(el),
