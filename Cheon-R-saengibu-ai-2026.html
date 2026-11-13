@@ -1619,6 +1619,7 @@ textarea{resize:vertical;}
             <div style="font-size:12px;font-weight:700;color:#111;margin-bottom:7px;">희망진로 <span style="color:#9ca3af;font-weight:400;">(선택)</span></div>
             <input id="d-career-input" placeholder="예: 수학교사, 데이터 과학자, 의사" oninput="dCareer=this.value"
               style="width:100%;box-sizing:border-box;border:1px solid #e0e5ed;border-radius:7px;padding:7px 10px;font-size:12px;color:#111;outline:none;"/>
+            <div id="d-career-ac-hint" style="display:none;margin-top:7px;font-size:11px;line-height:1.6;"></div>
           </div>
           <!-- 에피소드 -->
           <div style="background:white;border-radius:9px;border:1px solid #e5e7eb;padding:12px 14px;">
@@ -3974,18 +3975,23 @@ async function acFetch() {
   try {
     var d = await acJsonp({ all: '1' });
     var store = { importedAt: new Date().toLocaleString(), className: d.className || '', year: d.year || '', students: {}, items: (d.items || []).filter(function (x) { return x.on !== false; }).map(function (x) { return { id: x.id, cat: x.cat, title: x.title, dest: x.dest }; }) };
+    store.careers = {};   // 학생이 액티비티체크에 쓴 진로 희망 { '번호|이름': 글 } — 활동 기록이 없는 학생도 저장
     var cnt = 0;
     (d.students || []).forEach(function (s) {
+      if (s && s.name && s.career && String(s.career).trim()) store.careers[csKey(s.num, s.name)] = String(s.career).trim();
       if (!s || !s.name || !s.entries || !s.entries.length) return;
       store.students[csKey(s.num, s.name)] = s.entries; cnt++;
     });
     acSave(store);
+    var crRes = acApplyCareers(store);   // 진로 희망을 기본정보에 반영 (다르면 확인창)
     var roster = {};
     (dStudents || []).forEach(function (s, i) { if (s && s.name) roster[csKey(i + 1, s.name)] = true; });
     var matched = 0, unmatched = [];
     Object.keys(store.students).forEach(function (k) { if (roster[k]) matched++; else unmatched.push(k.replace('|', '번 ')); });
     acSetMsg('✅ 가져왔어요! 담임 화면에서 학생을 선택하면 "📝 활동 자체점검 자료"가 나타나요. (기록 있는 학생 ' + cnt + '명 · 명렬표와 일치 ' + matched + '명'
       + (unmatched.length ? ' / ⚠️ 일치하지 않음: ' + unmatched.join(', ') : '') + ')');
+    try { acSetMsg(document.getElementById('ac-status-msg').textContent + '\n🎯 진로 희망 ' + Object.keys(store.careers).length + '명 가져옴' + (crRes ? ' (새로 채움 ' + crRes.added + '명 · 바꿈 ' + crRes.changed + '명' + (crRes.kept ? ' · 그대로 둠 ' + crRes.kept + '명' : '') + ')' : '')); } catch (e) {}
+    if (typeof dRenderAcCareerHint === 'function') dRenderAcCareerHint();
     acRenderSaved();
     if (typeof dRenderAcSection === 'function') dRenderAcSection();
   } catch (e) { acSetMsg('❌ ' + e.message, true); }
@@ -4216,6 +4222,67 @@ function dGetAcPromptBlock() {
     + '  · "진로 연결"에 적힌 내용은 진로 관련 서술의 근거로 쓰되, 학생이 쓰지 않은 진로 희망을 단정하지 말 것.\n'
     + (hasStar ? '  · ★ 표시 항목은 학생이 스스로 의미가 컸다고 고른 활동이므로 서술의 비중을 높일 것.\n' : '');
   return guide + lines.join('\n') + '\n';
+}
+
+/* ── 🎯 액티비티체크 진로 희망 (학생 입력) — 기본정보 '희망진로'의 기준값으로 반영 ── */
+function acCareerOf(i) {
+  var stu = dStudents[i]; if (!stu || !stu.name) return '';
+  var c = acLoad().careers || {};
+  return c[csKey(i + 1, stu.name)] || '';
+}
+/* 불러온 진로 희망을 info.career에 반영: 비어 있으면 채우고, 다르면 목록을 보여 주고 확인받아요 (옛 값은 info.careerPrev에 남겨요) */
+function acApplyCareers(store) {
+  var res = { added: 0, changed: 0, kept: 0 }, diffs = [], cr = (store && store.careers) || {};
+  (dStudents || []).forEach(function (stu, i) {
+    if (!stu || !stu.name) return;
+    var ac = cr[csKey(i + 1, stu.name)]; if (!ac) return;
+    var cur = ((stu.info && stu.info.career) || '').trim();
+    if (!cur) { if (!stu.info) stu.info = {}; stu.info.career = ac; res.added++; }
+    else if (cur !== ac) diffs.push({ i: i, name: stu.name, cur: cur, ac: ac });
+  });
+  if (diffs.length) {
+    var msg = '기본정보의 희망진로와 액티비티체크 진로 희망이 다른 학생이 ' + diffs.length + '명 있어요.\n\n'
+      + diffs.slice(0, 15).map(function (d) { return (d.i + 1) + '번 ' + d.name + ': "' + d.cur + '" → "' + d.ac + '"'; }).join('\n')
+      + (diffs.length > 15 ? '\n… 외 ' + (diffs.length - 15) + '명' : '')
+      + '\n\n액티비티체크 값으로 바꿀까요?\n[확인] 바꾸기 (옛 값은 기록으로 남겨요)  /  [취소] 지금 값 그대로 두기';
+    if (confirm(msg)) {
+      diffs.forEach(function (d) { var inf = dStudents[d.i].info; inf.careerPrev = d.cur; inf.career = d.ac; res.changed++; });
+    } else res.kept = diffs.length;
+  }
+  if (res.added || res.changed) { try { dSaveStudents(); dRenderStuList(); } catch (e) {} }
+  return res;
+}
+/* 생기부 탭 '희망진로' 입력칸 아래 안내 줄 */
+function dRenderAcCareerHint() {
+  var el = document.getElementById('d-career-ac-hint'); if (!el) return;
+  var ac = acCareerOf(dSelStu);
+  if (!ac) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  var cur = ((dStudents[dSelStu] && dStudents[dSelStu].info && dStudents[dSelStu].info.career) || '').trim();
+  var h = '<div style="color:#6b5fa0;">📝 액티비티체크 진로 희망(학생 입력): <b>' + dEsc(ac) + '</b></div>';
+  if (cur && cur !== ac) h += '<div style="color:#b45309;margin-top:3px;">⚠️ 기본정보 희망진로는 "' + dEsc(cur) + '"예요. <button onclick="acUseCareer()" style="padding:3px 9px;border:1px solid #9B8EC4;background:white;color:#6b5fa0;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;min-height:32px;">액티비티체크 값 쓰기</button></div>';
+  else h += '<div style="color:#9ca3af;">입력칸을 비워 두면 이 값이 기준으로 쓰여요. 직접 쓰면 그 글이 우선이에요.</div>';
+  el.innerHTML = h; el.style.display = 'block';
+}
+function acUseCareer() {
+  var ac = acCareerOf(dSelStu), stu = dStudents[dSelStu]; if (!ac || !stu) return;
+  if (!stu.info) stu.info = {};
+  if (stu.info.career && stu.info.career !== ac) stu.info.careerPrev = stu.info.career;
+  stu.info.career = ac;
+  try { dSaveStudents(); dRenderStuList(); } catch (e) {}
+  dRenderAcCareerHint();
+  if (dActiveSubTab === '기본정보' && typeof dRenderInfoTab === 'function') dRenderInfoTab();
+}
+/* 프롬프트: 진로 희망은 '해석의 방향'일 뿐, 하지 않은 활동의 근거가 아니에요 */
+function dGetAcCareerRule() {
+  var cr = acLoad().careers || {};
+  if (!Object.keys(cr).length) return '';   // 액티비티체크 진로 희망을 불러온 적이 없으면 넣지 않아요
+  var c = (dCareer || ((dStudents[dSelStu] && dStudents[dSelStu].info && dStudents[dSelStu].info.career) || '')).trim();
+  if (!c) return '';
+  return '\n[희망진로 사용 규칙 — 희망진로는 학생이 직접 밝힌 값이며 글의 기준 방향임]\n'
+    + '  · 희망진로 "' + c + '"는 학생이 쓴 활동을 이 방향에서 해석·연결하는 기준으로만 사용할 것.\n'
+    + '  · 희망진로를 이유로 학생이 하지 않은 활동·경험·성과·수치·대회·수상을 새로 만들어 쓰지 말 것. 활동 근거는 위 학생 자료와 입력된 내용에 있는 것만 사용.\n'
+    + '  · 활동이 희망진로와 직접 관련이 없으면 억지로 연결하지 말고, 관련이 약하면 "관심을 보임" 정도로만 서술할 것.\n'
+    + '  · 학생이 쓰지 않은 구체적 학과·직업·진학 계획을 덧붙이거나 단정하지 말 것.\n';
 }
 
 /* ══ 구글 시트 불러오기 팝업 ══ */
@@ -9116,6 +9183,7 @@ function dRenderInputCol(){
   dRenderPersonalityModalBtn();
   dRenderSelectedPersonalityTags();
   document.getElementById("d-career-input").value=dCareer;
+  if(typeof dRenderAcCareerHint==="function")dRenderAcCareerHint();
   document.getElementById("d-episode-ta").value=dEpisode;
   var emEl=document.getElementById("d-emphasis-note"); if(emEl) emEl.value=dEmphasisNote;
   var oneRoleNoteEl=document.getElementById("d-onerole-note");
@@ -11036,6 +11104,7 @@ async function dHandleGenerate(){
   var dNugaBlock = dGetNugaPromptBlock();
   dNugaBlock += dGetCsPromptBlock(); // 🏫 학급자율활동 자료(추가)
   dNugaBlock += dGetAcPromptBlock(); // 📝 활동 자체점검 자료(추가)
+  dNugaBlock += dGetAcCareerRule(); // 🎯 희망진로 사용 규칙(추가)
   var prompt="다음 학생 정보를 바탕으로 "+tabLabel+"을 작성해주세요.\n"+infoBlock+evNotesBlock+dSurveyBlock+dNugaBlock+"\n"
     +eventLabel+": "+(dEvents.join(", ")||"(없음)")+(dActiveTab==="자율"&&dOrPromptText(dStudents[dSelStu])?"\n"+dOrPromptText(dStudents[dSelStu]):"")+"\n"
     +(dActiveTab==="자율"&&dOrGuide(dStudents[dSelStu])?dOrGuide(dStudents[dSelStu]):"")
