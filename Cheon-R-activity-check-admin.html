@@ -670,7 +670,7 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
         </div>
         <div class="stR">
           <div id="ordBox" class="hide"></div>
-          <div class="row"><div class="ddw"><button class="btn sm sub" data-a="ddTog" data-d="dlMenu">📥 저장 ▾</button><div class="ddm hide" id="dlMenu"><button type="button" data-a="exportXlsx">📤 전체 학생 엑셀</button><button type="button" data-a="psOpen" data-m="xlsx">📤 선택 학생 엑셀…</button><button type="button" data-a="exportBackup">💾 전체 백업</button></div></div><div class="ddw"><button class="btn sm sub" data-a="ddTog" data-d="prMenu">🖨️ 출력 ▾</button><div class="ddm hide" id="prMenu"><button type="button" data-a="printAll">🖨️ 전체 학생 출력</button><button type="button" data-a="psOpen">🖨️ 선택 학생 출력…</button></div></div><button class="btn sm sub" data-a="copyPend">📋 지금 보이는 목록 복사 (독촉용)</button></div>
+          <div class="row"><div class="ddw"><button class="btn sm sub" data-a="ddTog" data-d="dlMenu">📥 저장 ▾</button><div class="ddm hide" id="dlMenu"><button type="button" data-a="exportXlsx">📤 전체 학생 엑셀</button><button type="button" data-a="psOpen" data-m="xlsx">📤 선택 학생 엑셀…</button><button type="button" data-a="exportBackup">💾 전체 백업</button></div></div><div class="ddw"><button class="btn sm sub" data-a="ddTog" data-d="prMenu">🖨️ 출력 ▾</button><div class="ddm hide" id="prMenu"><button type="button" data-a="printAll">🖨️ 전체 학생 출력</button><button type="button" data-a="psOpen">🖨️ 선택 학생 출력…</button></div></div><button class="btn sm sub" data-a="printPend">🖨️ 지금 보이는 목록 출력 (수행도 체크판)</button><button class="btn sm sub" data-a="copyPend">📋 복사 (독촉용)</button></div>
         </div>
       </div></div></div>
       <div id="statBody"></div>
@@ -4439,6 +4439,16 @@ function copyPend(){
   if (!statCopy.lines.length){ toast('복사할 목록이 없어요'); return; }
   copyText(statCopy.head + ' ' + statCopy.lines.length + '명\n' + statCopy.lines.join('\n'), statCopy.lines.length + '명 목록을 복사했어요 📋');
 }
+function printPend(){   // 지금 보이는 목록을 수행도 체크판(표)으로 출력
+  const L = statCopy.lines; if (!L.length){ toast('출력할 목록이 없어요'); return; }
+  const d = new Date(Date.now() + 9 * 3600e3), ds = `${d.getUTCFullYear()}.${d.getUTCMonth() + 1}.${d.getUTCDate()}.`;
+  const TD = 'border:1px solid #333;padding:5px 7px;font-size:12px;', TH = TD + 'background:#F1F1F1;text-align:center;font-weight:700;';
+  const rows = L.map((t, i) => { const m = String(t).match(/^(\S+)\s+(\S+)(?:\s+·\s+(.*))?$/) || [t, '', '', '']; return `<tr><td style="${TD}text-align:center;width:28px">${i + 1}</td><td style="${TD}text-align:center;width:64px">${esc(m[1])}</td><td style="${TD}width:80px"><b>${esc(m[2])}</b></td><td style="${TD}">${esc(m[3] || '')}</td><td style="${TD}width:44px;text-align:center">☐</td><td style="${TD}width:130px"></td></tr>`; }).join('');
+  const a = $('printArea');
+  a.innerHTML = `<div style="font-size:16px;font-weight:800;margin-bottom:3px">수행도 체크판 · ${esc(statCopy.head)}</div><div style="color:#666;margin-bottom:8px">${esc(ds)} 기준 · ${L.length}명 · ${esc($('className') ? $('className').textContent : '')}</div><table style="border-collapse:collapse;width:100%"><thead><tr><th style="${TH}">No</th><th style="${TH}">학번</th><th style="${TH}">이름</th><th style="${TH}">현황</th><th style="${TH}">확인</th><th style="${TH}">비고</th></tr></thead><tbody>${rows}</tbody></table>`;
+  const done = () => { a.innerHTML = ''; window.removeEventListener('afterprint', done); };
+  window.addEventListener('afterprint', done); setTimeout(() => window.print(), 60);
+}
 /* 학생 1명 크게 보기 (이전/다음으로 넘기며 확인) */
 function starSum(sid){   // 학생이 '진로와 연결하기 좋은 활동'으로 고른 것 (🌟 대표 먼저)
   const l = DATA.records.filter(r => r.sid === sid && r.part === 'yes' && (r.star === '1' || r.star === '2')).sort((a, b) => Number(b.star) - Number(a.star)).map(r => { const it = DATA.items.find(i => i.id === r.iid) || (DATA.sItems || []).find(i => i.id === r.iid); return it ? { it, r } : null; }).filter(Boolean);
@@ -5047,6 +5057,7 @@ const ACT = {
   presetLoad: el => presetLoad(el.dataset.p), presetDown: el => presetDown(el.dataset.p),
   saveItem: el => saveItem(el), cancelEdit, editItem: el => editItem(el.dataset.id), delItem: el => delItem(el.dataset.id), toggleOn: el => toggleOn(el.dataset.id), mv: el => moveItem(el.dataset.id, Number(el.dataset.d)),
   saveStu: el => saveStu(el), pickStuFile: () => $('stuFile').click(), resetPin: el => resetPin(el.dataset.sid),
+  printPend,
   statMode: el => { statMode = el.dataset.m; renderStat(); }, memoFilt: el => { memoFilt = el.dataset.k; renderStat(); }, itemFilt: el => { itemFilt = el.dataset.k; renderStat(); }, stuFilt: el => { stuFilt = el.dataset.k; mxJump = true; renderStat(); }, copyPend, exportBackup, sdOpen: el => { sdFocus = firstHl(el.dataset.sid); sdOpen(el.dataset.sid); }, sdNav: el => sdNav(Number(el.dataset.d)),
   poCat: el => { PO.cats[el.dataset.c] = !PO.cats[el.dataset.c]; drawPO(); }, poSum: el => { PO.sum = el.dataset.k; drawPO(); }, prGo,
   toggleStu: el => { openStu = openStu === el.dataset.sid ? null : el.dataset.sid; renderStat(); },
