@@ -5,7 +5,7 @@
  */
 
 /** GAS 코드 버전 — 코드를 고칠 때마다 1씩 올려요. 관리 화면이 이 번호로 업데이트가 필요한지 알려줘요. */
-var GAS_VER = 16;
+var GAS_VER = 17;
 var MAX_Q = 100;     // 학생이 선생님께 남기는 질문 최대 글자수
 var MAX_SUM = 1000;   // 학생 활동 요약 최대 글자수
 
@@ -29,6 +29,7 @@ var SHEETS = {
   roster: { name: '참여명단', headers: ['항목ID', '학번', '이름', '출처', '내용', '등록일', '제공문구'] },
   rchk: { name: '명단확인', headers: ['항목ID', '학번', '확인', '메모', '일시'] },
   ralias: { name: '명단별칭', headers: ['키', '항목ID', '횟수', '일시'] },
+  rexc: { name: '명단제외', headers: ['항목ID', '학번', '이름', '이유', '메모', '일시', '출처', '내용', '제공문구'] },
 };
 var DEFAULT_SETTINGS = [['학년도', String(new Date().getFullYear())], ['학급명', '우리 반'], ['관리자비번', DEFAULT_PW]];
 
@@ -79,6 +80,9 @@ function route_(p) {
     case 'rosterDel': return rosterDel_(p);
     case 'rosterChk': return rosterChk_(p);
     case 'rosterAlias': return rosterAlias_(p);
+    case 'rosterExc': return rosterExc_(p);
+    case 'rosterExcBack': return rosterExcBack_(p);
+    case 'rosterExcDel': return rosterExcDel_(p);
     case 'syncGet': return syncGet_(p);
     case 'syncSave': return syncSave_(p);
     case 'reorderItems': return reorderItems_(p);
@@ -482,7 +486,7 @@ function adminLoad_(p) {
   var sItems = allIt.filter(function (r) { return r[15]; }).map(function (r) { return { id: r[0], cat: r[1], title: r[2], by: r[15], byName: nm[r[15]] || '' }; });
   var students = rows_('students').filter(function (r) { return r[0]; }).map(function (r) { return { sid: r[0], name: r[1], hasPin: !!r[2], career: r[3], club: r[5] || '' }; });
   var records = rows_('records').filter(function (r) { return r[0]; }).map(recObj_);
-  return { ok: true, role: 'admin', gasVer: GAS_VER, className: getSetting_('학급명'), year: year_(), grade: getSetting_('학년'), guide: guide_(), impLog: impLog_(), roster: roster_(), rchk: rchk_(), alias: ralias_(),
+  return { ok: true, role: 'admin', gasVer: GAS_VER, className: getSetting_('학급명'), year: year_(), grade: getSetting_('학년'), guide: guide_(), impLog: impLog_(), roster: roster_(), rchk: rchk_(), alias: ralias_(), rexc: rexc_(),
     items: items, sItems: sItems, students: students, records: records, installId: installId_() };
 }
 /** 불러온 파일 기록 (엑셀·붙여넣기로 등록한 묶음) — 설정 탭에 JSON으로 보관 */
@@ -516,16 +520,26 @@ function dataStr_(p) {
   if (p.gz) return Utilities.ungzip(Utilities.newBlob(Utilities.base64DecodeWebSafe(String(p.gz)), 'application/x-gzip')).getDataAsString('UTF-8');
   return p.data || '{}';
 }
-/** data = {iid, src, rows:[[학번,이름,내용,제공문구],…]} — 같은 항목·같은 출처(파일)의 옛 명단은 새 것으로 바꿔요 */
+/** data = {iid, src, rows:[[학번,이름,내용,제공문구],…], allow:[학번…]} — 같은 항목·같은 출처(파일)의 옛 명단은 새 것으로 바꿔요
+ *  '명단에서 뺀 학생'(명단제외 탭)은 건너뛰어요. 선생님이 "다시 넣기"로 허락한 학번(allow)만 제외 기록을 지우고 다시 넣어요. */
 function rosterSave_(p) {
   need_(p);
   var d = JSON.parse(dataStr_(p)), iid = cut_(d.iid, 30), src = cut_(d.src, 80), at = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd');
   if (!iid) throw new Error('항목이 없어요.');
+  var allow = {}; (Array.isArray(d.allow) ? d.allow : []).forEach(function (x) { allow[cut_(x, 12)] = 1; });
   var add = (Array.isArray(d.rows) ? d.rows : []).slice(0, 400).map(function (r) { return [iid, cut_(r[0], 12), cut_(r[1], 20), src, cut_(r[2], 160), at, cut_(r[3], 3000)]; }).filter(function (r) { return r[1]; });
   return lock_(function () {
+    var ex = rows_('rexc').filter(function (r) { return r[0] && r[1]; }), exSet = {}, skipped = [], freed = {};
+    ex.forEach(function (r) { if (r[0] === iid) exSet[r[1]] = 1; });
+    add = add.filter(function (r) {
+      if (!exSet[r[1]]) return true;
+      if (allow[r[1]]) { freed[r[1]] = 1; return true; }
+      skipped.push({ sid: r[1], name: r[2] }); return false;
+    });
     var keep = rows_('roster').filter(function (r) { return r[0] && (d.append || !(r[0] === iid && r[3] === src)); });   // append: 한 번에 못 보낸 뒷부분은 이어 붙여요
     rosterWrite_(keep.concat(add));
-    return { ok: true, count: add.length };
+    if (Object.keys(freed).length) rexcWrite_(ex.filter(function (r) { return !(r[0] === iid && freed[r[1]]); }));
+    return { ok: true, count: add.length, skipped: skipped };
   });
 }
 /** data = {iid?, src?} — 출처(파일)나 항목 단위로 지워요 */
@@ -581,6 +595,68 @@ function rosterAlias_(p) {
     if (last >= 2) sh.getRange(2, 1, last - 1, n).clearContent();
     if (cur.length) { ensureRows_(sh, cur.length + 1); sh.getRange(2, 1, cur.length, n).setNumberFormat('@').setValues(cur); }
     return { ok: true, count: cur.length };
+  });
+}
+/** 명단에서 뺀 학생 — 이유와 함께 '명단제외' 탭에 남겨 둬요 (명단 파일을 다시 올려도 다시 들어오지 않게). 내용·제공 문구도 같이 보관해서 되돌릴 수 있어요 */
+function rexc_() {
+  return rows_('rexc').filter(function (r) { return r[0] && r[1]; }).map(function (r) { return { iid: r[0], sid: r[1], name: r[2], why: r[3], memo: r[4], at: r[5], src: r[6], txt: r[7] }; });
+}
+function rexcWrite_(keep) {
+  var sh = sh_('rexc'), last = sh.getLastRow(), n = SHEETS.rexc.headers.length;
+  if (last >= 2) sh.getRange(2, 1, last - 1, n).clearContent();
+  if (keep.length) { ensureRows_(sh, keep.length + 1); sh.getRange(2, 1, keep.length, n).setNumberFormat('@').setValues(keep); }
+}
+/** data = {iid, items:[{sid, why, memo}]} — 그 활동의 명단에서 학생을 빼요 (why가 비어도 돼요). 같은 학생이 여러 파일에 있어도 모두 빼요 */
+function rosterExc_(p) {
+  need_(p);
+  var d = JSON.parse(p.data || '{}'), iid = cut_(d.iid, 30), list = Array.isArray(d.items) ? d.items.slice(0, 60) : [];
+  if (!iid || !list.length) throw new Error('뺄 학생이 없어요.');
+  return lock_(function () {
+    var all = rows_('roster').filter(function (r) { return r[0]; }), ex = rows_('rexc').filter(function (r) { return r[0] && r[1]; });
+    var at = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm'), done = 0, gone = {};
+    list.forEach(function (q) {
+      var sid = cut_(q.sid, 12); if (!sid) return;
+      var hit = all.filter(function (r) { return r[0] === iid && r[1] === sid; });
+      if (!hit.length) return;
+      var srcs = [], txt = '', giv = '';
+      hit.forEach(function (r) { if (srcs.indexOf(r[3]) < 0) srcs.push(r[3]); if (!txt) txt = r[4]; if (!giv) giv = r[6]; });
+      ex = ex.filter(function (r) { return !(r[0] === iid && r[1] === sid); });
+      ex.push([iid, sid, hit[0][2], cut_(q.why, 20), cut_(q.memo, 100), at, cut_(srcs.join(', '), 160), txt, giv]);
+      gone[sid] = 1; done++;
+    });
+    if (!done) throw new Error('명단에서 해당 학생을 찾지 못했어요. 화면을 새로고침해 주세요.');
+    rosterWrite_(all.filter(function (r) { return !(r[0] === iid && gone[r[1]]); }));
+    rexcWrite_(ex);
+    return { ok: true, count: done };
+  });
+}
+/** data = {iid, sids:[…]} — 뺀 학생을 명단으로 되돌려요 (보관해 둔 내용·제공 문구까지 그대로) */
+function rosterExcBack_(p) {
+  need_(p);
+  var d = JSON.parse(p.data || '{}'), iid = cut_(d.iid, 30), sids = (Array.isArray(d.sids) ? d.sids : []).slice(0, 60).map(function (x) { return cut_(x, 12); });
+  if (!iid || !sids.length) throw new Error('되돌릴 학생이 없어요.');
+  return lock_(function () {
+    var ex = rows_('rexc').filter(function (r) { return r[0] && r[1]; }), all = rows_('roster').filter(function (r) { return r[0]; });
+    var at = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd'), back = [], left = [];
+    ex.forEach(function (r) {
+      if (r[0] === iid && sids.indexOf(r[1]) >= 0) { if (!all.some(function (a) { return a[0] === iid && a[1] === r[1]; })) back.push([iid, r[1], r[2], r[6].split(', ')[0] || '', r[7], at, r[8]]); }
+      else left.push(r);
+    });
+    rosterWrite_(all.concat(back));
+    rexcWrite_(left);
+    return { ok: true, count: back.length };
+  });
+}
+/** data = {iid, sids:[…]} — 제외 기록만 지워요 (명단으로 되돌리지는 않아요. 다음에 명단을 올리면 다시 들어와요) */
+function rosterExcDel_(p) {
+  need_(p);
+  var d = JSON.parse(p.data || '{}'), iid = cut_(d.iid, 30), sids = (Array.isArray(d.sids) ? d.sids : []).slice(0, 60).map(function (x) { return cut_(x, 12); });
+  if (!iid || !sids.length) throw new Error('지울 대상이 없어요.');
+  return lock_(function () {
+    var ex = rows_('rexc').filter(function (r) { return r[0] && r[1]; });
+    var left = ex.filter(function (r) { return !(r[0] === iid && sids.indexOf(r[1]) >= 0); });
+    rexcWrite_(left);
+    return { ok: true, count: ex.length - left.length };
   });
 }
 /** 마지막으로 항목을 불러오거나 갱신한 기록 — 관리자 화면에 '마지막 불러오기·갱신' 시각으로 보여요 */
@@ -867,6 +943,7 @@ function yearReset_(p) {
     for (var qi = idata.length - 1; qi >= 0; qi--) if (idata[qi][15]) ish.deleteRow(qi + 2);
     rchkWrite_([]);
     rosterWrite_([]);   // 참여 명단도 그 해 것이라 새 학년도엔 비워요
+    rexcWrite_([]);     // 명단에서 뺀 학생 기록도 함께 비워요
     cdel_('c_items_u'); cdel_('c_items_s');
     cdel_('c_stu');
     return { ok: true, count: Math.max(0, last - 1), backup: bk };
