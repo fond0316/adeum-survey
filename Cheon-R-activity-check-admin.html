@@ -344,7 +344,7 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
 .cmpk{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}.cmpk-miss{background:#FFE8CC;color:#9A5200}.cmpk-extra{background:#FFD9D9;color:#A12626}.cmpk-rep{background:#FFF3B0;color:#7A6200}.cmpk-ok{background:#DDF3E4;color:#1F7A3E}
 .cmpc{margin-top:12px}.cmpt{border-collapse:collapse;width:100%;margin-top:8px;font-size:13px}.cmpt th{background:#F1EEF9;text-align:left;padding:6px 8px;white-space:nowrap;font-size:12px}.cmpt td{border-top:1px solid #ECE8F5;padding:6px 8px;vertical-align:middle;white-space:nowrap}.cmpt .cmptx{white-space:normal;min-width:160px;max-width:260px;color:var(--tx2,#6B6585);font-size:12px}.cmpt .cmpm{width:100%;min-width:140px;border:1px solid #DDD7EE;border-radius:8px;padding:6px 8px;font:inherit;font-size:12.5px}.cmpt .cmpck{width:20px;height:20px}.cmpt tr.cmpdone td{opacity:.55}
 .excw{display:block;font-size:11px;color:#A12626;margin-top:2px;white-space:nowrap}.cmpsel{width:20px;height:20px}.rschips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.rschip{display:inline-flex;align-items:center;gap:4px;background:#F1EEF9;border-radius:999px;padding:2px 4px 2px 10px;font-size:12px}.rschip button{min-width:26px;min-height:26px;border-radius:50%;background:#fff;color:#C0392B;font-weight:800;font-size:12px}
-.exrow{border:1px solid #ECE8F5;border-radius:12px;padding:8px 10px;margin-top:8px}.exrow .exw{display:inline-block;background:#FFE8CC;color:#9A5200;border-radius:999px;padding:1px 9px;font-size:12px;font-weight:700}.exrow small{display:block;color:var(--tx2)}.exrow .row{margin-top:6px}.exrow label{display:inline-flex;align-items:center;gap:6px;min-height:40px;font-weight:600}
+.rmst{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.rmlist{max-height:300px;overflow:auto;border:1px solid #ECE8F5;border-radius:12px;margin-top:6px}.rmrow{display:flex;align-items:center;gap:10px;min-height:44px;padding:4px 12px;border-bottom:1px solid #F3F0FA;cursor:pointer}.rmrow:last-child{border-bottom:0}.rmrow input{width:22px;height:22px;flex:none}.rmrow.dis{opacity:.55;cursor:default}.rmrow small{margin-left:auto;color:var(--tx2);text-align:right}.rmrow .exw{background:#FFE8CC;color:#9A5200;border-radius:999px;padding:1px 9px;font-size:12px;font-weight:700}.rmrep{font-size:13px;margin-top:6px;line-height:1.5}.exrow{border:1px solid #ECE8F5;border-radius:12px;padding:8px 10px;margin-top:8px}.exrow .exw{display:inline-block;background:#FFE8CC;color:#9A5200;border-radius:999px;padding:1px 9px;font-size:12px;font-weight:700}.exrow small{display:block;color:var(--tx2)}.exrow .row{margin-top:6px}.exrow label{display:inline-flex;align-items:center;gap:6px;min-height:40px;font-weight:600}
 </style>
 </head>
 <body>
@@ -568,7 +568,7 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
     <!-- 📋 항목 -->
     <div class="pane" id="p-items">
       <div class="card" id="rsCard">
-        <div class="rsch"><button type="button" class="rsct" data-a="rsCardTog" aria-expanded="false">📋 참여 명단 <small id="rsCnt"></small><span class="car">▾</span></button><button type="button" class="btn sm" data-a="rsOpen">📋 명단 올리기</button></div>
+        <div class="rsch"><button type="button" class="rsct" data-a="rsCardTog" aria-expanded="false">📋 참여 명단 <small id="rsCnt"></small><span class="car">▾</span></button><button type="button" class="btn sm sub" data-a="rmOpen">✍️ 직접 입력</button><button type="button" class="btn sm" data-a="rsOpen">📋 명단 올리기</button></div>
         <div id="rsCardBody"></div>
       </div>
       <div class="card hide" id="saCard">
@@ -5800,7 +5800,109 @@ const ACT = {
   kpKind: el => { const p = el.dataset.p; KPS[p].kind = el.dataset.k; KPS[p].pur = ''; kpRender(p); }, kpPur: el => { const p = el.dataset.p; KPS[p].pur = el.dataset.k; kpRender(p); },
   rvKind: el => { rvKind = rvKind === el.dataset.k ? '' : el.dataset.k; renderRv(); }, rvOkSet: el => { rvOk = el.dataset.k; renderRv(); }, sendReview: el => sendReview(el)
 };
-Object.assign(ACT, { excPick, excAll, excSel, excWhy, excGo, exlOpen, exbGo, exbAll, ov1, rsDelAct, rsDelIid,
+/* ===== ✍️ 참여 명단 직접 입력 (담임이 항목을 고르고 학생만 체크/붙여넣기 → 출처 '직접 입력') ===== */
+const RM_SRC = '직접 입력';
+let RM = { cat:'', iid:'', title:'', sel:new Set() };
+function rmOpen(){
+  if (!excNeed()) return;
+  if (!DATA.students.length){ toast('명단 탭에서 학생 명단을 먼저 저장해 주세요'); return; }
+  RM = { cat:'', iid:'', title:'', sel:new Set() }; rmDraw(); $('rmOv').classList.remove('hide');
+}
+function rmDraw(){
+  const cats = CATS.filter(c => c !== '동아리');
+  let h = `<h2 style="margin:0 0 4px">✍️ 참여 명단 직접 입력</h2><div class="hint" style="margin:0">항목을 고르고 참여한 학생만 체크하세요. 엑셀이 안 읽히는 활동도 여기서 바로 만들 수 있어요. (학생이 적은 기록은 바뀌지 않아요)</div>
+    <div style="font-weight:800;margin-top:12px">① 분류</div><div class="rmst">${cats.map(c => `<button type="button" class="chip${RM.cat === c ? ' on' : ''}" data-a="rmCat" data-c="${esc(c)}">${CATE[c] || ''} ${esc(c)}</button>`).join('')}</div>`;
+  if (RM.cat){
+    const its = DATA.items.filter(i => i.cat === RM.cat && i.on);
+    h += `<div style="font-weight:800;margin-top:12px">② 항목</div><select class="sel" id="rmIt"><option value="">항목을 골라 주세요</option>${its.map(i => `<option value="${esc(i.id)}"${RM.iid === i.id ? ' selected' : ''}>${esc(i.title)}</option>`).join('')}<option value="__new"${RM.iid === '__new' ? ' selected' : ''}>➕ 새 항목 만들기</option></select>`;
+    if (RM.iid === '__new') h += `<input type="text" id="rmNew" maxlength="60" placeholder="새 항목 이름 (예: 전공심화프로그램)" style="margin-top:6px" value="${esc(RM.title)}">`;
+  }
+  if (RM.iid){
+    const cur = RM.iid === '__new' ? {} : (rsIdx()[RM.iid] || {});
+    h += `<div style="font-weight:800;margin-top:12px">③ 학생 <small id="rmCnt" style="font-weight:500;color:var(--tx2)"></small></div>
+      <div class="row" style="margin-top:6px"><input type="text" id="rmQ" placeholder="이름·학번 검색" style="flex:1;min-width:140px"><button type="button" class="btn sm sub" data-a="rmAll" data-v="1">보이는 학생 전체 선택</button><button type="button" class="btn sm sub" data-a="rmAll" data-v="0">선택 해제</button></div>
+      <div class="rmlist" id="rmList">${DATA.students.map(st => { const has = cur[st.sid], ex = RM.iid === '__new' ? null : rexcOf(RM.iid, st.sid);
+        return `<label class="rmrow${has ? ' dis' : ''}" data-k="${esc(st.sid + ' ' + st.name)}"><input type="checkbox" data-sid="${esc(st.sid)}"${has ? ' disabled' : ''}${RM.sel.has(st.sid) ? ' checked' : ''}><span><b>${esc(st.name)}</b> <small style="display:inline;margin:0">${esc(st.sid)}</small></span>${has ? '<small>이미 명단에 있어요</small>' : ex ? `<small><span class="exw">🚫 ${esc(ex.why || '이유 없음')}</span></small>` : ''}</label>`; }).join('')}</div>
+      <details class="rspaste" id="rmPd"><summary>이름으로 한꺼번에 체크하기 (붙여넣기)</summary><textarea id="rmPaste" rows="4" placeholder="이름이나 학번을 줄바꿈·띄어쓰기·쉼표로 구분해 붙여넣으세요" style="margin-top:6px"></textarea><div class="row"><button type="button" class="btn sm" data-a="rmApply">붙여넣은 학생 체크하기</button></div><div class="rmrep" id="rmRep"></div></details>
+      <div class="msg" id="rmMsg"></div>
+      <div class="row" style="margin-top:12px"><button type="button" class="btn" data-a="rmSave">💾 명단에 저장</button><button type="button" class="btn sub" data-a="ov1">닫기</button></div>`;
+  } else h += '<div class="row" style="margin-top:12px"><button type="button" class="btn sub" data-a="ov1">닫기</button></div>';
+  $('rmBox').innerHTML = h; rmCount();
+}
+function rmCount(){ const el = $('rmCnt'); if (el) el.textContent = `· 체크 ${RM.sel.size}명`; }
+function rmCat(el){ RM.cat = el.dataset.c; RM.iid = ''; RM.sel = new Set(); rmDraw(); }
+function rmIt(el){ RM.iid = el.value; RM.sel = new Set(); rmDraw(); if (RM.iid === '__new'){ const n = $('rmNew'); if (n) n.focus(); } }
+function rmAll(el){
+  const on = el.dataset.v === '1';
+  document.querySelectorAll('#rmList .rmrow').forEach(r => { if (r.style.display === 'none') return; const c = r.querySelector('input'); if (c.disabled) return; c.checked = on; on ? RM.sel.add(c.dataset.sid) : RM.sel.delete(c.dataset.sid); });
+  rmCount();
+}
+function rmApply(){
+  const cur = RM.iid === '__new' ? {} : (rsIdx()[RM.iid] || {});
+  const toks = ($('rmPaste').value || '').split(/[\s,;，、·]+/).filter(Boolean);
+  const hit = new Set(), amb = [], none = [], had = [];
+  toks.forEach(t0 => {
+    let t = t0, sid = null; const m = /^(\d{5})(.*)$/.exec(t);
+    if (m){ sid = m[1]; t = m[2]; }
+    let st = null;
+    if (sid){ st = DATA.students.find(x => x.sid === sid); if (!st){ none.push(t0); return; } }
+    else {
+      if (!t) return;
+      const L = DATA.students.filter(x => x.name === t);
+      if (L.length > 1){ amb.push(t); return; }
+      if (!L.length){ none.push(t0); return; }
+      st = L[0];
+    }
+    if (cur[st.sid]){ had.push(st.name); return; }
+    hit.add(st.sid);
+  });
+  hit.forEach(id => RM.sel.add(id));
+  document.querySelectorAll('#rmList input').forEach(c => { c.checked = RM.sel.has(c.dataset.sid); });
+  rmCount();
+  const bits = [`✅ ${hit.size}명 체크했어요`];
+  if (had.length) bits.push(`이미 명단에 있어요: ${[...new Set(had)].map(esc).join(', ')}`);
+  if (amb.length) bits.push(`⚠️ 이름이 같은 학생이 여러 명이에요 → 목록에서 직접 체크하거나 학번을 같이 적어 주세요: ${[...new Set(amb)].map(esc).join(', ')}`);
+  if (none.length) bits.push(`❓ 찾지 못했어요: ${[...new Set(none)].map(esc).join(', ')}`);
+  $('rmRep').innerHTML = bits.join('<br>');
+}
+async function rmSave(btn){
+  const msg = t => { const e = $('rmMsg'); if (e){ e.textContent = t; e.className = 'msg no'; } };
+  const isNew = RM.iid === '__new', title = isNew ? ($('rmNew').value || '').trim() : '';
+  if (isNew && !title){ msg('새 항목 이름을 적어 주세요.'); return; }
+  const sids = DATA.students.map(x => x.sid).filter(id => RM.sel.has(id));
+  if (!sids.length){ msg('참여한 학생을 한 명 이상 체크해 주세요.'); return; }
+  const blocked = [];
+  if (!isNew) sids.forEach(sid => { const x = rexcOf(RM.iid, sid); if (x) blocked.push({ iid:RM.iid, sid, name:stuNameOf(sid) || x.name, ex:x }); });
+  let allow = [];
+  if (blocked.length){ const ok = await excAsk(blocked); if (!ok) return; allow = blocked.filter(b => ok.has(b.iid + '|' + b.sid)).map(b => b.sid); }
+  btn.disabled = true;
+  try{
+    let iid = RM.iid;
+    if (isNew){
+      const rr = await api('saveItems', { data:JSON.stringify({ mode:'append', cat:'', items:[{ cat:RM.cat, title:title.substring(0, 60), note:'', tnote:'', term:'', dest:'', give:false, chk:false, rtype:'없음', url:'' }] }) });
+      iid = (rr.ids || [])[0]; if (!iid) throw new Error('새 항목을 만들지 못했어요.');
+    }
+    const rows = [], seen = new Set();
+    (DATA.roster || []).filter(r => r.iid === iid && r.src === RM_SRC).forEach(r => { if (!seen.has(r.sid)){ seen.add(r.sid); rows.push([r.sid, r.name, (r.txt || '').substring(0, 60), r.giv || '']); } });
+    const had = new Set((DATA.roster || []).filter(r => r.iid === iid).map(r => r.sid));
+    let add = 0;
+    sids.forEach(sid => { if (seen.has(sid) || had.has(sid)) return; seen.add(sid); rows.push([sid, stuNameOf(sid), '', '']); add++; });
+    const pk = await rsPack(iid, RM_SRC, false, rows, allow);
+    if (pk.len > RS_LIM * 1.7) throw new Error('한 번에 보내기엔 너무 많아요. 두 번에 나눠 저장해 주세요.');
+    const rr = await api('rosterSave', pk.q);
+    await refresh(); $('rmOv').classList.add('hide');
+    toast(`명단에 ${add}명 저장했어요 ✅` + (rr && rr.skipped && rr.skipped.length ? ` (뺀 학생 ${rr.skipped.length}명은 제외)` : ''));
+  }catch(e){ msg(e.message); }
+  btn.disabled = false;
+}
+document.addEventListener('change', e => { const c = e.target; if (c && c.id === 'rmIt'){ rmIt(c); return; } if (!c.matches || !c.matches('#rmList input[type=checkbox]')) return; c.checked ? RM.sel.add(c.dataset.sid) : RM.sel.delete(c.dataset.sid); rmCount(); });
+document.addEventListener('input', e => {
+  const t = e.target; if (!t || !t.id) return;
+  if (t.id === 'rmQ'){ const q = t.value.trim(); document.querySelectorAll('#rmList .rmrow').forEach(r => { r.style.display = !q || r.dataset.k.includes(q) ? '' : 'none'; }); }
+  else if (t.id === 'rmNew') RM.title = t.value;
+});
+
+Object.assign(ACT, { rmOpen, rmCat, rmIt, rmAll, rmApply, rmSave: el => rmSave(el), excPick, excAll, excSel, excWhy, excGo, exlOpen, exbGo, exbAll, ov1, rsDelAct, rsDelIid,
   excOne: el => excOpen(el.dataset.iid, [el.dataset.sid]), exbCancel: () => exbDone(null),
   exlBack: el => exlAct(el, 'rosterExcBack'), exlDel: el => exlAct(el, 'rosterExcDel') });
 document.addEventListener('click', e => {
@@ -5877,6 +5979,7 @@ function saveItemCards(){ try{ localStorage.setItem('ac_itemopen_v1', JSON.strin
 </script>
 <div class="ov hide" id="excOv" data-a="ov1"><div class="in" id="excBox" style="max-width:520px"></div></div>
 <div class="ov hide" id="exlOv" data-a="ov1"><div class="in" id="exlBox" style="max-width:640px"></div></div>
+<div class="ov hide" id="rmOv" data-a="ov1"><div class="in" id="rmBox" style="max-width:640px"></div></div>
 <div class="ov hide" id="exbOv" data-a="ov1"><div class="in" id="exbBox" style="max-width:600px"></div></div>
 <div class="ov hide" id="qrOv"><div class="in" style="max-width:820px;text-align:center">
   <div id="qrOvT" style="font-size:22px;font-weight:800;color:#2E2A3F"></div>
