@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#7B6FA0">
+<title>🌟 아듬's 마음 기록</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{--bg:#F7F5F0;--surface:#FEFCF8;--line:#E8E2D8;--tx:#2A2520;--tx2:#5E564D;--tx3:#857C71;
+  --ac:#7B6FA0;--acd:#5E5385;--acs:#F0EEF8;--acl:#EAE8F4;--onac:#fff;--warm:#C4856A;--warml:#F5EAE4;--green:#5A8A70;--greenl:#E8F2EC;--err:#B3382C}
+body[data-th="praise"]{--bg:#FFFAEB;--surface:#fff;--line:#F0DFA6;--ac:#F5D06B;--acd:#6B5100;--acs:#FFF6D6;--acl:#FCEBB0;--onac:#412402;--tx2:#5A4A1E;--tx3:#8A7A4A}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:'Pretendard',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:var(--bg);color:var(--tx);line-height:1.55;-webkit-text-size-adjust:100%}
+button,input,textarea,select{font-family:inherit;font-size:16px;color:inherit}
+button{cursor:pointer;border:0;background:none}
+#app{max-width:480px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;background:var(--bg);position:relative;padding-top:env(safe-area-inset-top)}
+.hide{display:none!important}
+.screen{display:none;flex:1;min-height:0;flex-direction:column}
+.screen.active{display:flex}
+.hdr{display:flex;align-items:center;gap:6px;padding:12px 16px 10px;background:var(--surface);border-bottom:1px solid var(--line);min-height:56px}
+.hdr h1{font-size:18px;font-weight:700;flex:1;min-width:0}
+.hdr small{display:block;font-size:12px;color:var(--tx3);font-weight:500}
+.ib{min-width:44px;min-height:44px;border-radius:50%;font-size:20px;color:var(--tx2);display:inline-flex;align-items:center;justify-content:center}
+.ib:active{background:var(--line)}
+.scr{flex:1;min-height:0;overflow-y:auto;padding:16px 16px 28px;-webkit-overflow-scrolling:touch}
+.foot{display:flex;gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--line)}
+.btn{min-height:48px;padding:0 18px;border-radius:14px;font-weight:700;background:var(--ac);color:var(--onac);flex:1;font-size:15px}
+.btn.sub{background:var(--surface);color:var(--tx2);border:1.5px solid var(--line)}
+.btn.warm{background:var(--warm);color:#fff}
+.btn.sm{min-height:44px;font-size:14px;flex:none;padding:0 14px}
+.btn.del{background:var(--surface);color:var(--err);border:1.5px solid #EBC9C4}
+.btn[disabled]{opacity:.5}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}
+.lbl{font-size:13px;font-weight:700;color:var(--tx2);margin:0 0 10px}
+.lbl small{font-weight:500;color:var(--tx3)}
+.sec{margin-bottom:24px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:44px;padding:0 15px;border-radius:24px;border:1.5px solid var(--line);background:var(--surface);color:var(--tx2);font-size:15px;font-weight:600;line-height:1.25}
+.chip.on{background:var(--ac);border-color:var(--ac);color:var(--onac)}
+.chip.mini{min-height:36px;font-size:13px;padding:0 12px}
+.chip.xl{flex-direction:column;display:inline-flex;align-items:center;justify-content:center;padding:8px 6px;min-width:64px}
+.grp{font-size:12.5px;font-weight:700;color:var(--acd);margin:14px 0 8px}
+.grp:first-child{margin-top:0}
+.grp i{font-style:normal;color:var(--tx3);font-weight:500}
+.faces{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.face{min-height:78px;border-radius:16px;border:1.5px solid var(--line);background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11.5px;color:var(--tx2);padding:4px 2px;line-height:1.25;text-align:center}
+.face b{font-size:28px;line-height:1}
+.face.on{background:var(--ac);border-color:var(--ac);color:var(--onac);font-weight:700}
+input[type=text],input[type=password],input[type=url],input[type=tel],textarea,select{width:100%;min-height:48px;padding:10px 14px;border:1.5px solid var(--line);border-radius:14px;background:var(--surface);outline:none}
+textarea{min-height:92px;resize:none;line-height:1.65}
+input:focus,textarea:focus,select:focus{border-color:var(--ac)}
+.hint{font-size:12.5px;color:var(--tx3);line-height:1.6;margin-top:6px}
+.msg{font-size:13.5px;margin-top:10px;color:var(--err);min-height:18px}
+.msg.ok{color:var(--green)}
+.center{text-align:center}
+.logo{font-size:26px;font-weight:800;color:var(--acd);margin-bottom:6px}
+.pad{padding:44px 24px}
+/* 홈 */
+.greet{font-size:17px;line-height:1.7}
+.greet small{display:block;font-size:12px;color:var(--tx3);margin-bottom:6px}
+.praiseCta{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:#FFF6D6;border:1.5px solid #F0DFA6;border-radius:18px;padding:16px;margin-bottom:14px;color:#6B5100}
+.praiseCta b{display:block;font-size:17px}
+.praiseCta span.e{font-size:34px}
+.praiseCta small{font-size:12.5px;color:#8A7A4A}
+.blameCta{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--acl);border:1.5px solid var(--ac);border-radius:18px;padding:14px 16px;margin-bottom:14px;color:var(--acd)}
+.blameCta b{display:block;font-size:16px}.blameCta span.e{font-size:30px}.blameCta small{font-size:12.5px;color:var(--tx3)}
+.rpBars{display:flex;gap:6px;align-items:flex-end;height:96px;margin:8px 0 4px}
+.rpBars div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;font-size:10.5px;color:var(--tx3);height:100%}
+.rpBars i{display:block;width:100%;max-width:30px;border-radius:6px 6px 2px 2px;background:#F5D06B;min-height:3px}
+.rpBars i.z{background:var(--line)}
+.rpN{display:flex;align-items:baseline;gap:6px;margin:4px 0}.rpN b{font-size:26px}.rpN small{color:var(--tx3);font-size:12.5px}
+.menu{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.mc{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 14px;text-align:left;min-height:84px}
+.mc .e{font-size:24px;display:block;margin-bottom:6px}
+.mc b{font-size:14.5px;display:block}
+.mc small{font-size:11.5px;color:var(--tx3)}
+.qe{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.qe button{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 4px;font-size:13px;color:var(--tx2);min-height:60px}
+.qe button b{display:block;font-size:22px;font-weight:400}
+.row{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:8px;width:100%;text-align:left;display:block}
+.row .t{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:5px}
+.row .k{font-size:12px;font-weight:700;border-radius:99px;padding:2px 10px;background:var(--acl);color:var(--acd)}
+.row .k.b{background:#E6E0F5;color:#4B3F7A}
+.row .k.p{background:#FCEBB0;color:#6B5100}.row .k.r{background:#E8F2EC;color:#2F6B4A}
+.row .d{font-size:11.5px;color:var(--tx3);white-space:nowrap}
+.row .p{font-size:13px;color:var(--tx2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.55}
+.empty{text-align:center;color:var(--tx3);padding:32px 12px;font-size:14px;line-height:1.8}
+/* 진행 */
+.prog{height:5px;background:var(--line);border-radius:5px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--ac);border-radius:5px;transition:width .3s}
+.stepT{font-size:21px;font-weight:800;line-height:1.4;margin-bottom:6px}
+.stepS{font-size:13.5px;color:var(--tx3);margin-bottom:18px;line-height:1.6}
+/* 온보딩 */
+.opt{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:15px 16px;font-size:14.5px;width:100%;text-align:left;margin-bottom:10px;min-height:52px;color:var(--tx)}
+.opt.on{border-color:var(--ac);background:var(--acs);color:var(--acd);font-weight:600}
+.spec{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.spec button{min-height:58px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);font-size:12px;color:var(--tx3);line-height:1.3}
+.spec button.on{border-color:var(--ac);background:var(--acs);color:var(--acd);font-weight:700}
+/* 달력 */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal .w{font-size:11.5px;color:var(--tx3);padding:2px 0}
+.cal button,.cal div.x{min-height:44px;border-radius:12px;font-size:13px;color:var(--tx2);display:flex;align-items:center;justify-content:center;position:relative}
+.cal button.has{background:#F5D06B;color:#412402;font-weight:800}
+.cal button.today{box-shadow:inset 0 0 0 2px #6B5100}
+.cal button.sel{outline:2.5px solid #6B5100}
+.cal button sup{font-size:9px;margin-left:1px}
+.stat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stat div{background:var(--acs);border-radius:14px;padding:12px 6px;text-align:center;font-size:12px;color:var(--acd)}
+.stat b{display:block;font-size:22px;color:var(--tx)}
+.big{background:var(--ac);color:var(--onac);border-radius:18px;padding:20px 18px;font-size:17px;line-height:1.7;font-weight:600;margin:12px 0}
+.sentence{background:var(--acs);border:1.5px dashed var(--ac);border-radius:14px;padding:14px;font-size:14.5px;line-height:1.8;margin-top:12px;color:var(--tx)}
+/* 채팅 */
+.msgs{display:flex;flex-direction:column;gap:14px}
+.mw{display:flex;flex-direction:column}.mw.user{align-items:flex-end}.mw.ai{align-items:flex-start}
+.mn{font-size:11px;color:var(--tx3);margin:0 4px 3px}
+.bub{max-width:84%;padding:12px 15px;border-radius:18px;font-size:14.5px;line-height:1.7;white-space:pre-wrap;word-break:break-word}
+.mw.user .bub{background:#7B6FA0;color:#fff;border-bottom-right-radius:4px}
+.mw.ai .bub{background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:4px}
+.dots{display:flex;gap:4px;padding:4px 2px}.dots i{width:7px;height:7px;border-radius:50%;background:var(--tx3);animation:bn 1.2s infinite}.dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}
+@keyframes bn{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+.cbar{display:flex;gap:8px;align-items:flex-end;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--line)}
+.cbar textarea{min-height:44px;max-height:110px;border-radius:22px;padding:11px 16px;flex:1}
+.send{width:46px;height:46px;border-radius:50%;background:var(--ac);color:var(--onac);font-size:18px;flex:none}
+.qr{display:flex;gap:6px;overflow-x:auto;padding:8px 12px 0;background:var(--surface)}
+.qr .chip{white-space:nowrap;flex:none}
+/* 탭바 */
+#tabbar{display:flex;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+#tabbar button{flex:1;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;color:var(--tx3)}
+#tabbar button span{font-size:22px;line-height:1}
+#tabbar button.on{color:var(--acd);font-weight:700}
+/* 모달 */
+#ov{position:fixed;inset:0;background:rgba(40,30,70,.45);z-index:60;display:none;align-items:flex-end;justify-content:center}
+#ov.open{display:flex}
+#ov .in{background:var(--surface);border-radius:22px 22px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));width:100%;max-width:480px;max-height:88vh;overflow:auto}
+#ov h2{font-size:18px;margin-bottom:8px;color:var(--acd)}
+.dl{font-size:14px;line-height:1.8;color:var(--tx2);white-space:pre-wrap;word-break:break-word}
+.dl b{color:var(--tx)}
+#toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(16px);background:#2A2520;color:#fff;padding:11px 20px;border-radius:24px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:99;max-width:90vw;text-align:center}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.set{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:14px}
+.set button,.set div.si{display:flex;justify-content:space-between;align-items:center;width:100%;padding:14px 16px;min-height:52px;border-bottom:1px solid var(--line);font-size:15px;text-align:left}
+.set>:last-child{border-bottom:0}
+.set small{color:var(--tx3);font-size:13px}
+.stt{font-size:12px;color:var(--tx3);margin:16px 4px 8px;font-weight:700}
+.sw{width:50px;height:30px;border-radius:15px;background:var(--line);position:relative;flex:none}
+.sw::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s}
+.sw.on{background:#F5D06B}.sw.on::after{left:23px}
+.fade{animation:fu .35s ease both}@keyframes fu{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+a{color:var(--acd)}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- 연결 -->
+<div class="screen" id="sConn"><div class="scr pad center">
+  <div class="logo">🌟 아듬's 마음 기록</div>
+  <p class="hint" style="margin:0 0 26px">내 마음을 기록하고, 나를 칭찬하는 나만의 공간이에요</p>
+  <div style="text-align:left">
+    <label class="lbl">내 구글 시트 연결 주소 (GAS 웹앱 URL)</label>
+    <input type="url" id="inGas" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off">
+    <div class="msg" id="mConn"></div>
+    <button class="btn" style="width:100%;margin-top:6px" data-act="connect">연결하기</button>
+    <p class="hint">이미 다른 기기에서 쓰고 있다면, 그 기기 설정의 <b>'기기 연결 링크 복사'</b>로 열면 이 단계 없이 바로 PIN 화면이 나와요.</p>
+  </div>
+  <p class="hint" style="margin-top:28px">Made by Cheon_R</p>
+</div></div>
+
+<!-- PIN -->
+<div class="screen" id="sPin"><div class="scr pad center">
+  <div class="logo">🌟 아듬's 마음 기록</div>
+  <div id="pinTitle" style="font-weight:800;font-size:17px;margin:14px 0 4px"></div>
+  <p class="hint" id="pinHint" style="margin:0 0 18px"></p>
+  <div style="text-align:left">
+    <input type="password" id="inPin" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="off" style="text-align:center;letter-spacing:8px;font-size:22px">
+    <input type="password" id="inPin2" class="hide" inputmode="numeric" maxlength="6" placeholder="한 번 더" autocomplete="off" style="text-align:center;letter-spacing:8px;font-size:22px;margin-top:10px">
+    <label style="display:flex;gap:10px;align-items:center;margin-top:14px;font-size:14px;min-height:44px"><input type="checkbox" id="inKeep" checked style="width:22px;height:22px"> 이 기기에서 로그인 유지</label>
+    <div class="msg" id="mPin"></div>
+    <button class="btn" style="width:100%;margin-top:6px" data-act="pinGo" id="btnPin">들어가기</button>
+    <p class="hint" id="pinForgot">PIN을 잊었다면 구글 시트의 <b>Apps Script</b>에서 <b>PIN초기화</b> 함수를 한 번 실행하면 돼요. 기록은 그대로 남아요.</p>
+  </div>
+  <p class="hint" style="margin-top:22px">Made by Cheon_R</p>
+</div></div>
+
+<!-- 불러오는 중 -->
+<div class="screen" id="sLoad"><div class="scr pad center"><div class="logo">🌟</div><p class="hint">불러오는 중이에요…</p></div></div>
+
+<!-- 온보딩 -->
+<div class="screen" id="sOnb">
+  <div class="hdr" style="flex-direction:column;align-items:stretch;gap:8px;padding-top:16px"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--tx3)"><span id="obLbl">시작</span><span id="obPct">0%</span></div><div class="prog"><i id="obBar" style="width:0"></i></div></div>
+  <div class="scr" id="obBody"></div>
+  <div class="foot"><button class="btn sub" id="obPrev" data-act="obPrev" style="flex:1">이전</button><button class="btn" id="obNext" data-act="obNext" style="flex:2">다음</button></div>
+</div>
+
+<!-- 홈 -->
+<div class="screen" id="sHome">
+  <div class="hdr"><div style="flex:1"><h1>🌟 아듬's 마음 기록</h1><small id="hDate"></small></div><button class="ib" data-act="refresh" aria-label="새로고침">↻</button></div>
+  <div class="scr" id="homeBody"></div>
+</div>
+
+<!-- 감정 기록 -->
+<div class="screen" id="sRec">
+  <div class="hdr"><button class="ib" data-act="goHome" aria-label="뒤로">◀</button><h1>감정 기록</h1></div>
+  <div class="scr" id="recBody"></div>
+  <div class="foot"><button class="btn sub" data-act="goHome" style="flex:1">취소</button><button class="btn" data-act="recSave" style="flex:2">저장하기</button><button class="btn warm" data-act="recSaveChat" style="flex:2">저장 후 상담</button></div>
+</div>
+
+<!-- 마음 바꾸기 카드 -->
+<div class="screen" id="sRf">
+  <div class="hdr"><button class="ib" data-act="rfBack" aria-label="뒤로">◀</button><h1 id="rfT">마음 바꾸기 카드</h1></div>
+  <div class="scr" id="rfBody"></div>
+  <div class="foot hide" id="rfFoot"><button class="btn sub" data-act="rfBack" style="flex:1">다른 카드</button><button class="btn" data-act="rfSave" style="flex:2">이렇게 바꿀래요</button></div>
+</div>
+
+<!-- 칭찬일기 -->
+<div class="screen" id="sPraise">
+  <div class="hdr" style="flex-direction:column;align-items:stretch;gap:6px;padding-bottom:12px"><div style="display:flex;align-items:center;gap:6px"><button class="ib" data-act="pExit" aria-label="닫기">✕</button><h1>칭찬일기</h1><span id="pCnt" style="font-size:12px;color:var(--tx3)"></span></div><div class="prog"><i id="pBar" style="width:0"></i></div></div>
+  <div class="scr" id="pBody"></div>
+  <div class="foot" id="pFoot"><button class="btn sub" data-act="pPrev" id="pPrev" style="flex:1">이전</button><button class="btn" data-act="pNext" id="pNext" style="flex:2">다음</button></div>
+</div>
+
+<!-- 자책 풀기 -->
+<div class="screen" id="sBlame">
+  <div class="hdr" style="flex-direction:column;align-items:stretch;gap:6px;padding-bottom:12px"><div style="display:flex;align-items:center;gap:6px"><button class="ib" data-act="bExit" aria-label="닫기">✕</button><h1>🌧️ 자책 풀기</h1><span id="bCnt" style="font-size:12px;color:var(--tx3)"></span></div><div class="prog"><i id="bBar" style="width:0"></i></div></div>
+  <div class="scr" id="bBody"></div>
+  <div class="foot" id="bFoot"><button class="btn sub" data-act="bPrev" id="bPrev" style="flex:1">이전</button><button class="btn" data-act="bNext" id="bNext" style="flex:2">다음</button></div>
+</div>
+<!-- 주간 돌아보기 -->
+<div class="screen" id="sReport">
+  <div class="hdr"><button class="ib" data-act="goHome" aria-label="뒤로">◀</button><div style="flex:1"><h1>📈 돌아보기</h1><small>내 기록이 말해주는 변화</small></div></div>
+  <div class="scr" id="rpBody"></div>
+</div>
+<!-- 칭찬 모음 -->
+<div class="screen" id="sPraiseHub">
+  <div class="hdr"><div style="flex:1"><h1>✨ 칭찬 모음</h1><small>내가 나에게 해준 칭찬들</small></div></div>
+  <div class="scr" id="phBody"></div>
+</div>
+
+<!-- 기록 -->
+<div class="screen" id="sHist">
+  <div class="hdr"><h1>📋 기록 모아보기</h1></div>
+  <div class="scr" id="histBody"></div>
+</div>
+
+<!-- 설정 -->
+<div class="screen" id="sSet">
+  <div class="hdr"><h1>⚙️ 설정</h1></div>
+  <div class="scr" id="setBody"></div>
+</div>
+
+<!-- 칭찬 항목 관리 -->
+<div class="screen" id="sChips">
+  <div class="hdr"><button class="ib" data-act="goSet" aria-label="뒤로">◀</button><div style="flex:1"><h1>칭찬 항목 관리</h1><small>켜고 끄고, 내 항목 추가</small></div></div>
+  <div class="scr" id="chipsBody"></div>
+</div>
+
+<!-- 상담 -->
+<div class="screen" id="sChat">
+  <div class="hdr"><button class="ib" data-act="goHome" aria-label="뒤로">◀</button><div style="flex:1"><h1>AI 상담사</h1><small>편하게 이야기해요</small></div><button class="ib" data-act="chatClear" aria-label="새 대화">🔄</button></div>
+  <div class="scr" id="chatScr"><div class="msgs" id="msgs"></div></div>
+  <div class="qr" id="qr"></div>
+  <div class="cbar"><textarea id="chatIn" rows="1" placeholder="여기에 입력해요…" data-in="chat"></textarea><button class="send" id="sendBtn" data-act="chatSend" aria-label="보내기">➤</button></div>
+</div>
+
+<nav id="tabbar" class="hide">
+  <button data-act="tab" data-s="sHome" data-t="home"><span>🏠</span>홈</button>
+  <button data-act="tab" data-s="sPraiseHub" data-t="praise"><span>✨</span>칭찬</button>
+  <button data-act="tab" data-s="sHist" data-t="hist"><span>📋</span>기록</button>
+  <button data-act="tab" data-s="sSet" data-t="set"><span>⚙️</span>설정</button>
+</nav>
+</div>
+<div id="ov" data-act="ovBg"><div class="in" id="ovIn"></div></div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* ===== 마음 기록 · Made by Cheon_R ===== */
+const K = { gas: 'mind_gas_v1', pin: 'mind_pin_v1', api: 'mind_api_v1', model: 'mind_model_v1' };
+const DEFAULT_MODEL = 'claude-sonnet-5-5';
+const OB_STEPS = [
+
+  // ── 인트로 ──
+  { type:'intro', title:'마음 기록에 오신 걸 환영해요.', body:'몇 가지 질문을 통해\n나만의 상담 프로그램을 만들어드릴게요.\n\n솔직하게 답해줄수록 더 잘 도와드릴 수 있어요.' },
+
+  // ── 섹션1: 고민과 목표 ──
+  { type:'section', label:'고민과 목표', title:'지금 나의 삶은\n어떤 상태인가요?' },
+  { type:'single', label:'고민과 목표', key:'mainProblem', title:'요즘 나의 일상을 가장 많이 흔드는 것은?', options:['관계에서 오는 감정 (가까운 사람과의 갈등)', '스스로에 대한 실망이나 자책', '번아웃 / 만성 피로', '불안 / 걱정이 멈추지 않음', '분노나 답답함이 자꾸 쌓임', '슬픔이나 외로움', '잘 모르겠음'] },
+  { type:'intermission', title:'나의 잘못이 아니에요.', body:'우리의 감정은 저마다의 이유로 흔들려요.\n\n고통은 내가 약하거나 부족해서가 아니에요.\n지금부터 함께 그 감정을 들여다볼게요.' },
+  { type:'multi', label:'고민과 목표', key:'stressContext', title:'요즘 나를 힘들게 하는 상황이 있나요?', sub:'해당하는 것 모두 골라요', options:['인간관계에서의 갈등 또는 서운함', '내가 기대한 것과 다른 현실', '나에 대한 높은 기준과 실망', '인정받지 못한다는 느낌', '경계를 지키지 못한 상황', '신체 증상 (두통, 피로, 소화불량 등)', '해당 없음'] },
+  { type:'single', label:'고민과 목표', key:'frequency', title:'이런 어려움이 얼마나 자주 찾아오나요?', options:['하루에도 여러 번', '하루에 한 번 정도', '2~3일에 한 번 정도', '일주일에 한 번 정도', '더 드물게'] },
+  { type:'multi', label:'고민과 목표', key:'wantGoal', title:'이 앱을 통해 얻고 싶은 것은?', sub:'해당하는 것 모두 골라요', options:['감정을 정리하고 싶어요', '내 감정을 더 잘 알고 싶어요', '부정적 감정에 지배당하지 않고 싶어요', '사람들 속에서 더 편안하게 있고 싶어요', '스스로를 더 따뜻하게 대하고 싶어요', '일상을 더 안정적으로 보내고 싶어요'] },
+
+  // ── 섹션2: 인식과 기대 ──
+  { type:'section', label:'인식과 기대', title:'마음에 대한\n나의 생각을 들어볼게요.' },
+  { type:'spectrum', label:'인식과 기대', key:'belief_health', title:'마음이 건강하다는 것은', left:'고통을 잘 이겨낸다는 것이다', right:'고통이 없다는 것이다' },
+  { type:'spectrum', label:'인식과 기대', key:'belief_cause', title:'내 마음을 힘들게 하는 것은', left:'외적인 요인 때문이다', right:'내적인 요인 때문이다' },
+  { type:'spectrum', label:'인식과 기대', key:'belief_trigger', title:'내가 겪는 심리적 어려움은', left:'항상 내 곁에 있다', right:'특정한 트리거로 발생한다' },
+  { type:'intermission', title:'감정은 원인이 있어요.', body:'마음이 동작하는 원리를 알면\n문제를 근본부터 다룰 수 있어요.\n\n피하거나 덮어버리는 방식으로는\n심리적 괴로움에서 벗어날 수 없어요.' },
+  { type:'spectrum', label:'인식과 기대', key:'belief_self', title:'내 마음이 안정적이라면', left:'스스로를 더 사랑할 것이다', right:'그와 무관하게 사랑할 것이다' },
+  { type:'single', label:'인식과 기대', key:'ideal_therapy', title:'나에게 맞는 이상적인 마음 돌봄은?', options:['근본 원인을 해결하는 것', '빠르게 증상을 완화하는 것', '스스로 이겨낼 힘을 기르는 것', '잘 모르겠음'] },
+
+  // ── 섹션3: 습관과 노력 ──
+  { type:'section', label:'습관과 노력', title:'지금까지 어떻게\n감정을 다뤄왔나요?' },
+  { type:'intermission', title:'그동안 애써 오셨다는 걸 잘 알아요.', body:'지금까지의 노력이 있었기에\n지금의 내가 있는 거예요.\n\n지금부터는 나의 습관을 살펴볼게요.' },
+  { type:'ox', label:'습관과 노력', key:'habit_avoid', title:'나는 부정적인 경험을\n애초에 차단하고자 회피한다.' },
+  { type:'ox', label:'습관과 노력', key:'habit_suppress', title:'나는 특정 행동에 매달리며\n부정적인 감정을 제거하려 한다.' },
+  { type:'ox', label:'습관과 노력', key:'habit_distract', title:'나는 부정적인 생각이 들면\n주의를 돌려 그것을 덮으려 한다.' },
+  { type:'ox', label:'습관과 노력', key:'habit_ruminate', title:'나는 지난 과거를 곱씹으며\n답을 찾으려 애쓴다.' },
+  { type:'ox', label:'습관과 노력', key:'habit_future', title:'나는 다가올 미래를 예측하고\n대비하려 노력한다.' },
+
+  // ── 섹션4: 관점과 방식 ──
+  { type:'section', label:'관점과 방식', title:'어떤 방식으로\n변화를 만들어갈까요?' },
+  { type:'single', label:'관점과 방식', key:'approach', title:'다양한 치료 대안을 고민할 때,\n어떤 점이 가장 우려되나요?', options:['부작용이나 의존성', '다른 사람들의 시선', '지속하지 못할까봐', '걱정 없음'] },
+  { type:'spectrum', label:'관점과 방식', key:'scope', title:'마음을 치료하는 것은', left:'삶 전반에 영향을 준다', right:'일부에만 영향을 준다' },
+  { type:'single', label:'관점과 방식', key:'value', title:'마음 문제를 해결할 때,\n나에게 가장 중요한 가치는?', options:['스스로 이겨낼 힘을 기르는 것', '재발 없이 확실히 해결하는 것', '일상이 빠르게 안정되는 것', '잘 모르겠음'] },
+  { type:'intermission', title:'변화는 지속가능해야 해요.', body:'단순히 괴로움을 없애는 것을 넘어서\n삶의 중심을 지키는 법을 배우는 거예요.\n\n작은 성공 경험을 쌓으며\n더 큰 변화로 나아가요.' },
+
+  // ── 섹션5: 의지와 동기 ──
+  { type:'section', label:'의지와 동기', title:'변화를 위한\n준비가 되어있나요?' },
+  { type:'single', label:'의지와 동기', key:'motivation', title:'건강한 마음을 향한\n나의 바람은 어떻게 변해왔나요?', options:['꾸준히 커왔다', '커졌다 작아졌다 한다', '어떤지 잘 모르겠다'] },
+  { type:'single', label:'의지와 동기', key:'commitment', title:'이 앱에 대한 나의 마음은?', options:['잘 해낼 수 있다', '해볼만 한 것 같다', '아직 걱정이 많다'] },
+  { type:'multi', label:'의지와 동기', key:'lifeValues', title:'건강한 마음 외에,\n내 삶에서 중요한 것은?', sub:'해당하는 것 모두 골라요', options:['가까운 관계', '일과 성취', '배움과 성장', '여가와 회복', '자유로움', '나다운 삶'] },
+  { type:'ox', label:'의지와 동기', key:'selfMotivation', title:'나는 쉽게 포기하기 때문에\n외부적인 동기부여 장치가 필요하다.' },
+  { type:'intermission', title:'완벽한 사람은 없어요.', body:'자책하거나 가라앉을 때마다\n다시 일어서서 앞으로 나아갈 수 있도록\n이 앱이 함께할게요.\n\n오늘부터 조금씩 시작해봐요 🤍' },
+
+  // ── 최종 결과 ──
+  { type:'result' }
+];
+const COUNSEL_PRINCIPLES = "【상담 원칙】\n\n1. 공감 우선: 판단 없이 감정을 먼저 충분히 받아주세요. \"그랬구나, 많이 힘들었겠다\"처럼 감정을 인정하고 명명하세요.\n\n2. 억눌린 감정 꺼내기: 아듬샘이 \"괜찮아\" \"별거 아니야\"라고 할 때 부드럽게 탐색하세요. 특히 화, 실망, 욕구를 안전하게 표현할 수 있도록 도와주세요.\n\n3. CBT 기반 인지재구성: 공감 충분히 한 후, 자연스럽게 \"그 상황을 다르게 볼 수 있는 방법이 있을까요?\" 식으로 유도\n\n4. 신체-감정 연결: \"그때 몸은 어땠어요? 어디가 불편했나요?\" 처럼 신체 감각과 감정을 연결하도록 도와주세요\n\n5. 자기수용 강화: 아듬샘이 스스로에게 가혹할 때 부드럽게 알아차리게 해주세요. \"그건 잘못한 게 아니에요\"처럼\n\n6. 인정욕구 정상화: 관계에서 인정받고 싶은 마음이 당연함을 알게 해주세요\n\n7. 짧고 따뜻하게: 너무 길지 않게, 한 번에 하나의 질문만. 대화하듯 자연스럽게.\n\n8. 한국어로만 답변. 존댓말과 반말 중간의 따뜻한 말투 (예: \"~했군요\", \"~해요\", \"~어때요?\")\n\n절대 하지 말 것: 단순 위로만 반복, 조언 쏟아붓기, 진단적 표현 남발, 과도하게 긴 답변";
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+const lsDel = (k) => { try { localStorage.removeItem(k); } catch (e) {} };
+(function () { const g = new URLSearchParams(location.search).get('gas'); if (g) { lsSet(K.gas, g.trim()); try { history.replaceState(null, '', location.pathname); } catch (e) {} } })();
+let GAS = lsGet(K.gas, '');
+let PIN = '';
+
+function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove('on'), 2400); }
+
+/* ----- 서버 통신 (JSONP) ----- */
+let jpSeq = 0;
+const RETRY_OK = { ping: 1, load: 1 };
+async function jsonp(params) {
+  if (!RETRY_OK[params.action]) return jsonp1(params);
+  let last;
+  for (let i = 0; i < 3; i++) {
+    try { return await jsonp1(params); }
+    catch (e) { last = e; if (!(e && (e.busy || e.net))) throw e; await new Promise(r => setTimeout(r, 700 * (i + 1) + Math.random() * 600)); }
+  }
+  throw last;
+}
+function b64u(str) { const by = new TextEncoder().encode(str); let bin = ''; for (let i = 0; i < by.length; i += 8192) bin += String.fromCharCode.apply(null, by.subarray(i, i + 8192)); return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+function jsonp1(params) {
+  return new Promise((resolve, reject) => {
+    if (!GAS) return reject(new Error('연결 주소가 없어요. 설정에서 먼저 연결해 주세요.'));
+    const cb = '__mind' + Date.now() + (jpSeq++);
+    const s = document.createElement('script');
+    const t = setTimeout(() => { cleanup(); const e = new Error('서버 응답이 없어요. 잠시 뒤 다시 해 보세요.'); e.net = 1; reject(e); }, 25000);
+    function cleanup() { clearTimeout(t); delete window[cb]; s.remove(); }
+    window[cb] = (res) => { cleanup(); if (res && res.ok) return resolve(res); const e = new Error((res && res.error) || '요청에 실패했어요.'); if (res && res.busy) e.busy = 1; reject(e); };
+    const q = new URLSearchParams(Object.assign({}, params, { callback: cb, _: Date.now() }));
+    const full = GAS + (GAS.includes('?') ? '&' : '?') + q.toString();
+    if (full.length > 14000) { cleanup(); return reject(new Error('글이 너무 길어서 보낼 수 없어요. 조금 줄여 주세요.')); }
+    s.src = full;
+    s.onerror = () => { cleanup(); const e = new Error('서버에 연결하지 못했어요. 인터넷을 확인해 주세요.'); e.net = 1; reject(e); };
+    document.body.appendChild(s);
+  });
+}
+function api(action, params, data) {
+  const p = Object.assign({ action, pin: PIN }, params || {});
+  if (data !== undefined) p.d64 = b64u(JSON.stringify(data));
+  return jsonp(p);
+}
+
+/* ----- 날짜 도우미 ----- */
+const pad = (n) => String(n).padStart(2, '0');
+const ymd = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const todayStr = () => ymd(new Date());
+const DOW = ['일', '월', '화', '수', '목', '금', '토'];
+function dayOffset(n) { const d = new Date(); d.setDate(d.getDate() - n); return ymd(d); }
+function fmtAt(at) { const m = String(at || '').match(/^\d{4}-(\d{2})-(\d{2}) (\d{2}):(\d{2})/); return m ? (+m[1]) + '/' + (+m[2]) + ' ' + m[3] + ':' + m[4] : ''; }
+function fmtDate(s) { const m = String(s || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!m) return s || ''; const d = new Date(+m[1], +m[2] - 1, +m[3]); return (+m[2]) + '/' + (+m[3]) + ' (' + DOW[d.getDay()] + ')'; }
+const lines = (s) => String(s || '').split('\n').map(x => x.trim()).filter(Boolean);
+
+/* ----- 상태 ----- */
+const DB = { rec: [], praise: [], reframe: [], blame: [], stamp: [], chips: [], profile: '', onb: {}, apiKey: '' };
+const STATE = {};          // 칩 토글이 쓰는 상태 모음 (rec / pf / rf)
+const ACT = {}, IN = {}, RENDER = {};
+let cur = '';
+const TABS = { sHome: 'home', sPraiseHub: 'praise', sHist: 'hist', sSet: 'set' };
+const PRAISE_SCREENS = ['sPraise', 'sPraiseHub', 'sChips'];
+
+function go(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === id));
+  document.body.dataset.th = PRAISE_SCREENS.includes(id) ? 'praise' : '';
+  $('tabbar').classList.toggle('hide', !TABS[id]);
+  $('tabbar').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.t === TABS[id]));
+  cur = id;
+  const r = RENDER[id]; if (r) r();
+}
+function keepScroll(box, fn) { const st = box.scrollTop; fn(); box.scrollTop = st; }
+
+/* ----- 공통 이벤트 ----- */
+document.addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (!b) return; const f = ACT[b.dataset.act]; if (f) f(b, e); });
+document.addEventListener('input', e => { const t = e.target; const h = t.dataset && t.dataset.in; if (h && IN[h]) IN[h](t); });
+
+/* 칩 토글 (화면을 다시 그리지 않아서 스크롤이 그대로예요) */
+ACT.tg = (b) => {
+  const st = STATE[b.dataset.s], g = b.dataset.g, v = b.dataset.v;
+  if (b.dataset.one) {
+    st[g] = (st[g] === v && b.dataset.tog) ? '' : v;
+    b.parentNode.querySelectorAll('[data-act="tg"]').forEach(x => x.classList.toggle('on', x.dataset.v === st[g]));
+  } else {
+    const arr = st[g], i = arr.indexOf(v);
+    if (i >= 0) arr.splice(i, 1);
+    else { const mx = Number(b.dataset.max) || 99; if (arr.length >= mx) { toast('최대 ' + mx + '개까지 고를 수 있어요'); return; } arr.push(v); }
+    b.classList.toggle('on', i < 0);
+  }
+  const c = document.querySelector('[data-cnt="' + b.dataset.s + '.' + g + '"]'); if (c) c.textContent = Array.isArray(st[g]) ? (st[g].length ? st[g].length + '개 선택' : '') : '';
+};
+const chipHtml = (s, g, v, label, on, extra) => `<button class="chip ${on ? 'on' : ''}" data-act="tg" data-s="${s}" data-g="${g}" data-v="${esc(v)}" ${extra || ''}>${esc(label == null ? v : label)}</button>`;
+
+/* ----- 모달 ----- */
+function openOv(html) { $('ovIn').innerHTML = html; $('ov').classList.add('open'); }
+function closeOv() { $('ov').classList.remove('open'); }
+ACT.ovBg = (b, e) => { if (e.target === b) closeOv(); };
+ACT.ovClose = closeOv;
+
+/* ===== 연결 · PIN ===== */
+ACT.connect = async (b) => {
+  const v = $('inGas').value.trim(); const m = $('mConn');
+  if (!/^https:\/\/script\.google\.com\/\S+\/exec/.test(v)) { m.textContent = '주소가 올바르지 않아요. …/exec 로 끝나는 웹앱 주소를 붙여 넣어 주세요.'; return; }
+  b.disabled = true; m.textContent = '연결 확인 중…'; m.className = 'msg';
+  GAS = v;
+  try { await jsonp({ action: 'ping' }); lsSet(K.gas, v); init(); }
+  catch (e) { GAS = lsGet(K.gas, ''); m.textContent = e.message; }
+  b.disabled = false;
+};
+let pinMode = 'enter';
+function showPin(mode) {
+  pinMode = mode;
+  const c = mode === 'create';
+  $('pinTitle').textContent = c ? '처음이네요! PIN을 만들어요 🔐' : '반가워요 👋';
+  $('pinHint').textContent = c ? '숫자 6자리를 정해서 두 번 입력해요. 이 PIN으로 어느 기기에서든 내 기록을 열어요.' : 'PIN 6자리를 입력해 주세요.';
+  $('inPin2').classList.toggle('hide', !c); $('pinForgot').classList.toggle('hide', c);
+  $('inPin').value = ''; $('inPin2').value = ''; $('mPin').textContent = '';
+  go('sPin'); setTimeout(() => $('inPin').focus(), 80);
+}
+ACT.pinGo = async (b) => {
+  const pin = $('inPin').value.trim(), m = $('mPin');
+  if (!/^\d{6}$/.test(pin)) { m.textContent = 'PIN은 숫자 6자리예요.'; return; }
+  if (pinMode === 'create' && pin !== $('inPin2').value.trim()) { m.textContent = 'PIN 두 개가 서로 달라요.'; return; }
+  b.disabled = true; m.textContent = '확인하는 중…';
+  try {
+    if (pinMode === 'create') await jsonp({ action: 'setPin', pin });
+    PIN = pin;
+    await loadAll();
+    if ($('inKeep').checked) lsSet(K.pin, pin); else lsDel(K.pin);
+  } catch (e) { m.textContent = e.message; PIN = ''; }
+  b.disabled = false;
+};
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.target.id === 'inPin' || e.target.id === 'inPin2')) ACT.pinGo($('btnPin')); if (e.key === 'Enter' && e.target.id === 'inGas') ACT.connect(document.querySelector('[data-act="connect"]')); });
+
+function parseOnb(s) { try { const o = JSON.parse(s || '{}'); return o && typeof o === 'object' ? o : {}; } catch (e) { return {}; } }
+async function loadAll(silent) {
+  if (!silent) go('sLoad');
+  const r = await jsonp({ action: 'load', pin: PIN });
+  DB.rec = r.rec || []; DB.praise = r.praise || []; DB.reframe = r.reframe || []; DB.blame = r.blame || []; DB.stamp = r.stamp || []; DB.chips = r.chips || [];
+  DB.profile = r.profile || ''; DB.onb = parseOnb(r.onb); DB.apiKey = r.apiKey || '';
+  if (DB.apiKey && !lsGet(K.api, '')) lsSet(K.api, DB.apiKey);
+  if (silent) { if (RENDER[cur]) RENDER[cur](); return; }
+  if (!DB.onb._done) startOnb(); else go('sHome');
+}
+ACT.refresh = async () => { try { await loadAll(true); toast('새로 불러왔어요 ✓'); } catch (e) { toast(e.message); } };
+
+async function init() {
+  if (!GAS) { go('sConn'); return; }
+  let p;
+  try { p = await jsonp({ action: 'ping' }); }
+  catch (e) { go('sConn'); $('inGas').value = GAS; $('mConn').textContent = e.message + ' (주소를 확인하고 다시 눌러 주세요)'; return; }
+  const saved = lsGet(K.pin, '');
+  if (saved && p.hasPin) { PIN = saved; try { await loadAll(); return; } catch (e) { lsDel(K.pin); PIN = ''; toast(e.message); } }
+  showPin(p.hasPin ? 'enter' : 'create');
+}
+ACT.logout = () => { if (!confirm('이 기기에서 로그아웃할까요?')) return; lsDel(K.pin); PIN = ''; location.reload(); };
+
+/* ===== 온보딩 (설문) ===== */
+let obStep = 0, obAns = {};
+function startOnb() { obStep = 0; obAns = Object.assign({}, DB.onb); delete obAns._done; delete obAns._skipped; go('sOnb'); renderOb(); }
+const OB_NEED = ['single', 'multi', 'ox', 'spectrum'];
+const SPEC_LB = ['왼쪽\n매우', '왼쪽\n약간', '오른쪽\n약간', '오른쪽\n매우'];
+function renderOb() {
+  const st = OB_STEPS[obStep], total = OB_STEPS.length, pct = Math.round((obStep + 1) / total * 100);
+  $('obPct').textContent = pct + '%'; $('obBar').style.width = pct + '%'; $('obLbl').textContent = st.label || '마음 알아보기';
+  $('obPrev').style.visibility = obStep > 0 ? 'visible' : 'hidden';
+  $('obNext').textContent = st.type === 'result' ? '시작하기 🤍' : '다음';
+  const lab = st.label ? `<div style="font-size:11.5px;color:var(--acd);font-weight:700;letter-spacing:.5px;margin-bottom:10px">${esc(st.label)}</div>` : '';
+  const ttl = (s) => `<h2 class="stepT" style="white-space:pre-line">${esc(s)}</h2>`;
+  let h = '';
+  if (st.type === 'intro') h = `<div class="fade"><div style="font-size:34px;margin-bottom:16px">🌱</div>${ttl(st.title)}<p style="font-size:15px;color:var(--tx2);line-height:1.9;white-space:pre-line">${esc(st.body)}</p><p class="hint" style="margin-top:18px"><button class="chip mini" data-act="obSkip">설문은 나중에 할게요</button></p></div>`;
+  else if (st.type === 'section') h = `<div class="fade" style="padding-top:36px"><div style="font-size:12px;color:var(--acd);font-weight:700;margin-bottom:14px">${esc(st.label)}</div><h2 style="font-size:26px;font-weight:800;line-height:1.5;white-space:pre-line">${esc(st.title)}</h2></div>`;
+  else if (st.type === 'intermission') h = `<div class="fade" style="padding-top:36px"><h2 style="font-size:20px;font-weight:800;color:var(--acd);margin-bottom:18px;line-height:1.5">${esc(st.title)}</h2><p style="font-size:15px;color:var(--tx2);line-height:1.9;white-space:pre-line">${esc(st.body)}</p></div>`;
+  else if (st.type === 'single') h = `<div class="fade">${lab}${ttl(st.title)}<div style="margin-top:16px">${st.options.map((o, i) => `<button class="opt ${obAns[st.key] === o ? 'on' : ''}" data-act="obPick" data-i="${i}">${obAns[st.key] === o ? '✓ ' : ''}${esc(o)}</button>`).join('')}</div></div>`;
+  else if (st.type === 'multi') { const sel = obAns[st.key] || []; h = `<div class="fade">${lab}${ttl(st.title)}<p class="stepS">${esc(st.sub || '')}</p>${st.options.map((o, i) => `<button class="opt ${sel.includes(o) ? 'on' : ''}" data-act="obPick" data-i="${i}">${sel.includes(o) ? '✓ ' : ''}${esc(o)}</button>`).join('')}</div>`; }
+  else if (st.type === 'ox') h = `<div class="fade" style="padding-top:16px">${lab}<h2 class="stepT" style="text-align:center;margin:10px 0 28px;white-space:pre-line">${esc(st.title)}</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${['아니다', '그렇다'].map((o, i) => `<button class="opt ${obAns[st.key] === o ? 'on' : ''}" data-act="obPick" data-i="${i}" style="text-align:center;padding:26px 8px"><div style="font-size:28px">${i ? '✓' : '✕'}</div>${o}</button>`).join('')}</div></div>`;
+  else if (st.type === 'spectrum') { const v = obAns[st.key] || 0; h = `<div class="fade" style="padding-top:12px">${lab}<h2 class="stepT" style="text-align:center;font-size:18px;margin-bottom:22px">${esc(st.title)}</h2><div style="display:flex;gap:8px;margin-bottom:16px"><div style="flex:1;text-align:center;font-weight:700;font-size:13.5px">${esc(st.left)}</div><div style="align-self:center;font-size:12px;color:var(--tx3)">vs.</div><div style="flex:1;text-align:center;font-weight:700;font-size:13.5px">${esc(st.right)}</div></div><div class="spec">${[1, 2, 3, 4].map(i => `<button class="${v === i ? 'on' : ''}" data-act="obPick" data-i="${i}" style="white-space:pre-line">${SPEC_LB[i - 1]}</button>`).join('')}</div></div>`; }
+  else if (st.type === 'result') {
+    const n = Object.keys(obAns).length, a = obAns;
+    h = `<div class="fade center" style="padding-top:14px"><div style="font-size:48px;margin-bottom:14px">✨</div><h2 class="stepT">설문이 끝났어요</h2><p style="font-size:15px;color:var(--tx2);line-height:1.8;margin-bottom:22px">총 ${n}가지 답변이 AI 상담사의 메모에 합쳐져요.<br>상담할 때 이 내용을 알고 대화해요.</p><div class="card" style="text-align:left;background:var(--acs)"><div class="lbl" style="color:var(--acd)">나의 프로파일</div>${a.mainProblem ? `<div style="font-size:13.5px;margin-bottom:8px">💙 주요 고민: ${esc(a.mainProblem)}</div>` : ''}${a.wantGoal ? `<div style="font-size:13.5px;margin-bottom:8px">🎯 목표: ${esc([].concat(a.wantGoal).join(', '))}</div>` : ''}${a.commitment ? `<div style="font-size:13.5px">💪 준비도: ${esc(a.commitment)}</div>` : ''}</div></div>`;
+  }
+  $('obBody').innerHTML = h; $('obBody').scrollTop = 0;
+}
+ACT.obPick = (b) => {
+  const st = OB_STEPS[obStep], i = Number(b.dataset.i);
+  if (st.type === 'multi') { const a = obAns[st.key] = obAns[st.key] || []; const o = st.options[i], x = a.indexOf(o); if (x >= 0) a.splice(x, 1); else a.push(o); }
+  else if (st.type === 'spectrum') obAns[st.key] = i;
+  else if (st.type === 'ox') obAns[st.key] = ['아니다', '그렇다'][i];
+  else obAns[st.key] = st.options[i];
+  const sc = $('obBody').scrollTop; renderOb(); $('obBody').scrollTop = sc;
+};
+ACT.obPrev = () => { if (obStep > 0) { obStep--; renderOb(); } };
+ACT.obNext = async (b) => {
+  const st = OB_STEPS[obStep];
+  if (OB_NEED.includes(st.type)) {
+    const v = obAns[st.key];
+    if (v === undefined || v === '' || (Array.isArray(v) && !v.length)) { toast('하나 이상 골라 주세요 😊'); return; }
+  }
+  if (obStep < OB_STEPS.length - 1) { obStep++; renderOb(); return; }
+  await finishOb(b, false);
+};
+ACT.obSkip = async (b) => { await finishOb(b, true); };
+async function finishOb(b, skipped) {
+  b.disabled = true;
+  const data = Object.assign({}, obAns, { _done: 1 }); if (skipped) data._skipped = 1;
+  try { await api('saveOnb', {}, data); DB.onb = data; toast(skipped ? '나중에 설정에서 할 수 있어요' : '저장했어요 ✓'); go('sHome'); }
+  catch (e) { toast(e.message); }
+  b.disabled = false;
+}
+/* 설문 응답 → AI 상담사 메모 글 */
+function onbMemo() {
+  const a = DB.onb || {}, out = [];
+  OB_STEPS.forEach(st => {
+    if (!st.key || a[st.key] === undefined) return;
+    const v = a[st.key], t = String(st.title).replace(/\n/g, ' ');
+    if (st.type === 'spectrum') out.push('- ' + t + ' → ' + (v <= 2 ? st.left : st.right) + (v === 1 || v === 4 ? ' (매우)' : ' (약간)'));
+    else out.push('- ' + t + ' → ' + (Array.isArray(v) ? v.join(', ') : v));
+  });
+  return out.join('\n');
+}
+
+/* ===== AI (Claude) ===== */
+const getApiKey = () => lsGet(K.api, '') || DB.apiKey || '';
+const getModel = () => lsGet(K.model, '') || DEFAULT_MODEL;
+async function claude(system, messages, max) {
+  const key = getApiKey(); if (!key) throw new Error('NOKEY');
+  const res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: JSON.stringify({ model: getModel(), max_tokens: max || 600, system, messages }) });
+  let data = {}; try { data = await res.json(); } catch (e) {}
+  if (!res.ok) throw new Error((data && data.error && data.error.message) || ('연결 오류 (' + res.status + ')'));
+  return (data.content || []).map(c => c.text || '').join('').trim();
+}
+function sysPrompt() {
+  return '당신은 아듬샘(천아듬)의 전담 AI 심리상담사입니다.\n\n【아듬샘의 심리 프로파일】\n' + (DB.profile || '(아직 적어 둔 메모가 없어요)') + '\n\n【아듬샘이 답한 설문】\n' + (onbMemo() || '(설문을 아직 하지 않았어요)') + '\n\n' + COUNSEL_PRINCIPLES + '\n\n' + COUNSEL_EXTRA + recentCtx();
+}
+
+/* ===== 데이터 모음 ===== */
+const EMO = [
+  ['좋은 마음', ['😊 기쁨', '😌 평온', '🥹 뿌듯함', '🤍 고마움', '💪 자신감', '🌿 편안함', '😄 신남', '🙂 괜찮음']],
+  ['슬프고 서운한', ['😔 슬픔', '🥺 서운함', '😞 외로움', '😢 속상함', '😶 허전함']],
+  ['불안하고 걱정되는', ['😰 불안', '😟 걱정', '😬 긴장', '😮 당황', '😨 무서움']],
+  ['화나고 답답한', ['😤 답답함', '😡 화남', '😒 짜증', '🙄 억울함', '😠 분함']],
+  ['지치고 무거운', ['😴 무기력', '🫠 지침', '😩 부담', '🥱 피곤']],
+  ['복잡하고 미안한', ['🥲 복잡함', '🌀 혼란', '😣 미안함', '🤔 아쉬움', '😖 자책']]
+];
+const QUICK_EMO = ['😔 슬픔', '😤 답답함', '😰 불안', '😣 미안함', '🫠 지침', '🥹 뿌듯함'];
+const LEVELS = ['아주 약해요', '약해요', '보통', '강해요', '아주 강해요'];
+const BODY = ['머리가 아파요', '어깨·목이 뻐근해요', '속이 불편해요', '가슴이 답답해요', '몸이 무거워요', '눈물이 나요', '숨이 얕아요', '몸은 괜찮아요'];
+const SIT = ['사람·관계', '일·업무', '나 자신', '가족', '연인·가까운 사이', '운동·활동', '몸 컨디션', '돈·미래', '기타'];
+const THK = ['내 몫을 못 한 것 같아', '더 잘했어야 해', '나만 부족해', '상대에게 미안해', '인정받고 싶어', '아무도 몰라줘', '그냥 지쳤어', '괜찮은 척했어', '잘 모르겠어'];
+const MOODS = [['😞', '많이 지쳤어요'], ['😕', '조금 무거워요'], ['😐', '그냥 그래요'], ['🙂', '괜찮아요'], ['😄', '좋아요']];
+
+/* ===== 공통: 기록 목록 줄 ===== */
+function allItems() {
+  const a = [];
+  DB.rec.forEach(x => a.push({ k: 'rec', id: x.id, at: x.at, o: x }));
+  DB.praise.forEach(x => a.push({ k: 'praise', id: x.id, at: x.at, o: x }));
+  DB.reframe.forEach(x => a.push({ k: 'reframe', id: x.id, at: x.at, o: x }));
+  DB.blame.forEach(x => a.push({ k: 'blame', id: x.id, at: x.at, o: x }));
+  return a.sort((p, q) => (q.at > p.at ? 1 : q.at < p.at ? -1 : 0));
+}
+function itemRow(it) {
+  const o = it.o; let tag, kc = '', prev;
+  if (it.k === 'rec') { tag = lines(o.emo).join(' · ') || '감정 기록'; prev = o.sit || o.th || lines(o.thChips).join(', ') || lines(o.body).join(', ') || '(내용 없음)'; }
+  else if (it.k === 'praise') { tag = '✨ 칭찬일기'; kc = 'p'; prev = lines(o.did).slice(0, 3).join(', ') || lines(o.say).slice(0, 2).join(' / ') || o.line || '(내용 없음)'; }
+  else if (it.k === 'blame') { tag = '🌧️→☀️ 자책 풀기'; kc = 'b'; prev = o.fact || lines(o.interp).join(', ') || '(내용 없음)'; }
+  else { tag = '🔄 ' + (cardById(o.card) ? cardById(o.card).title : '마음 바꾸기'); kc = 'r'; prev = lines(o.to).join(' / ') || '(내용 없음)'; }
+  return `<button class="row" data-act="openItem" data-k="${it.k}" data-id="${esc(it.id)}"><div class="t"><span class="k ${kc}">${esc(tag)}</span><span class="d">${esc(fmtAt(o.at))}</span></div><div class="p">${esc(prev)}</div></button>`;
+}
+
+/* ===== 홈 ===== */
+RENDER.sHome = () => {
+  const now = new Date(), ds = (now.getMonth() + 1) + '월 ' + now.getDate() + '일 ' + DOW[now.getDay()] + '요일';
+  $('hDate').textContent = ds;
+  const h = now.getHours();
+  const g = h < 6 ? '잠 못 이루고 있나요? 여기 있어요 🤍' : h < 11 ? '오늘 아침은 어떻게 시작했나요?' : h < 14 ? '점심 시간, 잠깐 숨 돌려요.' : h < 18 ? '오늘 오후는 어때요?' : h < 22 ? '하루가 끝나가고 있어요. 어떤 하루였나요?' : '오늘 하루 수고했어요 🤍';
+  const tp = DB.praise.filter(x => x.date === todayStr()).length;
+  const recent = allItems().slice(0, 4);
+  $('homeBody').innerHTML = `
+    <div class="card fade greet"><small>${ds}</small>${g}</div>
+    <button class="praiseCta fade" data-act="praiseStart"><span class="e">☀️</span><span><b>칭찬일기 쓰기</b><small>${tp ? '오늘 칭찬 ' + tp + '번 쌓였어요 💛 더 써도 좋아요' : '오늘 잘한 나를 찾아봐요 · 탭만으로 끝나요'}</small></span></button>
+    <button class="blameCta fade" data-act="blameStart"><span class="e">🌧️</span><span><b>자책이 올라와요</b><small>사실과 해석을 나눠서 같이 풀어봐요</small></span></button>
+    ${stampHtml()}
+    ${pendingHtml()}
+    <div class="lbl">지금 감정</div>
+    <div class="qe">${QUICK_EMO.map(e => { const p = e.split(' '); return `<button data-act="quickEmo" data-v="${esc(e)}"><b>${p[0]}</b>${p[1]}</button>`; }).join('')}</div>
+    <div class="menu">
+      <button class="mc" data-act="goRec"><span class="e">✏️</span><b>감정 기록</b><small>오늘의 감정을 골라요</small></button>
+      <button class="mc" data-act="goRf"><span class="e">🔄</span><b>마음 바꾸기 카드</b><small>다른 시선으로 보기</small></button>
+      <button class="mc" data-act="goChat"><span class="e">💬</span><b>상담하기</b><small>AI 상담사와 대화</small></button>
+      <button class="mc" data-act="recall"><span class="e">🎁</span><b>힘든 날 꺼내보기</b><small>예전 칭찬 하나 열기</small></button>
+      <button class="mc" data-act="goReport" style="grid-column:1/-1"><span class="e">📈</span><b>돌아보기</b><small>자책이 줄고 있는지, 내 기록으로 확인해요</small></button>
+    </div>
+    <div class="lbl">최근 기록</div>
+    ${recent.length ? recent.map(itemRow).join('') : '<div class="empty">아직 기록이 없어요 🌱<br>칭찬일기부터 가볍게 시작해 봐요</div>'}`;
+};
+ACT.goHome = () => go('sHome');
+ACT.tab = (b) => go(b.dataset.s);
+ACT.goRec = () => { newRec(); go('sRec'); };
+ACT.quickEmo = (b) => { newRec(); STATE.rec.emo = [b.dataset.v]; go('sRec'); };
+ACT.goRf = () => { STATE.rf = { view: 'list', card: '', feel: [], to: [], ai: [], mine: '', helped: '1', done: false }; go('sRf'); };
+ACT.goChat = () => startChat();
+ACT.praiseStart = () => { if (!STATE.pf || STATE.pf.done) newPf(); go('sPraise'); };
+ACT.openItem = (b) => openDetail(b.dataset.k, b.dataset.id);
+
+/* ===== 감정 기록 ===== */
+function newRec() { STATE.rec = { emo: [], lv: '', body: [], sitChips: [], sit: '', thChips: [], th: '' }; }
+RENDER.sRec = () => {
+  if (!STATE.rec) newRec();
+  const R = STATE.rec;
+  $('recBody').innerHTML = `
+    <div class="sec"><div class="lbl">지금 어떤 감정인가요? <small>(최대 3개) <span data-cnt="rec.emo" style="color:var(--acd)">${R.emo.length ? R.emo.length + '개 선택' : ''}</span></small></div>
+      ${EMO.map(([t, list]) => `<div class="grp">${t}</div><div class="chips">${list.map(e => chipHtml('rec', 'emo', e, e, R.emo.includes(e), 'data-max="3"')).join('')}</div>`).join('')}</div>
+    <div class="sec"><div class="lbl">얼마나 강한가요?</div><div class="chips">${LEVELS.map((l, i) => chipHtml('rec', 'lv', String(i + 1), l, R.lv === String(i + 1), 'data-one="1"')).join('')}</div></div>
+    <div class="sec"><div class="lbl">몸은 어땠어요? <small>(여러 개 가능)</small></div><div class="chips">${BODY.map(b => chipHtml('rec', 'body', b, b, R.body.includes(b))).join('')}</div></div>
+    <div class="sec"><div class="lbl">어떤 일과 관련 있나요? <small>(여러 개 가능)</small></div><div class="chips">${SIT.map(b => chipHtml('rec', 'sitChips', b, b, R.sitChips.includes(b))).join('')}</div>
+      <textarea data-in="recSit" placeholder="한두 줄만 적어도 돼요 (선택)" style="margin-top:10px;min-height:72px">${esc(R.sit)}</textarea></div>
+    <div class="sec"><div class="lbl">어떤 생각이 들었나요? <small>(여러 개 가능)</small></div><div class="chips">${THK.map(b => chipHtml('rec', 'thChips', b, b, R.thChips.includes(b))).join('')}</div>
+      <textarea data-in="recTh" placeholder="머릿속에 떠오른 말이 있다면 (선택)" style="margin-top:10px;min-height:72px">${esc(R.th)}</textarea></div>`;
+};
+IN.recSit = (t) => { STATE.rec.sit = t.value; };
+IN.recTh = (t) => { STATE.rec.th = t.value; };
+function recPayload() {
+  const R = STATE.rec;
+  return { emo: R.emo.join('\n'), lv: R.lv, body: R.body.join('\n'), sitChips: R.sitChips.join('\n'), sit: R.sit.trim(), thChips: R.thChips.join('\n'), th: R.th.trim() };
+}
+async function saveRec(b) {
+  const R = STATE.rec;
+  if (!R.emo.length && !R.sit.trim() && !R.th.trim() && !R.body.length) { toast('감정을 하나 골라 주세요 😊'); return null; }
+  b.disabled = true;
+  try { const r = await api('save', {}, { kind: 'rec', item: recPayload() }); DB.rec.push(r.item); b.disabled = false; return r.item; }
+  catch (e) { toast('저장하지 못했어요: ' + e.message); b.disabled = false; return null; }
+}
+ACT.recSave = async (b) => { const it = await saveRec(b); if (it) { toast('기록됐어요 ✓'); newRec(); go('sHome'); } };
+ACT.recSaveChat = async (b) => { const it = await saveRec(b); if (it) { newRec(); startChat(it); } };
+
+/* ===== 마음 바꾸기 카드 ===== */
+const RF_CARDS = [
+  { id: 'sorry', icon: '🤍', title: '미안함 → 고마움', hint: '내 몫을 다 못한 것 같을 때',
+    feel: ['내 몫을 다 못한 것 같아요', '상대에게 폐를 끼친 것 같아요', '더 잘했어야 했는데 싶어요', '나만 부족한 것 같아요'],
+    to: ['미안하다 대신 "고마워"라고 말해볼래', '나도 내 몫은 분명히 했어', '서로 다른 몫을 나눠 맡은 거야', '같이 해낸 결과는 둘 모두의 것이야', '상대는 사과보다 고맙다는 말이 더 반가울 거야'] },
+  { id: 'self', icon: '🫶', title: '자책 → 격려', hint: '나를 탓하는 마음이 올라올 때',
+    feel: ['왜 이것밖에 못했을까', '또 실수했어', '나는 항상 모자라', '그때 그러지 말았어야 해'],
+    to: ['그땐 내가 가진 것으로 최선이었어', '친구가 같은 일을 겪었다면 뭐라고 해줬을까? 그 말을 나에게도', '실수는 배우는 중이라는 증거야', '오늘 한 것 하나는 분명히 잘했어', '잘못한 게 아니라 아쉬운 거야'] },
+  { id: 'perfect', icon: '🌤️', title: '완벽해야 해 → 충분해', hint: '100점이 아니면 불편할 때',
+    feel: ['100점이 아니면 의미 없는 것 같아요', '빈틈이 보여서 불편해요', '더 잘할 수 있었는데 싶어요', '실망시킬까 봐 겁나요'],
+    to: ['80%도 충분히 잘한 거야', '끝까지 해낸 것만으로도 큰일이야', '완벽하지 않아도 사람들은 나를 좋아해', '다음엔 이 부분 하나만 고치면 돼', '쉬어가도 되는 날이야'] },
+  { id: 'compare', icon: '🚶', title: '비교 → 내 페이스', hint: '남과 나를 견주게 될 때',
+    feel: ['다른 사람은 더 잘하는 것 같아요', '나만 뒤처지는 것 같아요', '내가 해낸 게 작아 보여요'],
+    to: ['나는 나의 속도로 가는 중이야', '남의 하이라이트와 내 일상을 비교하고 있는 거야', '어제의 나와 비교하면 한 발 나갔어', '비교되는 걸 보니 나도 더 해보고 싶은 거네'] },
+  { id: 'worry', icon: '🧭', title: '걱정 → 할 수 있는 것', hint: '아직 일어나지 않은 일이 무서울 때',
+    feel: ['잘못되면 어떡하지 싶어요', '아직 일어나지 않은 일이 무서워요', '내 마음대로 안 될 것 같아요'],
+    to: ['지금 내가 할 수 있는 건 뭘까? 하나만 고르자', '걱정한 일의 대부분은 생각보다 가벼워', '준비한 만큼은 이미 해낸 거야', '모르는 건 모르는 대로 두고 오늘만 보자'] },
+  { id: 'anger', icon: '🌋', title: '참음 → 내 마음 말하기', hint: '속으로 쌓아두고 있을 때',
+    feel: ['속으로 화가 쌓여요', '서운한데 말 못 했어요', '괜찮은 척했어요'],
+    to: ['화는 "내 경계가 침범됐다"는 신호야', '서운해도 되는 사람이야. 좋은 사람은 감정이 없는 사람이 아니야', '한 문장만 말해보자: "나는 ~해서 서운했어"', '말하지 않더라도 내 마음은 먼저 인정해주자'] },
+  { id: 'approve', icon: '🌷', title: '인정받고 싶은 마음', hint: '알아주지 않는 것 같을 때',
+    feel: ['인정받지 못한 것 같아요', '칭찬해주길 바랐어요', '내 노력을 몰라주는 것 같아요'],
+    to: ['인정받고 싶은 건 당연한 마음이야', '남이 몰라줘도 내가 아는 내 노력이 있어', '그 마음을 내가 먼저 알아주자', '오늘은 내가 나를 인정해주는 날로 하자'] },
+  { id: 'rest', icon: '🛋️', title: '지침 → 쉬어도 돼', hint: '쉬는 게 죄책감이 들 때',
+    feel: ['쉬면 뒤처질 것 같아요', '쉬는 게 죄책감이 들어요', '몸이 먼저 신호를 보내요'],
+    to: ['쉼도 일의 일부야', '몸이 보내는 신호는 고장이 아니라 알림이야', '충전해야 오래 달릴 수 있어', '오늘은 꼭 필요한 것만 하고 쉬어도 돼'] },
+  { id: 'team', icon: '🤝', title: '내 몫 → 우리 몫', hint: '함께한 일에서 미안할 때',
+    feel: ['내가 더 해야 했는데 싶어요', '짐을 나눠 지게 한 것 같아요', '기여를 못 한 것 같아요'],
+    to: ['팀은 서로의 부족을 채우려고 함께하는 거야', '내가 못 한 날엔 상대가 해주고, 반대인 날도 있어', '함께한 것 자체가 기여야', '몫을 비교하지 말고 결과를 같이 기뻐하자'] },
+  { id: 'lonely', icon: '🌙', title: '외로움 → 연결', hint: '혼자인 것 같을 때',
+    feel: ['아무도 내 마음을 모를 것 같아요', '혼자인 느낌이에요', '말해도 소용없을 것 같아요'],
+    to: ['이 마음을 알아본 것만으로도 연결의 시작이야', '한 사람에게 한 줄만 보내볼까?', '말하지 않아도 내 곁에 있는 사람이 있어', '오늘은 나랑 같이 있자'] },
+  { id: 'body', icon: '🫧', title: '몸이 보내는 신호', hint: '몸이 먼저 힘들다고 할 때',
+    feel: ['머리가 아파요', '어깨가 뻐근해요', '속이 불편해요', '가슴이 답답해요'],
+    to: ['몸이 마음의 말을 대신 전하고 있을 수 있어', '따뜻한 물 한 잔, 스트레칭, 숨을 길게 내쉬기 3번', '지금 어떤 감정이 몸에 있는지 물어보자', '오늘은 천천히, 쉬면서 보자'] }
+];
+const cardById = (id) => RF_CARDS.find(c => c.id === id);
+RENDER.sRf = () => {
+  if (!STATE.rf) STATE.rf = { view: 'list', card: '', feel: [], to: [], ai: [], mine: '', helped: '1', done: false };
+  const R = STATE.rf, c = cardById(R.card);
+  $('rfFoot').classList.toggle('hide', R.view !== 'card' || R.done);
+  if (R.view === 'list') {
+    $('rfT').textContent = '마음 바꾸기 카드';
+    $('rfBody').innerHTML = `<p class="stepS">지금 마음에 가까운 카드를 골라요. 느낌을 고르면 "이렇게도 볼 수 있어요" 문장이 나와요. 마음에 드는 걸 골라 담아요.</p>` +
+      RF_CARDS.map(x => `<button class="row" data-act="rfPick" data-id="${x.id}"><div class="t"><span style="font-size:22px">${x.icon}</span><span style="flex:1;font-weight:700;font-size:15px;margin-left:6px">${esc(x.title)}</span><span class="d">›</span></div><div class="p">${esc(x.hint)}</div></button>`).join('');
+    return;
+  }
+  $('rfT').textContent = c.icon + ' ' + c.title;
+  if (R.done) {
+    $('rfBody').innerHTML = `<div class="center fade" style="padding-top:20px"><div style="font-size:46px">🌤️</div><h2 class="stepT" style="margin-top:8px">마음을 바꿔봤어요</h2><div class="big" style="text-align:left;background:var(--acs);color:var(--tx);font-weight:500">${R.to.map(t => '· ' + esc(t)).join('<br>')}</div><div style="display:flex;flex-direction:column;gap:10px;margin-top:10px"><button class="btn" data-act="praiseStart">칭찬일기 쓰러 가기 ☀️</button><button class="btn sub" data-act="rfBack">다른 카드 보기</button><button class="btn sub" data-act="goHome">홈으로</button></div></div>`;
+    return;
+  }
+  const tos = c.to.concat(R.ai);
+  $('rfBody').innerHTML = `
+    <div class="sec"><div class="lbl">1. 지금 이런 마음이에요 <small>(여러 개 가능)</small></div><div class="chips">${c.feel.map(f => chipHtml('rf', 'feel', f, f, R.feel.includes(f))).join('')}</div></div>
+    <div class="sec"><div class="lbl">2. 이렇게도 볼 수 있어요 <small>(마음에 드는 걸 골라요)</small></div><div class="chips" style="flex-direction:column;align-items:stretch">${tos.map((t, i) => chipHtml('rf', 'to', t, (i >= c.to.length ? '🤖 ' : '') + t, R.to.includes(t), 'style="text-align:left;border-radius:16px;padding:10px 14px"')).join('')}</div>
+      <button class="chip mini" data-act="rfAi" style="margin-top:10px" ${R.aiBusy ? 'disabled' : ''}>${R.aiBusy ? '생각하는 중…' : '🤖 AI에게 다른 시선 더 받기'}</button></div>
+    <div class="sec"><div class="lbl">3. 내 말로 한 줄 <small>(선택)</small></div><textarea data-in="rfMine" placeholder="나에게 하고 싶은 말을 적어도 좋아요" style="min-height:72px">${esc(R.mine)}</textarea></div>
+    <div class="sec"><div class="lbl">마음이 조금 가벼워졌나요?</div><div class="chips">${chipHtml('rf', 'helped', '1', '조금 가벼워졌어요', R.helped === '1', 'data-one="1"')}${chipHtml('rf', 'helped', '0', '아직 잘 모르겠어요', R.helped === '0', 'data-one="1"')}</div></div>`;
+};
+IN.rfMine = (t) => { STATE.rf.mine = t.value; };
+ACT.rfPick = (b) => { const R = STATE.rf; R.view = 'card'; R.card = b.dataset.id; R.feel = []; R.to = []; R.ai = []; R.mine = ''; R.helped = '1'; R.done = false; RENDER.sRf(); $('rfBody').scrollTop = 0; };
+ACT.rfBack = () => { const R = STATE.rf || {}; if (R.view === 'card') { R.view = 'list'; R.done = false; RENDER.sRf(); } else go('sHome'); };
+ACT.rfAi = async () => {
+  const R = STATE.rf, c = cardById(R.card);
+  if (!getApiKey()) { toast('설정에서 API 키를 연결하면 쓸 수 있어요'); return; }
+  R.aiBusy = true; keepScroll($('rfBody'), RENDER.sRf);
+  try {
+    const feel = R.feel.length ? R.feel.join(' / ') : c.feel.join(' / ');
+    const txt = await claude(sysPrompt(), [{ role: 'user', content: `[마음 바꾸기 카드: ${c.title}]\n지금 마음: ${feel}\n이 마음을 다르게 볼 수 있는 따뜻한 한 줄 문장을 3개만 줘요. 기존 문장과 겹치지 않게, 반말로 나에게 말해주듯, 한 줄에 하나씩, 번호나 기호 없이.` }], 400);
+    const add = lines(txt).map(s => s.replace(/^[-•\d.\s]+/, '')).filter(s => s && !c.to.includes(s) && !R.ai.includes(s)).slice(0, 3);
+    R.ai = R.ai.concat(add);
+    if (!add.length) toast('새로운 문장을 못 받았어요. 다시 눌러 보세요');
+  } catch (e) { toast(e.message === 'NOKEY' ? '설정에서 API 키를 연결해 주세요' : 'AI 연결 문제: ' + e.message); }
+  R.aiBusy = false; keepScroll($('rfBody'), RENDER.sRf);
+};
+ACT.rfSave = async (b) => {
+  const R = STATE.rf, c = cardById(R.card), to = R.to.slice(); if (R.mine.trim()) to.push(R.mine.trim());
+  if (!to.length) { toast('마음에 드는 문장을 하나 골라 주세요 😊'); return; }
+  b.disabled = true;
+  try {
+    const r = await api('save', {}, { kind: 'reframe', item: { card: c.id, feel: R.feel.join('\n'), to: to.join('\n'), helped: R.helped === '1' ? 'O' : '' } });
+    DB.reframe.push(r.item); R.to = to; R.done = true; toast('저장했어요 ✓'); RENDER.sRf();
+  } catch (e) { toast('저장하지 못했어요: ' + e.message); }
+  b.disabled = false;
+};
+
+/* ===== 칭찬 기본 항목 ===== */
+const DEF_DO = [
+  ['운동·몸', ['운동했어요', '끝까지 해냈어요', '한계를 넘었어요', '몸을 챙겼어요', '스트레칭·산책했어요', '잘 먹고 잘 잤어요']],
+  ['일·학교', ['맡은 일을 해냈어요', '수업을 잘 마쳤어요', '미뤄둔 일을 처리했어요', '학생에게 따뜻하게 했어요', '새로운 걸 시도했어요', '도움을 요청했어요']],
+  ['사람·관계', ['고맙다고 말했어요', '먼저 안부를 물었어요', '경청했어요', '내 마음을 말로 표현했어요', '함께해서 좋았어요', '파트너를 믿고 의지했어요']],
+  ['마음', ['감정을 알아차렸어요', '참지 않고 쉬었어요', '완벽하지 않아도 괜찮다고 했어요', '불안해도 해봤어요', '나를 탓하지 않았어요', '거절했어요']],
+  ['일상', ['정리정돈했어요', '씻고 단정히 했어요', '약속을 지켰어요', '나에게 선물했어요', '하루를 버텼어요', '그냥 오늘도 살아냈어요']]
+];
+const DEF_SAY = [
+  ['인정', ['잘했어', '정말 수고했어', '대단해', '충분히 잘했어', '이만하면 훌륭해']],
+  ['위로', ['괜찮아', '그럴 수 있어', '많이 애썼어', '힘들었지', '네 탓이 아니야']],
+  ['고마움', ['고마워, 나', '버텨줘서 고마워', '포기하지 않아서 고마워', '같이 해줘서 고마워']],
+  ['응원', ['다음엔 더 쉬울 거야', '천천히 가도 돼', '나는 내 편이야', '충분히 할 수 있어']]
+];
+function chipPool(kind) {
+  const defs = kind === 'do' ? DEF_DO : DEF_SAY;
+  const hidden = new Set(DB.chips.filter(c => c.kind === kind && c.hide === 'Y' && c.custom !== 'Y').map(c => c.text));
+  const out = defs.map(([cat, arr]) => [cat, arr.filter(t => !hidden.has(t))]);
+  DB.chips.filter(c => c.kind === kind && c.custom === 'Y' && c.hide !== 'Y').forEach(c => {
+    let g = out.find(x => x[0] === (c.cat || '내 항목')); if (!g) { g = [c.cat || '내 항목', []]; out.push(g); }
+    g[1].push(c.text);
+  });
+  return out.filter(x => x[1].length);
+}
+
+/* ===== 칭찬일기 카드 흐름 ===== */
+const PF_STEPS = ['mood0', 'did', 'say', 'sorry', 'end'];
+const SORRY = ['누군가에게 미안했어요', '내 몫을 다 못한 것 같았어요', '더 잘해야 했다고 느꼈어요', '민폐를 끼친 것 같았어요', '미안한 마음은 없어요'];
+function newPf() { STATE.pf = { step: 0, mood0: '', did: [], say: [], sorry: [], thanks: '', mood1: '', line: '', done: false, busy: false }; }
+const faceRow = (g, cur) => `<div class="faces">${MOODS.map((m, i) => `<button class="face ${cur === String(i + 1) ? 'on' : ''}" data-act="tg" data-s="pf" data-g="${g}" data-v="${i + 1}" data-one="1"><b>${m[0]}</b>${m[1]}</button>`).join('')}</div>`;
+RENDER.sPraise = () => {
+  if (!STATE.pf) newPf();
+  const P = STATE.pf, s = PF_STEPS[P.step];
+  $('pFoot').classList.toggle('hide', P.done);
+  if (P.done) {
+    $('pCnt').textContent = ''; $('pBar').style.width = '100%';
+    const dids = P.did.slice(0, 4).map(x => '· ' + esc(x)).join('<br>');
+    $('pBody').innerHTML = `<div class="center fade" style="padding-top:16px"><div style="font-size:54px">🌻</div><h2 class="stepT" style="margin-top:6px">오늘의 나, 충분히 잘했어요</h2>
+      <div class="big" style="text-align:left;background:#F5D06B;color:#412402">${dids || '오늘도 여기까지 온 것만으로 대단해요'}${P.say.length ? '<br><br>“' + esc(P.say[0]) + '”' : ''}</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px"><button class="btn" data-act="goHome">홈으로</button><button class="btn sub" data-act="goPraiseHub">칭찬 모음 보기</button></div></div>`;
+    return;
+  }
+  $('pCnt').textContent = (P.step + 1) + ' / ' + PF_STEPS.length; $('pBar').style.width = ((P.step + 1) / PF_STEPS.length * 100) + '%';
+  $('pPrev').textContent = P.step === 0 ? '닫기' : '이전';
+  $('pNext').textContent = P.step === PF_STEPS.length - 1 ? '칭찬 저장 ✓' : '다음';
+  let h = '';
+  if (s === 'mood0') h = `<h2 class="stepT">지금 내 기분은 어때요?</h2><p class="stepS">오늘 하루를 돌아보기 전, 지금 마음을 먼저 골라요.</p>${faceRow('mood0', P.mood0)}`;
+  else if (s === 'did') h = `<h2 class="stepT">오늘 내가 한 일은?</h2><p class="stepS">작은 것도 좋아요. 해당되는 걸 모두 눌러요. <span data-cnt="pf.did" style="color:var(--acd)">${P.did.length ? P.did.length + '개 선택' : ''}</span></p>` +
+    chipPool('do').map(([c, a]) => `<div class="grp">${esc(c)}</div><div class="chips">${a.map(t => chipHtml('pf', 'did', t, t, P.did.includes(t))).join('')}</div>`).join('');
+  else if (s === 'say') h = `<h2 class="stepT">나에게 해주고 싶은 말은?</h2><p class="stepS">마음에 닿는 말을 눌러요. 내가 나에게 건네는 말이에요. <span data-cnt="pf.say" style="color:var(--acd)">${P.say.length ? P.say.length + '개 선택' : ''}</span></p>` +
+    chipPool('say').map(([c, a]) => `<div class="grp">${esc(c)}</div><div class="chips">${a.map(t => chipHtml('pf', 'say', t, t, P.say.includes(t))).join('')}</div>`).join('');
+  else if (s === 'sorry') h = `<h2 class="stepT">미안했던 마음이 있었나요?</h2><p class="stepS">있다면 그 마음을 "고마움"으로 바꿔서 적어볼 수 있어요.</p><div class="chips">${SORRY.map(t => chipHtml('pf', 'sorry', t, t, P.sorry.includes(t))).join('')}</div>
+    <div class="sentence"><b>미안해 → 고마워</b><br>“함께해줘서 고마워. 내 몫을 못 한 날에도 곁에 있어줘서 고마워.”</div>
+    <textarea data-in="pfThanks" placeholder="고마운 말을 직접 써봐도 좋아요 (선택)" style="margin-top:12px;min-height:72px">${esc(P.thanks)}</textarea>`;
+  else h = `<h2 class="stepT">쓰고 난 지금 기분은?</h2><p class="stepS">처음과 비교해서 조금이라도 달라졌을까요?</p>${faceRow('mood1', P.mood1)}
+    <div class="lbl" style="margin-top:22px">오늘의 한 줄 <small>(선택)</small></div><textarea data-in="pfLine" placeholder="오늘의 나에게 한 줄" style="min-height:72px">${esc(P.line)}</textarea>`;
+  $('pBody').innerHTML = `<div class="fade">${h}</div>`; $('pBody').scrollTop = 0;
+};
+IN.pfThanks = (t) => { STATE.pf.thanks = t.value; };
+IN.pfLine = (t) => { STATE.pf.line = t.value; };
+ACT.pPrev = () => { const P = STATE.pf; if (P.step === 0) return ACT.pExit(); P.step--; RENDER.sPraise(); };
+ACT.pExit = () => { const P = STATE.pf; if (P && !P.done && (P.did.length || P.say.length || P.mood0) && !confirm('쓰던 칭찬일기를 닫을까요? 저장되지 않아요.')) return; STATE.pf = null; go('sHome'); };
+ACT.pNext = async (b) => {
+  const P = STATE.pf, s = PF_STEPS[P.step];
+  if (s === 'did' && !P.did.length) { toast('한 가지만 골라 주세요 😊'); return; }
+  if (P.step < PF_STEPS.length - 1) { P.step++; RENDER.sPraise(); return; }
+  if (P.busy) return; P.busy = true; b.disabled = true;
+  const sorry = P.sorry.filter(x => x !== SORRY[4]).slice(); if (P.thanks.trim()) sorry.push('→ ' + P.thanks.trim());
+  try {
+    const r = await api('save', {}, { kind: 'praise', item: { mood0: P.mood0, mood1: P.mood1, did: P.did.join('\n'), say: P.say.join('\n'), sorry: sorry.join('\n'), line: P.line.trim() } });
+    DB.praise.push(r.item); P.done = true; RENDER.sPraise();
+  } catch (e) { toast('저장하지 못했어요: ' + e.message); }
+  P.busy = false; b.disabled = false;
+};
+ACT.goPraiseHub = () => { STATE.pf = null; go('sPraiseHub'); };
+
+/* ===== 칭찬 모음 ===== */
+const HUB = { y: new Date().getFullYear(), m: new Date().getMonth(), sel: '' };
+function streak() {
+  const days = new Set(DB.praise.map(x => x.date)); let n = 0, i = days.has(todayStr()) ? 0 : 1;
+  while (days.has(dayOffset(i))) { n++; i++; }
+  return n;
+}
+RENDER.sPraiseHub = () => {
+  const mk = HUB.y + '-' + pad(HUB.m + 1), cnt = {};
+  DB.praise.forEach(x => { cnt[x.date] = (cnt[x.date] || 0) + 1; });
+  const first = new Date(HUB.y, HUB.m, 1).getDay(), last = new Date(HUB.y, HUB.m + 1, 0).getDate();
+  let cells = '';
+  for (let i = 0; i < first; i++) cells += '<div class="x"></div>';
+  for (let d = 1; d <= last; d++) {
+    const ds = mk + '-' + pad(d), n = cnt[ds] || 0;
+    cells += `<button class="${n ? 'has' : ''} ${ds === todayStr() ? 'today' : ''} ${ds === HUB.sel ? 'sel' : ''}" data-act="hubDay" data-v="${ds}">${d}${n > 1 ? '<sup>' + n + '</sup>' : ''}</button>`;
+  }
+  const monthN = DB.praise.filter(x => String(x.date).startsWith(mk)).length;
+  const list = (HUB.sel ? DB.praise.filter(x => x.date === HUB.sel) : DB.praise.slice().sort((a, b) => (b.at > a.at ? 1 : -1)).slice(0, 20));
+  $('phBody').innerHTML = `
+    <button class="praiseCta" data-act="praiseStart"><span class="e">☀️</span><span><b>칭찬일기 쓰기</b><small>오늘 잘한 나를 찾아봐요</small></span></button>
+    <div class="stat"><div><b>${DB.praise.length}</b>전체 칭찬</div><div><b>${monthN}</b>이번 달</div><div><b>${streak()}</b>연속 일수</div></div>
+    <button class="btn warm" style="width:100%;margin-bottom:16px;background:#F5D06B;color:#412402" data-act="recall">🎁 힘든 날 꺼내보기</button>
+    <div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><button class="ib" data-act="hubMon" data-v="-1">◀</button><b>${HUB.y}년 ${HUB.m + 1}월</b><button class="ib" data-act="hubMon" data-v="1">▶</button></div>
+      <div class="cal">${DOW.map(w => `<div class="w">${w}</div>`).join('')}${cells}</div></div>
+    <div class="lbl">${HUB.sel ? fmtDate(HUB.sel) + '의 칭찬' : '최근 칭찬'} ${HUB.sel ? '<button class="chip mini" data-act="hubDay" data-v="">전체 보기</button>' : ''}</div>
+    ${list.length ? list.map(x => itemRow({ k: 'praise', id: x.id, at: x.at, o: x })).join('') : '<div class="empty">아직 칭찬이 없어요 🌱</div>'}`;
+};
+ACT.hubDay = (b) => { HUB.sel = (HUB.sel === b.dataset.v) ? '' : b.dataset.v; RENDER.sPraiseHub(); };
+ACT.hubMon = (b) => { HUB.m += Number(b.dataset.v); if (HUB.m < 0) { HUB.m = 11; HUB.y--; } if (HUB.m > 11) { HUB.m = 0; HUB.y++; } HUB.sel = ''; RENDER.sPraiseHub(); };
+ACT.recall = () => {
+  const a = DB.praise.filter(x => lines(x.did).length || lines(x.say).length || x.line);
+  if (!a.length) { toast('아직 꺼내볼 칭찬이 없어요. 오늘 하나 써봐요 🌱'); return; }
+  const x = a[Math.floor(Math.random() * a.length)];
+  openOv(`<div class="center"><div style="font-size:40px">🎁</div><h3 style="margin:6px 0">${esc(fmtDate(x.date))}의 나</h3>
+    <div class="big" style="text-align:left;background:#F5D06B;color:#412402">${lines(x.did).map(t => '· ' + esc(t)).join('<br>')}${lines(x.say).length ? '<br><br>' + lines(x.say).map(t => '“' + esc(t) + '”').join('<br>') : ''}${x.line ? '<br><br>' + esc(x.line) : ''}</div>
+    <div style="display:flex;gap:8px"><button class="btn sub" data-act="recall" style="flex:1">다른 칭찬</button><button class="btn" data-act="ovClose" style="flex:1">고마워, 나</button></div></div>`);
+};
+
+/* ===== 기록 모아보기 · 상세 ===== */
+STATE.hist = { f: 'all' };
+RENDER.sHist = () => {
+  const f = STATE.hist.f, all = allItems().filter(x => f === 'all' || x.k === f);
+  const F = [['all', '전체'], ['rec', '감정'], ['praise', '칭찬'], ['blame', '자책 풀기'], ['reframe', '마음 바꾸기']];
+  $('histBody').innerHTML = `<div class="chips" style="margin-bottom:14px">${F.map(([v, l]) => `<button class="chip ${f === v ? 'on' : ''}" data-act="histF" data-v="${v}">${l}</button>`).join('')}</div>` +
+    (all.length ? all.slice(0, 200).map(itemRow).join('') : '<div class="empty">아직 기록이 없어요 🌱</div>');
+};
+ACT.histF = (b) => { STATE.hist.f = b.dataset.v; RENDER.sHist(); };
+function detailLine(label, arr) { return arr.length ? `<div class="lbl" style="margin-top:12px">${label}</div><div style="font-size:14.5px;line-height:1.8">${arr.map(esc).join('<br>')}</div>` : ''; }
+function openDetail(k, id) {
+  const o = (DB[k] || []).find(x => String(x.id) === String(id)); if (!o) return;
+  let h = `<h3 style="margin-bottom:2px">${k === 'rec' ? '감정 기록' : k === 'praise' ? '✨ 칭찬일기' : k === 'blame' ? '🌧️→☀️ 자책 풀기' : '🔄 마음 바꾸기'}</h3><small style="color:var(--tx3)">${esc(fmtAt(o.at))}</small>`;
+  if (k === 'rec') {
+    h += detailLine('감정', lines(o.emo)) + (o.lv ? detailLine('강도', [LEVELS[Number(o.lv) - 1] || '']) : '') + detailLine('몸', lines(o.body)) + detailLine('관련된 일', lines(o.sitChips).concat(lines(o.sit))) + detailLine('든 생각', lines(o.thChips).concat(lines(o.th)));
+    h += `<div class="lbl" style="margin-top:14px">내가 깨달은 것 <small>(선택)</small></div><textarea id="insTx" style="min-height:80px" placeholder="나중에 돌아보며 한 줄 남겨도 좋아요">${esc(o.insight || '')}</textarea>`;
+  } else if (k === 'praise') {
+    h += (o.mood0 || o.mood1 ? detailLine('기분', [(o.mood0 ? MOODS[o.mood0 - 1][0] : '–') + ' → ' + (o.mood1 ? MOODS[o.mood1 - 1][0] : '–')]) : '') + detailLine('한 일', lines(o.did)) + detailLine('나에게 한 말', lines(o.say)) + detailLine('미안함 → 고마움', lines(o.sorry)) + detailLine('한 줄', lines(o.line));
+  } else if (k === 'blame') {
+    h += blameDetail(o);
+  } else {
+    const c = cardById(o.card);
+    h += detailLine(c ? c.title : '카드', []) + detailLine('그때 마음', lines(o.feel)) + detailLine('바꾼 문장', lines(o.to));
+  }
+  h += `<div style="display:flex;gap:8px;margin-top:18px"><button class="btn del sm" data-act="delItem" data-k="${k}" data-id="${esc(o.id)}">삭제</button><button class="btn sub" data-act="ovClose" style="flex:1">닫기</button>${k === 'rec' ? `<button class="btn" data-act="saveIns" data-id="${esc(o.id)}" style="flex:1">저장</button><button class="btn warm sm" data-act="chatItem" data-id="${esc(o.id)}">상담</button>` : ''}</div>`;
+  openOv(h);
+}
+ACT.saveIns = async (b) => {
+  const o = DB.rec.find(x => String(x.id) === b.dataset.id); if (!o) return; b.disabled = true;
+  try { const r = await api('save', {}, { kind: 'rec', item: { id: o.id, insight: $('insTx').value.trim() } }); Object.assign(o, r.item); toast('저장했어요 ✓'); closeOv(); if (RENDER[cur]) RENDER[cur](); }
+  catch (e) { toast(e.message); b.disabled = false; }
+};
+ACT.delItem = async (b) => {
+  if (!confirm('이 기록을 삭제할까요? 시트에서도 지워져요.')) return;
+  try { await api('del', {}, { kind: b.dataset.k, id: b.dataset.id }); DB[b.dataset.k] = DB[b.dataset.k].filter(x => String(x.id) !== b.dataset.id); closeOv(); toast('삭제했어요'); if (RENDER[cur]) RENDER[cur](); }
+  catch (e) { toast(e.message); }
+};
+ACT.chatItem = (b) => { const o = DB.rec.find(x => String(x.id) === b.dataset.id); closeOv(); startChat(o); };
+
+/* ===== 설정 ===== */
+RENDER.sSet = () => {
+  const key = getApiKey();
+  $('setBody').innerHTML = `
+    <div class="stt">내 마음 설정</div><div class="set">
+      <button data-act="obRedo">설문 다시 하기<small>›</small></button>
+      <button data-act="profEdit">AI가 아는 나 (메모 편집)<small>›</small></button>
+      <button data-act="goChips">칭찬 항목 관리<small>›</small></button></div>
+    <div class="stt">AI 연결</div><div class="set">
+      <button data-act="apiEdit">API 키 · 모델<small>${key ? '연결됨 ✓' : '미연결'}</small></button></div>
+    <div class="stt">기기 · 보안</div><div class="set">
+      <button data-act="pinChange">PIN 바꾸기<small>›</small></button>
+      <button data-act="copyLink">이 시트 연결 링크 복사<small>›</small></button>
+      <button data-act="refresh">새로 불러오기<small>↻</small></button>
+      <button data-act="exportJson">내 기록 내려받기 (JSON)<small>›</small></button>
+      <button data-act="logout">이 기기 로그아웃<small>›</small></button></div>
+    <div class="stt">문의</div><div class="set"><a class="si" style="display:flex;justify-content:space-between;padding:14px 16px;min-height:52px;font-size:15px" href="mailto:fond7509@naver.com?subject=${encodeURIComponent('[마음 기록] 문의')}">문의 메일<small>fond7509@naver.com</small></a></div>
+    <p class="hint center" style="margin-top:20px">Made by Cheon_R</p>`;
+};
+ACT.goSet = () => go('sSet');
+ACT.obRedo = () => { if (confirm('설문을 다시 할까요? 이전 답은 불러와서 고칠 수 있어요.')) startOnb(); };
+ACT.profEdit = () => openOv(`<h3>AI가 아는 나</h3><p class="hint" style="margin:4px 0 10px">상담 AI가 매번 참고하는 메모예요. 시트의 '설정' 탭에만 저장되고, PIN으로 들어온 뒤에만 불러와요. (최대 3000자)</p><textarea id="profTx" style="min-height:260px">${esc(DB.profile)}</textarea><div style="display:flex;gap:8px;margin-top:12px"><button class="btn sub" data-act="ovClose" style="flex:1">취소</button><button class="btn" data-act="profSave" style="flex:1">저장</button></div>`);
+ACT.profSave = async (b) => { b.disabled = true; const t = $('profTx').value; try { await api('saveProfile', {}, { text: t }); DB.profile = t.slice(0, 3000); closeOv(); toast('저장했어요 ✓'); } catch (e) { toast(e.message); b.disabled = false; } };
+ACT.apiEdit = () => openOv(`<h3>API 키 · 모델</h3><p class="hint" style="margin:4px 0 10px">Claude API 키를 넣으면 상담과 AI 문장 추천을 쓸 수 있어요. 이 기기에는 항상 저장되고, 아래를 켜면 내 시트에도 저장해서 다른 기기에서도 바로 써요.</p>
+  <input type="password" id="apiKeyIn" placeholder="sk-ant-…" value="${esc(getApiKey())}" autocomplete="off"><input type="text" id="apiModelIn" placeholder="모델 이름" value="${esc(getModel())}" style="margin-top:8px">
+  <label style="display:flex;gap:10px;align-items:center;margin-top:12px;font-size:14px;min-height:44px"><input type="checkbox" id="apiShare" ${DB.apiKey ? 'checked' : ''} style="width:22px;height:22px"> 내 시트에도 저장해서 다른 기기와 공유</label>
+  <div style="display:flex;gap:8px;margin-top:12px"><button class="btn sub" data-act="ovClose" style="flex:1">취소</button><button class="btn" data-act="apiSave" style="flex:1">저장</button></div>`);
+ACT.apiSave = async (b) => {
+  const k = $('apiKeyIn').value.trim(), m = $('apiModelIn').value.trim(), sh = $('apiShare').checked; b.disabled = true;
+  try {
+    lsSet(K.api, k); if (m && m !== DEFAULT_MODEL) lsSet(K.model, m); else lsDel(K.model);
+    const want = sh ? k : ''; if (want !== DB.apiKey) { await api('saveApi', { key: want }); DB.apiKey = want; }
+    closeOv(); toast('저장했어요 ✓'); RENDER.sSet();
+  } catch (e) { toast(e.message); b.disabled = false; }
+};
+ACT.pinChange = () => openOv(`<h3>PIN 바꾸기</h3><input type="password" id="pc0" inputmode="numeric" maxlength="6" placeholder="지금 PIN" style="margin-top:10px"><input type="password" id="pc1" inputmode="numeric" maxlength="6" placeholder="새 PIN (숫자 6자리)" style="margin-top:8px"><input type="password" id="pc2" inputmode="numeric" maxlength="6" placeholder="새 PIN 한 번 더" style="margin-top:8px"><div class="msg" id="pcM"></div><div style="display:flex;gap:8px"><button class="btn sub" data-act="ovClose" style="flex:1">취소</button><button class="btn" data-act="pcGo" style="flex:1">바꾸기</button></div>`);
+ACT.pcGo = async (b) => {
+  const a = $('pc0').value.trim(), n = $('pc1').value.trim(), m = $('pcM');
+  if (a !== PIN) { m.textContent = '지금 PIN이 달라요.'; return; }
+  if (!/^\d{6}$/.test(n)) { m.textContent = '새 PIN은 숫자 6자리예요.'; return; }
+  if (n !== $('pc2').value.trim()) { m.textContent = '새 PIN 두 개가 달라요.'; return; }
+  b.disabled = true;
+  try { await api('changePin', { newPin: n }); PIN = n; if (lsGet(K.pin, '')) lsSet(K.pin, n); closeOv(); toast('PIN을 바꿨어요 ✓'); } catch (e) { m.textContent = e.message; b.disabled = false; }
+};
+ACT.copyLink = async () => {
+  const url = location.origin + location.pathname + '?gas=' + encodeURIComponent(GAS), txt = '마음 기록_made by Cheon R';
+  try {
+    if (window.ClipboardItem) await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob(['<a href="' + url + '">' + txt + '</a>'], { type: 'text/html' }), 'text/plain': new Blob([url], { type: 'text/plain' }) })]);
+    else await navigator.clipboard.writeText(url);
+    toast('링크를 복사했어요 ✓ (내 기기끼리만 쓰세요)');
+  } catch (e) { prompt('아래 주소를 복사해 주세요', url); }
+};
+ACT.exportJson = () => {
+  const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), rec: DB.rec, praise: DB.praise, reframe: DB.reframe, blame: DB.blame, stamp: DB.stamp }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '마음기록_' + todayStr() + '.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+};
+
+/* ===== 칭찬 항목 관리 ===== */
+STATE.cm = { cat: DEF_DO[0][0] };
+function chipList() { return DB.chips.map(c => [c.kind, c.cat, c.text, c.hide === 'Y' ? 1 : 0, c.custom === 'Y' ? 1 : 0]); }
+async function saveChipList() { try { await api('saveChips', {}, { list: chipList() }); return true; } catch (e) { toast('저장하지 못했어요: ' + e.message); return false; } }
+RENDER.sChips = () => {
+  const blk = (kind, defs, title) => {
+    const hidden = new Set(DB.chips.filter(c => c.kind === kind && c.hide === 'Y' && c.custom !== 'Y').map(c => c.text));
+    const customs = DB.chips.filter(c => c.kind === kind && c.custom === 'Y');
+    return `<div class="lbl">${title}</div>` + defs.map(([cat, arr]) => `<div class="grp">${esc(cat)} <i>눌러서 켜고 끄기</i></div><div class="chips">${arr.map(t => `<button class="chip ${hidden.has(t) ? '' : 'on'}" data-act="chipTog" data-kind="${kind}" data-t="${esc(t)}">${esc(t)}</button>`).join('')}</div>`).join('') +
+      (customs.length ? `<div class="grp">내가 추가한 항목 <i>눌러서 삭제</i></div><div class="chips">${customs.map(c => `<button class="chip on" data-act="chipDel" data-kind="${kind}" data-t="${esc(c.text)}">${esc(c.text)} ✕</button>`).join('')}</div>` : '') +
+      `<div style="display:flex;gap:8px;margin-top:12px">${kind === 'do' ? `<select id="cmCat" style="flex:none;width:110px">${DEF_DO.map(([c]) => `<option ${STATE.cm.cat === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>` : ''}<input type="text" id="cmIn_${kind}" maxlength="40" placeholder="${kind === 'do' ? '내가 한 일 추가' : '나에게 하고 싶은 말 추가'}"><button class="btn sm" data-act="chipAdd" data-kind="${kind}">추가</button></div>`;
+  };
+  $('chipsBody').innerHTML = `<p class="stepS">꺼 둔 항목은 칭찬일기 카드에서 안 보여요. 내 항목을 추가하면 카드에 바로 나타나요.</p><div class="card">${blk('do', DEF_DO, '오늘 한 일 항목')}</div><div class="card">${blk('say', DEF_SAY, '나에게 하는 말 항목')}</div>`;
+};
+ACT.goChips = () => go('sChips');
+ACT.chipTog = async (b) => {
+  const kind = b.dataset.kind, t = b.dataset.t, i = DB.chips.findIndex(c => c.kind === kind && c.text === t && c.custom !== 'Y');
+  if (i >= 0) DB.chips.splice(i, 1); else DB.chips.push({ kind, cat: '', text: t, hide: 'Y', custom: '' });
+  b.classList.toggle('on', i >= 0); await saveChipList();
+};
+ACT.chipAdd = async (b) => {
+  const kind = b.dataset.kind, inp = $('cmIn_' + kind), t = inp.value.trim(); if (!t) { toast('내용을 적어 주세요'); return; }
+  if (DB.chips.some(c => c.kind === kind && c.text === t && c.custom === 'Y')) { toast('이미 있는 항목이에요'); return; }
+  const cat = kind === 'do' ? $('cmCat').value : ''; if (cat) STATE.cm.cat = cat;
+  DB.chips.push({ kind, cat: cat || '내 항목', text: t, hide: '', custom: 'Y' });
+  if (await saveChipList()) { toast('추가했어요 ✓'); keepScroll($('chipsBody'), RENDER.sChips); } else DB.chips.pop();
+};
+ACT.chipDel = async (b) => {
+  const i = DB.chips.findIndex(c => c.kind === b.dataset.kind && c.text === b.dataset.t && c.custom === 'Y'); if (i < 0) return;
+  const old = DB.chips.splice(i, 1)[0];
+  if (await saveChipList()) keepScroll($('chipsBody'), RENDER.sChips); else DB.chips.splice(i, 0, old);
+};
+
+/* ===== AI 상담 ===== */
+const CH = { msgs: [], busy: false, ctx: null };
+const QR = ['오늘 있었던 일을 말하고 싶어', '잘했는데 민폐 같아', '자꾸 나를 탓하게 돼', '미안한 마음이 커', '위로가 필요해', '칭찬해줘'];
+function startChat(rec) {
+  CH.ctx = rec || null; go('sChat');
+  if (!CH.msgs.length || rec) {
+    CH.msgs = [];
+    if (rec) { const t = '방금 기록한 내용이에요.\n감정: ' + (lines(rec.emo).join(', ') || '-') + '\n일: ' + (lines(rec.sitChips).concat(lines(rec.sit)).join(', ') || '-') + '\n생각: ' + (lines(rec.thChips).concat(lines(rec.th)).join(', ') || '-'); sendChat(t, true); return; }
+  }
+  renderChat();
+}
+function renderChat() {
+  const m = $('msgs');
+  m.innerHTML = (CH.msgs.length ? '' : `<div class="empty">편하게 이야기해요 🤍<br>${getApiKey() ? '' : '설정에서 API 키를 연결하면 대화할 수 있어요.'}</div>`) +
+    CH.msgs.map(x => `<div class="mw ${x.role === 'user' ? 'user' : 'ai'}"><div class="bub">${esc(x.content)}</div></div>`).join('') + (CH.busy ? '<div class="mw ai"><div class="bub"><div class="dots"><i></i><i></i><i></i></div></div></div>' : '');
+  $('qr').innerHTML = CH.msgs.length ? (CH.msgs.length >= 2 ? '<button class="chip mini" data-act="chatLine">💛 오늘 나에게 한 마디 남기기</button>' : '') : QR.map(q => `<button class="chip mini" data-act="qrSend" data-v="${esc(q)}">${esc(q)}</button>`).join('');
+  $('sendBtn').disabled = CH.busy; const s = $('chatScr'); s.scrollTop = s.scrollHeight;
+}
+RENDER.sChat = renderChat;
+async function sendChat(text, silentUser) {
+  if (CH.busy || !text.trim()) return;
+  if (!getApiKey()) { toast('설정에서 API 키를 연결해 주세요'); return; }
+  CH.msgs.push({ role: 'user', content: text }); CH.busy = true; renderChat();
+  try { const a = await claude(sysPrompt(), CH.msgs.slice(-20), 700); CH.msgs.push({ role: 'assistant', content: a }); }
+  catch (e) { CH.msgs.pop(); toast(e.message === 'NOKEY' ? '설정에서 API 키를 연결해 주세요' : 'AI 연결 문제: ' + e.message); if (!silentUser) $('chatIn').value = text; }
+  CH.busy = false; renderChat();
+}
+ACT.chatSend = () => { const t = $('chatIn').value.trim(); if (!t) return; $('chatIn').value = ''; sendChat(t); };
+ACT.qrSend = (b) => sendChat(b.dataset.v);
+ACT.chatClear = () => { if (CH.msgs.length && !confirm('새 대화를 시작할까요?')) return; CH.msgs = []; renderChat(); };
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && e.target.id === 'chatIn' && !e.isComposing) { e.preventDefault(); ACT.chatSend(); } });
+
+
+/* ===== AI 상담 보강 (자책 패턴 맞춤) ===== */
+const COUNSEL_EXTRA = '【이 앱의 핵심 목표】\n아듬샘이 가장 힘들어하는 것은 (1) 잘한 것을 스스로 확인하지 못하고 계속 밖에서 인정을 구하는 것, (2) 잘한 일이 "상대에게 민폐였다"는 자책으로 바뀌는 흐름입니다. (예: 하이록스에서 결과도 좋고 잘했는데 파트너에게 피해를 줬다고 느낌)\n\n【대화 순서】\n1) 감정을 먼저 충분히 받아주기\n2) 아듬샘이 실제로 한 것을 구체적으로 먼저 인정하기 (직접 말하게 질문으로 끌어내기: "오늘 내가 해낸 건 뭐였어요?")\n3) 미안함이 올라온 순간의 사실과 해석을 구분하도록 돕기\n4) "친구가 같은 일을 겪었다면 뭐라고 해줬을까요?" 로 자기 공감 연결하기\n5) 미안함을 고마움 문장으로 바꿔보기\n인정받고 싶은 마음은 자연스러운 것임을 알려주고, 외부 확인 대신 스스로 확인하는 연습으로 이어주세요.\n위 심리 프로파일은 검사 기반의 가설일 뿐이므로 진단하거나 단정하지 마세요. 자책이 오래 지속되거나 몸 증상이 심하면 전문 상담도 함께 받아보도록 부드럽게 권해주세요.';
+function recentCtx() {
+  const neg = DB.blame.filter(x => NEG_PRED.includes(x.pred) && x.actual);
+  if (!DB.blame.length) return '';
+  let s = '\n\n【앱 기록 요약】\n지금까지 자책 풀기 ' + DB.blame.length + '번';
+  if (neg.length) s += ', 상대가 불편해했을 거라 예측한 ' + neg.length + '번 중 ' + neg.filter(x => x.actual !== '불편해했어요').length + '번은 실제로 불편해하지 않았음';
+  const last = DB.blame.slice().sort((a, b) => (b.at > a.at ? 1 : -1))[0];
+  if (last && last.fact) s += '\n가장 최근 상황: ' + last.fact.slice(0, 120);
+  return s;
+}
+
+/* ===== 오늘 나를 인정할 것 (도장) ===== */
+const STAMPS = ['아침에 일어났어요', '해야 할 일을 했어요', '끝까지 해냈어요', '쉬는 걸 허락했어요', '도움을 요청했어요', '감정을 알아차렸어요', '내 몫을 했어요', '오늘도 버텼어요'];
+function stampHtml() {
+  const today = DB.stamp.filter(x => x.date === todayStr());
+  return `<div class="card fade"><div class="lbl">💮 오늘 나를 인정할 것 <small>${today.length ? '오늘 ' + today.length + '개 찍었어요' : '탭하면 도장이 찍혀요'}</small></div><div class="chips">${STAMPS.map(t => `<button class="chip ${today.some(x => x.text === t) ? 'on' : ''}" data-act="stamp" data-v="${esc(t)}">${esc(t)}</button>`).join('')}</div></div>`;
+}
+let stampBusy = false;
+ACT.stamp = async (b) => {
+  const t = b.dataset.v;
+  if (DB.stamp.some(x => x.date === todayStr() && x.text === t)) { toast('이미 찍었어요 💮'); return; }
+  if (stampBusy) return; stampBusy = true;
+  try { const r = await api('save', {}, { kind: 'stamp', item: { text: t } }); DB.stamp.push(r.item); toast('도장 쾅 💮 잘했어요'); keepScroll($('homeBody'), RENDER.sHome); }
+  catch (e) { toast('저장하지 못했어요: ' + e.message); }
+  stampBusy = false;
+};
+function pendingHtml() {
+  const p = DB.blame.filter(x => x.pred && x.pred !== '잘 모르겠어요' && !x.actual).sort((a, b) => (b.at > a.at ? 1 : -1)).slice(0, 2);
+  if (!p.length) return '';
+  return `<div class="lbl">예측했던 반응, 실제는 어땠나요?</div>` + p.map(x => itemRow({ k: 'blame', id: x.id, at: x.at, o: x })).join('');
+}
+
+/* ===== 자책 풀기 카드 흐름 ===== */
+const NEG_PRED = ['불편해했을 것 같아요', '부담스러웠을 것 같아요', '실망했을 것 같아요'];
+const BL_WHO = ['파트너', '동료', '학생', '가족', '친구', '연인', '기타'];
+const BL_INTERP = ['민폐였어요', '내 몫을 못 했어요', '나만 잘못했어요', '실망시켰어요', '더 잘했어야 해요', '부담을 줬어요', '폐 끼친 것 같아요', '나는 부족해요'];
+const BL_EVID = ['결과가 좋았어요', '끝까지 해냈어요', '상대가 직접 불평하지 않았어요', '상대도 같이 기뻐했어요', '내가 한 일이 분명히 있어요', '상대가 고마워했어요', '계획대로 했어요', '함께 완주했어요'];
+const BL_MINE = ['최선을 다했어요', '끝까지 했어요', '맡은 부분을 했어요', '미리 준비했어요', '내 페이스를 지켰어요', '포기하지 않았어요', '도움을 요청했어요'];
+const BL_OTHER = ['응원해줬어요', '함께 해줬어요', '내 부족한 부분을 채워줬어요', '속도를 맞춰줬어요', '믿어줬어요'];
+const BL_OURS = ['같이 완주했어요', '좋은 결과를 냈어요', '함께 웃었어요', '서로 도왔어요', '팀으로 해냈어요'];
+const BL_THANKS = ['함께해줘서 고마워요', '믿어줘서 고마워요', '기다려줘서 고마워요', '곁에 있어줘서 고마워요', '도와줘서 고마워요'];
+const BL_FRIEND = ['정말 잘했다고 말해줘요', '그럴 수 있다고 말해줘요', '네 탓이 아니라고 말해줘요', '고맙다는 말부터 해줘요', '같이 기뻐해줘요'];
+const BL_PRED = NEG_PRED.concat(['아무렇지 않을 것 같아요', '고마워할 것 같아요', '잘 모르겠어요']);
+const BL_ACT = ['고마워했어요', '같이 기뻐했어요', '괜찮다고 했어요', '별말 없었어요', '불편해했어요'];
+const BL_STEPS = ['what', 'interp', 'evid', 'share', 'words', 'end'];
+function newBl() { STATE.bl = { step: 0, who: '', fact: '', interp: [], interpTx: '', before: '', evid: [], mine: [], other: [], ours: [], thanks: [], thanksTx: '', friend: [], pred: '', after: '', done: false, busy: false }; }
+const chipsOf = (g, arr, sel, one) => `<div class="chips">${arr.map(t => chipHtml('bl', g, t, t, one ? sel === t : sel.includes(t), one ? 'data-one="1"' : '')).join('')}</div>`;
+const lvRow = (g, cur) => `<div class="chips">${LEVELS.map((l, i) => chipHtml('bl', g, String(i + 1), l, cur === String(i + 1), 'data-one="1"')).join('')}</div>`;
+RENDER.sBlame = () => {
+  if (!STATE.bl) newBl();
+  const B = STATE.bl, s = BL_STEPS[B.step];
+  $('bFoot').classList.toggle('hide', B.done);
+  if (B.done) {
+    $('bCnt').textContent = ''; $('bBar').style.width = '100%';
+    const fr = B.friend.length ? '“' + esc(B.friend[0].replace(/말해줘요|해줘요$/, '').trim()) + '”' : '';
+    $('bBody').innerHTML = `<div class="center fade" style="padding-top:16px"><div style="font-size:50px">🌤️</div><h2 class="stepT" style="margin-top:6px">여기까지 오느라 수고했어요</h2>
+      ${B.before && B.after ? `<div class="sentence" style="text-align:center">자책 정도 <b>${LEVELS[B.before - 1]}</b> → <b>${LEVELS[B.after - 1]}</b></div>` : ''}
+      <div class="big" style="text-align:left">${B.mine.length ? '내가 한 것<br>' + B.mine.map(t => '· ' + esc(t)).join('<br>') : '나는 내 몫을 했어요'}${B.ours.length ? '<br><br>우리가 한 것<br>' + B.ours.map(t => '· ' + esc(t)).join('<br>') : ''}</div>
+      ${NEG_PRED.includes(B.pred) ? '<p class="hint">나중에 상대의 실제 반응을 기록하면, 내 예측이 맞았는지 알 수 있어요. 홈에서 알려줄게요.</p>' : ''}
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px"><button class="btn" data-act="praiseStart">칭찬일기 쓰러 가기 ☀️</button><button class="btn sub" data-act="goHome">홈으로</button></div></div>`;
+    return;
+  }
+  $('bCnt').textContent = (B.step + 1) + ' / ' + BL_STEPS.length; $('bBar').style.width = ((B.step + 1) / BL_STEPS.length * 100) + '%';
+  $('bPrev').textContent = B.step === 0 ? '닫기' : '이전'; $('bNext').textContent = B.step === BL_STEPS.length - 1 ? '저장 ✓' : '다음';
+  let h = '';
+  if (s === 'what') h = `<h2 class="stepT">무슨 일이 있었어요?</h2><p class="stepS">해석은 빼고, 있었던 일만 적어요. 누구와 있었던 일인가요?</p>${chipsOf('who', BL_WHO, B.who, 1)}
+    <textarea data-in="blFact" placeholder="예) 하이록스를 완주했다. 결과는 좋았다." style="margin-top:14px;min-height:84px">${esc(B.fact)}</textarea>`;
+  else if (s === 'interp') h = `<h2 class="stepT">그 일에 어떤 해석이 붙었어요?</h2><p class="stepS">머릿속에서 들린 말을 골라요. 사실이 아니라 "내가 붙인 해석"이에요. <span data-cnt="bl.interp" style="color:var(--acd)">${B.interp.length ? B.interp.length + '개 선택' : ''}</span></p>${chipsOf('interp', BL_INTERP, B.interp)}
+    <textarea data-in="blInterp" placeholder="다른 말이 있다면 (선택)" style="margin-top:12px;min-height:64px">${esc(B.interpTx)}</textarea>
+    <div class="lbl" style="margin-top:20px">지금 자책하는 마음은 얼마나 큰가요?</div>${lvRow('before', B.before)}`;
+  else if (s === 'evid') h = `<h2 class="stepT">사실로 확인되는 건요?</h2><p class="stepS">그 해석과 다른, 실제로 있었던 일을 골라요. <span data-cnt="bl.evid" style="color:var(--acd)">${B.evid.length ? B.evid.length + '개 선택' : ''}</span></p>${chipsOf('evid', BL_EVID, B.evid)}
+    ${B.interp.length ? `<div class="sentence">“${esc(B.interp[0])}”라는 생각은 사실일까요, 해석일까요? 위에서 고른 사실과 나란히 놓고 봐요.</div>` : ''}`;
+  else if (s === 'share') h = `<h2 class="stepT">내 몫 · 상대 몫 · 우리 몫</h2><p class="stepS">각자 한 것을 나눠서 골라요. 내 몫은 분명히 있어요.</p>
+    <div class="lbl">내가 한 것</div>${chipsOf('mine', BL_MINE, B.mine)}<div class="lbl" style="margin-top:18px">상대가 한 것</div>${chipsOf('other', BL_OTHER, B.other)}<div class="lbl" style="margin-top:18px">우리가 함께 한 것</div>${chipsOf('ours', BL_OURS, B.ours)}`;
+  else if (s === 'words') h = `<h2 class="stepT">미안함을 고마움으로</h2><p class="stepS">"미안해" 대신 건네고 싶은 말을 골라요.</p>${chipsOf('thanks', BL_THANKS, B.thanks)}
+    <textarea data-in="blThanks" placeholder="직접 써도 좋아요 (선택)" style="margin-top:12px;min-height:64px">${esc(B.thanksTx)}</textarea>
+    <div class="lbl" style="margin-top:20px">친구가 같은 일을 겪었다면, 나는 뭐라고 해줬을까요?</div>${chipsOf('friend', BL_FRIEND, B.friend)}<div class="sentence">그 말, 나에게도 똑같이 해줘도 돼요.</div>`;
+  else h = `<h2 class="stepT">마무리 두 가지</h2><p class="stepS">상대는 어떻게 느꼈을 것 같아요? 나중에 실제와 비교해 볼 거예요.</p>${chipsOf('pred', BL_PRED, B.pred, 1)}
+    <div class="lbl" style="margin-top:22px">지금 자책하는 마음은 얼마나 큰가요?</div>${lvRow('after', B.after)}`;
+  $('bBody').innerHTML = `<div class="fade">${h}</div>`; $('bBody').scrollTop = 0;
+};
+IN.blFact = (t) => { STATE.bl.fact = t.value; };
+IN.blInterp = (t) => { STATE.bl.interpTx = t.value; };
+IN.blThanks = (t) => { STATE.bl.thanksTx = t.value; };
+ACT.blameStart = () => { newBl(); go('sBlame'); };
+ACT.bExit = () => { const B = STATE.bl; if (B && !B.done && (B.who || B.fact.trim() || B.interp.length) && !confirm('쓰던 내용을 닫을까요? 저장되지 않아요.')) return; STATE.bl = null; go('sHome'); };
+ACT.bPrev = () => { const B = STATE.bl; if (B.step === 0) return ACT.bExit(); B.step--; RENDER.sBlame(); };
+ACT.bNext = async (b) => {
+  const B = STATE.bl, s = BL_STEPS[B.step];
+  if (s === 'what' && !B.who && !B.fact.trim()) { toast('누구와, 또는 무슨 일인지 하나만 적어 주세요 😊'); return; }
+  if (s === 'interp' && !B.interp.length && !B.interpTx.trim()) { toast('들었던 말을 하나만 골라 주세요 😊'); return; }
+  if (B.step < BL_STEPS.length - 1) { B.step++; RENDER.sBlame(); return; }
+  if (B.busy) return; B.busy = true; b.disabled = true;
+  const j = (a, tx) => a.concat(tx && tx.trim() ? [tx.trim()] : []).join('\n');
+  try {
+    const r = await api('save', {}, { kind: 'blame', item: { who: B.who, fact: B.fact.trim(), interp: j(B.interp, B.interpTx), before: B.before, evid: B.evid.join('\n'), mine: B.mine.join('\n'), other: B.other.join('\n'), ours: B.ours.join('\n'), thanks: j(B.thanks, B.thanksTx), friend: B.friend.join('\n'), pred: B.pred, after: B.after } });
+    DB.blame.push(r.item); B.done = true; RENDER.sBlame();
+  } catch (e) { toast('저장하지 못했어요: ' + e.message); }
+  B.busy = false; b.disabled = false;
+};
+function blameDetail(o) {
+  let h = (o.who ? detailLine('누구와', [o.who]) : '') + detailLine('일어난 일', lines(o.fact)) + detailLine('내가 붙인 해석', lines(o.interp)) + (o.before || o.after ? detailLine('자책 정도', [(LEVELS[o.before - 1] || '–') + ' → ' + (LEVELS[o.after - 1] || '–')]) : '') +
+    detailLine('확인된 사실', lines(o.evid)) + detailLine('내 몫', lines(o.mine)) + detailLine('상대 몫', lines(o.other)) + detailLine('우리 몫', lines(o.ours)) + detailLine('미안함 → 고마움', lines(o.thanks)) + detailLine('친구라면', lines(o.friend));
+  if (o.pred) h += detailLine('내 예측', [o.pred]) + `<div class="lbl" style="margin-top:14px">실제 반응은 어땠나요?</div><div class="chips">${BL_ACT.map(a => `<button class="chip ${o.actual === a ? 'on' : ''}" data-act="setActual" data-id="${esc(o.id)}" data-v="${esc(a)}">${esc(a)}</button>`).join('')}</div>`;
+  return h;
+}
+ACT.setActual = async (b) => {
+  const o = DB.blame.find(x => String(x.id) === b.dataset.id); if (!o) return; const v = b.dataset.v;
+  try {
+    const r = await api('save', {}, { kind: 'blame', item: { id: o.id, actual: v } }); Object.assign(o, r.item);
+    toast(NEG_PRED.includes(o.pred) && v !== '불편해했어요' ? '예측과 달랐어요 🌤️ 걱정한 만큼은 아니었네요' : '기록했어요 ✓');
+    openDetail('blame', o.id); if (cur === 'sHome') keepScroll($('homeBody'), RENDER.sHome);
+  } catch (e) { toast(e.message); }
+};
+
+/* ===== 돌아보기 ===== */
+STATE.rp = { days: 7, ai: '', busy: false };
+const dOf = (x) => x.date || String(x.at || '').slice(0, 10);
+const avg = (a) => a.length ? a.reduce((p, c) => p + c, 0) / a.length : 0;
+const topN = (arr, n) => { const m = {}; arr.forEach(v => { m[v] = (m[v] || 0) + 1; }); return Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, n); };
+function rpStats() {
+  const n = STATE.rp.days, from = dayOffset(n - 1), to = todayStr(), inR = (x) => dOf(x) >= from && dOf(x) <= to;
+  const pr = DB.praise.filter(inR), st = DB.stamp.filter(inR), bl = DB.blame.filter(inR), rc = DB.rec.filter(inR);
+  const both = bl.filter(x => x.before && x.after), mood = pr.filter(x => x.mood0 && x.mood1);
+  const negAll = DB.blame.filter(x => NEG_PRED.includes(x.pred) && x.actual);
+  const bars = []; for (let i = n - 1; i >= 0; i--) { const d = dayOffset(i); bars.push({ d, c: DB.praise.filter(x => x.date === d).length + DB.stamp.filter(x => x.date === d).length }); }
+  return { n, pr, st, bl, rc, bars, praiseDays: new Set(pr.map(x => x.date)).size,
+    b0: avg(both.map(x => Number(x.before))), b1: avg(both.map(x => Number(x.after))), bothN: both.length,
+    moodD: avg(mood.map(x => Number(x.mood1) - Number(x.mood0))), moodN: mood.length,
+    negN: negAll.length, negOk: negAll.filter(x => x.actual !== '불편해했어요').length,
+    emo: topN([].concat(...rc.map(x => lines(x.emo))), 3), body: topN([].concat(...rc.map(x => lines(x.body).filter(t => t !== '몸은 괜찮아요'))), 3) };
+}
+RENDER.sReport = () => {
+  const S = rpStats(), mx = Math.max(1, ...S.bars.map(b => b.c));
+  const none = !S.pr.length && !S.st.length && !S.bl.length && !S.rc.length;
+  $('rpBody').innerHTML = `<div class="chips" style="margin-bottom:14px">${[7, 30].map(d => `<button class="chip ${STATE.rp.days === d ? 'on' : ''}" data-act="rpDays" data-v="${d}">최근 ${d}일</button>`).join('')}</div>
+    ${none ? '<div class="empty">아직 모인 기록이 없어요 🌱<br>칭찬일기나 도장 하나부터 시작해 봐요</div>' : ''}
+    <div class="card"><div class="lbl">💛 나를 인정한 횟수</div><div class="rpN"><b>${S.pr.length + S.st.length}</b><small>번 (칭찬일기 ${S.pr.length} + 도장 ${S.st.length}) · 칭찬 쓴 날 ${S.praiseDays}일</small></div>
+      <div class="rpBars">${S.bars.map(b => `<div title="${b.d}"><i class="${b.c ? '' : 'z'}" style="height:${b.c ? Math.max(8, b.c / mx * 70) : 3}px"></i>${S.n === 7 ? DOW[new Date(b.d + 'T00:00:00').getDay()] : ''}</div>`).join('')}</div></div>
+    <div class="card"><div class="lbl">🌧️→☀️ 자책 풀기</div>${S.bl.length ? `<div class="rpN"><b>${S.bl.length}</b><small>번 풀어봤어요</small></div>${S.bothN ? `<div class="sentence" style="margin-top:6px">자책 정도 평균 <b>${S.b0.toFixed(1)}</b> → <b>${S.b1.toFixed(1)}</b> (5점 만점)</div>` : ''}` : '<div class="hint">이 기간에는 아직 없어요.</div>'}
+      ${S.negN ? `<div class="sentence">지금까지 상대가 불편해했을 거라 예측한 <b>${S.negN}번</b> 중 <b>${S.negOk}번</b>은 실제로 불편해하지 않았어요.</div>` : '<div class="hint">자책 풀기에서 예측을 남기고, 실제 반응을 나중에 기록하면 여기에 예측이 맞았는지 나와요.</div>'}</div>
+    ${S.moodN ? `<div class="card"><div class="lbl">🙂 칭찬일기를 쓴 뒤 기분</div><div class="rpN"><b>${S.moodD >= 0 ? '+' : ''}${S.moodD.toFixed(1)}</b><small>단계 (${S.moodN}번 평균, 5단계 기준)</small></div></div>` : ''}
+    ${S.emo.length || S.body.length ? `<div class="card"><div class="lbl">감정 · 몸 신호 (자주 나온 것)</div>${S.emo.length ? `<div class="chips" style="margin-bottom:8px">${S.emo.map(([t, c]) => `<span class="chip mini">${esc(t)} ${c}</span>`).join('')}</div>` : ''}${S.body.length ? `<div class="chips">${S.body.map(([t, c]) => `<span class="chip mini">${esc(t)} ${c}</span>`).join('')}</div>` : ''}</div>` : ''}
+    <button class="btn warm" style="width:100%" data-act="rpAi" ${STATE.rp.busy ? 'disabled' : ''}>${STATE.rp.busy ? '생각하는 중…' : '🤖 AI에게 변화 한마디 듣기'}</button>
+    ${STATE.rp.ai ? `<div class="sentence">${esc(STATE.rp.ai)}</div>` : ''}`;
+};
+ACT.goReport = () => go('sReport');
+ACT.rpDays = (b) => { STATE.rp.days = Number(b.dataset.v); STATE.rp.ai = ''; RENDER.sReport(); };
+ACT.rpAi = async () => {
+  if (!getApiKey()) { toast('설정에서 API 키를 연결하면 쓸 수 있어요'); return; }
+  const S = rpStats(); STATE.rp.busy = true; RENDER.sReport();
+  const sum = `최근 ${S.n}일: 칭찬일기 ${S.pr.length}번, 도장 ${S.st.length}번, 자책 풀기 ${S.bl.length}번` + (S.bothN ? `(자책 정도 평균 ${S.b0.toFixed(1)}→${S.b1.toFixed(1)})` : '') + (S.negN ? `. 상대가 불편해했을 거라 예측한 ${S.negN}번 중 ${S.negOk}번은 실제로 아니었음` : '') + (S.emo.length ? '. 자주 나온 감정: ' + S.emo.map(x => x[0]).join(', ') : '');
+  try { STATE.rp.ai = await claude(sysPrompt(), [{ role: 'user', content: sum + '\n\n이 기록을 보고, 잘하고 있는 점과 변화를 따뜻하게 3문장 이내로 말해줘요. 숫자가 적으면 숫자 대신 시작한 것 자체를 인정해줘요. 과장하지 말아요.' }], 400); }
+  catch (e) { toast(e.message === 'NOKEY' ? '설정에서 API 키를 연결해 주세요' : 'AI 연결 문제: ' + e.message); }
+  STATE.rp.busy = false; RENDER.sReport();
+};
+
+/* ===== 상담: 오늘 나에게 한 마디 ===== */
+ACT.chatLine = () => openOv(`<h3>💛 오늘 나에게 한 마디</h3><p class="hint" style="margin:4px 0 10px">상담에서 마음에 닿은 말을 적어두면 칭찬 모음에 저장돼서, 힘든 날 꺼내볼 수 있어요.</p><textarea id="clTx" style="min-height:90px" placeholder="나에게 해주고 싶은 말"></textarea><div style="display:flex;gap:8px;margin-top:12px"><button class="btn sub" data-act="ovClose" style="flex:1">취소</button><button class="btn" data-act="clSave" style="flex:1">저장</button></div>`);
+ACT.clSave = async (b) => {
+  const t = $('clTx').value.trim(); if (!t) { toast('한 마디를 적어 주세요'); return; } b.disabled = true;
+  try { const r = await api('save', {}, { kind: 'praise', item: { say: t } }); DB.praise.push(r.item); closeOv(); toast('칭찬 모음에 저장했어요 💛'); }
+  catch (e) { toast(e.message); b.disabled = false; }
+};
+
+init();
+
+</script>
+</body>
+</html>
