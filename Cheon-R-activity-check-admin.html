@@ -4550,6 +4550,8 @@ function rsParseSheet(rows, sheetName, fileName, nSheets){
   for (let i = 0; i < Math.min(15, R.length); i++){ const r = R[i]; if (r.some(c => /학번/.test(c)) && r.some(c => /이름|성명/.test(c))){ hr = i; break; } }
   if (hr < 0) for (let i = 0; i < Math.min(15, R.length); i++){ const r = R[i]; if (r.some(c => /^(학번|이름|성명)$/.test(c))){ hr = i; break; } }
   const H = hr >= 0 ? R[hr] : [], data = R.slice(hr + 1);
+  { const sCs = H.map((c, i) => /학번/.test(c) ? i : -1).filter(i => i >= 0), nCs = H.map((c, i) => /이름|성명/.test(c) ? i : -1).filter(i => i >= 0);
+    if (hr >= 0 && sCs.length >= 2 && nCs.length >= 2) return rsParseBlocks(R, hr, sCs, nCs, sheetName, fileName, nSheets); }   // 멘토/멘티처럼 (학번·이름) 묶음이 옆으로 여러 개인 표
   let sc = H.findIndex(c => /학번/.test(c)), nc = H.findIndex(c => /^(이름|성명|학생\s*이름|학생명)$/.test(c)); if (nc < 0) nc = H.findIndex(c => /이름|성명/.test(c));
   let gc = H.findIndex(c => /^학년$/.test(c)), bc = H.findIndex(c => /^반$/.test(c)), numc = H.findIndex(c => /^번호$/.test(c));
   const col = k => data.map(r => r[k] || '').filter(Boolean);
@@ -4617,6 +4619,37 @@ function rsParseSheet(rows, sheetName, fileName, nSheets){
     });
   });
   out.acts.forEach(a => { a.nGiv = a.entries.filter(e => e.giv).length; });
+  return out;
+}
+function rsParseBlocks(R, hr, sCs, nCs, sheetName, fileName, nSheets){   // 한 활동의 명단이 (학번·이름) 묶음 여러 개로 나란히 있는 표 (예: 멘토 | 멘티 | 과목) → 역할별로 나눠서 읽어요
+  const data = R.slice(hr + 1), H = R[hr], out = { name:sheetName, cls:0, other:0, unm:[], dup:[], acts:[], hdr:true };
+  const blocks = sCs.map(sk => { const nk = nCs.find(n => n > sk); if (nk == null) return null; let role = ''; const up = R[hr - 1] || [];
+    for (let k = nk; k >= 0 && !role; k--){ const t = rsStr(up[k]); if (t) role = t; }
+    role = role.replace(/\(.*?\)|（.*?）/g, '').trim(); if (role.length > 10 || /^(순번|번호|no\.?)$/i.test(role)) role = ''; return { sk, nk, role }; }).filter(Boolean);
+  if (blocks.length < 2) return out;
+  const used = new Set(blocks.flatMap(b => [b.sk, b.nk, b.nk + 1])), W = Math.max(...R.map(r => r.length));
+  let ek = -1; for (let k = 0; k < W && ek < 0; k++){ if (used.has(k)) continue; const h = rsStr(H[k]) + ' ' + rsStr((R[hr - 1] || [])[k]); if (/과목|영역|분야|종류|주제|활동명|내용/.test(h) && data.some(r => rsStr(r[k]))) ek = k; }
+  const g = {};   // 역할 → sid → {sid,name,txts[]}
+  data.forEach(r => {
+    if (/합계|소계|총계/.test(r.join(''))) return;
+    const names = blocks.map(b => rsStr(r[b.nk]));
+    blocks.forEach((b, bi) => {
+      const sidRaw = r[b.sk], nameRaw = r[b.nk]; if (!rsStr(sidRaw) && !rsStr(nameRaw)) return;
+      if (/^(학번|이름|성명)$/.test(rsStr(sidRaw)) || /^(이름|성명)$/.test(rsStr(nameRaw))) return;
+      const x = rsResolve(sidRaw, nameRaw);
+      if (x.st === 'ok'){
+        const m = g[b.role] = g[b.role] || {}, e = m[x.s.sid] = m[x.s.sid] || { sid:x.s.sid, name:x.s.name, t:[] };
+        const partner = names.filter((n, j) => j !== bi && n).join(', '), parts = [ek >= 0 ? rsStr(r[ek]) : '', partner ? '짝 ' + partner : ''].filter(Boolean).join(' · ');
+        const t = (b.role ? b.role + (parts ? ' · ' : '') : '') + parts; if (t && !e.t.includes(t)) e.t.push(t);
+      } else if (x.st === 'other') out.other++;
+      else if (x.st === 'none' && rsNorm(nameRaw)) out.unm.push(rsStr(nameRaw));
+      else if (x.st === 'dup') out.dup.push(rsStr(nameRaw));
+    });
+  });
+  const FL = rsFileLabel(fileName, sheetName, 1).replace(/\d{4}\s*학년도|\b[1-3]\s*학년|\b[12]\s*학기|\(\s*\d+\s*-\s*\d+\s*\)|\(\s*\d+\s*반\s*\)/g, ' ').replace(/\s+/g, ' ').trim() || sheetName, all = new Set();
+  Object.keys(g).forEach(role => { const es = Object.values(g[role]).map(e => ({ sid:e.sid, name:e.name, txt:e.t.join(' / '), giv:'' })); es.forEach(e => all.add(e.sid));
+    if (es.length) out.acts.push({ label:(role && Object.keys(g).length > 1 ? FL + ' (' + role + ')' : FL).substring(0, 80), entries:es, fromFile:true, alt:sheetName, nGiv:0 }); });
+  out.cls = all.size;
   return out;
 }
 function rsSuggest(a, sheetName){
