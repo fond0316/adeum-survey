@@ -5,7 +5,7 @@
  */
 
 /** GAS 코드 버전 — 코드를 고칠 때마다 1씩 올려요. 관리 화면이 이 번호로 업데이트가 필요한지 알려줘요. */
-var GAS_VER = 15;
+var GAS_VER = 16;
 var MAX_Q = 100;     // 학생이 선생님께 남기는 질문 최대 글자수
 var MAX_SUM = 1000;   // 학생 활동 요약 최대 글자수
 
@@ -28,6 +28,7 @@ var SHEETS = {
   records: { name: '기록', headers: ['학번', '항목ID', '번호', '참여', '보고서', '링크', '주제', '진로연결', '요약', '수정시각', '교사확인', '교사메모', '활동유형', '학기', '자료', '대표', '심화', '반영한한마디', '반영시각', '학생질문', '질문시각', '질문확인', '한마디시각', '읽음시각'] },
   roster: { name: '참여명단', headers: ['항목ID', '학번', '이름', '출처', '내용', '등록일', '제공문구'] },
   rchk: { name: '명단확인', headers: ['항목ID', '학번', '확인', '메모', '일시'] },
+  ralias: { name: '명단별칭', headers: ['키', '항목ID', '횟수', '일시'] },
 };
 var DEFAULT_SETTINGS = [['학년도', String(new Date().getFullYear())], ['학급명', '우리 반'], ['관리자비번', DEFAULT_PW]];
 
@@ -77,6 +78,7 @@ function route_(p) {
     case 'rosterSave': return rosterSave_(p);
     case 'rosterDel': return rosterDel_(p);
     case 'rosterChk': return rosterChk_(p);
+    case 'rosterAlias': return rosterAlias_(p);
     case 'syncGet': return syncGet_(p);
     case 'syncSave': return syncSave_(p);
     case 'reorderItems': return reorderItems_(p);
@@ -480,7 +482,7 @@ function adminLoad_(p) {
   var sItems = allIt.filter(function (r) { return r[15]; }).map(function (r) { return { id: r[0], cat: r[1], title: r[2], by: r[15], byName: nm[r[15]] || '' }; });
   var students = rows_('students').filter(function (r) { return r[0]; }).map(function (r) { return { sid: r[0], name: r[1], hasPin: !!r[2], career: r[3], club: r[5] || '' }; });
   var records = rows_('records').filter(function (r) { return r[0]; }).map(recObj_);
-  return { ok: true, role: 'admin', gasVer: GAS_VER, className: getSetting_('학급명'), year: year_(), grade: getSetting_('학년'), guide: guide_(), impLog: impLog_(), roster: roster_(), rchk: rchk_(),
+  return { ok: true, role: 'admin', gasVer: GAS_VER, className: getSetting_('학급명'), year: year_(), grade: getSetting_('학년'), guide: guide_(), impLog: impLog_(), roster: roster_(), rchk: rchk_(), alias: ralias_(),
     items: items, sItems: sItems, students: students, records: records, installId: installId_() };
 }
 /** 불러온 파일 기록 (엑셀·붙여넣기로 등록한 묶음) — 설정 탭에 JSON으로 보관 */
@@ -557,6 +559,28 @@ function rosterChk_(p) {
     if (chk || memo) keep.push([iid, sid, chk, memo, Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm')]);
     rchkWrite_(keep);
     return { ok: true };
+  });
+}
+/** 명단 올릴 때 아듬샘이 확인해서 저장한 '이름 → 항목' 연결을 기억해 두었다가 다음 파일에서 자동으로 써요 */
+function ralias_() {
+  return rows_('ralias').filter(function (r) { return r[0] && r[1]; }).map(function (r) { return { k: r[0], iid: r[1], n: Number(r[2]) || 1 }; });
+}
+/** data = {pairs:[[키, 항목ID], ...]} — 같은 키가 있으면 항목을 최신으로 바꾸고 횟수를 올려요 (최대 400개, 오래된 것부터 정리) */
+function rosterAlias_(p) {
+  need_(p);
+  var d = JSON.parse(dataStr_(p) || '{}'), pairs = (d.pairs || []).slice(0, 60);
+  return lock_(function () {
+    var cur = rows_('ralias').filter(function (r) { return r[0] && r[1]; }), now = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm');
+    pairs.forEach(function (q) {
+      var k = cut_(q[0], 80), iid = cut_(q[1], 30); if (!k || !iid) return;
+      var hit = null; cur.forEach(function (r) { if (r[0] === k) hit = r; });
+      if (hit) { hit[1] = iid; hit[2] = (Number(hit[2]) || 1) + 1; hit[3] = now; } else cur.push([k, iid, 1, now]);
+    });
+    if (cur.length > 400) cur = cur.slice(cur.length - 400);
+    var sh = sh_('ralias'), last = sh.getLastRow(), n = SHEETS.ralias.headers.length;
+    if (last >= 2) sh.getRange(2, 1, last - 1, n).clearContent();
+    if (cur.length) { ensureRows_(sh, cur.length + 1); sh.getRange(2, 1, cur.length, n).setNumberFormat('@').setValues(cur); }
+    return { ok: true, count: cur.length };
   });
 }
 /** 마지막으로 항목을 불러오거나 갱신한 기록 — 관리자 화면에 '마지막 불러오기·갱신' 시각으로 보여요 */
