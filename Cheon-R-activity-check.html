@@ -26,6 +26,7 @@ button{cursor:pointer;border:0;background:none}
 .top h1{font-size:20px;font-weight:800;color:var(--mainD);letter-spacing:-.3px}
 .top small{display:block;font-size:12px;color:var(--tx3);font-weight:500}
 .top .sp{flex:1}
+.top .hic{width:40px;height:40px;border-radius:12px;background:#fff;box-shadow:0 2px 8px rgba(80,60,130,.12);display:flex;align-items:center;justify-content:center;font-size:22px;flex:none}
 .btn{min-height:44px;padding:0 18px;border-radius:12px;font-weight:700;background:var(--main);color:#fff}
 .btn.sub{background:#fff;color:var(--mainD);border:1.5px solid var(--line)}
 .btn.sm{min-height:44px;padding:0 14px;font-size:14px}
@@ -151,6 +152,7 @@ body.demo #demoBar{display:flex}body.demo #btnOut,body.demo #btnRe{display:none}
 <div id="demoBar"><div class="dt">🎬 <b>체험 중</b> · 샘플 데이터예요. 아무것도 저장되지 않아요<small>해볼 것: 활동 카드를 눌러 참여 체크 → 요약 쓰기 → 저장 (교과는 ➕ 활동 추가)</small></div><button class="pri" data-act="demoReg">등록하러 가기</button><button data-act="demoClose">닫기</button></div>
 <div class="wrap">
   <div class="top">
+    <span class="hic" aria-hidden="true">🌱</span>
     <div><h1>ACTIVITY CHECK</h1><small id="sub">학생 활동 자체점검</small></div>
     <div class="sp"></div>
     <button class="btn sub sm hide" id="btnRe" title="새로고침">↻</button>
@@ -510,7 +512,7 @@ async function loadAll(silent){
   items = items.concat((r.mine || []).map(myMap));
   CATS.push('내활동'); if (!CATS.includes(cat)) cat = CATS[0];
   recs = {}; (r.records || []).forEach(x => { recs[key(x.iid, x.n)] = x; });
-  $('sub').textContent = (r.className || '') + (r.year ? ' · ' + r.year + '학년도' : '');
+  $('sub').textContent = (r.year ? r.year + '학년도 ' : '') + (r.className || '');
   $('hello').textContent = `${r.name} 학생의 활동 점검`;
   $('yr').textContent = '';
   $('inCareer').value = career;
@@ -878,7 +880,7 @@ async function rvSubmit(){
 /* ===== 시작 ===== */
 (async function init(){
   if (!GAS) return show('noGas');
-  try { const p = await jsonp({ action: 'ping' }); $('lgCls').textContent = (p.className || '') + (p.year ? ' · ' + p.year + '학년도' : ''); $('sub').textContent = $('lgCls').textContent; }
+  try { const p = await jsonp({ action: 'ping' }); $('lgCls').textContent = (p.year ? p.year + '학년도 ' : '') + (p.className || ''); $('sub').textContent = $('lgCls').textContent; }
   catch (e) { /* 연결 안내는 아래 로그인에서 */ }
   if (me && me.sid && me.pin) {
     try { await loadAll(); return; }
