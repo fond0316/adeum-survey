@@ -5,7 +5,7 @@
  */
 
 /** GAS 코드 버전 — 코드를 고칠 때마다 1씩 올려요. 관리 화면이 이 번호로 업데이트가 필요한지 알려줘요. */
-var GAS_VER = 14;
+var GAS_VER = 15;
 var MAX_Q = 100;     // 학생이 선생님께 남기는 질문 최대 글자수
 var MAX_SUM = 1000;   // 학생 활동 요약 최대 글자수
 
@@ -27,6 +27,7 @@ var SHEETS = {
   items: { name: '항목', headers: ['ID', '분류', '항목명', '작성유의사항', '보고서종류', '기본링크', '담임제공', '순서', '사용', '교사용기재유의', '문구제공', '학기', '보낼곳', '확인필요', '마감일', '추가한학생'] },
   records: { name: '기록', headers: ['학번', '항목ID', '번호', '참여', '보고서', '링크', '주제', '진로연결', '요약', '수정시각', '교사확인', '교사메모', '활동유형', '학기', '자료', '대표', '심화', '반영한한마디', '반영시각', '학생질문', '질문시각', '질문확인', '한마디시각', '읽음시각'] },
   roster: { name: '참여명단', headers: ['항목ID', '학번', '이름', '출처', '내용', '등록일', '제공문구'] },
+  rchk: { name: '명단확인', headers: ['항목ID', '학번', '확인', '메모', '일시'] },
 };
 var DEFAULT_SETTINGS = [['학년도', String(new Date().getFullYear())], ['학급명', '우리 반'], ['관리자비번', DEFAULT_PW]];
 
@@ -75,6 +76,7 @@ function route_(p) {
     case 'saveImpLog': return saveImpLog_(p);
     case 'rosterSave': return rosterSave_(p);
     case 'rosterDel': return rosterDel_(p);
+    case 'rosterChk': return rosterChk_(p);
     case 'syncGet': return syncGet_(p);
     case 'syncSave': return syncSave_(p);
     case 'reorderItems': return reorderItems_(p);
@@ -478,7 +480,7 @@ function adminLoad_(p) {
   var sItems = allIt.filter(function (r) { return r[15]; }).map(function (r) { return { id: r[0], cat: r[1], title: r[2], by: r[15], byName: nm[r[15]] || '' }; });
   var students = rows_('students').filter(function (r) { return r[0]; }).map(function (r) { return { sid: r[0], name: r[1], hasPin: !!r[2], career: r[3], club: r[5] || '' }; });
   var records = rows_('records').filter(function (r) { return r[0]; }).map(recObj_);
-  return { ok: true, role: 'admin', gasVer: GAS_VER, className: getSetting_('학급명'), year: year_(), grade: getSetting_('학년'), guide: guide_(), impLog: impLog_(), roster: roster_(),
+  return { ok: true, role: 'admin', gasVer: GAS_VER, className: getSetting_('학급명'), year: year_(), grade: getSetting_('학년'), guide: guide_(), impLog: impLog_(), roster: roster_(), rchk: rchk_(),
     items: items, sItems: sItems, students: students, records: records, installId: installId_() };
 }
 /** 불러온 파일 기록 (엑셀·붙여넣기로 등록한 묶음) — 설정 탭에 JSON으로 보관 */
@@ -508,14 +510,14 @@ function rosterWrite_(keep) {
   if (keep.length) { ensureRows_(sh, keep.length + 1); sh.getRange(2, 1, keep.length, n).setNumberFormat('@').setValues(keep); }
 }
 /** 긴 글(제공 문구)은 주소에 다 못 실어서 gzip+base64로 줄여 보내요 (p.gz). 작은 요청은 예전처럼 p.data */
-function dataOf_(p) {
+function dataStr_(p) {
   if (p.gz) return Utilities.ungzip(Utilities.newBlob(Utilities.base64DecodeWebSafe(String(p.gz)), 'application/x-gzip')).getDataAsString('UTF-8');
   return p.data || '{}';
 }
 /** data = {iid, src, rows:[[학번,이름,내용,제공문구],…]} — 같은 항목·같은 출처(파일)의 옛 명단은 새 것으로 바꿔요 */
 function rosterSave_(p) {
   need_(p);
-  var d = JSON.parse(dataOf_(p)), iid = cut_(d.iid, 30), src = cut_(d.src, 80), at = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd');
+  var d = JSON.parse(dataStr_(p)), iid = cut_(d.iid, 30), src = cut_(d.src, 80), at = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd');
   if (!iid) throw new Error('항목이 없어요.');
   var add = (Array.isArray(d.rows) ? d.rows : []).slice(0, 400).map(function (r) { return [iid, cut_(r[0], 12), cut_(r[1], 20), src, cut_(r[2], 160), at, cut_(r[3], 3000)]; }).filter(function (r) { return r[1]; });
   return lock_(function () {
@@ -534,6 +536,27 @@ function rosterDel_(p) {
     var keep = all.filter(function (r) { return !((!iid || r[0] === iid) && (!src || r[3] === src)); });
     rosterWrite_(keep);
     return { ok: true, removed: all.length - keep.length };
+  });
+}
+/** 명단 대조에서 선생님이 '확인함'으로 표시하거나 메모를 남긴 것 — 명단 파일을 다시 올려도 유지돼요 */
+function rchk_() {
+  return rows_('rchk').filter(function (r) { return r[0] && r[1]; }).map(function (r) { return { iid: r[0], sid: r[1], chk: String(r[2]) === 'O', memo: r[3] || '', at: r[4] || '' }; });
+}
+function rchkWrite_(keep) {
+  var sh = sh_('rchk'), last = sh.getLastRow(), n = SHEETS.rchk.headers.length;
+  if (last >= 2) sh.getRange(2, 1, last - 1, n).clearContent();
+  if (keep.length) { ensureRows_(sh, keep.length + 1); sh.getRange(2, 1, keep.length, n).setNumberFormat('@').setValues(keep); }
+}
+/** data = {iid, sid, chk:true/false, memo} — 확인 표시와 메모를 학생·활동별로 저장해요 (둘 다 비면 지워요) */
+function rosterChk_(p) {
+  need_(p);
+  var d = JSON.parse(p.data || '{}'), iid = cut_(d.iid, 30), sid = cut_(d.sid, 12), memo = cut_(d.memo, 300), chk = d.chk ? 'O' : '';
+  if (!iid || !sid) throw new Error('대상이 없어요.');
+  return lock_(function () {
+    var keep = rows_('rchk').filter(function (r) { return r[0] && !(r[0] === iid && r[1] === sid); });
+    if (chk || memo) keep.push([iid, sid, chk, memo, Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm')]);
+    rchkWrite_(keep);
+    return { ok: true };
   });
 }
 /** 마지막으로 항목을 불러오거나 갱신한 기록 — 관리자 화면에 '마지막 불러오기·갱신' 시각으로 보여요 */
@@ -818,6 +841,7 @@ function yearReset_(p) {
     if (sl >= 2) ssh.getRange(2, 6, sl - 1, 1).clearContent();   // 새 학년도엔 동아리를 다시 고르게 해요
     var ish = sh_('items'), idata = rows_('items');   // 학생이 직접 추가했던 활동도 정리해요 (기록과 함께 백업 탭·백업 파일에 남아 있어요)
     for (var qi = idata.length - 1; qi >= 0; qi--) if (idata[qi][15]) ish.deleteRow(qi + 2);
+    rchkWrite_([]);
     rosterWrite_([]);   // 참여 명단도 그 해 것이라 새 학년도엔 비워요
     cdel_('c_items_u'); cdel_('c_items_s');
     cdel_('c_stu');
