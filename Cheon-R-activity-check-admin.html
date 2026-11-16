@@ -338,6 +338,9 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
 .cbx.cbx-open>h2::after,.cbx.cbx-open>h3::after{transform:rotate(180deg)}
 .cbx:not(.cbx-open)>h2,.cbx:not(.cbx-open)>h3{margin-bottom:0}
 .cbx:not(.cbx-open)>*:not(h2):not(h3){display:none!important}
+.sact{cursor:pointer;user-select:none;display:flex;align-items:center;gap:6px}.sact .car{margin-left:auto;font-size:13px;color:var(--tx2,#8C87A0);transition:transform .15s}.sa-closed .sact .car{transform:rotate(-90deg)}.sa-closed > :not(.sact){display:none}.sact .sacnt{font-size:12px;font-weight:600;color:#A5791B;display:none}.sa-closed .sact .sacnt{display:inline}
+.sa .sat{cursor:pointer}.sa .sat .sas{display:none;font-size:12px;color:var(--tx2,#8C87A0)}.sa.sac .sas{display:inline}.sa.sac .sar,.sa.sac .sab,.sa.sac .sax{display:none}.sa .sat::before{content:'▾';font-size:12px;color:#A5791B}.sa.sac .sat::before{content:'▸'}
+#rsCard .rsch{display:flex;gap:8px;align-items:center;flex-wrap:wrap}#rsCard .rsct{background:none;border:0;font:inherit;font-size:16px;font-weight:700;color:var(--tx);cursor:pointer;padding:6px 0;display:flex;gap:6px;align-items:center;flex:1;min-width:180px;text-align:left}#rsCard .rsct small{font-weight:500;color:var(--tx2,#8C87A0);font-size:13px}#rsCard .rsct .car{margin-left:auto;font-size:13px;transition:transform .15s}#rsCard:not(.rs-open) .rsct .car{transform:rotate(-90deg)}#rsCard:not(.rs-open) #rsCardBody{display:none}
 </style>
 </head>
 <body>
@@ -560,8 +563,12 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
 
     <!-- 📋 항목 -->
     <div class="pane" id="p-items">
+      <div class="card" id="rsCard">
+        <div class="rsch"><button type="button" class="rsct" data-a="rsCardTog" aria-expanded="false">📋 참여 명단 <small id="rsCnt"></small><span class="car">▾</span></button><button type="button" class="btn sm" data-a="rsOpen">📋 명단 올리기</button></div>
+        <div id="rsCardBody"></div>
+      </div>
       <div class="card hide" id="saCard">
-        <div style="font-size:16px;font-weight:700;margin-bottom:10px;color:var(--tx)">🙋 학생이 추가한 활동 <span class="hint" id="saCnt"></span></div>
+        <div class="sact" data-a="saCardTog" role="button" tabindex="0" style="font-size:16px;font-weight:700;margin-bottom:10px;color:var(--tx)">🙋 학생이 추가한 활동 <span class="hint" id="saCnt"></span><span class="sacnt" id="saTodo"></span><span class="car">▾</span></div>
         <p class="hint" style="margin-top:0">학생이 목록에서 못 찾아 직접 적은 활동이에요. <b>맞는 활동이면 [정식 항목으로 추가]</b>(적어 둔 기록이 그대로 이어져요), 이미 있는 항목과 같으면 <b>[기존 항목에 합치기]</b>를 누르세요. 정식으로 올리기 전에는 <b>현황·엑셀·인쇄·생기부AI에 들어가지 않아요</b>.</p>
         <div id="saList"></div>
       </div>
@@ -674,7 +681,7 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
         </div>
         <div class="stR">
           <div id="ordBox" class="hide"></div>
-          <div class="row"><div class="ddw"><button class="btn sm sub" data-a="ddTog" data-d="dlMenu">📥 저장 ▾</button><div class="ddm hide" id="dlMenu"><button type="button" data-a="exportXlsx">📤 전체 학생 엑셀</button><button type="button" data-a="exportItemsXlsx">📊 항목별 전체 엑셀 (학생 작성 + 제공 문구 + 명단)</button><button type="button" data-a="psOpen" data-m="xlsx">📤 선택 학생 엑셀…</button><button type="button" data-a="exportBackup">💾 전체 백업</button></div></div><div class="ddw"><button class="btn sm sub" data-a="ddTog" data-d="prMenu">🖨️ 출력 ▾</button><div class="ddm hide" id="prMenu"><button type="button" data-a="printAll">🖨️ 전체 학생 출력</button><button type="button" data-a="psOpen">🖨️ 선택 학생 출력…</button></div></div><button class="btn sm sub" data-a="rsOpen">📋 참여 명단 올리기</button><button class="btn sm sub" data-a="printPend">🖨️ 수행도 체크판 출력</button><button class="btn sm sub" data-a="copyPend">📋 복사 (독촉용)</button></div>
+          <div class="row"><div class="ddw"><button class="btn sm sub" data-a="ddTog" data-d="dlMenu">📥 저장 ▾</button><div class="ddm hide" id="dlMenu"><button type="button" data-a="exportXlsx">📤 전체 학생 엑셀</button><button type="button" data-a="exportItemsXlsx">📊 항목별 전체 엑셀 (학생 작성 + 제공 문구 + 명단)</button><button type="button" data-a="psOpen" data-m="xlsx">📤 선택 학생 엑셀…</button><button type="button" data-a="exportBackup">💾 전체 백업</button></div></div><div class="ddw"><button class="btn sm sub" data-a="ddTog" data-d="prMenu">🖨️ 출력 ▾</button><div class="ddm hide" id="prMenu"><button type="button" data-a="printAll">🖨️ 전체 학생 출력</button><button type="button" data-a="psOpen">🖨️ 선택 학생 출력…</button></div></div><button class="btn sm sub" data-a="rsChip" id="rsChip">📋 참여 명단</button><button class="btn sm sub hide" data-a="rsManage" id="rsMng" title="항목 탭의 참여 명단 카드로 이동">관리</button><button class="btn sm sub" data-a="printPend">🖨️ 수행도 체크판 출력</button><button class="btn sm sub" data-a="copyPend">📋 복사 (독촉용)</button></div>
         </div>
       </div></div></div>
       <div id="statBody"></div>
@@ -3702,7 +3709,7 @@ function renderSItems(){
     const body = r && r.part === 'yes' ? [r.summary ? '요약: ' + esc(r.summary) : '', r.link ? (/^https?:\/\//i.test(r.link) ? `<a href="${esc(r.link)}" target="_blank" rel="noopener noreferrer">🔗 링크</a>` : '📍 ' + esc(r.link)) : ''].filter(Boolean).join('\n') : '';
     const same = targets.find(t => saNorm(t.title) === saNorm(x.title));
     const defCat = SA_CATS.includes(x.cat) ? x.cat : '자율';
-    return `<div class="sa" id="sa-${esc(x.id)}"><div class="sat"><b>${esc(x.title)}</b><span class="ibb">${who}</span><span class="ibb${x.cat === '모르겠어요' ? ' w' : ''}">학생이 고른 분류: ${esc(x.cat)}</span>${same ? '<span class="ibb g">같은 이름 항목 있음</span>' : ''}</div>
+    return `<div class="sa" id="sa-${esc(x.id)}"><div class="sat"><b>${esc(x.title)}</b><span class="ibb">${who}</span><span class="ibb${x.cat === '모르겠어요' ? ' w' : ''}">학생이 고른 분류: ${esc(x.cat)}</span><span class="sas">${st}</span>${same ? '<span class="ibb g">같은 이름 항목 있음</span>' : ''}</div>
       <div class="sar">${st}${body ? '\n' + body : ''}</div>
       <div class="sab"><select class="sel" id="saC-${esc(x.id)}">${SA_CATS.map(c => `<option${c === defCat ? ' selected' : ''}>${c}</option>`).join('')}</select><button class="btn sm" data-a="saPromote" data-id="${esc(x.id)}">정식 항목으로 추가</button></div>
       <div class="sab"><select class="sel" id="saT-${esc(x.id)}"><option value="">— 합칠 기존 항목 고르기 —</option>${targets.map(t => `<option value="${esc(t.id)}"${same && same.id === t.id ? ' selected' : ''}>[${esc(t.cat)}] ${esc(t.title)}</option>`).join('')}</select><button class="btn sm sub" data-a="saMerge" data-id="${esc(x.id)}">기존 항목에 합치기</button></div>
@@ -4626,7 +4633,32 @@ function rsRead(file){
     fr.readAsArrayBuffer(file);
   });
 }
-function rsBtn(){ const b = document.querySelector('[data-a="rsOpen"]'); if (!b) return; const n = new Set((DATA.roster || []).map(r => r.src)).size; b.textContent = '📋 참여 명단 올리기' + (n ? ` (${n}개 파일)` : ''); }
+function rsBtn(){
+  const b = $('rsChip'), m = $('rsMng'); if (!b) return;
+  const L = DATA.roster || [], n = new Set(L.map(r => r.src)).size;
+  if (!n){ b.textContent = '📋 참여 명단 올리러 가기'; if (m) m.classList.add('hide'); return; }
+  const bad = DATA.students.filter(s => { const x = rsMis(s.sid); return x.miss + x.extra > 0; }).length;
+  b.textContent = bad ? `📋 명단 대조: 불일치 ${bad}명` : '📋 명단 대조: 모두 일치 ✅'; b.title = '눌러서 불일치 학생만 보기'; if (m) m.classList.remove('hide');
+}
+function rsCardDraw(){
+  const card = $('rsCard'); if (!card) return;
+  const L = DATA.roster || [], g = {};
+  L.forEach(r => { const o = g[r.src] = g[r.src] || { n:new Set(), iids:new Set(), at:r.at, gv:new Set() }; o.n.add(r.sid); o.iids.add(r.iid); if (r.giv) o.gv.add(r.sid); });
+  const ks = Object.keys(g); $('rsCnt').textContent = ks.length ? `올려 둔 파일 ${ks.length}개` : '아직 올린 파일이 없어요';
+  $('rsCardBody').innerHTML = ks.length ? ks.map(k => `<div class="rsrow"><div><b>📄 ${esc(k)}</b> <small>${esc(g[k].at || '')} 등록 · 활동 ${g[k].iids.size}개 · 학생 ${g[k].n.size}명${g[k].gv.size ? ' · 📝 문구 ' + g[k].gv.size + '명' : ''}</small></div><button type="button" class="btn sm sub" data-a="rsDelSrc" data-src="${esc(k)}" style="color:#C0392B">🗑️ 삭제</button></div>`).join('') + '<p class="hint" style="margin:8px 0 0">불일치 확인은 <b>📊 현황</b> 탭 위쪽 <b>명단 대조</b> 버튼에서 해요.</p>' : '<p class="hint" style="margin:6px 0 0">각 부서에서 받은 참여자 엑셀을 [명단 올리기]로 올리면, 학생이 적은 기록과 자동으로 대조해요. 문구가 들어 있으면 교사 제공 문구로 따로 저장돼요.</p>';
+  let o = '0'; try{ o = localStorage.getItem('ac_rsopen_v1') || '0'; }catch(e){}
+  card.classList.toggle('rs-open', o === '1'); card.querySelector('.rsct').setAttribute('aria-expanded', o === '1');
+}
+function rsCardTog(){ const c = $('rsCard'); c.classList.toggle('rs-open'); const o = c.classList.contains('rs-open'); c.querySelector('.rsct').setAttribute('aria-expanded', o); try{ localStorage.setItem('ac_rsopen_v1', o ? '1' : '0'); }catch(e){} }
+function rsManage(){ goTab('items'); const c = $('rsCard'); if (!c.classList.contains('rs-open')) rsCardTog(); c.scrollIntoView({ block:'start' }); window.scrollBy(0, -70); }
+function rsChip(){
+  if (!(DATA.roster || []).length) return rsManage();
+  statMode = 'stu'; stuFilt = 'r'; mxJump = true; renderStat();
+}
+function saCardTog(){ const c = $('saCard'); c.classList.toggle('sa-closed'); try{ localStorage.setItem('ac_saopen_v1', c.classList.contains('sa-closed') ? '0' : '1'); }catch(e){} }
+const SA_OPEN = new Set();
+{ const _rsi = renderSItems; renderSItems = function(){ _rsi(); rsCardDraw(); const c = $('saCard'); if (c){ let o = '1'; try{ o = localStorage.getItem('ac_saopen_v1') || '1'; }catch(e){} c.classList.toggle('sa-closed', o === '0'); const n = (DATA.sItems || []).length; if ($('saTodo')) $('saTodo').textContent = n ? `· 처리 필요 ${n}` : ''; c.querySelectorAll('.sa').forEach(e => { if (!SA_OPEN.has(e.id)) e.classList.add('sac'); }); } }; }
+document.addEventListener('click', e => { const t = e.target.closest('#saList .sat'); if (!t || e.target.closest('a,button,select')) return; const a = t.closest('.sa'); a.classList.toggle('sac'); if (a.classList.contains('sac')) SA_OPEN.delete(a.id); else SA_OPEN.add(a.id); });
 { const _rst = renderStat; renderStat = function(){ _rst(); rsBtn(); }; }
 function rsOpen(){
   if (!DATA.gasVer || DATA.gasVer < 14){ toast('먼저 GAS를 v14로 수정 배포해 주세요 (⚙️ 설정 → GAS 코드 복사)'); return; }
@@ -5411,7 +5443,7 @@ const ACT = {
   statMode: el => { statMode = el.dataset.m; renderStat(); }, memoFilt: el => { memoFilt = el.dataset.k; renderStat(); }, itemFilt: el => { itemFilt = el.dataset.k; renderStat(); }, stuFilt: el => { stuFilt = el.dataset.k; mxJump = true; renderStat(); }, copyPend, exportBackup, sdOpen: el => { sdFocus = firstHl(el.dataset.sid); sdOpen(el.dataset.sid); }, sdNav: el => sdNav(Number(el.dataset.d)),
   poCat: el => { PO.cats[el.dataset.c] = !PO.cats[el.dataset.c]; drawPO(); }, poSum: el => { PO.sum = el.dataset.k; drawPO(); }, prGo,
   toggleStu: el => { openStu = openStu === el.dataset.sid ? null : el.dataset.sid; renderStat(); },
-  printStu: el => printAsk([el.dataset.sid]), pfOpen: el => openProfile(el.dataset.sid), pfCopy, pfPrint, psOpen, psTog, psAll, psNone, psFilt, psGo, printAll: () => { if (!DATA.students.length){ toast('명단을 먼저 저장해 주세요'); return; } printAsk(DATA.students.map(x => x.sid)); }, copyStu: el => copyText(stuText(el.dataset.sid), '생기부 참고용으로 복사했어요 📋'), tSave: el => tSave(el), exportXlsx, exportItemsXlsx,
+  printStu: el => printAsk([el.dataset.sid]), pfOpen: el => openProfile(el.dataset.sid), pfCopy, pfPrint, psOpen, psTog, psAll, psNone, psFilt, psGo, printAll: () => { if (!DATA.students.length){ toast('명단을 먼저 저장해 주세요'); return; } printAsk(DATA.students.map(x => x.sid)); }, copyStu: el => copyText(stuText(el.dataset.sid), '생기부 참고용으로 복사했어요 📋'), tSave: el => tSave(el), exportXlsx, exportItemsXlsx, rsChip, rsManage, rsCardTog, saCardTog,
   rvSet: el => { rvRate = Number(el.dataset.i); if (rvRate > 3){ rvLow = []; rvLowOtherOn = false; } renderRv(); },
   rvTog: el => { const i = Number(el.dataset.i); if (i < 0) rvOtherOn = !rvOtherOn; else rvPick = rvPick.includes(i) ? rvPick.filter(x => x !== i) : [...rvPick, i].sort(); renderRv(); },
   rvLowTog: el => { const i = Number(el.dataset.i); if (i < 0) rvLowOtherOn = !rvLowOtherOn; else rvLow = rvLow.includes(i) ? rvLow.filter(x => x !== i) : [...rvLow, i].sort(); renderRv(); },
