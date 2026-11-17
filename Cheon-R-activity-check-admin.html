@@ -4819,7 +4819,7 @@ function rsCardDraw(){
   const L = DATA.roster || [], g = {};
   L.forEach(r => { const o = g[r.src] = g[r.src] || { n:new Set(), iids:new Set(), at:r.at, gv:new Set() }; o.n.add(r.sid); o.iids.add(r.iid); if (r.giv) o.gv.add(r.sid); });
   const ks = Object.keys(g); $('rsCnt').textContent = ks.length ? `올려 둔 파일 ${ks.length}개` : '아직 올린 파일이 없어요';
-  $('rsCardBody').innerHTML = ks.length ? ks.map(k => `<div class="rsrow"><div><b>📄 ${esc(k)}</b> <small>${esc(g[k].at || '')} 등록 · 활동 ${g[k].iids.size}개 · 학생 ${g[k].n.size}명${g[k].gv.size ? ' · 📝 문구 ' + g[k].gv.size + '명' : ''}</small>${actChips(k)}</div><button type="button" class="btn sm sub" data-a="rsDelSrc" data-src="${esc(k)}" style="color:#C0392B">🗑️ 삭제</button></div>`).join('') + '<p class="hint" style="margin:8px 0 0">불일치 확인은 <b>📊 현황</b> 탭 위쪽 <b>명단 대조</b> 버튼에서 해요.</p>' : '<p class="hint" style="margin:6px 0 0">각 부서에서 받은 참여자 엑셀을 [명단 올리기]로 올리면, 학생이 적은 기록과 자동으로 대조해요. 문구가 들어 있으면 교사 제공 문구로 따로 저장돼요.</p>';
+  $('rsCardBody').innerHTML = ks.length ? ks.map(k => `<div class="rsrow"><div><b>📄 ${esc(k)}</b> <small>${esc(g[k].at || '')} 등록 · 활동 ${g[k].iids.size}개 · 학생 ${g[k].n.size}명${g[k].gv.size ? ' · 📝 문구 ' + g[k].gv.size + '명' : ''}</small>${actChips(k)}</div><span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><button type="button" class="btn sm sub" data-a="rsDl" data-src="${esc(k)}">📥 읽은 내용 받기</button><button type="button" class="btn sm sub" data-a="rsDelSrc" data-src="${esc(k)}" style="color:#C0392B">🗑️ 삭제</button></span></div>`).join('') + '<p class="hint" style="margin:8px 0 0">불일치 확인은 <b>📊 현황</b> 탭 위쪽 <b>명단 대조</b> 버튼에서 해요.</p>' : '<p class="hint" style="margin:6px 0 0">각 부서에서 받은 참여자 엑셀을 [명단 올리기]로 올리면, 학생이 적은 기록과 자동으로 대조해요. 문구가 들어 있으면 교사 제공 문구로 따로 저장돼요.</p>';
   if ((DATA.rexc || []).length) $('rsCardBody').innerHTML += `<div style="margin-top:8px"><button type="button" class="btn sm sub" data-a="exlOpen">🚫 명단에서 뺀 학생 ${(DATA.rexc || []).length}명 보기</button></div>`;
   let o = '0'; try{ o = localStorage.getItem('ac_rsopen_v1') || '0'; }catch(e){}
   card.classList.toggle('rs-open', o === '1'); card.querySelector('.rsct').setAttribute('aria-expanded', o === '1');
@@ -4844,7 +4844,7 @@ function rsSaved(){
   const L = DATA.roster || [], g = {};
   L.forEach(r => { const o = g[r.src] = g[r.src] || { n:new Set(), iids:new Set(), at:r.at, gv:new Set() }; o.n.add(r.sid); o.iids.add(r.iid); if (r.giv) o.gv.add(r.sid); });
   const ks = Object.keys(g), nm = id => (DATA.items.find(i => i.id === id) || {}).title || '(삭제된 항목)';
-  $('rsSaved').innerHTML = ks.length ? `<div style="font-weight:800;margin:16px 0 4px">📂 올려 둔 명단 <small style="font-weight:500;color:var(--tx2)">(${ks.length}개 파일)</small></div>` + ks.map(k => `<div class="rsrow"><div><b>📄 ${esc(k)}</b> <small>${esc(g[k].at || '')} 등록 · 활동 ${g[k].iids.size}개 · 학생 ${g[k].n.size}명${g[k].gv.size ? ' · 📝 문구 ' + g[k].gv.size + '명' : ''}</small>${actChips(k)}</div><button class="btn sm sub" data-a="rsDelSrc" data-src="${esc(k)}">🗑️ 삭제</button></div>`).join('') + ((DATA.rexc || []).length ? `<div style="margin-top:8px"><button type="button" class="btn sm sub" data-a="exlOpen">🚫 명단에서 뺀 학생 ${(DATA.rexc || []).length}명 보기</button></div>` : '') : '<div class="hint" style="margin-top:12px">아직 올려 둔 명단이 없어요.</div>';
+  $('rsSaved').innerHTML = ks.length ? `<div style="font-weight:800;margin:16px 0 4px">📂 올려 둔 명단 <small style="font-weight:500;color:var(--tx2)">(${ks.length}개 파일)</small></div>` + ks.map(k => `<div class="rsrow"><div><b>📄 ${esc(k)}</b> <small>${esc(g[k].at || '')} 등록 · 활동 ${g[k].iids.size}개 · 학생 ${g[k].n.size}명${g[k].gv.size ? ' · 📝 문구 ' + g[k].gv.size + '명' : ''}</small>${actChips(k)}</div><span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><button class="btn sm sub" data-a="rsDl" data-src="${esc(k)}">📥 읽은 내용 받기</button><button class="btn sm sub" data-a="rsDelSrc" data-src="${esc(k)}">🗑️ 삭제</button></span></div>`).join('') + ((DATA.rexc || []).length ? `<div style="margin-top:8px"><button type="button" class="btn sm sub" data-a="exlOpen">🚫 명단에서 뺀 학생 ${(DATA.rexc || []).length}명 보기</button></div>` : '') : '<div class="hint" style="margin-top:12px">아직 올려 둔 명단이 없어요.</div>';
 }
 async function rsPick(files){
   files = [...files].filter(f => /\.(xlsx|xls|csv|pdf|txt|png|jpe?g)$/i.test(f.name)); try{ $('rsFile').value = ''; }catch(e){}
@@ -4948,6 +4948,21 @@ async function rsReg(btn){
     $('rsMsg').textContent = '저장했어요 ✅ 현황·학생 상세에 명단 대조가 나타나요.' + (skipN ? ` (명단에서 뺀 학생 ${skipN}명은 제외됐어요)` : ''); $('rsMsg').className = 'msg ok';
   }catch(e){ $('rsMsg').textContent = e.message; $('rsMsg').className = 'msg no'; }
   btn.disabled = false;
+}
+function rsDl(el){
+  const src = el.dataset.src, L = (DATA.roster || []).filter(r => r.src === src);
+  if (!L.length){ toast('받을 내용이 없어요'); return; }
+  const it = id => DATA.items.find(i => i.id === id) || {};
+  const rows = [['분류','활동','학번','이름','명단 내용','제공 문구','등록일']], cnt = {};
+  L.slice().sort((a, b) => (CATS.indexOf(it(a.iid).cat) - CATS.indexOf(it(b.iid).cat)) || String(it(a.iid).title).localeCompare(String(it(b.iid).title), 'ko') || String(a.sid).localeCompare(String(b.sid), 'en', { numeric:true }))
+    .forEach(r => { const t = it(r.iid); rows.push([t.cat || '', t.title || '(삭제된 항목)', r.sid, r.name, r.txt || '', r.giv || '', r.at || '']); const k = (t.cat || '') + '|' + (t.title || '(삭제된 항목)'); cnt[k] = (cnt[k] || 0) + 1; });
+  const sum = [['분류','활동','우리 반 학생 수']].concat(Object.keys(cnt).map(k => k.split('|').concat([cnt[k]])));
+  sum.push([], ['※ 우리 반 학생으로 찾은 명단만 저장돼요. 다른 반·찾지 못한 이름은 포함되지 않아요.']);
+  const name = 'ACTIVITY_CHECK_읽은내용_' + String(src).replace(/\.[a-z0-9]+$/i, '').replace(/[\\/:*?"<>|]/g, '_') + '.xlsx';
+  if (typeof XLSX === 'undefined'){ const csv = '\ufeff' + rows.map(r => r.map(c => '"' + String(c == null ? '' : c).replace(/"/g, '""') + '"').join(',')).join('\r\n'); return dl(new Blob([csv], { type:'text/csv;charset=utf-8' }), name.replace('.xlsx', '.csv')); }
+  const wb = XLSX.utils.book_new(), w1 = XLSX.utils.aoa_to_sheet(rows), w2 = XLSX.utils.aoa_to_sheet(sum);
+  w1['!cols'] = [{wch:6},{wch:30},{wch:8},{wch:8},{wch:30},{wch:40},{wch:12}]; w2['!cols'] = [{wch:6},{wch:34},{wch:14}]; w1['!freeze'] = { xSplit:4, ySplit:1 };
+  XLSX.utils.book_append_sheet(wb, w1, '읽은 내용'); XLSX.utils.book_append_sheet(wb, w2, '활동별 인원'); XLSX.writeFile(wb, name);
 }
 async function rsDelSrc(el){
   const src = el.dataset.src; if (!confirm(`「${src}」에서 올린 명단을 모두 지울까요?\n(학생이 적은 기록은 그대로예요)`)) return;
@@ -5926,7 +5941,7 @@ document.addEventListener('input', e => {
   else if (t.id === 'rmNew') RM.title = t.value;
 });
 
-Object.assign(ACT, { cmpAllShow, cmpSort, cmpSel, rmTab, rmOpen, rmCat, rmIt, rmAll, rmApply, rmSave: el => rmSave(el), excPick, excAll, excSel, excWhy, excGo, exlOpen, exbGo, exbAll, ov1, rsDelAct, rsDelIid,
+Object.assign(ACT, { rsDl, cmpAllShow, cmpSort, cmpSel, rmTab, rmOpen, rmCat, rmIt, rmAll, rmApply, rmSave: el => rmSave(el), excPick, excAll, excSel, excWhy, excGo, exlOpen, exbGo, exbAll, ov1, rsDelAct, rsDelIid,
   excOne: el => excOpen(el.dataset.iid, [el.dataset.sid]), exbCancel: () => exbDone(null),
   exlBack: el => exlAct(el, 'rosterExcBack'), exlDel: el => exlAct(el, 'rosterExcDel') });
 document.addEventListener('click', e => {
