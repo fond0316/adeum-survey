@@ -4865,7 +4865,21 @@ function rsRender(){
     h += `<div class="rsf"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>📄 ${esc(f.name)}</b><button class="btn sm sub" data-a="rsRm" data-f="${fi}">✕ 빼기</button></div>`;
     if (f.needImg) h += `<div class="rsbn">🖼️ 이 파일은 표가 <b>그림</b>으로 들어 있어서 글자를 바로 읽을 수 없어요. 아래 중 하나로 읽어 주세요.<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button class="btn sm" data-a="rsAi" data-f="${fi}">🤖 AI로 읽기 (Claude API 키 필요)</button><button class="btn sm sub" data-a="rsOcr" data-f="${fi}">🔎 OCR로 읽기 (키 필요 없음, 덜 정확)</button></div><div id="rsPg${fi}" class="hint" style="margin:4px 0 0"></div></div>`;
     if (f.chk) h += `<div class="rsbn">⚠️ <b>${f.chk === 'AI' ? 'AI' : 'OCR(글자 인식)'}로 읽은 결과예요 — 확인이 필요해요.</b> 학번·이름이 틀리게 읽혔을 수 있어요. 원본과 비교해서 틀린 사람은 ×로 빼고, 노란색(⚠️)은 읽은 이름과 명단 이름이 달라요. 학번이 우리 반 명단에 없는데 이름이 같은 학생이 있으면 그 학생으로 이어 붙였어요.${f.skipN ? ` (우리 반이 아니라서 뺀 줄 ${f.skipN}개)` : ''}<label><input type="checkbox" class="rsChk" data-f="${fi}"> 원본과 비교해서 확인했어요</label></div>`;
-    f.sheets.forEach((sh, si) => {
+    const loOk = !f.needImg && !f.chk && f.sheets.some(sh => sh.cls);
+    if (loOk && f.lo === undefined) f.lo = true;
+    let SHS = f.sheets;
+    if (loOk){
+      h += `<div class="rsbn" style="background:#F1EEFA"><label style="font-weight:800"><input type="checkbox" class="rsLo" data-a="rsLo" data-f="${fi}"${f.lo ? ' checked' : ''}> 📋 명단만 올리기</label>`
+        + (f.lo ? `<div style="margin-top:4px">학번·이름만 읽어서 <b>한 활동</b>에 넣어요. 글 내용은 가져오지 않으니 <b>내용은 원본 엑셀에서 확인</b>하세요.${f.sheets.filter(x => x.cls).length > 1 ? ' <span style="color:#B45309">시트가 여러 개예요 — 시트마다 다른 활동이면 스위치를 꺼 주세요.</span>' : ''}</div>`
+          : `<div style="margin-top:4px">끄면 학생별 <b>제공 문구</b>도 받을 수 있어요. 다만 엑셀에 저장된 <b>모든 칸이 활동으로 잡힐 수 있어서</b>, 필요 없는 건 "건너뛰기"로 두세요.</div>`) + `</div>`;
+      if (f.lo){
+        const seen = new Set(), ents = []; f.sheets.forEach(sh => sh.acts.forEach(a => a.entries.forEach(e => { if (!seen.has(e.sid)){ seen.add(e.sid); ents.push({ ...e, txt:'', giv:'', warn:'' }); } })));
+        const lb = rsFileLabel(f.name, f.sheets[0].name, 1) || String(f.name).replace(/\.[^.]+$/, '');
+        f.loAct = { label:lb, col:'', fromFile:true, alt:'', entries:ents, nGiv:0, lo:true };
+        SHS = [{ name:f.sheets.map(x => x.name).join(', '), cls:ents.length, other:f.sheets.reduce((n, x) => n + (x.other || 0), 0), unm:[...new Set(f.sheets.flatMap(x => x.unm))], dup:[...new Set(f.sheets.flatMap(x => x.dup))], acts:ents.length ? [f.loAct] : [] }];
+      }
+    }
+    SHS.forEach((sh, si) => {
       const info = `${sh.cls ? '우리 반 ' + sh.cls + '명 찾음' : '우리 반 학생이 없어요'}${sh.other ? ' · 다른 반 ' + sh.other + '명은 뺐어요' : ''}`;
       h += `<div class="hint" style="margin:8px 0 2px">· 「${esc(sh.name)}」 ${info}${sh.unm.length ? ` <span style="color:#B45309">· 학번이 없어 이름으로 못 찾은 사람: ${esc(sh.unm.slice(0, 6).join(', '))}${sh.unm.length > 6 ? ' 외' : ''}</span>` : ''}${sh.dup.length ? ` <span style="color:#B45309">· 동명이인이라 못 정한 사람: ${esc(sh.dup.join(', '))}</span>` : ''}</div>`;
       sh.acts.forEach((a, ai) => {
@@ -4874,7 +4888,7 @@ function rsRender(){
         const conf = amb ? '<span class="rsc mid">🔶 비슷한 항목이 여러 개예요 — 직접 골라 주세요</span>' : !pre ? '<span class="rsc no">❓ 못 찾았어요 — 골라 주세요</span>' : (best.s >= 100 && !amb ? '<span class="rsc ok">' + (best.s >= 200 ? '✅ 지난번에 연결한 항목이에요' : '✅ 이름이 거의 같아요') + '</span>' : '<span class="rsc mid">🔶 비슷해요 — 맞는지 봐 주세요</span>');
         const opt = it => `<option value="${esc(it.id)}"${it.id === pre ? ' selected' : ''}>${esc(it.title.length > 46 ? it.title.substring(0, 46) + '…' : it.title)}</option>`;
         const ex = a.entries.slice(0, 4).map(e => esc(e.name)).join(', ') + (a.entries.length > 4 ? ' …' : '');
-        h += `<div class="rsr" data-f="${fi}" data-s="${si}" data-a2="${ai}"><label class="rsck"><input type="checkbox" class="rsOn" checked></label>`
+        h += `<div class="rsr" data-f="${fi}" data-s="${si}" data-a2="${ai}"${a.lo ? ' data-lo="1"' : ''}><label class="rsck"><input type="checkbox" class="rsOn" checked></label>`
           + `<div class="rst"><b>${esc(a.label)}</b><small class="rscnt">우리 반 ${a.entries.length}명${f.chk ? '' : ' · 예: ' + ex}</small>${conf}${best && best.why && (pre || amb) ? '<span class="rswhy">🔎 근거: ' + esc(best.why) + '</span>' : ''}${f.chk ? '<div class="rsent">' + a.entries.map((e, ei) => `<span class="${e.warn ? 'w' : ''}" title="${esc(e.warn ? '읽은 이름 ' + e.warn + ' ≠ 명단 이름 ' + e.name : '')}">${esc(e.sid)} ${esc(e.name)}${e.warn ? ' ⚠️' : ''}<button type="button" data-a="rsEnt" data-f="${fi}" data-s="${si}" data-a2="${ai}" data-e="${ei}" aria-label="빼기">×</button></span>`).join('') + '</div>' : ''}`
           + (a.nGiv ? `<div class="rsg"><label><input type="checkbox" class="rsGv" checked> 📝 학생별 제공 문구 ${a.nGiv}명 포함 — 함께 저장</label><small>예: ${esc((a.entries.find(e => e.giv) || {}).name || '')} “${esc(((a.entries.find(e => e.giv) || {}).giv || '').replace(/\s+/g, ' ').substring(0, 70))}…”${a.entries.some(e => e.giv.length >= 1000) ? ' · 1000자가 넘는 문구는 잘려요' : ''}</small></div>` : '') + `</div>`
           + `<select class="rsSel"><option value="">⏭ 건너뛰기</option>${sg.length ? '<optgroup label="추천">' + sg.map(x => opt(x.it)).join('') + '</optgroup>' : ''}`
@@ -4906,7 +4920,7 @@ async function rsReg(btn){
   const plan = {};   // 'iid|파일명' → { iid, src, entries }
   const news = [];
   for (const el of rowsEl){
-    const f = RSP.files[el.dataset.f], a = f.sheets[el.dataset.s].acts[el.dataset.a2], v = el.querySelector('.rsSel').value, gvEl = el.querySelector('.rsGv'), useG = !gvEl || gvEl.checked;
+    const f = RSP.files[el.dataset.f], a = el.dataset.lo ? f.loAct : f.sheets[el.dataset.s].acts[el.dataset.a2], v = el.querySelector('.rsSel').value, gvEl = el.querySelector('.rsGv'), useG = !gvEl || gvEl.checked;
     let key = v; if (v.startsWith('__new:')){ key = v + '|' + a.label; if (!news.some(n => n.key === key)) news.push({ key, cat:v.slice(6), title:a.label }); }
     if (f.chk){ const cb = document.querySelector('#rsBody .rsChk[data-f="' + el.dataset.f + '"]'); if (!cb || !cb.checked){ $('rsMsg').textContent = '「' + f.name + '」는 ' + (f.chk === 'AI' ? 'AI' : 'OCR') + '로 읽은 결과라서, 원본과 비교한 뒤 "확인했어요"에 체크해야 저장할 수 있어요.'; $('rsMsg').className = 'msg no'; return; } }
     const sname = f.src || f.name, pk = key + '||' + sname; const pl = (plan[pk] = plan[pk] || { key, src:sname, entries:[], giv:false, keys:[] }); [a.label, a.col].forEach(t => { const k = simKey(t); if (k.length >= 2 && !pl.keys.includes(k)) pl.keys.push(k); }); pl.entries.push(...a.entries.map(e => useG ? e : { ...e, giv:'' })); if (useG && a.nGiv) pl.giv = true;
@@ -4948,6 +4962,12 @@ async function rsReg(btn){
     $('rsMsg').textContent = '저장했어요 ✅ 현황·학생 상세에 명단 대조가 나타나요.' + (skipN ? ` (명단에서 뺀 학생 ${skipN}명은 제외됐어요)` : ''); $('rsMsg').className = 'msg ok';
   }catch(e){ $('rsMsg').textContent = e.message; $('rsMsg').className = 'msg no'; }
   btn.disabled = false;
+}
+function rsLo(el){
+  if (!RSP) return;
+  const keep = {}; document.querySelectorAll('#rsBody .rsr').forEach(r => { keep[[r.dataset.f, r.dataset.s, r.dataset.a2, r.dataset.lo || ''].join('|')] = { on:r.querySelector('.rsOn').checked, v:r.querySelector('.rsSel').value }; });
+  RSP.files[el.dataset.f].lo = el.checked; rsRender();
+  document.querySelectorAll('#rsBody .rsr').forEach(r => { const k = keep[[r.dataset.f, r.dataset.s, r.dataset.a2, r.dataset.lo || ''].join('|')]; if (k && r.dataset.f !== el.dataset.f){ r.querySelector('.rsOn').checked = k.on; r.querySelector('.rsSel').value = k.v; } });
 }
 function rsDl(el){
   const src = el.dataset.src, L = (DATA.roster || []).filter(r => r.src === src);
@@ -5941,7 +5961,7 @@ document.addEventListener('input', e => {
   else if (t.id === 'rmNew') RM.title = t.value;
 });
 
-Object.assign(ACT, { rsDl, cmpAllShow, cmpSort, cmpSel, rmTab, rmOpen, rmCat, rmIt, rmAll, rmApply, rmSave: el => rmSave(el), excPick, excAll, excSel, excWhy, excGo, exlOpen, exbGo, exbAll, ov1, rsDelAct, rsDelIid,
+Object.assign(ACT, { rsLo, rsDl, cmpAllShow, cmpSort, cmpSel, rmTab, rmOpen, rmCat, rmIt, rmAll, rmApply, rmSave: el => rmSave(el), excPick, excAll, excSel, excWhy, excGo, exlOpen, exbGo, exbAll, ov1, rsDelAct, rsDelIid,
   excOne: el => excOpen(el.dataset.iid, [el.dataset.sid]), exbCancel: () => exbDone(null),
   exlBack: el => exlAct(el, 'rosterExcBack'), exlDel: el => exlAct(el, 'rosterExcDel') });
 document.addEventListener('click', e => {
