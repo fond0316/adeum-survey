@@ -6758,5 +6758,53 @@ var qrcode = function() {
   });
 })();
 </script>
+<script>
+/* ===== 덩어리 공지 '나누지 않기' (추가분) =====
+   - 나누지 않기로 한 공지는 이 기기(브라우저)에 기억해서 배너에서 빠지고, [모두 바로 정리]에도 포함되지 않아요
+   - 공지 자체는 그대로 두고, 내용·삭제·저장에는 손대지 않아요. 언제든 '다시 보기'로 되돌릴 수 있어요 */
+(function(){
+  var KEY = 'sn_blob_skip_v1';
+  function E(id){ return document.getElementById(id); }
+  function skipSet(){ try{ var a = JSON.parse(localStorage.getItem(KEY) || '[]'); return new Set(Array.isArray(a) ? a.map(String) : []); }catch(e){ return new Set(); } }
+  function skipSave(s){ try{ localStorage.setItem(KEY, JSON.stringify(Array.from(s).slice(-300))); }catch(e){} }
+  var _find = findBlobs;
+  findBlobs = function(){ var sk = skipSet(); return _find().filter(function(n){ return !sk.has(String(n.id)); }); };   // 정리 대상에서 빼요
+  var _render = renderBlobs;
+  renderBlobs = function(){
+    _render();
+    try{
+      var blobs = findBlobs();
+      // 항목마다 [나누지 않기] 버튼
+      document.querySelectorAll('#blobList .item').forEach(function(it, i){
+        var n = blobs[i], acts = it.querySelector('.acts');
+        if (!n || !acts || acts.querySelector('.blobSkipB')) return;
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'blobSkipB'; b.textContent = '나누지 않기';
+        b.onclick = function(){ blobSkip(n.id); };
+        acts.appendChild(b);
+      });
+      // [모두 나누지 않기]
+      var row = E('blobAllBtn') && E('blobAllBtn').parentNode;
+      if (row && blobs.length && !E('blobNoneBtn')){
+        var a = document.createElement('button'); a.type = 'button'; a.id = 'blobNoneBtn'; a.className = 'btn'; a.style.marginLeft = '8px';
+        a.style.background = '#fff'; a.style.color = 'var(--s-tx)'; a.textContent = '모두 나누지 않기';
+        a.onclick = function(){ blobSkipAll(); };
+        row.appendChild(a);
+      }
+      // 나누지 않기로 한 공지가 있으면 '다시 보기' 안내 줄
+      var all = _find(), sk = skipSet(), hid = all.filter(function(n){ return sk.has(String(n.id)); });
+      var info = E('blobSkipInfo');
+      if (!info){
+        info = document.createElement('div'); info.id = 'blobSkipInfo'; info.className = 'hint'; info.style.margin = '0 0 8px';
+        var box = E('blobBox'); if (box && box.parentNode) box.parentNode.insertBefore(info, box);
+      }
+      info.style.display = hid.length ? '' : 'none';
+      info.innerHTML = hid.length ? '나누지 않기로 한 공지 ' + hid.length + '개 · <a href="#" onclick="blobSkipReset();return false" style="color:var(--main-d);font-weight:700">다시 보기</a>' : '';
+    }catch(e){}
+  };
+  window.blobSkip = function(id){ var s = skipSet(); s.add(String(id)); skipSave(s); renderBlobs(); };
+  window.blobSkipAll = function(){ var s = skipSet(); findBlobs().forEach(function(n){ s.add(String(n.id)); }); skipSave(s); renderBlobs(); };
+  window.blobSkipReset = function(){ skipSave(new Set()); renderBlobs(); };
+})();
+</script>
 </body>
 </html>
