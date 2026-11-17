@@ -375,6 +375,11 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
 #rsCardBody .rsrow > span{grid-column:4;grid-row:1;align-self:center}
 }
 
+#tdBar{display:none;position:fixed;top:0;left:0;right:0;z-index:90;background:#2E2A3F;color:#fff;padding:7px 10px;font-size:13px;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
+body.tdemo #tdBar{display:flex}
+body.tdemo{padding-top:46px}
+body.tdemo [data-a="openStu"],body.tdemo [data-a="logout"]{display:none !important}
+#tdBar button{min-height:32px;border:0;border-radius:8px;padding:0 10px;font-size:12.5px;font-weight:700;cursor:pointer;background:#fff;color:#2E2A3F}
 </style>
 </head>
 <body>
@@ -392,7 +397,7 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
 <!-- 0) 사용자 사전 등록 -->
 <div id="scrPre" class="center hide">
   <div class="box">
-    <div class="row" style="margin:0 0 10px"><button class="btn sub sm" data-a="showIntro">📖 앱 소개</button><button class="btn sub sm" data-a="openDemo">🎬 체험해보기</button></div>
+    <div class="row" style="margin:0 0 10px"><button class="btn sub sm" data-a="showIntro">📖 앱 소개</button><button class="btn sub sm" data-a="openDemo">🎬 학생 화면 체험</button><button class="btn sub sm" data-a="openTDemo">👩‍🏫 선생님 화면 체험</button></div>
     <h2>📝 사용자 등록</h2>
     <p class="hint">처음 한 번만 입력하면 돼요. 입력한 정보는 사용 현황 파악을 위해 개발자에게 전달돼요. (다음 단계에서 구글 시트를 연결하면 등록이 자동으로 완료돼요)</p>
     <label class="f">구분 <small>(필수)</small></label><div class="chips" id="preKind" style="margin-bottom:10px"></div>
@@ -859,6 +864,7 @@ code.k{background:#F0EDF9;border-radius:6px;padding:1px 6px;font-size:12.5px}
   <iframe id="demoFrame" title="학생 화면 체험해보기" src="about:blank" style="width:100%;height:100%;border:0;background:var(--bg)"></iframe>
 </div>
 <div class="ov hide" id="ntOv" data-a="closeOv"><div class="in" id="ntBox" style="max-width:560px"></div></div>
+<div id="tdBar"><span>🎬 <b>선생님 화면 체험 중</b> · 샘플 데이터예요. 아무것도 저장되지 않아요</span><button type="button" data-a="tdStudent">👀 학생 화면 보기</button><button type="button" data-a="tdClose">체험 끝내기</button></div>
 <div id="toast"></div>
 <div class="ov hide" id="itOv" data-a="closeOv"><div class="in" id="itBox" style="max-width:520px"></div></div>
 <div class="ov hide" id="sdOv" data-a="closeOv"><div class="in" id="sdBox" style="max-width:min(1280px,96vw)">
@@ -3275,7 +3281,58 @@ let usePub = null, installId = '', isOwner = false, loginInfo = {}, reviewOn = f
 let seq = 0;
 const WRITE = ['saveItem','saveItems','deleteItem','reorderItems','saveStudents','saveSettings','saveGuide','tReview','yearReset','resetPin','deleteItems','saveImpLog','promoteSItem','mergeSItem','delSItem','rosterSave','rosterDel','rosterExc','rosterExcBack','rosterExcDel'];
 const READ_RETRY = ['adminLoad','ping'];   // 읽기만 자동 재시도 (저장은 중복 위험이 있어 사람이 다시 눌러요)
+/* ===== 🎬 선생님 화면 체험 (?tdemo=1) — 샘플 데이터만 쓰고 서버·저장소에 아무것도 보내지 않아요 ===== */
+const TDEMO = new URLSearchParams(location.search).get('tdemo') === '1';
+let TDD = null;
+function tdBuild(){
+  const R = (sid, iid, o) => Object.assign({ sid, iid, n:1, part:'yes', report:'done', link:'', topic:'', career:'', summary:'', at:'2026-11-10 10:20', tchk:false, tmemo:'', atype:'', rterm:'', ref:'', star:'', deep:'', ack:'', ackAt:'', q:'', qAt:'', qDone:'', memoAt:'', readAt:'' }, o || {});
+  const IT = (id, cat, title, order, rtype) => ({ id, cat, title, note:'', rtype, url:'', prov:false, order, on:true, tnote:'', give:false, term:'', dest:'', chk:false, due:'' });
+  const NM = ['김하늘','이도윤','박서연','최지우','정민준','한소율','오지호','윤채원','강서준','임나연'];
+  const A = '2026-11-12';
+  return {
+    ok:true, role:'admin', gasVer:NEED_GAS_VER, className:'1학년 체험반', year:'2026', grade:'1', installId:'demo',
+    guide:{ '공통':'', '자율':'', '진로':'', '행발':'' }, impLog:[], alias:[], rexc:[], sItems:[], rchk:[],
+    items:[ IT('dm1','자율','봉사활동',1,'해성에듀'), IT('dm2','진로','진로 체험의 날',2,'해성에듀'), IT('dm3','교과','수학 탐구 보고서',3,'없음') ],
+    students: NM.map((n, i) => ({ sid:'104' + String(i + 1).padStart(2, '0'), name:n, hasPin:true, career:'', club:'' })),
+    roster: [['dm1','10401','김하늘'],['dm1','10402','이도윤'],['dm1','10403','박서연'],['dm1','10404','최지우'],['dm1','10405','정민준'],['dm2','10401','김하늘'],['dm2','10406','한소율'],['dm2','10407','오지호'],['dm2','10408','윤채원']]
+      .map(([iid, sid, name]) => ({ iid, sid, name, src: iid === 'dm1' ? '봉사활동_참여명단.xlsx' : '진로체험_신청자.xlsx', txt:'', at:A, giv:'' })),
+    records: [
+      R('10401','dm1',{ summary:'독거 어르신 도시락 배달을 도왔어요. 인사를 건넬 때 어르신이 환하게 웃어 주셔서 보람이 컸어요.', career:'사회복지사' }),
+      R('10402','dm1',{ report:'', summary:'지역 하천 정화 활동에 참여했어요. 보고서는 아직 작성 전이에요.' }),
+      R('10405','dm1',{ summary:'학교 주변 환경 정화 활동을 했어요. 쓰레기 분리배출 기준을 새로 알게 되었어요.', tmemo:'소감이 구체적이라 좋아요 👍', memoAt:'2026-11-12 09:00', readAt:'2026-11-12 18:30' }),
+      R('10409','dm1',{ summary:'동아리에서 양로원 위문 공연을 했어요.' }),
+      R('10401','dm2',{ summary:'건축가 직업 체험에서 모형을 직접 만들어 봤어요.', career:'건축가' }),
+      R('10406','dm2',{ summary:'소방서 체험에서 심폐소생술을 배웠어요.', career:'소방관' }),
+      R('10408','dm2',{ part:'no' }),
+      R('10401','dm3',{ topic:'이차함수와 포물선 안테나', career:'전기전자공학', summary:'포물선의 초점 성질로 안테나가 신호를 모으는 원리를 정리했어요.', at:'2026-11-09 14:00' }),
+      R('10403','dm3',{ topic:'확률로 보는 게임 설계', career:'게임 개발자', summary:'아이템 뽑기 확률을 직접 계산하며 기댓값 개념을 익혔어요.', at:'2026-11-09 15:10' })
+    ]
+  };
+}
+function tdNow(){ return new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 19).replace('T', ' '); }
+function tdemoRun(p){
+  if (!TDD) TDD = tdBuild();
+  if (p.app) return { ok:true, status:'registered' };
+  switch (p.action){
+    case 'adminLoad': return JSON.parse(JSON.stringify(TDD));
+    case 'ping': case 'login': return { ok:true, role:'admin', gasVer:NEED_GAS_VER, installId:'demo', className:TDD.className };
+    case 'tReview': {
+      const n = parseInt(p.n, 10) || 1; let r = TDD.records.find(x => x.sid === p.sid && x.iid === p.iid && x.n === n);
+      if (!r){ r = { sid:p.sid, iid:p.iid, n, part:'', report:'', link:'', topic:'', career:'', summary:'', at:tdNow(), tchk:false, tmemo:'', atype:'', rterm:'', ref:'', star:'', deep:'', ack:'', ackAt:'', q:'', qAt:'', qDone:'', memoAt:'', readAt:'' }; TDD.records.push(r); }
+      const memo = String(p.memo || '').slice(0, 200); if (memo !== r.tmemo){ r.memoAt = memo ? tdNow() : ''; r.readAt = ''; }
+      r.tchk = p.chk === '1'; r.tmemo = memo; return { ok:true };
+    }
+    case 'rosterChk': {
+      const d = JSON.parse(p.data || '{}'); const i = TDD.rchk.findIndex(x => x.iid === d.iid && x.sid === d.sid), o = { iid:d.iid, sid:d.sid, chk:!!d.chk, memo:d.memo || '', at:tdNow() };
+      if (i >= 0) TDD.rchk[i] = o; else TDD.rchk.push(o); return { ok:true };
+    }
+    default: throw new Error('🎬 체험 중에는 저장되지 않아요. 실제 앱에서 사용해 보세요!');
+  }
+}
+function tdemoApi(p){ return new Promise((res, rej) => setTimeout(() => { try{ res(tdemoRun(p)); }catch(e){ rej(e); } }, 120)); }
+function openTDemo(){ $('demoFrame').src = location.href.split('#')[0].split('?')[0] + '?tdemo=1'; $('demoOv').classList.remove('hide'); document.body.style.overflow = 'hidden'; }
 async function jsonp(params, base){
+  if (TDEMO) return tdemoApi(params);
   if (base || !READ_RETRY.includes(params.action)) return jsonp1(params, base);
   let last;
   for (let i = 0; i < 3; i++){
@@ -3361,7 +3418,7 @@ function renderIntro(){
   $('introDots').innerHTML = INTRO.map((_,k) => `<button type="button" aria-label="${k+1}번 카드로 이동" data-a="introGo" data-k="${k}" style="width:30px;height:30px;background:none;border:0;padding:0;display:flex;align-items:center;justify-content:center"><span style="width:${k===introI?18:7}px;height:7px;border-radius:4px;background:${k===introI?'#9B8EC4':'#D8D2EE'};display:block"></span></button>`).join('');
   const next = last ? '<button class="btn" style="flex:2" data-a="introStart">사용자 등록하고 시작하기</button>' : '<button class="btn" style="flex:2" data-a="introNext">다음 →</button>';
   const prev = introI > 0 ? '<button class="btn sub" style="flex:1" data-a="introPrev">← 이전</button>' : '';
-  $('introBtns').innerHTML = `<div style="display:flex;gap:8px">${prev}${next}</div><button class="btn sub" data-a="openDemo">🎬 체험해보기 (등록 없이)</button>`
+  $('introBtns').innerHTML = `<div style="display:flex;gap:8px">${prev}${next}</div><button class="btn sub" data-a="openDemo">🎬 체험해보기 (등록 없이)</button><button class="btn sub" data-a="openTDemo">👩‍🏫 선생님 화면 체험 (등록 없이)</button>`
     + (last ? '' : '<div style="text-align:center"><button class="alink" style="min-height:40px" data-a="introStart">건너뛰고 바로 등록</button></div>');
 }
 (function(){ let x0 = null;   // 카드를 좌우로 밀어서도 넘길 수 있어요
@@ -3378,6 +3435,7 @@ window.addEventListener('message', e => {   // 체험 화면(학생 앱)이 보�
   const a = e.data && e.data.acDemo;
   if (a === 'close') closeDemo();
   else if (a === 'register'){ closeDemo(); if (curScreen === 'scrIntro') introStart(); }
+  else if (a === 'student') openDemo();
 });
 
 /* ===== 사전 등록 · 연결 · 로그인 ===== */
@@ -3522,17 +3580,19 @@ async function enterMain(){
   show('scrLoading'); msg('loadMsg','불러오는 중…',true);
   try{ await refresh(); }
   catch(e){ if (/권한이 없어요/.test(e.message)) return logout(); msg('loadMsg', e.message); return setTimeout(() => show('scrLogin'), 2500); }
-  show('scrMain'); renderUseLine(); rvVisit();
+  show('scrMain'); renderUseLine(); if (!TDEMO) rvVisit();
   const tabs = [['set','⚙️ 설정'],['items','📋 항목'],['stu','👥 명단'],['stat','📊 현황']];
   if (reviewOn) tabs.push(['rv','💬 후기']);
   if (isOwner && REGISTRY_URL) tabs.push(['own','👑 사용자 관리']);
   tabs.push(['help','📘 가이드']);
+  if (TDEMO){ const si = tabs.findIndex(t => t[0] === 'set'); if (si >= 0) tabs.splice(si, 1); }
   $('nav').innerHTML = tabs.map(([k,t]) => `<button data-a="tab" data-t="${k}">${t}</button>`).join('');
   try { renderSItems(); } catch (e) { console.error(e); }   // 탭이 만들어진 뒤에 🙋 개수 표시
   const first = (DATA.items.length ? 'stat' : 'items');
   goTab(tabs.some(t => t[0] === curTab) && curTab !== 'set' ? curTab : first);
   renderRv(); $('tsList').innerHTML = tsHtml(null, false);
   if (isOwner && REGISTRY_URL) rcPeek();
+  if (TDEMO){ try{ goTab('stat'); statMode = 'cmp'; CMP.only = false; renderStat(); }catch(e){ console.error(e); } }
 }
 async function refresh(){
   const r = await api('adminLoad');
@@ -6066,10 +6126,12 @@ async function ntSend(){
   NT.busy = false; $('ntOv').classList.add('hide');
   try{ await refresh(); }catch(e){}
   if (statMode === 'memo' || typeof renderStat === 'function') try{ renderStat(); }catch(e){}
-  toast('📣 ' + ok + '명에게 보냈어요' + (same ? ' · 같은 문구 ' + same + '명 건너뜀' : '') + (dropped ? ' · 오래된 한마디 정리 ' + dropped + '명' : '') + (fail ? ' · 실패 ' + fail + '명' : ''));
+  toast('📣 ' + ok + '명에게 보냈어요' + (same ? ' · 같은 문구 ' + same + '명 건너뜀' : '') + (dropped ? ' · 오래된 한마디 정리 ' + dropped + '명' : '') + (fail ? ' · 실패 ' + fail + '명' : '') + (TDEMO ? ' · 🎬 체험이라 실제 학생에게는 가지 않아요' : ''));
 }
 document.addEventListener('input', e => { if (e.target && e.target.id === 'ntTxt'){ NT.msg = e.target.value; const c = $('ntCnt'); if (c) c.textContent = NT.msg.length; const b = document.querySelector('#ntBox [data-a="ntSend"]'); if (b && !NT.busy){ const n = ntRows().rows.filter(r => NT.sel.has(r.s.sid)).length; b.disabled = !(n && NT.msg.trim()); } } });
-Object.assign(ACT, { ntOpen, ntGrp, ntAll, ntNone, ntPick, ntSend, rsLo, rsDl, cmpAllShow, cmpSort, cmpSel, rmTab, rmOpen, rmCat, rmIt, rmAll, rmApply, rmSave: el => rmSave(el), excPick, excAll, excSel, excWhy, excGo, exlOpen, exbGo, exbAll, ov1, rsDelAct, rsDelIid,
+function tdClose(){ try{ parent.postMessage({ acDemo:'close' }, '*'); }catch(e){} }
+function tdStudent(){ try{ parent.postMessage({ acDemo:'student' }, '*'); }catch(e){} }
+Object.assign(ACT, { openTDemo, tdClose, tdStudent, ntOpen, ntGrp, ntAll, ntNone, ntPick, ntSend, rsLo, rsDl, cmpAllShow, cmpSort, cmpSel, rmTab, rmOpen, rmCat, rmIt, rmAll, rmApply, rmSave: el => rmSave(el), excPick, excAll, excSel, excWhy, excGo, exlOpen, exbGo, exbAll, ov1, rsDelAct, rsDelIid,
   excOne: el => excOpen(el.dataset.iid, [el.dataset.sid]), exbCancel: () => exbDone(null),
   exlBack: el => exlAct(el, 'rosterExcBack'), exlDel: el => exlAct(el, 'rosterExcDel') });
 document.addEventListener('click', e => {
@@ -6135,6 +6197,7 @@ function saveItemCards(){ try{ localStorage.setItem('ac_itemopen_v1', JSON.strin
 
 /* ===== 시작 ===== */
 (async function init(){
+  if (TDEMO){ document.body.classList.add('tdemo'); GAS = 'demo'; PW = 'demo'; isOwner = false; return enterMain(); }
   renderRv();
   if (!GAS){ return lsGet(K.pre, null) ? showConnect() : (lsGet(K.intro, false) ? showPre() : showIntro()); }
   if (PW){
