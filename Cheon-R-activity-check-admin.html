@@ -5043,8 +5043,8 @@ function ov1(el, e){ const ov = el.classList.contains('ov') ? el : el.closest('.
 
 
 /* ===== 📋 명단 대조표 (현황 탭 보기) — 명단 ↔ 학생 기록(참여·보고서·요약)을 활동별로 한눈에, 엑셀·출력 가능 ===== */
-const CMP = { only:true, hideDone:false, sel:null, sort:null };
-const CMP_ORD2 = { miss:0, rep:1, ok:2, extra:3 };   // 기본 정렬: 명단에 있는 학생 → 명단에 없는 학생
+const CMP = { only:false, hideDone:false, sel:null, sort:null };
+const CMP_ORD2 = { miss:0, rep:1, ok:2, extra:3 };   // 판정 열 정렬용
 const CMP_LB = { miss:'📋 기록 안 함', extra:'⚠️ 명단에 없음', rep:'🟡 보고서 아직', ok:'✅ 일치' }, CMP_ORD = { miss:0, extra:1, rep:2, ok:3 };
 const rcOf = (iid, sid) => (DATA.rchk || []).find(x => x.iid === iid && x.sid === sid) || null;
 const rexcOf = (iid, sid) => (DATA.rexc || []).find(x => x.iid === iid && x.sid === sid) || null;
@@ -5060,7 +5060,7 @@ function cmpRows(){
       rows.push({ it, s, k, inR, r:r0, ck:rcOf(it.id, s.sid), ex:rexcOf(it.id, s.sid), txt:ro.map(r => r.txt).filter(Boolean).join(' / '), src:[...new Set(ro.map(r => r.src).filter(Boolean))].join(', '),
         rec: !r0 ? '미점검' : r0.part === 'yes' ? '참여함' : r0.part === 'no' ? '참여 안 함' : '확인만 함', rep: !r0 || r0.part !== 'yes' ? '' : (it.rtype === '없음' ? '해당 없음' : r0.report === 'done' ? '작성' : '아직'), sum: r0 && r0.part === 'yes' ? (r0.summary ? '작성' : '미작성') : '' });
     });
-    rows.sort((a, b) => CMP_ORD2[a.k] - CMP_ORD2[b.k] || String(a.s.sid).localeCompare(String(b.s.sid)));
+    rows.sort((a, b) => (a.inR ? 0 : 1) - (b.inR ? 0 : 1) || String(a.s.sid).localeCompare(String(b.s.sid), 'en', { numeric:true }));   // 기본: 명단 학생(학번순) → 명단에 없는 학생(학번순)
     if (rows.length || true) out.push({ it, rows, inN: Object.keys(m).filter(sid => DATA.students.some(x => x.sid === sid)).length });
   });
   return out;
@@ -5086,17 +5086,19 @@ function cmpBoard(body){
     let rows = cmpSorted(g.rows.filter(r => !(CMP.only && r.k === 'ok') && !(CMP.hideDone && r.ck && r.ck.chk)));
     h += `<div class="card cmpc"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:baseline"><b style="font-size:15px">${esc(g.it.title)}</b><span class="tag ${CATCLS[g.it.cat] || ''}">${esc(g.it.cat)}</span><span class="hint">명단 ${g.inN}명 · 일치 ${cnt.ok} · 기록 안 함 ${cnt.miss} · 명단에 없음 ${cnt.extra} · 보고서 아직 ${cnt.rep}${g.it.rtype === '없음' ? ' · (보고서 없는 활동)' : ''}</span>${selBtn(g.it.id)}<button type="button" class="btn sm sub" data-a="rsDelIid" data-iid="${esc(g.it.id)}" style="color:#C0392B" title="이 활동의 참여 명단을 모든 파일에서 지워요">🗑️ 이 활동 명단 삭제</button></div>`;
     h += rows.length ? `<div style="overflow-x:auto"><table class="cmpt"><thead><tr><th><input type="checkbox" class="cmpsel" data-a="excAll" data-iid="${esc(g.it.id)}" title="이 활동 전체 선택" aria-label="이 활동 전체 선택"></th><th>${cmpTh('sid','학번')}</th><th>${cmpTh('name','이름')}</th><th>명단 내용</th><th>학생 기록</th><th>보고서</th><th>요약</th><th>${cmpTh('k','판정')}</th><th>확인</th><th>메모</th><th>명단</th></tr></thead><tbody>${rows.map(r => `<tr class="${r.ck && r.ck.chk ? 'cmpdone' : ''}"><td style="text-align:center">${r.inR ? `<input type="checkbox" class="cmpsel" data-a="excPick" data-iid="${esc(g.it.id)}" data-sid="${esc(r.s.sid)}"${EXC_SEL.has(g.it.id + '|' + r.s.sid) ? ' checked' : ''} aria-label="${esc(r.s.name)} 선택">` : ''}</td><td>${esc(r.s.sid)}</td><td><b>${esc(r.s.name)}</b></td><td class="cmptx">${esc(r.txt)}</td><td>${r.rec}</td><td>${r.rep}</td><td>${r.sum}</td><td>${tag(r.k)}${r.ex ? `<small class="excw">🚫 뺀 학생: ${esc(r.ex.why || '이유 없음')}</small>` : ''}</td><td style="text-align:center"><input type="checkbox" class="cmpck" data-iid="${esc(g.it.id)}" data-sid="${esc(r.s.sid)}"${r.ck && r.ck.chk ? ' checked' : ''} ${r.k === 'ok' ? 'disabled' : ''}></td><td><input type="text" class="cmpm" maxlength="300" data-iid="${esc(g.it.id)}" data-sid="${esc(r.s.sid)}" value="${esc(r.ck ? r.ck.memo : '')}" placeholder="${r.k === 'ok' ? '' : '메모'}" ${r.k === 'ok' ? 'disabled' : ''}></td><td>${r.inR ? `<button type="button" class="btn sm sub" data-a="excOne" data-iid="${esc(g.it.id)}" data-sid="${esc(r.s.sid)}" style="white-space:nowrap">🚫 빼기</button>` : ''}</td></tr>`).join('')}</tbody></table></div>` : '<p class="hint" style="margin:8px 0 0">✅ 이 활동은 확인할 게 없어요.</p>';
+    const hidN = g.rows.length - rows.length; if (hidN > 0) h += `<p class="hint" style="margin:8px 0 0">👀 숨겨진 학생 ${hidN}명 (일치 ${g.rows.filter(r => r.k === 'ok').length}명 · 확인함 ${g.rows.filter(r => r.ck && r.ck.chk && r.k !== 'ok').length}명) <button type="button" class="btn sm sub" data-a="cmpAllShow">모두 보기</button></p>`;
     h += '</div>';
   });
   body.innerHTML = h;
 }
-function cmpTh(c, label){ const o = CMP.sort && CMP.sort.c === c ? CMP.sort : null; return `<button type="button" class="cmpth${o ? ' on' : ''}" data-a="cmpSort" data-c="${c}" title="눌러서 정렬">${label}${o ? (o.d > 0 ? ' ▲' : ' ▼') : ''}</button>`; }
+function cmpTh(c, label){ const o = CMP.sort && CMP.sort.c === c ? CMP.sort : null; return `<button type="button" class="cmpth${o ? ' on' : ''}" data-a="cmpSort" data-c="${c}" title="눌러서 정렬">${label}${o ? (o.d > 0 ? ' ▲' : ' ▼') : ' <span style="opacity:.4">⇅</span>'}</button>`; }
 function cmpSorted(rows){
   const o = CMP.sort; if (!o) return rows;
   const val = r => o.c === 'sid' ? String(r.s.sid) : o.c === 'name' ? String(r.s.name || '') : CMP_ORD2[r.k];
-  return rows.slice().sort((a, b) => { const x = val(a), y = val(b), c = typeof x === 'number' ? x - y : x.localeCompare(y, 'ko'); return (c * o.d) || String(a.s.sid).localeCompare(String(b.s.sid)); });
+  return rows.slice().sort((a, b) => { const x = val(a), y = val(b), c = typeof x === 'number' ? x - y : x.localeCompare(y, 'ko'); return (c * o.d) || String(a.s.sid).localeCompare(String(b.s.sid), 'en', { numeric:true }); });
 }
 function cmpSort(el){ const c = el.dataset.c, o = CMP.sort; CMP.sort = !o || o.c !== c ? { c, d:1 } : (o.d > 0 ? { c, d:-1 } : null); renderStat(); }   // 오름 → 내림 → 기본
+function cmpAllShow(){ CMP.only = false; CMP.hideDone = false; renderStat(); }
 function cmpSel(el){ CMP.sel = el.dataset.id; renderStat(); }
 function cmpTog(el){ CMP[el.dataset.k] = !CMP[el.dataset.k]; renderStat(); }
 async function cmpSave(iid, sid, chk, memo){
@@ -5924,7 +5926,7 @@ document.addEventListener('input', e => {
   else if (t.id === 'rmNew') RM.title = t.value;
 });
 
-Object.assign(ACT, { cmpSort, cmpSel, rmTab, rmOpen, rmCat, rmIt, rmAll, rmApply, rmSave: el => rmSave(el), excPick, excAll, excSel, excWhy, excGo, exlOpen, exbGo, exbAll, ov1, rsDelAct, rsDelIid,
+Object.assign(ACT, { cmpAllShow, cmpSort, cmpSel, rmTab, rmOpen, rmCat, rmIt, rmAll, rmApply, rmSave: el => rmSave(el), excPick, excAll, excSel, excWhy, excGo, exlOpen, exbGo, exbAll, ov1, rsDelAct, rsDelIid,
   excOne: el => excOpen(el.dataset.iid, [el.dataset.sid]), exbCancel: () => exbDone(null),
   exlBack: el => exlAct(el, 'rosterExcBack'), exlDel: el => exlAct(el, 'rosterExcDel') });
 document.addEventListener('click', e => {
@@ -5949,7 +5951,7 @@ $('statItem').addEventListener('change', e => { statItem = e.target.value; rende
 $('statQ').addEventListener('input', renderStat);
 document.addEventListener('click', e => { const t = e.target.closest('.ddm button, [data-a="ddTog"]'); document.querySelectorAll('.ddm').forEach(m => { if (!(t && t.dataset.a === 'ddTog' && t.dataset.d === m.id)) m.classList.add('hide'); }); });   // 메뉴 밖이나 메뉴 항목을 누르면 닫혀요
 ['pwIn'].forEach(i => $(i).addEventListener('keydown', e => { if (e.key === 'Enter') login(); }));
-document.addEventListener('keydown', e => { if (e.key !== 'Escape') return; const o = [...document.querySelectorAll('.ov:not(.hide)')].pop(); if (!o) return; if (o.id === 'itOv') itOpenId = ''; o.classList.add('hide'); });   // ESC로 열린 창 닫기 (맨 위 창부터)
+document.addEventListener('keydown', e => { if (e.key !== 'Escape') return; const o = [...document.querySelectorAll('.ov:not(.hide)')].pop(); if (!o) return; if (o.id === 'itOv') itOpenId = ''; if (o.id === 'exbOv'){ exbDone(null); return; } o.classList.add('hide'); });   // ESC로 열린 창 닫기 (맨 위 창부터)
 $('gasIn').addEventListener('keydown', e => { if (e.key === 'Enter') connect(); });
 
 
