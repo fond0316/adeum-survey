@@ -71,6 +71,16 @@ input:focus,textarea:focus,select:focus{border-color:var(--ac)}
 .rpBars i{display:block;width:100%;max-width:30px;border-radius:6px 6px 2px 2px;background:#F5D06B;min-height:3px}
 .rpBars i.z{background:var(--line)}
 .rpN{display:flex;align-items:baseline;gap:6px;margin:4px 0}.rpN b{font-size:26px}.rpN small{color:var(--tx3);font-size:12.5px}
+.qgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.qbtn{border-radius:16px;padding:14px 12px;text-align:left;min-height:84px;border:2.5px solid transparent;color:#2b2b2b}
+.qbtn b{display:block;font-size:14.5px}.qbtn small{font-size:11.5px;opacity:.75}
+.qbtn.red{background:#F6C9BD}.qbtn.yellow{background:#FBE7A6}.qbtn.blue{background:#C6D0F2}.qbtn.green{background:#CBE7CF}
+.qbtn.on{border-color:#4a4a4a}
+.qax{font-size:11px;color:var(--tx3);text-align:center;margin:0 0 8px}
+.qbar{height:12px;border-radius:6px;min-width:4px}
+.qrow{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:13px}.qrow span:first-child{width:92px;flex:none}.qrow span:last-child{width:40px;text-align:right;color:var(--tx3);flex:none}
+.breath{width:140px;height:140px;border-radius:50%;background:var(--acl);margin:18px auto;animation:br 10s ease-in-out infinite;display:flex;align-items:center;justify-content:center;color:var(--acd);font-weight:700;text-align:center;font-size:14px}
+@keyframes br{0%,100%{transform:scale(.7)}40%{transform:scale(1)}}
 .menu{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 .mc{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 14px;text-align:left;min-height:84px}
 .mc .e{font-size:24px;display:block;margin-bottom:6px}
@@ -387,7 +397,7 @@ function fmtDate(s) { const m = String(s || '').match(/^(\d{4})-(\d{2})-(\d{2})$
 const lines = (s) => String(s || '').split('\n').map(x => x.trim()).filter(Boolean);
 
 /* ----- 상태 ----- */
-const DB = { rec: [], praise: [], reframe: [], blame: [], stamp: [], chips: [], profile: '', onb: {}, apiKey: '' };
+const DB = { rec: [], praise: [], reframe: [], blame: [], stamp: [], rest: [], recv: [], chips: [], profile: '', onb: {}, apiKey: '' };
 const STATE = {};          // 칩 토글이 쓰는 상태 모음 (rec / pf / rf)
 const ACT = {}, IN = {}, RENDER = {};
 let cur = '';
@@ -469,7 +479,7 @@ function parseOnb(s) { try { const o = JSON.parse(s || '{}'); return o && typeof
 async function loadAll(silent) {
   if (!silent) go('sLoad');
   const r = await jsonp({ action: 'load', pin: PIN });
-  DB.rec = r.rec || []; DB.praise = r.praise || []; DB.reframe = r.reframe || []; DB.blame = r.blame || []; DB.stamp = r.stamp || []; DB.chips = r.chips || [];
+  DB.rec = r.rec || []; DB.praise = r.praise || []; DB.reframe = r.reframe || []; DB.blame = r.blame || []; DB.stamp = r.stamp || []; DB.rest = r.rest || []; DB.recv = r.recv || []; DB.chips = r.chips || [];
   DB.profile = r.profile || ''; DB.onb = parseOnb(r.onb); DB.apiKey = r.apiKey || '';
   if (DB.apiKey && !lsGet(K.api, '')) lsSet(K.api, DB.apiKey);
   if (silent) { if (RENDER[cur]) RENDER[cur](); return; }
@@ -569,8 +579,9 @@ function sysPrompt() {
 /* ===== 데이터 모음 ===== */
 const EMO = [
   ['좋은 마음', ['😊 기쁨', '😌 평온', '🥹 뿌듯함', '🤍 고마움', '💪 자신감', '🌿 편안함', '😄 신남', '🙂 괜찮음']],
-  ['슬프고 서운한', ['😔 슬픔', '🥺 서운함', '😞 외로움', '😢 속상함', '😶 허전함']],
-  ['불안하고 걱정되는', ['😰 불안', '😟 걱정', '😬 긴장', '😮 당황', '😨 무서움']],
+  ['설레고 홀가분한', ['💓 설렘', '🔥 의욕', '🤩 들뜸', '😆 즐거움', '🏅 보람', '✨ 감격', '🍃 후련함', '🙏 안심', '🌤️ 여유', '🧘 차분함', '☕ 느긋함', '🎈 홀가분']],
+  ['슬프고 서운한', ['😔 슬픔', '🥺 서운함', '😞 외로움', '😢 속상함', '😶 허전함', '😮‍💨 허탈', '🌫️ 막막', '😿 서러움', '🍂 쓸쓸함', '🕳️ 공허']],
+  ['불안하고 걱정되는', ['😰 불안', '😟 걱정', '😬 긴장', '😮 당황', '😨 무서움', '😓 초조', '⏳ 조급', '🌪️ 예민', '😳 부끄러움', '🧱 압박감']],
   ['화나고 답답한', ['😤 답답함', '😡 화남', '😒 짜증', '🙄 억울함', '😠 분함']],
   ['지치고 무거운', ['😴 무기력', '🫠 지침', '😩 부담', '🥱 피곤']],
   ['복잡하고 미안한', ['🥲 복잡함', '🌀 혼란', '😣 미안함', '🤔 아쉬움', '😖 자책']]
@@ -589,12 +600,16 @@ function allItems() {
   DB.praise.forEach(x => a.push({ k: 'praise', id: x.id, at: x.at, o: x }));
   DB.reframe.forEach(x => a.push({ k: 'reframe', id: x.id, at: x.at, o: x }));
   DB.blame.forEach(x => a.push({ k: 'blame', id: x.id, at: x.at, o: x }));
+  DB.rest.forEach(x => a.push({ k: 'rest', id: x.id, at: x.at, o: x }));
+  DB.recv.forEach(x => a.push({ k: 'recv', id: x.id, at: x.at, o: x }));
   return a.sort((p, q) => (q.at > p.at ? 1 : q.at < p.at ? -1 : 0));
 }
 function itemRow(it) {
   const o = it.o; let tag, kc = '', prev;
   if (it.k === 'rec') { tag = lines(o.emo).join(' · ') || '감정 기록'; prev = o.sit || o.th || lines(o.thChips).join(', ') || lines(o.body).join(', ') || '(내용 없음)'; }
   else if (it.k === 'praise') { tag = '✨ 칭찬일기'; kc = 'p'; prev = lines(o.did).slice(0, 3).join(', ') || lines(o.say).slice(0, 2).join(' / ') || o.line || '(내용 없음)'; }
+  else if (it.k === 'rest') { tag = '🛋️ 쉬어가기'; kc = 'r'; prev = lines(o.must).join(', ') || o.level || '쉬는 날'; }
+  else if (it.k === 'recv') { tag = '💌 받은 인정' + (o.who ? ' · ' + o.who : ''); kc = 'p'; prev = o.text || ''; }
   else if (it.k === 'blame') { tag = '🌧️→☀️ 자책 풀기'; kc = 'b'; prev = o.fact || lines(o.interp).join(', ') || '(내용 없음)'; }
   else { tag = '🔄 ' + (cardById(o.card) ? cardById(o.card).title : '마음 바꾸기'); kc = 'r'; prev = lines(o.to).join(' / ') || '(내용 없음)'; }
   return `<button class="row" data-act="openItem" data-k="${it.k}" data-id="${esc(it.id)}"><div class="t"><span class="k ${kc}">${esc(tag)}</span><span class="d">${esc(fmtAt(o.at))}</span></div><div class="p">${esc(prev)}</div></button>`;
@@ -612,8 +627,11 @@ RENDER.sHome = () => {
     <div class="card fade greet"><small>${ds}</small>${g}</div>
     <button class="praiseCta fade" data-act="praiseStart"><span class="e">☀️</span><span><b>칭찬일기 쓰기</b><small>${tp ? '오늘 칭찬 ' + tp + '번 쌓였어요 💛 더 써도 좋아요' : '오늘 잘한 나를 찾아봐요 · 탭만으로 끝나요'}</small></span></button>
     <button class="blameCta fade" data-act="blameStart"><span class="e">🌧️</span><span><b>자책이 올라와요</b><small>사실과 해석을 나눠서 같이 풀어봐요</small></span></button>
+    ${extraBtns()}
     ${stampHtml()}
     ${pendingHtml()}
+    ${restHtml()}
+    ${wordHtml()}
     <div class="lbl">지금 감정</div>
     <div class="qe">${QUICK_EMO.map(e => { const p = e.split(' '); return `<button data-act="quickEmo" data-v="${esc(e)}"><b>${p[0]}</b>${p[1]}</button>`; }).join('')}</div>
     <div class="menu">
@@ -642,12 +660,13 @@ RENDER.sRec = () => {
   const R = STATE.rec;
   $('recBody').innerHTML = `
     <div class="sec"><div class="lbl">지금 어떤 감정인가요? <small>(최대 3개) <span data-cnt="rec.emo" style="color:var(--acd)">${R.emo.length ? R.emo.length + '개 선택' : ''}</span></small></div>
-      ${EMO.map(([t, list]) => `<div class="grp">${t}</div><div class="chips">${list.map(e => chipHtml('rec', 'emo', e, e, R.emo.includes(e), 'data-max="3"')).join('')}</div>`).join('')}</div>
+      <div id="emoBox">${emoViewHtml()}</div><div id="quadHint" class="hint">${quadHintText()}</div></div>
     <div class="sec"><div class="lbl">얼마나 강한가요?</div><div class="chips">${LEVELS.map((l, i) => chipHtml('rec', 'lv', String(i + 1), l, R.lv === String(i + 1), 'data-one="1"')).join('')}</div></div>
     <div class="sec"><div class="lbl">몸은 어땠어요? <small>(여러 개 가능)</small></div><div class="chips">${BODY.map(b => chipHtml('rec', 'body', b, b, R.body.includes(b))).join('')}</div></div>
     <div class="sec"><div class="lbl">어떤 일과 관련 있나요? <small>(여러 개 가능)</small></div><div class="chips">${SIT.map(b => chipHtml('rec', 'sitChips', b, b, R.sitChips.includes(b))).join('')}</div>
       <textarea data-in="recSit" placeholder="한두 줄만 적어도 돼요 (선택)" style="margin-top:10px;min-height:72px">${esc(R.sit)}</textarea></div>
     <div class="sec"><div class="lbl">어떤 생각이 들었나요? <small>(여러 개 가능)</small></div><div class="chips">${THK.map(b => chipHtml('rec', 'thChips', b, b, R.thChips.includes(b))).join('')}</div>
+      ${hidEmoHtml()}
       <textarea data-in="recTh" placeholder="머릿속에 떠오른 말이 있다면 (선택)" style="margin-top:10px;min-height:72px">${esc(R.th)}</textarea></div>`;
 };
 IN.recSit = (t) => { STATE.rec.sit = t.value; };
@@ -663,7 +682,7 @@ async function saveRec(b) {
   try { const r = await api('save', {}, { kind: 'rec', item: recPayload() }); DB.rec.push(r.item); b.disabled = false; return r.item; }
   catch (e) { toast('저장하지 못했어요: ' + e.message); b.disabled = false; return null; }
 }
-ACT.recSave = async (b) => { const it = await saveRec(b); if (it) { toast('기록됐어요 ✓'); newRec(); go('sHome'); } };
+ACT.recSave = async (b) => { const it = await saveRec(b); if (it) { toast('기록됐어요 ✓'); newRec(); go('sHome'); showQuadAdvice(it); } };
 ACT.recSaveChat = async (b) => { const it = await saveRec(b); if (it) { newRec(); startChat(it); } };
 
 /* ===== 마음 바꾸기 카드 ===== */
@@ -872,7 +891,7 @@ ACT.recall = () => {
 STATE.hist = { f: 'all' };
 RENDER.sHist = () => {
   const f = STATE.hist.f, all = allItems().filter(x => f === 'all' || x.k === f);
-  const F = [['all', '전체'], ['rec', '감정'], ['praise', '칭찬'], ['blame', '자책 풀기'], ['reframe', '마음 바꾸기']];
+  const F = [['all', '전체'], ['rec', '감정'], ['praise', '칭찬'], ['blame', '자책 풀기'], ['rest', '쉬어가기'], ['recv', '받은 인정'], ['reframe', '마음 바꾸기']];
   $('histBody').innerHTML = `<div class="chips" style="margin-bottom:14px">${F.map(([v, l]) => `<button class="chip ${f === v ? 'on' : ''}" data-act="histF" data-v="${v}">${l}</button>`).join('')}</div>` +
     (all.length ? all.slice(0, 200).map(itemRow).join('') : '<div class="empty">아직 기록이 없어요 🌱</div>');
 };
@@ -880,14 +899,18 @@ ACT.histF = (b) => { STATE.hist.f = b.dataset.v; RENDER.sHist(); };
 function detailLine(label, arr) { return arr.length ? `<div class="lbl" style="margin-top:12px">${label}</div><div style="font-size:14.5px;line-height:1.8">${arr.map(esc).join('<br>')}</div>` : ''; }
 function openDetail(k, id) {
   const o = (DB[k] || []).find(x => String(x.id) === String(id)); if (!o) return;
-  let h = `<h3 style="margin-bottom:2px">${k === 'rec' ? '감정 기록' : k === 'praise' ? '✨ 칭찬일기' : k === 'blame' ? '🌧️→☀️ 자책 풀기' : '🔄 마음 바꾸기'}</h3><small style="color:var(--tx3)">${esc(fmtAt(o.at))}</small>`;
+  let h = `<h3 style="margin-bottom:2px">${k === 'rec' ? '감정 기록' : k === 'praise' ? '✨ 칭찬일기' : k === 'blame' ? '🌧️→☀️ 자책 풀기' : k === 'rest' ? '🛋️ 쉬어가기' : k === 'recv' ? '💌 받은 인정' : '🔄 마음 바꾸기'}</h3><small style="color:var(--tx3)">${esc(fmtAt(o.at))}</small>`;
   if (k === 'rec') {
-    h += detailLine('감정', lines(o.emo)) + (o.lv ? detailLine('강도', [LEVELS[Number(o.lv) - 1] || '']) : '') + detailLine('몸', lines(o.body)) + detailLine('관련된 일', lines(o.sitChips).concat(lines(o.sit))) + detailLine('든 생각', lines(o.thChips).concat(lines(o.th)));
+    h += detailLine('감정', lines(o.emo).map(e => (QI[quadOf(e)] || '') + ' ' + e)) + (o.lv ? detailLine('강도', [LEVELS[Number(o.lv) - 1] || '']) : '') + detailLine('몸', lines(o.body)) + detailLine('관련된 일', lines(o.sitChips).concat(lines(o.sit))) + detailLine('든 생각', lines(o.thChips).concat(lines(o.th)));
     h += `<div class="lbl" style="margin-top:14px">내가 깨달은 것 <small>(선택)</small></div><textarea id="insTx" style="min-height:80px" placeholder="나중에 돌아보며 한 줄 남겨도 좋아요">${esc(o.insight || '')}</textarea>`;
   } else if (k === 'praise') {
     h += (o.mood0 || o.mood1 ? detailLine('기분', [(o.mood0 ? MOODS[o.mood0 - 1][0] : '–') + ' → ' + (o.mood1 ? MOODS[o.mood1 - 1][0] : '–')]) : '') + detailLine('한 일', lines(o.did)) + detailLine('나에게 한 말', lines(o.say)) + detailLine('미안함 → 고마움', lines(o.sorry)) + detailLine('한 줄', lines(o.line));
   } else if (k === 'blame') {
     h += blameDetail(o);
+  } else if (k === 'rest') {
+    h += restDetail(o);
+  } else if (k === 'recv') {
+    h += detailLine('누구에게', o.who ? [o.who] : []) + detailLine('들은 말', lines(o.text)) + detailLine('내가 받아들인 방식', o.take ? [o.take] : []);
   } else {
     const c = cardById(o.card);
     h += detailLine(c ? c.title : '카드', []) + detailLine('그때 마음', lines(o.feel)) + detailLine('바꾼 문장', lines(o.to));
@@ -960,7 +983,7 @@ ACT.copyLink = async () => {
   } catch (e) { prompt('아래 주소를 복사해 주세요', url); }
 };
 ACT.exportJson = () => {
-  const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), rec: DB.rec, praise: DB.praise, reframe: DB.reframe, blame: DB.blame, stamp: DB.stamp }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), rec: DB.rec, praise: DB.praise, reframe: DB.reframe, blame: DB.blame, stamp: DB.stamp, rest: DB.rest, recv: DB.recv }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '마음기록_' + todayStr() + '.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 };
 
@@ -1076,7 +1099,7 @@ const BL_FRIEND = ['정말 잘했다고 말해줘요', '그럴 수 있다고 말
 const BL_PRED = NEG_PRED.concat(['아무렇지 않을 것 같아요', '고마워할 것 같아요', '잘 모르겠어요']);
 const BL_ACT = ['고마워했어요', '같이 기뻐했어요', '괜찮다고 했어요', '별말 없었어요', '불편해했어요'];
 const BL_STEPS = ['what', 'interp', 'evid', 'share', 'words', 'end'];
-function newBl() { STATE.bl = { step: 0, who: '', fact: '', interp: [], interpTx: '', before: '', evid: [], mine: [], other: [], ours: [], thanks: [], thanksTx: '', friend: [], pred: '', after: '', done: false, busy: false }; }
+function newBl() { STATE.bl = { step: 0, who: '', fact: '', interp: [], interpTx: '', before: '', evid: [], mine: [], other: [], ours: [], thanks: [], thanksTx: '', friend: [], pred: '', after: '', q0: '', q1: '', done: false, busy: false }; }
 const chipsOf = (g, arr, sel, one) => `<div class="chips">${arr.map(t => chipHtml('bl', g, t, t, one ? sel === t : sel.includes(t), one ? 'data-one="1"' : '')).join('')}</div>`;
 const lvRow = (g, cur) => `<div class="chips">${LEVELS.map((l, i) => chipHtml('bl', g, String(i + 1), l, cur === String(i + 1), 'data-one="1"')).join('')}</div>`;
 RENDER.sBlame = () => {
@@ -1088,6 +1111,7 @@ RENDER.sBlame = () => {
     const fr = B.friend.length ? '“' + esc(B.friend[0].replace(/말해줘요|해줘요$/, '').trim()) + '”' : '';
     $('bBody').innerHTML = `<div class="center fade" style="padding-top:16px"><div style="font-size:50px">🌤️</div><h2 class="stepT" style="margin-top:6px">여기까지 오느라 수고했어요</h2>
       ${B.before && B.after ? `<div class="sentence" style="text-align:center">자책 정도 <b>${LEVELS[B.before - 1]}</b> → <b>${LEVELS[B.after - 1]}</b></div>` : ''}
+      ${B.q0 && B.q1 ? `<div class="sentence" style="text-align:center">마음의 칸 <b>${QI[B.q0]} ${QL[B.q0][1]}</b> → <b>${QI[B.q1]} ${QL[B.q1][1]}</b></div>` : ''}
       <div class="big" style="text-align:left">${B.mine.length ? '내가 한 것<br>' + B.mine.map(t => '· ' + esc(t)).join('<br>') : '나는 내 몫을 했어요'}${B.ours.length ? '<br><br>우리가 한 것<br>' + B.ours.map(t => '· ' + esc(t)).join('<br>') : ''}</div>
       ${NEG_PRED.includes(B.pred) ? '<p class="hint">나중에 상대의 실제 반응을 기록하면, 내 예측이 맞았는지 알 수 있어요. 홈에서 알려줄게요.</p>' : ''}
       <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px"><button class="btn" data-act="praiseStart">칭찬일기 쓰러 가기 ☀️</button><button class="btn sub" data-act="goHome">홈으로</button></div></div>`;
@@ -1100,7 +1124,8 @@ RENDER.sBlame = () => {
     <textarea data-in="blFact" placeholder="예) 하이록스를 완주했다. 결과는 좋았다." style="margin-top:14px;min-height:84px">${esc(B.fact)}</textarea>`;
   else if (s === 'interp') h = `<h2 class="stepT">그 일에 어떤 해석이 붙었어요?</h2><p class="stepS">머릿속에서 들린 말을 골라요. 사실이 아니라 "내가 붙인 해석"이에요. <span data-cnt="bl.interp" style="color:var(--acd)">${B.interp.length ? B.interp.length + '개 선택' : ''}</span></p>${chipsOf('interp', BL_INTERP, B.interp)}
     <textarea data-in="blInterp" placeholder="다른 말이 있다면 (선택)" style="margin-top:12px;min-height:64px">${esc(B.interpTx)}</textarea>
-    <div class="lbl" style="margin-top:20px">지금 자책하는 마음은 얼마나 큰가요?</div>${lvRow('before', B.before)}`;
+    <div class="lbl" style="margin-top:20px">지금 자책하는 마음은 얼마나 큰가요?</div>${lvRow('before', B.before)}
+    <div class="lbl" style="margin-top:20px">지금 마음은 어느 칸에 가까워요? <small>(에너지 × 기분)</small></div>${quadRow('q0', B.q0)}`;
   else if (s === 'evid') h = `<h2 class="stepT">사실로 확인되는 건요?</h2><p class="stepS">그 해석과 다른, 실제로 있었던 일을 골라요. <span data-cnt="bl.evid" style="color:var(--acd)">${B.evid.length ? B.evid.length + '개 선택' : ''}</span></p>${chipsOf('evid', BL_EVID, B.evid)}
     ${B.interp.length ? `<div class="sentence">“${esc(B.interp[0])}”라는 생각은 사실일까요, 해석일까요? 위에서 고른 사실과 나란히 놓고 봐요.</div>` : ''}`;
   else if (s === 'share') h = `<h2 class="stepT">내 몫 · 상대 몫 · 우리 몫</h2><p class="stepS">각자 한 것을 나눠서 골라요. 내 몫은 분명히 있어요.</p>
@@ -1109,7 +1134,8 @@ RENDER.sBlame = () => {
     <textarea data-in="blThanks" placeholder="직접 써도 좋아요 (선택)" style="margin-top:12px;min-height:64px">${esc(B.thanksTx)}</textarea>
     <div class="lbl" style="margin-top:20px">친구가 같은 일을 겪었다면, 나는 뭐라고 해줬을까요?</div>${chipsOf('friend', BL_FRIEND, B.friend)}<div class="sentence">그 말, 나에게도 똑같이 해줘도 돼요.</div>`;
   else h = `<h2 class="stepT">마무리 두 가지</h2><p class="stepS">상대는 어떻게 느꼈을 것 같아요? 나중에 실제와 비교해 볼 거예요.</p>${chipsOf('pred', BL_PRED, B.pred, 1)}
-    <div class="lbl" style="margin-top:22px">지금 자책하는 마음은 얼마나 큰가요?</div>${lvRow('after', B.after)}`;
+    <div class="lbl" style="margin-top:22px">지금 자책하는 마음은 얼마나 큰가요?</div>${lvRow('after', B.after)}
+    <div class="lbl" style="margin-top:20px">지금 마음은 어느 칸에 가까워요?</div>${quadRow('q1', B.q1)}`;
   $('bBody').innerHTML = `<div class="fade">${h}</div>`; $('bBody').scrollTop = 0;
 };
 IN.blFact = (t) => { STATE.bl.fact = t.value; };
@@ -1126,14 +1152,14 @@ ACT.bNext = async (b) => {
   if (B.busy) return; B.busy = true; b.disabled = true;
   const j = (a, tx) => a.concat(tx && tx.trim() ? [tx.trim()] : []).join('\n');
   try {
-    const r = await api('save', {}, { kind: 'blame', item: { who: B.who, fact: B.fact.trim(), interp: j(B.interp, B.interpTx), before: B.before, evid: B.evid.join('\n'), mine: B.mine.join('\n'), other: B.other.join('\n'), ours: B.ours.join('\n'), thanks: j(B.thanks, B.thanksTx), friend: B.friend.join('\n'), pred: B.pred, after: B.after } });
+    const r = await api('save', {}, { kind: 'blame', item: { who: B.who, fact: B.fact.trim(), interp: j(B.interp, B.interpTx), before: B.before, evid: B.evid.join('\n'), mine: B.mine.join('\n'), other: B.other.join('\n'), ours: B.ours.join('\n'), thanks: j(B.thanks, B.thanksTx), friend: B.friend.join('\n'), pred: B.pred, after: B.after, q0: B.q0, q1: B.q1 } });
     DB.blame.push(r.item); B.done = true; RENDER.sBlame();
   } catch (e) { toast('저장하지 못했어요: ' + e.message); }
   B.busy = false; b.disabled = false;
 };
 function blameDetail(o) {
   let h = (o.who ? detailLine('누구와', [o.who]) : '') + detailLine('일어난 일', lines(o.fact)) + detailLine('내가 붙인 해석', lines(o.interp)) + (o.before || o.after ? detailLine('자책 정도', [(LEVELS[o.before - 1] || '–') + ' → ' + (LEVELS[o.after - 1] || '–')]) : '') +
-    detailLine('확인된 사실', lines(o.evid)) + detailLine('내 몫', lines(o.mine)) + detailLine('상대 몫', lines(o.other)) + detailLine('우리 몫', lines(o.ours)) + detailLine('미안함 → 고마움', lines(o.thanks)) + detailLine('친구라면', lines(o.friend));
+    detailLine('확인된 사실', lines(o.evid)) + detailLine('내 몫', lines(o.mine)) + detailLine('상대 몫', lines(o.other)) + detailLine('우리 몫', lines(o.ours)) + detailLine('미안함 → 고마움', lines(o.thanks)) + detailLine('친구라면', lines(o.friend)) + (o.q0 && o.q1 && QL[o.q0] && QL[o.q1] ? detailLine('마음의 칸', [QI[o.q0] + ' ' + QL[o.q0][1] + ' → ' + QI[o.q1] + ' ' + QL[o.q1][1]]) : '');
   if (o.pred) h += detailLine('내 예측', [o.pred]) + `<div class="lbl" style="margin-top:14px">실제 반응은 어땠나요?</div><div class="chips">${BL_ACT.map(a => `<button class="chip ${o.actual === a ? 'on' : ''}" data-act="setActual" data-id="${esc(o.id)}" data-v="${esc(a)}">${esc(a)}</button>`).join('')}</div>`;
   return h;
 }
@@ -1174,6 +1200,7 @@ RENDER.sReport = () => {
       ${S.negN ? `<div class="sentence">지금까지 상대가 불편해했을 거라 예측한 <b>${S.negN}번</b> 중 <b>${S.negOk}번</b>은 실제로 불편해하지 않았어요.</div>` : '<div class="hint">자책 풀기에서 예측을 남기고, 실제 반응을 나중에 기록하면 여기에 예측이 맞았는지 나와요.</div>'}</div>
     ${S.moodN ? `<div class="card"><div class="lbl">🙂 칭찬일기를 쓴 뒤 기분</div><div class="rpN"><b>${S.moodD >= 0 ? '+' : ''}${S.moodD.toFixed(1)}</b><small>단계 (${S.moodN}번 평균, 5단계 기준)</small></div></div>` : ''}
     ${S.emo.length || S.body.length ? `<div class="card"><div class="lbl">감정 · 몸 신호 (자주 나온 것)</div>${S.emo.length ? `<div class="chips" style="margin-bottom:8px">${S.emo.map(([t, c]) => `<span class="chip mini">${esc(t)} ${c}</span>`).join('')}</div>` : ''}${S.body.length ? `<div class="chips">${S.body.map(([t, c]) => `<span class="chip mini">${esc(t)} ${c}</span>`).join('')}</div>` : ''}</div>` : ''}
+    ${quadCard()}${bqCard()}${restCard()}${recvCard()}${bodyCard(S)}
     <button class="btn warm" style="width:100%" data-act="rpAi" ${STATE.rp.busy ? 'disabled' : ''}>${STATE.rp.busy ? '생각하는 중…' : '🤖 AI에게 변화 한마디 듣기'}</button>
     ${STATE.rp.ai ? `<div class="sentence">${esc(STATE.rp.ai)}</div>` : ''}`;
 };
@@ -1195,6 +1222,251 @@ ACT.clSave = async (b) => {
   try { const r = await api('save', {}, { kind: 'praise', item: { say: t } }); DB.praise.push(r.item); closeOv(); toast('칭찬 모음에 저장했어요 💛'); }
   catch (e) { toast(e.message); b.disabled = false; }
 };
+
+
+/* ===== 홈: 체크인 · 쉬어가기 · 받은 인정 버튼 ===== */
+const cmp = (s, e) => `<button class="mc" data-act="${s}" style="min-height:74px;padding:12px 8px;text-align:center"><span class="e" style="margin-bottom:3px">${e[0]}</span><b style="font-size:13px">${e[1]}</b></button>`;
+function extraBtns() { return `<div class="menu" style="grid-template-columns:repeat(3,1fr);gap:8px">${cmp('ckStart', ['🌙', '30초 체크인'])}${cmp('restStart', ['🛋️', '쉬어도 되는 날'])}${cmp('recvStart', ['💌', '받은 인정'])}</div>`; }
+function restHtml() {
+  const r = DB.rest.find(x => x.date === todayStr()); if (!r) return '';
+  if (!r.after) return `<div class="lbl">오늘은 쉬어가는 날 🛋️</div>` + itemRow({ k: 'rest', id: r.id, at: r.at, o: r });
+  return `<div class="card fade" style="font-size:14px">🛋️ 오늘은 쉬어가는 날이에요. 충분히 잘 쉬고 있어요${r.after ? ' (' + esc(r.after) + ')' : ''}</div>`;
+}
+
+/* ===== 1. 하루 끝 30초 체크인 ===== */
+const CK_STEPS = 3;
+function ckPool() { return [].concat(...chipPool('do').map(x => x[1])); }
+function ckHtml() {
+  const C = STATE.ck, s = C.step; let h = '';
+  if (s === 0) h = `<h3>오늘 기분은 어때요?</h3><div class="faces" style="margin-top:14px">${MOODS.map((m, i) => `<button class="face ${C.mood === String(i + 1) ? 'on' : ''}" data-act="tg" data-s="ck" data-g="mood" data-v="${i + 1}" data-one="1"><b>${m[0]}</b>${m[1]}</button>`).join('')}</div>`;
+  else if (s === 1) h = `<h3>오늘 한 일 하나만 골라요</h3><div class="chips" style="margin-top:14px">${ckPool().map(t => chipHtml('ck', 'did', t, t, C.did === t, 'data-one="1"')).join('')}</div>`;
+  else h = `<h3>도장 하나 쾅 💮</h3><p class="hint" style="margin:2px 0 12px">나를 인정할 것 하나 (건너뛰어도 돼요)</p><div class="chips">${STAMPS.map(t => chipHtml('ck', 'stamp', t, t, C.stamp === t, 'data-one="1"')).join('')}</div>`;
+  return `<div class="hint" style="text-align:right;margin:0 0 6px">${s + 1} / ${CK_STEPS}</div>${h}<div style="display:flex;gap:8px;margin-top:18px"><button class="btn sub" data-act="ckPrev" style="flex:1">${s === 0 ? '닫기' : '이전'}</button><button class="btn" data-act="ckNext" style="flex:2">${s === CK_STEPS - 1 ? '저장 ✓' : '다음'}</button></div>`;
+}
+ACT.ckStart = () => { STATE.ck = { step: 0, mood: '', did: '', stamp: '', busy: false }; openOv(ckHtml()); };
+ACT.ckPrev = () => { const C = STATE.ck; if (C.step === 0) return closeOv(); C.step--; $('ovIn').innerHTML = ckHtml(); };
+ACT.ckNext = async (b) => {
+  const C = STATE.ck;
+  if (C.step === 0 && !C.mood) { toast('기분을 하나 골라 주세요 😊'); return; }
+  if (C.step === 1 && !C.did) { toast('한 가지만 골라 주세요 😊'); return; }
+  if (C.step < CK_STEPS - 1) { C.step++; $('ovIn').innerHTML = ckHtml(); return; }
+  if (C.busy) return; C.busy = true; b.disabled = true;
+  try {
+    const r = await api('save', {}, { kind: 'praise', item: { mood1: C.mood, did: C.did } }); DB.praise.push(r.item);
+    if (C.stamp && !DB.stamp.some(x => x.date === todayStr() && x.text === C.stamp)) { const s = await api('save', {}, { kind: 'stamp', item: { text: C.stamp } }); DB.stamp.push(s.item); }
+    closeOv(); toast('체크인 완료 💛 오늘도 수고했어요'); if (RENDER[cur]) RENDER[cur]();
+  } catch (e) { toast('저장하지 못했어요: ' + e.message); b.disabled = false; }
+  C.busy = false;
+};
+
+/* ===== 4. 괜찮은 척했어요 → 숨은 마음 ===== */
+const HID = ['화났어요', '서운했어요', '실망했어요', '억울했어요', '외로웠어요', '인정받고 싶었어요', '쉬고 싶었어요', '바라는 게 있었어요'];
+function hidEmoHtml() {
+  const R = STATE.rec, on = R.thChips.includes('괜찮은 척했어');
+  return `<div id="hidEmo" class="${on ? '' : 'hide'}" style="margin-top:12px"><div class="grp">🎭 괜찮다고 했지만, 사실은 어떤 마음이었어요? <i>이름만 붙여도 돼요</i></div><div class="chips">${HID.map(t => chipHtml('rec', 'thChips', '숨은 마음: ' + t, t, R.thChips.includes('숨은 마음: ' + t))).join('')}</div></div>`;
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act="tg"][data-s="rec"][data-v="괜찮은 척했어"]'); if (!b) return;
+  const h = $('hidEmo'); if (h) h.classList.toggle('hide', !STATE.rec.thChips.includes('괜찮은 척했어'));
+});
+
+/* ===== 5. 쉬어도 되는 날 ===== */
+const REST_LV = ['최소한만 하는 날', '푹 쉬는 날'];
+const REST_MUST = ['출근·수업', '식사', '씻기', '약속 지키기', '꼭 필요한 연락', '산책 정도만', '없어요'];
+const REST_SAY = ['쉬어도 돼', '충전 중이야', '몸이 신호를 보냈어', '오늘은 이만하면 충분해', '쉬어도 나는 괜찮은 사람이야'];
+const REST_AFTER = ['편안했어요', '죄책감이 들었어요', '반반이에요', '아직 모르겠어요'];
+ACT.restStart = () => {
+  STATE.rs = { level: '', must: [], say: [], busy: false };
+  openOv(`<h3>🛋️ 쉬어도 되는 날</h3><p class="hint" style="margin:4px 0 12px">쉼도 일의 일부예요. 오늘의 기준을 정해 봐요.</p>
+    <div class="lbl">오늘은</div><div class="chips">${REST_LV.map(t => chipHtml('rs', 'level', t, t, false, 'data-one="1"')).join('')}</div>
+    <div class="lbl" style="margin-top:16px">그래도 꼭 할 것 <small>(최대 3개)</small></div><div class="chips">${REST_MUST.map(t => chipHtml('rs', 'must', t, t, false, 'data-max="3"')).join('')}</div>
+    <div class="lbl" style="margin-top:16px">쉬는 나에게 한 마디</div><div class="chips">${REST_SAY.map(t => chipHtml('rs', 'say', t, t, false)).join('')}</div>
+    <div style="display:flex;gap:8px;margin-top:18px"><button class="btn sub" data-act="ovClose" style="flex:1">취소</button><button class="btn" data-act="restSave" style="flex:2">쉬어갈게요</button></div>`);
+};
+ACT.restSave = async (b) => {
+  const R = STATE.rs; if (!R.level) { toast('오늘의 강도를 골라 주세요 😊'); return; }
+  b.disabled = true;
+  try { const r = await api('save', {}, { kind: 'rest', item: { level: R.level, must: R.must.join('\n'), say: R.say.join('\n') } }); DB.rest.push(r.item); closeOv(); toast('쉬어가기로 했어요 🛋️ 잘 쉬어요'); if (RENDER[cur]) RENDER[cur](); }
+  catch (e) { toast('저장하지 못했어요: ' + e.message); b.disabled = false; }
+};
+function restDetail(o) {
+  return detailLine('오늘은', o.level ? [o.level] : []) + detailLine('꼭 할 것', lines(o.must)) + detailLine('쉬는 나에게', lines(o.say)) +
+    `<div class="lbl" style="margin-top:14px">쉬고 난 느낌은 어때요?</div><div class="chips">${REST_AFTER.map(a => `<button class="chip ${o.after === a ? 'on' : ''}" data-act="setRestAfter" data-id="${esc(o.id)}" data-v="${esc(a)}">${esc(a)}</button>`).join('')}</div>`;
+}
+ACT.setRestAfter = async (b) => {
+  const o = DB.rest.find(x => String(x.id) === b.dataset.id); if (!o) return;
+  try { const r = await api('save', {}, { kind: 'rest', item: { id: o.id, after: b.dataset.v } }); Object.assign(o, r.item); toast(b.dataset.v === '죄책감이 들었어요' ? '죄책감도 괜찮아요. 쉰 건 잘한 일이에요' : '기록했어요 ✓'); openDetail('rest', o.id); if (cur === 'sHome') keepScroll($('homeBody'), RENDER.sHome); }
+  catch (e) { toast(e.message); }
+};
+
+/* ===== 8. 받은 인정 보관함 ===== */
+const RV_WHO = ['파트너', '동료', '학생', '학부모', '가족', '친구', '관리자', '기타'];
+const RV_TAKE = ['그대로 믿었어요', '반만 믿었어요', '깎아 들었어요', '겸손하게 넘겼어요', '아직 모르겠어요'];
+ACT.recvStart = () => {
+  STATE.rv = { who: '', take: '', text: '' };
+  openOv(`<h3>💌 받은 인정 보관함</h3><p class="hint" style="margin:4px 0 12px">누군가 해준 인정의 말을 모아둬요. 힘든 날 꺼내볼 수 있어요.</p>
+    <div class="lbl">누가 해줬나요?</div><div class="chips">${RV_WHO.map(t => chipHtml('rv', 'who', t, t, false, 'data-one="1"')).join('')}</div>
+    <textarea data-in="rvText" placeholder="들은 말을 그대로 적어요" style="margin-top:12px;min-height:72px"></textarea>
+    <div class="lbl" style="margin-top:14px">그 말을 나는 어떻게 받아들였나요?</div><div class="chips">${RV_TAKE.map(t => chipHtml('rv', 'take', t, t, false, 'data-one="1"')).join('')}</div>
+    <div style="display:flex;gap:8px;margin-top:18px"><button class="btn sub" data-act="ovClose" style="flex:1">취소</button><button class="btn" data-act="recvSave" style="flex:2">보관하기</button></div>`);
+};
+IN.rvText = (t) => { STATE.rv.text = t.value; };
+ACT.recvSave = async (b) => {
+  const R = STATE.rv; if (!R.text.trim()) { toast('들은 말을 적어 주세요 😊'); return; } b.disabled = true;
+  try { const r = await api('save', {}, { kind: 'recv', item: { who: R.who, text: R.text.trim(), take: R.take } }); DB.recv.push(r.item); closeOv(); toast('보관했어요 💌'); if (RENDER[cur]) RENDER[cur](); }
+  catch (e) { toast('저장하지 못했어요: ' + e.message); b.disabled = false; }
+};
+const _hub = RENDER.sPraiseHub;
+RENDER.sPraiseHub = () => {
+  _hub();
+  const list = DB.recv.slice().sort((a, b) => (b.at > a.at ? 1 : -1)).slice(0, 3), cal = $('phBody').querySelector('.card');
+  const html = `<div class="lbl">💌 받은 인정 <button class="chip mini" data-act="recvStart" style="margin-left:6px">+ 보관하기</button></div>${list.length ? list.map(x => itemRow({ k: 'recv', id: x.id, at: x.at, o: x })).join('') : '<div class="hint" style="margin-bottom:14px">들은 인정의 말을 모아두면 힘든 날 꺼내볼 수 있어요.</div>'}`;
+  if (cal) cal.insertAdjacentHTML('beforebegin', html);
+};
+const _recall = ACT.recall;
+ACT.recall = (b) => {
+  const hasP = DB.praise.some(x => lines(x.did).length || lines(x.say).length || x.line);
+  if (DB.recv.length && (!hasP || Math.random() < 0.4)) {
+    const x = DB.recv[Math.floor(Math.random() * DB.recv.length)];
+    openOv(`<div class="center"><div style="font-size:40px">💌</div><h3 style="margin:6px 0">${esc(x.who || '누군가')}에게 들은 말</h3><div class="big" style="text-align:left;background:#F5D06B;color:#412402">“${esc(x.text)}”</div><p class="hint">${esc(fmtDate(x.date))}에 보관했어요</p><div style="display:flex;gap:8px"><button class="btn sub" data-act="recall" style="flex:1">다른 칭찬</button><button class="btn" data-act="ovClose" style="flex:1">고마워요</button></div></div>`);
+    return;
+  }
+  _recall(b);
+};
+
+/* ===== 돌아보기 추가 카드 ===== */
+const inRp = (x) => dOf(x) >= dayOffset(STATE.rp.days - 1) && dOf(x) <= todayStr();
+function restCard() {
+  const r = DB.rest.filter(inRp); if (!r.length) return '';
+  const g = r.filter(x => x.after === '죄책감이 들었어요').length, ok = r.filter(x => x.after === '편안했어요').length;
+  return `<div class="card"><div class="lbl">🛋️ 쉬어간 날</div><div class="rpN"><b>${r.length}</b><small>일</small></div>${r.some(x => x.after) ? `<div class="sentence" style="margin-top:6px">쉬고 난 뒤 편안했던 날 ${ok}일, 죄책감이 들었던 날 ${g}일</div>` : '<div class="hint">쉬고 난 느낌을 기록하면 여기에 나와요.</div>'}</div>`;
+}
+function recvCard() {
+  const r = DB.recv.filter(inRp); if (!r.length) return '';
+  const cut = r.filter(x => x.take === '깎아 들었어요').length, ok = r.filter(x => x.take === '그대로 믿었어요').length;
+  return `<div class="card"><div class="lbl">💌 받은 인정</div><div class="rpN"><b>${r.length}</b><small>개 보관했어요</small></div><div class="sentence" style="margin-top:6px">그대로 믿은 말 ${ok}개, 깎아 들은 말 ${cut}개${cut > ok ? '<br>들은 인정은 깎지 않고 그대로 받아도 돼요.' : ''}</div></div>`;
+}
+function bodyCard(S) {
+  const rc = S.rc.filter(x => lines(x.body).some(t => t !== '몸은 괜찮아요'));
+  const hid = topN([].concat(...S.rc.map(x => lines(x.thChips).filter(t => t.startsWith('숨은 마음: ')).map(t => t.replace(/^숨은 마음: /, '')))), 3);
+  const hidH = hid.length ? `<div class="lbl" style="margin-top:14px">🎭 괜찮은 척 뒤에 숨어 있던 마음</div><div class="chips">${hid.map(([t, c]) => `<span class="chip mini">${esc(t)} ${c}</span>`).join('')}</div>` : '';
+  if (rc.length < 3) return `<div class="card"><div class="lbl">🫧 몸 신호 패턴</div><div class="hint">몸 신호가 있었던 감정 기록이 3개 이상 쌓이면, 어떤 마음일 때 몸이 먼저 신호를 보내는지 보여줘요. (지금 ${rc.length}개)</div>${hidH}</div>`;
+  const bodies = topN([].concat(...rc.map(x => lines(x.body).filter(t => t !== '몸은 괜찮아요'))), 3);
+  const rows = bodies.map(([b, c]) => {
+    const rel = rc.filter(x => lines(x.body).includes(b)), emos = topN([].concat(...rel.map(x => lines(x.emo))), 2), sits = topN([].concat(...rel.map(x => lines(x.sitChips))), 1);
+    return `<div class="sentence" style="margin-top:8px"><b>${esc(b)}</b> ${c}번${emos.length ? ' · 많았던 감정: ' + emos.map(e => esc(e[0])).join(', ') : ''}${sits.length ? ' · 관련된 일: ' + esc(sits[0][0]) : ''}</div>`;
+  }).join('');
+  return `<div class="card"><div class="lbl">🫧 몸 신호 패턴</div>${rows}${hidH}</div>`;
+}
+
+
+/* ===== 에너지 × 기분 (4칸) ===== */
+const QL = { red: ['🔴', '긴장·흥분', '에너지 높음 · 불편함'], yellow: ['🟡', '활기', '에너지 높음 · 좋음'], blue: ['🔵', '가라앉음', '에너지 낮음 · 불편함'], green: ['🟢', '편안', '에너지 낮음 · 좋음'] };
+const QI = { red: '🔴', yellow: '🟡', blue: '🔵', green: '🟢' };
+const QCOL = { red: '#E8836B', yellow: '#F5D06B', blue: '#7B8FD6', green: '#7DBB8A' };
+const QWORDS = {
+  red: ['불안', '걱정', '긴장', '당황', '무서움', '답답함', '화남', '짜증', '억울함', '분함', '부담', '복잡함', '혼란', '초조', '조급', '예민', '부끄러움', '압박감'],
+  blue: ['슬픔', '서운함', '외로움', '속상함', '허전함', '무기력', '지침', '피곤', '미안함', '아쉬움', '자책', '허탈', '막막', '서러움', '쓸쓸함', '공허'],
+  yellow: ['기쁨', '뿌듯함', '자신감', '신남', '설렘', '의욕', '들뜸', '즐거움', '보람', '감격'],
+  green: ['평온', '고마움', '편안함', '괜찮음', '후련함', '안심', '여유', '차분함', '느긋함', '홀가분']
+};
+const QD = {}; Object.keys(QWORDS).forEach(q => QWORDS[q].forEach(w => { QD[w] = q; }));
+const plainEmo = (e) => String(e || '').split(' ').slice(1).join(' ');
+const quadOf = (e) => QD[plainEmo(e)] || '';
+const allEmoChips = () => [].concat(...EMO.map(x => x[1]));
+let recView = lsGet('mind_recview_v1', 'kind'), recQ = '';
+function emoViewHtml() {
+  const R = STATE.rec;
+  const tog = `<div class="chips" style="margin-bottom:12px"><button class="chip mini ${recView === 'kind' ? 'on' : ''}" data-act="recView" data-v="kind">종류별</button><button class="chip mini ${recView === 'quad' ? 'on' : ''}" data-act="recView" data-v="quad">에너지 × 기분</button></div>`;
+  if (recView === 'kind') return tog + EMO.map(([t, list]) => `<div class="grp">${t}</div><div class="chips">${list.map(e => chipHtml('rec', 'emo', e, e, R.emo.includes(e), 'data-max="3"')).join('')}</div>`).join('');
+  const order = ['red', 'yellow', 'blue', 'green'];
+  const grid = order.map(q => `<button class="qbtn ${q} ${recQ === q ? 'on' : ''}" data-act="recQ" data-v="${q}"><b>${QI[q]} ${QL[q][1]}</b><small>${QL[q][2]}</small></button>`).join('');
+  const chips = recQ ? `<div class="grp">${QI[recQ]} ${QL[recQ][1]} 칸의 감정</div><div class="chips">${allEmoChips().filter(e => quadOf(e) === recQ).map(e => chipHtml('rec', 'emo', e, e, R.emo.includes(e), 'data-max="3"')).join('')}</div>` : '<div class="hint">지금 마음이 어느 칸에 가까운지 먼저 눌러 보세요. 다른 칸에서 고른 감정도 그대로 남아 있어요.</div>';
+  return tog + `<div class="qax">위쪽 = 에너지 높음 · 아래쪽 = 에너지 낮음 · 왼쪽 = 불편함 · 오른쪽 = 좋음</div><div class="qgrid">${grid}</div>` + chips;
+}
+function quadHintText() {
+  const R = STATE.rec; if (!R || !R.emo.length) return '';
+  return '고른 감정의 칸: ' + R.emo.map(e => (QI[quadOf(e)] || '') + ' ' + plainEmo(e)).join(' · ');
+}
+ACT.recView = (b) => { recView = b.dataset.v; lsSet('mind_recview_v1', recView); const sc = $('recBody').scrollTop; $('emoBox').innerHTML = emoViewHtml(); $('recBody').scrollTop = sc; };
+ACT.recQ = (b) => { recQ = recQ === b.dataset.v ? '' : b.dataset.v; const sc = $('recBody').scrollTop; $('emoBox').innerHTML = emoViewHtml(); $('recBody').scrollTop = sc; };
+document.addEventListener('click', e => { if (e.target.closest('[data-act="tg"][data-s="rec"][data-g="emo"]')) { const h = $('quadHint'); if (h) h.textContent = quadHintText(); } });
+const quadRow = (g, cur) => `<div class="chips">${['red', 'yellow', 'blue', 'green'].map(q => chipHtml('bl', g, q, QI[q] + ' ' + QL[q][1], cur === q, 'data-one="1"')).join('')}</div>`;
+
+/* ===== 3. 칸별 작은 행동 (감정 기록 저장 뒤) ===== */
+const QADV = {
+  red: ['몸이 달릴 준비를 하고 있는 상태예요. 먼저 숨을 길게 내쉬어 몸을 가라앉혀 봐요.', [['breathe', '🌬️ 호흡 3번'], ['blame', '🌧️ 자책 풀기']]],
+  blue: ['에너지가 낮아진 상태예요. 몸이 쉬라고 보내는 신호일 수 있어요. 오늘은 최소한만 해도 괜찮아요.', [['rest', '🛋️ 쉬어도 되는 날'], ['ck', '🌙 30초 체크인']]],
+  yellow: ['좋은 에너지가 있는 순간이에요. 지금을 붙잡아 두면, 힘든 날 꺼내볼 수 있어요.', [['praise', '☀️ 칭찬일기 쓰기'], ['ck', '🌙 30초 체크인']]],
+  green: ['편안하고 안정된 순간이에요. 이 느낌이 어디서 왔는지 한 줄만 남겨 두면 좋아요.', [['praise', '☀️ 칭찬일기 쓰기'], ['ck', '🌙 30초 체크인']]]
+};
+function showQuadAdvice(it) {
+  const es = lines(it.emo); if (!es.length) return;
+  const cnt = {}; es.forEach(e => { const q = quadOf(e); if (q) cnt[q] = (cnt[q] || 0) + 1; });
+  const q = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0]; if (!q) return;
+  const sorry = es.some(e => ['미안함', '자책'].includes(plainEmo(e)));
+  const btns = QADV[q][1].concat(sorry ? [['sorry', '🔄 미안함 → 고마움 카드']] : []);
+  openOv(`<div class="center"><div style="font-size:34px">${QI[q]}</div><h3 style="margin:4px 0">${QL[q][1]} 칸에 있어요</h3><small style="color:var(--tx3)">${QL[q][2]}</small><div class="sentence" style="text-align:left">${QADV[q][0]}</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">${btns.map(([k, l]) => `<button class="btn sub" data-act="qaGo" data-v="${k}">${l}</button>`).join('')}<button class="btn" data-act="ovClose">괜찮아요, 닫을게요</button></div></div>`);
+}
+function openBreath() {
+  openOv(`<div class="center"><h3>🌬️ 숨 고르기</h3><div class="breath">커질 때 들이쉬고<br>작아질 때 내쉬어요</div><p class="hint">천천히 3번 반복해요. (들이쉬기 4초 · 내쉬기 6초)</p><button class="btn" data-act="ovClose" style="width:100%;margin-top:8px">마쳤어요</button></div>`);
+}
+ACT.qaGo = (b) => {
+  const k = b.dataset.v; closeOv();
+  if (k === 'rest') ACT.restStart(); else if (k === 'ck') ACT.ckStart(); else if (k === 'praise') { ACT.praiseStart(); }
+  else if (k === 'blame') ACT.blameStart(); else if (k === 'breathe') openBreath();
+  else if (k === 'sorry') { STATE.rf = { view: 'card', card: 'sorry', feel: [], to: [], ai: [], mine: '', helped: '1', done: false }; go('sRf'); }
+};
+
+/* ===== 7. 오늘의 감정 단어 ===== */
+const WORD_INFO = {
+  초조: ['마음이 급해서 가만히 있기 어려운 느낌', '지금 급하게 만드는 건 뭘까요?'], 조급: ['빨리 해내야 한다고 몰아붙이는 느낌', '정말 지금 다 끝내야 할까요?'],
+  예민: ['작은 자극에도 신경이 곤두서는 느낌', '지금 몸은 얼마나 지쳐 있나요?'], 부끄러움: ['내 모습이 드러난 것 같아 숨고 싶은 느낌', '그 모습은 정말 부끄러운 걸까요?'],
+  압박감: ['잘해야 한다는 무게가 어깨를 누르는 느낌', '그 기준은 누가 정한 걸까요?'], 허탈: ['애썼는데 힘이 쑥 빠지는 느낌', '내가 쏟은 노력은 무엇이었나요?'],
+  막막: ['어디서부터 해야 할지 길이 안 보이는 느낌', '아주 작은 첫걸음 하나만 고른다면요?'], 서러움: ['알아주지 않아 울컥 올라오는 느낌', '누가 알아주면 좋겠어요, 아니면 내가 먼저 알아줄까요?'],
+  쓸쓸함: ['혼자인 것 같아 마음이 시린 느낌', '지금 떠오르는 사람이 있나요?'], 공허: ['마음속이 텅 빈 것 같은 느낌', '요즘 나를 채워주던 건 무엇이었나요?'],
+  설렘: ['좋은 일이 올 것 같아 마음이 간질간질한 느낌', '무엇이 기다려지나요?'], 의욕: ['무언가 해보고 싶은 힘이 차오르는 느낌', '이 힘으로 가장 먼저 하고 싶은 건요?'],
+  들뜸: ['기분이 붕 떠서 가만있기 어려운 느낌', '이 기분을 어떻게 즐기고 싶나요?'], 즐거움: ['웃음이 나고 시간이 빨리 가는 느낌', '무엇이 즐거웠나요?'],
+  보람: ['애쓴 일이 의미 있게 느껴지는 느낌', '오늘 의미 있던 일 하나는요?'], 감격: ['마음이 벅차올라 뭉클한 느낌', '무엇이 마음을 울렸나요?'],
+  후련함: ['막힌 게 풀려 속이 시원한 느낌', '무엇이 풀렸나요?'], 안심: ['걱정이 내려놓아져 마음이 놓이는 느낌', '무엇 덕분에 마음이 놓였나요?'],
+  여유: ['서두르지 않아도 되는 마음의 공간', '오늘 나에게 허락한 여유는요?'], 차분함: ['마음이 잔잔하게 가라앉은 느낌', '지금 몸의 어느 곳이 가장 편안한가요?'],
+  느긋함: ['급할 것 없이 늘어진 편안한 느낌', '이 느긋함을 허락해도 괜찮을까요?'], 홀가분: ['짐을 내려놓은 듯 가벼운 느낌', '무엇을 내려놓았나요?'],
+  미안함: ['상대에게 마음이 쓰이는 느낌', '정말 잘못한 일일까요, 아니면 고마운 마음일까요?'], 자책: ['스스로를 탓하는 마음', '친구가 같은 일을 겪었다면 뭐라고 말해줬을까요?'],
+  서운함: ['기대했는데 채워지지 않은 느낌', '내가 바랐던 건 무엇이었나요?'], 억울함: ['공정하지 않다고 느끼는 마음', '내가 바로잡고 싶은 건 무엇인가요?'],
+  부담: ['해내야 할 몫이 무겁게 느껴지는 마음', '덜어낼 수 있는 한 가지는요?'], 무기력: ['움직일 힘이 안 나는 느낌', '지금 가능한 가장 작은 행동은요?'],
+  지침: ['오래 애써서 힘이 빠진 느낌', '마지막으로 쉰 건 언제였나요?'], 아쉬움: ['더 잘할 수 있었을 것 같은 마음', '이미 잘한 부분은 어디였나요?'],
+  복잡함: ['여러 마음이 한꺼번에 얽힌 느낌', '그중 가장 큰 마음 하나만 고른다면요?'], 고마움: ['누군가의 마음이 와닿아 따뜻한 느낌', '누구에게 전하고 싶나요?'],
+  뿌듯함: ['해낸 나를 인정하고 싶은 느낌', '무엇을 해냈나요?'], 평온: ['잔잔하게 가라앉은 마음', '이 평온은 어디서 왔나요?']
+};
+function wordOfDay() {
+  const ws = allEmoChips().filter(e => WORD_INFO[plainEmo(e)]); if (!ws.length) return null;
+  const t = todayStr().split('-').map(Number), n = t[0] * 372 + t[1] * 31 + t[2];
+  return ws[n % ws.length];
+}
+function wordHtml() {
+  const w = wordOfDay(); if (!w) return '';
+  const p = plainEmo(w), i = WORD_INFO[p], q = quadOf(w);
+  return `<div class="card fade"><div class="lbl">📖 오늘의 감정 단어</div><div style="font-size:22px;font-weight:800">${esc(w)} <span style="font-size:13px;font-weight:600;color:var(--tx3)">${QI[q] || ''} ${q ? QL[q][1] : ''}</span></div><div style="font-size:14px;line-height:1.7;margin:6px 0">${esc(i[0])}</div><div class="hint" style="margin:0 0 10px">${esc(i[1])}</div><button class="chip mini" data-act="wordRec" data-v="${esc(w)}">지금 이 감정이 있어요</button></div>`;
+}
+ACT.wordRec = (b) => { newRec(); STATE.rec.emo = [b.dataset.v]; go('sRec'); };
+
+/* ===== 2·6. 돌아보기: 4칸 비율 · 자책 풀기 칸 이동 ===== */
+function quadCard() {
+  const cnt = { red: 0, yellow: 0, blue: 0, green: 0 };
+  DB.rec.filter(inRp).forEach(x => lines(x.emo).forEach(e => { const q = quadOf(e); if (q) cnt[q]++; }));
+  const tot = cnt.red + cnt.yellow + cnt.blue + cnt.green; if (!tot) return '';
+  const pct = (n) => Math.round(n / tot * 100), hi = cnt.red + cnt.yellow, pl = cnt.yellow + cnt.green;
+  const top = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0];
+  const MSG = { red: '긴장하며 달린 기간이었어요. 몸에 쉬는 신호를 주는 연습을 해봐요.', blue: '에너지가 낮은 기간이었어요. 쉬어도 되는 날 카드를 써봐요.', yellow: '활기가 많은 기간이었어요 🎉 좋았던 순간을 칭찬일기에 붙잡아 두세요.', green: '편안한 기간이었어요 🌿' };
+  return `<div class="card"><div class="lbl">🎨 감정이 놓인 칸 (에너지 × 기분)</div>${['red', 'yellow', 'blue', 'green'].map(q => `<div class="qrow"><span>${QI[q]} ${QL[q][1]}</span><div style="flex:1"><div class="qbar" style="width:${Math.max(2, pct(cnt[q]))}%;background:${QCOL[q]}"></div></div><span>${pct(cnt[q])}%</span></div>`).join('')}
+    <div class="hint" style="margin-top:8px">에너지 높음 ${pct(hi)}% · 낮음 ${100 - pct(hi)}% / 불편함 ${100 - pct(pl)}% · 좋음 ${pct(pl)}%</div><div class="sentence" style="margin-top:8px">${MSG[top]}</div></div>`;
+}
+function bqCard() {
+  const b = DB.blame.filter(x => inRp(x) && QL[x.q0] && QL[x.q1]); if (!b.length) return '';
+  const tr = topN(b.map(x => x.q0 + '>' + x.q1), 3), better = b.filter(x => ['red', 'blue'].includes(x.q0) && ['yellow', 'green'].includes(x.q1)).length;
+  return `<div class="card"><div class="lbl">🌧️→☀️ 자책 풀기 후 마음의 칸 이동</div>${tr.map(([k, c]) => { const [a, z] = k.split('>'); return `<div class="qrow"><span style="width:auto">${QI[a]} ${QL[a][1]} → ${QI[z]} ${QL[z][1]}</span><span style="flex:1;text-align:right;width:auto">${c}번</span></div>`; }).join('')}<div class="sentence" style="margin-top:8px">${b.length}번 중 <b>${better}번</b>은 불편한 칸에서 좋은 칸으로 옮겨갔어요.</div></div>`;
+}
 
 init();
 
