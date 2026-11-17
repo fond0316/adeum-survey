@@ -4620,15 +4620,23 @@ function rsParseSheet(rows, sheetName, fileName, nSheets){
     prev = [];
     const flag = v => v.length <= 3 || /^(참석|참여|이수|수료|완료|해당)$/.test(v);
     if (ent.every(e => flag(e.v))){ const gen = !h || RS_GEN.test(h), a = mk(gen ? FL : h, ent.map(e => ({ sid:e.sid, name:e.name, txt:'', giv:'' })), gen ? { fromFile:true, alt:sheetName } : {}); out.acts.push(a); prev = [a]; return; }
-    const g = {};
-    ent.forEach(e => { const f = rsFirstLine(e.v); (g[f] = g[f] || []).push(e); });
+    const g = {}, solo = new Set(data.map(r => rsStr(r[k])).filter(v => v && !/\n/.test(v)));   // 이 열에서 칸 하나에 혼자 적힌 값 = 프로그램 이름 후보
+    ent.forEach(e => { const ls = rsStr(e.v).split(/\n+/).map(t => t.trim()).filter(Boolean), hits = ls.filter(t => solo.has(t));
+      if (ls.length >= 2 && hits.length >= 2) hits.forEach(t => { (g[t] = g[t] || []).push({ ...e, v:t }); });   // 한 칸에 프로그램 이름이 둘 이상 → 각각의 활동에 넣어요
+      else { const f = rsFirstLine(e.v); (g[f] = g[f] || []).push(e); } });
     Object.keys(g).forEach(f => {
       const hk = simKey(h), has = hk.length >= 2 && simKey(f).includes(hk), label = has || !h ? f : h + ': ' + f;
-      const a = mk(label, g[f].map(e => { const rest = rsStr(e.v).split('\n').slice(1).join(' ').trim(); return { sid:e.sid, name:e.name, txt:(f.length > 30 && !rest ? '' : rest).replace(/\s+/g, ' '), giv:'' }; }), { col:h });
+      const a = mk(label, g[f].map(e => { const rest = rsStr(e.v).split('\n').slice(1).join(' ').trim(); return { sid:e.sid, name:e.name, txt:(f.length > 30 && !rest ? '' : rest).replace(/\s+/g, ' '), giv:'' }; }), { col:h, ck:k });
       out.acts.push(a); prev.push(a);
     });
   });
   out.acts.forEach(a => { a.nGiv = a.entries.filter(e => e.giv).length; });
+  try {   // 엑셀의 'N학년 M반 합계' 줄(예: 4건)과 읽은 건수 대조
+    const pc = {}; stu.forEach(x => { const q = String(x.s.sid).slice(0, 3); pc[q] = (pc[q] || 0) + 1; });
+    const pre = Object.keys(pc).sort((a, b) => pc[b] - pc[a])[0];
+    const sr = data.find(r => { const t = r.join(' '); const m = /합계/.test(t) && t.match(/(\d)\s*학년\s*(\d{1,2})\s*반/); return m && (m[1] + String(m[2]).padStart(2, '0')) === pre; });
+    if (sr){ const ck = []; cand.forEach(k => { const m = /^(\d+)\s*건$/.exec(rsStr(sr[k])); const as = out.acts.filter(a => a.ck === k); if (m && as.length) ck.push({ h:H[k] || '', want:+m[1], got:as.reduce((n, a) => n + a.entries.length, 0) }); }); if (ck.length) out.sumChk = ck; }
+  } catch (e) {}
   return out;
 }
 function rsParseBlocks(R, hr, sCs, nCs, sheetName, fileName, nSheets){   // 한 활동의 명단이 (학번·이름) 묶음 여러 개로 나란히 있는 표 (예: 멘토 | 멘티 | 과목) → 역할별로 나눠서 읽어요
@@ -4866,11 +4874,16 @@ function rsRender(){
     if (f.needImg) h += `<div class="rsbn">🖼️ 이 파일은 표가 <b>그림</b>으로 들어 있어서 글자를 바로 읽을 수 없어요. 아래 중 하나로 읽어 주세요.<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><button class="btn sm" data-a="rsAi" data-f="${fi}">🤖 AI로 읽기 (Claude API 키 필요)</button><button class="btn sm sub" data-a="rsOcr" data-f="${fi}">🔎 OCR로 읽기 (키 필요 없음, 덜 정확)</button></div><div id="rsPg${fi}" class="hint" style="margin:4px 0 0"></div></div>`;
     if (f.chk) h += `<div class="rsbn">⚠️ <b>${f.chk === 'AI' ? 'AI' : 'OCR(글자 인식)'}로 읽은 결과예요 — 확인이 필요해요.</b> 학번·이름이 틀리게 읽혔을 수 있어요. 원본과 비교해서 틀린 사람은 ×로 빼고, 노란색(⚠️)은 읽은 이름과 명단 이름이 달라요. 학번이 우리 반 명단에 없는데 이름이 같은 학생이 있으면 그 학생으로 이어 붙였어요.${f.skipN ? ` (우리 반이 아니라서 뺀 줄 ${f.skipN}개)` : ''}<label><input type="checkbox" class="rsChk" data-f="${fi}"> 원본과 비교해서 확인했어요</label></div>`;
     const loOk = !f.needImg && !f.chk && f.sheets.some(sh => sh.cls);
-    if (loOk && f.lo === undefined) f.lo = true;
+    if (loOk && f.lo === undefined){   // 칸 글이 항목표 이름과 맞는 활동이 둘 이상이면 '섞인 파일' → 나눠서 읽어요
+      const mixIds = new Set(); f.sheets.forEach(sh => sh.acts.forEach(a => { if (a.col){ const sg0 = rsSuggest(a, sh.name, f.name); if (sg0[0] && sg0[0].s >= 55) mixIds.add(sg0[0].it.id); } }));
+      f.mix = mixIds.size >= 2; f.lo = !f.mix;   // 서로 다른 항목 둘 이상과 맞아야 '섞인 파일'
+    }
+    if (f.mix && !f.lo && !f.mixClean){ f.sheets.forEach(sh => sh.acts.forEach(a => a.entries.forEach(e => { e.txt = ''; }))); f.mixClean = true; }
     let SHS = f.sheets;
     if (loOk){
       h += `<div class="rsbn" style="background:#F1EEFA"><label style="font-weight:800"><input type="checkbox" class="rsLo" data-a="rsLo" data-f="${fi}"${f.lo ? ' checked' : ''}> 📋 명단만 올리기</label>`
-        + (f.lo ? `<div style="margin-top:4px">학번·이름만 읽어서 <b>한 활동</b>에 넣어요. 글 내용은 가져오지 않으니 <b>내용은 원본 엑셀에서 확인</b>하세요.${f.sheets.filter(x => x.cls).length > 1 ? ' <span style="color:#B45309">시트가 여러 개예요 — 시트마다 다른 활동이면 스위치를 꺼 주세요.</span>' : ''}</div>`
+        + (f.mix && !f.lo ? `<div style="margin-top:4px">🧩 <b>활동이 섞인 파일이에요</b> — 열 제목·칸 안 글로 활동을 나눠서 항목과 연결했어요. 학번·이름만 읽고 <b>내용은 원본 엑셀에서 확인</b>하세요. 한 학생이 여러 활동에 들어갈 수 있어요.</div>`
+          : f.lo ? `<div style="margin-top:4px">${f.mix ? '🧩 이 파일은 활동이 섞여 있어요 — 끄면 칸 글로 활동을 나눠요.<br>' : ''}학번·이름만 읽어서 <b>한 활동</b>에 넣어요. 글 내용은 가져오지 않으니 <b>내용은 원본 엑셀에서 확인</b>하세요.${f.sheets.filter(x => x.cls).length > 1 ? ' <span style="color:#B45309">시트가 여러 개예요 — 시트마다 다른 활동이면 스위치를 꺼 주세요.</span>' : ''}</div>`
           : `<div style="margin-top:4px">끄면 학생별 <b>제공 문구</b>도 받을 수 있어요. 다만 엑셀에 저장된 <b>모든 칸이 활동으로 잡힐 수 있어서</b>, 필요 없는 건 "건너뛰기"로 두세요.</div>`) + `</div>`;
       if (f.lo){
         const seen = new Set(), ents = []; f.sheets.forEach(sh => sh.acts.forEach(a => a.entries.forEach(e => { if (!seen.has(e.sid)){ seen.add(e.sid); ents.push({ ...e, txt:'', giv:'', warn:'' }); } })));
@@ -4881,7 +4894,8 @@ function rsRender(){
     }
     SHS.forEach((sh, si) => {
       const info = `${sh.cls ? '우리 반 ' + sh.cls + '명 찾음' : '우리 반 학생이 없어요'}${sh.other ? ' · 다른 반 ' + sh.other + '명은 뺐어요' : ''}`;
-      h += `<div class="hint" style="margin:8px 0 2px">· 「${esc(sh.name)}」 ${info}${sh.unm.length ? ` <span style="color:#B45309">· 학번이 없어 이름으로 못 찾은 사람: ${esc(sh.unm.slice(0, 6).join(', '))}${sh.unm.length > 6 ? ' 외' : ''}</span>` : ''}${sh.dup.length ? ` <span style="color:#B45309">· 동명이인이라 못 정한 사람: ${esc(sh.dup.join(', '))}</span>` : ''}</div>`;
+      const sck = sh.sumChk && sh.sumChk.length ? ' · 엑셀 합계 대조: ' + sh.sumChk.map(c => esc(c.h) + ' ' + c.want + '건 ' + (c.want === c.got ? '✅' : '<span style="color:#B45309">⚠️ 읽은 건 ' + c.got + '건</span>')).join(' / ') : '';
+      h += `<div class="hint" style="margin:8px 0 2px">· 「${esc(sh.name)}」 ${info}${sck}${sh.unm.length ? ` <span style="color:#B45309">· 학번이 없어 이름으로 못 찾은 사람: ${esc(sh.unm.slice(0, 6).join(', '))}${sh.unm.length > 6 ? ' 외' : ''}</span>` : ''}${sh.dup.length ? ` <span style="color:#B45309">· 동명이인이라 못 정한 사람: ${esc(sh.dup.join(', '))}</span>` : ''}</div>`;
       sh.acts.forEach((a, ai) => {
         nAct++;
         const sg = rsSuggest(a, sh.name, f.name), best = sg[0], amb = !!(best && sg[1] && best.s - sg[1].s < 5 && best.s < 100), pre = best && best.s >= 55 && !amb ? best.it.id : '';
