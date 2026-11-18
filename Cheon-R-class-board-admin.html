@@ -445,6 +445,39 @@ input[type=date]{min-width:0;max-width:100%}
 .dmtabs button.on{background:var(--main);color:#fff;border-color:var(--main)}
 .dmsel{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
 .dmsel button{min-height:36px;padding:0 12px;border-radius:8px;background:var(--bg);color:var(--tx2);font-weight:700;font-size:13px}
+
+/* ===== 👑 사용자 관리 탭 배치 (넓게·최대 폭에서만 가로 대시보드, 보통 폭·폰은 기존처럼 1열) ===== */
+.stkw{display:block}
+.ugrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:8px}
+.ugrid .ucard{margin-bottom:0}
+.ugh{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;padding:0 12px;margin:12px 0 8px;border-radius:10px;background:var(--bg);font-weight:800;font-size:14px;color:var(--tx);text-align:left}
+.ugh:first-child{margin-top:0}
+.ugh .ch{display:inline-block;transition:transform .15s;font-size:12px;color:var(--tx3)}
+.ugh.fold .ch{transform:rotate(-90deg)}
+.ugh .n{margin-left:auto;font-size:12px;font-weight:700;color:var(--tx2);background:#fff;border-radius:10px;padding:2px 10px}
+.usearch{max-width:360px;margin-bottom:10px}
+.stbars .c.memo .stk{box-shadow:0 4px 0 #F2B84B}
+.omc{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.omc.err{border-color:#F5D98B;background:#FFFBF0}
+.omc .omh{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:14px}
+.omc .omt{font-size:13.5px;line-height:1.55;margin-top:6px;color:var(--tx);white-space:pre-wrap;word-break:break-word}
+.omc .oms{font-size:12.5px;color:var(--tx2);margin-top:6px;line-height:1.5}
+.omc .ac{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.omc .ac button{min-height:38px;padding:0 12px;border-radius:8px;font-size:13px;font-weight:700;background:var(--bg);color:var(--tx2)}
+.omc .ac .no{background:#FCEBEB;color:#A32D2D}
+.omf .row{margin-top:8px}
+.omf input[type=number]{width:140px;min-height:44px;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;color:var(--tx)}
+@media (min-width:1100px){
+  .wrap.plw2 #tab-own,.wrap.plw3 #tab-own{display:grid;gap:12px;grid-template-columns:minmax(0,2fr) minmax(0,1.4fr) minmax(0,1fr);grid-template-areas:"kpi kpi kpi" "g gr om" "u u sw" "u u rc"}
+  .wrap.plw2 #tab-own.hide,.wrap.plw3 #tab-own.hide{display:none}
+  .wrap.plw2 #tab-own>.box,.wrap.plw3 #tab-own>.box{margin-bottom:0}
+  .wrap #stBox{grid-area:kpi}.wrap #stGBox{grid-area:g}.wrap #grBox{grid-area:gr}.wrap #omBox{grid-area:om}.wrap #uBox{grid-area:u}.wrap #swBox{grid-area:sw;align-self:start}.wrap #rcBox{grid-area:rc;align-self:start}
+  .wrap.plw2 .stkw,.wrap.plw3 .stkw{display:grid;grid-template-columns:4fr 2fr;gap:18px}
+  .wrap.plw2 .stkw>div:first-child .stg,.wrap.plw3 .stkw>div:first-child .stg{grid-template-columns:repeat(4,1fr)}
+  .wrap.plw2 .stkw .stgrp,.wrap.plw3 .stkw .stgrp{margin-top:0}
+  .wrap.plw2 .stbars,.wrap.plw3 .stbars{height:130px}
+  .wrap.plw2 #uList .ugrid,.wrap.plw3 #uList .ugrid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+}
 </style>
 </head>
 <body>
@@ -779,21 +812,29 @@ input[type=date]{min-width:0;max-width:100%}
     <section id="tab-own" class="hide">
       <div class="box hide" id="stBox">
         <h2>📈 이용 현황</h2>
-        <div class="stgrp" style="margin-top:4px">👩‍🏫 선생님</div>
-        <div class="stg">
-          <div class="stc"><b id="stToday">0</b><small>오늘 접속자</small><em id="stNew"></em></div>
-          <div class="stc"><b id="stUsers">0</b><small>누적 사용자</small><em>접속한 선생님 수</em></div>
-          <div class="stc"><b id="stVisits">0</b><small>누적 접속</small><em>들어온 횟수 합계</em></div>
-          <div class="stc"><b id="stWeek">0</b><small>이번 주 접속자</small><em>월~오늘, 중복 제외</em></div>
+        <div class="stkw">
+          <div>
+            <div class="stgrp" style="margin-top:4px">👩‍🏫 선생님</div>
+            <div class="stg">
+              <div class="stc"><b id="stToday">0</b><small>오늘 접속자</small><em id="stNew"></em></div>
+              <div class="stc"><b id="stUsers">0</b><small>누적 사용자</small><em>접속한 선생님 수</em></div>
+              <div class="stc"><b id="stVisits">0</b><small>누적 접속</small><em>들어온 횟수 합계</em></div>
+              <div class="stc"><b id="stWeek">0</b><small>이번 주 접속자</small><em>월~오늘, 중복 제외</em></div>
+            </div>
+          </div>
+          <div>
+            <div class="stgrp">🧑‍🎓 학생 <span style="font-weight:400;color:var(--tx3)">(이름·번호 없이 · 하루 1번)</span></div>
+            <div class="stg">
+              <div class="stc"><b id="stStuToday">0</b><small>오늘 학생 접속</small><em>기기당 하루 1번 · 번호 없이</em></div>
+              <div class="stc"><b id="stStuDev">0</b><small>학생 누적 접속</small><em>하루 접속의 합계</em></div>
+            </div>
+          </div>
         </div>
-        <div class="stgrp">🧑‍🎓 학생 <span style="font-weight:400;color:var(--tx3)">(이름·번호 없이 · 하루 1번)</span></div>
-        <div class="stg">
-          <div class="stc"><b id="stStuToday">0</b><small>오늘 학생 접속</small><em>기기당 하루 1번 · 번호 없이</em></div>
-          <div class="stc"><b id="stStuDev">0</b><small>학생 누적 접속</small><em>하루 접속의 합계</em></div>
-        </div>
-        <div class="stgrp">최근 14일 접속 (선생님 + 학생)</div>
+      </div>
+      <div class="box hide" id="stGBox">
+        <div class="stgrp" style="margin-top:0">최근 14일 접속 (선생님 + 학생)</div>
         <div class="stbars" id="stBars"></div>
-        <div class="stleg"><span><i style="background:var(--main)"></i>선생님</span><span><i style="background:#CFC7EA"></i>학생</span></div>
+        <div class="stleg"><span><i style="background:var(--main)"></i>선생님</span><span><i style="background:#CFC7EA"></i>학생</span><span id="stMemoLeg" class="hide"><i style="background:#F2B84B"></i>집계 메모 기간</span></div>
         <div class="stgrp">구분별 누적 접속</div>
         <div class="stsplit" id="stSplit"></div>
         <div class="stleg" id="stSplitLeg"></div>
@@ -818,7 +859,29 @@ input[type=date]{min-width:0;max-width:100%}
         <div class="row" style="margin-top:12px"><button class="btn sub" onclick="saveGrowthImg()">🖼️ 성장 분석 이미지 저장</button></div>
         <p class="hint" style="margin:10px 0 0"><b>신규</b>는 처음 접속한 선생님, <b>활성</b>은 그 기간에 한 번이라도 접속한 서로 다른 선생님, <b>누적</b>은 신규를 계속 더한 값이에요. <b>성장률</b>은 지난 기간 말 누적 대비 이번 기간 말 누적의 증가율이고, 진행 중인 기간은 빼고 계산해요(흐리게 표시). 사용자가 적을 때는 퍼센트가 크게 보일 수 있으니 인원 수와 배수를 같이 봐 주세요. 접속 집계를 시작하기 전 사용자는 등록일로 복원한 값이에요. 학생은 신규 기기까지만 집계해요.</p>
       </div>
-      <div class="box">
+      <div class="box hide" id="omBox">
+        <h2>📝 집계 메모</h2>
+        <p class="hint" style="margin:0 0 10px">집계가 빠졌거나 평소와 달랐던 기간을 적어 두면 그래프에 <b>노란 밑줄</b>로 표시돼요. 이 기간의 <b>실제 집계</b>와 <b>추정치</b>를 같이 남겨서 포트폴리오 쓸 때 근거로 꺼내 쓰세요.</p>
+        <div id="omList"></div>
+        <details class="agd" id="omDet"><summary id="omSum">＋ 메모 추가 ▾</summary>
+          <div class="agb omf">
+            <label class="f" style="margin-top:4px">기간</label>
+            <div class="row"><input type="date" id="omFrom" style="flex:1;min-width:130px"><span>~</span><input type="date" id="omTo" style="flex:1;min-width:130px"></div>
+            <label class="f">무엇에 대한 메모인가요?</label>
+            <div class="chips" id="omTargets"></div>
+            <label class="f">종류</label>
+            <div class="chips" id="omKinds"></div>
+            <label class="f">내용 <small>(300자)</small></label>
+            <textarea id="omText" maxlength="300" style="min-height:84px" placeholder="예: 등록부 GAS 오류로 학생 접속이 저장되지 않았어요. 사용자는 늘었는데 숫자가 적게 나온 기간이에요."></textarea>
+            <label class="f">추정 접속 횟수 <small>(선택 · 직접 적거나 아래 버튼으로 계산)</small></label>
+            <div class="row"><input type="number" id="omEst" min="0" max="9999999" inputmode="numeric" placeholder="예: 160"><button class="btn sub" type="button" onclick="omCalcEst(this)">정상 기간 평균으로 추정 계산</button></div>
+            <p class="hint" id="omEstNote" style="margin:6px 0 0"></p>
+            <div class="row" style="margin-top:12px"><button class="btn" type="button" onclick="omSave(this)" id="omSaveBtn">저장</button><button class="btn sub hide" type="button" id="omCancelBtn" onclick="omReset()">수정 취소</button></div>
+            <div class="msg" id="omMsg"></div>
+          </div>
+        </details>
+      </div>
+      <div class="box" id="swBox">
         <h2>👑 사용자 관리</h2>
         <div class="sw" id="apSw" onclick="toggleApproval()"><span class="tg"></span><div><b id="apTxt">승인제</b><small id="apSub"></small></div></div>
         <div class="sw hide" id="rvSw" style="margin-top:8px" onclick="toggleReview()"><span class="tg"></span><div><b id="rvTxt">후기 받기</b><small id="rvSub"></small></div></div>
@@ -836,9 +899,10 @@ input[type=date]{min-width:0;max-width:100%}
         </div>
         <div class="msg" id="rcMsg"></div>
       </div>
-      <div class="box">
+      <div class="box" id="uBox">
         <h2 id="uTitle">등록된 선생님</h2>
-        <div class="sub-tabs" id="uTabs"></div>
+        <input type="text" id="uSearch" class="usearch" placeholder="이름·학교로 찾기" oninput="uQ=this.value.trim().toLowerCase();renderUsers()" autocomplete="off">
+        <div class="sub-tabs" id="uTabs" style="flex-wrap:wrap"></div>
         <div id="uList"><p class="hint">불러오는 중…</p></div>
       </div>
     </section>
@@ -2343,7 +2407,7 @@ async function loadOwner(){
   try{
     const r = await jsonp({ action:'ownerList', id:installId }, REGISTRY_URL);
     const wasLoaded = ownLoaded;
-    own = { approval:r.approval, users:r.users||[], review:r.review||null, stats:r.stats||null }; ownLoaded = true; if (!wasLoaded) msg('ownMsg','',true); renderOwner(); renderRcBox(true); loadGrowth();
+    own = { approval:r.approval, users:r.users||[], review:r.review||null, stats:r.stats||null }; ownLoaded = true; if (!wasLoaded) msg('ownMsg','',true); renderOwner(); renderRcBox(true); loadGrowth(); loadMemos();
   }catch(e){
     ownLoaded = false;
     $('apTxt').textContent = '승인제 (확인 불가)';
@@ -2356,7 +2420,7 @@ function renderOwner(){
   $('apTxt').textContent = '승인제 ' + (own.approval ? 'ON' : 'OFF');
   $('apSub').textContent = own.approval ? '승인한 선생님만 사용할 수 있어요.' : '등록하면 누구나 바로 사용할 수 있어요.';
   const stt = own.stats;
-  $('stBox').classList.toggle('hide', !stt);
+  $('stBox').classList.toggle('hide', !stt); $('stGBox').classList.toggle('hide', !stt);
   if (stt){
     $('stToday').textContent = stt.today; $('stUsers').textContent = stt.users; $('stVisits').textContent = stt.visits;
     $('stWeek').textContent = stt.week == null ? '-' : stt.week;
@@ -2377,13 +2441,19 @@ function renderOwner(){
     const stu = rv.sreviews == null ? '' : ` · 학생 ${rv.sreviews}건`, imps = rv.improves + (rv.simproves || 0);
     $('rvSub').textContent = `받은 후기 교사 ${rv.reviews}건${stu} · 개선점 ${imps}건` + (rv.on ? ' (끄면 선생님·학생 후기 버튼이 모두 사라져요)' : ' · 지금은 받지 않아요');
   }
-  const cnt = s => own.users.filter(u=>uState(u)===s).length;
-  $('uTitle').textContent = `등록된 선생님 ${own.users.length}명`;
-  $('uTabs').innerHTML = [['all','전체'],['wait',`승인 대기 ${cnt('wait')}`],['blk',`차단 ${cnt('blk')}`]]
-    .map(([k,l])=>`<button class="${uMode===k?'on':''}" onclick="uMode='${k}';renderOwner()">${l}</button>`).join('');
-  const arr = own.users.filter(u => uMode==='all' || uState(u)===uMode).sort((a,b)=>String(b.last).localeCompare(String(a.last)));
+  renderUsers();
+  try{ markMemoBars(); }catch(e){}
+}
+/* ===== 👑 선생님 목록 (탭·상태별 접기·검색) ===== */
+let uQ = '';
+const U_FOLD_KEY = 'sn_own_fold_v1';
+let uFold = (() => { const a = lsGet(U_FOLD_KEY, {}); return a && typeof a === 'object' ? a : {}; })();
+const U_GROUPS = [['wait','승인 대기'],['ok','사용 중'],['pre','시트 미연결'],['blk','차단']];
+function uGroup(u){ return u.block ? 'blk' : (own.approval && !u.ok) ? 'wait' : (u.conn === false ? 'pre' : 'ok'); }
+function uToggle(k){ uFold[k] = !uFold[k]; lsSet(U_FOLD_KEY, uFold); renderUsers(); }
+function uCard(u){
   const label = { ok:'<span class="st ok">사용 중</span>', wait:'<span class="st wait">승인 대기</span>', blk:'<span class="st blk">차단됨</span>' };
-  $('uList').innerHTML = arr.length ? arr.map(u=>`
+  return `
     <div class="ucard">
       <div class="nm">${esc(u.name)} ${label[uState(u)]}${u.conn===false?' <span class="st wait">시트 미연결</span>':''}</div>
       <div class="mt">${esc(u.school)}${u.cls?' · '+esc(u.cls):''}</div>
@@ -2392,8 +2462,125 @@ function renderOwner(){
         ${own.approval ? `<button class="${u.ok?'':'yes'}" onclick="setUser('${esc(u.id)}','ok',${!u.ok})">${u.ok?'승인 취소':'승인'}</button>` : ''}
         <button class="${u.block?'':'no'}" onclick="setUser('${esc(u.id)}','block',${!u.block})">${u.block?'차단 해제':'차단'}</button>
       </div>
-    </div>`).join('') : '<p class="hint">해당하는 선생님이 없어요.</p>';
+    </div>`;
 }
+function renderUsers(){
+  const q = uQ || '';
+  const cnt = k => own.users.filter(u => uGroup(u) === k).length;
+  $('uTitle').textContent = `등록된 선생님 ${own.users.length}명`;
+  if (!['all','ok','pre','wait','blk'].includes(uMode)) uMode = 'all';
+  $('uTabs').innerHTML = [['all',`전체 ${own.users.length}`],['ok',`사용 중 ${cnt('ok')}`],['pre',`시트 미연결 ${cnt('pre')}`],['wait',`승인 대기 ${cnt('wait')}`],['blk',`차단 ${cnt('blk')}`]]
+    .map(([k,l])=>`<button class="${uMode===k?'on':''}" onclick="uMode='${k}';renderUsers()">${l}</button>`).join('');
+  const hit = u => !q || [u.name, u.school, u.cls].some(v => String(v||'').toLowerCase().includes(q));
+  const byLast = (a,b) => String(b.last).localeCompare(String(a.last));
+  const arr = own.users.filter(hit).sort(byLast);
+  if (!arr.length){ $('uList').innerHTML = '<p class="hint">해당하는 선생님이 없어요.</p>'; return; }
+  if (uMode !== 'all'){
+    const part = arr.filter(u => uGroup(u) === uMode);
+    $('uList').innerHTML = part.length ? `<div class="ugrid">${part.map(uCard).join('')}</div>` : '<p class="hint">해당하는 선생님이 없어요.</p>';
+    return;
+  }
+  $('uList').innerHTML = U_GROUPS.map(([k,l]) => {
+    const part = arr.filter(u => uGroup(u) === k); if (!part.length) return '';
+    const fold = !q && !!uFold[k];
+    return `<button class="ugh${fold?' fold':''}" onclick="uToggle('${k}')" aria-expanded="${!fold}"><span class="ch">▼</span>${l}<span class="n">${part.length}명</span></button>${fold ? '' : `<div class="ugrid">${part.map(uCard).join('')}</div>`}`;
+  }).join('');
+}
+
+/* ===== 📝 집계 메모 (등록부 '집계메모' 탭 · 아듬샘 전용) ===== */
+const OM_KINDS = ['집계 오류','행사·방학','기타'], OM_TARGETS = ['학생','선생님','전체'];
+let memos = [], omEditId = '', omTarget = '학생', omKind = '집계 오류', omErr = '';
+function omFmt(d){ const m = String(d||'').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? `${Number(m[2])}/${Number(m[3])}` : String(d||''); }
+async function loadMemos(){
+  try{ const r = await jsonp({ action:'ownerMemoList', id:installId }, REGISTRY_URL); memos = r.list || []; omErr = ''; }
+  catch(e){ omErr = e.message || '불러오지 못했어요.'; }
+  renderMemos(); try{ markMemoBars(); }catch(x){}
+}
+function omChips(){
+  $('omTargets').innerHTML = OM_TARGETS.map(t => `<button type="button" class="chip${omTarget===t?' on rv':''}" onclick="omTarget='${t}';omChips()">${t}</button>`).join('');
+  $('omKinds').innerHTML = OM_KINDS.map(t => `<button type="button" class="chip${omKind===t?' on rv':''}" onclick="omKind='${t}';omChips()">${t}</button>`).join('');
+}
+function omActual(m){ return m.target === '학생' ? m.actS : m.target === '선생님' ? m.actT : (m.actS + m.actT); }
+function omSentence(m){
+  const est = m.est === '' || m.est == null ? '' : `, 추정 약 ${m.est}회(정상 기간 평균 기준 참고값)`;
+  return `${omFmt(m.from)}~${omFmt(m.to)} ${m.kind}: ${m.text} (이 기간 실제 집계 ${m.target} 접속 ${omActual(m)}회${est})`;
+}
+function renderMemos(){
+  const box = $('omBox'); box.classList.remove('hide');
+  omChips();
+  if (omErr){
+    $('omList').innerHTML = `<p class="hint" style="color:#C0392B">${/알 수 없는/.test(omErr) ? '집계 메모를 쓰려면 등록부 GAS를 새 코드로 <b>수정 배포</b>해 주세요.' : '불러오지 못했어요: ' + esc(omErr)}</p>`; return;
+  }
+  $('omList').innerHTML = memos.length ? memos.map(m => `
+    <div class="omc${m.kind==='집계 오류'?' err':''}">
+      <div class="omh"><b>${omFmt(m.from)} ~ ${omFmt(m.to)}</b><span style="color:var(--tx3);font-size:12px">${m.days}일</span><span class="st wait">${esc(m.kind)}</span><span class="st ok">${esc(m.target)}</span></div>
+      <div class="omt">${esc(m.text)}</div>
+      <div class="oms">이 기간 실제 집계: 선생님 ${m.actT}회 · 학생 ${m.actS}회${m.est===''||m.est==null ? '' : `<br><b>추정 ${esc(m.target)} 접속 약 ${m.est}회</b> (참고용)`}</div>
+      <div class="ac"><button onclick="omEdit('${esc(m.id)}')">수정</button><button onclick="omCopy('${esc(m.id)}')">📋 포트폴리오용 문장 복사</button><button class="no" onclick="omDel('${esc(m.id)}')">삭제</button></div>
+    </div>`).join('') + (memos.length > 1 ? '<div class="row"><button class="btn sub" onclick="omCopy(\'\')">📋 전체 메모 문장 복사</button></div>' : '')
+    : '<p class="hint">아직 메모가 없어요. 집계가 이상했던 기간을 아래에서 적어 두세요.</p>';
+}
+function omReset(){
+  omEditId = ''; omTarget = '학생'; omKind = '집계 오류';
+  ['omFrom','omTo','omText','omEst'].forEach(i => { $(i).value = ''; });
+  $('omEstNote').textContent = ''; $('omSum').textContent = '＋ 메모 추가 ▾'; $('omSaveBtn').textContent = '저장'; $('omCancelBtn').classList.add('hide'); omChips();
+}
+function omEdit(id){
+  const m = memos.find(x => x.id === id); if (!m) return;
+  omEditId = id; omTarget = m.target; omKind = m.kind;
+  $('omFrom').value = m.from; $('omTo').value = m.to; $('omText').value = m.text; $('omEst').value = m.est === '' || m.est == null ? '' : m.est;
+  $('omSum').textContent = '메모 수정 중 ▾'; $('omSaveBtn').textContent = '수정 저장'; $('omCancelBtn').classList.remove('hide'); $('omDet').open = true; omChips();
+  $('omDet').scrollIntoView({ behavior:'smooth', block:'center' });
+}
+async function omCalcEst(btn){
+  const from = $('omFrom').value, to = $('omTo').value;
+  if (!from || !to){ msg('omMsg','기간(시작~끝)을 먼저 골라 주세요.'); return; }
+  btn.disabled = true; msg('omMsg','계산 중…',true);
+  try{
+    const r = await jsonp({ action:'ownerMemoEst', id:installId, from, to, target:omTarget }, REGISTRY_URL);
+    $('omEst').value = r.est;
+    $('omEstNote').textContent = r.note || '';
+    msg('omMsg','추정값을 채웠어요. 필요하면 직접 고쳐서 저장하세요.', true);
+  }catch(e){ msg('omMsg', e.message); }
+  btn.disabled = false;
+}
+async function omSave(btn){
+  const from = $('omFrom').value, to = $('omTo').value, text = $('omText').value.trim();
+  if (!from || !to){ msg('omMsg','기간(시작~끝)을 골라 주세요.'); return; }
+  if (to < from){ msg('omMsg','끝 날짜가 시작 날짜보다 빨라요.'); return; }
+  if (!text){ msg('omMsg','내용을 적어 주세요.'); return; }
+  btn.disabled = true; msg('omMsg','저장 중…',true);
+  try{
+    await jsonp({ action:'ownerMemoSave', id:installId, mid:omEditId, from, to, target:omTarget, kind:omKind, text, est:$('omEst').value.trim() }, REGISTRY_URL);
+    omReset(); msg('omMsg','저장했어요.', true); await loadMemos();
+  }catch(e){ msg('omMsg', e.message); }
+  btn.disabled = false;
+}
+async function omDel(id){
+  if (!confirm('이 메모를 지울까요?')) return;
+  try{ await jsonp({ action:'ownerMemoDelete', id:installId, mid:id }, REGISTRY_URL); if (omEditId === id) omReset(); msg('omMsg','지웠어요.', true); await loadMemos(); }
+  catch(e){ msg('omMsg', e.message); }
+}
+function omCopy(id){
+  const list = id ? memos.filter(m => m.id === id) : memos;
+  if (!list.length) return;
+  const t = list.map(omSentence).join('\n');
+  const ok = () => msg('omMsg','복사했어요. 포트폴리오에 붙여 넣으세요.', true);
+  const fb = () => { const ta = document.createElement('textarea'); ta.value = t; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); ok(); }catch(e){ msg('omMsg','복사하지 못했어요.'); } ta.remove(); };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok, fb); else fb();
+}
+/** 최근 14일 그래프에서 집계 메모 기간에 해당하는 막대에 노란 밑줄 */
+function markMemoBars(){
+  const st = own && own.stats; const bars = document.querySelectorAll('#stBars .c'); if (!st || !bars.length) return;
+  const n = st.days.length, base = new Date(); let any = false;
+  bars.forEach((el, i) => {
+    const d = new Date(base.getTime() - (n - 1 - i) * 86400000), iso = ymd(d);
+    const hit = memos.some(m => m.from <= iso && iso <= m.to);
+    el.classList.toggle('memo', hit); if (hit) any = true;
+  });
+  $('stMemoLeg').classList.toggle('hide', !any);
+}
+
 /* ===== 💬 받은 후기 보기 (아듬샘 전용) ===== */
 let rc = { t:[], s:[], tTotal:0, sTotal:0, seenT:0, seenS:0, shown:60, tab:'t', open:false, ok:false };
 function rcNewN(){ return Math.max(0, rc.tTotal - rc.seenT) + Math.max(0, rc.sTotal - rc.seenS); }
