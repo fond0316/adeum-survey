@@ -646,6 +646,7 @@ function covers(n, d){ return n.date <= d && d <= endOf(n); }            // 그�
 function shortDate(s){ const d = new Date(s+'T00:00:00'); return (d.getMonth()+1)+'/'+d.getDate(); }
 function periodText(n){ return prettyDate(n.date) + ' ~ ' + prettyDate(endOf(n)); }
 function nPeriod(n){ const m = /\[\s*(\d+)[^\]]*교시[^\]]*\]/.exec(String(n.title||'')); return m ? Number(m[1]) : 99; }   // 제목의 [1교시] → 1, 안 읽히면 맨 뒤
+function sortT(a, b){ return ORDER[a.type]-ORDER[b.type] || (nPeriod(a)-nPeriod(b)) || String(a.created).localeCompare(String(b.created)); }   // 하루 화면용: 기간 공지의 시작일과 상관없이 종류 순
 function sortN(a, b){ return a.date.localeCompare(b.date) || ORDER[a.type]-ORDER[b.type] || (nPeriod(a)-nPeriod(b)) || String(a.created).localeCompare(String(b.created)); }
 function isMine(n){ return !!(me && n.targets && n.targets.some(t => String(t.sid) === String(me.sid))); }
 
@@ -963,7 +964,7 @@ function renderList(){
     return;
   }
   if (tab === 'today'){
-    const td = notices.filter(n => covers(n, t) && shown(n)).sort(sortN);
+    const td = notices.filter(n => covers(n, t) && shown(n)).sort(sortT);
     const pend = notices.filter(n => n.type === '확인' && n.date > t).sort(sortN);
     html += `<div class="sec">${prettyDate(t)}</div>` + (td.length ? td.map(n => card(n)).join('') : '<div class="empty">오늘은 공지가 없어요 🙂</div>');
     if (pend.length) html += `<div class="sec">마감 전 학급공지</div>` + pend.map(n => card(n)).join('');
@@ -978,7 +979,7 @@ function renderList(){
     }
     if (!html) html = '<div class="empty">이번주 공지가 없어요</div>';
   } else {
-    const arr = notices.filter(n => covers(n, selDate) && shown(n)).sort(sortN);
+    const arr = notices.filter(n => covers(n, selDate) && shown(n)).sort(sortT);
     html = arr.length ? arr.map(n => card(n)).join('') : '<div class="empty">이 날은 공지가 없어요</div>';
   }
   el.innerHTML = html;
