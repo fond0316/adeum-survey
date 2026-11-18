@@ -1691,7 +1691,7 @@ function renderUseLine(){
   const el = $('useLine'), u = usePub;
   const show = u && typeof u.users === 'number' && (isOwner || u.users >= 10);
   el.classList.toggle('hide', !show);
-  if (show) el.innerHTML = '<b>● 오늘 ' + u.today + '명</b> / 누적 ' + u.users + '명 사용 중';
+  if (show) el.innerHTML = '<b>● 오늘 선생님 ' + u.today + '명' + (typeof u.stuToday === 'number' ? ' · 학생 ' + u.stuToday + '명' : '') + '</b> / 누적 선생님 ' + u.users + '명' + (typeof u.stuVisits === 'number' ? ' · 학생 접속 ' + u.stuVisits + '회' : '') + ' 사용 중';
 }
 let reviewOn = false, rvRate = 0, rvPick = [], rvLow = [], rvLowOtherOn = false, rvOtherOn = false, rvKind = '', rvOk = 'anon', rvSending = false;
 function applyReviewUi(){
