@@ -645,7 +645,8 @@ function isPeriod(n){ return !!(n.end && n.end > n.date); }
 function covers(n, d){ return n.date <= d && d <= endOf(n); }            // 그날 보여야 하는 공지인지
 function shortDate(s){ const d = new Date(s+'T00:00:00'); return (d.getMonth()+1)+'/'+d.getDate(); }
 function periodText(n){ return prettyDate(n.date) + ' ~ ' + prettyDate(endOf(n)); }
-function sortN(a, b){ return a.date.localeCompare(b.date) || ORDER[a.type]-ORDER[b.type] || String(a.created).localeCompare(String(b.created)); }
+function nPeriod(n){ const m = /\[\s*(\d+)[^\]]*교시[^\]]*\]/.exec(String(n.title||'')); return m ? Number(m[1]) : 99; }   // 제목의 [1교시] → 1, 안 읽히면 맨 뒤
+function sortN(a, b){ return a.date.localeCompare(b.date) || ORDER[a.type]-ORDER[b.type] || (nPeriod(a)-nPeriod(b)) || String(a.created).localeCompare(String(b.created)); }
 function isMine(n){ return !!(me && n.targets && n.targets.some(t => String(t.sid) === String(me.sid))); }
 
 /* ===== 첨부(사진·링크) · 앱 바로가기 ===== */

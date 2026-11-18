@@ -2395,15 +2395,31 @@ function callStat(n){
   if (tg.length){ const k = tg.filter(x => d.some(y => String(y.sid)===String(x.sid))).length; return (k===tg.length?'✅ ':'') + `다녀옴 ${k}/${tg.length}`; }
   return d.length ? '✅ 다녀옴 ' + esc(d.map(y=>y.name).join(', ')) : '다녀옴 전';
 }
+/* 공지 정렬: 날짜 → 종류 → 교시(제목의 [1교시]) 순. 교시가 안 읽히면 그 종류 안에서 뒤로 */
+const N_ORDER = { '긴급':0, '호출':1, '확인':2, '교과':3, '일반':4 };
+function nPeriod(n){ const m = /\[\s*(\d+)[^\]]*교시[^\]]*\]/.exec(String(n.title||'')); return m ? Number(m[1]) : 99; }
+function nCmp(sort, desc){
+  const d = (a,b) => desc ? b.date.localeCompare(a.date) : a.date.localeCompare(b.date);
+  const t = (a,b) => (N_ORDER[a.type]-N_ORDER[b.type]);
+  const p = (a,b) => nPeriod(a)-nPeriod(b);
+  const c = (a,b) => String(a.created||'').localeCompare(String(b.created||''));
+  if (sort === 't') return (a,b) => t(a,b) || d(a,b) || p(a,b) || c(a,b);
+  if (sort === 'p') return (a,b) => d(a,b) || p(a,b) || t(a,b) || c(a,b);
+  return (a,b) => d(a,b) || t(a,b) || p(a,b) || c(a,b);
+}
+let listSort = (function(){ const v = lsGet('sn_list_sort_v1', 'd'); return v === 't' || v === 'p' ? v : 'd'; })();
+function setListSort(k){ listSort = k; lsSet('sn_list_sort_v1', k); renderList(); }
 function renderList(){
   renderBlobs();
   $('listTabs').innerHTML = [['up','오늘·예정'],['past','지난 공지']]
-    .map(([k,l])=>`<button class="${listMode===k?'on':''}" onclick="listMode='${k}';renderList()">${l}</button>`).join('');
+    .map(([k,l])=>`<button class="${listMode===k?'on':''}" onclick="listMode='${k}';renderList()">${l}</button>`).join('')
+  $('listTabs').innerHTML += '<span style="width:10px"></span>' + [['d','날짜순'],['t','종류별'],['p','교시순']]
+    .map(([k,l])=>`<button class="${listSort===k?'on':''}" onclick="setListSort('${k}')">${l}</button>`).join('');
   const t = today();
   let arr = data.notices.filter(n => listMode==='up' ? endOf(n)>=t : endOf(n)<t);
-  arr.sort((a,b)=> listMode==='up' ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date));
+  arr.sort(nCmp(listSort, listMode!=='up'));
   if (listMode==='past') arr = arr.slice(0,50);
-  $('nList').innerHTML = arr.length ? arr.map(n=>`
+  $('nList').innerHTML = arr.length ? arr.map((n,i)=>(listSort==='t' && (i===0 || arr[i-1].type!==n.type) ? `<div class="ugh" style="cursor:default;margin:${i?'12px':'0'} 0 8px">${LABEL[n.type]}<span class="n">${arr.filter(x=>x.type===n.type).length}건</span></div>` : '') + `
     <div class="item"><div class="in">
       <div class="t"><span class="bd ${TYPES[n.type]}">${LABEL[n.type]}</span>${n.author==='회장'?'<span class="bd p">회장</span>':''}${n.important?'⭐ ':''}${n.popup?'🚨 ':''}${(n.attachments||[]).length?'📎 ':''}${esc(n.title)}</div>
       <div class="s">${n.end && n.end>n.date ? '📅 '+prettyDate(n.date)+' ~ '+prettyDate(n.end) : prettyDate(n.date)}${n.type==='호출'&&n.targets.length?' · '+esc(n.targets.map(x=>x.name).join(', ')):''}${n.memo?' · '+esc(n.memo):''}${n.type==='호출'?' · '+callStat(n):''}</div>
