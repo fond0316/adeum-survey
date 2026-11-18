@@ -285,6 +285,11 @@ input[type=date]{min-width:0;max-width:100%}
 .plsize button{min-height:44px;padding:0 12px;border-radius:10px;border:1.5px solid var(--line);background:#fff;color:var(--tx2);font-weight:700;font-size:13px}
 .plsize button.on{background:#2F3A8F;border-color:#2F3A8F;color:#fff}
 @media (max-width:900px){.plsize{display:none}}
+.top .plsize{margin-right:4px}
+.top .plsize span{color:rgba(255,255,255,.9);white-space:nowrap}
+.top .plsize button{background:rgba(255,255,255,.25);border-color:transparent;color:#fff;padding:0 10px}
+.top .plsize button.on{background:var(--main-d);border-color:transparent;color:#fff}
+
 .pl-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:12px;align-items:start}
 @media (max-width:700px){.pl-grid{grid-template-columns:1fr}}
 .pl-grid .box{margin-bottom:0}
@@ -4567,9 +4572,10 @@ planWidth = function(n){ planW = n; lsSet(AW_KEY, n); planWide(); try{ planDraw(
 (function(){
   const nav = document.getElementById('nav'); if (!nav) return;
   const bar = document.createElement('div');
-  bar.className = 'plsize'; bar.id = 'awSize'; bar.style.cssText = 'justify-content:flex-end;margin-top:8px';
+  bar.className = 'plsize'; bar.id = 'awSize';
   bar.innerHTML = '<span>화면 크기</span><button data-w="1" onclick="planWidth(1)">보통</button><button data-w="2" onclick="planWidth(2)">넓게</button><button data-w="3" onclick="planWidth(3)">최대</button>';
-  nav.parentNode.insertBefore(bar, nav);
+  const top = document.querySelector('#scrMain header.top'), anchor = document.getElementById('backBoard') || document.getElementById('viewBtn');
+  if (top && anchor) top.insertBefore(bar, anchor); else nav.parentNode.insertBefore(bar, nav);   // 제목 줄 오른쪽으로 (900px 이하 화면에서는 원래처럼 숨김)
   const _g = goTab;
   goTab = function(k){ _g(k); bar.style.display = (k === 'plan' || k === 'ledger') ? 'none' : ''; planWide(); };
   planWide();
