@@ -467,6 +467,13 @@ input[type=date]{min-width:0;max-width:100%}
 .omc .ac .no{background:#FCEBEB;color:#A32D2D}
 .omf .row{margin-top:8px}
 .omf input[type=number]{width:140px;min-height:44px;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;color:var(--tx)}
+.box.bfx{position:relative}
+.bfb{display:block;margin-left:auto;min-height:44px;min-width:44px;padding:0 12px;border-radius:10px;background:var(--bg);color:var(--tx2);font-size:12.5px;font-weight:700}
+.box.bfx:not(.bf)>.bfb{position:absolute;top:8px;right:10px;z-index:2}
+.box.bf>.bfb{width:100%;text-align:left;font-size:14px;font-weight:800;color:var(--tx);background:#fff;padding:0}
+.box.bf>*:not(.bfb){display:none!important}
+.box.bf{padding:4px 16px}
+#grBox.bfx:not(.bf)>div:first-of-type{padding-right:52px}
 @media (min-width:1100px){
   .wrap.plw2 #uList .ugrid,.wrap.plw3 #uList .ugrid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
 }
@@ -2580,6 +2587,22 @@ function markMemoBars(){
   $('stMemoLeg').classList.toggle('hide', !any);
 }
 
+/* ===== 🔽 상단 박스 접기/펴기 (선택은 이 기기에 기억) ===== */
+const BF_KEY = 'own_fold_v1', BF_IDS = { stBox:'📈 이용 현황', stGBox:'📊 최근 14일 접속', grBox:'📊 성장 분석', omBox:'📝 집계 메모', swBox:'👑 사용자 관리', uBox:'👥 선생님 목록' };
+function bfTitle(b){ const t = b.id === 'uBox' ? ($('uTitle') ? $('uTitle').textContent : '') : (b.querySelector('h2') ? b.querySelector('h2').textContent : ''); return (b.id === 'uBox' ? '👥 ' : '') + (t || BF_IDS[b.id]); }
+function bfApply(b){ const f = b.classList.contains('bf'), btn = b.querySelector(':scope>.bfb'); if (btn) btn.textContent = f ? '▸ ' + bfTitle(b) : '▾ 접기'; btn && btn.setAttribute('aria-expanded', f ? 'false' : 'true'); }
+function bfToggle(id){ const b = $(id); if (!b) return; b.classList.toggle('bf'); const st = lsGet(BF_KEY, {}) || {}; st[id] = b.classList.contains('bf') ? 1 : 0; lsSet(BF_KEY, st); bfApply(b); }
+function bfInit(){
+  const st = lsGet(BF_KEY, {}) || {};
+  Object.keys(BF_IDS).forEach(function(id){
+    const b = $(id); if (!b || b.querySelector(':scope>.bfb')) return;
+    const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'bfb'; btn.onclick = function(){ bfToggle(id); };
+    b.classList.add('bfx'); b.insertBefore(btn, b.firstChild);
+    if (st[id]) b.classList.add('bf');
+    bfApply(b);
+  });
+}
+try{ if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bfInit); else bfInit(); }catch(e){}
 /* ===== 💬 받은 후기 보기 (아듬샘 전용) ===== */
 let rc = { t:[], s:[], tTotal:0, sTotal:0, seenT:0, seenS:0, shown:60, tab:'t', open:false, ok:false };
 function rcNewN(){ return Math.max(0, rc.tTotal - rc.seenT) + Math.max(0, rc.sTotal - rc.seenS); }
