@@ -468,16 +468,15 @@ input[type=date]{min-width:0;max-width:100%}
 .omf .row{margin-top:8px}
 .omf input[type=number]{width:140px;min-height:44px;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;color:var(--tx)}
 @media (min-width:1100px){
-  .wrap.plw2 #tab-own,.wrap.plw3 #tab-own{display:grid;gap:12px;grid-template-columns:minmax(0,2fr) minmax(0,1.4fr) minmax(0,1fr);grid-template-areas:"kpi kpi kpi" "g gr om" "u u sw" "u u rc"}
-  .wrap.plw2 #tab-own.hide,.wrap.plw3 #tab-own.hide{display:none}
-  .wrap.plw2 #tab-own>.box,.wrap.plw3 #tab-own>.box{margin-bottom:0}
-  .wrap #stBox{grid-area:kpi}.wrap #stGBox{grid-area:g}.wrap #grBox{grid-area:gr}.wrap #omBox{grid-area:om}.wrap #uBox{grid-area:u}.wrap #swBox{grid-area:sw;align-self:start}.wrap #rcBox{grid-area:rc;align-self:start}
-  .wrap.plw2 .stkw,.wrap.plw3 .stkw{display:grid;grid-template-columns:4fr 2fr;gap:18px}
-  .wrap.plw2 .stkw>div:first-child .stg,.wrap.plw3 .stkw>div:first-child .stg{grid-template-columns:repeat(4,1fr)}
-  .wrap.plw2 .stkw .stgrp,.wrap.plw3 .stkw .stgrp{margin-top:0}
-  .wrap.plw2 .stbars,.wrap.plw3 .stbars{height:130px}
   .wrap.plw2 #uList .ugrid,.wrap.plw3 #uList .ugrid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
 }
+.ucard.cp{padding:9px 12px}
+.ucard.cp .nm{flex-wrap:nowrap}
+.ucard.cp .nm .nn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ucard.cp .nm .bt{margin-left:auto;display:flex;gap:4px;flex-shrink:0}
+.ucard.cp .nm .bt button{min-height:44px;min-width:44px;padding:0 10px;border-radius:8px;font-size:12.5px;font-weight:700;background:var(--bg);color:var(--tx2)}
+.ucard.cp .nm .bt .yes{background:var(--main);color:#fff}.ucard.cp .nm .bt .no{background:#FCEBEB;color:#A32D2D}
+.ucard.cp .mt .sm{font-size:11px;opacity:.85}
 </style>
 </head>
 <body>
@@ -2453,15 +2452,15 @@ function uGroup(u){ return u.block ? 'blk' : (own.approval && !u.ok) ? 'wait' : 
 function uToggle(k){ uFold[k] = !uFold[k]; lsSet(U_FOLD_KEY, uFold); renderUsers(); }
 function uCard(u){
   const label = { ok:'<span class="st ok">사용 중</span>', wait:'<span class="st wait">승인 대기</span>', blk:'<span class="st blk">차단됨</span>' };
+  const bt = (own.approval ? `<button class="${u.ok?'':'yes'}" onclick="setUser('${esc(u.id)}','ok',${!u.ok})">${u.ok?'승인 취소':'승인'}</button>` : '')
+    + (u.block
+      ? `<button onclick="setUser('${esc(u.id)}','block',false)">차단 해제</button>`
+      : `<button class="no" onclick="if(confirm('정말 차단할까요?'))setUser('${esc(u.id)}','block',true)">차단</button>`);
   return `
-    <div class="ucard">
-      <div class="nm">${esc(u.name)} ${label[uState(u)]}${u.conn===false?' <span class="st wait">시트 미연결</span>':''}</div>
+    <div class="ucard cp">
+      <div class="nm"><span class="nn">${esc(u.name)}</span> ${label[uState(u)]}${u.conn===false?' <span class="st wait">시트 미연결</span>':''}<span class="bt">${bt}</span></div>
       <div class="mt">${esc(u.school)}${u.cls?' · '+esc(u.cls):''}</div>
-      <div class="mt">등록 ${esc(u.reg)} · 마지막 사용 ${esc(u.last)}</div>
-      <div class="ac">
-        ${own.approval ? `<button class="${u.ok?'':'yes'}" onclick="setUser('${esc(u.id)}','ok',${!u.ok})">${u.ok?'승인 취소':'승인'}</button>` : ''}
-        <button class="${u.block?'':'no'}" onclick="setUser('${esc(u.id)}','block',${!u.block})">${u.block?'차단 해제':'차단'}</button>
-      </div>
+      <div class="mt">마지막 사용 ${esc(u.last)} <span class="sm">· 등록 ${esc(u.reg)}</span></div>
     </div>`;
 }
 function renderUsers(){
