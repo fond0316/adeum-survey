@@ -406,7 +406,7 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
 
 /* ══════════════════════════════ 모달 ══════════════════════════════ */
 .modal-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:500;
+  position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:700;
   display:flex;align-items:center;justify-content:center;
   padding:20px;opacity:0;pointer-events:none;transition:opacity .2s;
 }
@@ -927,6 +927,7 @@ let dashState = {
   data: SAMPLE_DATA,
   catFilter: '전체',
   subFilter: '전체',
+  actFilter: '전체',
   banFilter: '전체',
   sortKey: 'id',
   sortDir: 'asc',
@@ -989,6 +990,7 @@ function setCatFilter(el) {
   el.classList.add('active');
   dashState.catFilter = el.dataset.cat;
   dashState.subFilter = '전체';
+  dashState.actFilter = '전체';
   dashState.checked.clear();
   buildSubFilters();
   renderTable();
@@ -1001,7 +1003,9 @@ function setSubFilter(el) {
   document.querySelectorAll('[data-sub]').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
   dashState.subFilter = el.dataset.sub;
+  dashState.actFilter = '전체';
   dashState.checked.clear();
+  buildSubFilters();
   renderTable();
 }
 function buildSubFilters() {
@@ -1033,6 +1037,65 @@ function buildSubFilters() {
     b.textContent = it.label;
     b.onclick = () => setSubFilter(b);
     wrap.appendChild(b);
+  });
+  // 자율/진로를 골랐으면 '활동별 참여자' 선택 상자 추가
+  if (cf === '담임' && (dashState.subFilter === '자율' || dashState.subFilter === '진로')) {
+    const cnt = {};
+    dashState.data.forEach(r => { if (r.cat === dashState.subFilter) (r.acts || []).forEach(a => { cnt[a] = (cnt[a]||0) + 1; }); });
+    const names = getActItems(dashState.subFilter).filter(a => cnt[a]);
+    const sel = document.createElement('select');
+    sel.id = 'act-filter';
+    sel.style.cssText = 'padding:6px 10px;border-radius:20px;border:1.5px solid #e5e7eb;font-size:12px;font-family:inherit;background:#fff;max-width:260px;';
+    sel.innerHTML = '<option value="전체">🔎 활동별 참여자 보기 (전체)</option>' + names.map(a => '<option value="' + escHtml(a) + '">' + escHtml(a) + ' (' + cnt[a] + '명)</option>').join('');
+    sel.value = dashState.actFilter;
+    sel.onchange = () => { dashState.actFilter = sel.value; dashState.checked.clear(); renderTable(); };
+    wrap.appendChild(sel);
+  }
+}
+
+// ── 응답 미리보기 대신: 작성 현황 / 체크한 활동 ──
+function getActItems(cat) {
+  const sel = cat === '자율' ? '#auto-list .act-name' : '#career-list .act-name';
+  let items = [...document.querySelectorAll(sel)].map(el => el.textContent.trim()).filter(Boolean);
+  if (!items.length) {
+    try { items = JSON.parse(localStorage.getItem(cat === '자율' ? 'adum_auto_items' : 'adum_career_items') || '[]'); } catch(e) {}
+  }
+  return items;
+}
+function computePreviews(list) {
+  const SKIP = new Set(['mathSubject','수학교과명','subId']);
+  const isQ = k => !MODAL_FIXED_COLS.has(k) && !SKIP.has(k);
+  // 구분(+수학은 학기·교과)별 전체 문항 수 = 그 그룹에서 한 번이라도 답이 있는 문항 열
+  const groupOf = r => r.cat + '|' + (r.cat === '수학' ? r.subKey : '');
+  const qset = {};
+  list.forEach(r => {
+    const g = groupOf(r); qset[g] = qset[g] || new Set();
+    Object.keys(r.raw || {}).forEach(k => { if (isQ(k) && String(r.raw[k] == null ? '' : r.raw[k]).trim()) qset[g].add(k); });
+  });
+  list.forEach(r => {
+    const raw = r.raw || {};
+    const keys = [...qset[groupOf(r)]];
+    const filled = keys.filter(k => String(raw[k] == null ? '' : raw[k]).trim());
+    const chars = filled.reduce((n, k) => n + String(raw[k]).trim().length, 0);
+    let acts = [];
+    if (r.cat === '자율' || r.cat === '진로') {
+      const items = getActItems(r.cat);
+      const vals = Object.keys(raw).filter(isQ).map(k => String(raw[k] == null ? '' : raw[k]));
+      acts = items.filter(it => vals.some(v => v.indexOf(it) >= 0));
+    }
+    r.acts = acts;
+    const total = keys.length, n = filled.length;
+    const full = total > 0 && n >= total;
+    const badge = (txt, ok) => '<span style="display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;margin-right:6px;background:' + (ok ? '#dcfce7' : '#ffedd5') + ';color:' + (ok ? '#166534' : '#9a3412') + ';">' + txt + '</span>';
+    const chip = t => '<span style="display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;margin-right:4px;background:#ede9fe;color:#5b21b6;">' + escHtml(t) + '</span>';
+    if (r.cat === '자율' || r.cat === '진로') {
+      const shown = acts.slice(0, 3).map(chip).join('') + (acts.length > 3 ? '<span style="font-size:11px;color:#6b7280;">+' + (acts.length - 3) + '</span>' : '');
+      r.previewHtml = badge('활동 ' + acts.length + '개', acts.length > 0) + (acts.length ? shown : '<span style="font-size:11px;color:#9a3412;">체크한 활동 없음</span>');
+      r.preview = '활동 ' + acts.length + '개' + (acts.length ? ': ' + acts.join(', ') : '');
+    } else {
+      r.previewHtml = badge(n + '/' + total + ' 문항', full) + '<span style="font-size:11px;color:#6b7280;">' + chars.toLocaleString('ko-KR') + '자' + (full ? '' : ' · 빈 문항 ' + (total - n) + '개') + '</span>';
+      r.preview = n + '/' + total + ' 문항 작성 · ' + chars + '자';
+    }
   });
 }
 
@@ -1076,6 +1139,7 @@ function getFiltered() {
       if (dashState.catFilter === '담임' && r.cat !== dashState.subFilter) return false;
       if (dashState.catFilter === '수학' && r.subKey !== dashState.subFilter) return false;
     }
+    if (dashState.actFilter !== '전체' && !(r.acts && r.acts.indexOf(dashState.actFilter) >= 0)) return false;
     if (dashState.banFilter !== '전체' && r.ban !== dashState.banFilter) return false;
     if (search && !r.name.includes(search) && !r.id.includes(search)) return false;
     return true;
@@ -1120,7 +1184,7 @@ function renderTable() {
         `<div class="t-id">${r.id}</div>` +
         `<div class="t-ban">${r.ban}반</div>` +
         `<div><span class="ctag ${catCls}" title="${r.subKey || ''}">${r.cat}${r.cat === '수학' && r.sem ? '·' + r.sem : ''}</span></div>` +
-        `<div class="t-prev">${r.preview || '—'}</div>` +
+        `<div class="t-prev" title="${escHtml(r.preview || '')}">${r.previewHtml || escHtml(r.preview || '—')}</div>` +
         `<div class="t-acts">${actHtml}</div>` +
         '</div>';
     }).join('');
@@ -1160,7 +1224,7 @@ function exportSelectedCSV() {
   csvDownload(dashState.data.filter(r => dashState.checked.has(r.key || r.id)), 'adum_selected');
 }
 function csvDownload(rows, filename) {
-  const header = '이름,학번,학년,반,번호,유형,내용미리보기';
+  const header = '이름,학번,학년,반,번호,유형,작성현황';
   const body = rows.map(r =>
     [r.name, r.id, r.grade, r.ban+'반', r.num, r.cat, '"'+(r.preview||'').replace(/"/g,'""')+'"'].join(',')
   ).join('\n');
@@ -2651,11 +2715,13 @@ function loadFromGoogleSheet() {
         preview: buildPreview(s),
         raw:     s
       }));
+      computePreviews(students);
       // ★ dashState.data 업데이트 → 기존 renderTable이 바로 반영
       dashState.data = students;
       dashState.checked.clear();
       dashState.catFilter = '전체';
       dashState.subFilter = '전체';
+      dashState.actFilter = '전체';
       dashState.banFilter = '전체';
       document.querySelectorAll('[data-cat]').forEach(b=>b.classList.toggle('active', b.dataset.cat==='전체'));
       window._dashboardStudents = students;
@@ -5609,7 +5675,7 @@ function svPrint() {
       <div class="th" onclick="setSort('id')">학번 <span class="sort-icon" id="si-id">↕</span></div>
       <div class="th" onclick="setSort('ban')">반 <span class="sort-icon" id="si-ban">↕</span></div>
       <div class="th" onclick="setSort('cat')">유형 <span class="sort-icon" id="si-cat">↕</span></div>
-      <div class="th" onclick="setSort('preview')">내용 미리보기 <span class="sort-icon" id="si-preview">↕</span></div>
+      <div class="th" onclick="setSort('preview')">작성 현황 <span class="sort-icon" id="si-preview">↕</span></div>
       <div style="text-align:right;font-size:11px;font-weight:700;color:var(--gray-500);letter-spacing:.05em;">액션</div>
     </div>
     <div id="t-body"></div>
