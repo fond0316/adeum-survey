@@ -516,6 +516,26 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
 .qr-btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
 .qr-warn{display:none;margin-top:10px;font-size:12px;line-height:1.7;color:#92400e;background:var(--warning-light);border:1px solid #fde68a;border-radius:8px;padding:9px 12px;}
 .qr-tip{margin-top:12px;font-size:11.5px;line-height:1.8;color:var(--gray-500);background:var(--gray-50);border-radius:8px;padding:9px 12px;}
+
+/* ── 설정 카드 접기(아코디언) ── */
+.acc-arrow{font-size:18px;color:var(--gray-400);transition:transform .3s;flex-shrink:0;}
+.sec-ttl.acc-head{cursor:pointer;min-height:44px;user-select:none;}
+.sec-ttl.acc-head.collapsed{margin-bottom:0;padding-bottom:0;border-bottom:none;}
+
+.notice-due{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;font-size:12px;font-weight:600;color:var(--gray-600);}
+.notice-due input[type=date]{padding:7px 10px;border:1.5px solid var(--gray-200);border-radius:var(--radius-sm);font-size:12.5px;font-family:'Pretendard',-apple-system,sans-serif;margin-left:6px;}
+.notice-due input[type=date]:focus{border-color:var(--primary);outline:none;}
+#svPrintArea{display:none;}
+@media print{
+  body.sv-printing > *:not(#svPrintArea){display:none !important;}
+  body.sv-printing #svPrintArea{display:block !important;color:#111;font-size:11px;line-height:1.6;}
+  #svPrintArea h2{font-size:15px;margin-bottom:2px;}
+  #svPrintArea .pm{font-size:10px;color:#666;margin-bottom:10px;}
+  #svPrintArea .stu{border-top:1.5px solid #111;padding:8px 0 10px;}
+  #svPrintArea .stu h3{font-size:13px;margin-bottom:4px;break-after:avoid;}
+  #svPrintArea .stu .q{font-weight:700;margin-top:6px;break-after:avoid;}
+  #svPrintArea .stu .a{white-space:pre-wrap;word-break:break-all;}
+}
 </style>
 </head>
 <body>
@@ -1014,7 +1034,11 @@ function getFiltered() {
     }
     if (va < vb) return dashState.sortDir === 'asc' ? -1 : 1;
     if (va > vb) return dashState.sortDir === 'asc' ? 1 : -1;
-    return 0;
+    // 같은 값이면 학년 → 반 → 번호 → 이름 순으로 정렬 (반이 섞여도 보기 편하게)
+    return (parseInt(a.grade) || 0) - (parseInt(b.grade) || 0)
+        || (parseInt(a.ban) || 0) - (parseInt(b.ban) || 0)
+        || (parseInt(a.num) || 0) - (parseInt(b.num) || 0)
+        || String(a.name).localeCompare(String(b.name), 'ko');
   });
   return rows;
 }
@@ -1030,15 +1054,15 @@ function renderTable() {
     body.innerHTML = '<div class="empty-state"><div class="e-ico">🔍</div><p>검색 결과가 없어요</p></div>';
   } else {
     body.innerHTML = rows.map(r => {
-      const checked = dashState.checked.has(r.id);
+      const checked = dashState.checked.has(r.key || r.id);
       const catCls = catMap[r.cat] || 'c-missing';
       const actHtml = r.submitted
-        ? `<button class="ta ta-v" onclick="openModal('${r.id}')">보기</button>`
+        ? `<button class="ta ta-v" onclick="openModal('${r.key || r.id}')">보기</button>`
         : '<button class="ta ta-dis" disabled>미제출</button>';
       const chk = checked ? 'checked' : '';
       const rowCls = checked ? 't-row checked' : 't-row';
       return `<div class="${rowCls}" style="display:grid;grid-template-columns:${cols};">` +
-        `<div><input type="checkbox" style="accent-color:#2563eb" ${chk} onchange="toggleCheck('${r.id}',this)"></div>` +
+        `<div><input type="checkbox" style="accent-color:#2563eb" ${chk} onchange="toggleCheck('${r.key || r.id}',this)"></div>` +
         `<div class="t-name">${r.name}</div>` +
         `<div class="t-id">${r.id}</div>` +
         `<div class="t-ban">${r.ban}반</div>` +
@@ -1063,8 +1087,8 @@ function toggleCheck(id, el) {
 
 function toggleAllCheck(masterCb) {
   const rows = getFiltered();
-  if (masterCb.checked) rows.forEach(r => dashState.checked.add(r.id));
-  else rows.forEach(r => dashState.checked.delete(r.id));
+  if (masterCb.checked) rows.forEach(r => dashState.checked.add(r.key || r.id));
+  else rows.forEach(r => dashState.checked.delete(r.key || r.id));
   renderTable();
 }
 
@@ -1080,7 +1104,7 @@ function exportCSV() {
   csvDownload(getFiltered(), 'adum_dashboard');
 }
 function exportSelectedCSV() {
-  csvDownload(dashState.data.filter(r => dashState.checked.has(r.id)), 'adum_selected');
+  csvDownload(dashState.data.filter(r => dashState.checked.has(r.key || r.id)), 'adum_selected');
 }
 function csvDownload(rows, filename) {
   const header = '이름,학번,학년,반,번호,유형,내용미리보기';
@@ -1162,7 +1186,7 @@ function getStudentDetail(r) {
 }
 
 function openModal(id) {
-  const r = dashState.data.find(d => d.id === id);
+  const r = dashState.data.find(d => (d.key || d.id) === id);
   if (!r) return;
 
   // 헤더 정보
@@ -1495,6 +1519,9 @@ function saveAllSettings() {
   savedQuestions = deepCopy(editingQuestions);
   localStorage.setItem('adum_saved_questions', JSON.stringify(savedQuestions));
 
+  // ★ 학생 폰에도 같은 기본설정(학년도·학기·수학교과 등)이 적용되도록 GAS에 함께 저장
+  pushBasicSettingsToGas(basicSettings);
+
   // 학생 폼 반영
   applyBasicSettings(basicSettings);
   applyCheckboxItems(autoItems, careerItems);
@@ -1502,6 +1529,38 @@ function saveAllSettings() {
 
   // 토스트
   showToast('✅ 저장 완료! 학생 폼에 반영되었습니다.');
+}
+
+function pushBasicSettingsToGas(b) {
+  const url = getGasUrl();
+  if (!url || !_adminPw) return;
+  noticeSettings.basic = { year:b.year, grade:b.grade, semester:b.semester, school:b.school, club:b.club, math:b.math };
+  _gasPostReal(url, { adminAction: 'saveSettings', pw: _adminPw, settings: noticeSettings })
+    .then(res => {
+      if (!res || !res.ok) throw new Error(res?.error || '저장 실패');
+      localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(noticeSettings));
+      showToast('☁️ 학년도·학기·수학교과가 학생 폰에도 적용돼요');
+    })
+    .catch(() => { alert('⚠️ 기본 설정은 이 기기에만 저장됐어요.\n학생 폰에 적용하려면 인터넷을 확인하고 다시 저장해 주세요.'); });
+}
+
+// 학생 폰: 아듬샘이 저장한 기본설정(학년도·학기·수학교과 등)을 받아서 적용
+function applyRemoteBasicSettings(b) {
+  if (!b || _adminPw) return;
+  try {
+    let cur = {};
+    try { cur = JSON.parse(localStorage.getItem('adum_basic_settings') || '{}'); } catch(e) {}
+    const merged = Object.assign({}, cur, { year:b.year, grade:b.grade, semester:b.semester||'1학기', school:b.school, club:b.club, math:b.math });
+    localStorage.setItem('adum_basic_settings', JSON.stringify(merged));
+    const setV = (id, v) => { const el = document.getElementById(id); if (el && v !== undefined && v !== null) el.value = v; };
+    setV('set-year', b.year); setV('set-school', b.school); setV('set-club', b.club);
+    [['set-grade', b.grade], ['set-semester', b.semester]].forEach(([id, t]) => {
+      const sel = document.getElementById(id);
+      if (sel && t) [...sel.options].forEach(o => { if (o.text === t) o.selected = true; });
+    });
+    if (b.math) { setV('set-math', b.math); if (typeof updateMath === 'function') updateMath(); }
+    applyBasicSettings(merged);
+  } catch(e) {}
 }
 
 function applyBasicSettings(s) {
@@ -1608,9 +1667,9 @@ function createStudentQCard(q, num, color, inputId) {
 
   let inputHtml = '';
   if (q.type === 'short') {
-    inputHtml = `<input class="form-input" id="${inputId}" type="text" oninput="autoSave()" placeholder="${escHtml(q.placeholder||'')}"/>`;
+    inputHtml = `<input class="form-input" id="${inputId}" type="text" maxlength="200" oninput="autoSave()" placeholder="${escHtml(q.placeholder||'')}"/>`;
   } else if (q.type === 'long') {
-    inputHtml = `<textarea class="form-input" id="${inputId}" rows="${q.rows||5}" oninput="autoSave()" placeholder="${escHtml(q.placeholder||'')}"></textarea>`;
+    inputHtml = `<textarea class="form-input" id="${inputId}" rows="${q.rows||5}" maxlength="5000" oninput="autoSave()" placeholder="${escHtml(q.placeholder||'')}"></textarea>`;
   } else if (q.type === 'radio') {
     const opts = q.options && q.options.length ? q.options : ['⭕ 있음', '❌ 없음'];
     inputHtml = `<div class="radio-row">${opts.map(opt =>
@@ -2091,7 +2150,7 @@ function submitFormSection(tabLabel) {
   // 마감 여부 재확인 (화면이 우회되어도 여기서 한 번 더 막음)
   const noticeCatMap = { '자율':'hakgup', '진로':'hakgup', '행발':'hakgup', '수학':'math', '동아리':'club' };
   const noticeCat = noticeCatMap[tabLabel];
-  if (noticeCat && noticeSettings[noticeCat]?.closed) {
+  if (noticeCat && noticeIsClosed(noticeSettings[noticeCat])) {
     alert('🔒 현재 마감된 설문이에요.\n선생님께 문의해 주세요.');
     return;
   }
@@ -2133,6 +2192,7 @@ function doSubmitSection(tabLabel, name, grade, ban, num, gasUrl, submitKey) {
     composedBan: grade && ban ? grade + '-' + ban : '',
     submittedAt: new Date().toLocaleString('ko-KR'),
     sheetName:   getSheetName() + '_' + cat,
+    subId:       'u' + Date.now() + Math.floor(Math.random() * 1e6).toString(36),
   };
   // 해당 section의 _form_ 필드만 추출
   const sectionPrefix = section + '_form_';
@@ -2188,6 +2248,8 @@ function doSubmitSection(tabLabel, name, grade, ban, num, gasUrl, submitKey) {
   if(statusEl) statusEl.textContent = '';
 
   _gasPostRealWithRetry(gasUrl, baseData)
+  // 응답을 못 받았어도 서버에 실제로 저장됐는지 한 번 더 확인 (저장됐으면 성공 처리)
+  .catch(err => svCheckSubmitted(gasUrl, baseData.subId).then(ok => { if (ok) return { ok: true }; throw err; }))
   .then(res => {
     if(btn){ btn.disabled=false; btn.textContent= label + ' 제출하기 ✅'; }
     if(res && res.ok){
@@ -2204,6 +2266,11 @@ function doSubmitSection(tabLabel, name, grade, ban, num, gasUrl, submitKey) {
     if(btn){ btn.disabled=false; btn.textContent= label + ' 제출하기'; }
     alert('❌ 제출에 실패했어요.\n입력한 내용은 이 기기에 안전하게 저장되어 있으니, 인터넷 연결을 확인하고 다시 제출해주세요.\n\n오류: ' + err.message);
   });
+}
+
+function svCheckSubmitted(gasUrl, subId) {
+  return fetch(gasUrl + '?action=checkSubmit&token=' + encodeURIComponent(subId))
+    .then(r => r.json()).then(d => !!(d && d.found)).catch(() => false);
 }
 
 // 기존 호환용 (혹시 어딘가 남아있을 경우)
@@ -2348,10 +2415,21 @@ const NOTICE_LABEL = { hakgup:'학급', math:'수학 교과', club:'동아리' }
 const NOTICE_STORAGE_KEY = 'adum_notice_settings';
 
 let noticeSettings = {
-  hakgup: { closed:false, notice:'' },
-  math:   { closed:false, notice:'' },
-  club:   { closed:false, notice:'' },
+  hakgup: { closed:false, notice:'', due:'' },
+  math:   { closed:false, notice:'', due:'' },
+  club:   { closed:false, notice:'', due:'' },
 };
+
+// 제출 기한(YYYY-MM-DD): 그날 밤 12시까지 제출 가능, 다음 날부터 자동 마감 (한국 시간 기준)
+function noticeTodayKST() { return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }); }
+function noticeIsClosed(s) {
+  return !!(s && (s.closed || (/^\d{4}-\d{2}-\d{2}$/.test(s.due || '') && noticeTodayKST() > s.due)));
+}
+function noticeDueLabel(due) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(due || '');
+  return m ? (Number(m[2]) + '월 ' + Number(m[3]) + '일') : '';
+}
+function noticeClearDue(cat) { const el = document.getElementById('noticeDue-' + cat); if (el) el.value = ''; }
 
 // **텍스트** → 굵게, [[c:red]]텍스트[[/c]] → 빨강, [[c:blue]]텍스트[[/c]] → 파랑
 // (HTML 이스케이프 먼저 처리 후 변환, XSS 방지)
@@ -2410,6 +2488,7 @@ function fetchNoticeSettingsFromGas() {
       noticeSettings = { ...noticeSettings, ...data.settings };
       localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(noticeSettings));
       applyNoticeSettings();
+      if (data.settings.basic) applyRemoteBasicSettings(data.settings.basic);
     })
     .catch(() => {}); // 실패하면 로컬 캐시값 그대로 유지
 }
@@ -2417,13 +2496,18 @@ function fetchNoticeSettingsFromGas() {
 // 학생 화면 + 관리자 화면에 동시 반영
 function applyNoticeSettings() {
   NOTICE_CATS.forEach(cat => {
-    const s = noticeSettings[cat] || { closed:false, notice:'' };
+    const s = noticeSettings[cat] || { closed:false, notice:'', due:'' };
+    const isClosed = noticeIsClosed(s);
+    const dueTxt = noticeDueLabel(s.due);
 
-    // ── 학생 화면: 공지 박스 (**굵게** 마크업 지원) ──
+    // ── 학생 화면: 공지 박스 (**굵게** 마크업 지원) + 제출 기한 안내 ──
     const noticeEl = document.getElementById('catnotice-' + cat);
     if (noticeEl) {
-      if (s.notice && s.notice.trim()) {
-        noticeEl.innerHTML = noticeMarkupToHtml('📢 ' + s.notice.trim());
+      const hasNotice = !!(s.notice && s.notice.trim());
+      const dueLine = (dueTxt && !isClosed) ? '⏰ 제출 기한: ' + dueTxt + ' 밤 12시까지' : '';
+      if (hasNotice || dueLine) {
+        const text = (hasNotice ? '📢 ' + s.notice.trim() : '') + (hasNotice && dueLine ? '\n' : '') + dueLine;
+        noticeEl.innerHTML = noticeMarkupToHtml(text);
         noticeEl.style.display = 'block';
       } else {
         noticeEl.style.display = 'none';
@@ -2433,25 +2517,27 @@ function applyNoticeSettings() {
     // ── 학생 화면: 마감 시 입력영역 잠금 ──
     const closedEl = document.getElementById('catclosed-' + cat);
     const bodyEl   = document.getElementById('catbody-' + cat);
-    if (closedEl) closedEl.style.display = s.closed ? 'block' : 'none';
-    if (bodyEl)   bodyEl.style.display   = s.closed ? 'none' : '';
+    if (closedEl) closedEl.style.display = isClosed ? 'block' : 'none';
+    if (bodyEl)   bodyEl.style.display   = isClosed ? 'none' : '';
 
     // ── 홈 화면 마감 배지 ──
     const badgeEl = document.getElementById('badge-' + cat);
     if (badgeEl) {
-      badgeEl.style.display = s.closed ? 'inline-block' : 'none';
+      badgeEl.style.display = isClosed ? 'inline-block' : 'none';
       badgeEl.textContent = '🔒 마감';
     }
 
     // ── 관리자 화면 입력값 채우기 ──
     const toggleEl = document.getElementById('noticeClose-' + cat);
     const textEl   = document.getElementById('noticeText-' + cat);
+    const dueEl    = document.getElementById('noticeDue-' + cat);
     const statusEl = document.getElementById('noticeStatus-' + cat);
     if (toggleEl) toggleEl.checked = !!s.closed;
     if (textEl && document.activeElement !== textEl) textEl.value = s.notice || '';
+    if (dueEl && document.activeElement !== dueEl) dueEl.value = s.due || '';
     if (statusEl) {
-      statusEl.textContent = s.closed ? '🔒 마감됨' : '✅ 제출 중';
-      statusEl.style.color = s.closed ? '#DC2626' : '#059669';
+      statusEl.textContent = s.closed ? '🔒 마감됨' : isClosed ? '🔒 마감됨 (기한 지남)' : dueTxt ? '✅ 제출 중 · ' + dueTxt + '까지' : '✅ 제출 중';
+      statusEl.style.color = isClosed ? '#DC2626' : '#059669';
     }
   });
 }
@@ -2464,6 +2550,7 @@ function saveNoticeSettingsUI() {
     noticeSettings[cat] = {
       closed: !!document.getElementById('noticeClose-' + cat)?.checked,
       notice: (document.getElementById('noticeText-' + cat)?.value || '').trim(),
+      due:    (document.getElementById('noticeDue-' + cat)?.value || '').trim(),
     };
   });
 
@@ -2493,10 +2580,11 @@ function loadFromGoogleSheet() {
   if(btn){ btn.disabled = true; btn.textContent = '⏳ 불러오는 중...'; }
   showLoading('구글 시트에서 불러오는 중...');
 
-  _gasPostReal(url, { adminAction: 'list', pw: _adminPw, sheetName: getSheetName() })
+  _gasPostReal(url, { adminAction: 'list', pw: _adminPw, sheetName: getSheetName(), withCats: true })
     .then(data => {
       if(!data.ok) throw new Error(data.error || '응답 오류');
-      const students = (data.students || []).map(s => ({
+      const students = (data.students || []).map((s, i) => ({
+        key:     [s['학년'], s['반'], s['번호'], detectCat(s), i].join('-'),   // 행마다 고유 (같은 번호가 여러 구분/반에 있어도 구별)
         id:      String(s['번호'] || ''),
         name:    s['이름'] || '',
         grade:   String(s['학년'] || ''),
@@ -5153,6 +5241,194 @@ window.addEventListener('load', () => {
   if (tab) tab.addEventListener('click', qrRender);
 });
 </script>
+<script>
+// ═══════════════════════════════════════════════════════
+//  관리자 설정 화면: 카드 제목을 누르면 접고 펼치기
+//  (카드 안 내용은 그대로 두고 감싸기만 해서 기존 저장·편집 기능에 영향 없음)
+// ═══════════════════════════════════════════════════════
+function initSettingsAccordion() {
+  const root = document.getElementById('adminSec-settings');
+  if (!root) return;
+  root.querySelectorAll('.set-sec').forEach(card => {
+    const title = card.querySelector(':scope > .sec-ttl');
+    if (!title || card.dataset.accInit) return;
+    card.dataset.accInit = '1';
+    const body = document.createElement('div');
+    body.className = 'acc-body';
+    let n = title.nextSibling;
+    while (n) { const nx = n.nextSibling; body.appendChild(n); n = nx; }
+    card.appendChild(body);
+    const arrow = document.createElement('span');
+    arrow.className = 'acc-arrow';
+    arrow.textContent = '▾';
+    arrow.style.marginLeft = title.querySelector('.sec-cnt') ? '8px' : 'auto';
+    title.appendChild(arrow);
+    title.classList.add('acc-head');
+    title.setAttribute('role', 'button');
+    const set = open => {
+      body.style.display = open ? '' : 'none';
+      arrow.style.transform = open ? 'rotate(180deg)' : '';
+      title.classList.toggle('collapsed', !open);
+    };
+    set(false);   // 처음엔 접어둠
+    title.addEventListener('click', () => set(body.style.display === 'none'));
+  });
+}
+window.addEventListener('load', initSettingsAccordion);
+</script>
+<script>
+// ═══════════════════════════════════════════════════════
+//  관리자 대시보드: 엑셀(.xlsx) 저장 · 표 복사 · 인쇄
+//  (현재 보이는 목록 기준. 체크한 학생이 있으면 체크한 학생만)
+// ═══════════════════════════════════════════════════════
+function svXmlEsc(v){ return String(v == null ? '' : v).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function svColName(i){ let s = '', n = i + 1; while(n > 0){ const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); } return s; }
+const SV_CRC = (function(){ const t = []; for(let n = 0; n < 256; n++){ let c = n; for(let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; } return t; })();
+function svCrc32(b){ let c = 0xFFFFFFFF; for(let i = 0; i < b.length; i++) c = SV_CRC[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function svZipStore(files){
+  const enc = new TextEncoder(), parts = [], cen = [];
+  let off = 0;
+  const u16 = v => [v & 255, (v >>> 8) & 255], u32 = v => [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255];
+  files.forEach(f=>{
+    const nm = enc.encode(f.name), data = enc.encode(f.data), crc = svCrc32(data);
+    const lh = new Uint8Array([0x50,0x4B,3,4, 20,0, 0,8, 0,0, 0,0, 0,0x21].concat(u32(crc), u32(data.length), u32(data.length), u16(nm.length), [0,0]));
+    parts.push(lh, nm, data);
+    cen.push({ nm:nm, crc:crc, len:data.length, off:off });
+    off += lh.length + nm.length + data.length;
+  });
+  let cs = 0; const cparts = [];
+  cen.forEach(c=>{
+    const ch = new Uint8Array([0x50,0x4B,1,2, 20,0, 20,0, 0,8, 0,0, 0,0, 0,0x21].concat(u32(c.crc), u32(c.len), u32(c.len), u16(c.nm.length), [0,0, 0,0, 0,0, 0,0, 0,0,0,0], u32(c.off)));
+    cparts.push(ch, c.nm); cs += ch.length + c.nm.length;
+  });
+  const end = new Uint8Array([0x50,0x4B,5,6, 0,0, 0,0].concat(u16(cen.length), u16(cen.length), u32(cs), u32(off), [0,0]));
+  return new Blob(parts.concat(cparts, [end]), { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+function svXlsxSave(sheetTitle, fname, heads, rows, widths, numCols){
+  let sd = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+    + '<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>'
+    + '<cols>' + widths.map((w, i)=>'<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>').join('') + '</cols><sheetData>';
+  const cellS = (r, c, v, st)=>'<c r="' + svColName(c) + r + '" t="inlineStr" s="' + st + '"><is><t xml:space="preserve">' + svXmlEsc(v) + '</t></is></c>';
+  sd += '<row r="1">' + heads.map((h, c)=>cellS(1, c, h, 1)).join('') + '</row>';
+  rows.forEach((row, ri)=>{
+    const r = ri + 2;
+    sd += '<row r="' + r + '">' + row.map((v, c)=>{
+      if(c < (numCols || 0) && /^\d+$/.test(v)) return '<c r="' + svColName(c) + r + '" s="2"><v>' + v + '</v></c>';
+      return cellS(r, c, v, 2);
+    }).join('') + '</row>';
+  });
+  sd += '</sheetData></worksheet>';
+  const styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+    + '<fonts count="2"><font><sz val="11"/><name val="Malgun Gothic"/></font><font><b/><sz val="11"/><name val="Malgun Gothic"/></font></fonts>'
+    + '<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFEDE9F8"/><bgColor indexed="64"/></patternFill></fill></fills>'
+    + '<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFCCCCCC"/></left><right style="thin"><color rgb="FFCCCCCC"/></right><top style="thin"><color rgb="FFCCCCCC"/></top><bottom style="thin"><color rgb="FFCCCCCC"/></bottom><diagonal/></border></borders>'
+    + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+    + '<cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+    + '<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>'
+    + '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf></cellXfs>'
+    + '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+  const sheetName = (String(sheetTitle || '제출현황').replace(/[\[\]:*?\/\\]/g, ' ').trim() || '제출현황').slice(0, 31);
+  const files = [
+    { name:'[Content_Types].xml', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>' },
+    { name:'_rels/.rels', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>' },
+    { name:'xl/workbook.xml', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="' + svXmlEsc(sheetName).replace(/"/g,'&quot;') + '" sheetId="1" r:id="rId1"/></sheets></workbook>' },
+    { name:'xl/_rels/workbook.xml.rels', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>' },
+    { name:'xl/styles.xml', data:styles },
+    { name:'xl/worksheets/sheet1.xml', data:sd }
+  ];
+  const blob = svZipStore(files);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = fname.replace(/[\\/:*?"<>|]/g, '_') + '.xlsx';
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+
+
+const SV_FIXED_HEADS = ['학년', '반', '번호', '이름', '구분', '제출시각'];
+function svRows() {
+  const list = getFiltered();
+  const picked = list.filter(r => dashState.checked.has(r.key || r.id));
+  return picked.length ? picked : list;
+}
+// 질문 열은 전체 행에서 처음 나온 순서대로 모아요 (구분마다 질문이 달라도 한 표에 담김)
+function svQuestionCols(rows) {
+  const cols = [];
+  rows.forEach(r => Object.keys(r.raw || {}).forEach(k => {
+    if (MODAL_FIXED_COLS.has(k) || k === 'mathSubject') return;
+    if (cols.indexOf(k) < 0) cols.push(k);
+  }));
+  return cols;
+}
+function svMatrix(rows) {
+  const q = svQuestionCols(rows);
+  const heads = SV_FIXED_HEADS.concat(q);
+  const matrix = rows.map(r => {
+    const raw = r.raw || {};
+    return [r.grade, r.ban, r.num, r.name, r.cat, raw['제출시각'] || ''].concat(q.map(k => String(raw[k] == null ? '' : raw[k])));
+  }).map(a => a.map(v => String(v)));
+  return { heads, matrix };
+}
+function svNeedRows() {
+  const rows = svRows();
+  if (!rows.length) { alert('⚠️ 내보낼 학생이 없어요. 먼저 "구글 시트에서 불러오기"를 눌러주세요.'); return null; }
+  return rows;
+}
+function svExportXlsx() {
+  const rows = svNeedRows(); if (!rows) return;
+  const { heads, matrix } = svMatrix(rows);
+  const widths = heads.map((h, i) => i < 3 ? 7 : i === 3 ? 11 : i < 6 ? 14 : 50);
+  const catFilter = dashState.catFilter !== '전체' ? '_' + dashState.catFilter : '';
+  svXlsxSave('설문응답', '생기부설문_제출현황' + catFilter, heads, matrix, widths, 3);
+  showToast('✅ 엑셀 파일을 저장했어요 (' + rows.length + '명)');
+}
+function svTsvCell(v) {
+  v = String(v == null ? '' : v);
+  return /[\t\n\r"]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+}
+function svCopyTable() {
+  const rows = svNeedRows(); if (!rows) return;
+  const { heads, matrix } = svMatrix(rows);
+  const text = [heads].concat(matrix).map(a => a.map(svTsvCell).join('\t')).join('\n');
+  const done = () => showToast('✅ 복사했어요 — 구글 시트·엑셀에 붙여넣으세요 (' + rows.length + '명)');
+  const fallback = () => {
+    const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) { alert('복사에 실패했어요. 엑셀(.xlsx) 저장을 이용해 주세요.'); }
+    document.body.removeChild(ta);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback);
+  else fallback();
+}
+function svPrint() {
+  const rows = svNeedRows(); if (!rows) return;
+  let area = document.getElementById('svPrintArea');
+  if (!area) { area = document.createElement('div'); area.id = 'svPrintArea'; document.body.appendChild(area); }   // body 바로 아래여야 인쇄 때 이것만 나와요
+  area.innerHTML = '';
+  const h = document.createElement('h2'); h.textContent = "아듬's 생기부 설문 — 학생 응답";
+  const m = document.createElement('div'); m.className = 'pm';
+  m.textContent = rows.length + '명 · 출력일 ' + new Date().toLocaleDateString('ko-KR');
+  area.appendChild(h); area.appendChild(m);
+  rows.forEach(r => {
+    const raw = r.raw || {};
+    const box = document.createElement('div'); box.className = 'stu';
+    const t = document.createElement('h3');
+    t.textContent = r.grade + '학년 ' + r.ban + '반 ' + r.num + '번 ' + r.name + ' · ' + r.cat;
+    box.appendChild(t);
+    Object.keys(raw).forEach(k => {
+      if (MODAL_FIXED_COLS.has(k) || k === 'mathSubject') return;
+      const v = String(raw[k] == null ? '' : raw[k]).trim();
+      if (!v) return;
+      const q = document.createElement('div'); q.className = 'q'; q.textContent = k;
+      const a = document.createElement('div'); a.className = 'a'; a.textContent = v;
+      box.appendChild(q); box.appendChild(a);
+    });
+    area.appendChild(box);
+  });
+  document.body.classList.add('sv-printing');
+  const clean = () => { document.body.classList.remove('sv-printing'); area.innerHTML = ''; window.removeEventListener('afterprint', clean); };
+  window.addEventListener('afterprint', clean);
+  setTimeout(() => { window.print(); }, 50);
+}
+</script>
 <!-- 학생 응답 보기 모달 -->
 <div class="modal-overlay" id="student-modal" onclick="closeModalOutside(event)">
   <div class="modal-box">
@@ -5216,8 +5492,11 @@ window.addEventListener('load', () => {
         <span id="sheet-load-status" style="font-size:12px;color:var(--gray-500);"></span>
       </div>
     </div>
-    <div class="dash-btns">
+    <div class="dash-btns" style="flex-wrap:wrap;justify-content:flex-end;">
       <button class="btn-sm btn-outline" onclick="exportCSV()">📥 CSV 다운로드</button>
+      <button class="btn-sm btn-outline" onclick="svExportXlsx()">📊 엑셀(.xlsx)</button>
+      <button class="btn-sm btn-outline" onclick="svCopyTable()">📋 표 복사</button>
+      <button class="btn-sm btn-outline" onclick="svPrint()">🖨️ 인쇄</button>
 
     </div>
   </div>
@@ -5294,6 +5573,7 @@ window.addEventListener('load', () => {
       </div>
       <div class="notice-toolbar"><button type="button" class="notice-bold-btn" onclick="wrapNoticeMark('hakgup','bold')"><b>B</b> 굵게</button><button type="button" class="notice-color-btn notice-color-red" onclick="wrapNoticeMark('hakgup','red')">빨강</button><button type="button" class="notice-color-btn notice-color-blue" onclick="wrapNoticeMark('hakgup','blue')">파랑</button></div>
       <textarea id="noticeText-hakgup" placeholder="예: 자율활동은 6/20(금)까지 제출해주세요"></textarea>
+      <div class="notice-due"><label>⏰ 제출 기한 <input type="date" id="noticeDue-hakgup"></label><button type="button" class="notice-bold-btn" onclick="noticeClearDue('hakgup')">기한 지우기</button><span class="notice-hint" style="margin:0;">정한 날 밤 12시까지 제출 가능 · 다음 날부터 자동 마감</span></div>
       <div class="notice-hint">💡 굵게 하고 싶은 부분을 드래그하고 <b>B 굵게</b> 버튼을 누르세요</div>
     </div>
 
@@ -5310,6 +5590,7 @@ window.addEventListener('load', () => {
       </div>
       <div class="notice-toolbar"><button type="button" class="notice-bold-btn" onclick="wrapNoticeMark('math','bold')"><b>B</b> 굵게</button><button type="button" class="notice-color-btn notice-color-red" onclick="wrapNoticeMark('math','red')">빨강</button><button type="button" class="notice-color-btn notice-color-blue" onclick="wrapNoticeMark('math','blue')">파랑</button></div>
       <textarea id="noticeText-math" placeholder="예: 수학 세특은 이번 주까지만 받아요"></textarea>
+      <div class="notice-due"><label>⏰ 제출 기한 <input type="date" id="noticeDue-math"></label><button type="button" class="notice-bold-btn" onclick="noticeClearDue('math')">기한 지우기</button><span class="notice-hint" style="margin:0;">정한 날 밤 12시까지 제출 가능 · 다음 날부터 자동 마감</span></div>
       <div class="notice-hint">💡 굵게 하고 싶은 부분을 드래그하고 <b>B 굵게</b> 버튼을 누르세요</div>
     </div>
 
@@ -5326,6 +5607,7 @@ window.addEventListener('load', () => {
       </div>
       <div class="notice-toolbar"><button type="button" class="notice-bold-btn" onclick="wrapNoticeMark('club','bold')"><b>B</b> 굵게</button><button type="button" class="notice-color-btn notice-color-red" onclick="wrapNoticeMark('club','red')">빨강</button><button type="button" class="notice-color-btn notice-color-blue" onclick="wrapNoticeMark('club','blue')">파랑</button></div>
       <textarea id="noticeText-club" placeholder="예: 동아리 활동 3개 이상 선택해서 작성해주세요"></textarea>
+      <div class="notice-due"><label>⏰ 제출 기한 <input type="date" id="noticeDue-club"></label><button type="button" class="notice-bold-btn" onclick="noticeClearDue('club')">기한 지우기</button><span class="notice-hint" style="margin:0;">정한 날 밤 12시까지 제출 가능 · 다음 날부터 자동 마감</span></div>
       <div class="notice-hint">💡 굵게 하고 싶은 부분을 드래그하고 <b>B 굵게</b> 버튼을 누르세요</div>
     </div>
 

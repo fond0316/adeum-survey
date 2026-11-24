@@ -4292,6 +4292,29 @@ var _sheetPopupSelected = new Set(); // 선택된 학생 id 세트
 
 var SHEET_GAS_URL = 'https://script.google.com/macros/s/AKfycbxCB1e5WITiibK5OQf9SwhHObO_DR_O7itzSF_GPNyQRyPlR63m3xMPgqodvAaXlPQEug/exec';
 
+// ★ 설문 시트 목록 불러오기: 예전 GAS는 그냥 읽히고, 새 GAS(관리자 인증형)는 비밀번호를 한 번 물어봐요 (이 창을 닫으면 잊어요)
+var _sheetAdminPw = '';
+var _sheetPwDeclined = false;
+function sheetFetchList(sheetName) {
+  return fetch(SHEET_GAS_URL + '?action=list&sheetName=' + encodeURIComponent(sheetName))
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!(d && d.ok === false && /관리자 인증/.test(d.error || ''))) return d;
+      if (!_sheetAdminPw && !_sheetPwDeclined) {
+        _sheetAdminPw = prompt('🔒 설문 시트 관리자 비밀번호를 입력해 주세요') || '';
+        if (!_sheetAdminPw) _sheetPwDeclined = true;
+      }
+      if (!_sheetAdminPw) return { students: [] };
+      return fetch(SHEET_GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+          body: JSON.stringify({ adminAction:'list', pw:_sheetAdminPw, sheetName:sheetName }) })
+        .then(function(r){ return r.json(); })
+        .then(function(d2){
+          if (d2 && d2.ok === false) { var _first = !_sheetPwDeclined; _sheetAdminPw = ''; _sheetPwDeclined = true; if (_first) alert('❌ ' + (d2.error || '비밀번호가 올바르지 않아요.')); return { students: [] }; }
+          return d2;
+        });
+    });
+}
+
 function openSheetLoadPopup() {
   var popup = document.getElementById('sheet-load-popup');
   if (!popup) return;
@@ -4302,6 +4325,7 @@ function openSheetLoadPopup() {
   sheetPopupUpdateCatBtns();
   _sheetPopupUpdateFooter(); // 기존 데이터 있으면 경고 표시
 
+  _sheetPwDeclined = false;
   var baseSheet = sheetGetSheetName();
   var statusEl  = document.getElementById('sheet-load-status-msg');
   if (statusEl) statusEl.textContent = '⏳ 시트에서 불러오는 중...';
@@ -4310,8 +4334,7 @@ function openSheetLoadPopup() {
   var cats = ['자율', '진로', '행발', '수학', '동아리'];
   var promises = cats.map(function(cat) {
     var sheetName = baseSheet + '_' + cat;
-    return fetch(SHEET_GAS_URL + '?action=list&sheetName=' + encodeURIComponent(sheetName))
-      .then(function(r){ return r.json(); })
+    return sheetFetchList(sheetName)
       .then(function(data){
         var students = data.students || data.rows || [];
         return students.map(function(s, idx) {
@@ -4355,6 +4378,7 @@ function closeSheetLoadPopup() {
 function sheetPopupRefresh() {
   var statusEl = document.getElementById('sheet-load-status-msg');
   var btn = document.getElementById('slp-refresh-btn');
+  _sheetPwDeclined = false;
   if (statusEl) statusEl.textContent = '⏳ 새로고침 중...';
   if (btn) { btn.disabled = true; btn.textContent = '⏳ 불러오는 중...'; }
 
@@ -4362,8 +4386,7 @@ function sheetPopupRefresh() {
   var cats = ['자율', '진로', '행발', '수학', '동아리'];
   var promises = cats.map(function(cat) {
     var sheetName = baseSheet + '_' + cat;
-    return fetch(SHEET_GAS_URL + '?action=list&sheetName=' + encodeURIComponent(sheetName))
-      .then(function(r){ return r.json(); })
+    return sheetFetchList(sheetName)
       .then(function(data){
         var students = data.students || data.rows || [];
         return students.map(function(s, idx) {
