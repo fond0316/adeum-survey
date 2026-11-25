@@ -403,6 +403,29 @@ let onlyLeft = false; const SV = {}; const LB = { '내활동': '내가 추가' }
 const dueInfo = it => { const m = String((it && it.due) || '').match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!m) return null; const t = new Date(); t.setHours(0, 0, 0, 0); return { diff:Math.round((new Date(+m[1], +m[2] - 1, +m[3]) - t) / 86400000), txt:+m[2] + '/' + +m[3] }; };
 const snap = o => ['part', 'report', 'link', 'topic', 'career', 'summary', 'atype', 'rterm', 'ref'].map(f => String((o && o[f]) || '').trim()).join('\u0001');
 const isDirty = k => !!D[k] && snap(D[k]) !== snap(recs[k]);
+/* ===== 쓰던 글 임시저장(이 기기) — 튕기거나 새로고침해도 되살려요 ===== */
+const draftKey = () => 'ac_draft_v1_' + (me && me.sid ? me.sid : '');
+function draftSave(){
+  if (DEMO || !me || !me.sid) return;
+  try {
+    const o = {}; Object.keys(D).forEach(k => { if (isDirty(k)) o[k] = D[k]; });
+    if (Object.keys(o).length) lsSet(draftKey(), o); else lsDel(draftKey());
+  } catch (e) {}
+}
+let _dsT = null; const draftSaveSoon = () => { clearTimeout(_dsT); _dsT = setTimeout(draftSave, 600); };
+function draftRestore(){
+  if (DEMO || !me || !me.sid) return 0;
+  let o = null; try { o = lsGet(draftKey(), null); } catch (e) {}
+  if (!o || typeof o !== 'object') return 0;
+  let cnt = 0;
+  Object.keys(o).forEach(k => {
+    const p = k.split('|'), iid = p[0], n = parseInt(p[1], 10);
+    if (!iid || !n || !items.some(i => i.id === iid) || D[k]) return;
+    D[k] = o[k]; cnt++;
+    if (!recs[k] && n > 1) { (extra[iid] = extra[iid] || []); if (!extra[iid].includes(n)) extra[iid].push(n); }
+  });
+  return cnt;
+}
 function svHtml(k){
   if (SV[k]) return `<div class="sv err">❌ 저장하지 못했어요: ${esc(SV[k])}<br>인터넷을 확인하고 <b>💾 저장</b>을 다시 눌러 주세요. (쓴 내용은 그대로 있어요)</div>`;
   if (isDirty(k)) return '<div class="sv dirty">✏️ 아직 저장하지 않았어요 — 💾 저장을 눌러야 기록돼요</div>';
@@ -517,7 +540,9 @@ async function loadAll(silent){
   $('yr').textContent = '';
   $('inCareer').value = career;
   if (openId && !items.some(i => i.id === openId)) openId = null;
+  const _rs = draftRestore();
   show('main'); render();
+  if (_rs) toast('저장하지 않았던 글 ' + _rs + '개를 되살렸어요 ✍️ 확인하고 💾 저장을 눌러 주세요');
   if (!silent && !loadAll._r){ loadAll._r = 1; regSetup(); }
 }
 
@@ -543,6 +568,7 @@ function sumRender(){
 
 /* ===== 그리기 ===== */
 function render(){
+  draftSave();
   memoBanner();
   // 분류 카드 + 진행
   let tot = 0, chk = 0, sum = 0;
@@ -694,6 +720,7 @@ document.addEventListener('input', e => {
   const [iid, n] = t.dataset.k.split('|'); getDraft(iid, n)[f] = t.value; delete SV[t.dataset.k];
   { const sv = document.getElementById('sv-' + t.dataset.k); if (sv) sv.innerHTML = svHtml(t.dataset.k); }
   if (f === 'summary') { const c = document.getElementById('cn-' + t.dataset.k); if (c) c.textContent = t.value.length; }
+  draftSaveSoon();
 });
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
@@ -811,6 +838,7 @@ async function saveEnt(iid, n, btn){
   try {
     const r = await jsonp(DEMO ? { action: 'sSave', sid: me.sid, pin: me.pin, data: JSON.stringify(data) } : { action: 'sSave', sid: me.sid, pin: me.pin, d64: b64u(JSON.stringify(data)) });
     recs[key(iid, r.rec.n)] = r.rec; delete D[key(iid, n)];
+    draftSave();
     toast(d.part === 'yes' && !d.summary.trim() ? '저장했어요! 요약도 적으면 더 좋아요 ✍️' : '저장했어요 ✅');
     render();
   } catch (e) { SV[key(iid, n)] = e.message; const sv = document.getElementById('sv-' + key(iid, n)); if (sv) sv.innerHTML = svHtml(key(iid, n)); toast('저장하지 못했어요. 다시 눌러 주세요'); btn.disabled = false; btn.textContent = bt; }
@@ -821,6 +849,7 @@ async function delEnt(iid, n, btn){
   try {
     if (recs[key(iid, n)]) await jsonp({ action: 'sDelete', sid: me.sid, pin: me.pin, iid, n });
     delete recs[key(iid, n)]; delete D[key(iid, n)];
+    draftSave();
     if (extra[iid]) extra[iid] = extra[iid].filter(x => x !== n);
     toast('지웠어요'); render();
   } catch (e) { toast(e.message); btn.disabled = false; }

@@ -3329,6 +3329,38 @@ function gotoSurveyStudent(name, cat) {
 var gSurveyChecked = {};
 var gSurveySectionCollapsed = false;
 
+/* ── 같은 학생의 설문 항목(자율/진로/행발/수학/동아리·1학기/2학기)을 한 덩어리로 합쳐서 보여주는 도우미 ── */
+function _svMerge(list, base) {
+  try {
+    if (!base || !list) return base;
+    var group = list.filter(function(s){
+      return s.name === base.name && String(s.num) === String(base.num) && (s.composedBan || '') === (base.composedBan || '');
+    });
+    if (group.length <= 1) return base;
+    group.sort(function(a, b){ return String(a.sem || '1학기').localeCompare(String(b.sem || '1학기')); });
+    var sems = {}, subs = {};
+    group.forEach(function(g){ sems[g.sem || '1학기'] = 1; if (g.cat === '수학') subs[g.mathSubject || ''] = 1; });
+    var multiSem = Object.keys(sems).length > 1, multiSub = Object.keys(subs).length > 1;
+    var out = {}; Object.keys(base).forEach(function(k){ out[k] = base[k]; });
+    var keys = ['auto', 'career', 'haengbal', 'math', 'club'];
+    out.items = {}; out.detail = {};
+    keys.forEach(function(k){
+      var arr = [];
+      group.forEach(function(g){
+        ((g.items && g.items[k]) || []).forEach(function(it){
+          var pre = (multiSem ? '[' + (g.sem || '1학기') + '] ' : '') + (multiSub && g.cat === '수학' && g.mathSubject ? '(' + g.mathSubject + ') ' : '');
+          arr.push({ label: pre + it.label, text: it.text });
+        });
+      });
+      out.items[k] = arr;
+      var txt = arr.map(function(i){ return i.label + ':\n' + i.text; }).join('\n\n');
+      if (!txt) { group.forEach(function(g){ if (!txt && g.detail && g.detail[k]) txt = g.detail[k]; }); }
+      out.detail[k] = txt;
+    });
+    return out;
+  } catch (e) { return base; }
+}
+
 function gGetSurveyStudent() {
   var payload = _fdPayload;
   if (!payload) {
@@ -3346,8 +3378,9 @@ function gGetSurveyStudent() {
         : (s.grade + '-' + s.ban) === activeClass;
       return s.name === stu.name && banMatch && String(s.num) === String(selStu + 1);
     });
-    if (exact) return exact;
-    return payload.students.find(function(s) { return s.name === stu.name; }) || null;
+    if (exact) return _svMerge(payload.students, exact);
+    var _fb = payload.students.find(function(s) { return s.name === stu.name; }) || null;
+    return _fb ? _svMerge(payload.students, _fb) : null;
   } catch(e) { return null; }
 }
 
@@ -3465,9 +3498,10 @@ function dGetSurveyStudent() {
         : (s.grade + '-' + s.ban) === activeClass;
       return s.name === stu.name && banMatch && String(s.num) === String(dSelStu + 1);
     });
-    if (exact) return exact;
+    if (exact) return _svMerge(payload.students, exact);
     // 2순위: 이름만 매칭 (fallback)
-    return payload.students.find(function(s) { return s.name === stu.name; }) || null;
+    var _fbd = payload.students.find(function(s) { return s.name === stu.name; }) || null;
+    return _fbd ? _svMerge(payload.students, _fbd) : null;
   } catch(e) { return null; }
 }
 
@@ -4345,6 +4379,7 @@ function openSheetLoadPopup() {
             ban:        String(s['반']   || s['ban']   || ''),
             num:        String(s['번호'] || s['num']   || ''),
             cat:        cat,
+            sem:        ((baseSheet.match(/_(\d)학기$/)||[])[1] ? (baseSheet.match(/_(\d)학기$/)[1] + '학기') : ''),
             composedBan:(String(s['학년']||s['grade']||'')) + '-' + (String(s['반']||s['ban']||'')),
             mathSubject: s['mathSubject'] || s['수학교과명'] || '',
             preview:    s['preview'] || '',
@@ -4397,6 +4432,7 @@ function sheetPopupRefresh() {
             ban:        String(s['반']   || s['ban']   || ''),
             num:        String(s['번호'] || s['num']   || ''),
             cat:        cat,
+            sem:        ((baseSheet.match(/_(\d)학기$/)||[])[1] ? (baseSheet.match(/_(\d)학기$/)[1] + '학기') : ''),
             composedBan:(String(s['학년']||s['grade']||'')) + '-' + (String(s['반']||s['ban']||'')),
             mathSubject: s['mathSubject'] || s['수학교과명'] || '',
             preview:    s['preview'] || '',
@@ -4655,6 +4691,8 @@ function sheetPopupConfirmLoad(mode) {
         ban: r.ban || '',
         num: r.num || '',
         cat: cat,
+        sem: r.sem || '',
+        mathSubject: r.mathSubject || '',
         composedBan: r.composedBan || ((r.grade||'') + '-' + (r.ban||'')),
         preview: r.preview || '',
         // items: 항목별 배열 (렌더링용)
@@ -4680,8 +4718,10 @@ function sheetPopupConfirmLoad(mode) {
   // merge 모드: 기존 학생 유지하면서 새 학생만 추가 (같은 이름+cat이면 덮어씀)
   if (mode === 'merge' && _fdPayload && _fdPayload.students && _fdPayload.students.length > 0) {
     var existingMap = {};
-    _fdPayload.students.forEach(function(s){ existingMap[s.name + '_' + s.cat] = s; });
-    payload.students.forEach(function(s){ existingMap[s.name + '_' + s.cat] = s; });
+    // 1학기/2학기·수학 과목이 다르면 서로 덮어쓰지 않도록 키에 학기·과목 포함 (학기 정보 없는 옛 데이터는 1학기로 간주)
+    var _mk = function(x){ return x.name + '_' + x.cat + '_' + (x.sem || '1학기') + '_' + (x.mathSubject || '') + '_' + (x.num || '') + '_' + (x.composedBan || ''); };
+    _fdPayload.students.forEach(function(s){ existingMap[_mk(s)] = s; });
+    payload.students.forEach(function(s){ existingMap[_mk(s)] = s; });
     payload.students = Object.values(existingMap);
   }
 
@@ -11387,8 +11427,9 @@ function cGetSurveyStudent() {
     var byNum = payload.students.find(function(s) {
       return s.name === stu.name && String(s.num) === String(cSelStu + 1);
     });
-    if (byNum) return byNum;
-    return payload.students.find(function(s) { return s.name === stu.name; }) || null;
+    if (byNum) return _svMerge(payload.students, byNum);
+    var _fb2 = payload.students.find(function(s) { return s.name === stu.name; }) || null;
+    return _fb2 ? _svMerge(payload.students, _fb2) : null;
   } catch(e) { return null; }
 }
 
@@ -12322,6 +12363,7 @@ async function cHandleBulkGenerate() {
       if (!payload || !stu.name) return;
       var fdStu = payload.students.find(function(s){ return s.name===stu.name && String(s.num)===String(i+1); })
                || payload.students.find(function(s){ return s.name===stu.name; });
+      if (fdStu) fdStu = _svMerge(payload.students, fdStu);
       if (fdStu) {
         var clubItems2 = (fdStu.items && fdStu.items.club) ? fdStu.items.club : [];
         if (!clubItems2.length && fdStu.detail && fdStu.detail['club']) {

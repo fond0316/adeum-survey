@@ -2261,6 +2261,25 @@ function _gasPostReal(gasUrl, body, timeoutMs) {
 
 // 실패 시 조용히 한 번 더 자동 재시도 (일시적 네트워크 끊김 대비)
 // 최종 실패 시에만 사용자에게 알림
+/* 몰림 대비 제출: 시작 시각을 0~2.5초 흩뜨리고, 응답을 45초까지 기다리며, 밀렸다는 응답이면 간격을 두고 최대 3번 시도해요 (같은 학생 행으로 덮어써서 중복 저장은 안 돼요) */
+async function svSubmitWithBackoff(gasUrl, body, statusEl) {
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  if (statusEl) statusEl.innerHTML = '<span style="color:#b45309;">⏳ 제출 중이에요. 학생이 많으면 구글 저장이 느려요. <b>화면을 닫지 말고 1분까지 기다려 주세요.</b></span>';
+  await sleep(Math.random() * 2500);
+  let last = null;
+  for (let i = 0; i < 3; i++) {
+    try {
+      const res = await _gasPostReal(gasUrl, body, 45000);
+      if (res && (res.ok || !(res.busy || /lock|timeout|too many|busy/i.test(String(res.error || ''))))) return res;
+      last = res;
+    } catch (e) { last = { ok: false, error: e.message }; }
+    if (i < 2) {
+      if (statusEl) statusEl.innerHTML = '<span style="color:#b45309;">⏳ 사람이 많아서 다시 시도하는 중이에요 (' + (i + 1) + '/2). 화면을 닫지 말고 기다려 주세요.</span>';
+      await sleep(2500 * (i + 1) + Math.random() * 2500);
+    }
+  }
+  const e = new Error((last && last.error) || '구글 저장이 많이 밀려 있어요'); e.final = true; throw e;
+}
 function _gasPostRealWithRetry(gasUrl, body) {
   return _gasPostReal(gasUrl, body).catch(() => _gasPostReal(gasUrl, body));
 }
@@ -2375,7 +2394,7 @@ function doSubmitSection(tabLabel, name, grade, ban, num, gasUrl, submitKey) {
   if(btn){ btn.disabled = true; btn.textContent = '⏳ 제출 중...'; }
   if(statusEl) statusEl.textContent = '';
 
-  _gasPostRealWithRetry(gasUrl, baseData)
+  svSubmitWithBackoff(gasUrl, baseData, statusEl)
   // 응답을 못 받았어도 서버에 실제로 저장됐는지 한 번 더 확인 (저장됐으면 성공 처리)
   .catch(err => svCheckSubmitted(gasUrl, baseData.subId).then(ok => { if (ok) return { ok: true }; throw err; }))
   .then(res => {
@@ -2392,7 +2411,7 @@ function doSubmitSection(tabLabel, name, grade, ban, num, gasUrl, submitKey) {
   })
   .catch(err => {
     if(btn){ btn.disabled=false; btn.textContent= label + ' 제출하기'; }
-    alert('❌ 제출에 실패했어요.\n입력한 내용은 이 기기에 안전하게 저장되어 있으니, 인터넷 연결을 확인하고 다시 제출해주세요.\n\n오류: ' + err.message);
+    alert('❌ 제출에 실패했어요.\n구글 저장이 많이 밀려 있을 수 있어요. 1분쯤 뒤에 다시 제출해 주세요.\n입력한 내용은 이 기기에 안전하게 저장되어 있어요.\n\n오류: ' + err.message);
   });
 }
 

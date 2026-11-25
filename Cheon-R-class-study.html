@@ -2671,14 +2671,25 @@ async function sendToGAS(payload) {
   }
   document.getElementById('loadingOverlay').classList.add('show');
   try {
-    await fetch(GAS_URL, {
-      method: 'POST',
-      headers: {'Content-Type': 'text/plain'},
-      mode: 'no-cors',
-      body: JSON.stringify(payload)
-    });
-  } catch(e){console.error(e);}
+    // 응답을 읽어서 실제로 저장됐는지 확인해요 (실패하면 알려 주고, 내용은 이 기기에 백업해 둬요)
+    const res = await postGASRead(payload);
+    if (res && res.status && res.status !== 'ok') {
+      showToast('⚠️ ' + (res.message || '저장하지 못했어요. 선생님께 알려 주세요.'));
+      csUnsentKeep(payload);
+    }
+  } catch(e){
+    console.error(e);
+    showToast('⚠️ 저장이 잘 됐는지 확인하지 못했어요. 인터넷을 확인하고 선생님께 알려 주세요. (쓴 내용은 이 기기에 백업했어요)');
+    csUnsentKeep(payload);
+  }
   finally{document.getElementById('loadingOverlay').classList.remove('show');}
+}
+function csUnsentKeep(payload){
+  try {
+    const k = 'cs_unsent_v1', a = JSON.parse(localStorage.getItem(k) || '[]');
+    a.push({ at: new Date().toISOString(), payload });
+    localStorage.setItem(k, JSON.stringify(a.slice(-20)));
+  } catch(e){}
 }
 
 // ════════════════════════════════════════
@@ -3233,6 +3244,25 @@ function jsonpGAS(params, timeoutMs){
     document.head.appendChild(s);
   });
 }
+/* 몰림 대비: 제출은 자동으로 최대 3번까지, 간격을 두고 다시 시도해요 (같은 학생 행으로 덮어써서 중복 저장은 안 돼요) */
+async function postGASRetry(payload, onWait){
+  let last = null;
+  for(let i = 0; i < 3; i++){
+    try{
+      const ctl = new AbortController(), tm = setTimeout(()=>ctl.abort(), 50000);
+      let res;
+      try{
+        const r = await fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(payload), signal: ctl.signal });
+        res = JSON.parse(await r.text());
+      } finally { clearTimeout(tm); }
+      const lockMsg = res && res.status === 'error' && /lock|timeout|too many|busy/i.test(String(res.message || ''));
+      if(res && res.status !== 'busy' && !lockMsg) return res;
+      last = res;
+    }catch(e){ last = { status:'error', message: String(e && e.message || e) }; }
+    if(i < 2){ if(onWait) onWait(i + 1); await new Promise(r=>setTimeout(r, 2500 * (i + 1) + Math.random() * 2500)); }
+  }
+  return { status:'error', message:'지금 구글 저장이 많이 밀려 있어요. 잠시 뒤(1분쯤) 같은 화면에서 다시 눌러 주세요. 쓴 내용은 이 기기에 저장돼 있어요.' };
+}
 async function postGASRead(payload){
   const res = await fetch(GAS_URL, { method:'POST', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(payload) });
   const txt = await res.text();
@@ -3459,9 +3489,10 @@ async function hubSubmit(itemId){
   hubSubmitting = true;
   const label = btn ? btn.textContent : '';
   if(btn) btn.textContent = '제출 중…';
+  ok.innerHTML = '⏳ 제출 중이에요. 학생이 많으면 구글 저장이 느려요. <b>화면을 닫지 말고 1분까지 기다려 주세요.</b>'; ok.style.display = 'block';
   try{
     // 새 버전 GAS인지 + 마감 여부 먼저 확인 (옛 버전이면 엉뚱한 시트에 기록될 수 있어서 중단)
-    const probe = await jsonpGAS({ action:'getHubItems' });
+    let probe = null; try{ probe = await jsonpGAS({ action:'getHubItems' }, 25000); }catch(pe){ await new Promise(r=>setTimeout(r, 1500 + Math.random()*2500)); probe = await jsonpGAS({ action:'getHubItems' }, 25000); }
     if(!probe || !Array.isArray(probe.forms)){ setErr('선생님이 앱 업데이트를 마무리하는 중이에요. 잠시 후 다시 시도해 주세요.'); return; }
     const srv = (probe.items || []).find(x=>String(x.id)===String(itemId));
     if(!srv){ setErr('이 활동을 찾을 수 없어요. 새로고침 후 다시 시도해 주세요.'); return; }
@@ -3474,7 +3505,7 @@ async function hubSubmit(itemId){
     payload.pin = pin;
     let res = null;
     try{
-      res = await postGASRead(payload);
+      res = await postGASRetry(payload, n=>{ ok.innerHTML = '⏳ 사람이 많아서 다시 시도하는 중이에요 (' + n + '/2). 화면을 닫지 말고 기다려 주세요.'; });
     }catch(e1){
       // 응답을 못 읽은 경우: 제출번호로 실제 기록됐는지 다시 확인
       const chk = await jsonpGAS({ action:'checkSubmit', itemId:String(itemId), token:subId });
@@ -3501,6 +3532,7 @@ async function hubSubmit(itemId){
     if(btn) btn.textContent = label;
   }finally{
     hubSubmitting = false;
+    if(ok.innerHTML.indexOf('⏳') === 0){ const m = hubMy[itemId]; if(m && m.at){ ok.innerHTML = hubDoneText(m.at); } else { ok.style.display = 'none'; } }
   }
 }
 
