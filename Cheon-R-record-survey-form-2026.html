@@ -506,6 +506,17 @@ textarea.qb-inp{resize:vertical;line-height:1.6;}
   .s-menu-desc{font-size:10px;}
 }
 
+/* QR 출력 전용 영역 (화면에서는 숨김, 인쇄할 때만 보임) */
+#qr-print-area{display:none;}
+@media print{
+  body.qr-printing > *:not(#qr-print-area){display:none !important;}
+  body.qr-printing #qr-print-area{display:flex !important;flex-direction:column;align-items:center;justify-content:center;gap:18px;min-height:96vh;text-align:center;font-family:'Pretendard',sans-serif;}
+  body.qr-printing .qrp-title{font-size:34px;font-weight:800;color:#7B6BA8;word-break:keep-all;padding:0 20px;}
+  body.qr-printing .qrp-img{width:min(520px,80vw);height:auto;}
+  body.qr-printing .qrp-guide{font-size:20px;font-weight:700;color:#111;}
+  body.qr-printing .qrp-url{font-size:12px;color:#6b7280;word-break:break-all;max-width:80vw;}
+  body.qr-printing .qrp-credit{font-size:11px;color:#9ca3af;margin-top:8px;}
+}
 /* ── 학생 링크 · QR (관리자) ── */
 .qr-box{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;}
 .qr-canvas-wrap{background:#fff;border:1.5px solid var(--gray-200);border-radius:14px;padding:14px;text-align:center;}
@@ -5299,13 +5310,17 @@ function qrDrawTo(canvas, url, withLabel) {
   }
   if (withLabel) {
     ctx.fillStyle = '#7B6BA8'; ctx.textAlign = 'center';
-    ctx.font = "700 20px 'Pretendard', sans-serif";
-    ctx.fillText("아듬's 생기부 AI 설문", W / 2, oy + qrPx + 30);
+    const ttl = qrTitleGet();
+    let fs = 20;
+    ctx.font = "700 " + fs + "px 'Pretendard', sans-serif";
+    while (ctx.measureText(ttl).width > W - 40 && fs > 11) { fs--; ctx.font = "700 " + fs + "px 'Pretendard', sans-serif"; }
+    ctx.fillText(ttl, W / 2, oy + qrPx + 30);
     ctx.textAlign = 'start';
   }
 }
 function qrRender() {
   const url = qrGetLink();
+  const te = document.getElementById('qr-title-input'); if (te) te.placeholder = qrDefaultTitle();
   const c = document.getElementById('qr-canvas');
   if (c) qrDrawTo(c, url, false);
   const warn = document.getElementById('qr-warn');
@@ -5326,7 +5341,42 @@ function qrResetLink() {
   document.getElementById('qr-link-input').value = qrDefaultLink();
   qrRender();
 }
+const QR_TITLE_KEY = 'adum_survey_qr_title_v1';
+function qrDefaultTitle() {
+  const club = (document.getElementById('set-club')?.value || '').trim();
+  return club ? club + ' 활동 설문' : "아듬's 생기부 AI 설문";
+}
+function qrTitleGet() {
+  const el = document.getElementById('qr-title-input');
+  const v = (el ? el.value : '').trim();
+  return v || qrDefaultTitle();
+}
+function qrOnTitleInput() {
+  try { localStorage.setItem(QR_TITLE_KEY, (document.getElementById('qr-title-input').value || '').trim()); } catch (e) {}
+}
+function qrPrint() {
+  const url = qrGetLink();
+  if (!url) { alert('⚠️ 링크가 비어 있어요.'); return; }
+  const c = document.createElement('canvas'); c.width = 900; c.height = 900;
+  qrDrawTo(c, url, false);
+  const esc = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const old = document.getElementById('qr-print-area'); if (old) old.remove();
+  const box = document.createElement('div');
+  box.id = 'qr-print-area';
+  box.innerHTML =
+    '<div class="qrp-title">' + esc(qrTitleGet()) + '</div>' +
+    '<img class="qrp-img" src="' + c.toDataURL('image/png') + '" alt="QR"/>' +
+    '<div class="qrp-guide">📱 카메라로 QR을 찍어서 접속하세요</div>' +
+    '<div class="qrp-url">' + esc(url) + '</div>' +
+    '<div class="qrp-credit">Made by Cheon_R</div>';
+  document.body.appendChild(box);
+  document.body.classList.add('qr-printing');
+  const done = () => { document.body.classList.remove('qr-printing'); box.remove(); window.removeEventListener('afterprint', done); };
+  window.addEventListener('afterprint', done);
+  setTimeout(() => window.print(), 150);
+}
 function qrInit() {
+  try { const t = localStorage.getItem(QR_TITLE_KEY) || ''; const te = document.getElementById('qr-title-input'); if (te) { te.value = t; te.placeholder = qrDefaultTitle(); } } catch (e) {}
   let saved = '';
   try { saved = localStorage.getItem(QR_LINK_KEY) || ''; } catch (e) {}
   document.getElementById('qr-link-input').value = saved || qrDefaultLink();
@@ -5769,12 +5819,15 @@ function svPrint() {
     <div class="qr-box">
       <div class="qr-canvas-wrap"><canvas id="qr-canvas" width="480" height="480"></canvas></div>
       <div class="qr-side">
+        <div style="font-size:12px;font-weight:700;color:var(--gray-900);margin-bottom:6px;">🏷️ QR 제목 <span style="font-weight:400;color:var(--gray-500);">(출력·이미지 저장에 들어가요. 비워두면 동아리명으로 자동)</span></div>
+        <input class="qr-link-input" id="qr-title-input" type="text" maxlength="40" oninput="qrOnTitleInput()" style="margin-bottom:14px;" placeholder="예) 창의수학 활동 설문"/>
         <div style="font-size:12px;font-weight:700;color:var(--gray-900);margin-bottom:6px;">🔗 학생용 링크</div>
         <input class="qr-link-input" id="qr-link-input" type="text" oninput="qrOnLinkInput()" placeholder="https://..."/>
         <div class="qr-warn" id="qr-warn"></div>
         <div class="qr-btn-row">
           <button class="btn-sm btn-blue" onclick="qrCopyLink()">🔗 링크 복사</button>
           <button class="btn-sm btn-outline" onclick="qrDownload()">💾 QR 이미지 저장</button>
+          <button class="btn-sm btn-outline" onclick="qrPrint()">🖨️ QR 출력</button>
           <button class="btn-sm btn-outline" onclick="qrFullscreen()">🖥️ 크게 보기</button>
           <button class="btn-sm btn-outline" onclick="qrResetLink()">↺ 현재 주소로</button>
         </div>
