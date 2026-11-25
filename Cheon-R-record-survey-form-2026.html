@@ -1191,10 +1191,10 @@ function renderTable() {
       const rowCls = checked ? 't-row checked' : 't-row';
       return `<div class="${rowCls}" style="display:grid;grid-template-columns:${cols};">` +
         `<div><input type="checkbox" style="accent-color:#2563eb" ${chk} onchange="toggleCheck('${r.key || r.id}',this)"></div>` +
-        `<div class="t-name">${r.name}</div>` +
-        `<div class="t-id">${r.id}</div>` +
-        `<div class="t-ban">${r.ban}반</div>` +
-        `<div><span class="ctag ${catCls}" title="${r.subKey || ''}">${r.cat}${r.cat === '수학' && r.sem ? '·' + r.sem : ''}</span></div>` +
+        `<div class="t-name">${escHtml(r.name)}</div>` +
+        `<div class="t-id">${escHtml(r.id)}</div>` +
+        `<div class="t-ban">${escHtml(r.ban)}반</div>` +
+        `<div><span class="ctag ${catCls}" title="${escHtml(r.subKey || '')}">${escHtml(r.cat)}${r.cat === '수학' && r.sem ? '·' + escHtml(r.sem) : ''}</span></div>` +
         `<div class="t-prev" title="${escHtml(r.preview || '')}">${r.previewHtml || escHtml(r.preview || '—')}</div>` +
         `<div class="t-acts">${actHtml}</div>` +
         '</div>';
@@ -1465,7 +1465,7 @@ function renderQBBody(section, q, idx) {
     <div class="req-toggle-wrap" style="margin-top:14px;">
       <span>필수 응답</span>
       <label class="toggle-switch">
-        <input type="checkbox" ${q.required?'checked':''} onchange="updateQField('${section}',${idx},'required',this.checked)">
+        <input type="checkbox" ${q.required?'checked':''} onchange="updateQField('${section}',${idx},'required',this.checked);this.closest('.req-toggle-wrap').lastElementChild.textContent=this.checked?'필수':'선택'">
         <span class="toggle-slider"></span>
       </label>
       <span style="font-size:12px;color:var(--gray-500);">${q.required ? '필수' : '선택'}</span>
@@ -1656,20 +1656,58 @@ function saveAllSettings() {
   applyQuestionsToForm();
 
   // 토스트
-  showToast('✅ 저장 완료! 학생 폼에 반영되었습니다.');
+  showToast('✅ 저장 완료! (학생 폰 반영은 ☁️ 알림이 뜨면 완료)');
 }
 
 function pushBasicSettingsToGas(b) {
   const url = getGasUrl();
   if (!url || !_adminPw) return;
   noticeSettings.basic = { year:b.year, grade:b.grade, semester:b.semester, school:b.school, club:b.club, math:b.math };
+  // ★ 질문·활동 목록도 GAS에 같이 저장 → 학생 폰에서도 최신 질문이 보임 (예전엔 이 기기 localStorage에만 저장돼서 학생에게 안 보였음)
+  noticeSettings.questions = deepCopy(savedQuestions);
+  noticeSettings.items = {
+    auto:   [...document.querySelectorAll('#auto-list .act-name')].map(el=>el.textContent),
+    career: [...document.querySelectorAll('#career-list .act-name')].map(el=>el.textContent),
+  };
+  if (JSON.stringify(noticeSettings).length > 45000) {
+    alert('⚠️ 질문 내용이 너무 길어서 학생 폰에 저장하지 못했어요. (구글 시트 한 칸 한도)\n질문 안내문구를 조금 줄여 주세요.');
+    return;
+  }
   _gasPostReal(url, { adminAction: 'saveSettings', pw: _adminPw, settings: noticeSettings })
     .then(res => {
       if (!res || !res.ok) throw new Error(res?.error || '저장 실패');
       localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(noticeSettings));
-      showToast('☁️ 학년도·학기·수학교과가 학생 폰에도 적용돼요');
+      showToast('☁️ 질문·설정이 학생 폰에도 적용돼요');
     })
-    .catch(() => { alert('⚠️ 기본 설정은 이 기기에만 저장됐어요.\n학생 폰에 적용하려면 인터넷을 확인하고 다시 저장해 주세요.'); });
+    .catch(() => { alert('⚠️ 이 기기에만 저장됐어요. 학생 폰에는 아직 반영되지 않았어요!\n인터넷·관리자 로그인을 확인하고 다시 저장해 주세요.'); });
+}
+
+// 학생 폰(관리자 포함): GAS에 저장된 질문·활동 목록이 현재 화면과 다르면 교체해서 다시 그림
+function applyRemoteQuestions(st) {
+  if (!st) return;
+  try {
+    if (st.questions && typeof st.questions === 'object' && JSON.stringify(st.questions) !== JSON.stringify(savedQuestions)) {
+      const adminEditing = !!_adminPw && JSON.stringify(editingQuestions) !== JSON.stringify(savedQuestions);
+      if (!adminEditing) {
+        if (currentFormType) autoSave();   // 폼을 열어 작성 중이던 답만 임시저장 → 다시 그린 뒤 복원
+        savedQuestions = deepCopy(st.questions);
+        localStorage.setItem('adum_saved_questions', JSON.stringify(savedQuestions));
+        localStorage.setItem('adum_questions_version', String(QUESTIONS_VERSION));
+        editingQuestions = deepCopy(savedQuestions);
+        renderAllBuilders();
+        applyQuestionsToForm();
+        loadDraft();
+      }
+    }
+    if (st.items && !_adminPw && Array.isArray(st.items.auto) && Array.isArray(st.items.career)) {
+      const curA = localStorage.getItem('adum_auto_items'), curC = localStorage.getItem('adum_career_items');
+      if (JSON.stringify(st.items.auto) !== curA || JSON.stringify(st.items.career) !== curC) {
+        localStorage.setItem('adum_auto_items', JSON.stringify(st.items.auto));
+        localStorage.setItem('adum_career_items', JSON.stringify(st.items.career));
+        applyCheckboxItems(st.items.auto, st.items.career);
+      }
+    }
+  } catch(e) {}
 }
 
 // 학생 폰: 아듬샘이 저장한 기본설정(학년도·학기·수학교과 등)을 받아서 적용
@@ -2636,6 +2674,7 @@ function fetchNoticeSettingsFromGas() {
       localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(noticeSettings));
       applyNoticeSettings();
       if (data.settings.basic) applyRemoteBasicSettings(data.settings.basic);
+      applyRemoteQuestions(data.settings);
     })
     .catch(() => {}); // 실패하면 로컬 캐시값 그대로 유지
 }
@@ -2731,7 +2770,7 @@ function loadFromGoogleSheet() {
     .then(data => {
       if(!data.ok) throw new Error(data.error || '응답 오류');
       const students = (data.students || []).map((s, i) => ({
-        key:     [s['학년'], s['반'], s['번호'], detectCat(s), i].join('-'),   // 행마다 고유 (같은 번호가 여러 구분/반에 있어도 구별)
+        key:     [s['학년'], s['반'], s['번호'], detectCat(s), i].join('-').replace(/[^0-9A-Za-z가-힣_-]/g, ''),   // 행마다 고유 (같은 번호가 여러 구분/반에 있어도 구별)
         id:      String(s['번호'] || ''),
         name:    s['이름'] || '',
         grade:   String(s['학년'] || ''),
@@ -2807,10 +2846,10 @@ function renderDashboard(students) {
     const catBg    = s.cat==='수학'?'#f5f3ff':s.cat==='동아리'?'#d1fae5':'#eff6ff';
     return '<tr>'
       + '<td style="padding:9px 12px;font-size:12px;color:var(--gray-500);">'+(i+1)+'</td>'
-      + '<td style="padding:9px 12px;font-size:13px;font-weight:700;color:var(--gray-900);">'+s.name+'</td>'
-      + '<td style="padding:9px 12px;font-size:12px;color:var(--gray-700);">'+s.grade+'학년 '+s.ban+'반 '+s.num+'번</td>'
-      + '<td style="padding:9px 12px;"><span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;background:'+catBg+';color:'+catColor+';">'+s.cat+'</span></td>'
-      + '<td style="padding:9px 12px;font-size:11px;color:var(--gray-500);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+s.preview+'</td>'
+      + '<td style="padding:9px 12px;font-size:13px;font-weight:700;color:var(--gray-900);">'+escHtml(s.name)+'</td>'
+      + '<td style="padding:9px 12px;font-size:12px;color:var(--gray-700);">'+escHtml(s.grade)+'학년 '+escHtml(s.ban)+'반 '+escHtml(s.num)+'번</td>'
+      + '<td style="padding:9px 12px;"><span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px;background:'+catBg+';color:'+catColor+';">'+escHtml(s.cat)+'</span></td>'
+      + '<td style="padding:9px 12px;font-size:11px;color:var(--gray-500);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+escHtml(s.preview)+'</td>'
       + '<td style="padding:9px 12px;"></td>'
       + '</tr>';
   }).join('');
