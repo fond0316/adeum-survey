@@ -45,6 +45,7 @@ textarea{padding:10px 12px;min-height:70px}
 #nav button{flex:1;min-height:56px;border:0;background:none;font:inherit;font-size:11px;color:#8C88A3;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
 #nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 #nav button.on{color:var(--main-d);font-weight:600}
+.demo{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:8px;background:#FFF1B8;border:1.5px dashed #3A3360;border-radius:10px;padding:6px 10px;margin-bottom:10px;font-size:12.5px;font-weight:600;color:#3A3360}.demo .btn{white-space:nowrap;flex:0 0 auto}
 #sheetWrap{position:fixed;inset:0;background:rgba(30,25,50,.45);display:none;align-items:flex-end;justify-content:center;z-index:50}
 #sheetWrap.on{display:flex}
 #sheet{background:var(--bg);width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:16px 14px calc(20px + env(safe-area-inset-bottom))}
@@ -81,10 +82,11 @@ details summary{cursor:pointer;font-weight:600;min-height:36px;display:flex;alig
 <script>
 (function(){
 'use strict';
-var MODE=(function(){try{var q=new URLSearchParams(location.search).get('mode');if(q)localStorage.setItem('running_mode',q==='me'?'all':q);var m=localStorage.getItem('running_mode');return ['lore','skid','hyrox'].indexOf(m)>=0?m:'all'}catch(e){return 'all'}})();
+var DEMO=(function(){try{var q=new URLSearchParams(location.search).get('demo');if(q==='0')localStorage.removeItem('running_demo');return localStorage.getItem('running_demo')==='1'}catch(e){return false}})();
+var MODE=(function(){if(DEMO)return 'all';try{var q=new URLSearchParams(location.search).get('mode');if(q)localStorage.setItem('running_mode',q==='me'?'all':q);var m=localStorage.getItem('running_mode');return ['lore','skid','hyrox'].indexOf(m)>=0?m:'all'}catch(e){return 'all'}})();
 var LORE=MODE!=='all',MODENM={all:'레이스 크루',skid:'스키드레이스',lore:'로어그릿',hyrox:'하이록스'};
 if(LORE)document.title=MODENM[MODE]+' · 레이스 크루 · Cheon-R';
-var KEY=LORE?'running_'+MODE+'_v1':'running_data_v1';
+var KEY=DEMO?'running_demo_v1':(LORE?'running_'+MODE+'_v1':'running_data_v1');
 var DAY=864e5;
 var DOW=['일','월','화','수','목','금','토'];
 var PLACES=['야외','무동력 트레드밀','일반 트레드밀'];
@@ -117,7 +119,14 @@ if(MODE==='skid'){b.events=[{id:'e1',name:'스키드레이스',short:'스키드'
 else if(MODE==='hyrox'){b.events=[{id:'e3',name:'하이록스',short:'하이록스',date:'2027-05-16',goal:{base:360,target:330}}];b.blocks=[blk('b3','러닝 베이스','base','2027-01-18','2027-02-15',3,[2,4,6]),blk('b4','하이록스 빌드','build','2027-02-16','2027-05-02',3,[2,4,6]),blk('b5','테이퍼','taper','2027-05-03','2027-05-16',3,[2,6])]}
 else{b.events=[{id:'e2',name:'로어그릿',short:'로어',date:'2027-01-17',goal:null}];b.blocks=[blk('b2','로어그릿 대비','lower','2026-12-13','2027-01-17',3,[2,4,6])]}
 b.blocks=b.blocks.filter(Boolean);return b}
-function seed(){if(LORE)return seedMode();return{v:1,settings:{maxHr:185},
+function demoSeed(){
+var t=todayStr(),b={v:1,settings:{maxHr:185},overrides:{},badges:{},finished:{},setupDone:true,f45:{},logs:[]};
+b.events=[{id:'e1',name:'스키드레이스(체험)',short:'스키드',date:addDays(t,16),goal:null},{id:'e2',name:'로어그릿(체험)',short:'로어',date:addDays(t,52),goal:null}];
+b.blocks=[{id:'b1',name:'체험용 재시동',kind:'restart',start:addDays(t,-20),end:addDays(t,16),level:2,days:[2,6],indoorUntil:addDays(t,-10)},{id:'b2',name:'체험용 로어 대비',kind:'lower',start:addDays(t,17),end:addDays(t,52),level:3,days:[2,4,6]}];
+[[-19,32,5.1,148,0],[-16,35,5.6,150,0],[-12,34,5.7,149,0],[-9,38,6.4,147,0],[-5,36,6.2,146,0],[-2,40,6.9,145,0]].forEach(function(r,i){b.logs.push({id:'demo'+i,date:addDays(t,r[0]),sid:'',place:r[0]<-10?'무동력 트레드밀':'야외',min:r[1],km:r[0]<-10?0:r[2],avgHr:r[3],maxHr:r[3]+14,rpe:5,reps:[],note:i===0?'체험용 샘플 기록이에요':''})});
+[-18,-15,-11,-8,-4].forEach(function(d,i){b.f45[addDays(t,d)]=i===2?2:1});
+return b}
+function seed(){if(DEMO)return demoSeed();if(LORE)return seedMode();return{v:1,settings:{maxHr:185},
 events:[
 {id:'e1',name:'스키드레이스',short:'스키드',date:'2026-12-12',goal:null},
 {id:'e2',name:'로어그릿',short:'로어',date:'2027-01-17',goal:null},
@@ -133,7 +142,7 @@ overrides:{},logs:[],badges:{}}}
 var S=load();
 function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&o.v===1&&o.blocks&&o.events)return o}}catch(e){}return seed()}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('저장 공간을 확인해 주세요')}
-if(MODE==='all'){try{localStorage.setItem('running_dirty','1')}catch(e){}cloudSeq=(cloudSeq|0)+1;if(typeof cloudQueue==='function')cloudQueue()}}
+if(MODE==='all'&&!DEMO){try{localStorage.setItem('running_dirty','1')}catch(e){}cloudSeq=(cloudSeq|0)+1;if(typeof cloudQueue==='function')cloudQueue()}}
 
 var ui={tab:'home',week:mondayOf(todayStr())};
 var sessions=[];
@@ -264,7 +273,7 @@ function unlockCheck(){var nw=[];BADGES.forEach(function(b){if(!S.badges[b.id]&&
 
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(function(){t.style.display='none'},2400)}
 function openSheet(h){var w=document.getElementById('sheetWrap');document.getElementById('sheet').innerHTML=h;w.classList.add('on');document.getElementById('sheet').scrollTop=0}
-function closeSheet(){document.getElementById('sheetWrap').classList.remove('on')}
+function closeSheet(){document.getElementById('sheetWrap').classList.remove('on');if(ui.wl){ui.wl=false;if(LORE&&!S.setupDone)setTimeout(openPet,0)}}
 
 function curBlock(t){return S.blocks.find(function(b){return b.start<=t&&t<=b.end})||null}
 function nextBlock(t){return S.blocks.filter(function(b){return b.start>t}).sort(function(a,b){return a.start<b.start?-1:1})[0]||null}
@@ -332,6 +341,7 @@ BADGES.forEach(function(b){var on=!!S.badges[b.id];h+='<span class="badge'+(on?'
 h+='<div class="mut" style="margin-top:4px">회색 배지는 아직 달성 전이에요.</div></div>';
 h+=vScenes();
 h+='<button class="btn full" data-act="share" data-mon="'+mon+'">이번 주 공유 카드 만들기</button>';
+h+='<div class="grid2" style="margin-top:10px"><button class="btn" data-act="guide">📖 가이드 보기</button>'+(DEMO?'<button class="btn" data-act="demoend">체험 끝내기</button>':'<button class="btn" data-act="demoask">🎮 체험하기</button>')+'</div>';
 if(LORE)h+=loreInfo();
 return h+'<div class="foot" data-act="foot">Made by Cheon_R</div>'}
 
@@ -434,7 +444,7 @@ function render(){
 refresh();
 if(ui.tab==='adm'&&!isAdmin())ui.tab='home';
 var app=document.getElementById('app');
-app.innerHTML=(isAdmin()?adminBar():'')+{home:vHome,week:vWeek,prog:vProg,stats:vStats,log:vLog,adm:vAdmin}[ui.tab]()+(!LORE&&!isAdmin()?'<div class="foot" style="margin-top:0"><button class="adm-link" data-act="adminopen">⚙ 관리자</button></div>':'');
+app.innerHTML=(DEMO?'<div class="demo"><span>🧪 체험 중이에요 · 샘플 기록이고 진짜 기록과 따로 보관돼요</span><button class="btn sm" data-act="demoend">체험 끝내기</button></div>':'')+(isAdmin()?adminBar():'')+{home:vHome,week:vWeek,prog:vProg,stats:vStats,log:vLog,adm:vAdmin}[ui.tab]()+(!LORE&&!isAdmin()&&!DEMO?'<div class="foot" style="margin-top:0"><button class="adm-link" data-act="adminopen">⚙ 관리자</button></div>':'');
 document.querySelector('#nav .in').innerHTML=(isAdmin()?TABS.concat([['adm','관리자']]):TABS).map(function(t){return '<button class="'+(ui.tab===t[0]?'on':'')+'" data-act="goto" data-tab="'+t[0]+'"><svg viewBox="0 0 24 24">'+ICON[t[0]]+'</svg>'+t[1]+'</button>'}).join('')}
 
 function openSession(id){
@@ -626,7 +636,7 @@ var h='<div class="card"><div class="row"><b>프사오 체크</b><input type="da
 return h+'</div><div class="mut" style="margin-top:6px">'+md(d)+' · '+['기록 없음','프사오 1회 (먹이 +1)','프사오 더블 (먹이 +2)'][v]+'</div></div>'}
 function f45Week(mon){var e=addDays(mon,6),n=0,dbl=0,F=f45();Object.keys(F).forEach(function(d){if(d>=mon&&d<=e){n++;if(F[d]===2)dbl++}});return{n:n,dbl:dbl}}
 /* ===== 관리자 모드 (추가) ===== */
-function isAdmin(){try{return localStorage.getItem('running_admin')==='1'}catch(e){return false}}
+function isAdmin(){if(DEMO)return false;try{return localStorage.getItem('running_admin')==='1'}catch(e){return false}}
 function adminPw(){try{return localStorage.getItem('running_adminpw')||'race-crew'}catch(e){return 'race-crew'}}
 function baseUrl(){try{var b=localStorage.getItem('running_base');if(b)return b.replace(/\?.*$/,'')}catch(e){}return location.origin==='null'||location.protocol==='file:'?location.href.replace(/[?#].*$/,''):location.origin+location.pathname}
 function shareUrl(m){var g=gasUrl();return baseUrl()+'?mode='+m+(g?'&gas='+encodeURIComponent(g):'')}
@@ -718,6 +728,10 @@ else if(act==='savelog')saveLog(id);
 else if(act==='dellog'){if(confirm('이 기록을 삭제할까요?')){S.logs=S.logs.filter(function(x){return x.id!==id});save();closeSheet();render()}}
 else if(act==='skipsess'){var o=S.overrides[id]||(S.overrides[id]={});o.skip=!o.skip;save();closeSheet();render()}
 else if(act==='closesheet')closeSheet();
+else if(act==='guide')openGuide();
+else if(act==='demoask'){ui.wl=false;openDemoAsk()}
+else if(act==='demogo')demoGo(true);
+else if(act==='demoend')demoGo(false);
 else if(act==='wkprev'){ui.week=addDays(ui.week,-7);render()}
 else if(act==='wknext'){ui.week=addDays(ui.week,7);render()}
 else if(act==='wknow'){ui.week=mondayOf(todayStr());render()}
@@ -854,8 +868,35 @@ function applyGate(){
 var g=document.getElementById('gate'),blk=LORE&&!isOpen(MODE);
 if(blk){if(!g){g=document.createElement('div');g.id='gate';g.className='gate';document.body.appendChild(g)}
 g.innerHTML='<div class="gate-in"><div style="font-size:54px">🥚</div><h2>'+MODENM[MODE]+'는 아직 준비 중이에요</h2><div class="mut" style="margin:6px 0 16px">아듬샘이 열어 주면 이 링크로 바로 들어올 수 있어요.</div><button class="btn pri" data-act="gaterefresh">다시 확인하기</button><div class="mut" style="margin-top:14px;font-size:12px">문의 <a href="mailto:fond7509@naver.com?subject='+encodeURIComponent('[레이스 크루] 문의')+'">fond7509@naver.com</a></div></div>'}
-else{if(g)g.remove();if(LORE&&!S.setupDone&&!document.getElementById('sheetWrap').classList.contains('on'))openPet()}}
+else{if(g)g.remove();if(!document.getElementById('sheetWrap').classList.contains('on')){if(needWelcome())openWelcome();else if(LORE&&!S.setupDone)openPet()}}}
+function needWelcome(){if(DEMO)return false;try{return localStorage.getItem('running_welcome')!=='1'}catch(e){return false}}
+function openWelcome(){
+try{localStorage.setItem('running_welcome','1')}catch(e){}
+ui.wl=true;
+var h='<div style="text-align:center"><div style="font-size:54px">🐣</div><h2>레이스 크루에 온 걸 환영해요!</h2><div class="mut" style="line-height:1.7;margin:4px 0 14px">달리기도 프사오도 한 번 한 번이 병아리 밥이 돼요.<br>대회 날까지 같이 쑥쑥 자라 봐요 💜<br>오늘 한 걸음이면 충분해요. 파이팅!</div></div>';
+h+='<div style="display:grid;gap:8px"><button class="btn pri" data-act="guide">📖 가이드 먼저 볼래요</button><button class="btn" data-act="demoask">🎮 체험해 볼래요 (샘플 기록)</button><button class="btn" data-act="closesheet">바로 시작할게요 🚀</button></div>';
+openSheet(h)}
+function openGuide(){
+var d=function(t,b){return '<details style="margin-top:8px"><summary><b>'+t+'</b></summary><div class="mut" style="margin-top:6px;line-height:1.7">'+b+'</div></details>'};
+var h='<h2>📖 가이드</h2><div class="mut">궁금한 걸 눌러서 펴 보세요.</div>';
+h+=d('🏠 홈 화면','맨 위 제목은 지금 단계(시작 전·훈련 중·대회 주간·대회 당일)에 맞춰 바뀌어요. 아래로 성장 친구, 프사오 체크, 이번 주 세션, 연속 달성, 배지가 이어져요. 오른쪽 위 <b>+ 기록</b>으로 달린 기록을 바로 넣을 수 있어요.');
+h+=d('🐣 성장 친구(병아리)','기록 1개 = 먹이 1, <b>무동력 트레드밀은 2</b>, 프사오 1~2(더블)예요. 먹이가 쌓이면 알 → 병아리 → 중병아리 → 닭 → 러너 닭으로 자라요. 대회마다 새 알에서 시작하고, 대회를 마치면 기념 카드가 만들어져요. 이름·색은 성장 친구 카드에서 바꿔요.');
+h+=d('🏋️ 프사오(F45) 체크','홈의 프사오 카드에서 날짜를 고르고 <b>갔어요</b> 또는 <b>더블</b>을 눌러요. 지난 날짜도 넣을 수 있어요. 러닝 기록과는 별개로 먹이에만 더해져요.');
+h+=d('📝 기록 넣는 법','<b>시간(분)</b>만 꼭 넣으면 돼요. 거리·심박·RPE(힘든 정도)를 넣으면 피드백이 더 정확해져요. 예정된 세션을 눌러서 기록하면 그 세션과 연결돼요. 가민·스트라바 자동 연동은 아직 없어서 직접 입력해요.');
+h+=d('📅 주차 · 🧩 프로그램','주차 탭에서 주별 세션과 증가율을 봐요. 프로그램 탭에서는 대회 일정, 훈련 블록(기간·강도·요일), 홈 한 줄 문구, 최대심박을 바꿀 수 있어요.');
+h+=d('📊 통계','주별 시간·거리, 심박 존, 시작 대비 변화(페이스·심박)를 볼 수 있어요. 쉬운 런 기록이 4개쯤 쌓이면 변화가 보여요.');
+h+=d('💾 백업 · 주의','기록은 <b>이 폰(브라우저)에만</b> 저장돼요. 프로그램 탭 맨 아래 <b>백업</b>으로 파일을 저장해 두면 안전해요. 카카오톡 안에서 열지 말고 사파리·크롬에서 열고, 홈 화면에 추가하면 앱처럼 써요.');
+h+='<div class="mut" style="margin-top:10px">문의: <a href="mailto:fond7509@naver.com?subject=[레이스 크루] 문의">fond7509@naver.com</a></div>';
+h+='<div style="display:grid;gap:8px;margin-top:14px">'+(DEMO?'':'<button class="btn pri" data-act="demoask">🎮 체험해 볼래요 (샘플 기록)</button>')+'<button class="btn" data-act="closesheet">닫기</button></div>';
+openSheet(h)}
+function openDemoAsk(){
+openSheet('<h2>🎮 체험해 볼까요?</h2><div class="mut" style="line-height:1.7">샘플 기록이 들어 있는 체험용 화면으로 들어가요. 기록 입력·프사오 체크·병아리 성장까지 마음껏 눌러 봐도 돼요.<br><br>✅ 내 진짜 기록은 그대로예요 (체험은 따로 보관돼요).<br>✅ [체험 끝내기]를 누르면 체험 기록이 지워지고 원래 화면으로 돌아와요.</div><div style="display:grid;gap:8px;margin-top:14px"><button class="btn pri" data-act="demogo">체험 시작 🎮</button><button class="btn" data-act="closesheet">취소</button></div>')}
+function demoGo(on){
+try{if(on)localStorage.setItem('running_demo','1');else{localStorage.removeItem('running_demo');localStorage.removeItem('running_demo_v1')}}catch(e){}
+try{history.replaceState(null,'',location.pathname+(on?'':location.search.replace(/[?&]demo=\d/,'')))}catch(e){}
+location.reload()}
 function refreshOpen(manual){
+if(DEMO)return;
 if(!gasUrl()){if(manual)toast('먼저 GAS 주소를 입력해 주세요');applyGate();return}
 gasCall({action:'open'},function(r){
 if(r&&r.ok&&r.open){try{localStorage.setItem('running_open',r.open.join(','))}catch(e){}applyGate();if(isAdmin())render();if(manual)toast('연결됐어요 · 열린 버전: '+(r.open.length?r.open.map(function(m){return MODENM[m]}).join(', '):'없음'))}
