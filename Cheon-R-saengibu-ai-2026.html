@@ -11587,7 +11587,7 @@ function cRenderSidebar() {
     return "<div onclick=\"cSelectStu("+i+")\" style=\"display:flex;align-items:center;gap:5px;padding:7px 10px;cursor:pointer;background:"+(on?"#ecfdf5":"white")+";border-left:"+(on?"3px solid #059669":"3px solid transparent")+";border-bottom:1px solid #f5f5f5;\">"
       +"<span style=\"font-size:10px;color:"+(on?"#059669":"#d1d5db")+";font-weight:"+(on?700:400)+";min-width:22px;flex-shrink:0\">"+String(i+1).padStart(2,"0")+"<\/span>"
       +"<input value=\""+_esc(s.name||"")+"\" placeholder=\"이름\" onchange=\"cUpdateName("+i+",this.value)\" onclick=\"event.stopPropagation()\" style=\"flex:1;border:none;outline:none;font-size:12px;background:transparent;color:"+(on?"#111":"#374151")+";font-family:sans-serif;\"/>"
-      +(s.neis?"<span title=\"나이스 학년-반-번호\" style=\"font-size:10px;color:#9ca3af;flex-shrink:0;white-space:nowrap;\">"+_esc(s.neis.grade+"-"+s.neis.ban+"-"+s.neis.num)+"<\/span>":"")
+      +(s.neis?"<span title=\"학번 (학년·반 2자리·번호 2자리)\" style=\"font-size:10px;color:#9ca3af;flex-shrink:0;white-space:nowrap;\">"+_esc(cStuNo(s.neis))+"<\/span>":"")
       +((s.files&&s.files.length)?"<span title=\""+s.files.length+"개 첨부\" style=\"font-size:10px;color:#9ca3af;flex-shrink:0\">📎<\/span>":"")
       +(s.done?"<div style=\"width:6px;height:6px;border-radius:50%;background:#059669;flex-shrink:0\"><\/div>":"")
       +"<\/div>";
@@ -11604,7 +11604,7 @@ function cRenderHeader() {
   if (!club) return;
   var stu = club.students[cSelStu];
   document.getElementById("c-hdr-title").textContent = club.name+" · "+(cSelStu+1)+"번 "+(stu&&stu.name?stu.name:"학생");
-  if (stu && stu.neis) document.getElementById("c-hdr-title").textContent += " ("+stu.neis.grade+"-"+stu.neis.ban+"-"+stu.neis.num+")";
+  if (stu && stu.neis) document.getElementById("c-hdr-title").textContent += " ("+cStuNo(stu.neis)+")";
   var byteEl = document.getElementById("c-byte-badge");
   if (cResult) {
     var bytes = cCalcBytes(cResult);
@@ -12701,6 +12701,7 @@ function cExportCSV(){
    · 이미 입력한 내용(결과·역할·에피소드·첨부)은 같은 이름의 학생에게 그대로 이어져요.
    · 명렬표에 없는 기존 학생(데이터 있는 경우)은 지우지 않고 맨 아래로 내려요.
    · 해당 양식이 아니면 false를 돌려줘서 기존 업로드 로직이 그대로 실행돼요. */
+function cStuNo(n){ var p=function(v){ v=String(v==null?"":v); return v.length<2?("0"+v):v; }; return String(n.grade)+p(n.ban)+p(n.num); }
 function _cTryNeisRoster(data){
   var norm=function(c){return String(c==null?"":c).replace(/\s+/g,"").trim();};
   var hr=-1,cg=-1,cb=-1,cn=-1,cname=-1;
@@ -14737,5 +14738,6 @@ switchTab = function(tab){
   if(on) mgInit();
 };
 </script>
+<style>#c-stu-list input{min-width:0;}</style>
 </body>
 </html>
