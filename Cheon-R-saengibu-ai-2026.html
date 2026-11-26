@@ -14987,6 +14987,8 @@ body #c-status-table td{font-size:13px!important;border-bottom:1px solid #EFEBF8
 body #stats-view,body #d-view-stats,body #c-view-stats{background:#F4F2FA!important;padding:16px 16px 32px!important;}
 body #stats-view>*,body #d-view-stats>*,body #c-view-stats>*{max-width:860px;margin-left:auto!important;margin-right:auto!important;box-sizing:border-box;}
 body #stats-view>div,body #d-view-stats>div,body #c-view-stats>div{width:100%;}
+body #d-view-stats,body #c-view-stats{flex-direction:column!important;align-items:stretch!important;}
+body #stats-view>*,body #d-view-stats>*,body #c-view-stats>*{flex-shrink:0;}
 body #stats-view .stat-card,body #d-view-stats .stat-card,body #c-view-stats .stat-card{border:1px solid #E4E0F0!important;border-radius:16px!important;padding:16px!important;box-shadow:none!important;}
 body #stats-view .stat-card>div:first-child,body #d-view-stats .stat-card>div:first-child,body #c-view-stats .stat-card>div:first-child{font-size:16px!important;}
 body #stats-view>div:not(:last-child),body #d-view-stats>div:not(:last-child),body #c-view-stats>div:not(:last-child){margin-bottom:12px!important;}
@@ -15243,6 +15245,215 @@ body #stats-view>div:not(:last-child),body #d-view-stats>div:not(:last-child),bo
       return r;
     };
   }
+})();
+</script>
+<!-- ══ 현황 통합(현황+통계 한 화면) + 세특 전문 보기·직접 수정·저장 — 기존 코드 변경 없이 추가만 ══ -->
+<style id="adum-unify-merge">
+/* 통계 탭은 숨기고(분석 내용은 현황 아래 '상세 분석'으로 이동), 현황 화면 전체가 스크롤되도록 */
+body #tab-stats,body #d-maintab-stats,body #c-maintab-stats{display:none!important;}
+body #status-view,body #d-view-status,body #c-view-status{overflow-y:auto!important;}
+body #status-table-wrap,body #d-status-table-wrap,body #c-view-status>div:nth-child(2){flex:none!important;overflow:auto!important;max-height:none!important;}
+body #status-toolbar,body #d-status-toolbar,body #c-view-status>div:first-child{display:flex!important;flex-wrap:wrap!important;align-items:center;}
+.adum-strip{flex-basis:100%;width:100%;order:99;display:flex;gap:8px;flex-wrap:wrap;font-size:12px;margin-top:6px;padding-top:10px;border-top:1px solid #EFEBF8;}
+.adum-chip{background:#F7F5FC;border:1px solid #E4E0F0;border-radius:20px;padding:4px 11px;color:#4B4560;white-space:nowrap;}
+.adum-chip b{color:#2E2A3D;}.adum-chip.ok{background:#ECFDF5;border-color:#A7F3D0;color:#065F46;}.adum-chip.lo{background:#FEF2F2;border-color:#FECACA;color:#B91C1C;}.adum-chip.hi{background:#FFFBEB;border-color:#FDE68A;color:#92400E;}
+.adum-ed{min-width:380px;}
+.adum-ta{width:100%;box-sizing:border-box;min-height:90px;border:1px solid #E4E0F0;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.85;font-family:inherit;color:#2E2A3D;resize:vertical;outline:none;background:#fff;}
+.adum-ta:focus{border-color:#9B8EC4;box-shadow:0 0 0 2px #9B8EC433;}
+.adum-ta.dirty{border-color:#F59E0B;background:#FFFDF5;}
+.adum-ed-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;font-size:12px;}
+.adum-ed-info{font-weight:700;}
+.adum-ed-dirty{color:#B45309;font-weight:700;}
+.adum-ed-bar button{min-height:32px;padding:4px 12px;border-radius:8px;font-size:12px;cursor:pointer;border:1px solid #E4E0F0;background:#fff;color:#4B4560;}
+.adum-ed-bar button.save{border-color:#9B8EC4;background:#9B8EC4;color:#fff;font-weight:700;}
+.adum-ed-bar button:disabled{opacity:.4;cursor:default;}
+.adum-ana{max-width:1100px;width:100%;margin:12px auto 0;box-sizing:border-box;background:#fff;border:1px solid #E4E0F0;border-radius:16px;padding:14px 16px;flex-shrink:0;}
+.adum-ana-head{display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:15px;font-weight:700;color:#2E2A3D;}
+.adum-ana-head span{font-size:12px;font-weight:400;color:#9A96AA;}
+.adum-ana-body{display:none;margin-top:14px;}
+.adum-ana-body>*{max-width:none!important;margin-left:0!important;margin-right:0!important;margin-bottom:12px;}
+</style>
+<script>
+(function(){
+  var drafts={};                       /* 저장 안 한 수정 보관: key -> 글 */
+  function dirtyN(){return Object.keys(drafts).length;}
+  function nowT(){return new Date().toLocaleTimeString();}
+  var APPS={
+    g:{render:'renderStatusTable',tbody:'status-tbody',toolbar:'status-toolbar',view:'status-view',statsView:'stats-view',statsFn:'renderStats',
+       re:/goToWrite\('([^']*)',\s*(\d+)\)/,
+       ref:function(m){return {cls:m[1],idx:Number(m[2])};},
+       stu:function(r){return getClsData(r.cls).list[r.idx];},
+       key:function(r){return 'g|'+curName+'|'+r.cls+'|'+r.idx;},
+       get:function(s){return s.result||'';},
+       info:function(t){var c=t.replace(/\s/g,'').length,b=calcBytes(t);return {txt:c+'자 · '+b+'B',tip:'목표 '+settings.minChar+'~'+settings.maxChar+'자(공백 제외)',col:c<settings.minChar?'#dc2626':c>settings.maxChar?'#d97706':'#16a34a'};},
+       save:function(r,t){var s=getClsData(r.cls).list[r.idx]; if(t.trim()){ if(!s.history)s.history=[]; s.history.unshift({text:t,time:nowT()}); if(s.history.length>5)s.history=s.history.slice(0,5); s.result=t; s.done=true;} else {s.result='';s.done=false;}
+         saveClassData(); if(selStu===r.idx&&activeClass===r.cls){result=t;} try{render();}catch(e){} }},
+    d:{render:'dRenderStatusTable',tbody:'d-status-tbody',toolbar:'d-status-toolbar',view:'d-view-status',statsView:'d-view-stats',statsFn:'dRenderDaminStats',
+       re:/dGoToWriteFromStatus\((\d+)\)/,
+       ref:function(m){return {idx:Number(m[1]),tab:(document.getElementById('d-status-tab-filter')||{}).value||'자율'};},
+       stu:function(r){return dStudents[r.idx];},
+       key:function(r){return 'd|'+r.idx+'|'+r.tab;},
+       get:function(s,r){return (s.results&&s.results[r.tab])||'';},
+       info:function(t,r){var b=dCalcBytes(t),g=dGetByteRange(r.tab);return {txt:b+'B',tip:'목표 '+g[0]+'~'+g[1]+'B',col:b<g[0]?'#dc2626':b>g[1]?'#d97706':'#16a34a'};},
+       save:function(r,t){var s=dStudents[r.idx]; if(t.trim()){ if(!s.history)s.history={}; if(!s.history[r.tab])s.history[r.tab]=[]; s.history[r.tab].unshift({text:t,time:nowT()}); if(s.history[r.tab].length>5)s.history[r.tab]=s.history[r.tab].slice(0,5); s.results[r.tab]=t; s.done[r.tab]=true;} else {s.results[r.tab]='';s.done[r.tab]=false;}
+         dSaveStudents(); if(dSelStu===r.idx&&dActiveTab===r.tab){dResult=t;} try{dRender();}catch(e){} }},
+    c:{render:'cRenderStatusTable',tbody:'c-status-tbody',toolbar:null,view:'c-view-status',statsView:'c-view-stats',statsFn:'cRenderClubStats',
+       re:/cGoToWrite\((\d+)\)/,
+       ref:function(m){return {idx:Number(m[1])};},
+       stu:function(r){return cClubs[cSelClub].students[r.idx];},
+       key:function(r){return 'c|'+cSelClub+'|'+r.idx;},
+       get:function(s){return s.result||'';},
+       info:function(t){var b=cCalcBytes(t),mn=Math.round(cByteGoal*0.9),mx=Math.round(cByteGoal*1.1);return {txt:b+'B',tip:'목표 '+mn+'~'+mx+'B',col:b<mn?'#dc2626':b>mx?'#d97706':'#16a34a'};},
+       save:function(r,t){var s=cClubs[cSelClub].students[r.idx]; if(t.trim()){ if(!s.history)s.history=[]; s.history.unshift({text:t,time:nowT()}); if(s.history.length>5)s.history=s.history.slice(0,5); s.result=t; s.done=true;} else {s.result='';s.done=false;}
+         cSaveData(); if(cSelStu===r.idx){cResult=t;} try{cRender();}catch(e){} }}
+  };
+  function toolbarOf(A){return A.toolbar?document.getElementById(A.toolbar):document.querySelector('#c-view-status>div:first-child');}
+
+  /* ── 세특 편집 칸 ── */
+  function autosize(ta){ta.style.height='auto';ta.style.height=Math.max(90,ta.scrollHeight+2)+'px';}
+  function buildEditor(app,ref){
+    var A=APPS[app], s=A.stu(ref), saved=A.get(s,ref), key=A.key(ref);
+    var box=document.createElement('div'); box.className='adum-ed';
+    var ta=document.createElement('textarea'); ta.className='adum-ta'; ta.spellcheck=false;
+    ta.value=(key in drafts)?drafts[key]:saved;
+    var bar=document.createElement('div'); bar.className='adum-ed-bar';
+    var inf=document.createElement('span'); inf.className='adum-ed-info';
+    var tip=document.createElement('span'); tip.style.color='#9A96AA';
+    var dirty=document.createElement('span'); dirty.className='adum-ed-dirty';
+    var sv=document.createElement('button'); sv.type='button'; sv.className='save'; sv.textContent='💾 저장';
+    var rv=document.createElement('button'); rv.type='button'; rv.textContent='↩ 되돌리기';
+    bar.appendChild(inf); bar.appendChild(tip); bar.appendChild(dirty); bar.appendChild(sv); bar.appendChild(rv);
+    box.appendChild(ta); box.appendChild(bar);
+    function refresh(){
+      var t=ta.value, i=A.info(t,ref), isD=(t!==saved);
+      inf.textContent=t?i.txt:'(비어 있음)'; inf.style.color=i.col; tip.textContent=t?'· '+i.tip:'';
+      dirty.textContent=isD?'● 저장 안 됨':''; ta.classList.toggle('dirty',isD);
+      sv.disabled=!isD; rv.disabled=!isD;
+      if(isD)drafts[key]=t; else delete drafts[key];
+    }
+    ta.addEventListener('input',function(){refresh();autosize(ta);});
+    rv.addEventListener('click',function(){ta.value=saved;refresh();autosize(ta);});
+    sv.addEventListener('click',function(){
+      var t=ta.value;
+      if(!t.trim()&&!confirm('내용이 비어 있어요. 이 학생의 세특을 비우고 "미완료"로 바꿀까요?'))return;
+      try{A.save(ref,t);}catch(e){alert('저장 중 오류가 났어요: '+e.message);return;}
+      delete drafts[key];
+      try{window[A.render]();}catch(e){}
+    });
+    refresh();
+    setTimeout(function(){autosize(ta);},0); requestAnimationFrame(function(){autosize(ta);});
+    return box;
+  }
+
+  /* ── 표 후처리: 세특 전문 편집칸 넣기 ── */
+  function process(app){
+    var A=APPS[app], tb=document.getElementById(A.tbody); if(!tb)return;
+    var table=tb.closest('table'), ths=table?table.querySelectorAll('thead th'):[];
+    var rows=Array.prototype.filter.call(tb.querySelectorAll('tr'),function(tr){return !tr.getAttribute('data-adum');});
+    if(app==='d'){
+      var tab=(document.getElementById('d-status-tab-filter')||{}).value||'';
+      if(!tab){
+        if(rows.length&&rows[0].children.length>2){
+          var h=document.createElement('tr'); h.setAttribute('data-adum','hint');
+          h.innerHTML='<td colspan="'+(ths.length||8)+'" style="padding:10px 14px;background:#F7F5FC;color:#6B6680;font-size:12px;">💡 위에서 <b>항목(자율·진로·행동발달)</b>을 고르면 학생별 세특 전문이 보이고, 여기서 바로 고쳐서 저장할 수 있어요.</td>';
+          tb.insertBefore(h,tb.firstChild);
+        }
+        return;
+      }
+      rows.forEach(function(tr){
+        var m=A.re.exec(tr.innerHTML); if(!m)return;
+        var ref={idx:Number(m[1]),tab:tab}, s=A.stu(ref); if(!s)return;
+        var nr=document.createElement('tr'); nr.setAttribute('data-adum','text');
+        var td=document.createElement('td'); td.colSpan=ths.length||8; td.style.cssText='padding:4px 14px 14px;background:'+(tr.style.background||'white')+';';
+        if(A.get(s,ref)){td.appendChild(buildEditor('d',ref));}
+        else{td.innerHTML='<div style="color:#9A96AA;font-size:12px;padding:4px 2px;">'+tab+' 세특이 아직 없어요.</div>';}
+        nr.appendChild(td); tr.insertAdjacentElement('afterend',nr);
+        if(tr.style.display==='none')nr.style.display='none';
+      });
+      return;
+    }
+    if(ths[5]&&/미리보기|결과/.test(ths[5].textContent))ths[5].textContent='세특 (직접 수정·저장 가능)';
+    rows.forEach(function(tr){
+      var m=A.re.exec(tr.innerHTML); if(!m)return;
+      var ref=A.ref(m), s=A.stu(ref); if(!s||!A.get(s,ref))return;
+      var td=tr.children[5]; if(!td)return;
+      td.innerHTML=''; td.style.cssText='min-width:420px;max-width:none;white-space:normal;overflow:visible;text-overflow:clip;padding:8px 12px;border-bottom:1px solid #f5f5f5;';
+      td.appendChild(buildEditor(app,ref));
+    });
+  }
+
+  /* ── 한 줄 요약 (통계 탭 핵심만) ── */
+  function chip(h,c){return '<span class="adum-chip'+(c?' '+c:'')+'">'+h+'</span>';}
+  function strip(app){
+    var A=APPS[app], tbar=toolbarOf(A); if(!tbar)return;
+    var el=tbar.querySelector('.adum-strip'); if(!el){el=document.createElement('div');el.className='adum-strip';tbar.appendChild(el);}
+    var h='';
+    try{
+      if(app==='g'){
+        var N=0,D=0,lo=0,ok=0,hi=0; getClasses(curName).forEach(function(cls){var cd=getClsData(cls);cd.list.slice(0,cd.count).forEach(function(s){N++;if(s.done)D++;if(s.result){var c=s.result.replace(/\s/g,'').length;if(c<settings.minChar)lo++;else if(c>settings.maxChar)hi++;else ok++;}});});
+        h=chip('완료 <b>'+D+'/'+N+'명</b>',D===N&&N?'ok':'')+chip('미완료 <b>'+(N-D)+'명</b>')+chip('글자수 부족 <b>'+lo+'</b>',lo?'lo':'')+chip('적정 <b>'+ok+'</b>','ok')+chip('초과 <b>'+hi+'</b>',hi?'hi':'');
+      } else if(app==='d'){
+        var n=0,all=0,t={자율:0,진로:0,행발:0}; dStudents.slice(0,dCount).forEach(function(s){n++;if(s.done['자율']&&s.done['진로']&&s.done['행발'])all++;['자율','진로','행발'].forEach(function(k){if(s.done[k])t[k]++;});});
+        h=chip('전체 완료 <b>'+all+'/'+n+'명</b>',all===n&&n?'ok':'')+chip('자율 <b>'+t['자율']+'/'+n+'</b>')+chip('진로 <b>'+t['진로']+'/'+n+'</b>')+chip('행발 <b>'+t['행발']+'/'+n+'</b>');
+      } else {
+        var club=cClubs[cSelClub], N2=0,D2=0,l2=0,o2=0,h2=0, mn=Math.round(cByteGoal*0.9), mx=Math.round(cByteGoal*1.1);
+        club.students.slice(0,club.count).forEach(function(s){N2++;if(s.done)D2++;if(s.result){var b=cCalcBytes(s.result);if(b<mn)l2++;else if(b>mx)h2++;else o2++;}});
+        h=chip('완료 <b>'+D2+'/'+N2+'명</b>',D2===N2&&N2?'ok':'')+chip('미완료 <b>'+(N2-D2)+'명</b>')+chip('바이트 부족 <b>'+l2+'</b>',l2?'lo':'')+chip('적정 <b>'+o2+'</b>','ok')+chip('초과 <b>'+h2+'</b>',h2?'hi':'');
+      }
+    }catch(e){}
+    if(el.innerHTML!==h)el.innerHTML=h;
+  }
+
+  /* ── 상세 분석: 통계 화면 내용을 현황 맨 아래 접이식으로 이동 ── */
+  function buildAnalysis(app){
+    var A=APPS[app], view=document.getElementById(A.view), sv=document.getElementById(A.statsView);
+    if(!view||!sv||view.querySelector('.adum-ana'))return;
+    var card=document.createElement('div'); card.className='adum-ana';
+    var head=document.createElement('div'); head.className='adum-ana-head';
+    head.innerHTML='<div>📊 상세 분석 <span>— 분포 · 키워드 · 어휘 다양성</span></div><span class="adum-ana-ar">▼ 펼치기</span>';
+    var body=document.createElement('div'); body.className='adum-ana-body';
+    Array.prototype.slice.call(sv.children).forEach(function(ch){body.appendChild(ch);});
+    card.appendChild(head); card.appendChild(body); view.appendChild(card);
+    head.addEventListener('click',function(){
+      var open=body.style.display==='block';
+      body.style.display=open?'none':'block'; head.querySelector('.adum-ana-ar').textContent=open?'▼ 펼치기':'▲ 접기';
+      if(!open){try{window[A.statsFn]();}catch(e){}}
+    });
+  }
+
+  /* ── 기존 렌더 함수에 덧붙이기 ── */
+  ['g','d','c'].forEach(function(app){
+    var A=APPS[app], orig=window[A.render]; if(typeof orig!=='function')return;
+    buildAnalysis(app);
+    window[A.render]=function(){
+      var r=orig.apply(this,arguments);
+      try{process(app);}catch(e){console.error(e);}
+      try{strip(app);}catch(e){}
+      try{var b=document.querySelector('#'+A.view+' .adum-ana-body'); if(b&&b.style.display==='block')window[A.statsFn]();}catch(e){}
+      return r;
+    };
+  });
+
+  /* ── 저장 안 하고 다른 화면으로 가면 확인창 ── */
+  function guard(name){
+    var o=window[name]; if(typeof o!=='function')return;
+    window[name]=function(t){
+      if(t!=='status'&&dirtyN()>0){
+        if(!confirm('⚠️ 저장하지 않은 세특 수정이 '+dirtyN()+'건 있어요.\n이동하면 수정한 내용이 사라져요.\n\n그래도 이동할까요?\n(취소를 누르면 현황에 남아서 저장할 수 있어요)'))return;
+        drafts={};
+      }
+      return o.apply(this,arguments);
+    };
+  }
+  guard('switchTab'); guard('dSwitchMainTab'); guard('cSwitchMainTab');
+  var oApp=window.openApp;
+  if(typeof oApp==='function'){
+    window.openApp=function(){
+      if(dirtyN()>0){ if(!confirm('⚠️ 저장하지 않은 세특 수정이 '+dirtyN()+'건 있어요. 앱을 바꾸면 사라져요.\n그래도 이동할까요?'))return; drafts={}; }
+      return oApp.apply(this,arguments);
+    };
+  }
+  window.addEventListener('beforeunload',function(e){ if(dirtyN()>0){e.preventDefault();e.returnValue='';} });
 })();
 </script>
 </body>
