@@ -15165,5 +15165,85 @@ body #stats-view>div:not(:last-child),body #d-view-stats>div:not(:last-child),bo
   }
 })();
 </script>
+<!-- ══ 추가: 담임 통계 어휘 다양성 분석 + 교과 글자수 옆 "(약 N바이트)" — 추가만 ══ -->
+<script>
+(function(){
+  /* ── 교과: 글자수 목표 옆에 바이트 환산 표시 (공백 제외 글자 × 3 — 공백·줄바꿈은 별도로 더해져요) ── */
+  function upd(){
+    ['setting-min-char','setting-max-char'].forEach(function(id){
+      var inp=document.getElementById(id); if(!inp)return;
+      var sp=inp.parentNode.querySelector('.adum-bytes');
+      if(!sp){
+        sp=document.createElement('span'); sp.className='adum-bytes';
+        sp.title='한글 1자=3바이트 기준. 글자수는 공백 제외라 실제 나이스 바이트는 공백만큼 더 늘어요.';
+        sp.style.cssText='font-size:11px;font-weight:700;color:#6B6680;white-space:nowrap;';
+        inp.parentNode.appendChild(sp); inp.addEventListener('input',upd);
+      }
+      var v=Number(inp.value)||0, t=v?('(약 '+(v*3)+'바이트)'):'';
+      if(sp.textContent!==t)sp.textContent=t;
+    });
+  }
+  upd(); setInterval(upd,1000);
+
+  /* ── 담임: 어휘 다양성 분석 (자율·진로·행발 탭별) ── */
+  var STOPW=/^(하였|되었|있었|없었|이었|이러한|그리고|또한|이를|하면서|하며|통해|바탕|과정|모습|태도|능력|역량|활동)/;
+  window.dRenderVocabStats=function(){
+    var el=document.getElementById('d-stats-vocab-dist'); if(!el)return;
+    var tab=(document.getElementById('d-vocab-tab')||{}).value||'자율';
+    var items=[]; dStudents.slice(0,dCount).forEach(function(s){ if(s.results&&s.results[tab])items.push({name:s.name||'(이름없음)',text:stripBold(s.results[tab])}); });
+    if(items.length<2){
+      el.innerHTML="<div style='text-align:center;color:#9ca3af;font-size:12px;padding:20px;'>"+tab+" 세특이 2개 이상 있어야 분석할 수 있습니다.</div>"; return;
+    }
+    var freq={},who={};
+    items.forEach(function(it){
+      var clean=it.text.replace(/\*\*/g,'').replace(/[a-zA-Z0-9\s\n.,!?()\[\]{}]/g,' '), seen={};
+      (clean.match(/[가-힣]{3,6}/g)||[]).forEach(function(w){
+        if(STOPW.test(w)||seen[w])return; seen[w]=1; freq[w]=(freq[w]||0)+1; (who[w]=who[w]||[]).push(it.name);
+      });
+    });
+    var sorted=Object.keys(freq).filter(function(w){return freq[w]>=2;}).sort(function(a,b){return freq[b]-freq[a];}).slice(0,15);
+    if(!sorted.length){
+      el.innerHTML="<div style='text-align:center;color:#16a34a;font-size:12px;padding:16px;'>✅ 눈에 띄는 중복 표현이 없습니다. 어휘 다양성이 양호합니다.</div>"; return;
+    }
+    var max=freq[sorted[0]], total=items.length;
+    el.innerHTML="<div style='font-size:11px;color:#6b7280;margin-bottom:10px;'>"+tab+" 총 "+total+"명 기준 · 2명 이상에게 반복된 표현 Top "+sorted.length+" (같은 학생 안의 반복은 1명으로 셈) · 막대에 마우스를 올리면 해당 학생이 보여요</div>"
+      +sorted.map(function(w){
+        var cnt=freq[w], pct=Math.round(cnt/total*100);
+        var color=pct>=60?'#dc2626':pct>=40?'#d97706':'#6b7280', warn=pct>=60?'⚠ 주의':pct>=40?'△ 확인':'';
+        var names=who[w].slice(0,12).join(', ')+(who[w].length>12?' 외 '+(who[w].length-12)+'명':'');
+        return "<div class='stat-bar-wrap' title=\""+_esc(names)+"\">"
+          +"<span style='font-size:12px;color:"+color+";font-weight:"+(pct>=40?700:400)+";min-width:80px;'>"+_esc(w)+(warn?" <span style='font-size:10px;'>"+warn+"</span>":"")+"</span>"
+          +"<div class='stat-bar-bg'><div class='stat-bar-fill' style='width:"+(cnt/max*100)+"%;background:"+color+";'></div></div>"
+          +"<span style='font-size:11px;color:#6b7280;min-width:70px;'>"+cnt+"명 ("+pct+"%)</span></div>";
+      }).join('');
+  };
+  window.dToggleVocab=function(){
+    var body=document.getElementById('d-vocab-body'), ar=document.getElementById('d-vocab-arrow'); if(!body)return;
+    var open=body.style.display!=='none';
+    body.style.display=open?'none':'block'; ar.textContent=open?'▼ 펼치기':'▲ 접기';
+    if(!open)dRenderVocabStats();
+  };
+  (function addCard(){
+    var root=document.getElementById('d-view-stats'); if(!root||document.getElementById('d-vocab-body'))return;
+    var card=document.createElement('div'); card.className='stat-card';
+    card.innerHTML="<div style='display:flex;align-items:center;justify-content:space-between;cursor:pointer;' onclick='dToggleVocab()'>"
+      +"<div style='font-size:13px;font-weight:700;color:#111;'>🔤 어휘 다양성 분석 <span style='font-size:11px;font-weight:400;color:#9ca3af;'>— 반복 표현 감지</span></div>"
+      +"<span id='d-vocab-arrow' style='font-size:12px;color:#9ca3af;user-select:none;'>▼ 펼치기</span></div>"
+      +"<div id='d-vocab-body' style='display:none;'>"
+      +"<div style='display:flex;justify-content:flex-end;margin:12px 0 4px;'><select id='d-vocab-tab' onchange='dRenderVocabStats()' style='font-size:12px;padding:5px 10px;border:1px solid #e5e7eb;border-radius:8px;background:white;'>"
+      +"<option value='자율'>자율활동</option><option value='진로'>진로활동</option><option value='행발'>행동발달</option></select></div>"
+      +"<div id='d-stats-vocab-dist'></div></div>";
+    root.appendChild(card);
+  })();
+  var orig=window.dRenderDaminStats;
+  if(typeof orig==='function'){
+    window.dRenderDaminStats=function(){
+      var r=orig.apply(this,arguments);
+      try{ var b=document.getElementById('d-vocab-body'); if(b&&b.style.display!=='none')dRenderVocabStats(); }catch(e){}
+      return r;
+    };
+  }
+})();
+</script>
 </body>
 </html>
