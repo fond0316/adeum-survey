@@ -8857,7 +8857,7 @@ const D_PROMPTS = {
 ## 형식 조건
 - 주어 생략 (학생·그는·그가·그의 금지), 이름 생략
 - 어미: ~임·~음·~함 / 현재형·능동형
-- 1500바이트 내외 (한글 1자=2바이트) — 반드시 준수
+- 1500바이트 내외 (한글 1자=3바이트) — 반드시 준수
 - 하나의 자연스러운 문단 / 기관명·학교명·외래어 금지
 
 ## 볼드 강조 규칙 [반드시 준수]
@@ -8885,7 +8885,7 @@ const D_PROMPTS = {
 ## 형식 조건
 - 주어 생략 (학생·그는·그가·그의 금지), 이름 생략
 - 어미: ~임·~음·~함 / 현재형·능동형
-- 2100바이트 내외 (한글 1자=2바이트) — 반드시 준수, 분량 미달 절대 불가
+- 2100바이트 내외 (한글 1자=3바이트) — 반드시 준수, 분량 미달 절대 불가
 - 하나의 자연스러운 문단 / 기관명·학교명·외래어 금지
 
 ## 볼드 강조 규칙 [반드시 준수]
@@ -8912,7 +8912,7 @@ const D_PROMPTS = {
 ## 형식 조건
 - 주어 생략 (학생·그는·그가·그의 금지), 이름 생략
 - 어미: ~임·~음·~함 / 현재형·능동형
-- 1500바이트 내외 (한글 1자=2바이트) — 반드시 준수
+- 1500바이트 내외 (한글 1자=3바이트) — 반드시 준수
 - 하나의 자연스러운 문단 / 기관명·학교명·외래어 금지
 
 ## 볼드 강조 규칙 [반드시 준수]
@@ -9119,7 +9119,7 @@ function dSaveStudents(){
 function dGetApiKey(){return localStorage.getItem(SHARED_API_KEY)||"";}
 
 /* ── 바이트 계산 ── */
-function dCalcBytes(s){var b=0;for(var i=0;i<s.length;i++)b+=s.charCodeAt(i)>127?2:1;return b;}
+function dCalcBytes(s){var b=0;for(var i=0;i<s.length;i++)b+=s.charCodeAt(i)>127?3:1;return b;}
 
 /* ── 색상 ── */
 function dCol(){return D_TAB_COLOR[dActiveTab].color;}
@@ -9294,7 +9294,7 @@ function dRenderInputCol(){
   dRenderAcSection();
   var tc=D_TAB_COLOR[dActiveTab];
   var byteGoalEl=document.getElementById("d-byte-goal");
-  byteGoalEl.textContent=(dByteGoals[dActiveTab]||1500)+"바이트 내외";
+  byteGoalEl.textContent=(dByteGoals[dActiveTab]||1500)+"바이트 내외 (약 "+Math.round((dByteGoals[dActiveTab]||1500)/3)+"자)";
   byteGoalEl.style.cssText="font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;background:"+tc.bdg+";color:"+tc.bdgText;
   var genBtn=document.getElementById("d-gen-btn");
   genBtn.style.background=dLoading?"#93c5fd":dCol();
@@ -11210,7 +11210,7 @@ async function dHandleGenerate(){
     +"희망진로: "+(dCareer||info.career||"(미입력)")+"\n"
     +"특이사항·에피소드: "+(dEpisode||"(없음)")+"\n"
     +(dEmphasisNote&&dEmphasisNote.trim()?"[강조 지시 — 글자수가 부족하면 이 지시를 최우선으로 반영할 것] "+dEmphasisNote.trim()+"\n":"")
-    +"글자수 기준: "+(dByteGoals[dActiveTab]||1500)+"바이트 내외 (한글 1자=2바이트) — 반드시 준수";
+    +"글자수 기준: "+(dByteGoals[dActiveTab]||1500)+"바이트 내외 (한글 1자=3바이트) — 반드시 준수";
   try{
     var res=await fetch("https://api.openai.com/v1/chat/completions",{
       method:"POST",
@@ -11343,7 +11343,7 @@ const C_SYSTEM_PROMPT = `당신은 한국 고등학교 생활기록부 작성 �
 ## 형식 조건
 - 주어 생략 (학생·그는·그가·그의 금지), 이름 생략
 - 어미: ~임·~음·~함 / 현재형·능동형
-- BYTE바이트 내외 (한글 1자=2바이트) — 반드시 준수
+- BYTE바이트 내외 (한글 1자=3바이트) — 반드시 준수
 - 하나의 자연스러운 문단 / 기관명·학교명·외래어 금지
 
 ## 출력
@@ -11403,7 +11403,7 @@ function cSaveData() {
   }
 }
 function cGetApiKey() { return localStorage.getItem(C_LS_KEY) || ""; }
-function cCalcBytes(s) { var b=0; for(var i=0;i<s.length;i++) b+=s.charCodeAt(i)>127?2:1; return b; }
+function cCalcBytes(s) { var b=0; for(var i=0;i<s.length;i++) b+=s.charCodeAt(i)>127?3:1; return b; }
 
 function cMakeClub(name) {
   return {
@@ -11643,7 +11643,7 @@ function cRenderMain() {
   }).join("");
 
   // 바이트 목표 표시
-  document.getElementById("c-byte-goal-display").textContent = cByteGoal+"바이트 내외";
+  document.getElementById("c-byte-goal-display").textContent = cByteGoal+"바이트 내외 (약 "+Math.round(cByteGoal/3)+"자)";
 
   // 설문 참고자료 섹션
   cRenderSurveySection();
@@ -14739,5 +14739,431 @@ switchTab = function(tab){
 };
 </script>
 <style>#c-stu-list input{min-width:0;}</style>
+<!-- ══ 관리화면 통일 1단계: 설정 화면 (학급보드 관리 스타일) — 기존 코드 변경 없이 추가만 ══ -->
+<style id="adum-unify-settings">
+body #settings-view,body #d-view-settings,body #c-view-settings{background:#F4F2FA!important;padding:16px 16px 32px!important;}
+body #settings-view>div,body #d-view-settings>div,body #c-view-settings>div{display:flex!important;flex-direction:column!important;grid-template-columns:none!important;align-items:stretch!important;gap:12px!important;width:100%!important;max-width:860px!important;margin:0 auto!important;}
+body #settings-view .stat-card,body #d-view-settings .stat-card,body #c-view-settings .stat-card{background:#fff;border:1px solid #E4E0F0!important;border-radius:16px!important;padding:16px!important;box-shadow:none!important;}
+body #settings-view .stat-card>div:first-child,body #d-view-settings .stat-card>div:first-child,body #c-view-settings .stat-card>div:first-child{font-size:16px!important;margin-bottom:12px!important;}
+body #settings-view .stat-card button,body #d-view-settings .stat-card button,body #c-view-settings .stat-card button{min-height:44px;border-radius:10px!important;font-size:13px!important;}
+body #settings-view .stat-card input:not([type=file]),body #d-view-settings .stat-card input:not([type=file]),body #c-view-settings .stat-card input:not([type=file]),body #settings-view .stat-card select,body #d-view-settings .stat-card select{min-height:40px;font-size:14px!important;border-radius:10px!important;}
+.adum-bk-line{font-size:13px;border-radius:10px;padding:9px 12px;margin-bottom:12px;font-weight:600;}
+.adum-bk-ok{background:#ECFDF5;color:#065F46;}.adum-bk-warn{background:#FFFBEB;color:#92400E;}.adum-bk-bad{background:#FEF2F2;color:#B91C1C;}
+.adum-msg{font-size:12px;margin-top:8px;color:#065F46;min-height:16px;}
+@media (max-width:600px){body #settings-view,body #d-view-settings,body #c-view-settings{padding:12px 10px 28px!important;}}
+</style>
+<script>
+(function(){
+  /* 1) 마지막 JSON 저장 시각 기록 (기존 저장 함수는 그대로 실행하고 기록만 덧붙임) */
+  var BK={gyogwa:'adum_last_json_gyogwa',damin:'adum_last_json_damin',club:'adum_last_json_club'};
+  function wrap(name,key){
+    try{
+      var orig=window[name]; if(typeof orig!=='function')return;
+      window[name]=function(){
+        var r=orig.apply(this,arguments);
+        try{localStorage.setItem(key,String(Date.now()));}catch(e){}
+        refresh(); return r;
+      };
+    }catch(e){}
+  }
+  wrap('saveJSON',BK.gyogwa); wrap('dSaveJSON',BK.damin); wrap('cSaveJSON',BK.club);
+
+  var VIEWS=[['settings-view',BK.gyogwa],['d-view-settings',BK.damin],['c-view-settings',BK.club]];
+
+  /* 2) 백업 경과일 표시줄 — '데이터 관리' 카드 제목 아래 */
+  function findCard(root,word){
+    var cards=root.querySelectorAll('.stat-card');
+    for(var i=0;i<cards.length;i++){var t=cards[i].firstElementChild;if(t&&t.textContent.indexOf(word)>=0)return cards[i];}
+    return null;
+  }
+  function bkText(key){
+    var v=0; try{v=Number(localStorage.getItem(key))||0;}catch(e){}
+    if(!v) return ['adum-bk-bad','💾 아직 JSON으로 저장한 적이 없어요. 데이터가 사라지면 복구가 어려우니 먼저 저장해 두세요.'];
+    var days=Math.floor((Date.now()-v)/86400000), d=new Date(v);
+    var ds=d.getFullYear()+'.'+(d.getMonth()+1)+'.'+d.getDate();
+    if(days<=6) return ['adum-bk-ok','💾 마지막 JSON 저장: '+(days===0?'오늘':days+'일 전')+' ('+ds+')'];
+    return ['adum-bk-warn','💾 마지막 JSON 저장: '+days+'일 전 ('+ds+') — 백업을 권장해요.'];
+  }
+  function refresh(){
+    VIEWS.forEach(function(p){
+      var root=document.getElementById(p[0]); if(!root)return;
+      var card=findCard(root,'데이터 관리'); if(!card)return;
+      var line=card.querySelector('.adum-bk-line');
+      if(!line){line=document.createElement('div');line.className='adum-bk-line';card.insertBefore(line,card.children[1]||null);}
+      var t=bkText(p[1]);
+      if(line.dataset.k!==t[1]){line.className='adum-bk-line '+t[0];line.textContent=t[1];line.dataset.k=t[1];}
+    });
+  }
+
+  /* 3) API 키 삭제 버튼 (담임·동아리 — 교과는 이미 있음). 키는 세 앱 공통 키 */
+  window.adumDeleteApiKey=function(){
+    var K='saengiboo_apikey';
+    if(!localStorage.getItem(K)){alert('저장된 API 키가 없습니다.');return;}
+    if(!confirm('저장된 API 키를 삭제하시겠습니까?\n삭제 후에는 다시 입력해야 합니다.\n(교과·담임·동아리가 같은 키를 쓰므로 세 앱 모두 적용돼요)'))return;
+    localStorage.removeItem(K);
+    try{loadCostForCurrentKey();}catch(e){}
+    try{updateCostBadge();}catch(e){}
+    alert('✅ API 키가 삭제되었습니다.');
+  };
+  function addApiDelete(){
+    ['d-view-settings','c-view-settings'].forEach(function(id){
+      var root=document.getElementById(id); if(!root||root.querySelector('.adum-api-del'))return;
+      var card=findCard(root,'API 설정'); if(!card)return;
+      var b=document.createElement('button');
+      b.className='adum-api-del'; b.type='button'; b.textContent='🗑️ API 키 삭제';
+      b.setAttribute('onclick','adumDeleteApiKey()');
+      b.style.cssText='padding:8px 16px;border:1px solid #fca5a5;background:#fef2f2;color:#dc2626;border-radius:7px;font-size:12px;cursor:pointer;margin-left:8px;';
+      var first=card.querySelector('button'); if(first)first.insertAdjacentElement('afterend',b); else card.appendChild(b);
+    });
+  }
+
+  /* 4) 동아리 바이트 목표 설정 카드 (메인 화면의 목표 입력칸과 같은 값을 공유) */
+  window.adumSaveClubByte=function(){
+    var inp=document.getElementById('c-set-byte-goal'), msg=document.getElementById('c-set-byte-msg');
+    var v=Math.max(500,Math.min(3000,Number(inp.value)||1500));
+    inp.value=v;
+    try{cByteGoal=v; localStorage.setItem(C_LS_BYTE,String(v));}catch(e){}
+    var m=document.getElementById('c-byte-goal-input'); if(m)m.value=v;
+    try{cRenderMain();}catch(e){}
+    if(msg){msg.textContent='✅ '+v+'바이트 내외로 저장했어요.';setTimeout(function(){msg.textContent='';},2500);}
+  };
+  function addClubByte(){
+    var root=document.getElementById('c-view-settings'); if(!root||document.getElementById('c-set-byte-goal'))return;
+    var yearCard=findCard(root,'학년도'); if(!yearCard)return;
+    var card=document.createElement('div'); card.className='stat-card';
+    card.innerHTML='<div style="font-size:13px;font-weight:700;color:#111;margin-bottom:14px;">📏 바이트 목표 설정</div>'
+      +'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+      +'<label style="font-size:12px;color:#374151;min-width:80px;">동아리 세특</label>'
+      +'<input type="number" id="c-set-byte-goal" min="500" max="3000" value="1500" style="width:90px;border:1px solid #e0e5ed;border-radius:7px;padding:6px 10px;font-size:12px;outline:none;"/>'
+      +'<span style="font-size:12px;color:#9ca3af;">바이트 내외 (±10% 범위로 생성·점검)</span></div>'
+      +'<div style="margin-top:12px;"><button type="button" onclick="adumSaveClubByte()" style="padding:6px 14px;background:#059669;color:white;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">저장</button></div>'
+      +'<div class="adum-msg" id="c-set-byte-msg"></div>';
+    yearCard.insertAdjacentElement('afterend',card);
+  }
+  function syncClubByte(){
+    var inp=document.getElementById('c-set-byte-goal'); if(!inp||document.activeElement===inp)return;
+    try{ if(String(inp.value)!==String(cByteGoal)) inp.value=cByteGoal; }catch(e){}
+  }
+
+  function tick(){ addApiDelete(); addClubByte(); refresh(); syncClubByte(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',tick); else tick();
+  setInterval(tick,1500);
+})();
+</script>
+<!-- ══ 관리화면 통일 2단계: 현황 화면 — 기존 코드 변경 없이 추가만 ══ -->
+<style id="adum-unify-status">
+body #status-view,body #d-view-status,body #c-view-status{background:#F4F2FA!important;}
+body #c-view-status{padding:18px 22px!important;}
+body #status-toolbar,body #d-status-toolbar,body #c-view-status>div:first-child{width:100%;max-width:1100px;margin:0 auto 12px!important;background:#fff;border:1px solid #E4E0F0;border-radius:16px;padding:12px 14px!important;box-sizing:border-box;}
+body #status-table-wrap,body #d-status-table-wrap,body #c-view-status>div:nth-child(2){width:100%;max-width:1100px;margin:0 auto;box-sizing:border-box;border-radius:16px!important;border:1px solid #E4E0F0!important;}
+body #c-view-status>div:first-child input,body #c-view-status>div:first-child select,body #c-view-status>div:first-child button{min-height:36px;font-size:13px!important;border-radius:10px!important;}
+body #c-status-table th,body #c-status-table td{padding:11px 14px!important;}
+body #c-status-table th{background:#F7F5FC!important;color:#5E5873!important;white-space:nowrap;}
+body #c-status-table td{font-size:13px!important;border-bottom:1px solid #EFEBF8!important;}
+.adum-out-badge{font-size:12px;font-weight:700;color:#B45309;background:#FFFBEB;border:1px solid #FDE68A;border-radius:20px;padding:4px 10px;cursor:pointer;white-space:nowrap;}
+.adum-out-badge.zero{color:#065F46;background:#ECFDF5;border-color:#A7F3D0;cursor:default;}
+</style>
+<script>
+(function(){
+  /* ── 1) 목표 밖 필터: 완료여부 셀렉트에 "⚠️ 목표 밖만" 추가 + 목표 밖 개수 배지 ── */
+  var CFG=[
+    {sel:'status-done-filter',  render:'renderStatusTable',  tbody:'status-tbody',   re:/goToWrite\('([^']*)',\s*(\d+)\)/,           out:function(m){
+      try{var s=getClsData(m[1]).list[Number(m[2])]; if(!s||!s.result)return false;
+        var n=s.result.replace(/\s/g,'').length; return n<settings.minChar||n>settings.maxChar;}catch(e){return false;}}},
+    {sel:'d-status-done-filter',render:'dRenderStatusTable',tbody:'d-status-tbody', re:/dGoToWriteFromStatus\((\d+)\)/,                out:function(m){
+      try{var s=dStudents[Number(m[1])]; if(!s)return false;
+        var tf=(document.getElementById('d-status-tab-filter')||{}).value||''; var tabs=tf?[tf]:['자율','진로','행발'];
+        return tabs.some(function(t){ if(!s.results[t])return false; var b=dCalcBytes(s.results[t]), r=dGetByteRange(t); return b<r[0]||b>r[1]; });}catch(e){return false;}}},
+    {sel:'c-status-done-filter',render:'cRenderStatusTable',tbody:'c-status-tbody', re:/cGoToWrite\((\d+)\)/,                          out:function(m){
+      try{var club=cClubs[cSelClub], s=club.students[Number(m[1])]; if(!s||!s.result)return false;
+        var b=cCalcBytes(s.result), mn=Math.round(cByteGoal*0.9), mx=Math.round(cByteGoal*1.1); return b<mn||b>mx;}catch(e){return false;}}}
+  ];
+  CFG.forEach(function(c){
+    var sel=document.getElementById(c.sel); if(!sel)return;
+    if(!sel.querySelector('option[value="out"]')){var o=document.createElement('option');o.value='out';o.textContent='⚠️ 목표 밖만';sel.appendChild(o);}
+    var orig=window[c.render]; if(typeof orig!=='function')return;
+    window[c.render]=function(){
+      var r=orig.apply(this,arguments);
+      try{post(c);}catch(e){}
+      return r;
+    };
+  });
+  function post(c){
+    var tb=document.getElementById(c.tbody), sel=document.getElementById(c.sel); if(!tb||!sel)return;
+    var rows=tb.querySelectorAll('tr'), outN=0, shown=0, only=(sel.value==='out');
+    rows.forEach(function(tr){
+      if(tr.getAttribute('data-adum-empty'))return;
+      var html=tr.innerHTML, m=c.re.exec(html);
+      if(!m){return;}                       /* 안내 행(학생 없음)은 건드리지 않음 */
+      var isOut=c.out(m); if(isOut)outN++;
+      if(only&&!isOut){tr.style.display='none';}else{tr.style.display='';shown++;}
+    });
+    if(only&&rows.length&&!shown){
+      var cols=(tb.closest('table').querySelectorAll('thead th')||[]).length||7;
+      var er=document.createElement('tr'); er.setAttribute('data-adum-empty','1');
+      er.innerHTML='<td colspan="'+cols+'" style="text-align:center;padding:40px;color:#065F46;">🎉 목표 범위를 벗어난 항목이 없어요.</td>';
+      tb.appendChild(er);
+    }
+    var bd=document.getElementById('adum-out-'+c.sel);
+    if(!bd){bd=document.createElement('span');bd.id='adum-out-'+c.sel;bd.className='adum-out-badge';
+      bd.onclick=function(){ if(bd.classList.contains('zero'))return; sel.value=(sel.value==='out')?'':'out'; sel.dispatchEvent(new Event('change')); };
+      sel.insertAdjacentElement('afterend',bd);}
+    bd.textContent=outN?('⚠️ 목표 밖 '+outN+'건'):'✅ 목표 범위 안';
+    bd.classList.toggle('zero',!outN);
+    bd.title=outN?'누르면 목표 밖 항목만 보기/전체 보기':'';
+  }
+  /* 행이 이미 그려져 있으면 한 번 반영 */
+  CFG.forEach(function(c){ try{ if(document.getElementById(c.tbody)&&document.getElementById(c.tbody).children.length) post(c);}catch(e){} });
+
+  /* ── 2) 동아리 현황: 🖨️ 출력 · 📥 엑셀 추가 (교과·담임과 같은 구성) ── */
+  function cRowsData(){
+    var club=cClubs[cSelClub]; if(!club)return null;
+    var list=[]; club.students.slice(0,club.count).forEach(function(s,i){
+      list.push({no:i+1, hak:(s.neis?cStuNo(s.neis):''), name:s.name||'', role:s.role||'', result:s.result?stripBold(s.result):''});
+    });
+    return {club:club,list:list};
+  }
+  window.cExportXlsx=function(){
+    var d=cRowsData(); if(!d){alert('선택된 동아리가 없습니다.');return;}
+    var rows=[['번호','학번','이름','역할','동아리 세특','바이트']];
+    d.list.forEach(function(r){ rows.push([r.no,r.hak,r.name,r.role,r.result,r.result?cCalcBytes(r.result):'']); });
+    if(typeof XLSX!=='undefined'){
+      var ws=XLSX.utils.aoa_to_sheet(rows), wb=XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb,ws,'동아리세특');
+      XLSX.writeFile(wb,'동아리세특_'+d.club.name+'.xlsx');
+    } else { cExportCSV(); }
+  };
+  window.cPrintAll=function(){
+    var d=cRowsData(); if(!d){alert('선택된 동아리가 없습니다.');return;}
+    var done=d.list.filter(function(r){return r.result;});
+    if(!done.length){alert('출력할 세특 결과가 없습니다.');return;}
+    var win=window.open('','_blank');
+    if(!win){alert('팝업이 차단됐어요. 브라우저 팝업 허용 후 다시 시도해주세요.');return;}
+    var body=done.map(function(r){
+      return "<div class='item'><div class='hdr'>"+String(r.no).padStart(2,'0')+"번 "+_esc(r.name||'(이름없음)')
+        +(r.hak?" <span class='sub'>("+_esc(r.hak)+")</span>":'')+(r.role?" <span class='sub'>· "+_esc(r.role)+"</span>":'')
+        +" <span class='sub'>· "+cCalcBytes(r.result)+"B</span></div><div class='body'>"+_esc(r.result).replace(/\n/g,'<br>')+"</div></div>";
+    }).join('');
+    var st="<style>body{font-family:Pretendard,sans-serif;padding:30px;color:#111;}h2{margin-bottom:6px;}.top{color:#6b7280;font-size:13px;margin-bottom:26px;}.item{margin-bottom:24px;padding-bottom:22px;border-bottom:1px solid #e5e7eb;page-break-inside:avoid;}.hdr{font-weight:700;font-size:14px;margin-bottom:8px;}.sub{font-weight:400;color:#6b7280;font-size:12px;}.body{font-size:13px;line-height:1.9;}</style>";
+    win.document.write("<html><head><title>동아리 세특 출력</title>"+st+"</head><body><h2>동아리 세특 — "+_esc(d.club.name)+"</h2><div class='top'>출력일: "+new Date().toLocaleDateString()+" | "+done.length+"명</div>"+body+"</body></html>");
+    win.document.close(); win.print();
+  };
+  (function addCBtns(){
+    var wrap=document.querySelector('#c-view-status>div:first-child>div[style*="margin-left:auto"]');
+    if(!wrap||wrap.querySelector('.adum-c-xlsx'))return;
+    var p=document.createElement('button'); p.type='button'; p.textContent='🖨️ 출력'; p.setAttribute('onclick','cPrintAll()');
+    p.style.cssText='padding:6px 12px;border:1px solid #a5b4fc;border-radius:7px;background:#eef2ff;font-size:12px;cursor:pointer;color:#4338ca;';
+    var x=document.createElement('button'); x.type='button'; x.className='adum-c-xlsx'; x.textContent='📥 엑셀'; x.setAttribute('onclick','cExportXlsx()');
+    x.style.cssText='padding:6px 12px;border:1px solid #16a34a;border-radius:7px;background:#f0fdf4;font-size:12px;cursor:pointer;color:#16a34a;font-weight:600;';
+    wrap.insertBefore(p,wrap.firstChild);
+    var csvBtn=wrap.querySelector('button[onclick="cExportCSV()"]'); if(csvBtn)csvBtn.insertAdjacentElement('beforebegin',x); else wrap.appendChild(x);
+  })();
+})();
+</script>
+<!-- ══ 바이트 목표 옆 "(약 N자)" 표시 (한글 1자=3바이트 기준) — 추가만 ══ -->
+<script>
+(function(){
+  var IDS=['d-byte-juyul','d-byte-jinro','d-byte-haengbal','d-set-byte-juyul','d-set-byte-jinro','d-set-byte-haengbal','c-set-byte-goal'];
+  function upd(){
+    IDS.forEach(function(id){
+      var inp=document.getElementById(id); if(!inp)return;
+      var sp=inp.parentNode.querySelector('.adum-chars');
+      if(!sp){
+        sp=document.createElement('span'); sp.className='adum-chars';
+        sp.style.cssText='font-size:11px;font-weight:700;color:#6B6680;margin-left:2px;white-space:nowrap;';
+        var host=(inp.nextElementSibling&&inp.nextElementSibling.tagName==='SPAN')?inp.nextElementSibling:inp;
+        host.insertAdjacentElement('afterend',sp);
+        inp.addEventListener('input',upd);
+      }
+      var v=Number(inp.value)||0, t=v?('(약 '+Math.round(v/3)+'자)'):'';
+      if(sp.textContent!==t)sp.textContent=t;
+    });
+  }
+  upd(); setInterval(upd,1000);
+})();
+</script>
+<!-- ══ 관리화면 통일 3단계: 통계 화면 + 동아리 어휘 다양성 분석 — 기존 코드 변경 없이 추가만 ══ -->
+<style id="adum-unify-stats">
+body #stats-view,body #d-view-stats,body #c-view-stats{background:#F4F2FA!important;padding:16px 16px 32px!important;}
+body #stats-view>*,body #d-view-stats>*,body #c-view-stats>*{max-width:860px;margin-left:auto!important;margin-right:auto!important;box-sizing:border-box;}
+body #stats-view>div,body #d-view-stats>div,body #c-view-stats>div{width:100%;}
+body #stats-view .stat-card,body #d-view-stats .stat-card,body #c-view-stats .stat-card{border:1px solid #E4E0F0!important;border-radius:16px!important;padding:16px!important;box-shadow:none!important;}
+body #stats-view .stat-card>div:first-child,body #d-view-stats .stat-card>div:first-child,body #c-view-stats .stat-card>div:first-child{font-size:16px!important;}
+body #stats-view>div:not(:last-child),body #d-view-stats>div:not(:last-child),body #c-view-stats>div:not(:last-child){margin-bottom:12px!important;}
+@media (max-width:700px){
+  body #stats-summary,body #d-stats-summary,body #c-stats-summary{grid-template-columns:repeat(2,1fr)!important;}
+  body #stats-view>div[style*="1fr 1fr"],body #d-view-stats>div[style*="1fr 1fr"],body #c-view-stats>div[style*="1fr 1fr"]{grid-template-columns:1fr!important;}
+}
+</style>
+<script>
+(function(){
+  /* 동아리 어휘 다양성 분석 (교과와 같은 방식: 여러 학생 세특에 반복되는 표현 찾기) */
+  var STOPW=/^(하였|되었|있었|없었|이었|이러한|그리고|또한|이를|하면서|하며|통해|바탕|과정|모습|태도|능력|역량|활동)/;
+  window.cRenderVocabStats=function(){
+    var el=document.getElementById('c-stats-vocab-dist'); if(!el)return;
+    var club=cClubs[cSelClub]; if(!club){el.innerHTML='';return;}
+    var items=[]; club.students.slice(0,club.count).forEach(function(s){ if(s.result)items.push({name:s.name||'(이름없음)',text:stripBold(s.result)}); });
+    if(items.length<2){
+      el.innerHTML="<div style='text-align:center;color:#9ca3af;font-size:12px;padding:20px;'>완료된 세특이 2개 이상 있어야 분석할 수 있습니다.</div>"; return;
+    }
+    var freq={}, who={};
+    items.forEach(function(it,idx){
+      var clean=it.text.replace(/\*\*/g,'').replace(/[a-zA-Z0-9\s\n.,!?()\[\]{}]/g,' ');
+      var seen={}; (clean.match(/[가-힣]{3,6}/g)||[]).forEach(function(w){
+        if(STOPW.test(w)||seen[w])return; seen[w]=1;          /* 한 학생 안에서 여러 번 나와도 1명으로 셈 */
+        freq[w]=(freq[w]||0)+1; (who[w]=who[w]||[]).push(it.name);
+      });
+    });
+    var sorted=Object.keys(freq).filter(function(w){return freq[w]>=2;}).sort(function(a,b){return freq[b]-freq[a];}).slice(0,15);
+    if(!sorted.length){
+      el.innerHTML="<div style='text-align:center;color:#16a34a;font-size:12px;padding:16px;'>✅ 눈에 띄는 중복 표현이 없습니다. 어휘 다양성이 양호합니다.</div>"; return;
+    }
+    var max=freq[sorted[0]], total=items.length;
+    el.innerHTML="<div style='font-size:11px;color:#6b7280;margin-bottom:10px;'>총 "+total+"명 세특 기준 · 2명 이상에게 반복된 표현 Top "+sorted.length+" (같은 학생 안의 반복은 1명으로 셈) · 막대에 마우스를 올리면 해당 학생이 보여요</div>"
+      +sorted.map(function(w){
+        var cnt=freq[w], pct=Math.round(cnt/total*100);
+        var color=pct>=60?'#dc2626':pct>=40?'#d97706':'#6b7280';
+        var warn=pct>=60?'⚠ 주의':pct>=40?'△ 확인':'';
+        var names=who[w].slice(0,12).join(', ')+(who[w].length>12?' 외 '+(who[w].length-12)+'명':'');
+        return "<div class='stat-bar-wrap' title=\""+_esc(names)+"\">"
+          +"<span style='font-size:12px;color:"+color+";font-weight:"+(pct>=40?700:400)+";min-width:80px;'>"+_esc(w)+(warn?" <span style='font-size:10px;'>"+warn+"</span>":"")+"</span>"
+          +"<div class='stat-bar-bg'><div class='stat-bar-fill' style='width:"+(cnt/max*100)+"%;background:"+color+";'></div></div>"
+          +"<span style='font-size:11px;color:#6b7280;min-width:70px;'>"+cnt+"명 ("+pct+"%)</span></div>";
+      }).join('');
+  };
+  window.cToggleVocab=function(){
+    var body=document.getElementById('c-vocab-body'), ar=document.getElementById('c-vocab-arrow'); if(!body)return;
+    var open=body.style.display!=='none';
+    body.style.display=open?'none':'block'; ar.textContent=open?'▼ 펼치기':'▲ 접기';
+    if(!open)cRenderVocabStats();
+  };
+  function addCard(){
+    var root=document.getElementById('c-view-stats'); if(!root||document.getElementById('c-vocab-body'))return;
+    var card=document.createElement('div'); card.className='stat-card';
+    card.innerHTML="<div style='display:flex;align-items:center;justify-content:space-between;cursor:pointer;' onclick='cToggleVocab()'>"
+      +"<div style='font-size:13px;font-weight:700;color:#111;'>🔤 어휘 다양성 분석 <span style='font-size:11px;font-weight:400;color:#9ca3af;'>— 반복 표현 감지</span></div>"
+      +"<span id='c-vocab-arrow' style='font-size:12px;color:#9ca3af;user-select:none;'>▼ 펼치기</span></div>"
+      +"<div id='c-vocab-body' style='display:none;'><div id='c-stats-vocab-dist' style='margin-top:12px;'></div></div>";
+    root.appendChild(card);
+  }
+  addCard();
+  var orig=window.cRenderClubStats;
+  if(typeof orig==='function'){
+    window.cRenderClubStats=function(){
+      var r=orig.apply(this,arguments);
+      try{ var b=document.getElementById('c-vocab-body'); if(b&&b.style.display!=='none')cRenderVocabStats(); }catch(e){}
+      return r;
+    };
+  }
+})();
+</script>
+<!-- ══ 4단계(동아리 전용): 나이스 양식 채우기 + 학생 한 명 비우기(×) — 기존 코드 변경 없이 추가만 ══ -->
+<script>
+(function(){
+  /* ── ① 나이스 양식에 채우기: 나이스에서 받은 명렬표(xlsx)의 '특기사항' 열에 이 동아리 세특을 채워 새 파일로 저장 ── */
+  var HARD_B=1500; /* 나이스 동아리 특기사항 500자 = 1500바이트 */
+  window.cNeisFill=function(ev){
+    var file=ev.target.files[0]; ev.target.value=''; if(!file)return;
+    var club=cClubs[cSelClub]; if(!club){alert('선택된 동아리가 없습니다.');return;}
+    if(typeof XLSX==='undefined'){alert('엑셀 라이브러리를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.');return;}
+    var rd=new FileReader();
+    rd.onload=function(e){
+      try{
+        var norm=function(c){return String(c==null?'':c).replace(/\s+/g,'').trim();};
+        var wb=XLSX.read(e.target.result,{type:'binary'});
+        var ws=wb.Sheets[wb.SheetNames[0]];
+        var ref=XLSX.utils.decode_range(ws['!ref']);
+        var data=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+        var hr=-1,cg=-1,cb=-1,cn=-1,cnm=-1,ct=-1;
+        for(var ri=0;ri<Math.min(8,data.length)&&hr<0;ri++){
+          var row=(data[ri]||[]).map(norm);
+          var g=row.indexOf('학년'),b=row.indexOf('반'),n=row.indexOf('번호'),nm=row.indexOf('성명'),t=row.indexOf('특기사항');
+          if(g>=0&&b>=0&&n>=0&&nm>=0&&t>=0){hr=ri;cg=g;cb=b;cn=n;cnm=nm;ct=t;}
+        }
+        if(hr<0){alert('나이스 명렬표 양식을 찾지 못했어요.\n학년·반·번호·성명·특기사항 열이 있는 파일이어야 해요.');return;}
+        var byKey={},byName={};
+        club.students.slice(0,club.count).forEach(function(s){
+          if(!s||!s.name)return;
+          if(s.neis)byKey[Number(s.neis.grade)+'|'+Number(s.neis.ban)+'|'+Number(s.neis.num)]=s;
+          (byName[s.name]=byName[s.name]||[]).push(s);
+        });
+        var plan=[],used=[],overw=0,noRes=[],over=[];
+        for(var i=hr+1;i<data.length;i++){
+          var r=data[i]||[]; var name=norm(r[cnm]); if(!name)continue;
+          var key=(Number(norm(r[cg]))||0)+'|'+(Number(norm(r[cb]))||0)+'|'+(Number(norm(r[cn]))||0);
+          var st=byKey[key]; if(st&&st.name!==name)st=null;
+          if(!st&&byName[name]&&byName[name].length===1)st=byName[name][0];
+          if(!st)continue;
+          if(used.indexOf(st)>=0)continue; used.push(st);
+          if(!st.result){noRes.push(st.name);continue;}
+          var txt=stripBold(st.result);
+          if(cCalcBytes(txt)>HARD_B)over.push(st.name+'('+cCalcBytes(txt)+'B)');
+          if(norm(r[ct]))overw++;
+          plan.push({row:i+ref.s.r,col:ct+ref.s.c,text:txt});
+        }
+        if(!plan.length){alert('채울 수 있는 학생이 없어요.\n(이 파일에 현재 동아리 학생이 없거나, 세특이 아직 없어요.)');return;}
+        var left=club.students.slice(0,club.count).filter(function(s){return s&&s.name&&used.indexOf(s)<0;}).map(function(s){return s.name;});
+        var msg='「'+club.name+'」 세특 '+plan.length+'명을 나이스 양식의 특기사항 칸에 채울게요.'
+          +(overw?'\n· 이미 내용이 있는 칸 '+overw+'개는 덮어써요.':'')
+          +(noRes.length?'\n· 세특이 아직 없어 비워 두는 학생: '+noRes.join(', '):'')
+          +(left.length?'\n· 이 파일에서 못 찾은 학생: '+left.join(', '):'')
+          +(over.length?'\n⚠️ 1500바이트(500자) 초과: '+over.join(', ')+' — 나이스에서 막힐 수 있어요.':'')
+          +'\n\n원본 파일은 그대로 두고 새 파일로 저장돼요. 진행할까요?';
+        if(!confirm(msg))return;
+        plan.forEach(function(p){
+          var addr=XLSX.utils.encode_cell({r:p.row,c:p.col});
+          ws[addr]={t:'s',v:p.text};
+        });
+        var base=file.name.replace(/\.[^.]+$/,'');
+        XLSX.writeFile(wb,base+'_특기사항입력.xlsx');
+        alert('✅ '+plan.length+'명 채웠어요! 「'+base+'_특기사항입력.xlsx」를 나이스에 올려 주세요.');
+      }catch(err){alert('파일을 처리하지 못했어요: '+err.message);}
+    };
+    rd.readAsBinaryString(file);
+  };
+  (function addBtn(){
+    var wrap=document.querySelector('#c-view-status>div:first-child>div[style*="margin-left:auto"]');
+    if(!wrap||document.getElementById('c-neis-fill-in'))return;
+    var inp=document.createElement('input'); inp.type='file'; inp.id='c-neis-fill-in'; inp.accept='.xlsx,.xls'; inp.style.display='none';
+    inp.setAttribute('onchange','cNeisFill(event)');
+    var b=document.createElement('button'); b.type='button'; b.textContent='📤 나이스 양식에 채우기';
+    b.title='나이스에서 받은 명렬표(xlsx)의 특기사항 칸에 이 동아리 세특을 채워서 저장해요';
+    b.setAttribute('onclick',"document.getElementById('c-neis-fill-in').click()");
+    b.style.cssText='padding:6px 12px;border:1px solid #059669;border-radius:7px;background:#ecfdf5;font-size:12px;cursor:pointer;color:#047857;font-weight:700;';
+    wrap.appendChild(inp); wrap.appendChild(b);
+  })();
+
+  /* ── ⑧ 학생 한 명 비우기(×): 학생 목록 줄 끝의 ×. 해당 칸의 이름·학번·세특 등을 모두 비움 ── */
+  window.cClearStu=function(i){
+    var club=cClubs[cSelClub]; if(!club||!club.students[i])return;
+    var s=club.students[i];
+    var has=!!(s.name||s.result||s.role||s.episode||s.neis||(s.files&&s.files.length)||(s.comps&&s.comps.length));
+    if(!has)return;
+    var label=(String(i+1).padStart(2,'0'))+'번 '+(s.name||'(이름 없음)')+(s.neis?' ('+cStuNo(s.neis)+')':'');
+    if(!confirm('「'+label+'」 학생의 입력 내용을 모두 비울까요?\n(이름·학번·역할·활동 내용·세특·첨부 포함 — 되돌릴 수 없어요)\n\n※ 이 칸만 비어요. 다른 학생 순서는 그대로예요.'))return;
+    club.students[i]={name:'',role:'',episode:'',comps:[],result:'',done:false,history:[],files:[],emphasisNote:'',fileNote:''};
+    if(cSelStu===i){ try{cResult='';}catch(e){} }
+    cSaveData(); cRender();
+  };
+  var origSide=window.cRenderSidebar;
+  if(typeof origSide==='function'){
+    window.cRenderSidebar=function(){
+      var r=origSide.apply(this,arguments);
+      try{
+        var club=cClubs[cSelClub]; var rows=document.querySelectorAll('#c-stu-list>div');
+        rows.forEach(function(row,i){
+          var s=club.students[i]; if(!s||!(s.name||s.result||s.neis||s.role||s.episode))return;
+          var x=document.createElement('span'); x.className='adum-c-clr'; x.textContent='×'; x.title='이 학생 칸 비우기';
+          x.setAttribute('onclick','event.stopPropagation();cClearStu('+i+')');
+          x.style.cssText='flex-shrink:0;padding:0 4px;font-size:14px;line-height:1;color:#d1d5db;cursor:pointer;';
+          x.onmouseover=function(){x.style.color='#dc2626';}; x.onmouseout=function(){x.style.color='#d1d5db';};
+          row.appendChild(x);
+        });
+      }catch(e){}
+      return r;
+    };
+  }
+})();
+</script>
 </body>
 </html>
