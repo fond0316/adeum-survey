@@ -69,6 +69,7 @@ details summary{cursor:pointer;font-weight:600;min-height:36px;display:flex;alig
 .pet{display:flex;gap:10px;align-items:center}.petart{flex:0 0 120px}.petin{flex:1;min-width:0}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .tile{padding:8px;text-align:center;margin-bottom:0}.tile svg{display:block;width:100%;height:auto}.tile .tn{font-size:12.5px;font-weight:600;margin-top:4px}.tile .tq{height:56px;display:flex;align-items:center;justify-content:center;font-size:28px;color:#CFC9E4;background:var(--bg);border-radius:10px}
+.adm-top{display:flex;align-items:center;gap:10px;background:var(--main);color:#fff;border-radius:14px;padding:10px 14px;min-height:56px}.adm-top b{flex:1;font-size:17px}.adm-role{font-size:12px;background:rgba(255,255,255,.22);padding:3px 10px;border-radius:99px}.adm-out{min-height:36px;padding:0 12px;border-radius:10px;border:0;background:rgba(255,255,255,.2);color:#fff;font:inherit;cursor:pointer}.adm-h{font-size:16px;font-weight:700;margin-bottom:2px}.adm-link{border:0;background:none;font:inherit;font-size:12px;color:#9A96AA;min-height:44px;padding:0 14px;cursor:pointer}body.pcview #app{max-width:860px}body.pcview #nav .in{max-width:860px}body.pcview #sheet{max-width:640px}
 .gate{position:fixed;inset:0;z-index:9999;background:var(--bg,#F4F2FA);display:flex;align-items:center;justify-content:center;padding:24px;text-align:center}.gate-in{max-width:340px}.gate h2{margin:8px 0;font-size:19px}.adm{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#fff;border:.5px solid var(--line);border-radius:12px;padding:6px 8px;margin-bottom:10px;font-size:12.5px}.adm b{color:var(--main-d);margin-right:2px}.adm-b{min-height:36px;padding:0 12px;border-radius:18px;border:.5px solid #CFC9E4;background:#fff;font:inherit;font-size:13px;color:var(--tx);cursor:pointer}.adm-b.on{background:var(--main);border-color:var(--main);color:#fff}
 </style>
 </head>
@@ -131,7 +132,8 @@ overrides:{},logs:[],badges:{}}}
 
 var S=load();
 function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&o.v===1&&o.blocks&&o.events)return o}}catch(e){}return seed()}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('저장 공간을 확인해 주세요')}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('저장 공간을 확인해 주세요')}
+if(MODE==='all'){try{localStorage.setItem('running_dirty','1')}catch(e){}cloudSeq=(cloudSeq|0)+1;if(typeof cloudQueue==='function')cloudQueue()}}
 
 var ui={tab:'home',week:mondayOf(todayStr())};
 var sessions=[];
@@ -361,7 +363,6 @@ ls.forEach(function(l){h+=logCard(l)});return h+'<div class="foot" data-act="foo
 function chips(name,vals,labels,sel){return '<div class="chips" data-chips="'+name+'">'+vals.map(function(v,i){return '<button type="button" class="chip'+(sel.indexOf(v)>=0?' on':'')+'" data-v="'+v+'">'+labels[i]+'</button>'}).join('')+'</div>'}
 function vProg(){
 var h='<div class="hdr"><div><div class="s">프로그램</div><div class="t">대회 · 블록 편집</div></div></div>';
-if(isAdmin())h+=vAdmin();
 h+='<div class="card"><b>최대심박</b><label class="l">bpm (가민 설정 기준을 알면 그 값으로)</label><input type="number" inputmode="numeric" data-set="maxHr" value="'+S.settings.maxHr+'">';
 h+='<div class="mut" style="margin-top:8px">';for(var z=1;z<=5;z++)h+='Z'+z+' '+zb(z)+(z<5?' · ':'');h+='</div></div>';
 h+='<div class="card"><b>홈 한 줄 문구</b><label class="l">비우면 단계별 자동 문구가 나와요 (30자까지, 이모지 가능)</label><input type="text" maxlength="30" data-set="homeLine" value="'+esc((S.settings&&S.settings.homeLine)||'')+'" placeholder="예) 오늘도 한 마리 키운다 🐣"></div>';
@@ -427,13 +428,14 @@ else h+='<div class="mut" style="margin-top:4px">홈에서 프사오 체크를 �
 h+='</div>';
 return h+'<div class="foot" data-act="foot">Made by Cheon_R</div>'}
 
-var ICON={home:'<path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/>',week:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',prog:'<path d="M5 6h14M5 12h14M5 18h9"/>',stats:'<path d="M5 20V10M12 20V4M19 20v-7"/>',log:'<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/>'};
+var ICON={home:'<path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/>',week:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',prog:'<path d="M5 6h14M5 12h14M5 18h9"/>',stats:'<path d="M5 20V10M12 20V4M19 20v-7"/>',log:'<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/>',adm:'<path d="M5 7h14M5 17h14"/><circle cx="9" cy="7" r="2.4"/><circle cx="15" cy="17" r="2.4"/>'};
 var TABS=[['home','홈'],['week','주차'],['prog','프로그램'],['stats','통계'],['log','기록']];
 function render(){
 refresh();
+if(ui.tab==='adm'&&!isAdmin())ui.tab='home';
 var app=document.getElementById('app');
-app.innerHTML=(isAdmin()?adminBar():'')+{home:vHome,week:vWeek,prog:vProg,stats:vStats,log:vLog}[ui.tab]();
-document.querySelector('#nav .in').innerHTML=TABS.map(function(t){return '<button class="'+(ui.tab===t[0]?'on':'')+'" data-act="goto" data-tab="'+t[0]+'"><svg viewBox="0 0 24 24">'+ICON[t[0]]+'</svg>'+t[1]+'</button>'}).join('')}
+app.innerHTML=(isAdmin()?adminBar():'')+{home:vHome,week:vWeek,prog:vProg,stats:vStats,log:vLog,adm:vAdmin}[ui.tab]()+(!LORE&&!isAdmin()?'<div class="foot" style="margin-top:0"><button class="adm-link" data-act="adminopen">⚙ 관리자</button></div>':'');
+document.querySelector('#nav .in').innerHTML=(isAdmin()?TABS.concat([['adm','관리자']]):TABS).map(function(t){return '<button class="'+(ui.tab===t[0]?'on':'')+'" data-act="goto" data-tab="'+t[0]+'"><svg viewBox="0 0 24 24">'+ICON[t[0]]+'</svg>'+t[1]+'</button>'}).join('')}
 
 function openSession(id){
 var s=sessById(id);if(!s)return;var l=logFor(id),st=status(s),o=S.overrides[id]||{};
@@ -629,21 +631,45 @@ function adminPw(){try{return localStorage.getItem('running_adminpw')||'race-cre
 function baseUrl(){try{var b=localStorage.getItem('running_base');if(b)return b.replace(/\?.*$/,'')}catch(e){}return location.origin==='null'||location.protocol==='file:'?location.href.replace(/[?#].*$/,''):location.origin+location.pathname}
 function shareUrl(m){var g=gasUrl();return baseUrl()+'?mode='+m+(g?'&gas='+encodeURIComponent(g):'')}
 var SHARE=[['lore','로어그릿','아루미·이스리·해지 (친구 공유용)'],['skid','스키드레이스','이스리용'],['hyrox','하이록스','나만 · 나중에 이스리']];
+function viewMode(){try{return localStorage.getItem('running_view')==='pc'?'pc':'phone'}catch(e){return 'phone'}}
+function applyView(){document.body.classList.toggle('pcview',isAdmin()&&viewMode()==='pc')}
 function adminBar(){
-var h='<div class="adm"><b>관리자</b>';
+var h='<div class="adm"><b>관리자</b>'+(MODE==='all'&&gasUrl()?'<span class="cl" style="font-size:11.5px;color:var(--tx2)">'+cloudLabel()+'</span>':'');
 [['all','전체'],['skid','스키드'],['lore','로어'],['hyrox','하이록스']].forEach(function(x){h+='<button class="adm-b'+(MODE===x[0]?' on':'')+'" data-act="mode" data-v="'+x[0]+'">'+x[1]+'</button>'});
+h+='<span style="flex:1"></span>';
+[['phone','📱 폰'],['pc','🖥 모니터']].forEach(function(x){h+='<button class="adm-b'+(viewMode()===x[0]?' on':'')+'" data-act="view" data-v="'+x[0]+'">'+x[1]+'</button>'});
 return h+'</div>'}
 function vAdmin(){
-var h='<div class="card" style="border-left:4px solid var(--main)"><div class="row"><b>관리자</b><button class="btn sm" data-act="adminoff">관리자 해제</button></div><div class="mut" style="margin-top:4px">지금 보는 버전: '+(MODE==='all'?'전체(내 훈련)':MODENM[MODE])+'. \'전체\'가 아듬샘 진짜 기록이에요. 스키드·로어·하이록스는 친구 화면 미리보기라서 저장 공간이 따로예요.</div>';
-if(adminPw()==='race-crew')h+='<div class="fb warn">비밀번호가 처음 값 그대로예요. 아래에서 바꿔 주세요.</div>';
-h+=vSwitch();
-h+='<div class="sec"><b>친구 공유 링크</b><span>카톡에 붙여넣기</span></div>';
-SHARE.forEach(function(x){h+='<div class="card" style="margin-bottom:8px;background:var(--bg)"><b>'+x[1]+'</b> <span style="font-size:11px;padding:2px 8px;border-radius:99px;font-weight:600;background:'+(openList().indexOf(x[0])>=0?'#DFF3E6;color:#2E7D4F':'#EEE;color:#888')+'">'+(openList().indexOf(x[0])>=0?'열림':'닫힘')+'</span> <span class="mut">'+x[2]+'</span><div class="mut" style="word-break:break-all;margin:4px 0">'+esc(shareUrl(x[0]))+'</div><div class="grid2"><button class="btn sm" data-act="copylink" data-v="'+x[0]+'">링크 복사</button><button class="btn sm" data-act="copyrich" data-v="'+x[0]+'">글자 링크로 복사</button></div></div>'});
-if(location.protocol==='file:')h+='<div class="fb warn">지금은 파일로 열려 있어서 링크가 내 기기 주소예요. GitHub Pages에 올린 주소에서 열거나 아래에 배포 주소를 입력해 주세요.</div>';
-h+='<label class="l">배포 주소 (GitHub Pages 주소, 비우면 현재 주소)</label><input data-set="base" value="'+esc((function(){try{return localStorage.getItem('running_base')||''}catch(e){return ''}})())+'" placeholder="https://아이디.github.io/저장소/Cheon-R-running.html">';
-h+='<label class="l">관리자 비밀번호 바꾸기 (4자 이상)</label><div style="display:flex;gap:8px"><input id="a_new" type="password" placeholder="새 비밀번호"><button class="btn sm" data-act="adminpw" style="flex:0 0 72px">변경</button></div></div>';
+var h='<div class="adm-top"><b>레이스 크루 관리</b><span class="adm-role">관리자</span><button class="adm-out" data-act="adminoff">로그아웃</button></div>';
+h+='<div class="mut" style="margin:8px 2px 10px">지금 보는 버전: '+(MODE==='all'?'전체(내 훈련)':MODENM[MODE])+'. \'전체\'가 아듬샘 진짜 기록이고, 스키드·로어·하이록스는 친구 화면 미리보기예요(저장 공간이 따로예요). 위쪽 버튼으로 버전과 폰/모니터 보기를 바꿔요.</div>';
+if(adminPw()==='race-crew')h+='<div class="fb warn">비밀번호가 처음 값 그대로예요. 맨 아래 🔒 카드에서 바꿔 주세요.</div>';
+h+=vLinkBox()+vCloud()+vSwitch();
+h+='<div class="card"><div class="adm-h">📱 친구 초대 링크</div><div class="mut">카톡에 붙여넣어 친구에게 보내요. 열려 있는 버전만 친구가 들어올 수 있어요.</div>';
+SHARE.forEach(function(x){var on=openList().indexOf(x[0])>=0;h+='<div class="card" style="margin:10px 0 0;background:var(--bg)"><b>'+x[1]+'</b> <span style="font-size:11px;padding:2px 8px;border-radius:99px;font-weight:600;background:'+(on?'#DFF3E6;color:#2E7D4F':'#EEE;color:#888')+'">'+(on?'열림':'닫힘')+'</span> <span class="mut">'+x[2]+'</span><div class="mut" style="word-break:break-all;margin:4px 0">'+esc(shareUrl(x[0]))+'</div><div class="grid2"><button class="btn sm" data-act="copylink" data-v="'+x[0]+'">링크 복사</button><button class="btn sm" data-act="copyrich" data-v="'+x[0]+'">글자 링크로 복사</button></div></div>'});
+if(location.protocol==='file:')h+='<div class="fb warn" style="margin-top:10px">지금은 파일로 열려 있어서 링크가 내 기기 주소예요. GitHub Pages에 올린 주소를 아래에 입력해 주세요.</div>';
+h+='<label class="l">배포 주소 (GitHub Pages 주소, 비우면 현재 주소)</label><input data-set="base" value="'+esc((function(){try{return localStorage.getItem('running_base')||''}catch(e){return ''}})())+'" placeholder="https://아이디.github.io/저장소/Cheon-R-race-crew.html"></div>';
+h+='<div class="card"><div class="adm-h">💾 데이터 관리</div><div class="mut">지금 보는 버전의 기록을 파일로 저장하거나 불러와요. 폰을 바꾸기 전에 저장해 두세요.</div><div class="grid2" style="margin-top:10px"><button class="btn" data-act="export">내보내기</button><button class="btn" data-act="import">불러오기</button></div></div>';
+h+='<div class="card"><div class="adm-h">🔒 관리자 비밀번호</div><div class="mut">4자 이상. 연결된 GAS에도 같이 바뀌어요.</div><div style="display:flex;gap:8px;margin-top:10px"><input id="a_new" type="password" placeholder="새 비밀번호"><button class="btn sm" data-act="adminpw" style="flex:0 0 72px">변경</button></div></div>';
+h+='<div class="mut" style="text-align:center;margin:6px 0">문의 <a href="mailto:fond7509@naver.com?subject='+encodeURIComponent('[레이스 크루] 문의')+'">fond7509@naver.com</a></div>';
 return h}
-function openAdminLogin(){openSheet('<h2>관리자</h2><div class="mut">비밀번호를 입력해 주세요.</div><label class="l">비밀번호</label><input id="a_pw" type="password"><div style="display:grid;gap:8px;margin-top:14px"><button class="btn pri" data-act="adminlogin">들어가기</button><button class="btn" data-act="closesheet">닫기</button></div>')}
+function vCloud(){
+if(!gasUrl())return '<div class="card"><div class="adm-h">☁ 내 기록 동기화</div><div class="mut">위 🔗 연결에 GAS 주소를 넣으면, 폰과 컴퓨터에서 같은 기록을 쓸 수 있어요.</div></div>';
+var h='<div class="card"><div class="adm-h">☁ 내 기록 동기화</div><div class="mut">관리자 비밀번호가 곧 내 계정이에요. 다른 기기에서 로그인하면 시트에 저장된 내 기록(\'전체\')을 가져오고, 이후엔 저장할 때마다 자동으로 시트에 올라가요.</div>';
+if(MODE!=='all')return h+'<div class="fb warn" style="margin-top:10px">동기화는 위 관리자 바에서 \'전체\'를 눌렀을 때만 돼요. (스키드·로어·하이록스는 미리보기라 기기에만 저장돼요)</div></div>';
+h+='<div id="cloudStat" style="margin:10px 0;font-weight:600">'+cloudLabel()+(cloudAt?' · 마지막 저장 '+esc(cloudAt):'')+'</div><div class="grid2"><button class="btn sm" data-act="cloudsave">지금 저장하기</button><button class="btn sm" data-act="cloudpull">시트에서 불러오기</button></div><button class="btn sm" data-act="cloudprev" style="width:100%;margin-top:8px">직전 기록으로 되돌리기</button><div class="mut" style="margin-top:8px;font-size:12px">직전 기록은 날짜가 바뀐 뒤 처음 저장할 때(어제까지의 기록) 시트에 자동으로 한 번 보관돼요. 덮어쓰기 전에는 이 기기에도 백업을 남겨요.</div></div>';
+return h}
+function vLinkBox(){
+var h='<div class="card"><div class="adm-h">🔗 연결</div><div class="mut">구글 시트에 만든 GAS 웹 앱 주소를 붙여넣어요. 이 주소로 친구에게 열어 둘 버전을 관리해요.</div>';
+h+='<label class="l">GAS 웹 앱 주소</label><input data-set="gas" value="'+esc(gasUrl())+'" placeholder="https://script.google.com/macros/s/…/exec">';
+h+='<div class="grid2" style="margin-top:8px"><button class="btn sm" data-act="gcheck">연결 확인</button><div class="mut" style="align-self:center">'+(gasUrl()?'주소 저장됨':'주소 없음 · 로어그릿만 열림')+'</div></div>';
+if(ui.gmsg)h+='<div class="fb" style="margin-top:8px">'+esc(ui.gmsg)+'</div>';
+if(gasUrl())h+='<button class="btn sm" data-act="copydev" style="width:100%;margin-top:8px">다른 기기(컴퓨터)용 링크 복사</button><div class="mut" style="font-size:12px;margin-top:4px">컴퓨터에서 이 링크로 열고 로그인하면 GAS 주소를 다시 안 넣어도 돼요. 나만 쓰는 링크예요(친구에게 보내지 마세요).</div>';
+h+='<details style="margin-top:10px"><summary>📖 GAS 설치 방법 (처음 한 번)</summary><ol class="guide" style="margin:8px 0 0 18px;padding:0;font-size:13px;line-height:1.7"><li>구글 시트를 새로 만들어요. (이름 예: 레이스크루_설정)</li><li>확장 프로그램 → Apps Script → <b>Cheon-R-race-crew_gas.gs</b> 내용을 전부 붙여넣고 저장해요.</li><li>배포 → 새 배포 → 유형 <b>웹 앱</b> → 실행: <b>나</b> · 액세스: <b>모든 사용자</b> → 배포 (처음엔 권한 허용이 나와요)</li><li>나온 <b>웹 앱 URL</b>을 복사해서 위 칸에 붙여넣어요.</li><li>[연결 확인]을 누르면 시트에 \'설정\' 탭이 자동으로 생겨요. 기록 동기화를 처음 쓰면 \'기록_전체\' 탭도 생겨요.</li></ol><div class="mut" style="margin-top:8px">⚠️ 코드를 고친 뒤에는 꼭 배포 관리 → 연필 → <b>새 버전</b>(수정 배포)으로 올려요. 새 배포를 만들면 주소가 바뀌어서 링크가 깨져요.</div></details></div>';
+return h}
+function openAdminLogin(){
+var o=document.getElementById('alogin');if(o)o.remove();o=document.createElement('div');o.id='alogin';o.className='gate';
+o.innerHTML='<div class="card" style="width:100%;max-width:380px;text-align:left;margin:0"><div class="adm-h" style="font-size:18px">🔒 관리자 로그인</div><div class="mut">비밀번호를 입력해 주세요.</div>'+(adminPw()==='race-crew'?'<div class="mut" style="background:var(--bg);border-radius:8px;padding:8px 10px;margin-top:8px">🆕 처음이라면 초기 비밀번호 <b>race-crew</b>를 입력하세요. 로그인한 뒤 바로 새 비밀번호로 바꿔 주세요.</div>':'')+'<input id="a_pw" type="password" placeholder="비밀번호" style="margin-top:10px">'+(gasUrl()?'':'<details style="margin-top:10px"><summary>다른 기기에서 처음이라면 (GAS 주소 입력)</summary><input id="a_gas" type="text" placeholder="https://script.google.com/macros/s/…/exec" style="margin-top:8px"><div class="mut" style="font-size:12px;margin-top:4px">처음 연결한 기기에서 \'다른 기기용 링크 복사\'로 열면 이 칸은 안 채워도 돼요.</div></details>')+'<div class="grid2" style="margin-top:12px"><button class="btn pri" data-act="adminlogin">로그인</button><button class="btn" data-act="alclose">닫기</button></div></div>';
+document.body.appendChild(o);setTimeout(function(){var e=document.getElementById('a_pw');if(e)e.focus()},50)}
 function copyText(t,html){
 var done=function(){toast('복사했어요')};
 try{if(html&&window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write){navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([t],{type:'text/plain'})})]).then(done,function(){fallback()});return}
@@ -697,17 +723,31 @@ else if(act==='wknext'){ui.week=addDays(ui.week,7);render()}
 else if(act==='wknow'){ui.week=mondayOf(todayStr());render()}
 else if(act==='share')makeShare(el.getAttribute('data-mon'));
 else if(act==='foot'){ui.fc=(ui.fc||0)+1;clearTimeout(ui.ft);ui.ft=setTimeout(function(){ui.fc=0},2000);if(ui.fc>=5){ui.fc=0;if(isAdmin())toast('이미 관리자예요');else openAdminLogin()}}
-else if(act==='adminlogin'){var pw=document.getElementById('a_pw').value;if(pw===adminPw()){try{localStorage.setItem('running_admin','1')}catch(e){}closeSheet();ui.tab='prog';render();window.scrollTo(0,0);toast('관리자 모드예요')}else toast('비밀번호가 달라요')}
-else if(act==='adminoff'){try{localStorage.removeItem('running_admin')}catch(e){}render();toast('관리자를 해제했어요')}
+else if(act==='adminlogin'){var pw=document.getElementById('a_pw').value,gi=document.getElementById('a_gas');
+if(gi&&gi.value.trim()){var gv=gi.value.trim();if(!gasOk(gv)){toast('GAS 웹 앱 주소 형식이 아니에요');return}try{localStorage.setItem('running_gas',gv)}catch(e){}}
+var _in=function(){try{localStorage.setItem('running_admin','1');localStorage.setItem('running_adminpw',pw)}catch(e){}var _al=document.getElementById('alogin');if(_al)_al.remove();closeSheet();ui.tab='adm';applyView();render();window.scrollTo(0,0);toast('관리자 모드예요');if(cloudOn())pullCheck(false)};
+if(gasUrl()){toast('확인 중…');gasPost({action:'login',pw:pw},function(r){if(r&&r.ok)_in();else if(r&&r.err==='pw')toast('비밀번호가 달라요');else if(pw===adminPw())_in();else toast('GAS에 연결하지 못했어요. 연결을 확인해 주세요')})}
+else if(pw===adminPw())_in();else toast('비밀번호가 달라요')}
+else if(act==='adminoff'){clearTimeout(cloudTm);try{localStorage.removeItem('running_admin')}catch(e){}if(ui.tab==='adm')ui.tab='home';applyView();render();toast('관리자를 해제했어요')}
 else if(act==='adminpw'){var np=document.getElementById('a_new').value;if(np.length<4){toast('4자 이상으로 입력해 주세요');return}
 var _setpw=function(){try{localStorage.setItem('running_adminpw',np)}catch(e){}render();toast('비밀번호를 바꿨어요')};
-if(gasUrl()){gasCall({action:'setpw',pw:adminPw(),newpw:np},function(r){if(r&&r.ok)_setpw();else if(r&&r.err==='pw')toast('연결된 GAS의 비밀번호와 달라요. GAS 속성 ADMIN_PW를 확인해 주세요');else toast('GAS에 연결하지 못했어요. 다시 시도해 주세요')})}else _setpw()}
+if(gasUrl()){gasPost({action:'setpw',pw:adminPw(),newpw:np},function(r){if(r&&r.ok)_setpw();else if(r&&r.err==='pw')toast('연결된 GAS의 비밀번호와 달라요. 다시 로그인해 주세요');else if(r&&r.err==='old')gasCall({action:'setpw',pw:adminPw(),newpw:np},function(q){if(q&&q.ok)_setpw();else toast('GAS에 연결하지 못했어요. 다시 시도해 주세요')});else toast('GAS에 연결하지 못했어요. 다시 시도해 주세요')})}else _setpw()}
 else if(act==='mode'){var mv=el.getAttribute('data-v');try{localStorage.setItem('running_mode',mv)}catch(e){}try{history.replaceState(null,'',location.pathname)}catch(e){}location.reload()}
 else if(act==='copylink'){copyText(shareUrl(id||el.getAttribute('data-v')))}
 else if(act==='copyrich'){var cv=el.getAttribute('data-v'),cu=shareUrl(cv);copyText(cu,'<a href="'+cu.replace(/&/g,'&amp;')+'">레이스 크루 '+MODENM[cv]+'_made by Cheon R</a>')}
 else if(act==='f45'){var fd=ui.f45d||todayStr(),fv=parseInt(el.getAttribute('data-v'),10),_p=petStage();if(fv)f45()[fd]=fv;else delete f45()[fd];save();render();var _n=petStage();toast(fv?'프사오'+(fv===2?' 더블':'')+' 먹이 +'+fv+(_n>_p?' · '+STAGE_NM[_n]+'(으)로 자랐어요!':''):'프사오 기록을 지웠어요')}
+else if(act==='adminopen'){openAdminLogin()}
+else if(act==='alclose'){var _a2=document.getElementById('alogin');if(_a2)_a2.remove()}
+else if(act==='view'){try{localStorage.setItem('running_view',el.getAttribute('data-v'))}catch(e){}applyView();render()}
 else if(act==='gtoggle'){gToggle(el.getAttribute('data-v'))}
-else if(act==='gcheck'){refreshOpen(true)}
+else if(act==='gcheck'){ui.gmsg='';refreshOpen(true);gasPost({action:'ping',pw:adminPw()},function(r){ui.gmsg=r&&r.ok?(r.ver>=2?'기록 동기화 준비 완료 ✅':'GAS 코드가 옛 버전이에요. 새 코드로 수정 배포해 주세요'):(r&&r.err==='pw'?'GAS의 관리자 비밀번호가 달라요':(r&&r.err==='old'?'GAS 코드가 옛 버전이에요. 새 코드로 수정 배포해 주세요':'기록 저장 연결을 확인하지 못했어요'));if(ui.tab==='adm')render()})}
+else if(act==='copydev'){copyText(baseUrl()+'?gas='+encodeURIComponent(gasUrl()))}
+else if(act==='cloudsave'){if(!cloudOn()){toast('먼저 \'전체\' 화면에서 GAS를 연결해 주세요');return}cloudUpload(false)}
+else if(act==='cloudpull'){pullCheck(true)}
+else if(act==='cloudprev'){if(!cloudOn()){toast('먼저 \'전체\' 화면에서 GAS를 연결해 주세요');return}gasPost({action:'meta',pw:adminPw()},function(r){if(!r||!r.ok){toast('GAS에 연결하지 못했어요');return}if(!r.hasPrev){toast('아직 보관된 직전 기록이 없어요');return}openSheet('<h2>직전 기록으로 되돌릴까요?</h2><div class="mut">'+esc(r.prevAt)+' 저장본 (기록 '+r.prevN+'개)으로 되돌려요. 지금 기록은 이 기기에 백업해 둬요.</div><div style="display:grid;gap:8px;margin-top:14px"><button class="btn pri" data-act="cloudprevgo">되돌리기</button><button class="btn" data-act="closesheet">취소</button></div>')})}
+else if(act==='cloudprevgo'){closeSheet();cloudApply('prev',false)}
+else if(act==='cloudcloud'){closeSheet();cloudApply('latest',false)}
+else if(act==='cloudlocal'){closeSheet();cloudUpload(true)}
 else if(act==='gaterefresh'){refreshOpen(true)}
 else if(act==='scene')openScene(id);
 else if(act==='pet')openPet();
@@ -752,6 +792,52 @@ else if(f==='kind'){b.kind=t.value}
 else if(f==='name'){b.name=t.value.trim()||b.name}
 save();render()}
 });
+/* ===== 내 기록 동기화 (GAS · 폰/컴퓨터 같은 기록) ===== */
+var cloudSeq=0,cloudTm=null,cloudBusy=false,cloudSt='',cloudAt='',cloudLast=0;
+function cKey(k,v){try{if(v===undefined)return localStorage.getItem('running_'+k);if(v===null)localStorage.removeItem('running_'+k);else localStorage.setItem('running_'+k,v)}catch(e){}return null}
+function cloudOn(){return MODE==='all'&&isAdmin()&&!!gasUrl()}
+function gasPost(body,cb){var u=gasUrl();if(!u){cb(null);return}
+var ctl=window.AbortController?new AbortController():null,tm=setTimeout(function(){if(ctl)ctl.abort()},25000);
+fetch(u,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body),signal:ctl?ctl.signal:undefined,redirect:'follow'}).then(function(r){return r.text()}).then(function(t){clearTimeout(tm);var j=null;try{j=JSON.parse(t)}catch(e){}cb(j||{ok:false,err:'old'})}).catch(function(){clearTimeout(tm);cb(null)})}
+function cloudLabel(){return {saving:'☁ 저장 중…',check:'☁ 확인 중…',ok:'☁ 저장됨',err:'☁ 연결 안 됨 (나중에 저장)'}[cloudSt]||'☁ 연결됨'}
+function setCloud(st){cloudSt=st;var a=document.querySelectorAll('.adm .cl');for(var i=0;i<a.length;i++)a[i].textContent=cloudLabel();var b=document.getElementById('cloudStat');if(b)b.textContent=cloudLabel()+(cloudAt?' · 마지막 저장 '+cloudAt:'')}
+function isFresh(){var x=function(o){return !o||!Object.keys(o).length};return !(S.logs&&S.logs.length)&&x(S.f45)&&x(S.overrides)&&x(S.finished)&&x(S.pets)&&x(S.badges)&&!S.names}
+function cloudErr(r){if(r&&r.err==='pw')toast('비밀번호가 GAS와 달라요. 다시 로그인해 주세요');else if(r&&r.err==='old')toast('GAS 코드가 옛 버전이에요. 새 코드로 수정 배포해 주세요');else toast('동기화 오류: '+(r&&r.err||'알 수 없음'))}
+function cloudQueue(){if(!cloudOn())return;setCloud('saving');clearTimeout(cloudTm);cloudTm=setTimeout(function(){cloudUpload(false)},1500)}
+function cloudUpload(force){
+if(!cloudOn())return;clearTimeout(cloudTm);var seq=cloudSeq;setCloud('saving');
+gasPost({action:'save',pw:adminPw(),baseRev:parseInt(cKey('cloudrev')||'0',10),force:!!force,n:(S.logs||[]).length,data:JSON.stringify(S)},function(r){
+if(r&&r.ok){cKey('cloudrev',String(r.rev));cloudAt=r.savedAt||'';if(seq===cloudSeq){cKey('dirty','0');setCloud('ok')}else cloudQueue()}
+else if(r&&r.err==='conflict')pullCheck(false);
+else{setCloud('err');if(r&&(r.err==='pw'||r.err==='old'))cloudErr(r)}})}
+function pullCheck(manual){
+if(!cloudOn()){if(manual)toast(MODE!=='all'?'동기화는 "전체" 화면에서만 돼요':'먼저 GAS 주소를 연결해 주세요');return}
+if(cloudBusy)return;cloudBusy=true;cloudLast=Date.now();setCloud('check');
+gasPost({action:'meta',pw:adminPw()},function(r){cloudBusy=false;
+if(!r){setCloud('err');if(manual)toast('GAS에 연결하지 못했어요');return}
+if(!r.ok){setCloud('err');cloudErr(r);return}
+if(r.savedAt)cloudAt=r.savedAt;
+var cr=parseInt(cKey('cloudrev')||'0',10),dirty=cKey('dirty')==='1';
+if(!r.hasData){cloudUpload(false);return}
+if(cr===r.rev){if(dirty)cloudUpload(false);else{setCloud('ok');if(manual)toast('이미 최신이에요')}return}
+if(isFresh()||(cr!==0&&!dirty)){cloudApply('latest',!manual);return}
+setCloud('err');openCloudChoice(r)})}
+function cloudApply(which,auto){
+setCloud('check');
+gasPost({action:'load',pw:adminPw(),which:which},function(r){
+if(!r||!r.ok||!r.hasData){setCloud('err');toast('시트 기록을 불러오지 못했어요');return}
+var o=null;try{o=JSON.parse(r.data)}catch(e){}
+if(!(o&&o.v===1&&o.blocks&&o.events&&o.logs)){setCloud('err');toast('시트 기록 형식을 읽지 못했어요');return}
+try{localStorage.setItem('running_backup_prev',JSON.stringify(S))}catch(e){}
+S=o;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
+if(which==='latest'){cKey('cloudrev',String(r.rev));cKey('dirty','0');cloudAt=r.savedAt||'';setCloud('ok')}
+else{cKey('dirty','1')}
+render();toast(which==='prev'?'직전 기록으로 되돌렸어요':auto?'다른 기기의 최신 기록을 불러왔어요':'시트 기록을 불러왔어요');
+if(which==='prev')cloudUpload(true)})}
+function openCloudChoice(r){
+openSheet('<h2>어느 기록을 쓸까요?</h2><div class="mut">이 기기와 시트(내 계정)에 기록이 따로 있어요.</div><div class="card" style="margin-top:10px"><b>☁ 시트</b><div class="mut">기록 '+r.n+'개 · 마지막 저장 '+esc(r.savedAt||'')+'</div></div><div class="card"><b>📱 이 기기</b><div class="mut">기록 '+((S.logs||[]).length)+'개</div></div><div style="display:grid;gap:8px"><button class="btn pri" data-act="cloudcloud">시트 기록 쓰기 (이 기기는 폰에 백업해 둬요)</button><button class="btn" data-act="cloudlocal">이 기기 기록 쓰기 (시트를 덮어써요)</button><button class="btn" data-act="closesheet">나중에</button></div>')}
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&cloudOn()&&Date.now()-cloudLast>20000)pullCheck(false)});
+window.addEventListener('online',function(){if(cloudOn())pullCheck(false)});
 /* ===== 열린 버전 스위치 (GAS) ===== */
 var GAS_DEFAULT='';
 function gasOk(u){return /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(u)}
@@ -777,20 +863,22 @@ else{applyGate();if(manual)toast('GAS에 연결하지 못했어요. 주소와 �
 function gToggle(m){
 if(!gasUrl()){toast('먼저 GAS 주소를 입력해 주세요');return}
 var cur=openList().slice(),i=cur.indexOf(m);if(i>=0)cur.splice(i,1);else cur.push(m);
-gasCall({action:'set',pw:adminPw(),open:cur.join(',')},function(r){
+var fin=function(r){
 if(r&&r.ok){try{localStorage.setItem('running_open',r.open.join(','))}catch(e){}render();toast(MODENM[m]+(r.open.indexOf(m)>=0?'를 열었어요':'를 닫았어요'))}
 else if(r&&r.err==='pw')toast('GAS의 관리자 비밀번호와 달라요')
-else toast('저장하지 못했어요. 연결을 확인해 주세요')})}
+else toast('저장하지 못했어요. 연결을 확인해 주세요')};
+gasPost({action:'set',pw:adminPw(),open:cur.join(',')},function(r){if(r&&r.err==='old')gasCall({action:'set',pw:adminPw(),open:cur.join(',')},fin);else fin(r)})}
 function vSwitch(){
-var h='<div class="sec"><b>열린 버전 스위치</b><span>친구에게 열어 둘 버전</span></div><div class="card" style="margin-bottom:8px;background:var(--bg)">';
-h+='<label class="l" style="margin-top:0">GAS 웹 앱 주소</label><input data-set="gas" value="'+esc(gasUrl())+'" placeholder="https://script.google.com/macros/s/…/exec">';
-h+='<div class="grid2" style="margin-top:8px"><button class="btn sm" data-act="gcheck">연결 확인</button><div class="mut" style="align-self:center">'+(gasUrl()?'주소 저장됨':'주소 없음 · 로어그릿만 열림')+'</div></div>';
+var h='<div class="card"><div class="adm-h">🚪 열린 버전 스위치</div><div class="mut">친구가 들어올 수 있는 버전을 켜고 꺼요. 닫힌 버전은 "준비 중이에요"가 보여요.</div>';
 SHARE.forEach(function(x){var on=openList().indexOf(x[0])>=0;h+='<div class="row" style="margin-top:10px"><div><b>'+x[1]+'</b><div class="mut">'+(on?'친구가 들어올 수 있어요':'"준비 중이에요"가 보여요')+'</div></div><button class="btn sm" data-act="gtoggle" data-v="'+x[0]+'" style="flex:0 0 78px;'+(on?'background:var(--main);border-color:var(--main);color:#fff':'')+'">'+(on?'열림':'닫힘')+'</button></div>'});
-h+='<div class="mut" style="margin-top:10px;font-size:12px">스위치를 누르면 시트에 저장돼서 친구 앱에 바로 반영돼요. 관리자(나)는 항상 모든 버전이 열려요.</div></div>';
+h+='<div class="mut" style="margin-top:10px;font-size:12px">스위치를 누르면 시트에 저장돼서 친구 앱에 바로 반영돼요. 관리자(나)는 항상 모든 버전이 열려요.'+(gasUrl()?'':' (위 🔗 연결에 GAS 주소를 먼저 넣어 주세요)')+'</div></div>';
 return h}
+document.addEventListener('keydown',function(ev){if(ev.key==='Enter'&&ev.target&&(ev.target.id==='a_pw'||ev.target.id==='a_gas')){var b=document.querySelector('[data-act="adminlogin"]');if(b)b.click()}});
+applyView();
 render();
 applyGate();
 refreshOpen(false);
+if(cloudOn())pullCheck(false);
 })();
 </script>
 </body>
