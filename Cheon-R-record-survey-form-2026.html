@@ -140,6 +140,9 @@ textarea.form-input{line-height:1.65;}
 .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
 .sc{background:white;border-radius:var(--radius);padding:18px 20px;border:1px solid var(--gray-200);box-shadow:var(--shadow);border-top:3px solid #e5e7eb;}
 .sc.t{border-top-color:var(--primary);}.sc.d{border-top-color:#7c3aed;}.sc.m{border-top-color:var(--primary);}.sc.c{border-top-color:#059669;}
+.sc[data-stat]{cursor:pointer;transition:transform .12s,box-shadow .12s,border-color .12s;}
+.sc[data-stat]:hover{transform:translateY(-2px);border-color:var(--primary);}
+.sc[data-stat].sel{border-color:var(--gray-900);box-shadow:0 0 0 2px var(--gray-900);}
 .sc .s-ico{font-size:18px;margin-bottom:8px;}.sc .s-lbl{font-size:11px;font-weight:600;color:var(--gray-500);letter-spacing:.04em;margin-bottom:5px;}.sc .s-val{font-size:30px;font-weight:700;color:var(--gray-900);line-height:1;letter-spacing:-.02em;margin-bottom:3px;}.sc .s-sub{font-size:11px;color:var(--gray-400);}
 
 /* 필터 바 2줄 구조 */
@@ -1005,6 +1008,16 @@ function setCatFilter(el) {
   dashState.checked.clear();
   buildSubFilters();
   renderTable();
+  syncStatCards();
+}
+// ★ 상단 큰 박스 클릭 → 아래 유형 칩을 누른 것과 동일하게 동작
+function statCardClick(el) {
+  const pill = document.querySelector('.fpill[data-cat="' + el.dataset.stat + '"]');
+  if (pill) setCatFilter(pill);
+}
+// 현재 유형 필터와 같은 큰 박스에 테두리 강조
+function syncStatCards() {
+  document.querySelectorAll('.sc[data-stat]').forEach(c => c.classList.toggle('sel', c.dataset.stat === dashState.catFilter));
 }
 
 // ── 담임(자율·진로·행발) / 수학(학기·교과) 세부 필터 ──
@@ -2793,6 +2806,7 @@ function loadFromGoogleSheet() {
       dashState.actFilter = '전체';
       dashState.banFilter = '전체';
       document.querySelectorAll('[data-cat]').forEach(b=>b.classList.toggle('active', b.dataset.cat==='전체'));
+      syncStatCards();
       window._dashboardStudents = students;
       updateStats();
       buildBanFilters();
@@ -5748,10 +5762,10 @@ function svPrint() {
   </div>
 
   <div class="stat-row">
-    <div class="sc t"><div class="s-ico">📊</div><div class="s-lbl">전체 응답</div><div class="s-val" id="stat-total">0</div><div class="s-sub" id="stat-total-sub">-</div></div>
-    <div class="sc d"><div class="s-ico">👨‍🏫</div><div class="s-lbl">담임</div><div class="s-val" id="stat-dam">0</div><div class="s-sub" id="stat-dam-sub">-</div></div>
-    <div class="sc m"><div class="s-ico">📐</div><div class="s-lbl">수학 교과</div><div class="s-val" id="stat-math">0</div><div class="s-sub" id="stat-math-sub">-</div></div>
-    <div class="sc c"><div class="s-ico">🔭</div><div class="s-lbl">동아리</div><div class="s-val" id="stat-club">0</div><div class="s-sub" id="stat-club-sub">-</div></div>
+    <div class="sc t" data-stat="전체" onclick="statCardClick(this)"><div class="s-ico">📊</div><div class="s-lbl">전체 응답</div><div class="s-val" id="stat-total">0</div><div class="s-sub" id="stat-total-sub">-</div></div>
+    <div class="sc d" data-stat="담임" onclick="statCardClick(this)"><div class="s-ico">👨‍🏫</div><div class="s-lbl">담임</div><div class="s-val" id="stat-dam">0</div><div class="s-sub" id="stat-dam-sub">-</div></div>
+    <div class="sc m" data-stat="수학" onclick="statCardClick(this)"><div class="s-ico">📐</div><div class="s-lbl">수학 교과</div><div class="s-val" id="stat-math">0</div><div class="s-sub" id="stat-math-sub">-</div></div>
+    <div class="sc c" data-stat="동아리" onclick="statCardClick(this)"><div class="s-ico">🔭</div><div class="s-lbl">동아리</div><div class="s-val" id="stat-club">0</div><div class="s-sub" id="stat-club-sub">-</div></div>
   </div>
 
   <div class="filter-wrap">
