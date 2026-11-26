@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#9B8EC4">
+<title>레이스 크루 · Cheon-R</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--main:#9B8EC4;--main-d:#7A6CB0;--bg:#F4F2FA;--card:#fff;--line:#DDD8EE;--tx:#2B2740;--tx2:#6B6785;--warn:#E07A5F;--ok:#5BAE8A;--soft:#ECE8F7}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:'Pretendard',-apple-system,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;font-size:15px;line-height:1.5}
+#app{max-width:520px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) 14px calc(100px + env(safe-area-inset-bottom))}
+h1,h2,h3,p{margin:0}
+.hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.hdr .s{font-size:12px;color:var(--tx2)}
+.hdr .t{font-size:19px;font-weight:700}
+.hdr>div:first-child{min-width:0}.hdr .btn{white-space:nowrap;flex:0 0 auto;margin-left:10px;word-break:keep-all}
+.card{background:var(--card);border:.5px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.card.tap{cursor:pointer}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sec{display:flex;justify-content:space-between;align-items:baseline;margin:16px 2px 8px}
+.sec b{font-size:15px}.sec span{font-size:12px;color:var(--tx2)}
+.mut{color:var(--tx2);font-size:12.5px}
+.pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;background:var(--soft);color:#4A3F7A;white-space:nowrap}
+.pill.ok{background:#E3F3EA;color:#1F6B4A}.pill.warn{background:#FBE7E1;color:#9A3F27}.pill.out{background:#FBEFD9;color:#7A5410}.pill.gray{background:#EEE;color:#666}
+.sc{border-left:4px solid var(--main);padding-left:12px}
+.fb{font-size:12.5px;background:var(--bg);border-radius:8px;padding:6px 9px;margin-top:6px}
+.fb.good{background:#E8F5EE}.fb.warn{background:#FBEDE8}
+.btn{min-height:44px;padding:0 16px;border-radius:12px;border:.5px solid var(--line);background:#fff;color:var(--tx);font:inherit;font-weight:600;cursor:pointer}
+.btn.pri{background:var(--main);border-color:var(--main);color:#fff}
+.btn.dng{color:#B5543B}
+.btn.full{width:100%}
+.btn.sm{min-height:36px;padding:0 12px;font-size:13px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.big{font-size:26px;font-weight:700;line-height:1.2}
+label.l{display:block;font-size:12.5px;color:var(--tx2);margin:10px 0 4px}
+input,select,textarea{width:100%;min-height:44px;border:.5px solid #CFC9E4;border-radius:10px;padding:0 12px;font:inherit;background:#fff;color:var(--tx)}
+textarea{padding:10px 12px;min-height:70px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{min-height:38px;padding:0 13px;border-radius:19px;border:.5px solid #CFC9E4;background:#fff;font:inherit;font-size:13px;cursor:pointer;color:var(--tx)}
+.chip.on{background:var(--main);border-color:var(--main);color:#fff}
+#nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:.5px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom);z-index:20}
+#nav .in{display:flex;width:100%;max-width:520px}
+#nav button{flex:1;min-height:56px;border:0;background:none;font:inherit;font-size:11px;color:#8C88A3;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+#nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#nav button.on{color:var(--main-d);font-weight:600}
+#sheetWrap{position:fixed;inset:0;background:rgba(30,25,50,.45);display:none;align-items:flex-end;justify-content:center;z-index:50}
+#sheetWrap.on{display:flex}
+#sheet{background:var(--bg);width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:16px 14px calc(20px + env(safe-area-inset-bottom))}
+#sheet h2{font-size:17px;margin-bottom:4px}
+#toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#2B2740;color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;z-index:80;display:none;max-width:88%;text-align:center}
+.tl{position:relative;height:28px;border-radius:6px;overflow:hidden;background:var(--soft)}
+.tl i{position:absolute;top:0;bottom:0;font-style:normal;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap}
+.tl u{position:absolute;top:-2px;bottom:-2px;width:2px;background:#2B2740;z-index:3}
+.fl{position:relative;height:34px}
+.fl b{position:absolute;top:0;width:2px;height:8px;background:var(--warn)}
+.fl span{position:absolute;top:9px;font-size:10.5px;color:#B5543B;white-space:nowrap}
+.bar{height:10px;background:var(--soft);border-radius:5px;overflow:hidden}
+.bar div{height:100%;background:var(--main)}
+.badge{display:inline-flex;align-items:center;gap:4px;margin:0 6px 6px 0;padding:5px 10px;border-radius:14px;font-size:12px;background:#F3E9C9;color:#6B5310}
+.badge.lock{background:#EEE;color:#999}
+.foot{text-align:center;font-size:11.5px;color:#9A96AF;margin-top:20px}
+svg.ch{width:100%;height:auto;display:block}
+svg.ch text{font-family:inherit;font-size:10px;fill:#6B6785}
+.wk{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.wk .btn{min-height:40px;padding:0 14px}
+details summary{cursor:pointer;font-weight:600;min-height:36px;display:flex;align-items:center}
+.pet{display:flex;gap:10px;align-items:center}.petart{flex:0 0 120px}.petin{flex:1;min-width:0}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tile{padding:8px;text-align:center;margin-bottom:0}.tile svg{display:block;width:100%;height:auto}.tile .tn{font-size:12.5px;font-weight:600;margin-top:4px}.tile .tq{height:56px;display:flex;align-items:center;justify-content:center;font-size:28px;color:#CFC9E4;background:var(--bg);border-radius:10px}
+.gate{position:fixed;inset:0;z-index:9999;background:var(--bg,#F4F2FA);display:flex;align-items:center;justify-content:center;padding:24px;text-align:center}.gate-in{max-width:340px}.gate h2{margin:8px 0;font-size:19px}.adm{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#fff;border:.5px solid var(--line);border-radius:12px;padding:6px 8px;margin-bottom:10px;font-size:12.5px}.adm b{color:var(--main-d);margin-right:2px}.adm-b{min-height:36px;padding:0 12px;border-radius:18px;border:.5px solid #CFC9E4;background:#fff;font:inherit;font-size:13px;color:var(--tx);cursor:pointer}.adm-b.on{background:var(--main);border-color:var(--main);color:#fff}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<nav id="nav"><div class="in"></div></nav>
+<div id="sheetWrap"><div id="sheet"></div></div>
+<div id="toast"></div>
+<script>
+(function(){
+'use strict';
+var MODE=(function(){try{var q=new URLSearchParams(location.search).get('mode');if(q)localStorage.setItem('running_mode',q==='me'?'all':q);var m=localStorage.getItem('running_mode');return ['lore','skid','hyrox'].indexOf(m)>=0?m:'all'}catch(e){return 'all'}})();
+var LORE=MODE!=='all',MODENM={all:'레이스 크루',skid:'스키드레이스',lore:'로어그릿',hyrox:'하이록스'};
+if(LORE)document.title=MODENM[MODE]+' · 레이스 크루 · Cheon-R';
+var KEY=LORE?'running_'+MODE+'_v1':'running_data_v1';
+var DAY=864e5;
+var DOW=['일','월','화','수','목','금','토'];
+var PLACES=['야외','무동력 트레드밀','일반 트레드밀'];
+var TM='무동력 트레드밀';
+var TYPE={easy:['이지런','#9B8EC4'],long:['롱런','#7A6CB0'],tempo:['템포','#E0A458'],interval:['인터벌','#E07A5F'],station:['스테이션 반복','#D4537E'],test:['테스트','#5B8DEF'],taper:['조절','#8FBFA8'],free:['자유 기록','#9B8EC4']};
+var KIND={restart:['재시동','#D9D3EE','#3A3360'],lower:['로어','#C3BAE2','#3A3360'],base:['베이스','#9B8EC4','#fff'],build:['빌드','#7A6CB0','#fff'],taper:['테이퍼','#D9D3EE','#3A3360']};
+var KINDNAME={restart:'재시동',lower:'로어그릿 대비',base:'러닝 베이스',build:'하이록스 빌드',taper:'테이퍼'};
+var LM=[0.75,0.9,1,1.12,1.25];
+var ZP=[[0.5,0.6],[0.6,0.7],[0.7,0.8],[0.8,0.9],[0.9,1.0]];
+var ZC=['#CFD8E8','#7FB69E','#E8C468','#E39A5B','#D9645C'];
+
+function pad(n){return String(n).padStart(2,'0')}
+function fmt(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function parse(s){var a=s.split('-').map(Number);return new Date(a[0],a[1]-1,a[2])}
+function addDays(s,n){var d=parse(s);d.setDate(d.getDate()+n);return fmt(d)}
+function diffDays(a,b){return Math.round((parse(a)-parse(b))/DAY)}
+function todayStr(){return fmt(new Date())}
+function mondayOf(s){var d=parse(s);d.setDate(d.getDate()-((d.getDay()+6)%7));return fmt(d)}
+function md(s){var d=parse(s);return (d.getMonth()+1)+'/'+d.getDate()+'('+DOW[d.getDay()]+')'}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function fmtPace(sec){if(!isFinite(sec)||sec<=0)return '-';var m=Math.floor(sec/60),s=Math.round(sec-m*60);if(s===60){m++;s=0}return m+':'+pad(s)}
+function parsePace(t){var m=String(t).trim().match(/^(\d{1,2}):([0-5]\d)$/);return m?Number(m[1])*60+Number(m[2]):NaN}
+function num(v){var n=parseFloat(v);return isFinite(n)?n:0}
+
+function loreInfo(){return '<details class="card" style="margin-top:10px"><summary><b>사용 안내</b></summary><div class="mut" style="margin-top:6px;line-height:1.7">· 기록은 이 폰(브라우저)에만 저장돼요. 프로그램 탭 맨 아래 "백업"으로 파일을 저장해 두면 안전해요.<br>· 카카오톡 안에서 열지 말고 사파리·크롬에서 열어 주세요. 홈 화면에 추가하면 앱처럼 쓸 수 있어요.<br>· 가민·스트라바 자동 연동은 없어요. 기록은 직접 입력해 주세요.<br>· 최대심박(프로그램 탭)은 임시값 185예요. 본인 값으로 바꿔 주세요.<br>· 문의: <a href="mailto:fond7509@naver.com?subject=[레이스 크루] 문의">fond7509@naver.com</a></div></details>'}
+function seedMode(){
+var t=todayStr(),b={v:1,settings:{maxHr:185},overrides:{},logs:[],badges:{},finished:{}};
+function blk(id,name,kind,st,en,lv,days){if(en<t)return null;return{id:id,name:name,kind:kind,start:st<t?t:st,end:en,level:lv,days:days}}
+if(MODE==='skid'){b.events=[{id:'e1',name:'스키드레이스',short:'스키드',date:'2026-12-12',goal:null}];b.blocks=[blk('b1','스키드레이스 대비','restart','2026-11-26','2026-12-12',2,[2,6])]}
+else if(MODE==='hyrox'){b.events=[{id:'e3',name:'하이록스',short:'하이록스',date:'2027-05-16',goal:{base:360,target:330}}];b.blocks=[blk('b3','러닝 베이스','base','2027-01-18','2027-02-15',3,[2,4,6]),blk('b4','하이록스 빌드','build','2027-02-16','2027-05-02',3,[2,4,6]),blk('b5','테이퍼','taper','2027-05-03','2027-05-16',3,[2,6])]}
+else{b.events=[{id:'e2',name:'로어그릿',short:'로어',date:'2027-01-17',goal:null}];b.blocks=[blk('b2','로어그릿 대비','lower','2026-12-13','2027-01-17',3,[2,4,6])]}
+b.blocks=b.blocks.filter(Boolean);return b}
+function seed(){if(LORE)return seedMode();return{v:1,settings:{maxHr:185},
+events:[
+{id:'e1',name:'스키드레이스',short:'스키드',date:'2026-12-12',goal:null},
+{id:'e2',name:'로어그릿',short:'로어',date:'2027-01-17',goal:null},
+{id:'e3',name:'하이록스',short:'하이록스',date:'2027-05-16',goal:{base:360,target:330}}],
+blocks:[
+{id:'b1',name:'재시동 · 스키드레이스',kind:'restart',start:'2026-11-26',end:'2026-12-12',level:2,days:[2,6],indoorUntil:'2026-12-09'},
+{id:'b2',name:'로어그릿 대비',kind:'lower',start:'2026-12-13',end:'2027-01-17',level:3,days:[2,4,6]},
+{id:'b3',name:'러닝 베이스',kind:'base',start:'2027-01-18',end:'2027-02-15',level:3,days:[2,4,6]},
+{id:'b4',name:'하이록스 빌드',kind:'build',start:'2027-02-16',end:'2027-05-02',level:3,days:[2,4,6]},
+{id:'b5',name:'테이퍼',kind:'taper',start:'2027-05-03',end:'2027-05-16',level:3,days:[2,6]}],
+overrides:{},logs:[],badges:{}}}
+
+var S=load();
+function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&o.v===1&&o.blocks&&o.events)return o}}catch(e){}return seed()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('저장 공간을 확인해 주세요')}}
+
+var ui={tab:'home',week:mondayOf(todayStr())};
+var sessions=[];
+
+function nextEventAfter(d){return S.events.filter(function(e){return e.date>=d}).sort(function(a,b){return a.date<b.date?-1:1})[0]||null}
+function makeSession(b,d,wk,total,pos){
+var m=LM[b.level-1]*Math.min(1.35,1+0.07*(wk-1));
+if(total>=4&&wk===total&&b.kind!=='taper')m*=0.85;
+var place=(b.indoorUntil&&d<=b.indoorUntil)?TM:'야외';
+var s={id:d+'_s',date:d,blockId:b.id,wk:wk,total:total,type:'easy',title:'',detail:'',min:0,reps:0,repDist:0,place:place};
+var ev=nextEventAfter(d),n=ev?diffDays(ev.date,d):99;
+if(ev&&n<=4&&n>0){s.type='taper';s.min=15;s.title='대회 전 조절 15분';s.detail=ev.name+' D-'+n+' · 가볍게 몸만 풀어요 (Z1~Z2)';return s}
+var k=b.kind,R=Math.round;
+function easy(mn){s.type='easy';s.min=Math.min(60,R(mn));s.title='이지런 '+s.min+'분';s.detail='Z2('+zb(2)+'bpm) 유지 · 대화가 되는 강도'}
+function tempo(mn){s.type='tempo';s.min=R(mn);s.title='템포 '+s.min+'분';s.detail='워밍업 10분 + Z3~Z4 구간 유지 + 쿨다운'}
+function longr(mn){s.type='long';s.min=Math.min(85,R(mn));s.title='롱런 '+s.min+'분';s.detail='Z2 · 속도보다 시간을 채우는 게 목표'}
+if(k==='restart'){easy(pos===0?20*m:22*m)}
+else if(k==='lower'){
+var tw=Math.max(3,total-2);
+if(pos===0){
+if(wk===tw){s.type='test';s.reps=4;s.repDist=0.75;s.place='야외';s.title='실외 750m 테스트 × 4';s.detail='스테이션 직후라고 생각하고 750m씩. 회차별 페이스 기록 → 기준값'}
+else{s.type='station';s.reps=Math.min(10,3+wk+(b.level-3));s.repDist=0.75;s.title='750m × '+s.reps+' (스테이션 사이)';s.detail='750m 러닝 → 스테이션 → 반복. 회차별 페이스 기록'}
+}else if(pos===1)easy(25*m);else tempo(28*m)}
+else if(k==='base'){if(pos===0)easy(30*m);else if(pos===1)longr(45*m);else tempo(25*m)}
+else if(k==='build'){
+if(pos===0){s.type='interval';s.reps=Math.min(8,3+Math.ceil(wk/2));s.repDist=1;s.title='1km × '+s.reps+' 인터벌';s.detail='Z4 강도 · 회차 사이 충분히 쉬기. 회차별 페이스 기록'}
+else if(pos===1){s.type='station';s.reps=Math.min(8,2+Math.ceil(wk*0.6));s.repDist=1;s.title='스테이션 후 1km × '+s.reps;s.detail='스테이션 → 1km 러닝 반복 (하이록스 방식). 회차별 페이스 기록'}
+else if(pos===2)longr(50*m);else easy(30*m)}
+else{if(pos===0)easy(25*m);else{s.type='interval';s.reps=3;s.repDist=1;s.title='대회 페이스 1km × 3';s.detail='목표 페이스 감각 확인. 무리하지 않기'}}
+return s}
+function genSessions(){
+var out=[];
+S.blocks.forEach(function(b){
+var total=Math.ceil((diffDays(b.end,b.start)+1)/7);
+var days=b.days.slice().sort(function(a,c){return ((a+6)%7)-((c+6)%7)});
+var cnt={};
+for(var d=b.start;d<=b.end;d=addDays(d,1)){
+if(days.indexOf(parse(d).getDay())<0)continue;
+if(S.events.some(function(e){return e.date===d}))continue;
+var wk=Math.floor(diffDays(d,b.start)/7)+1;
+cnt[wk]=(cnt[wk]||0);
+out.push(makeSession(b,d,wk,total,cnt[wk]));cnt[wk]++}
+});
+out.sort(function(a,b){return a.date<b.date?-1:1});
+out.forEach(function(s){var o=S.overrides[s.id];if(o&&o.place)s.place=o.place});
+return out}
+function refresh(){sessions=genSessions()}
+
+function zb(n){var m=S.settings.maxHr;return Math.round(m*ZP[n-1][0])+'~'+Math.round(m*ZP[n-1][1])}
+function zoneOf(hr){var r=hr/S.settings.maxHr;return r<0.6?1:r<0.7?2:r<0.8?3:r<0.9?4:5}
+function logFor(sid){return S.logs.find(function(l){return l.sid===sid})}
+function sessById(id){return sessions.find(function(s){return s.id===id})}
+function status(s){
+if(logFor(s.id))return 'done';
+if(S.overrides[s.id]&&S.overrides[s.id].skip)return 'skip';
+var t=todayStr();if(s.date<t)return 'missed';if(s.date===t)return 'today';return 'up'}
+function isTM(l){return l.place===TM}
+function pace(l){return (!isTM(l)&&l.km>0&&l.min>0)?l.min*60/l.km:NaN}
+function repAvg(l){if(!l.reps||!l.reps.length)return NaN;return l.reps.reduce(function(a,b){return a+b},0)/l.reps.length}
+
+function feedback(l){
+var s=sessById(l.sid),t=s?s.type:'free',o=[],easyish=['easy','long','taper','free'].indexOf(t)>=0;
+if(isTM(l))o.push(['info','무동력 트레드밀은 같은 페이스보다 훨씬 힘들어서 거리·페이스 대신 시간·심박·RPE로 봤어요.']);
+if(s&&s.min&&l.min){var r=l.min/s.min;
+if(r>=0.9)o.push(['good','목표 시간 '+s.min+'분을 채웠어요.']);
+else if(r>=0.6)o.push(['info','목표 '+s.min+'분 중 '+l.min+'분 했어요. 이 정도도 충분히 의미 있어요.']);
+else o.push(['info','짧게 마쳤어요. 컨디션을 메모해 두면 다음 계획에 도움이 돼요.'])}
+if(l.avgHr){var z=zoneOf(l.avgHr);
+if(easyish){
+if(z>=4)o.push(['warn','쉬운 세션인데 평균 심박이 Z'+z+'예요. 페이스를 낮춰 Z2('+zb(2)+'bpm) 근처로 맞춰 보세요.']);
+else if(z===3)o.push(['info','평균 심박이 Z3예요. 조금 더 천천히 달리면 Z2('+zb(2)+'bpm)에 들어와요.']);
+else o.push(['good','평균 심박 Z'+z+' · 안정적인 강도예요.'])}
+else if(t==='tempo'){
+if(z===3||z===4)o.push(['good','Z3~Z4 템포 구간을 잘 유지했어요.']);
+else if(z<3)o.push(['info','템포치고는 가벼웠어요. 다음엔 조금 더 올려 봐도 좋아요.']);
+else o.push(['warn','템포인데 평균 심박이 Z5예요. 너무 세게 달린 것 같아요.'])}}
+if(l.rpe&&easyish&&l.rpe>=7)o.push(['warn','쉬운 세션인데 RPE '+l.rpe+'이에요. 컨디션이나 피로 누적을 체크해 보세요.']);
+if(!isTM(l)&&l.reps&&l.reps.length>=3){var dr=l.reps[l.reps.length-1]-l.reps[0];
+if(dr>10)o.push(['warn','마지막 회차가 첫 회차보다 '+Math.round(dr)+'초 느려요. 초반 페이스를 조금 낮춰 보세요.']);
+else if(dr<=5)o.push(['good','회차 간 페이스 차이가 '+Math.max(0,Math.round(dr))+'초 이내예요. 페이스 유지가 좋아요.'])}
+return o}
+function cheer(l){
+var P=['오늘도 한 걸음, 쌓이고 있어요.','꾸준함이 제일 큰 무기예요.','잘했어요, 몸이 기억할 거예요.','기록하는 것까지 훈련이에요.','좋아요, 다음 세션도 이 느낌 그대로.'];
+var h=0,k=l.id||'x';for(var i=0;i<k.length;i++)h=(h*31+k.charCodeAt(i))%997;return P[h%P.length]}
+
+function weekStats(mon){
+var end=addDays(mon,6);
+var ss=sessions.filter(function(s){return s.date>=mon&&s.date<=end});
+var ls=S.logs.filter(function(l){return l.date>=mon&&l.date<=end});
+var done=ss.filter(function(s){return logFor(s.id)}).length;
+var km=0,min=0;ls.forEach(function(l){min+=l.min||0;if(!isTM(l))km+=l.km||0});
+return{planned:ss.length,done:done,min:min,km:km,logs:ls,sessions:ss}}
+function weekAch(mon){var w=weekStats(mon);return{planned:w.planned,done:w.done,ok:w.planned>0&&w.done>=Math.max(1,w.planned-1),skip:w.planned===0}}
+function streak(){
+if(!sessions.length)return{n:0,pass:false};
+var cur=mondayOf(todayStr()),first=mondayOf(sessions[0].date),n=0,pass=false;
+if(weekAch(cur).ok)n++;
+var mon=addDays(cur,-7);
+while(mon>=first){var w=weekAch(mon);
+if(w.skip){mon=addDays(mon,-7);continue}
+if(w.ok)n++;else if(!pass)pass=true;else break;
+mon=addDays(mon,-7)}
+return{n:n,pass:pass&&n>0}}
+function validRuns(){return S.logs.filter(function(l){var s=sessById(l.sid),t=s?s.type:'free';return !isTM(l)&&l.km>0&&l.avgHr>0&&['easy','long','free','taper'].indexOf(t)>=0}).sort(function(a,b){return a.date<b.date?-1:1})}
+function change(){
+var v=validRuns();if(v.length<4)return null;
+var n=v.length<6?2:3,a=v.slice(0,n),b=v.slice(-n);
+function avg(arr,f){return arr.reduce(function(x,l){return x+f(l)},0)/arr.length}
+return{p0:avg(a,pace),p1:avg(b,pace),h0:avg(a,function(l){return l.avgHr}),h1:avg(b,function(l){return l.avgHr})}}
+function goalCur(){
+var best=NaN;S.logs.forEach(function(l){var s=sessById(l.sid);if(s&&['station','interval','test'].indexOf(s.type)>=0&&!isTM(l)){var a=repAvg(l);if(isFinite(a)&&(!isFinite(best)||a<best))best=a}});return best}
+
+var BADGES=[
+{id:'first',n:'첫 기록',d:'첫 기록을 남겼어요',t:function(){return S.logs.length>=1}},
+{id:'c10',n:'기록 10회',d:'기록 10번 달성',t:function(){return S.logs.length>=10}},
+{id:'t30',n:'30분 연속',d:'한 번에 30분 이상',t:function(){return S.logs.some(function(l){return l.min>=30})}},
+{id:'t60',n:'60분 연속',d:'한 번에 60분 이상',t:function(){return S.logs.some(function(l){return l.min>=60})}},
+{id:'k5',n:'5km 한 번에',d:'야외·일반 트레드밀 5km 이상',t:function(){return S.logs.some(function(l){return !isTM(l)&&l.km>=5})}},
+{id:'k10',n:'10km 한 번에',d:'10km 이상',t:function(){return S.logs.some(function(l){return !isTM(l)&&l.km>=10})}},
+{id:'z2',n:'Z2 마스터',d:'쉬운 세션 Z2 유지 3회',t:function(){return S.logs.filter(function(l){var s=sessById(l.sid);return s&&(s.type==='easy'||s.type==='long')&&l.avgHr&&zoneOf(l.avgHr)<=2}).length>=3}},
+{id:'tm5',n:'겨울 전사',d:'무동력 트레드밀 5회',t:function(){return S.logs.filter(isTM).length>=5}},
+{id:'rep',n:'반복 첫 완주',d:'750m/1km 반복 세션 기록',t:function(){return S.logs.some(function(l){var s=sessById(l.sid);return s&&(s.type==='station'||s.type==='interval')})}},
+{id:'test',n:'750m 테스트',d:'실외 750m 테스트 완료',t:function(){return S.logs.some(function(l){var s=sessById(l.sid);return s&&s.type==='test'})}},
+{id:'s2',n:'2주 연속',d:'주간 목표 2주 연속',t:function(){return streak().n>=2}},
+{id:'s4',n:'4주 연속',d:'주간 목표 4주 연속',t:function(){return streak().n>=4}},
+{id:'hr10',n:'심박 -10',d:'시작 대비 같은 쉬운 런 심박 10 이상 하락',t:function(){var c=change();return !!c&&c.h1-c.h0<=-10}}];
+function unlockCheck(){var nw=[];BADGES.forEach(function(b){if(!S.badges[b.id]&&b.t()){S.badges[b.id]=todayStr();nw.push(b)}});return nw}
+
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(function(){t.style.display='none'},2400)}
+function openSheet(h){var w=document.getElementById('sheetWrap');document.getElementById('sheet').innerHTML=h;w.classList.add('on');document.getElementById('sheet').scrollTop=0}
+function closeSheet(){document.getElementById('sheetWrap').classList.remove('on')}
+
+function curBlock(t){return S.blocks.find(function(b){return b.start<=t&&t<=b.end})||null}
+function nextBlock(t){return S.blocks.filter(function(b){return b.start>t}).sort(function(a,b){return a.start<b.start?-1:1})[0]||null}
+
+function pill(s){var st=status(s);return {done:'<span class="pill ok">완료</span>',skip:'<span class="pill gray">건너뜀</span>',missed:'<span class="pill warn">놓침</span>',today:'<span class="pill">오늘</span>',up:'<span class="pill gray">예정</span>'}[st]}
+function placePill(p){return '<span class="pill'+(p==='야외'?' out':'')+'">'+esc(p)+'</span>'}
+function sessCard(s){
+var l=logFor(s.id),st=status(s),ty=TYPE[s.type];
+var h='<div class="card tap sc" data-act="sess" data-id="'+s.id+'" style="border-left-color:'+ty[1]+(st==='done'?'':'')+'">';
+h+='<div class="row"><b>'+md(s.date)+' · '+esc(s.title)+'</b>'+pill(s)+'</div>';
+h+='<div class="row" style="margin-top:3px"><span class="mut">'+esc(s.detail)+'</span></div>';
+h+='<div style="margin-top:6px">'+placePill(s.place)+' <span class="pill">'+ty[0]+'</span></div>';
+if(l){var p=pace(l);
+h+='<div class="mut" style="margin-top:6px">기록 '+l.min+'분'+(l.km&&!isTM(l)?' · '+l.km+'km':'')+(isFinite(p)?' · 페이스 '+fmtPace(p):'')+(l.avgHr?' · 평균 심박 '+l.avgHr:'')+'</div>';
+feedback(l).slice(0,2).forEach(function(f){h+='<div class="fb '+(f[0]==='good'?'good':f[0]==='warn'?'warn':'')+'">'+esc(f[1])+'</div>'})}
+return h+'</div>'}
+
+function vTimeline(t){
+if(!S.blocks.length)return '';
+var starts=S.blocks.map(function(b){return b.start}).concat([t]).sort();
+var ends=S.blocks.map(function(b){return b.end}).concat(S.events.map(function(e){return e.date})).sort();
+var s0=starts[0],e0=ends[ends.length-1],span=diffDays(e0,s0)+1;
+function pc(d){return diffDays(d,s0)/span*100}
+var h='<div class="card tap" data-act="goto" data-tab="prog"><div class="row" style="margin-bottom:8px"><b>대회 타임라인</b>';
+var ne=nextEventAfter(t);
+h+='<span class="mut">'+(ne?ne.name+' D-'+diffDays(ne.date,t):'모든 대회 종료')+'</span></div><div class="tl">';
+S.blocks.forEach(function(b){var k=KIND[b.kind]||KIND.base;h+='<i style="left:'+pc(b.start)+'%;width:'+((diffDays(b.end,b.start)+1)/span*100)+'%;background:'+k[1]+';color:'+k[2]+'">'+k[0]+'</i>'});
+var tp=Math.max(0,Math.min(100,pc(t)));
+h+='<u style="left:'+tp+'%"></u></div><div class="fl">';
+S.events.forEach(function(e){var p=pc(e.date),right=p>85;h+='<b style="left:'+p+'%"></b><span style="left:'+p+'%;transform:translateX('+(right?'-100%':'-50%')+')">'+esc(e.short||e.name.slice(0,3))+' '+(parse(e.date).getMonth()+1)+'/'+parse(e.date).getDate()+'</span>'});
+return h+'</div><div class="mut">검은 선이 오늘이에요 · 눌러서 기간과 강도를 조절해요</div></div>'}
+
+function vHome(){
+var t=todayStr(),cb=curBlock(t),nb=nextBlock(t);
+var title,sub=LORE?'Cheon-R 레이스 크루 · '+MODENM[MODE]:'Cheon-R 레이스 크루';
+var _ne=nextEventAfter(t),_dn=_ne?diffDays(_ne.date,t):-1;
+if(S.settings&&S.settings.homeLine)title=S.settings.homeLine;
+else if(_dn===0)title='🎉 꼬꼬댁! 달릴 시간이에요';
+else if(_dn>=1&&_dn<=7)title='🏁 날개 펴는 주간 · D-'+_dn;
+else if(cb){var wk=Math.floor(diffDays(t,cb.start)/7)+1,tot=Math.ceil((diffDays(cb.end,cb.start)+1)/7);title='🐥 병아리 훈련 중 · '+cb.name+' · '+wk+'/'+tot+'주차'}
+else if(nb)title='🥚 곧 출발! 몸풀기 대기 중 · '+nb.name+' ('+md(nb.start)+')';else title='🏆 모든 훈련을 마쳤어요. 수고했어요!';
+var h='<div class="hdr"><div><div class="s">'+sub+'</div><div class="t">'+esc(title)+'</div></div><button class="btn pri sm" data-act="newlog">+ 기록</button></div>';
+h+=vTimeline(t);
+h+=vPet();
+h+=vF45();
+var mon=mondayOf(t),w=weekStats(mon);
+h+='<div class="sec"><b>이번 주 세션</b><span>'+w.done+'/'+w.planned+' 완료</span></div>';
+var list=w.sessions;
+if(!list.length){list=sessions.filter(function(s){return s.date>t}).slice(0,3);h+='<div class="mut" style="margin:0 2px 8px">이번 주 예정 세션이 없어요. 다음 세션이에요.</div>'}
+if(!list.length)h+='<div class="card mut">예정된 세션이 없어요. 프로그램 탭에서 블록을 추가해 보세요.</div>';
+list.forEach(function(s){h+=sessCard(s)});
+var st=streak(),c=change();
+h+='<div class="grid2"><div class="card"><div class="mut">연속 달성</div><div class="big">'+st.n+'주</div><div class="mut">주 목표 달성 기준'+(st.pass?' · 쉬어가기 사용':'')+'</div></div>';
+if(c){var dp=c.p1-c.p0,dh=c.h1-c.h0;h+='<div class="card"><div class="mut">시작 대비 변화</div><div style="font-size:13px;margin-top:4px">페이스 '+fmtPace(c.p0)+' → '+fmtPace(c.p1)+'<br>심박 '+Math.round(c.h0)+' → '+Math.round(c.h1)+'</div><div class="mut" style="margin-top:2px">'+(dp<0?'빨라졌어요':'비슷해요')+' · 심박 '+(dh<=0?Math.abs(Math.round(dh))+' 내려감':Math.round(dh)+' 올라감')+'</div></div>'}
+else h+='<div class="card"><div class="mut">시작 대비 변화</div><div style="font-size:13px;margin-top:4px">쉬운 런 기록(거리·심박 포함)이 4개 쌓이면 보여요.</div></div>';
+h+='</div>';
+var gs=S.events.filter(function(e){return e.goal&&e.goal.base&&e.goal.target&&e.date>=t});
+if(gs.length){h+='<div class="sec"><b>대회 목표</b><span>반복 세션 평균 페이스 기준</span></div>';
+var cur=goalCur();
+gs.forEach(function(e){var g=e.goal,p=isFinite(cur)?Math.max(0,Math.min(1,(g.base-cur)/(g.base-g.target))):0;
+h+='<div class="card"><div class="row"><b>'+esc(e.name)+'</b><span class="mut">D-'+diffDays(e.date,t)+'</span></div><div class="bar" style="margin:8px 0 6px"><div style="width:'+Math.round(p*100)+'%"></div></div><div class="mut">시작 '+fmtPace(g.base)+' → 목표 '+fmtPace(g.target)+' · 현재 '+(isFinite(cur)?fmtPace(cur):'첫 반복 기록 후 표시')+'</div></div>'})}
+var un=BADGES.filter(function(b){return S.badges[b.id]});
+h+='<div class="sec"><b>배지</b><span>'+un.length+'/'+BADGES.length+'</span></div><div class="card">';
+BADGES.forEach(function(b){var on=!!S.badges[b.id];h+='<span class="badge'+(on?'':' lock')+'" title="'+esc(b.d)+'">'+(on?'★ ':'')+esc(b.n)+'</span>'});
+h+='<div class="mut" style="margin-top:4px">회색 배지는 아직 달성 전이에요.</div></div>';
+h+=vScenes();
+h+='<button class="btn full" data-act="share" data-mon="'+mon+'">이번 주 공유 카드 만들기</button>';
+if(LORE)h+=loreInfo();
+return h+'<div class="foot" data-act="foot">Made by Cheon_R</div>'}
+
+function vWeek(){
+var mon=ui.week,end=addDays(mon,6),w=weekStats(mon),t=todayStr();
+var h='<div class="hdr"><div><div class="s">주차 상세</div><div class="t">'+md(mon)+' ~ '+md(end)+'</div></div></div>';
+h+='<div class="wk"><button class="btn sm" data-act="wkprev">← 지난주</button><button class="btn sm" data-act="wknow">이번 주</button><button class="btn sm" data-act="wknext">다음 주 →</button></div>';
+var prev=weekStats(addDays(mon,-7)),ramp=prev.min>0&&w.min>0?(w.min-prev.min)/prev.min:0;
+h+='<div class="card"><div class="grid2"><div><div class="mut">완료</div><div class="big">'+w.done+'/'+w.planned+'</div></div><div><div class="mut">시간·거리</div><div class="big" style="font-size:20px">'+w.min+'분</div><div class="mut">'+(Math.round(w.km*10)/10)+'km (트레드밀 제외)</div></div></div>';
+if(ramp>0.2)h+='<div class="fb warn">지난주보다 시간이 '+Math.round(ramp*100)+'% 늘었어요. 부상 예방을 위해 증가 폭은 20% 안쪽을 권장해요.</div>';
+else if(w.planned>0&&w.done>=w.planned&&mon<=t)h+='<div class="fb good">이번 주 세션을 모두 채웠어요. 정말 잘했어요.</div>';
+h+='</div>';
+S.events.filter(function(e){return e.date>=mon&&e.date<=end}).forEach(function(e){h+='<div class="card" style="border-left:4px solid var(--warn)"><b>'+md(e.date)+' · '+esc(e.name)+' 대회</b></div>'});
+if(!w.sessions.length)h+='<div class="card mut">이 주에는 계획된 세션이 없어요.</div>';
+w.sessions.forEach(function(s){h+=sessCard(s)});
+var extra=w.logs.filter(function(l){return !l.sid});
+if(extra.length){h+='<div class="sec"><b>자유 기록</b><span></span></div>';extra.forEach(function(l){h+=logCard(l)})}
+return h}
+
+function logCard(l){
+var s=sessById(l.sid),p=pace(l);
+return '<div class="card tap" data-act="editlog" data-id="'+l.id+'"><div class="row"><b>'+md(l.date)+' · '+(s?esc(s.title):'자유 기록')+'</b>'+placePill(l.place)+'</div><div class="mut" style="margin-top:4px">'+l.min+'분'+(l.km&&!isTM(l)?' · '+l.km+'km':'')+(isFinite(p)?' · '+fmtPace(p):'')+(l.avgHr?' · 심박 '+l.avgHr:'')+(l.rpe?' · RPE '+l.rpe:'')+'</div>'+(l.note?'<div class="mut" style="margin-top:2px">'+esc(l.note)+'</div>':'')+'</div>'}
+function vLog(){
+var h='<div class="hdr"><div><div class="s">기록</div><div class="t">내 러닝 기록</div></div><button class="btn pri sm" data-act="newlog">+ 기록</button></div>';
+var ls=S.logs.slice().sort(function(a,b){return a.date<b.date?1:-1});
+if(!ls.length)h+='<div class="card mut">아직 기록이 없어요. 첫 세션을 마치고 + 기록을 눌러 보세요. 스트라바 연동 후에는 자동으로 들어와요.</div>';
+ls.forEach(function(l){h+=logCard(l)});return h+'<div class="foot" data-act="foot">Made by Cheon_R</div>'}
+
+function chips(name,vals,labels,sel){return '<div class="chips" data-chips="'+name+'">'+vals.map(function(v,i){return '<button type="button" class="chip'+(sel.indexOf(v)>=0?' on':'')+'" data-v="'+v+'">'+labels[i]+'</button>'}).join('')+'</div>'}
+function vProg(){
+var h='<div class="hdr"><div><div class="s">프로그램</div><div class="t">대회 · 블록 편집</div></div></div>';
+if(isAdmin())h+=vAdmin();
+h+='<div class="card"><b>최대심박</b><label class="l">bpm (가민 설정 기준을 알면 그 값으로)</label><input type="number" inputmode="numeric" data-set="maxHr" value="'+S.settings.maxHr+'">';
+h+='<div class="mut" style="margin-top:8px">';for(var z=1;z<=5;z++)h+='Z'+z+' '+zb(z)+(z<5?' · ':'');h+='</div></div>';
+h+='<div class="card"><b>홈 한 줄 문구</b><label class="l">비우면 단계별 자동 문구가 나와요 (30자까지, 이모지 가능)</label><input type="text" maxlength="30" data-set="homeLine" value="'+esc((S.settings&&S.settings.homeLine)||'')+'" placeholder="예) 오늘도 한 마리 키운다 🐣"></div>';
+h+='<div class="card"><b>프사오 주당 예상 횟수</b><label class="l">성장 속도 계산용 (0~7)</label><input type="number" inputmode="numeric" data-set="f45pw" value="'+f45pw()+'"></div>';
+h+='<div class="sec"><b>대회</b><span>날짜를 바꾸면 조절 세션도 따라 움직여요</span></div>';
+S.events.slice().sort(function(a,b){return a.date<b.date?-1:1}).forEach(function(e){
+h+='<div class="card"><div class="row"><b>'+esc(e.name)+'</b><button class="btn sm dng" data-act="delev" data-id="'+e.id+'">삭제</button></div><div class="grid2"><div><label class="l">이름</label><input data-e="'+e.id+'" data-f="name" value="'+esc(e.name)+'"></div><div><label class="l">날짜</label><input type="date" data-e="'+e.id+'" data-f="date" value="'+e.date+'"></div></div>';
+h+='<div class="grid2"><div><label class="l">목표 시작 페이스 (분:초/km)</label><input data-e="'+e.id+'" data-f="gbase" placeholder="6:00" value="'+(e.goal?fmtPace(e.goal.base):'')+'"></div><div><label class="l">목표 페이스</label><input data-e="'+e.id+'" data-f="gtarget" placeholder="5:30" value="'+(e.goal?fmtPace(e.goal.target):'')+'"></div></div></div>'});
+h+='<button class="btn full" data-act="addev">+ 대회 추가</button>';
+h+='<div class="sec"><b>블록</b><span>기간·강도·요일 조절</span></div>';
+S.blocks.slice().sort(function(a,b){return a.start<b.start?-1:1}).forEach(function(b){
+var tot=Math.ceil((diffDays(b.end,b.start)+1)/7);
+h+='<div class="card"><div class="row"><b>'+esc(b.name)+'</b><span class="mut">'+tot+'주 · 주 '+b.days.length+'회</span></div>';
+h+='<label class="l">블록 이름</label><input data-b="'+b.id+'" data-f="name" value="'+esc(b.name)+'">';
+h+='<div class="grid2"><div><label class="l">시작</label><input type="date" data-b="'+b.id+'" data-f="start" value="'+b.start+'"></div><div><label class="l">끝</label><input type="date" data-b="'+b.id+'" data-f="end" value="'+b.end+'"></div></div>';
+h+='<label class="l">종류</label><select data-b="'+b.id+'" data-f="kind">'+Object.keys(KINDNAME).map(function(k){return '<option value="'+k+'"'+(k===b.kind?' selected':'')+'>'+KINDNAME[k]+'</option>'}).join('')+'</select>';
+h+='<label class="l">강도 레벨 (1 가볍게 ~ 5 세게)</label>'+chips('lv:'+b.id,[1,2,3,4,5],['1','2','3','4','5'],[b.level]);
+h+='<label class="l">운동 요일</label>'+chips('dy:'+b.id,[1,2,3,4,5,6,0],['월','화','수','목','금','토','일'],b.days);
+h+='<label class="l">실내(무동력 트레드밀) 기본 적용 마지막 날 (비우면 없음)</label><input type="date" data-b="'+b.id+'" data-f="indoorUntil" value="'+(b.indoorUntil||'')+'">';
+h+='<div style="margin-top:10px"><button class="btn sm dng" data-act="delblock" data-id="'+b.id+'">블록 삭제</button></div></div>'});
+h+='<button class="btn full" data-act="addblock">+ 블록 추가</button>';
+h+='<div class="sec"><b>백업</b><span>폰을 바꾸거나 지우기 전에 저장해 두세요</span></div><div class="card"><div class="grid2"><button class="btn" data-act="export">내보내기</button><button class="btn" data-act="import">불러오기</button></div><button class="btn full dng" style="margin-top:10px" data-act="reset">처음 상태로 초기화</button><input type="file" id="impfile" accept="application/json" style="display:none"></div>';
+return h+'<div class="foot" data-act="foot">Made by Cheon_R</div>'}
+
+function lineChart(pts,o){
+if(pts.length<2)return '<div class="mut">기록이 2개 이상 쌓이면 보여요.</div>';
+var W=340,H=150,pl=38,pr=10,pt=10,pb=22,ys=pts.map(function(p){return p.y}),mn=Math.min.apply(null,ys),mx=Math.max.apply(null,ys);
+if(mn===mx){var fl=o.flat||1;mn-=fl;mx+=fl}var pd=(mx-mn)*0.15;mn-=pd;mx+=pd;
+function X(i){return pl+(W-pl-pr)*i/(pts.length-1)}
+function Y(v){var r=(v-mn)/(mx-mn);return pt+(H-pt-pb)*(o.invert?r:1-r)}
+var d='',c='';pts.forEach(function(p,i){d+=(i?'L':'M')+X(i).toFixed(1)+' '+Y(p.y).toFixed(1);c+='<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(p.y).toFixed(1)+'" r="3" fill="'+o.color+'"/>'});
+var g='';[mn+pd,(mn+mx)/2,mx-pd].forEach(function(v){g+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="#E8E4F4"/><text x="'+(pl-4)+'" y="'+(Y(v)+3)+'" text-anchor="end">'+o.yf(v)+'</text>'});
+return '<svg class="ch" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(o.label)+'">'+g+'<path d="'+d+'" fill="none" stroke="'+o.color+'" stroke-width="2"/>'+c+'<text x="'+pl+'" y="'+(H-6)+'">'+esc(pts[0].x)+'</text><text x="'+(W-pr)+'" y="'+(H-6)+'" text-anchor="end">'+esc(pts[pts.length-1].x)+'</text></svg>'}
+function barChart(items,o){
+var W=340,H=140,pl=30,pb=22,pt=12,mx=Math.max.apply(null,items.map(function(i){return i.y}).concat([1])),bw=(W-pl-8)/items.length;
+var s='<svg class="ch" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(o.label)+'"><line x1="'+pl+'" x2="'+(W-8)+'" y1="'+(H-pb)+'" y2="'+(H-pb)+'" stroke="#DDD8EE"/><text x="'+(pl-4)+'" y="'+(pt+4)+'" text-anchor="end">'+Math.round(mx)+'</text>';
+items.forEach(function(it,i){var bh=(H-pb-pt)*it.y/mx,x=pl+i*bw+bw*0.2;s+='<rect x="'+x.toFixed(1)+'" y="'+(H-pb-bh).toFixed(1)+'" width="'+(bw*0.6).toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="3" fill="'+(it.cur?'#7A6CB0':'#C3BAE2')+'"/><text x="'+(x+bw*0.3).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle">'+it.x+'</text>'});
+return s+'</svg>'}
+function zoneChart(items){
+var W=340,H=150,pl=30,pb=22,pt=10,mx=Math.max.apply(null,items.map(function(i){return i.z.reduce(function(a,b){return a+b},0)}).concat([1])),bw=(W-pl-8)/items.length;
+var s='<svg class="ch" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="주간 심박존 분포"><line x1="'+pl+'" x2="'+(W-8)+'" y1="'+(H-pb)+'" y2="'+(H-pb)+'" stroke="#DDD8EE"/><text x="'+(pl-4)+'" y="'+(pt+4)+'" text-anchor="end">'+Math.round(mx)+'</text>';
+items.forEach(function(it,i){var y=H-pb,x=pl+i*bw+bw*0.2;it.z.forEach(function(v,k){var bh=(H-pb-pt)*v/mx;y-=bh;if(bh>0)s+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+(bw*0.6).toFixed(1)+'" height="'+bh.toFixed(1)+'" fill="'+ZC[k]+'"/>'});s+='<text x="'+(x+bw*0.3).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle">'+it.x+'</text>'});
+return s+'</svg><div class="mut" style="margin-top:4px">'+ZC.map(function(c,k){return '<span style="display:inline-block;width:9px;height:9px;background:'+c+';border-radius:2px;margin-right:3px"></span>Z'+(k+1)}).join(' &nbsp;')+'</div>'}
+function vStats(){
+var h='<div class="hdr"><div><div class="s">통계</div><div class="t">변화 한눈에 보기</div></div></div>';
+var v=validRuns();
+var eff=v.map(function(l){var sp=l.km/(l.min/60);return{x:md(l.date).replace(/\(.\)/,''),y:sp/l.avgHr*100}});
+h+='<div class="card"><b>심박 대비 속도</b><div class="mut" style="margin-bottom:6px">같은 심박에서 얼마나 빨라졌는지 (높을수록 효율이 좋아요) · 속도(km/h) ÷ 평균 심박 × 100</div>'+lineChart(eff,{color:'#7A6CB0',yf:function(x){return x.toFixed(1)},label:'심박 대비 속도'})+'</div>';
+var pc=v.map(function(l){return{x:md(l.date).replace(/\(.\)/,''),y:pace(l)}});
+h+='<div class="card"><b>페이스 변화</b><div class="mut" style="margin-bottom:6px">쉬운 런·롱런 평균 페이스 (위로 갈수록 빠름)</div>'+lineChart(pc,{color:'#E07A5F',invert:true,flat:15,yf:fmtPace,label:'페이스 변화'})+'</div>';
+var cur=mondayOf(todayStr()),wk=[],zs=[];
+for(var i=7;i>=0;i--){var mon=addDays(cur,-7*i),w=weekStats(mon),lab=(parse(mon).getMonth()+1)+'/'+parse(mon).getDate();
+wk.push({x:lab,y:w.min,cur:i===0});
+var z=[0,0,0,0,0];w.logs.forEach(function(l){if(l.avgHr)z[zoneOf(l.avgHr)-1]+=l.min||0});zs.push({x:lab,z:z})}
+h+='<div class="card"><b>주간 운동 시간(분)</b><div class="mut" style="margin-bottom:6px">최근 8주 · 무동력 트레드밀 포함</div>'+barChart(wk,{label:'주간 운동 시간'})+'</div>';
+h+='<div class="card"><b>심박존 분포(분)</b><div class="mut" style="margin-bottom:6px">세션 평균 심박이 속한 존에 시간을 합산한 근사치예요. 스트라바 연동 후에는 초 단위로 정확해져요.</div>'+zoneChart(zs)+'</div>';
+var fk=Object.keys(f45()).sort(),fb=[],f4=0;
+for(var j=7;j>=0;j--){var fm=addDays(cur,-7*j),fw=f45Week(fm);fb.push({x:(parse(fm).getMonth()+1)+'/'+parse(fm).getDate(),y:fw.n,cur:j===0});if(j<4)f4+=fw.n}
+h+='<div class="card"><b>프사오 (주당 간 횟수)</b>';
+if(fk.length){var f0=mondayOf(fk[0]),fwk=Math.max(1,Math.round(diffDays(cur,f0)/7)+1),dbs=fk.filter(function(d){return f45()[d]===2}).length;
+h+='<div class="mut" style="margin:4px 0 6px">평균 주 <b>'+(fk.length/fwk).toFixed(1)+'</b>회 · 최근 4주 평균 주 <b>'+(f4/4).toFixed(1)+'</b>회 · 누적 '+fk.length+'회(더블 '+dbs+'번) · 최근 8주</div>'+barChart(fb,{label:'프사오 주당 횟수'})}
+else h+='<div class="mut" style="margin-top:4px">홈에서 프사오 체크를 하면 주당 횟수와 평균이 여기에 나와요.</div>';
+h+='</div>';
+return h+'<div class="foot" data-act="foot">Made by Cheon_R</div>'}
+
+var ICON={home:'<path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/>',week:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',prog:'<path d="M5 6h14M5 12h14M5 18h9"/>',stats:'<path d="M5 20V10M12 20V4M19 20v-7"/>',log:'<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/>'};
+var TABS=[['home','홈'],['week','주차'],['prog','프로그램'],['stats','통계'],['log','기록']];
+function render(){
+refresh();
+var app=document.getElementById('app');
+app.innerHTML=(isAdmin()?adminBar():'')+{home:vHome,week:vWeek,prog:vProg,stats:vStats,log:vLog}[ui.tab]();
+document.querySelector('#nav .in').innerHTML=TABS.map(function(t){return '<button class="'+(ui.tab===t[0]?'on':'')+'" data-act="goto" data-tab="'+t[0]+'"><svg viewBox="0 0 24 24">'+ICON[t[0]]+'</svg>'+t[1]+'</button>'}).join('')}
+
+function openSession(id){
+var s=sessById(id);if(!s)return;var l=logFor(id),st=status(s),o=S.overrides[id]||{};
+var h='<h2>'+md(s.date)+' · '+esc(s.title)+'</h2><div class="mut">'+esc(s.detail)+'</div>';
+h+='<label class="l">장소</label><select id="s_place">'+PLACES.map(function(p){return '<option'+(p===s.place?' selected':'')+'>'+p+'</option>'}).join('')+'</select>';
+if(s.place===TM)h+='<div class="mut" style="margin-top:6px">무동력 트레드밀은 거리·페이스 대신 시간·심박·RPE로 판정해요.</div>';
+if(l){var f=feedback(l);h+='<div class="sec"><b>피드백</b><span></span></div>';f.forEach(function(x){h+='<div class="fb '+(x[0]==='good'?'good':x[0]==='warn'?'warn':'')+'">'+esc(x[1])+'</div>'})}
+h+='<div style="display:grid;gap:8px;margin-top:14px"><button class="btn pri" data-act="logsess" data-id="'+id+'">'+(l?'기록 수정하기':'기록하기')+'</button>';
+if(!l)h+='<button class="btn" data-act="skipsess" data-id="'+id+'">'+(o.skip?'건너뜀 해제':'이번 세션 건너뛰기')+'</button>';
+h+='<button class="btn" data-act="closesheet">닫기</button></div>';
+openSheet(h)}
+
+function openLog(sid,lid){
+var ex=lid?S.logs.find(function(l){return l.id===lid}):null;
+var s0=sid?sessById(sid):(ex&&ex.sid?sessById(ex.sid):null);
+var t=todayStr(),date=ex?ex.date:(s0?(s0.date>t?t:s0.date):t),place=ex?ex.place:(s0?s0.place:'야외');
+var opts=sessions.filter(function(x){var d=diffDays(x.date,t);return (!logFor(x.id)&&status(x)!=='skip'&&d>=-14&&d<=3)||(s0&&s0.id===x.id)});
+var h='<h2>'+(ex?'기록 수정':'기록 입력')+'</h2>';
+h+='<label class="l">날짜</label><input type="date" id="f_date" value="'+date+'">';
+h+='<label class="l">연결할 세션</label><select id="f_sid"><option value="">연결 안 함 (자유 기록)</option>'+opts.map(function(x){return '<option value="'+x.id+'"'+(s0&&s0.id===x.id?' selected':'')+'>'+md(x.date)+' '+esc(x.title)+'</option>'}).join('')+'</select>';
+h+='<label class="l">장소</label><select id="f_place">'+PLACES.map(function(p){return '<option'+(p===place?' selected':'')+'>'+p+'</option>'}).join('')+'</select>';
+h+='<div class="grid2"><div><label class="l">시간(분) *</label><input type="number" inputmode="decimal" id="f_min" value="'+(ex?ex.min:(s0&&s0.min?s0.min:''))+'"></div><div><label class="l">거리(km)</label><input type="number" inputmode="decimal" id="f_km" value="'+(ex&&ex.km?ex.km:'')+'" placeholder="무동력은 비워도 돼요"></div></div>';
+h+='<div class="grid2"><div><label class="l">평균 심박</label><input type="number" inputmode="numeric" id="f_hr" value="'+(ex&&ex.avgHr?ex.avgHr:'')+'"></div><div><label class="l">최대 심박</label><input type="number" inputmode="numeric" id="f_mhr" value="'+(ex&&ex.maxHr?ex.maxHr:'')+'"></div></div>';
+h+='<label class="l">RPE (힘든 정도 1~10)</label><select id="f_rpe"><option value="">선택 안 함</option>'+[1,2,3,4,5,6,7,8,9,10].map(function(n){return '<option'+(ex&&ex.rpe===n?' selected':'')+'>'+n+'</option>'}).join('')+'</select>';
+h+='<label class="l">반복 회차별 페이스 (쉼표로, 예: 5:20, 5:25, 5:30)</label><input id="f_reps" value="'+(ex&&ex.reps&&ex.reps.length?ex.reps.map(fmtPace).join(', '):'')+'" placeholder="인터벌·스테이션 세션일 때만">';
+h+='<label class="l">메모</label><textarea id="f_note">'+esc(ex?ex.note:'')+'</textarea>';
+h+='<div style="display:grid;gap:8px;margin-top:14px"><button class="btn pri" data-act="savelog" data-id="'+(ex?ex.id:'')+'">저장</button>';
+if(ex)h+='<button class="btn dng" data-act="dellog" data-id="'+ex.id+'">기록 삭제</button>';
+h+='<button class="btn" data-act="closesheet">취소</button></div>';
+openSheet(h)}
+function saveLog(id){
+var g=function(i){return document.getElementById(i).value};
+var min=num(g('f_min'));if(min<=0){toast('시간(분)을 입력해 주세요');return}
+var reps=[],rt=g('f_reps').trim();
+if(rt){var parts=rt.split(/[,，\s]+/).filter(Boolean);for(var i=0;i<parts.length;i++){var p=parsePace(parts[i]);if(!isFinite(p)){toast('회차 페이스는 5:20 형식으로 입력해 주세요');return}reps.push(p)}}
+var l={id:id||newId('l'),date:g('f_date')||todayStr(),sid:g('f_sid')||'',place:g('f_place'),min:min,km:num(g('f_km')),avgHr:Math.round(num(g('f_hr'))),maxHr:Math.round(num(g('f_mhr'))),rpe:g('f_rpe')?parseInt(g('f_rpe'),10):0,reps:reps,note:g('f_note').trim()};
+var _ps=petStage();
+if(l.sid){S.logs=S.logs.filter(function(x){return !(x.sid===l.sid&&x.id!==l.id)})}
+var idx=S.logs.findIndex(function(x){return x.id===l.id});if(idx>=0)S.logs[idx]=l;else S.logs.push(l);
+if(l.sid&&S.overrides[l.sid])delete S.overrides[l.sid].skip;
+if(l.maxHr&&l.maxHr>S.settings.maxHr+0){S.pendingMax=l.maxHr}
+refresh();var nw=unlockCheck();save();render();
+var h='<h2>기록 완료</h2><div class="mut">'+esc(cheer(l))+'</div><div class="sec"><b>피드백</b><span></span></div>';
+var f=feedback(l);if(!f.length)f=[['info','기록이 저장됐어요.']];
+f.forEach(function(x){h+='<div class="fb '+(x[0]==='good'?'good':x[0]==='warn'?'warn':'')+'">'+esc(x[1])+'</div>'});
+if(l.maxHr>S.settings.maxHr)h+='<div class="fb warn">기록된 최대 심박('+l.maxHr+')이 설정(최대심박 '+S.settings.maxHr+')보다 높아요. 프로그램 탭에서 최대심박을 조정해 볼 수 있어요.</div>';
+h+='<div class="fb good">병아리 먹이 +'+(isTM(l)?2:1)+(petStage()>_ps?' · '+STAGE_NM[petStage()]+'(으)로 자랐어요!':'')+'</div>';
+if(nw.length){h+='<div class="sec"><b>새 배지</b><span></span></div>';nw.forEach(function(b){h+='<span class="badge">★ '+esc(b.n)+'</span> <span class="mut">'+esc(b.d)+'</span><br>'})}
+h+='<div style="margin-top:14px"><button class="btn pri full" data-act="closesheet">확인</button></div>';
+openSheet(h)}
+
+async function makeShare(mon){
+var w=weekStats(mon),st=streak(),ne=nextEventAfter(todayStr());
+try{if(document.fonts&&document.fonts.ready)await document.fonts.ready}catch(e){}
+var c=document.createElement('canvas');c.width=1080;c.height=1920;var g=c.getContext('2d'),F="'Pretendard',-apple-system,'Apple SD Gothic Neo','Noto Sans KR',sans-serif";
+g.fillStyle='#9B8EC4';g.fillRect(0,0,1080,1920);
+function rr(x,y,w2,h2,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w2,y,x+w2,y+h2,r);g.arcTo(x+w2,y+h2,x,y+h2,r);g.arcTo(x,y+h2,x,y,r);g.arcTo(x,y,x+w2,y,r);g.closePath()}
+function tx(t,x,y,sz,col,wt,al){g.font=(wt||500)+' '+sz+'px '+F;g.fillStyle=col;g.textAlign=al||'left';g.fillText(t,x,y)}
+tx('Cheon-R 레이스 크루',90,170,44,'#fff',700);
+var cb=curBlock(addDays(mon,3))||curBlock(todayStr());
+tx(cb?cb.name:'러닝 훈련',90,236,36,'#EDE9F8',500);
+tx(md(mon).replace(/\(.\)/,'')+' ~ '+md(addDays(mon,6)).replace(/\(.\)/,''),90,290,32,'#EDE9F8',500);
+g.fillStyle='#fff';rr(60,380,960,1150,48);g.fill();
+tx('이번 주 세션',120,500,40,'#6B6785',600);
+tx(w.done+' / '+w.planned,120,700,200,'#2B2740',700);
+tx('완료했어요',120,790,44,'#6B6785',500);
+g.fillStyle='#F4F2FA';rr(120,860,840,2,1);g.fill();
+tx('운동 시간',120,980,38,'#6B6785',500);tx(w.min+'분',960,980,64,'#2B2740',700,'right');
+tx('거리 (트레드밀 제외)',120,1100,38,'#6B6785',500);tx((Math.round(w.km*10)/10)+' km',960,1100,64,'#2B2740',700,'right');
+tx('연속 달성',120,1220,38,'#6B6785',500);tx(st.n+'주',960,1220,64,'#7A6CB0',700,'right');
+if(ne){tx(ne.name,120,1340,38,'#6B6785',500);tx('D-'+diffDays(ne.date,todayStr()),960,1340,64,'#E07A5F',700,'right')}
+tx('한 걸음씩, 쌓이고 있어요',540,1450,38,'#7A6CB0',600,'center');
+tx('Made by Cheon_R',540,1790,34,'#EDE9F8',500,'center');
+c.toBlob(async function(b){
+if(!b){toast('이미지를 만들지 못했어요');return}
+var file=new File([b],'race-crew-week.png',{type:'image/png'});
+try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]});return}}catch(e){if(e&&e.name==='AbortError')return}
+var u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='race-crew-week.png';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},3000);toast('이미지를 저장했어요')},'image/png')}
+
+/* ===== 성장 친구 · 팀 장면 (추가) ===== */
+var CA={body:'#F6C453',wing:'#E8B030',tail:'#E5A93B',line:'#E0AA3A',band:'#E0584B'};
+var CI={body:'#F4A6B8',wing:'#E58AA0',tail:'#EC93A9',line:'#E58AA0',band:'#D4537E'};
+var CH={body:'#AEDAF6',wing:'#8AC5EC',tail:'#98CDEF',line:'#7AB8E0',band:'#4A9AD0'};
+var TEAMDEF={e1:[0,1],e2:[0,1,2],e3:[0]};
+var SLOTC=[CA,CI,CH],SLOTK=['a','i','h'],SLOTN=['노랑','분홍','하늘'];
+function mySlot(){var v=S.mySlot;return v===1||v===2?v:0}
+function nm(){var n=S.names||{};return ['아루미','이스리','해지'].map(function(d,i){return n[SLOTK[i]]||d})}
+function sortedEv(){return S.events.slice().sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0})}
+function activeEv(){var l=sortedEv();for(var i=0;i<l.length;i++)if(!fin()[l[i].id])return l[i];return null}
+function evWin(id){var l=sortedEv(),st='0000-00-00';for(var i=0;i<l.length;i++){if(l[i].id===id)return [st,l[i].date];st=addDays(l[i].date,1)}return [st,'9999-12-31']}
+function petName(id){var p=S.pets||{};if(p[id])return p[id];var l=sortedEv(),last='';for(var i=0;i<l.length;i++){if(l[i].id===id)break;if(p[l[i].id])last=p[l[i].id]}return last||nm()[mySlot()]}
+function f45(){return S.f45||(S.f45={})}
+function f45pw(){var v=S.settings&&S.settings.f45pw;return v==null?3:v}
+function feedFor(id){var w=evWin(id),n=S.logs.reduce(function(a,l){return (l.date>=w[0]&&l.date<=w[1])?a+(isTM(l)?2:1):a},0),F=f45();Object.keys(F).forEach(function(d){if(d>=w[0]&&d<=w[1])n+=F[d]});return n}
+function plannedFor(id){var w=evWin(id),ds=[],n=sessions.reduce(function(a,x){if(x.date>=w[0]&&x.date<=w[1]){ds.push(x.date);if(status(x)!=='skip')return a+(x.place===TM?2:1)}return a},0);ds.sort();if(ds.length)n+=Math.ceil((diffDays(ds[ds.length-1],ds[0])+1)/7)*f45pw();return n}
+function stageAt(id){var P=Math.max(plannedFor(id),6),t=[0,1,Math.ceil(P*.3),Math.ceil(P*.6),Math.ceil(P*.85)];for(var i=2;i<5;i++)if(t[i]<=t[i-1])t[i]=t[i-1]+1;return t}
+function stageFor(id){var f=feedFor(id),t=stageAt(id),k=0;for(var i=0;i<t.length;i++)if(f>=t[i])k=i;return k}
+function teamOf(id){var d=TEAMDEF[id];if(!d)return null;var N=nm(),ms=mySlot();if(d.length===1)return [[petName(id),SLOTC[ms]]];return d.map(function(k){return [k===ms?petName(id):N[k],SLOTC[k]]})}
+var STAGE_NM=['알','병아리','중병아리','닭','러너 닭'];
+var CONF=['#F4A6B8','#7A6CB0','#5B8DEF','#5BAE8A','#F2C14E','#E0584B'];
+var SVGF="Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif";
+function fin(){return S.finished||(S.finished={})}
+function feedPts(){var e=activeEv();return e?feedFor(e.id):0}
+function petStage(){var e=activeEv();return e?stageFor(e.id):0}
+function henSvg(x,y,s,c,o){
+o=o||{};
+var g='<g transform="translate('+x+','+y+') scale('+s+')">';
+g+='<ellipse cx="0" cy="0" rx="22" ry="4" fill="#D9D3EE"/>';
+g+='<path d="M-6 -10 L-6 0 M6 -10 L6 0" stroke="#F29E4C" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+if(o.shoes)g+='<ellipse cx="-6" cy="-1" rx="5.5" ry="2.8" fill="#7A6CB0"/><ellipse cx="6" cy="-1" rx="5.5" ry="2.8" fill="#7A6CB0"/>';
+g+='<ellipse cx="-22" cy="-34" rx="6" ry="12" fill="'+c.tail+'" transform="rotate(-25 -22 -34)"/>';
+g+='<ellipse cx="0" cy="-24" rx="20" ry="15" fill="'+c.body+'" stroke="'+c.line+'" stroke-width="1"/>';
+g+='<ellipse cx="-2" cy="-24" rx="11" ry="7" fill="'+c.wing+'"/>';
+g+='<circle cx="14" cy="-42" r="9" fill="'+c.body+'" stroke="'+c.line+'" stroke-width="1"/>';
+g+='<circle cx="11" cy="-51" r="3" fill="#E0584B"/><circle cx="15" cy="-52" r="3" fill="#E0584B"/><circle cx="19" cy="-49" r="3" fill="#E0584B"/>';
+if(o.crown){var cf=o.crown==='gold'?'#F2C14E':'#7A6CB0',cs=o.crown==='gold'?'#C99A1E':'#4A3F7A',cj=o.crown==='gold'?'#E0584B':'#F4A6B8';g+='<polygon points="6,-50 7,-62 11.5,-56 14,-65 16.5,-56 21,-62 22,-50" fill="'+cf+'" stroke="'+cs+'" stroke-width="1" stroke-linejoin="round"/><circle cx="10" cy="-52.5" r="1.4" fill="'+cj+'"/><circle cx="14" cy="-53.5" r="1.4" fill="'+cj+'"/><circle cx="18" cy="-52.5" r="1.4" fill="'+cj+'"/>'}
+else if(o.band){g+='<path d="M5.5 -46 Q14 -54 22.5 -46" stroke="'+c.band+'" stroke-width="3.6" fill="none" stroke-linecap="round"/><path d="M3 -46 L-2 -50 L-2 -42 Z" fill="'+c.band+'"/>'}
+g+='<polygon points="22,-44 28,-42 22,-40" fill="#F29E4C"/><circle cx="16" cy="-44" r="1.6" fill="#2B2740"/><ellipse cx="20" cy="-37" rx="2" ry="3" fill="#E0584B"/>';
+if(o.medal){g+='<path d="M5 -35 L11 -24 M17 -35 L11 -24" stroke="#E0584B" stroke-width="3" fill="none"/><circle cx="11" cy="-20" r="7.5" fill="#F2C14E" stroke="#C99A1E" stroke-width="1"/><text x="11" y="-16.3" text-anchor="middle" font-size="11" font-weight="700" fill="#6B4E0F" style="font-family:'+SVGF+'">1</text>'}
+if(o.prop==='tire')g+='<circle cx="40" cy="-13" r="12" fill="none" stroke="#3B3B3B" stroke-width="7"/><circle cx="40" cy="-13" r="4" fill="#E6E1F4"/>';
+else if(o.prop==='kb')g+='<path d="M32 -17 Q38 -31 44 -17" stroke="#444441" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="38" cy="-9" r="9" fill="#444441"/><ellipse cx="35" cy="-12" rx="2.5" ry="1.8" fill="#6B6B66"/>';
+g+='</g>';
+if(o.tag){var w=o.tag.length*12+16,tx=x+12*s,ty=y-(74+(o.tagUp||0))*s,bc=c.band;
+g+='<rect x="'+(tx-w/2)+'" y="'+(ty-20)+'" width="'+w+'" height="20" rx="10" fill="#FFFFFF" stroke="'+bc+'" stroke-width="1.2"/><polygon points="'+(tx-4)+','+ty+' '+(tx+4)+','+ty+' '+tx+','+(ty+6)+'" fill="#FFFFFF" stroke="'+bc+'" stroke-width="1.2"/><rect x="'+(tx-5)+'" y="'+(ty-1.5)+'" width="10" height="3" fill="#FFFFFF"/><text x="'+tx+'" y="'+(ty-6)+'" text-anchor="middle" font-size="12" font-weight="500" fill="#2B2740" style="font-family:'+SVGF+'">'+esc(o.tag)+'</text>'}
+return g}
+function confetti(w,h,n){var o='',i,x,y,k;for(i=0;i<n;i++){x=(i*53+17)%w;y=(i*37+11)%Math.round(h*0.55);k=CONF[i%6];o+=(i%3===0)?'<circle cx="'+x+'" cy="'+y+'" r="3" fill="'+k+'"/>':'<rect x="'+x+'" y="'+y+'" width="7" height="3.5" fill="'+k+'" transform="rotate('+((i*47)%180)+' '+x+' '+y+')"/>'}return o}
+function popper(x,y,d){return '<g transform="translate('+x+','+y+') scale('+d+',1)"><polygon points="0,0 26,-10 14,-30" fill="#F4A6B8" stroke="#D4537E" stroke-width="1" stroke-linejoin="round"/><path d="M22 -22 Q34 -40 28 -52" stroke="#5B8DEF" stroke-width="2" fill="none"/><path d="M24 -18 Q44 -28 46 -42" stroke="#F2C14E" stroke-width="2" fill="none"/><path d="M20 -26 Q22 -46 34 -56" stroke="#5BAE8A" stroke-width="2" fill="none"/><circle cx="28" cy="-54" r="2.5" fill="#E0584B"/><circle cx="47" cy="-44" r="2.5" fill="#7A6CB0"/><circle cx="35" cy="-58" r="2.5" fill="#F4A6B8"/></g>'}
+function sceneSvg(eid,full){
+var T=teamOf(eid)||[[nm()[0],CA]],n=T.length,W=430,H=200;
+var o='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" width="'+(full||'100%')+'"'+(full?' height="'+Math.round(full*H/W)+'"':'')+'>';
+o+='<ellipse cx="215" cy="184" rx="190" ry="8" fill="#E6E1F4"/>'+confetti(W,H,26);
+if(n===1){o+=henSvg(215,180,1.45,T[0][1],{tag:T[0][0],crown:true,medal:true,shoes:true,tagUp:6})}
+else{var xs=n===2?[140,290]:[105,210,315],sc=n===2?1.15:1.0,pr=eid==='e1'?'tire':'kb',cr=eid==='e2'?'gold':false;T.forEach(function(t,i){o+=henSvg(xs[i],178,sc,t[1],{tag:t[0],band:true,shoes:true,prop:pr,crown:cr})})}
+o+=popper(22,184,1)+popper(W-22,184,-1);
+return o+'</svg>'}
+function petSvg(st,slot,eid){
+slot=slot||0;
+var o='<svg viewBox="0 0 120 112" width="120" height="112">',B=['#FFD66B','#FFC4D2','#BFE3F8'][slot],WG=['#F2C14E','#F29AB3','#92CBEF'][slot],SP=['#E9C9A0','#F0A9BC','#8FC3E6'][slot],W='#FFF6E4';
+if(st<3)o+='<ellipse cx="60" cy="104" rx="26" ry="4.5" fill="#D9D3EE"/>';
+if(st===0){o+='<g transform="translate(60,104) scale(1.5)"><ellipse cx="0" cy="-20" rx="15" ry="20" fill="'+W+'" stroke="#E6D9BC" stroke-width="1"/><circle cx="-5" cy="-26" r="1.6" fill="'+SP+'"/><circle cx="6" cy="-18" r="1.6" fill="'+SP+'"/><circle cx="-3" cy="-11" r="1.4" fill="'+SP+'"/><circle cx="5" cy="-30" r="1.3" fill="'+SP+'"/></g>'}
+else if(st===1){o+='<g transform="translate(60,104) scale(1.6)"><circle cx="0" cy="-22" r="11.5" fill="'+B+'"/><circle cx="-4" cy="-24" r="1.6" fill="#2B2740"/><circle cx="4" cy="-24" r="1.6" fill="#2B2740"/><polygon points="-2,-20 2,-20 0,-16.5" fill="#F29E4C"/><path d="M-14 -13 L-9 -7 L-4 -13 L2 -7 L7 -13 L14 -7 L14 -13 Q15 0 0 0 Q-15 0 -14 -13Z" fill="'+W+'" stroke="#E6D9BC" stroke-width="1" stroke-linejoin="round"/></g>'}
+else if(st===2){o+='<g transform="translate(60,104) scale(1.5)"><path d="M-6 -4 L-6 0 M6 -4 L6 0" stroke="#F29E4C" stroke-width="2" fill="none" stroke-linecap="round"/><ellipse cx="-15" cy="-16" rx="5" ry="8" fill="'+WG+'"/><ellipse cx="15" cy="-16" rx="5" ry="8" fill="'+WG+'"/><circle cx="0" cy="-17" r="17" fill="'+B+'"/><path d="M-3 -33 Q0 -42 4 -33" stroke="'+WG+'" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="-6" cy="-20" r="1.9" fill="#2B2740"/><circle cx="6" cy="-20" r="1.9" fill="#2B2740"/><polygon points="-3,-15 3,-15 0,-10.5" fill="#F29E4C"/></g>'}
+else{var pp=st===4?(eid==='e1'?'tire':eid==='e2'?'kb':''):'';if(pp)o+=henSvg(38,104,1.3,SLOTC[slot],{band:true,shoes:true,prop:pp});else o+=henSvg(58,104,1.5,SLOTC[slot],st===4?{band:true,shoes:true}:{})}
+return o+'</svg>'}
+function vPet(){
+var e=activeEv();
+if(!e)return '<div class="card"><b>모든 대회 완주!</b><div class="mut">완주 장면에서 기념 카드를 저장해 보세요.</div></div>';
+var f=feedFor(e.id),st=stageFor(e.id),t=stageAt(e.id),named=!!(S.pets&&S.pets[e.id]),newEgg=!named&&Object.keys(fin()).length>0,dd=diffDays(e.date,todayStr());
+var h='<div class="card pet tap" data-act="pet"><div class="petart">'+petSvg(st,mySlot(),e.id)+'</div><div class="petin"><div class="mut">'+esc(e.name)+' · '+esc(petName(e.id))+' · '+(dd>=0?'D-'+dd:'완주 기록 대기')+'</div><div class="big" style="font-size:22px">'+STAGE_NM[st]+'</div>';
+if(st<4){var pv=t[st],nx=t[st+1];h+='<div class="bar" style="margin:8px 0 6px"><div style="width:'+Math.round(Math.min(1,(f-pv)/(nx-pv))*100)+'%"></div></div><div class="mut">먹이 '+f+'개 · 다음 단계까지 '+Math.max(0,nx-f)+'개</div>'}
+else h+='<div class="mut" style="margin-top:6px">먹이 '+f+'개 · 대회 날 완주하면 변신해요!</div>';
+h+='<div class="mut" style="margin-top:2px">기록 1회 = 먹이 1개 · 무동력 = 2개 · 프사오 1회 = 1개, 더블 = 2개</div><div class="mut" style="margin-top:2px;color:var(--main-d)">'+(newEgg?'새 알이에요! 눌러서 이름 짓기':'눌러서 이름·성장 규칙 보기')+'</div></div></div>';
+return h}
+function vScenes(){
+var t=todayStr(),h='<div class="sec"><b>대회 완주 장면</b><span>완주하면 열려요</span></div><div class="grid3" style="grid-template-columns:repeat('+Math.max(1,['e1','e2','e3'].filter(function(id){return S.events.some(function(x){return x.id===id})}).length)+',1fr)">';
+['e1','e2','e3'].forEach(function(id){var e=S.events.find(function(x){return x.id===id});if(!e)return;var d=fin()[id];
+h+='<div class="card tile tap" data-act="scene" data-id="'+id+'">'+(d?sceneSvg(id):'<div class="tq">?</div>')+'<div class="tn">'+esc(e.name)+'</div><div class="mut">'+(d?'완주 '+md(d):(e.date<=t?'완주 기록하기':'D-'+diffDays(e.date,t)))+'</div></div>'});
+return h+'</div>'}
+function openScene(id){
+var e=S.events.find(function(x){return x.id===id});if(!e)return;
+var t=todayStr(),d=fin()[id],h;
+if(d){h='<h2>'+esc(e.name)+' 완주!</h2><div class="mut">'+md(d)+' · '+teamOf(id).map(function(x){return x[0]}).join('·')+'</div><div style="margin:10px 0">'+sceneSvg(id)+'</div><div style="display:grid;gap:8px"><button class="btn pri" data-act="medalcard" data-id="'+id+'">완주 기념 카드 저장</button><button class="btn dng" data-act="unfinish" data-id="'+id+'">완주 기록 취소</button><button class="btn" data-act="closesheet">닫기</button></div>'}
+else if(e.date<=t){h='<h2>'+esc(e.name)+'</h2><div class="mut">대회를 마쳤나요? 완주를 기록하면 기념 장면이 열려요.</div><div style="display:grid;gap:8px;margin-top:14px"><button class="btn pri" data-act="finishev" data-id="'+id+'">완주했어요</button><button class="btn" data-act="closesheet">닫기</button></div>'}
+else{toast(e.name+' D-'+diffDays(e.date,t)+' · 대회 날부터 열려요');return}
+openSheet(h)}
+function collectPet(){
+var gv=function(i){var x=document.getElementById(i);return x?x.value.trim().slice(0,6):''};
+var n=S.names||(S.names={});SLOTK.forEach(function(k){var v=gv('n_'+k);if(v)n[k]=v});
+var ae=activeEv();if(ae){var pv=gv('n_p');if(pv)(S.pets||(S.pets={}))[ae.id]=pv}
+S.setupDone=true}
+function openPet(){
+var e=activeEv(),slot=mySlot(),N=nm();
+var h='<h2>'+(LORE&&!S.setupDone?'처음 오셨네요! 🐣':'성장 친구')+'</h2><div class="mut">대회마다 새 알에서 시작해요. 이름은 최대 6글자예요.</div>';
+h+='<label class="l">내 색</label><div style="display:flex;gap:8px">'+[0,1,2].map(function(k){return '<button class="btn sm" data-act="slot" data-v="'+k+'" style="flex:1;'+(k===slot?'background:var(--main);border-color:var(--main);color:#fff':'')+'">'+SLOTN[k]+'</button>'}).join('')+'</div>';
+[0,1,2].forEach(function(k){
+if(k===slot){if(e)h+='<label class="l">내 친구 · '+esc(e.name)+' 알 이름</label><input id="n_p" maxlength="6" value="'+esc(petName(e.id))+'">'}
+else h+='<label class="l">'+SLOTN[k]+' 친구 이름 (함께하는 친구)</label><input id="n_'+SLOTK[k]+'" maxlength="6" value="'+esc(N[k])+'">'});
+if(e){var t=stageAt(e.id),f=feedFor(e.id),st=stageFor(e.id);
+h+='<div class="sec"><b>성장 규칙 · '+esc(e.name)+'</b><span>지금 먹이 '+f+'개</span></div><div class="card" style="padding:8px 14px">';
+STAGE_NM.forEach(function(nmx,i){var on=i===st;h+='<div class="row" style="padding:5px 0;'+(on?'font-weight:700;color:var(--main-d)':'')+'"><span>'+(on?'● ':'')+nmx+'</span><span>'+(i===0?'시작':'먹이 '+t[i]+'개~')+'</span></div>'});
+h+='</div><div class="mut">먹이는 이 대회 훈련 기간의 기록만 세요. 기록 1회 = 먹이 1개, 무동력 트레드밀 = 2개, 프사오 1회 = 1개, 더블 = 2개. 단계 기준은 예정 세션 수와 프사오 주당 예상 횟수(프로그램 탭)에 맞춰 달라져요. 완주하면 팀 장면으로 변신하고, 다음 대회는 새 알에서 시작해요.</div>'}
+h+='<div style="display:grid;gap:8px;margin-top:14px"><button class="btn pri" data-act="savenames">저장</button><button class="btn" data-act="closesheet">닫기</button></div>';
+openSheet(h)}
+function vF45(){
+var t=todayStr(),d=ui.f45d||t,v=f45()[d]||0;
+var h='<div class="card"><div class="row"><b>프사오 체크</b><input type="date" data-f45d="1" value="'+d+'" style="width:150px;min-height:36px"></div><div class="grid3" style="margin-top:8px">';
+[[0,'안 갔어요'],[1,'갔어요 +1'],[2,'더블 +2']].forEach(function(x){h+='<button class="btn" data-act="f45" data-v="'+x[0]+'" style="padding:0 4px;font-size:13px;'+(v>0&&x[0]===v?'background:var(--main);border-color:var(--main);color:#fff':'')+'">'+x[1]+'</button>'});
+return h+'</div><div class="mut" style="margin-top:6px">'+md(d)+' · '+['기록 없음','프사오 1회 (먹이 +1)','프사오 더블 (먹이 +2)'][v]+'</div></div>'}
+function f45Week(mon){var e=addDays(mon,6),n=0,dbl=0,F=f45();Object.keys(F).forEach(function(d){if(d>=mon&&d<=e){n++;if(F[d]===2)dbl++}});return{n:n,dbl:dbl}}
+/* ===== 관리자 모드 (추가) ===== */
+function isAdmin(){try{return localStorage.getItem('running_admin')==='1'}catch(e){return false}}
+function adminPw(){try{return localStorage.getItem('running_adminpw')||'race-crew'}catch(e){return 'race-crew'}}
+function baseUrl(){try{var b=localStorage.getItem('running_base');if(b)return b.replace(/\?.*$/,'')}catch(e){}return location.origin==='null'||location.protocol==='file:'?location.href.replace(/[?#].*$/,''):location.origin+location.pathname}
+function shareUrl(m){var g=gasUrl();return baseUrl()+'?mode='+m+(g?'&gas='+encodeURIComponent(g):'')}
+var SHARE=[['lore','로어그릿','아루미·이스리·해지 (친구 공유용)'],['skid','스키드레이스','이스리용'],['hyrox','하이록스','나만 · 나중에 이스리']];
+function adminBar(){
+var h='<div class="adm"><b>관리자</b>';
+[['all','전체'],['skid','스키드'],['lore','로어'],['hyrox','하이록스']].forEach(function(x){h+='<button class="adm-b'+(MODE===x[0]?' on':'')+'" data-act="mode" data-v="'+x[0]+'">'+x[1]+'</button>'});
+return h+'</div>'}
+function vAdmin(){
+var h='<div class="card" style="border-left:4px solid var(--main)"><div class="row"><b>관리자</b><button class="btn sm" data-act="adminoff">관리자 해제</button></div><div class="mut" style="margin-top:4px">지금 보는 버전: '+(MODE==='all'?'전체(내 훈련)':MODENM[MODE])+'. \'전체\'가 아듬샘 진짜 기록이에요. 스키드·로어·하이록스는 친구 화면 미리보기라서 저장 공간이 따로예요.</div>';
+if(adminPw()==='race-crew')h+='<div class="fb warn">비밀번호가 처음 값 그대로예요. 아래에서 바꿔 주세요.</div>';
+h+=vSwitch();
+h+='<div class="sec"><b>친구 공유 링크</b><span>카톡에 붙여넣기</span></div>';
+SHARE.forEach(function(x){h+='<div class="card" style="margin-bottom:8px;background:var(--bg)"><b>'+x[1]+'</b> <span style="font-size:11px;padding:2px 8px;border-radius:99px;font-weight:600;background:'+(openList().indexOf(x[0])>=0?'#DFF3E6;color:#2E7D4F':'#EEE;color:#888')+'">'+(openList().indexOf(x[0])>=0?'열림':'닫힘')+'</span> <span class="mut">'+x[2]+'</span><div class="mut" style="word-break:break-all;margin:4px 0">'+esc(shareUrl(x[0]))+'</div><div class="grid2"><button class="btn sm" data-act="copylink" data-v="'+x[0]+'">링크 복사</button><button class="btn sm" data-act="copyrich" data-v="'+x[0]+'">글자 링크로 복사</button></div></div>'});
+if(location.protocol==='file:')h+='<div class="fb warn">지금은 파일로 열려 있어서 링크가 내 기기 주소예요. GitHub Pages에 올린 주소에서 열거나 아래에 배포 주소를 입력해 주세요.</div>';
+h+='<label class="l">배포 주소 (GitHub Pages 주소, 비우면 현재 주소)</label><input data-set="base" value="'+esc((function(){try{return localStorage.getItem('running_base')||''}catch(e){return ''}})())+'" placeholder="https://아이디.github.io/저장소/Cheon-R-running.html">';
+h+='<label class="l">관리자 비밀번호 바꾸기 (4자 이상)</label><div style="display:flex;gap:8px"><input id="a_new" type="password" placeholder="새 비밀번호"><button class="btn sm" data-act="adminpw" style="flex:0 0 72px">변경</button></div></div>';
+return h}
+function openAdminLogin(){openSheet('<h2>관리자</h2><div class="mut">비밀번호를 입력해 주세요.</div><label class="l">비밀번호</label><input id="a_pw" type="password"><div style="display:grid;gap:8px;margin-top:14px"><button class="btn pri" data-act="adminlogin">들어가기</button><button class="btn" data-act="closesheet">닫기</button></div>')}
+function copyText(t,html){
+var done=function(){toast('복사했어요')};
+try{if(html&&window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write){navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([t],{type:'text/plain'})})]).then(done,function(){fallback()});return}
+if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,function(){fallback()});return}}catch(e){}
+fallback();
+function fallback(){var a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();try{document.execCommand('copy');done()}catch(e){toast('복사하지 못했어요. 주소를 길게 눌러 복사해 주세요')}a.remove()}}
+async function makeMedal(id){
+var e=S.events.find(function(x){return x.id===id});if(!e)return;
+var img=new Image(),svg=sceneSvg(id,960);
+try{await new Promise(function(res,rej){img.onload=res;img.onerror=rej;img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)})}catch(er){toast('이미지를 만들지 못했어요');return}
+try{if(document.fonts&&document.fonts.ready)await document.fonts.ready}catch(er){}
+var c=document.createElement('canvas');c.width=1080;c.height=1920;var g=c.getContext('2d'),F="'Pretendard',-apple-system,'Apple SD Gothic Neo','Noto Sans KR',sans-serif";
+g.fillStyle='#9B8EC4';g.fillRect(0,0,1080,1920);
+function rr(x,y,w2,h2,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w2,y,x+w2,y+h2,r);g.arcTo(x+w2,y+h2,x,y+h2,r);g.arcTo(x,y+h2,x,y,r);g.arcTo(x,y,x+w2,y,r);g.closePath()}
+function tx(t,x,y,sz,col,wt,al){g.font=(wt||500)+' '+sz+'px '+F;g.fillStyle=col;g.textAlign=al||'left';g.fillText(t,x,y)}
+tx('Cheon-R 레이스 크루',90,170,44,'#fff',700);
+tx('완주 기념',90,236,36,'#EDE9F8',500);
+g.fillStyle='#fff';rr(60,330,960,1230,48);g.fill();
+tx(e.name,540,470,96,'#2B2740',700,'center');
+tx('완주!',540,590,96,'#7A6CB0',700,'center');
+tx(md(fin()[id]).replace(/\(.\)/,''),540,670,40,'#6B6785',500,'center');
+g.drawImage(img,60,800,960,Math.round(960*200/430));
+tx(teamOf(id).map(function(x){return x[0]}).join('·'),540,1450,48,'#2B2740',600,'center');
+tx('한 걸음씩 쌓아서 여기까지 왔어요',540,1700,38,'#EDE9F8',600,'center');
+tx('Made by Cheon_R',540,1790,34,'#EDE9F8',500,'center');
+c.toBlob(async function(b){
+if(!b){toast('이미지를 만들지 못했어요');return}
+var file=new File([b],'race-crew-finish-'+id+'.png',{type:'image/png'});
+try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]});return}}catch(er){if(er&&er.name==='AbortError')return}
+var u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='race-crew-finish-'+id+'.png';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},3000);toast('이미지를 저장했어요')},'image/png')}
+
+var idSeq=0;
+function newId(p){idSeq++;return p+Date.now().toString(36)+idSeq+Math.random().toString(36).slice(2,7)}
+document.addEventListener('click',function(ev){
+var chip=ev.target.closest('.chip');
+if(chip){var box=chip.parentNode,nm=box.getAttribute('data-chips'),v=parseInt(chip.getAttribute('data-v'),10),k=nm.split(':'),b=S.blocks.find(function(x){return x.id===k[1]});
+if(b){if(k[0]==='lv')b.level=v;else{var i=b.days.indexOf(v);if(i>=0){if(b.days.length>1)b.days.splice(i,1)}else b.days.push(v)}save();render()}return}
+var el=ev.target.closest('[data-act]');if(!el)return;
+var act=el.getAttribute('data-act'),id=el.getAttribute('data-id');
+if(act==='goto'){ui.tab=el.getAttribute('data-tab');render();window.scrollTo(0,0)}
+else if(act==='sess')openSession(id);
+else if(act==='newlog')openLog();
+else if(act==='logsess'){var l=logFor(id);if(l)openLog(null,l.id);else openLog(id)}
+else if(act==='editlog')openLog(null,id);
+else if(act==='savelog')saveLog(id);
+else if(act==='dellog'){if(confirm('이 기록을 삭제할까요?')){S.logs=S.logs.filter(function(x){return x.id!==id});save();closeSheet();render()}}
+else if(act==='skipsess'){var o=S.overrides[id]||(S.overrides[id]={});o.skip=!o.skip;save();closeSheet();render()}
+else if(act==='closesheet')closeSheet();
+else if(act==='wkprev'){ui.week=addDays(ui.week,-7);render()}
+else if(act==='wknext'){ui.week=addDays(ui.week,7);render()}
+else if(act==='wknow'){ui.week=mondayOf(todayStr());render()}
+else if(act==='share')makeShare(el.getAttribute('data-mon'));
+else if(act==='foot'){ui.fc=(ui.fc||0)+1;clearTimeout(ui.ft);ui.ft=setTimeout(function(){ui.fc=0},2000);if(ui.fc>=5){ui.fc=0;if(isAdmin())toast('이미 관리자예요');else openAdminLogin()}}
+else if(act==='adminlogin'){var pw=document.getElementById('a_pw').value;if(pw===adminPw()){try{localStorage.setItem('running_admin','1')}catch(e){}closeSheet();ui.tab='prog';render();window.scrollTo(0,0);toast('관리자 모드예요')}else toast('비밀번호가 달라요')}
+else if(act==='adminoff'){try{localStorage.removeItem('running_admin')}catch(e){}render();toast('관리자를 해제했어요')}
+else if(act==='adminpw'){var np=document.getElementById('a_new').value;if(np.length<4){toast('4자 이상으로 입력해 주세요');return}
+var _setpw=function(){try{localStorage.setItem('running_adminpw',np)}catch(e){}render();toast('비밀번호를 바꿨어요')};
+if(gasUrl()){gasCall({action:'setpw',pw:adminPw(),newpw:np},function(r){if(r&&r.ok)_setpw();else if(r&&r.err==='pw')toast('연결된 GAS의 비밀번호와 달라요. GAS 속성 ADMIN_PW를 확인해 주세요');else toast('GAS에 연결하지 못했어요. 다시 시도해 주세요')})}else _setpw()}
+else if(act==='mode'){var mv=el.getAttribute('data-v');try{localStorage.setItem('running_mode',mv)}catch(e){}try{history.replaceState(null,'',location.pathname)}catch(e){}location.reload()}
+else if(act==='copylink'){copyText(shareUrl(id||el.getAttribute('data-v')))}
+else if(act==='copyrich'){var cv=el.getAttribute('data-v'),cu=shareUrl(cv);copyText(cu,'<a href="'+cu.replace(/&/g,'&amp;')+'">레이스 크루 '+MODENM[cv]+'_made by Cheon R</a>')}
+else if(act==='f45'){var fd=ui.f45d||todayStr(),fv=parseInt(el.getAttribute('data-v'),10),_p=petStage();if(fv)f45()[fd]=fv;else delete f45()[fd];save();render();var _n=petStage();toast(fv?'프사오'+(fv===2?' 더블':'')+' 먹이 +'+fv+(_n>_p?' · '+STAGE_NM[_n]+'(으)로 자랐어요!':''):'프사오 기록을 지웠어요')}
+else if(act==='gtoggle'){gToggle(el.getAttribute('data-v'))}
+else if(act==='gcheck'){refreshOpen(true)}
+else if(act==='gaterefresh'){refreshOpen(true)}
+else if(act==='scene')openScene(id);
+else if(act==='pet')openPet();
+else if(act==='savenames'){collectPet();save();closeSheet();render();toast('저장했어요')}
+else if(act==='slot'){collectPet();S.mySlot=parseInt(el.getAttribute('data-v'),10);save();render();openPet()}
+else if(act==='finishev'){fin()[id]=todayStr();save();closeSheet();render();openScene(id)}
+else if(act==='unfinish'){if(confirm('완주 기록을 취소할까요?')){delete fin()[id];save();closeSheet();render()}}
+else if(act==='medalcard')makeMedal(id);
+else if(act==='addev'){S.events.push({id:newId('e'),name:'새 대회',short:'새 대회',date:addDays(todayStr(),30),goal:null});save();render()}
+else if(act==='delev'){if(confirm('이 대회를 삭제할까요?')){S.events=S.events.filter(function(x){return x.id!==id});save();render()}}
+else if(act==='addblock'){var last=S.blocks.slice().sort(function(a,b){return a.end<b.end?-1:1}).pop(),st=last?addDays(last.end,1):todayStr();S.blocks.push({id:newId('b'),name:'새 블록',kind:'base',start:st,end:addDays(st,27),level:3,days:[2,4,6]});save();render()}
+else if(act==='delblock'){if(confirm('이 블록을 삭제할까요? 연결된 기록은 자유 기록으로 남아요.')){S.blocks=S.blocks.filter(function(x){return x.id!==id});save();render()}}
+else if(act==='export'){var bl=new Blob([JSON.stringify(S,null,1)],{type:'application/json'}),u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download='Cheon-R-running'+(LORE?'-'+MODE:'')+'-backup.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},3000);toast('백업 파일을 저장했어요')}
+else if(act==='import'){document.getElementById('impfile').click()}
+else if(act==='reset'){if(confirm('모든 기록과 설정을 처음 상태로 되돌려요. 계속할까요?')){S=seed();save();render();toast('초기화했어요')}}
+});
+document.getElementById('sheetWrap').addEventListener('click',function(e){if(e.target.id==='sheetWrap')closeSheet()});
+document.addEventListener('change',function(ev){
+var t=ev.target;
+if(t.id==='impfile'&&t.files[0]){var r=new FileReader();r.onload=function(){try{var o=JSON.parse(r.result);if(o&&o.v===1&&o.blocks&&o.events&&o.logs){S=o;save();render();toast('불러왔어요')}else toast('올바른 백업 파일이 아니에요')}catch(e){toast('파일을 읽지 못했어요')}};r.readAsText(t.files[0]);t.value='';return}
+if(t.id==='s_place'){var sid=document.querySelector('#sheet [data-act="logsess"]').getAttribute('data-id'),o=S.overrides[sid]||(S.overrides[sid]={});o.place=t.value;save();refresh();render();openSession(sid);return}
+var set=t.getAttribute('data-set');
+if(t.hasAttribute('data-f45d')){ui.f45d=t.value||todayStr();render();return}
+if(set==='homeLine'){S.settings.homeLine=t.value.trim().slice(0,30);save();render();toast(S.settings.homeLine?'문구를 저장했어요':'자동 문구로 돌아갔어요');return}
+if(set==='f45pw'){var fq=Math.round(num(t.value));if(fq<0||fq>7){toast('0~7 사이로 입력해 주세요');t.value=f45pw();return}S.settings.f45pw=fq;save();render();return}
+if(set==='gas'){var gv=t.value.trim();if(!gv){try{localStorage.removeItem('running_gas')}catch(e){}render();toast('GAS 연결을 지웠어요');return}if(!gasOk(gv)){toast('GAS 웹 앱 주소(https://script.google.com/macros/s/…/exec)를 붙여넣어 주세요');t.value=gasUrl();return}try{localStorage.setItem('running_gas',gv)}catch(e){}render();refreshOpen(true);return}
+if(set==='base'){try{var bv=t.value.trim();if(bv)localStorage.setItem('running_base',bv);else localStorage.removeItem('running_base')}catch(e){}render();toast('저장했어요');return}
+if(set==='maxHr'){var v=Math.round(num(t.value));if(v<140||v>230){toast('140~230 사이로 입력해 주세요');t.value=S.settings.maxHr;return}S.settings.maxHr=v;save();render();return}
+var eid=t.getAttribute('data-e'),bid=t.getAttribute('data-b'),f=t.getAttribute('data-f');
+if(eid){var e=S.events.find(function(x){return x.id===eid});if(!e)return;
+if(f==='name'){e.name=t.value.trim()||e.name;e.short=e.name.length>4?e.name.slice(0,3):e.name}
+else if(f==='date'){if(!t.value){t.value=e.date;return}e.date=t.value}
+else{var gb=f==='gbase'?parsePace(t.value):(e.goal?e.goal.base:NaN),gt=f==='gtarget'?parsePace(t.value):(e.goal?e.goal.target:NaN);
+if(f==='gbase'&&!t.value.trim()||f==='gtarget'&&!t.value.trim()){e.goal=null}
+else{if(!isFinite(f==='gbase'?gb:gt)){toast('페이스는 5:30 형식으로 입력해 주세요');render();return}
+e.goal={base:isFinite(gb)?gb:(e.goal?e.goal.base:360),target:isFinite(gt)?gt:(e.goal?e.goal.target:330)}}}
+save();render();return}
+if(bid){var b=S.blocks.find(function(x){return x.id===bid});if(!b)return;
+if(f==='start'||f==='end'){var ns=f==='start'?t.value:b.start,ne2=f==='end'?t.value:b.end;if(!t.value||ne2<ns){toast('끝 날짜가 시작보다 빠를 수 없어요');render();return}b[f]=t.value}
+else if(f==='indoorUntil'){b.indoorUntil=t.value||''}
+else if(f==='kind'){b.kind=t.value}
+else if(f==='name'){b.name=t.value.trim()||b.name}
+save();render()}
+});
+/* ===== 열린 버전 스위치 (GAS) ===== */
+var GAS_DEFAULT='';
+function gasOk(u){return /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(u)}
+(function(){try{var q=new URLSearchParams(location.search).get('gas');if(q&&gasOk(q))localStorage.setItem('running_gas',q)}catch(e){}})();
+function gasUrl(){try{var u=localStorage.getItem('running_gas')||GAS_DEFAULT;return gasOk(u)?u:''}catch(e){return GAS_DEFAULT}}
+function openList(){try{var c=localStorage.getItem('running_open');if(c!==null)return c?c.split(',').filter(Boolean):[]}catch(e){}return ['lore']}
+function isOpen(m){return m==='all'||isAdmin()||openList().indexOf(m)>=0}
+function gasCall(q,cb){var u=gasUrl();if(!u){cb(null);return}var n='_rg'+Date.now()+Math.floor(Math.random()*1000),s=document.createElement('script'),done=false,tm;
+function fin(r){if(done)return;done=true;clearTimeout(tm);try{delete window[n]}catch(e){window[n]=undefined}if(s.parentNode)s.parentNode.removeChild(s);cb(r)}
+window[n]=function(r){fin(r)};
+var qs=Object.keys(q).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(q[k])}).join('&');
+s.src=u+'?'+qs+'&callback='+n;s.onerror=function(){fin(null)};tm=setTimeout(function(){fin(null)},8000);document.head.appendChild(s)}
+function applyGate(){
+var g=document.getElementById('gate'),blk=LORE&&!isOpen(MODE);
+if(blk){if(!g){g=document.createElement('div');g.id='gate';g.className='gate';document.body.appendChild(g)}
+g.innerHTML='<div class="gate-in"><div style="font-size:54px">🥚</div><h2>'+MODENM[MODE]+'는 아직 준비 중이에요</h2><div class="mut" style="margin:6px 0 16px">아듬샘이 열어 주면 이 링크로 바로 들어올 수 있어요.</div><button class="btn pri" data-act="gaterefresh">다시 확인하기</button><div class="mut" style="margin-top:14px;font-size:12px">문의 <a href="mailto:fond7509@naver.com?subject='+encodeURIComponent('[레이스 크루] 문의')+'">fond7509@naver.com</a></div></div>'}
+else{if(g)g.remove();if(LORE&&!S.setupDone&&!document.getElementById('sheetWrap').classList.contains('on'))openPet()}}
+function refreshOpen(manual){
+if(!gasUrl()){if(manual)toast('먼저 GAS 주소를 입력해 주세요');applyGate();return}
+gasCall({action:'open'},function(r){
+if(r&&r.ok&&r.open){try{localStorage.setItem('running_open',r.open.join(','))}catch(e){}applyGate();if(isAdmin())render();if(manual)toast('연결됐어요 · 열린 버전: '+(r.open.length?r.open.map(function(m){return MODENM[m]}).join(', '):'없음'))}
+else{applyGate();if(manual)toast('GAS에 연결하지 못했어요. 주소와 배포(모든 사용자)를 확인해 주세요')}})}
+function gToggle(m){
+if(!gasUrl()){toast('먼저 GAS 주소를 입력해 주세요');return}
+var cur=openList().slice(),i=cur.indexOf(m);if(i>=0)cur.splice(i,1);else cur.push(m);
+gasCall({action:'set',pw:adminPw(),open:cur.join(',')},function(r){
+if(r&&r.ok){try{localStorage.setItem('running_open',r.open.join(','))}catch(e){}render();toast(MODENM[m]+(r.open.indexOf(m)>=0?'를 열었어요':'를 닫았어요'))}
+else if(r&&r.err==='pw')toast('GAS의 관리자 비밀번호와 달라요')
+else toast('저장하지 못했어요. 연결을 확인해 주세요')})}
+function vSwitch(){
+var h='<div class="sec"><b>열린 버전 스위치</b><span>친구에게 열어 둘 버전</span></div><div class="card" style="margin-bottom:8px;background:var(--bg)">';
+h+='<label class="l" style="margin-top:0">GAS 웹 앱 주소</label><input data-set="gas" value="'+esc(gasUrl())+'" placeholder="https://script.google.com/macros/s/…/exec">';
+h+='<div class="grid2" style="margin-top:8px"><button class="btn sm" data-act="gcheck">연결 확인</button><div class="mut" style="align-self:center">'+(gasUrl()?'주소 저장됨':'주소 없음 · 로어그릿만 열림')+'</div></div>';
+SHARE.forEach(function(x){var on=openList().indexOf(x[0])>=0;h+='<div class="row" style="margin-top:10px"><div><b>'+x[1]+'</b><div class="mut">'+(on?'친구가 들어올 수 있어요':'"준비 중이에요"가 보여요')+'</div></div><button class="btn sm" data-act="gtoggle" data-v="'+x[0]+'" style="flex:0 0 78px;'+(on?'background:var(--main);border-color:var(--main);color:#fff':'')+'">'+(on?'열림':'닫힘')+'</button></div>'});
+h+='<div class="mut" style="margin-top:10px;font-size:12px">스위치를 누르면 시트에 저장돼서 친구 앱에 바로 반영돼요. 관리자(나)는 항상 모든 버전이 열려요.</div></div>';
+return h}
+render();
+applyGate();
+refreshOpen(false);
+})();
+</script>
+</body>
+</html>
