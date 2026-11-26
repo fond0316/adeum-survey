@@ -957,6 +957,7 @@ textarea{resize:vertical;}
     <div id="top-logo" class="top-logo-link" onclick="goLauncher()" title="홈으로 돌아가기">🌟 아듬's 생기부 AI <span style="font-size:10px;color:#9ca3af;font-weight:400;margin-left:4px;">교과</span><span style="font-size:10px;color:#d1d5db;margin-left:6px;">· Made by Cheon_R</span></div>
     <div class="top-tab active" onclick="switchTab('write')" id="tab-write">✏️ 작성</div>
     <div class="top-tab" onclick="switchTab('status')" id="tab-status">📋 현황</div>
+    <div class="top-tab" onclick="switchTab('merge')" id="tab-merge">🔗 공통수학1+2 합치기</div>
     <div class="top-tab" onclick="switchTab('stats')" id="tab-stats">📊 통계</div>
     <div class="top-tab" onclick="switchTab('settings')" id="tab-settings">⚙️ 설정</div>
     <div id="top-right">
@@ -1228,6 +1229,35 @@ textarea{resize:vertical;}
             </tr>
           </thead>
           <tbody id="status-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ 공통수학1+2 합치기 탭 (1학년 과세특 통합용) ══ -->
+    <div id="merge-view" style="display:none;flex:1;overflow:hidden;flex-direction:column;padding:16px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+        <select id="mg-class" onchange="mgRender()" style="border:1px solid #e0e5ed;border-radius:7px;padding:6px 10px;font-size:12px;outline:none;background:white;color:#111;"></select>
+        <span style="font-size:12px;color:#6b7280;">합계 목표</span>
+        <input type="number" id="mg-goal" min="500" max="3000" step="10" value="1500" onchange="mgSetGoal(this.value)" style="width:76px;border:1px solid #e0e5ed;border-radius:7px;padding:6px 8px;font-size:12px;outline:none;text-align:center;"/>
+        <span style="font-size:12px;color:#6b7280;">바이트 이내 (한글 3바이트·공백 1바이트)</span>
+        <span id="mg-source-info" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:#f3f4f6;color:#6b7280;"></span>
+        <div style="margin-left:auto;display:flex;gap:8px;">
+          <button onclick="mgAiFixAll()" id="mg-ai-all-btn" style="padding:6px 12px;border:1px solid #7c3aed;border-radius:7px;background:#f5f3ff;font-size:12px;cursor:pointer;color:#6d28d9;font-weight:600;">✨ 범위 밖 학생 AI로 일괄 맞추기</button>
+          <button onclick="mgResetAll()" style="padding:6px 12px;border:1px solid #e5e7eb;border-radius:7px;background:white;font-size:12px;cursor:pointer;color:#374151;">↺ 이 반 전체 다시 합치기</button>
+          <button onclick="mgCopyAll()" style="padding:6px 12px;border:1px solid #059669;border-radius:7px;background:#f0fdf4;font-size:12px;cursor:pointer;color:#059669;font-weight:600;">📋 이 반 전체 복사</button>
+        </div>
+      </div>
+      <div id="mg-msg" style="font-size:12px;color:#6b7280;margin-bottom:8px;min-height:16px;"></div>
+      <div style="flex:1;overflow:auto;background:white;border-radius:10px;border:1px solid #e5e7eb;">
+        <table style="width:100%;min-width:1000px;border-collapse:collapse;table-layout:fixed;">
+          <thead><tr style="background:#f8fafc;">
+            <th style="width:44px;padding:9px 8px;font-size:11px;color:#6b7280;text-align:left;border-bottom:1px solid #e5e7eb;position:sticky;top:0;background:#f8fafc;">번호</th>
+            <th style="width:72px;padding:9px 8px;font-size:11px;color:#6b7280;text-align:left;border-bottom:1px solid #e5e7eb;position:sticky;top:0;background:#f8fafc;">이름</th>
+            <th style="width:22%;padding:9px 8px;font-size:11px;color:#6b7280;text-align:left;border-bottom:1px solid #e5e7eb;position:sticky;top:0;background:#f8fafc;">공통수학1</th>
+            <th style="width:22%;padding:9px 8px;font-size:11px;color:#6b7280;text-align:left;border-bottom:1px solid #e5e7eb;position:sticky;top:0;background:#f8fafc;">공통수학2</th>
+            <th style="padding:9px 8px;font-size:11px;color:#6b7280;text-align:left;border-bottom:1px solid #e5e7eb;position:sticky;top:0;background:#f8fafc;">합친 결과 (직접 수정 가능)</th>
+          </tr></thead>
+          <tbody id="mg-tbody"></tbody>
         </table>
       </div>
     </div>
@@ -3090,6 +3120,11 @@ function _applyToGyogwa(fdStu, fdDetail) {
 function _applyToClub(fdStu, fdDetail) {
   if (cClubs && cClubs[cSelClub]) {
     var fdFound = false;
+    // ★ 나이스 명렬표로 넣은 학생은 학년·반·번호+이름이 모두 같은 학생을 가장 먼저 찾음
+    for (var fn = 0; fn < cClubs[cSelClub].students.length && !fdFound; fn++) {
+      var fnS = cClubs[cSelClub].students[fn];
+      if (fnS.neis && fnS.name === fdStu.name && String(fnS.neis.grade) === String(fdStu.grade) && String(fnS.neis.ban) === String(fdStu.ban) && String(fnS.neis.num) === String(fdStu.num)) { cSelStu = fn; fdFound = true; }
+    }
     // 번호+이름 동시 매칭 우선 (동명이인 방지)
     for (var fi = 0; fi < cClubs[cSelClub].students.length && !fdFound; fi++) {
       var fdS = cClubs[cSelClub].students[fi];
@@ -11552,6 +11587,7 @@ function cRenderSidebar() {
     return "<div onclick=\"cSelectStu("+i+")\" style=\"display:flex;align-items:center;gap:5px;padding:7px 10px;cursor:pointer;background:"+(on?"#ecfdf5":"white")+";border-left:"+(on?"3px solid #059669":"3px solid transparent")+";border-bottom:1px solid #f5f5f5;\">"
       +"<span style=\"font-size:10px;color:"+(on?"#059669":"#d1d5db")+";font-weight:"+(on?700:400)+";min-width:22px;flex-shrink:0\">"+String(i+1).padStart(2,"0")+"<\/span>"
       +"<input value=\""+_esc(s.name||"")+"\" placeholder=\"이름\" onchange=\"cUpdateName("+i+",this.value)\" onclick=\"event.stopPropagation()\" style=\"flex:1;border:none;outline:none;font-size:12px;background:transparent;color:"+(on?"#111":"#374151")+";font-family:sans-serif;\"/>"
+      +(s.neis?"<span title=\"나이스 학년-반-번호\" style=\"font-size:10px;color:#9ca3af;flex-shrink:0;white-space:nowrap;\">"+_esc(s.neis.grade+"-"+s.neis.ban+"-"+s.neis.num)+"<\/span>":"")
       +((s.files&&s.files.length)?"<span title=\""+s.files.length+"개 첨부\" style=\"font-size:10px;color:#9ca3af;flex-shrink:0\">📎<\/span>":"")
       +(s.done?"<div style=\"width:6px;height:6px;border-radius:50%;background:#059669;flex-shrink:0\"><\/div>":"")
       +"<\/div>";
@@ -11568,6 +11604,7 @@ function cRenderHeader() {
   if (!club) return;
   var stu = club.students[cSelStu];
   document.getElementById("c-hdr-title").textContent = club.name+" · "+(cSelStu+1)+"번 "+(stu&&stu.name?stu.name:"학생");
+  if (stu && stu.neis) document.getElementById("c-hdr-title").textContent += " ("+stu.neis.grade+"-"+stu.neis.ban+"-"+stu.neis.num+")";
   var byteEl = document.getElementById("c-byte-badge");
   if (cResult) {
     var bytes = cCalcBytes(cResult);
@@ -12658,6 +12695,61 @@ function cExportCSV(){
   a.download="동아리세특_"+club.name+".csv"; a.click();URL.revokeObjectURL(a.href);
 }
 
+/* ── 동아리 명렬표: 나이스 양식(학년·반·번호·성명 열) 전용 ──
+   · 1·2학년이 섞인 동아리용. 학년→반→번호 순으로 정렬해 앞에서부터 순번으로 채우고,
+     학생마다 학년·반·번호(neis)를 따로 기억해 이름 옆에 표시해요.
+   · 이미 입력한 내용(결과·역할·에피소드·첨부)은 같은 이름의 학생에게 그대로 이어져요.
+   · 명렬표에 없는 기존 학생(데이터 있는 경우)은 지우지 않고 맨 아래로 내려요.
+   · 해당 양식이 아니면 false를 돌려줘서 기존 업로드 로직이 그대로 실행돼요. */
+function _cTryNeisRoster(data){
+  var norm=function(c){return String(c==null?"":c).replace(/\s+/g,"").trim();};
+  var hr=-1,cg=-1,cb=-1,cn=-1,cname=-1;
+  for(var ri=0;ri<Math.min(8,data.length)&&hr<0;ri++){
+    var row=(data[ri]||[]).map(norm);
+    var g=row.indexOf("학년"),b=row.indexOf("반"),n=row.indexOf("번호");
+    var nm=row.indexOf("성명"); if(nm<0)nm=row.indexOf("이름");
+    if(g>=0&&b>=0&&n>=0&&nm>=0){hr=ri;cg=g;cb=b;cn=n;cname=nm;}
+  }
+  if(hr<0)return false;
+  var list=[];
+  data.slice(hr+1).forEach(function(r){
+    if(!r)return;
+    var name=norm(r[cname]); if(!name)return;
+    var g=Number(norm(r[cg])),b=Number(norm(r[cb])),n=Number(norm(r[cn]));
+    if(!(g>0))return;
+    list.push({name:name,grade:g,ban:b||0,num:n||0});
+  });
+  if(!list.length){alert("명렬표에서 학생을 찾지 못했어요.");return true;}
+  list.sort(function(x,y){return x.grade-y.grade||x.ban-y.ban||x.num-y.num;});
+  var club=cClubs[cSelClub];
+  var oldList=club.students.slice();
+  var mk=function(){return {name:"",role:"",episode:"",comps:[],result:"",done:false,history:[],files:[],emphasisNote:"",fileNote:""};};
+  var hasData=function(st){return !!(st&&(st.result||st.role||st.episode||(st.files&&st.files.length)||(st.comps&&st.comps.length)||st.emphasisNote||st.fileNote));};
+  var used=new Array(oldList.length).fill(false);
+  var out=list.map(function(it){
+    var found=-1;
+    for(var i=0;i<oldList.length;i++){ if(!used[i]&&oldList[i]&&oldList[i].name===it.name){found=i;break;} }
+    var st;
+    if(found>=0){used[found]=true;st=oldList[found];} else st=mk();
+    st.name=it.name; st.neis={grade:String(it.grade),ban:String(it.ban),num:String(it.num)};
+    return st;
+  });
+  var leftover=[];
+  oldList.forEach(function(st,i){ if(!used[i]&&hasData(st))leftover.push(st); });
+  var total=out.length+leftover.length;
+  if(total>40){alert("한 동아리에는 최대 40명까지 넣을 수 있어요. (명렬표 "+out.length+"명 + 기존 입력 학생 "+leftover.length+"명)");return true;}
+  var g1=list.filter(function(x){return x.grade===1;}).length,g2=list.filter(function(x){return x.grade===2;}).length,g3=list.filter(function(x){return x.grade===3;}).length;
+  var gtxt=[g1?"1학년 "+g1+"명":"",g2?"2학년 "+g2+"명":"",g3?"3학년 "+g3+"명":""].filter(Boolean).join(" · ");
+  if(!confirm("명렬표 "+list.length+"명("+gtxt+")을 학년→반→번호 순으로 넣을게요.\n\n· 이미 입력한 내용은 같은 이름의 학생에게 그대로 이어져요.\n"+(leftover.length?"· 명렬표에 없는 기존 학생 "+leftover.length+"명(입력 내용 있음)은 맨 아래로 내려요.\n":"")+"· 인원은 "+total+"명으로 맞춰져요.\n\n진행할까요?"))return true;
+  var arr=out.concat(leftover);
+  while(arr.length<40)arr.push(mk());
+  club.students=arr; club.count=total;
+  cSelStu=0; cResult=club.students[0].result||"";
+  cSaveData(); cRender();
+  alert("명렬표 업로드 완료! "+list.length+"명 반영됐어요. ("+gtxt+")");
+  return true;
+}
+
 /* ── 명렬표 ── */
 function cUploadRoster(event){
   var file=event.target.files[0]; if(!file)return;
@@ -12667,6 +12759,7 @@ function cUploadRoster(event){
       var wb=XLSX.read(e.target.result,{type:"binary"});
       var ws=wb.Sheets[wb.SheetNames[0]];
       var data=XLSX.utils.sheet_to_json(ws,{header:1});
+      if(_cTryNeisRoster(data)) return;   // ★ 나이스 양식(학년·반·번호 열)이면 학년→반→번호 순으로 순번 배치, 아니면 아래 기존 로직
       var NUM_KW=["번호","번","학번"], NAME_KW=["이름","성명","학생명"];
       var headerRow=-1,colNum=-1,colName=-1;
       for(var ri=0;ri<Math.min(5,data.length);ri++){
@@ -14417,6 +14510,232 @@ function init(){
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 window.GBDESIGN={APPS:APPS,_t:{tidyStatus:tidyStatus,countStatus:countStatus,inject:injectCss}};
 })();
+</script>
+<script>
+/* ══ 🔗 공통수학1+2 합치기 — 1학년 과세특(공통수학1 750B + 공통수학2 750B ≈ 1500B)을 한 번에 입력하기 위한 통합 탭 ══
+   · 기존 교과 데이터는 읽기만 해요 (공통수학1·2 결과를 1학기·2학기 저장소 모두에서 찾음)
+   · 합친 글을 직접 고치거나 AI로 맞춘 수정본은 별도 키(gongtong_merge_v1_학년도)에 저장 → 다시 열어도 유지
+   · 고치지 않은 학생은 항상 최신 결과를 이어붙여서 보여줘요 */
+var MG_S1 = "공통수학1", MG_S2 = "공통수학2", MG_GOAL_KEY = "gongtong_merge_goal_v1";
+var mgCurRows = [], mgRunning = false, mgStop = false, mgMsgTimer = null;
+
+function mgYear(){ var s = adumGetSettings(); return s.year || new Date().getFullYear(); }
+function mgStoreKey(){ return "gongtong_merge_v1_" + mgYear(); }
+function mgLoadStore(){ try{ var o = JSON.parse(localStorage.getItem(mgStoreKey()) || "{}"); return (o && typeof o === "object") ? o : {}; }catch(e){ return {}; } }
+function mgSaveStore(o){ lsSafeSet(mgStoreKey(), JSON.stringify(o)); }
+function mgGoal(){ var g = Number(localStorage.getItem(MG_GOAL_KEY)); return g >= 500 ? g : 1500; }
+function mgSetGoal(v){ var g = Math.max(500, Math.min(3000, Number(v) || 1500)); localStorage.setItem(MG_GOAL_KEY, String(g)); document.getElementById("mg-goal").value = g; mgRender(); }
+function mgSig(t){ t = String(t || ""); var h = 5381; for(var i = 0; i < t.length; i++){ h = ((h << 5) + h + t.charCodeAt(i)) | 0; } return t.length + ":" + h; }
+function mgMsg(t, keep){ var el = document.getElementById("mg-msg"); if(!el) return; el.textContent = t || ""; if(mgMsgTimer) clearTimeout(mgMsgTimer); if(t && !keep) mgMsgTimer = setTimeout(function(){ el.textContent = ""; }, 4000); }
+
+// 공통수학 결과가 들어 있을 수 있는 저장소들: 지금 학기(메모리의 최신값) → 같은 학년도의 1·2학기 저장소
+function mgSources(){
+  var srcs = [classData], y = mgYear();
+  ["1학기", "2학기"].forEach(function(sem){
+    var key = "saengiboo_v5_data_" + y + "_" + sem;
+    if(key === getGyogwaDataKey()) return;
+    try{ var raw = localStorage.getItem(key); if(raw){ var o = JSON.parse(raw); if(o && typeof o === "object") srcs.push(o); } }catch(e){}
+  });
+  return srcs;
+}
+function mgListOf(src, subj, cls){
+  var e = src && src[subj] && src[subj][cls];
+  if(!e || !Array.isArray(e.list)) return null;
+  return e.list.slice(0, e.count || e.list.length);
+}
+function mgPick(subj, cls){
+  var srcs = mgSources(), fallback = null;
+  for(var i = 0; i < srcs.length; i++){
+    var l = mgListOf(srcs[i], subj, cls);
+    if(!l) continue;
+    if(l.some(function(s){ return s && s.result; })) return l;
+    if(!fallback) fallback = l;
+  }
+  return fallback || [];
+}
+function mgClasses(){
+  var set = {}, out = [];
+  var add = function(c){ if(c && !set[c]){ set[c] = 1; out.push(c); } };
+  getClasses(MG_S1).forEach(add); getClasses(MG_S2).forEach(add);
+  mgSources().forEach(function(src){ [MG_S1, MG_S2].forEach(function(sj){ if(src && src[sj]) Object.keys(src[sj]).forEach(add); }); });
+  return out;
+}
+function mgRows(cls){
+  var a = mgPick(MG_S1, cls), b = mgPick(MG_S2, cls);
+  var txt = function(s){ return stripBold((s && s.result) || "").replace(/\s+/g, " ").trim(); };
+  var rows = [], byName = {};
+  a.forEach(function(s, i){ if(!s || !s.name) return; var r = { num: i + 1, name: s.name, t1: txt(s), t2: "" }; rows.push(r); if(!byName[s.name]) byName[s.name] = r; });
+  b.forEach(function(s, i){
+    if(!s || !s.name) return;
+    var r = byName[s.name];
+    if(r){ if(!r.t2) r.t2 = txt(s); }
+    else { r = { num: i + 1, name: s.name, t1: "", t2: txt(s) }; rows.push(r); byName[s.name] = r; }
+  });
+  return rows.filter(function(r){ return r.t1 || r.t2; });
+}
+function mgBaseText(r){ return (r.t1 + " " + r.t2).trim(); }
+function mgCurText(i){
+  var r = mgCurRows[i]; if(!r) return "";
+  var ta = document.getElementById("mg-ta-" + i);
+  if(ta) return ta.value;
+  return r.merged != null ? r.merged : mgBaseText(r);
+}
+function mgBadgeHtml(bytes){
+  var g = mgGoal(), lo = Math.round(g * 0.9), c, bg, bd, t;
+  if(bytes > g){ c = "#b45309"; bg = "#fffbeb"; bd = "#fde68a"; t = "초과 " + (bytes - g) + "B"; }
+  else if(bytes < lo){ c = "#dc2626"; bg = "#fef2f2"; bd = "#fca5a5"; t = "부족 " + (lo - bytes) + "B"; }
+  else { c = "#16a34a"; bg = "#f0fdf4"; bd = "#86efac"; t = "적정"; }
+  return '<span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:' + bg + ';color:' + c + ';border:1px solid ' + bd + ';">' + bytes + "B · " + t + "</span>";
+}
+
+function mgInit(){
+  var sel = document.getElementById("mg-class"), cur = sel.value, cls = mgClasses();
+  sel.innerHTML = cls.map(function(c){ return '<option value="' + _esc(c) + '"' + (c === cur ? " selected" : "") + ">" + _esc(c) + "반</option>"; }).join("");
+  document.getElementById("mg-goal").value = mgGoal();
+  mgRender();
+}
+function mgRender(){
+  var sel = document.getElementById("mg-class"); if(!sel || !sel.value){ return; }
+  var cls = sel.value, rows = mgRows(cls), store = mgLoadStore(), saved = store[cls] || {};
+  var n1 = rows.filter(function(r){ return r.t1; }).length, n2 = rows.filter(function(r){ return r.t2; }).length;
+  var info = document.getElementById("mg-source-info");
+  info.textContent = "공통수학1 " + n1 + "명 · 공통수학2 " + n2 + "명 불러옴";
+  var okInfo = n1 > 0 && n2 > 0;
+  info.style.background = okInfo ? "#f0fdf4" : "#fffbeb"; info.style.color = okInfo ? "#16a34a" : "#b45309";
+  rows.forEach(function(r){
+    var e = saved[r.name];
+    if(r.t1 && r.t2 && e && typeof e.text === "string"){ r.merged = e.text; r.edited = true; r.stale = (e.s1 !== mgSig(r.t1) || e.s2 !== mgSig(r.t2)); }
+    else { r.merged = r.t1 && r.t2 ? mgBaseText(r) : null; r.edited = false; r.stale = false; }
+  });
+  mgCurRows = rows;
+  var cell = "padding:8px;border-bottom:1px solid #f1f5f9;vertical-align:top;font-size:12px;color:#374151;";
+  var html = rows.map(function(r, i){
+    var left = function(t){ return t ? '<div style="line-height:1.7;white-space:pre-wrap;word-break:break-all;color:#4b5563;max-height:150px;overflow:auto;">' + _esc(t) + '</div><div style="margin-top:4px;font-size:11px;color:#9ca3af;">' + calcBytes(t) + "B</div>" : '<span style="color:#9ca3af;">아직 작성 안 함</span>'; };
+    var right;
+    if(r.merged == null){
+      right = '<div style="border:1px dashed #d1d5db;border-radius:8px;padding:8px 10px;color:#9ca3af;">' + (r.t1 ? "공통수학2" : "공통수학1") + "를 먼저 작성해 주세요</div>";
+    } else {
+      right = '<textarea id="mg-ta-' + i + '" rows="6" oninput="mgOnInput(' + i + ')" onchange="mgOnChange(' + i + ')" style="width:100%;box-sizing:border-box;border:1px solid #e0e5ed;border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.7;resize:vertical;outline:none;font-family:inherit;">' + _esc(r.merged) + "</textarea>"
+        + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:6px;"><span id="mg-b-' + i + '">' + mgBadgeHtml(calcBytes(r.merged)) + "</span>"
+        + '<button onclick="mgAiFix(' + i + ')" id="mg-ai-' + i + '" style="padding:3px 9px;border:1px solid #7c3aed;border-radius:6px;background:#f5f3ff;color:#6d28d9;font-size:11px;cursor:pointer;font-weight:600;">✨ AI로 맞추기</button>'
+        + '<button onclick="mgReset(' + i + ')" style="padding:3px 9px;border:1px solid #e5e7eb;border-radius:6px;background:white;color:#374151;font-size:11px;cursor:pointer;">↺ 다시 합치기</button>'
+        + '<button onclick="mgCopyOne(' + i + ')" style="padding:3px 9px;border:1px solid #e5e7eb;border-radius:6px;background:white;color:#374151;font-size:11px;cursor:pointer;">📋 복사</button>'
+        + (r.edited ? '<span style="font-size:11px;color:#6b7280;">수정본 저장됨</span>' : "")
+        + (r.stale ? '<span style="font-size:11px;font-weight:700;color:#b45309;">⚠ 공통수학 원본이 바뀌었어요 — 필요하면 다시 합치기</span>' : "")
+        + "</div>";
+    }
+    return '<tr><td style="' + cell + '">' + r.num + '</td><td style="' + cell + 'font-weight:700;">' + _esc(r.name) + '</td><td style="' + cell + '">' + left(r.t1) + '</td><td style="' + cell + '">' + left(r.t2) + '</td><td style="' + cell + '">' + right + "</td></tr>";
+  }).join("");
+  document.getElementById("mg-tbody").innerHTML = html || '<tr><td colspan="5" style="text-align:center;padding:40px;color:#9ca3af;font-size:12px;">이 반에 공통수학1·2 결과가 아직 없어요. 작성 탭에서 먼저 생성해 주세요.</td></tr>';
+}
+function mgOnInput(i){ var el = document.getElementById("mg-b-" + i), ta = document.getElementById("mg-ta-" + i); if(el && ta) el.innerHTML = mgBadgeHtml(calcBytes(ta.value)); }
+function mgSaveRow(i, text){
+  var r = mgCurRows[i]; if(!r) return;
+  var cls = document.getElementById("mg-class").value, store = mgLoadStore();
+  if(!store[cls]) store[cls] = {};
+  store[cls][r.name] = { text: text, s1: mgSig(r.t1), s2: mgSig(r.t2) };
+  mgSaveStore(store);
+  r.merged = text; r.edited = true; r.stale = false;
+}
+function mgOnChange(i){
+  var ta = document.getElementById("mg-ta-" + i); if(!ta) return;
+  var r = mgCurRows[i];
+  if(ta.value === mgBaseText(r) && !r.edited) return;   // 고치지 않았으면 저장하지 않음 (계속 최신 결과를 따라가요)
+  mgSaveRow(i, ta.value);
+  mgMsg("수정본을 저장했어요.");
+}
+function mgReset(i){
+  var r = mgCurRows[i]; if(!r) return;
+  if(r.edited && !confirm(r.name + " 학생의 수정본을 지우고 공통수학1+2를 다시 이어붙일까요?")) return;
+  var cls = document.getElementById("mg-class").value, store = mgLoadStore();
+  if(store[cls]){ delete store[cls][r.name]; mgSaveStore(store); }
+  mgRender();
+}
+function mgResetAll(){
+  var cls = document.getElementById("mg-class").value, store = mgLoadStore();
+  var cnt = store[cls] ? Object.keys(store[cls]).length : 0;
+  if(!cnt){ mgRender(); mgMsg("다시 합칠 수정본이 없어요."); return; }
+  if(!confirm(cls + "반의 수정본 " + cnt + "개를 모두 지우고 공통수학1+2를 처음부터 다시 이어붙일까요?\n(되돌릴 수 없어요)")) return;
+  delete store[cls]; mgSaveStore(store); mgRender(); mgMsg("처음부터 다시 합쳤어요.");
+}
+function mgCopyText(t, okMsg){
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(t).then(function(){ mgMsg(okMsg); }).catch(function(){ alert("복사에 실패했습니다. 브라우저 권한을 확인해주세요."); }); }
+  else alert("복사에 실패했습니다. 브라우저 권한을 확인해주세요.");
+}
+function mgCopyOne(i){ var r = mgCurRows[i]; mgCopyText(mgCurText(i), "✅ " + (r ? r.name : "") + " 복사했어요."); }
+function mgCopyAll(){
+  var cls = document.getElementById("mg-class").value, lines = [];
+  mgCurRows.forEach(function(r, i){ if(r.merged == null) return; lines.push(cls + "\t" + r.num + "\t" + r.name + "\t" + mgCurText(i)); });
+  if(!lines.length){ alert("복사할 학생이 없어요."); return; }
+  mgCopyText(lines.join("\n"), "✅ " + lines.length + "명을 반/번호/이름/세특 순서로 복사했어요.");
+}
+
+// ── AI로 합계 바이트 맞추기 ──
+function mgSystemPrompt(){
+  return "당신은 생활기록부 세특 편집 전문가입니다. 입력은 공통수학1 세특과 공통수학2 세특을 이어붙인 글입니다. 이를 하나의 자연스러운 세특 문단으로 다듬되 지정한 바이트 범위에 맞추고, 수정된 전체 문단만 출력합니다.\n규칙:\n- 공통수학1 내용이 앞, 공통수학2 내용이 뒤인 순서를 유지하고 두 부분이 자연스럽게 이어지게 함\n- 새로운 활동·사실·수치를 지어내지 않음 (줄일 때는 중요도가 낮은 문장·수식어부터 덜어내고, 늘릴 때는 기존 내용을 조금 더 구체적으로만 풀어씀)\n- 주어 생략 (학생·교사·그는·그가 금지), 이름 생략\n- 어미: ~임·~음·~함 유지 (과거형 ~었음·~하였음 금지)\n- 쌍따옴표 \" 금지. 작은따옴표 ' 는 도서명·탐구주제에만 허용\n- '독서탐구보고서를 작성함'이 들어간 문장은 한 글자도 바꾸지 않고 그대로 둠\n- 핵심 수학 개념·역량·탐구 키워드, 인성·태도 핵심어(자기주도적·성실함·책임감 등), 교사 관찰 표현(~가 관찰됨·~이 인상적임 등)은 유지\n- 줄바꿈 없이 한 문단, 설명·머리말 없이 본문만 출력";
+}
+async function mgAiFix(i, silent){
+  var r = mgCurRows[i]; if(!r || r.merged == null) return false;
+  if(!getApiKey()){ alert("먼저 상단의 🔑 API키를 입력해 주세요."); return false; }
+  var g = mgGoal(), lo = Math.round(g * 0.9), cur = mgCurText(i), best = null, bestDist = Infinity;
+  var btn = document.getElementById("mg-ai-" + i);
+  if(btn){ btn.disabled = true; btn.textContent = "⏳ 맞추는 중..."; }
+  try{
+    var base = cur;
+    for(var attempt = 0; attempt < 3; attempt++){
+      var bytes = calcBytes(base);
+      var approxLo = Math.round(lo / 3.2), approxHi = Math.round(g / 3.2);
+      var prompt = "[현재 세특 — 합계 " + bytes + "바이트]\n" + base + "\n\n[목표] 합계 " + lo + "~" + g + "바이트 (한글 1자=3바이트, 공백·숫자·영문·부호=1바이트로 계산, 공백 제외 한글 약 " + approxLo + "~" + approxHi + "자). 지금은 " + bytes + "바이트이므로 " + (bytes > g ? "분량을 줄여" : bytes < lo ? "분량을 조금 늘려" : "범위 안이지만 문장을 매끄럽게 다듬어") + " 목표 범위 안에 들어오게 다시 써 주세요.";
+      var out = stripBold(postProcess(await callAPI(prompt, mgSystemPrompt()))).replace(/\s+/g, " ").trim();
+      if(!out) continue;
+      var b = calcBytes(out), dist = b > g ? b - g : b < lo ? lo - b : 0;
+      if(dist < bestDist){ best = out; bestDist = dist; }
+      if(dist === 0) break;
+      base = out;
+    }
+    if(best == null){ if(!silent) alert("AI 결과가 비어 있어요. 잠시 후 다시 시도해 주세요."); return false; }
+    mgSaveRow(i, best);
+    var ta = document.getElementById("mg-ta-" + i);
+    if(ta){ ta.value = best; mgOnInput(i); }
+    if(!silent) mgMsg(bestDist === 0 ? "✅ " + r.name + " — " + calcBytes(best) + "B로 맞췄어요." : "⚠️ " + r.name + " — " + calcBytes(best) + "B까지 맞췄어요. 아직 범위 밖이면 한 번 더 눌러 주세요.", true);
+    return bestDist === 0;
+  }catch(e){
+    if(!silent) alert("AI 조절 오류: " + e.message);
+    return false;
+  }finally{
+    var b2 = document.getElementById("mg-ai-" + i);
+    if(b2){ b2.disabled = false; b2.textContent = "✨ AI로 맞추기"; }
+  }
+}
+async function mgAiFixAll(){
+  var btn = document.getElementById("mg-ai-all-btn");
+  if(mgRunning){ mgStop = true; btn.textContent = "중지하는 중..."; return; }
+  if(!getApiKey()){ alert("먼저 상단의 🔑 API키를 입력해 주세요."); return; }
+  var g = mgGoal(), lo = Math.round(g * 0.9), idxs = [];
+  mgCurRows.forEach(function(r, i){ if(r.merged == null) return; var b = calcBytes(mgCurText(i)); if(b > g || b < lo) idxs.push(i); });
+  if(!idxs.length){ mgMsg("✅ 이 반은 모두 " + lo + "~" + g + "바이트 범위 안에 있어요."); return; }
+  if(!confirm("목표(" + lo + "~" + g + "바이트) 밖인 " + idxs.length + "명을 AI로 맞출게요.\n학생당 API를 최대 3번 호출해서 비용이 들어요. 중간에 버튼을 다시 누르면 멈춰요.\n\n진행할까요?")) return;
+  mgRunning = true; mgStop = false; btn.textContent = "⏹ 중지";
+  var done = 0, fail = 0;
+  for(var k = 0; k < idxs.length; k++){
+    if(mgStop) break;
+    mgMsg("✨ AI로 맞추는 중... " + (k + 1) + "/" + idxs.length + " (" + mgCurRows[idxs[k]].name + ")", true);
+    var ok = await mgAiFix(idxs[k], true);
+    if(ok) done++; else fail++;
+  }
+  mgRunning = false; mgStop = false; btn.textContent = "✨ 범위 밖 학생 AI로 일괄 맞추기";
+  mgMsg("완료 — 범위 안 " + done + "명" + (fail ? " · 아직 범위 밖 " + fail + "명 (해당 학생의 ✨ 버튼을 다시 눌러 주세요)" : ""), true);
+}
+
+// ── 탭 전환: 기존 switchTab을 그대로 쓰고 합치기 화면만 추가로 켜고 끔 ──
+var _mgOrigSwitchTab = switchTab;
+switchTab = function(tab){
+  _mgOrigSwitchTab(tab);
+  var mv = document.getElementById("merge-view"), mt = document.getElementById("tab-merge"), on = tab === "merge";
+  if(mv) mv.style.display = on ? "flex" : "none";
+  if(mt) mt.classList.toggle("active", on);
+  if(on) mgInit();
+};
 </script>
 </body>
 </html>
