@@ -4302,7 +4302,7 @@ function acItemsForCurrent() {
   list.forEach(function (e) {
     if (acDestOf(e) !== dActiveTab) return;
     var text = acEntryText(e); if (!text) return;
-    out.push({ key: 'ac_' + e.iid + '_' + (e.n || 1), name: (e.cat ? e.cat + ' · ' : '') + e.title + ((e.n || 1) > 1 ? ' (' + e.n + '회차)' : ''), star: e.star, text: text });
+    out.push({ key: 'ac_' + e.iid + '_' + (e.n || 1), name: (e.cat ? e.cat + ' · ' : '') + e.title + ((e.n || 1) > 1 ? ' (' + e.n + '회차)' : ''), star: e.star, pri: e.pri, text: text });
   });
   return out;
 }
@@ -4320,7 +4320,7 @@ function acSim(a, b) {
 /* 현재 학생·탭에서 합칠 자료(체크된 액티비티체크 + 체크된 클래스스터디) */
 function acCollectSources() {
   var out = [];
-  acItemsForCurrent().forEach(function (it) { if (acChecked[it.key] !== false) out.push({ src: 'ac', key: it.key, name: it.name, text: it.text }); });
+  acItemsForCurrent().forEach(function (it) { if (acChecked[it.key] !== false) out.push({ src: 'ac', key: it.key, name: it.name + (it.pri ? ' 📌' : ''), text: it.text }); });
   if (typeof csItemsForCurrent === 'function') csItemsForCurrent().forEach(function (it) { if (csChecked[it.key] !== false) out.push({ src: 'cs', key: it.key, name: it.name, text: it.text }); });
   return out;
 }
@@ -4363,7 +4363,7 @@ function dRenderAcSection() {
     var on = acChecked[it.key], nt = notes[it.key];
     return '<label style="display:flex;align-items:flex-start;gap:9px;padding:9px 10px;border-radius:8px;margin-bottom:5px;background:' + (on ? '#F4F2FA' : '#f9fafb') + ';border:1px solid ' + (on ? '#9B8EC4' : '#e5e7eb') + ';cursor:pointer;' + (merged !== undefined ? 'opacity:.55;' : '') + '">'
       + '<input type="checkbox" ' + (on ? 'checked' : '') + ' onchange="acToggleItem(\'' + it.key + '\',this.checked)" style="margin-top:2px;accent-color:#9B8EC4;flex-shrink:0;">'
-      + '<div style="flex:1;"><div style="font-size:11px;font-weight:700;color:#6b5fa0;margin-bottom:3px;">📝 ' + dEsc(it.name) + (it.star === '2' ? ' ⭐⭐' : it.star === '1' ? ' ⭐' : '') + '</div>'
+      + '<div style="flex:1;"><div style="font-size:11px;font-weight:700;color:#6b5fa0;margin-bottom:3px;">📝 ' + dEsc(it.name) + (it.star === '2' ? ' ⭐⭐' : it.star === '1' ? ' ⭐' : '') + (it.pri ? ' 📌' : '') + '</div>'
       + (nt && on ? '<div style="font-size:11px;color:#b45309;margin-bottom:3px;">⚠️ 「' + dEsc(nt.join('」, 「')) + '」와 내용이 비슷해요 — 하나만 체크하거나 아래에서 합쳐 보세요.</div>' : '')
       + '<div style="font-size:12px;color:#374151;line-height:1.65;white-space:pre-wrap;">' + dEsc(it.text) + '</div></div></label>';
   }).join('');
@@ -4418,7 +4418,7 @@ var AC_TIDY_SYS = '너는 고등학교 담임교사를 돕는 자료 정리 도�
   + '1) 같은 활동·같은 내용이 여러 번 나오면 하나로 합치고, 서로 다른 구체적 사실은 모두 남겨.\n'
   + '2) 학생이 쓰지 않은 활동·성과·수치·진로 희망을 절대 지어내지 마.\n'
   + '3) 문장은 간결하고 구체적으로 다듬되, 생기부 문장(~함, ~하였음)으로 쓰지 말고 교사가 읽기 편한 메모 형식으로 정리해.\n'
-  + '4) 출처 이름(■ 표시)은 없애고, 활동별로 "- "로 시작하는 줄로 정리해. ⭐ 표시된 활동은 맨 위에 두고 문장 끝에 (⭐)를 붙여.\n'
+  + '4) 출처 이름(■ 표시)은 없애고, 활동별로 "- "로 시작하는 줄로 정리해. ⭐ 표시된 활동은 맨 위에 두고 문장 끝에 (⭐)를 붙여. 📌 표시된 활동도 맨 위쪽에 두고 문장 끝에 (📌)를 붙여.\n'
   + '5) 정리한 결과만 출력해. 설명이나 인사는 쓰지 마.';
 async function acAiTidy() {
   if (acAiBusy) return;
@@ -4451,17 +4451,18 @@ async function acAiTidy() {
 function acToggleItem(key, on) { acChecked[key] = on; dRenderAcSection(); }
 function dToggleAcSection() { acSectionCollapsed = !acSectionCollapsed; dRenderAcSection(); }
 function dGetAcPromptBlock() {
-  var lines = [], hasStar = false, merged = acMerged[acMKey()];
+  var lines = [], hasStar = false, hasPri = false, merged = acMerged[acMKey()];
   if (merged !== undefined) {
     /* 정리본 사용 중: 액티비티체크+클래스스터디 원본 대신 이 글만 반영 */
     merged.split('\n').forEach(function (l) { if (l.trim()) lines.push('    ' + l); });
-    hasStar = /⭐/.test(merged);
+    hasStar = /⭐/.test(merged); hasPri = /📌/.test(merged);
     lines.unshift('  [학생 제출 활동 자료 정리본 — 액티비티체크·클래스스터디 통합]');
   } else {
     acItemsForCurrent().forEach(function (it) {
       if (acChecked[it.key] === false) return;
       if (it.star) hasStar = true;
-      lines.push('  [' + it.name + (it.star ? ' ★학생이 특히 의미 있다고 표시' : '') + ']');
+      if (it.pri) hasPri = true;
+      lines.push('  [' + it.name + (it.star ? ' ★학생이 특히 의미 있다고 표시' : '') + (it.pri ? ' 📌담임교사가 눈여겨본 활동' : '') + ']');
       it.text.split('\n').forEach(function (l) { lines.push('    - ' + l); });
     });
   }
@@ -4471,7 +4472,8 @@ function dGetAcPromptBlock() {
     + '  · 항목별 내용은 구체적인 활동·탐구·깨달음의 근거로 활용하되, 항목 이름을 나열하지 말고 하나의 서술로 자연스럽게 엮을 것.\n'
     + '  · 여러 자료에 같은 활동이 겹쳐 나오면 한 번만 서술할 것.\n'
     + '  · "진로 연결"에 적힌 내용은 진로 관련 서술의 근거로 쓰되, 학생이 쓰지 않은 진로 희망을 단정하지 말 것.\n'
-    + (hasStar ? '  · ★ 표시 항목은 학생이 스스로 의미가 컸다고 고른 활동이므로 서술의 비중을 높일 것.\n' : '');
+    + (hasStar ? '  · ★ 표시 항목은 학생이 스스로 의미가 컸다고 고른 활동이므로 서술의 비중을 높일 것.\n' : '')
+    + (hasPri ? '  · 📌 표시 항목은 담임교사가 눈여겨본 활동이므로 서술의 비중을 높이고, 구체적인 과정과 변화가 드러나게 쓸 것. (📌 표시 자체나 "교사가 표시했다"는 사실은 문장에 쓰지 말 것)\n' : '');
   return guide + lines.join('\n') + '\n';
 }
 
