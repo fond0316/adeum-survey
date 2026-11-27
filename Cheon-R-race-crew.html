@@ -345,6 +345,7 @@ BADGES.forEach(function(b){var on=!!S.badges[b.id];h+='<span class="badge'+(on?'
 h+='<div class="mut" style="margin-top:4px">회색 배지는 아직 달성 전이에요.</div></div>';
 h+=vScenes();
 T.badge=h;h='';
+h+='<div class="card" style="margin-top:10px"><div class="row"><b>혼자 쓰기</b><button class="btn sm" data-act="solo" style="'+(S.solo?'background:var(--main);border-color:var(--main);color:#fff':'')+'">'+(S.solo?'켜짐':'꺼짐')+'</button></div><div class="mut" style="margin-top:4px">켜면 모든 대회가 혼자 뛰는 걸로 보여요. 친구 이름과 설정은 지워지지 않아요.</div></div>';
 h+='<button class="btn full" data-act="share" data-mon="'+mon+'">이번 주 공유 카드 만들기</button>';
 h+='<div class="grid2" style="margin-top:10px"><button class="btn" data-act="guide">📖 가이드 보기</button>'+(DEMO?'<button class="btn" data-act="demoend">체험 끝내기</button>':'<button class="btn" data-act="demoask">🎮 체험하기</button>')+'</div>';
 if(LORE)h+=loreInfo();
@@ -554,7 +555,8 @@ function ensureFeed(){if(S.feedV===2)return;S.fedN=S.fedN||{};S.fedT=S.fedT||{};
 function fedOf(id){ensureFeed();return (S.fedN[id]||0)+(S.fedT[id]||0)}
 function bucketOf(id){ensureFeed();return Math.max(0,feedFor(id)-(S.fedN[id]||0))}
 function stageFor(id){var f=fedOf(id),t=stageAt(id),k=0;for(var i=0;i<t.length;i++)if(f>=t[i])k=i;return k}
-function teamOf(id){var d=TEAMDEF[id];if(!d)return null;var N=nm(),ms=mySlot();if(d.length===1)return [[petName(id),SLOTC[ms]]];return d.map(function(k){return [k===ms?petName(id):N[k],SLOTC[k]]})}
+function teamMode(id){var d=TEAMDEF[id];if(!d||d.length<2)return 'solo';if(S.solo)return 'solo';var m=(S.team||{})[id];return m==='tbd'||m==='solo'?m:'with'}
+function teamOf(id){var d=TEAMDEF[id];if(!d)return null;var N=nm(),ms=mySlot(),tm=teamMode(id);if(d.length===1||tm==='solo')return [[petName(id),SLOTC[ms]]];if(tm==='tbd')return d.map(function(k){return k===ms?[petName(id),SLOTC[k]]:['미정',SLOTC[k],1]});if(d.length===1)return [[petName(id),SLOTC[ms]]];return d.map(function(k){return [k===ms?petName(id):N[k],SLOTC[k]]})}
 var STAGE_NM=['알','병아리','중병아리','닭','러너 닭'];
 var CONF=['#F4A6B8','#7A6CB0','#5B8DEF','#5BAE8A','#F2C14E','#E0584B'];
 var SVGF="Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif";
@@ -615,7 +617,7 @@ var T=teamOf(eid)||[[nm()[0],CA]],n=T.length,W=430,H=200;
 var o='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" width="'+(full||'100%')+'"'+(full?' height="'+Math.round(full*H/W)+'"':'')+'>';
 o+='<ellipse cx="215" cy="184" rx="190" ry="8" fill="#E6E1F4"/>'+confetti(W,H,26);
 if(n===1){o+=henSvg(215,180,1.45,T[0][1],{tag:T[0][0],crown:true,medal:true,shoes:true,tagUp:6,decor:decorSet()})}
-else{var xs=n===2?[140,290]:[105,210,315],sc=n===2?1.15:1.0,pr=eid==='e1'?'tire':'kb',cr=eid==='e2'?'gold':false;T.forEach(function(t,i){o+=henSvg(xs[i],178,sc,t[1],{tag:t[0],band:true,shoes:true,prop:pr,crown:cr,decor:(t[1]===SLOTC[mySlot()]?decorSet():null)})})}
+else{var xs=n===2?[140,290]:[105,210,315],sc=n===2?1.15:1.0,pr=eid==='e1'?'tire':'kb',cr=eid==='e2'?'gold':false;T.forEach(function(t,i){var hs=henSvg(xs[i],178,sc,t[1],{tag:t[0],band:true,shoes:true,prop:pr,crown:cr,decor:(t[1]===SLOTC[mySlot()]?decorSet():null)});o+=t[2]?'<g opacity=".35">'+hs+'</g>':hs})}
 o+=popper(22,184,1)+popper(W-22,184,-1);
 return o+'</svg>'}
 function petSvg(st,slot,eid){
@@ -694,7 +696,9 @@ var h='<h2>'+(LORE&&!S.setupDone?'처음 오셨네요! 🐣':'성장 친구')+'<
 h+='<label class="l">내 색</label><div style="display:flex;gap:8px">'+[0,1,2].map(function(k){return '<button class="btn sm" data-act="slot" data-v="'+k+'" style="flex:1;'+(k===slot?'background:var(--main);border-color:var(--main);color:#fff':'')+'">'+SLOTN[k]+'</button>'}).join('')+'</div>';
 [0,1,2].forEach(function(k){
 if(k===slot){if(e)h+='<label class="l">내 친구 · '+esc(e.name)+' 알 이름</label><input id="n_p" maxlength="6" value="'+esc(petName(e.id))+'">'}
-else h+='<label class="l">'+SLOTN[k]+' 친구 이름 (함께하는 친구)</label><input id="n_'+SLOTK[k]+'" maxlength="6" value="'+esc(N[k])+'">'});
+else if(!S.solo)h+='<label class="l">'+SLOTN[k]+' 친구 이름 (함께하는 친구)</label><input id="n_'+SLOTK[k]+'" maxlength="6" value="'+esc(N[k])+'">'});
+if(S.solo)h+='<div class="mut" style="margin-top:8px">혼자 쓰기가 켜져 있어요. 친구 이름·함께 뛰는 사람은 더보기에서 끄면 다시 보여요.</div>';
+else{var TE=S.events.filter(function(x){return TEAMDEF[x.id]&&TEAMDEF[x.id].length>1});if(TE.length){h+='<div class="sec"><b>함께 뛰는 사람</b><span>대회별로 골라요</span></div><div class="card" style="padding:8px 14px">';TE.forEach(function(x){var tm=teamMode(x.id);h+='<div style="padding:6px 0"><div style="font-size:13px;margin-bottom:4px"><b>'+esc(x.name)+'</b></div><div style="display:flex;gap:6px">'+[['with','함께'],['tbd','미정'],['solo','혼자']].map(function(c){return '<button class="btn sm" data-act="team" data-id="'+x.id+'" data-v="'+c[0]+'" style="flex:1;'+(tm===c[0]?'background:var(--main);border-color:var(--main);color:#fff':'')+'">'+c[1]+'</button>'}).join('')+'</div></div>'});h+='</div><div class="mut">미정이면 완주 장면에 흐린 자리로 나와요. 정해지면 [함께]로 바꾸고 친구 이름을 적어 주세요.</div>'}}
 if(e){var t=stageAt(e.id),f=fedOf(e.id),st=stageFor(e.id);
 h+='<div class="sec"><b>성장 규칙 · '+esc(e.name)+'</b><span>먹인 먹이 '+f+'개 · 먹이통 '+bucketOf(e.id)+'개</span></div><div class="card" style="padding:8px 14px">';
 STAGE_NM.forEach(function(nmx,i){var on=i===st;h+='<div class="row" style="padding:5px 0;'+(on?'font-weight:700;color:var(--main-d)':'')+'"><span>'+(on?'● ':'')+nmx+'</span><span>'+(i===0?'시작':'먹이 '+t[i]+'개~')+'</span></div>'});
@@ -712,7 +716,7 @@ function isAdmin(){if(DEMO)return false;try{return localStorage.getItem('running
 function adminPw(){try{return localStorage.getItem('running_adminpw')||'race-crew'}catch(e){return 'race-crew'}}
 function baseUrl(){try{var b=localStorage.getItem('running_base');if(b)return b.replace(/\?.*$/,'')}catch(e){}return location.origin==='null'||location.protocol==='file:'?location.href.replace(/[?#].*$/,''):location.origin+location.pathname}
 function shareUrl(m){var g=gasUrl();return baseUrl()+'?mode='+m+(g?'&gas='+encodeURIComponent(g):'')}
-var SHARE=[['lore','로어그릿','아루미·이스리·해지 (친구 공유용)'],['skid','스키드레이스','이스리용'],['hyrox','하이록스','나만 · 나중에 이스리']];
+var SHARE=[['lore','로어그릿','친구들과 함께 (공유용)'],['skid','스키드레이스','스키드 파트너용'],['hyrox','하이록스','나만 쓰기']];
 function viewMode(){try{return localStorage.getItem('running_view')==='pc'?'pc':'phone'}catch(e){return 'phone'}}
 function applyView(){document.body.classList.toggle('pcview',isAdmin()&&viewMode()==='pc')}
 function adminBar(){
@@ -848,6 +852,8 @@ if(k.indexOf('d:')===0){var D=DECOR.find(function(x){return x[0]===k.slice(2)});
 else{var TT=TREATS.find(function(x){return x[0]===k.slice(2)});if(!TT)return;if(bl<TT[3]){toast('보석이 부족해요 ('+bl+'/'+TT[3]+')');return}g2.spent+=TT[3];g2.treat[TT[0]]=(g2.treat[TT[0]]||0)+1;toast(TT[2]+' '+TT[1]+' 샀어요! 홈에서 줄 수 있어요')}
 g2.seen=gemBal();save();render();openGems()}
 else if(act==='savenames'){collectPet();save();closeSheet();render();toast('저장했어요')}
+else if(act==='team'){collectPet();(S.team||(S.team={}))[id]=el.getAttribute('data-v');save();render();openPet()}
+else if(act==='solo'){S.solo=!S.solo;save();render();toast(S.solo?'혼자 쓰기를 켰어요':'혼자 쓰기를 껐어요')}
 else if(act==='slot'){collectPet();S.mySlot=parseInt(el.getAttribute('data-v'),10);save();render();openPet()}
 else if(act==='finishev'){fin()[id]=todayStr();save();closeSheet();render();openScene(id)}
 else if(act==='unfinish'){if(confirm('완주 기록을 취소할까요?')){delete fin()[id];save();closeSheet();render()}}
