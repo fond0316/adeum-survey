@@ -13934,7 +13934,7 @@ window.NEISX={_t:{parseNeis:parseNeis,buildPlan:buildPlan,clearCell:clearCell,st
 (function(){
 "use strict";
 var LS_FS="gb_fs_v1",LS_COL="gb_collapse_v1";
-var LEVELS=[1,1.1,1.2,1.3,1.45,1.6],DEF=1.2;
+var LEVELS=[1,1.1,1.2,1.3,1.45,1.6],DEF=1;
 function getFs(){try{var v=parseFloat(localStorage.getItem(LS_FS));return LEVELS.indexOf(v)>=0?v:DEF;}catch(e){return DEF;}}
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 
@@ -15105,7 +15105,7 @@ body #stats-view>div:not(:last-child),body #d-view-stats>div:not(:last-child),bo
         }
         if(!plan.length){alert('채울 수 있는 학생이 없어요.\n(이 파일에 현재 동아리 학생이 없거나, 세특이 아직 없어요.)');return;}
         var left=club.students.slice(0,club.count).filter(function(s){return s&&s.name&&used.indexOf(s)<0;}).map(function(s){return s.name;});
-        var msg='「'+club.name+'」 세특 '+plan.length+'명을 나이스 양식의 특기사항 칸에 채울게요.'
+        var msg='※ 나이스 [엑셀내려받기]로 받은 파일이 맞나요?\n\n「'+club.name+'」 세특 '+plan.length+'명을 나이스 양식의 특기사항 칸에 채울게요.'
           +(overw?'\n· 이미 내용이 있는 칸 '+overw+'개는 덮어써요.':'')
           +(noRes.length?'\n· 세특이 아직 없어 비워 두는 학생: '+noRes.join(', '):'')
           +(left.length?'\n· 이 파일에서 못 찾은 학생: '+left.join(', '):'')
@@ -15128,12 +15128,31 @@ body #stats-view>div:not(:last-child),body #d-view-stats>div:not(:last-child),bo
     if(!wrap||document.getElementById('c-neis-fill-in'))return;
     var inp=document.createElement('input'); inp.type='file'; inp.id='c-neis-fill-in'; inp.accept='.xlsx,.xls'; inp.style.display='none';
     inp.setAttribute('onchange','cNeisFill(event)');
-    var b=document.createElement('button'); b.type='button'; b.textContent='📤 나이스 양식에 채우기';
-    b.title='나이스에서 받은 명렬표(xlsx)의 특기사항 칸에 이 동아리 세특을 채워서 저장해요';
+    var b=document.createElement('button'); b.type='button'; b.textContent='📤 나이스 엑셀에 채우기';
+    b.title='나이스 [엑셀내려받기] 파일의 특기사항 칸에 이 동아리 세특을 채워서 저장해요';
     b.setAttribute('onclick',"document.getElementById('c-neis-fill-in').click()");
     b.style.cssText='padding:6px 12px;border:1px solid #059669;border-radius:7px;background:#ecfdf5;font-size:12px;cursor:pointer;color:#047857;font-weight:700;';
     wrap.appendChild(inp); wrap.appendChild(b);
+    var ib=document.createElement('button'); ib.type='button'; ib.id='c-neis-guide-btn'; ib.textContent='ⓘ';
+    ib.title='나이스 엑셀 사용 방법';
+    ib.style.cssText='width:26px;height:26px;border:1px solid #059669;border-radius:50%;background:#fff;font-size:13px;cursor:pointer;color:#047857;font-weight:700;padding:0;line-height:1;';
+    ib.setAttribute('onclick','cNeisGuide()');
+    wrap.appendChild(ib);
   })();
+  window.cNeisGuide=function(){
+    var old=document.getElementById('c-neis-guide'); if(old){old.remove();return;}
+    var d=document.createElement('div'); d.id='c-neis-guide';
+    d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
+    d.setAttribute('onclick',"if(event.target===this)this.remove()");
+    d.innerHTML="<div style='background:#fff;border-radius:16px;max-width:460px;width:100%;padding:20px 22px;font-size:13px;line-height:1.7;color:#111;box-shadow:0 10px 40px rgba(0,0,0,.25);'>"
+      +"<div style='font-size:15px;font-weight:700;margin-bottom:10px;'>📤 나이스 엑셀에 채우기 — 사용 방법</div>"
+      +"<div style='background:#ecfdf5;border-radius:10px;padding:10px 12px;margin-bottom:10px;'><b>왜 나이스 파일이 필요해요?</b><br>나이스는 자기가 내려준 엑셀(학생 고유번호가 들어 있는 파일)만 업로드로 받아줘요. 그래서 새 파일을 만들지 않고, 나이스에서 받은 파일의 <b>특기사항 칸만</b> 채워서 다시 올려요.</div>"
+      +"<div><b>① 나이스에서 내려받기</b><br><span style='color:#374151;'>나이스 → 동아리담임 → 동아리활동관리 → <b>학생부자료기록</b> → [엑셀내려받기]</span><br><span style='font-size:11px;color:#9ca3af;'>(서울시교육청 나이스 기준이에요. 다른 지역은 메뉴 이름이 조금 다를 수 있어요)</span></div>"
+      +"<div style='margin-top:8px;'><b>② 이 버튼으로 그 파일 선택</b><br><span style='color:#374151;'>세특이 특기사항 칸에 채워진 새 파일(…_특기사항입력.xlsx)이 저장돼요. 원본은 그대로예요.</span></div>"
+      +"<div style='margin-top:8px;'><b>③ 나이스에 올리기</b><br><span style='color:#374151;'>같은 화면의 [엑셀업로드]로 저장된 파일을 올려요. 처음엔 한 명만 채운 파일로 먼저 시험해 보면 안전해요.</span></div>"
+      +"<div style='text-align:right;margin-top:14px;'><button type='button' onclick=\"document.getElementById('c-neis-guide').remove()\" style='padding:7px 18px;border:0;border-radius:8px;background:#059669;color:#fff;font-weight:700;cursor:pointer;'>확인</button></div></div>";
+    document.body.appendChild(d);
+  };
 
   /* ── ⑧ 학생 한 명 비우기(×): 학생 목록 줄 끝의 ×. 해당 칸의 이름·학번·세특 등을 모두 비움 ── */
   window.cClearStu=function(i){
@@ -15456,5 +15475,212 @@ body #status-toolbar,body #d-status-toolbar,body #c-view-status>div:first-child{
   window.addEventListener('beforeunload',function(e){ if(dirtyN()>0){e.preventDefault();e.returnValue='';} });
 })();
 </script>
+<!-- ══ 7단계: 교과·담임 "나이스 엑셀에 채우기" (동아리와 같은 방식) — 기존 코드 변경 없이 추가만 ══ -->
+<script>
+(function(){
+  var norm=function(c){return String(c==null?'':c).replace(/\s+/g,'').trim();};
+  var strip=function(t){try{return typeof stripBold==='function'?stripBold(t):t;}catch(e){return t;}};
+
+  /* 공통 처리: 나이스에서 받은 엑셀의 특기사항(세특) 칸에 targets를 채워 새 파일로 저장 */
+  function run(ev,cfg){
+    var file=ev.target.files[0]; ev.target.value=''; if(!file)return;
+    if(typeof XLSX==='undefined'){alert('엑셀 라이브러리를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.');return;}
+    var rd=new FileReader();
+    rd.onload=function(e){
+      try{
+        var wb=XLSX.read(e.target.result,{type:'binary'});
+        var ws=wb.Sheets[wb.SheetNames[0]];
+        var ref=XLSX.utils.decode_range(ws['!ref']);
+        var data=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+        var hr=-1,cg=-1,cb=-1,cn=-1,cnm=-1,ct=-1,ca=-1;
+        for(var ri=0;ri<Math.min(8,data.length)&&hr<0;ri++){
+          var row=(data[ri]||[]).map(norm);
+          var g=row.indexOf('학년'),b=row.indexOf('반'),n=row.indexOf('번호');
+          var nm=row.indexOf('성명'); if(nm<0)nm=row.indexOf('이름');
+          var t=-1; row.forEach(function(c,ci){ if(t<0&&/(특기사항|세부능력|종합의견|행동특성)/.test(c))t=ci; });
+          if(g>=0&&b>=0&&n>=0&&nm>=0&&t>=0){hr=ri;cg=g;cb=b;cn=n;cnm=nm;ct=t;ca=row.indexOf('영역구분');}
+        }
+        if(hr<0){alert('나이스 엑셀 양식을 찾지 못했어요.\n학년·반·번호·성명과 특기사항(세부능력/행동특성) 열이 있는 파일이어야 해요.\n나이스의 [엑셀내려받기]로 받은 파일인지 확인해 주세요.');return;}
+        var area=''; for(var k=hr+1;k<data.length&&!area;k++){ if(ca>=0)area=norm((data[k]||[])[ca]); else break; }
+        var T=cfg.targets(area); if(!T){return;}
+        var items=T.items, byKey={}, byName={};
+        items.forEach(function(s){
+          byKey[s.g+'|'+s.b+'|'+s.n]=s; (byName[s.name]=byName[s.name]||[]).push(s);
+        });
+        var plan=[],used=[],overw=0,noRes=[],over=[];
+        for(var i=hr+1;i<data.length;i++){
+          var r=data[i]||[]; var name=norm(r[cnm]); if(!name)continue;
+          var key=(Number(norm(r[cg]))||0)+'|'+(Number(norm(r[cb]))||0)+'|'+(Number(norm(r[cn]))||0);
+          var st=byKey[key]; if(st&&st.name!==name)st=null;
+          if(!st&&byName[name]&&byName[name].length===1)st=byName[name][0];
+          if(!st)continue;
+          if(used.indexOf(st)>=0)continue; used.push(st);
+          if(!st.text){noRes.push(st.name);continue;}
+          var by=cfg.calc(st.text); if(by>T.hard)over.push(st.name+'('+by+'B)');
+          if(norm(r[ct]))overw++;
+          plan.push({row:i+ref.s.r,col:ct+ref.s.c,text:st.text});
+        }
+        if(!plan.length){alert('채울 수 있는 학생이 없어요.\n(이 파일에 해당 학생이 없거나, 세특이 아직 없어요.)');return;}
+        var left=items.filter(function(s){return s.name&&used.indexOf(s)<0;}).map(function(s){return s.name;});
+        var msg='※ 나이스 [엑셀내려받기]로 받은 파일이 맞나요?\n\n'+T.title+' '+plan.length+'명을 나이스 양식의 특기사항 칸에 채울게요.'
+          +(overw?'\n· 이미 내용이 있는 칸 '+overw+'개는 덮어써요.':'')
+          +(noRes.length?'\n· 세특이 아직 없어 비워 두는 학생: '+noRes.join(', '):'')
+          +(left.length?'\n· 이 파일에서 못 찾은 학생: '+(left.length>12?left.slice(0,12).join(', ')+' 외 '+(left.length-12)+'명':left.join(', ')):'')
+          +(over.length?'\n⚠️ '+T.hardLabel+' 초과: '+over.join(', ')+' — 나이스에서 막힐 수 있어요.':'')
+          +'\n\n원본 파일은 그대로 두고 새 파일로 저장돼요. 진행할까요?';
+        if(!confirm(msg))return;
+        plan.forEach(function(p){
+          var addr=XLSX.utils.encode_cell({r:p.row,c:p.col});
+          if(ws[addr]){ws[addr].t='s';ws[addr].v=p.text;delete ws[addr].w;delete ws[addr].f;}
+          else ws[addr]={t:'s',v:p.text};
+        });
+        var base=file.name.replace(/\.[^.]+$/,'');
+        XLSX.writeFile(wb,base+'_특기사항입력.xlsx');
+        alert('✅ '+plan.length+'명 채웠어요! 「'+base+'_특기사항입력.xlsx」를 나이스에 올려 주세요.');
+      }catch(err){alert('파일을 처리하지 못했어요: '+err.message);}
+    };
+    rd.readAsBinaryString(file);
+  }
+
+  /* ── 교과: 현재 과목의 모든 반 학생 ── */
+  window.gNeisFill=function(ev){
+    run(ev,{
+      calc:function(t){return calcBytes(t);},
+      targets:function(){
+        var items=[]; var classes=getClasses(curName);
+        classes.forEach(function(cls){
+          var m=String(cls).match(/^(\d+)-(\d+)$/); var g=m?Number(m[1]):0,b=m?Number(m[2]):0;
+          var cd=getClsData(cls);
+          cd.list.forEach(function(s,i){ if(s&&s.name)items.push({g:g,b:b,n:i+1,name:s.name,text:strip(s.result||'')}); });
+        });
+        if(!items.length){alert('이 과목에 입력된 학생이 없어요.');return null;}
+        return {items:items,title:'「'+curName+'」 세특',hard:3000,hardLabel:'3000바이트(1000자)'};
+      }
+    });
+  };
+
+  /* ── 담임: 파일의 영역(자율/진로/행동특성)에 맞는 항목을 채움. 영역을 못 읽으면 지금 선택된 항목 ── */
+  window.dNeisFill=function(ev){
+    var tabKey; 
+    run(ev,{
+      calc:function(t){return dCalcBytes(t);},
+      targets:function(area){
+        var tab=/진로/.test(area)?'진로':/자율/.test(area)?'자율':/(행동|종합)/.test(area)?'행발':dActiveTab;
+        tabKey=tab;
+        var NAMES={자율:'자율활동',진로:'진로활동',행발:'행동특성 및 종합의견'};
+        var m=String(dClassName||'').match(/^(\d+)-(\d+)$/); var g=m?Number(m[1]):0,b=m?Number(m[2]):0;
+        var items=[];
+        dStudents.forEach(function(s,i){ if(s&&s.name)items.push({g:g,b:b,n:i+1,name:s.name,text:strip((s.results&&s.results[tab])||'')}); });
+        if(!items.length){alert('입력된 학생이 없어요.');return null;}
+        var hard=(typeof dByteGoals==='object'&&dByteGoals[tab])?Math.round(dByteGoals[tab]*1.0):({자율:1500,진로:2100,행발:1500})[tab];
+        hard=({자율:1500,진로:2100,행발:1500})[tab];
+        return {items:items,title:'「'+NAMES[tab]+'」',hard:hard,hardLabel:hard+'바이트'};
+      }
+    });
+  };
+
+  /* ── 안내(ⓘ): 이유 + 사용 방법. 메뉴 경로는 아듬샘이 확인한 곳만 적음 ── */
+  window.adumNeisGuide=function(app){
+    var old=document.getElementById('adum-neis-guide'); if(old){old.remove();return;}
+    var what=app==='g'?'교과 세특(과목별 세부능력 및 특기사항)':'담임 항목(자율·진로·행동특성 및 종합의견)';
+    var d=document.createElement('div'); d.id='adum-neis-guide';
+    d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
+    d.setAttribute('onclick',"if(event.target===this)this.remove()");
+    d.innerHTML="<div style='background:#fff;border-radius:16px;max-width:460px;width:100%;padding:20px 22px;font-size:13px;line-height:1.7;color:#111;box-shadow:0 10px 40px rgba(0,0,0,.25);'>"
+      +"<div style='font-size:15px;font-weight:700;margin-bottom:10px;'>📤 나이스 엑셀에 채우기 — 사용 방법</div>"
+      +"<div style='background:#ecfdf5;border-radius:10px;padding:10px 12px;margin-bottom:10px;'><b>왜 나이스 파일이 필요해요?</b><br>나이스는 자기가 내려준 엑셀(학생 고유번호가 들어 있는 파일)만 업로드로 받아줘요. 그래서 새 파일을 만들지 않고, 나이스에서 받은 파일의 <b>특기사항 칸만</b> 채워서 다시 올려요.</div>"
+      +"<div><b>① 나이스에서 내려받기</b><br><span style='color:#374151;'>"+what+" 입력 화면에서 [엑셀내려받기]로 빈 양식을 받아요.</span></div>"
+      +"<div style='margin-top:8px;'><b>② 이 버튼으로 그 파일 선택</b><br><span style='color:#374151;'>"+(app==='g'?'지금 선택한 과목의 모든 반 학생을 학년·반·번호·이름으로 맞춰 채워요.':'파일의 영역(자율/진로/행동특성)을 읽어 알맞은 항목을 채워요. 영역을 못 읽으면 지금 선택된 항목으로 채워요.')+" 새 파일(…_특기사항입력.xlsx)로 저장되고 원본은 그대로예요.</span></div>"
+      +"<div style='margin-top:8px;'><b>③ 나이스에 올리기</b><br><span style='color:#374151;'>같은 화면의 [엑셀업로드]로 저장된 파일을 올려요. 처음엔 한 명만 채운 파일로 먼저 시험해 보면 안전해요.</span></div>"
+      +"<div style='text-align:right;margin-top:14px;'><button type='button' onclick=\"document.getElementById('adum-neis-guide').remove()\" style='padding:7px 18px;border:0;border-radius:8px;background:#059669;color:#fff;font-weight:700;cursor:pointer;'>확인</button></div></div>";
+    document.body.appendChild(d);
+  };
+
+  function addBtn(printSel,inId,fn,app){
+    var pb=document.querySelector(printSel); if(!pb)return;
+    var wrap=pb.parentNode; if(document.getElementById(inId))return;
+    var inp=document.createElement('input'); inp.type='file'; inp.id=inId; inp.accept='.xlsx,.xls'; inp.style.display='none';
+    inp.setAttribute('onchange',fn+'(event)');
+    var b=document.createElement('button'); b.type='button'; b.textContent='📤 나이스 엑셀에 채우기';
+    b.title='나이스 [엑셀내려받기] 파일의 특기사항 칸에 세특을 채워서 저장해요';
+    b.setAttribute('onclick',"document.getElementById('"+inId+"').click()");
+    b.style.cssText='padding:6px 12px;border:1px solid #059669;border-radius:7px;background:#ecfdf5;font-size:12px;cursor:pointer;color:#047857;font-weight:700;';
+    var ib=document.createElement('button'); ib.type='button'; ib.textContent='ⓘ'; ib.title='나이스 엑셀 사용 방법';
+    ib.style.cssText='width:26px;height:26px;border:1px solid #059669;border-radius:50%;background:#fff;font-size:13px;cursor:pointer;color:#047857;font-weight:700;padding:0;line-height:1;';
+    ib.setAttribute('onclick',"adumNeisGuide('"+app+"')");
+    wrap.appendChild(inp); wrap.appendChild(b); wrap.appendChild(ib);
+  }
+  addBtn('#status-toolbar button[onclick="printAll()"]','g-neis-fill-in','gNeisFill','g');
+  addBtn('#d-status-toolbar button[onclick="dPrintAll()"]','d-neis-fill-in','dNeisFill','d');
+})();
+</script>
+
+<!-- ══ 8단계: 세 앱 레이아웃 통일 (생성 결과 칸 넓이 A안 · 글자 배율 동아리 적용 · 메뉴줄/카드 모서리 통일) — 추가만 ══ -->
+<style id="adum-unify-layout-css">
+/* A안: 입력칸은 최대 폭을 지키고, 생성 결과 칸이 남는 폭을 모두 차지 → 오른쪽 빈 여백 없음 */
+body #col4-body>div:first-child{flex:6 1 0!important;}
+body #col4-body #result-col{flex:4 1 0!important;min-width:calc(440px * var(--gbn,1))!important;min-height:calc(380px * var(--gbn,1))!important;}
+body #d-body-saengiboo>div:nth-child(1){flex:6 1 0!important;}
+body #d-body-saengiboo>div:nth-child(2){flex:4 1 0!important;min-width:calc(440px * var(--gbn,1))!important;}
+body #c-view-write .adum-c-form{flex:6 1 0!important;max-width:calc(980px * var(--gbn,1))!important;}
+body #c-view-write .adum-c-res{width:auto!important;flex:4 1 0!important;min-width:calc(440px * var(--gbn,1))!important;flex-shrink:1!important;
+  align-self:flex-start;position:sticky;top:0;max-height:var(--gb-ch,640px);min-height:calc(380px * var(--gbn,1));}
+/* 동아리: 상단 메뉴줄을 교과·담임과 같은 크기로 */
+body #app-club .adum-c-bar{height:calc(56px * var(--gbn,1))!important;padding:0 18px!important;border-bottom:1px solid #E4E0F0!important;}
+body #app-club .adum-c-bar button[id^=c-maintab]{height:calc(56px * var(--gbn,1))!important;font-size:calc(14px * var(--gbn,1))!important;padding:0 calc(20px * var(--gbn,1))!important;}
+body #app-club .adum-c-bar .top-logo-link{font-size:calc(15px * var(--gbn,1))!important;display:flex;align-items:center;}
+body #app-club .adum-c-bar button:not([id^=c-maintab]){min-height:calc(32px * var(--gbn,1));border-radius:8px!important;}
+/* 카드 모양: 담임·동아리도 교과처럼 둥근 모서리 + 부드러운 그림자 */
+body #app-damin [style*="border-radius:9px"][style*="border:1px solid #e5e7eb"],
+body #app-damin [style*="border-radius: 9px"][style*="border: 1px solid"],
+body #app-club [style*="border-radius:9px"][style*="border:1px solid #e5e7eb"],
+body #app-club [style*="border-radius: 9px"][style*="border: 1px solid"]{border-radius:14px!important;box-shadow:0 2px 10px rgba(80,60,130,.06);}
+</style>
+<script id="adum-unify-layout-js">
+(function(){
+  /* 동아리 글자 배율: 교과·담임과 같은 규칙(같은 저장값 gb_fs_v1) */
+  var sizes=[9,9.5,10,10.5,11,11.5,12,12.5,13,14,15,16],css='';
+  sizes.forEach(function(n){
+    css+='#app-club [style*="font-size:'+n+'px"],#app-club [style*="font-size: '+n+'px"]{font-size:calc('+n+'px * var(--gbf,1))!important;}\n';
+  });
+  var st=document.createElement('style'); st.id='adum-club-scale'; st.textContent=css; document.head.appendChild(st);
+
+  function tag(){
+    var f=document.querySelector('#c-view-write div[style*="width:320px"]');
+    if(f&&!f.classList.contains('adum-c-res')){ f.classList.add('adum-c-res'); if(f.previousElementSibling)f.previousElementSibling.classList.add('adum-c-form'); }
+    var t=document.getElementById('c-maintab-write');
+    if(t&&t.parentElement)t.parentElement.classList.add('adum-c-bar');
+  }
+  function fsText(){
+    var v=1; try{v=GBLAYOUT._t.getFs();}catch(e){}
+    var t=Math.round(v*100)+'%';
+    [].forEach.call(document.querySelectorAll('.gb-fsc span'),function(e){e.textContent=t;});
+    var lb=document.getElementById('gb-fs-label'); if(lb)lb.textContent=t;
+  }
+  function addStep(){
+    var bar=document.querySelector('#app-club .adum-c-bar'); if(!bar)return;
+    var host=bar.querySelector('div[style*="margin-left:auto"]'); if(!host||host.querySelector('.gb-fsc'))return;
+    var w=document.createElement('span'); w.className='gb-fsc';
+    w.innerHTML='<button type="button" aria-label="글자 작게">가−</button><span></span><button type="button" aria-label="글자 크게">가+</button>';
+    var bs=w.querySelectorAll('button');
+    var go=function(d){try{GBLAYOUT._t.stepFs(d);}catch(e){} setTimeout(function(){fsText();calcH();window.dispatchEvent(new Event('resize'));},30);};
+    bs[0].onclick=function(){go(-1);}; bs[1].onclick=function(){go(1);};
+    host.insertBefore(w,host.firstChild); fsText();
+  }
+  /* 동아리 생성 결과 칸 최대 높이 = 화면 높이에 맞춤 (교과·담임과 같은 방식) */
+  function calcH(){
+    var r=document.querySelector('#c-view-write .adum-c-res'); var v=document.getElementById('c-view-write'); if(!v)return;
+    var top=v.getBoundingClientRect().top; if(v.getClientRects().length===0)return;
+    var h=Math.max(420,Math.round(window.innerHeight-top-28));
+    document.documentElement.style.setProperty('--gb-ch',h+'px');
+  }
+  function init(){ tag(); addStep(); calcH(); }
+  init(); setTimeout(init,400); setTimeout(init,1500);
+  window.addEventListener('resize',calcH);
+  var origOpen=window.openApp;
+  if(typeof origOpen==='function'){ window.openApp=function(){ var r=origOpen.apply(this,arguments); try{init();fsText();}catch(e){} return r; }; }
+})();
+</script>
+
 </body>
 </html>
