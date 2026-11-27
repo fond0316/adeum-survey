@@ -15128,13 +15128,13 @@ body #stats-view>div:not(:last-child),body #d-view-stats>div:not(:last-child),bo
     if(!wrap||document.getElementById('c-neis-fill-in'))return;
     var inp=document.createElement('input'); inp.type='file'; inp.id='c-neis-fill-in'; inp.accept='.xlsx,.xls'; inp.style.display='none';
     inp.setAttribute('onchange','cNeisFill(event)');
-    var b=document.createElement('button'); b.type='button'; b.textContent='📤 나이스 엑셀에 채우기';
+    var b=document.createElement('button'); b.type='button'; b.textContent='📤 나이스 업로드용 엑셀 만들기';
     b.title='나이스 [엑셀내려받기] 파일의 특기사항 칸에 이 동아리 세특을 채워서 저장해요';
     b.setAttribute('onclick',"document.getElementById('c-neis-fill-in').click()");
     b.style.cssText='padding:6px 12px;border:1px solid #059669;border-radius:7px;background:#ecfdf5;font-size:12px;cursor:pointer;color:#047857;font-weight:700;';
     wrap.appendChild(inp); wrap.appendChild(b);
     var ib=document.createElement('button'); ib.type='button'; ib.id='c-neis-guide-btn'; ib.textContent='ⓘ';
-    ib.title='나이스 엑셀 사용 방법';
+    ib.title='나이스 업로드용 엑셀 만드는 방법';
     ib.style.cssText='width:26px;height:26px;border:1px solid #059669;border-radius:50%;background:#fff;font-size:13px;cursor:pointer;color:#047857;font-weight:700;padding:0;line-height:1;';
     ib.setAttribute('onclick','cNeisGuide()');
     wrap.appendChild(ib);
@@ -15145,11 +15145,11 @@ body #stats-view>div:not(:last-child),body #d-view-stats>div:not(:last-child),bo
     d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
     d.setAttribute('onclick',"if(event.target===this)this.remove()");
     d.innerHTML="<div style='background:#fff;border-radius:16px;max-width:460px;width:100%;padding:20px 22px;font-size:13px;line-height:1.7;color:#111;box-shadow:0 10px 40px rgba(0,0,0,.25);'>"
-      +"<div style='font-size:15px;font-weight:700;margin-bottom:10px;'>📤 나이스 엑셀에 채우기 — 사용 방법</div>"
+      +"<div style='font-size:15px;font-weight:700;margin-bottom:10px;'>📤 나이스 업로드용 엑셀 만들기 — 사용 방법</div>"
       +"<div style='background:#ecfdf5;border-radius:10px;padding:10px 12px;margin-bottom:10px;'><b>왜 나이스 파일이 필요해요?</b><br>나이스는 자기가 내려준 엑셀(학생 고유번호가 들어 있는 파일)만 업로드로 받아줘요. 그래서 새 파일을 만들지 않고, 나이스에서 받은 파일의 <b>특기사항 칸만</b> 채워서 다시 올려요.</div>"
-      +"<div><b>① 나이스에서 내려받기</b><br><span style='color:#374151;'>나이스 → 동아리담임 → 동아리활동관리 → <b>학생부자료기록</b> → [엑셀내려받기]</span><br><span style='font-size:11px;color:#9ca3af;'>(서울시교육청 나이스 기준이에요. 다른 지역은 메뉴 이름이 조금 다를 수 있어요)</span></div>"
-      +"<div style='margin-top:8px;'><b>② 이 버튼으로 그 파일 선택</b><br><span style='color:#374151;'>세특이 특기사항 칸에 채워진 새 파일(…_특기사항입력.xlsx)이 저장돼요. 원본은 그대로예요.</span></div>"
-      +"<div style='margin-top:8px;'><b>③ 나이스에 올리기</b><br><span style='color:#374151;'>같은 화면의 [엑셀업로드]로 저장된 파일을 올려요. 처음엔 한 명만 채운 파일로 먼저 시험해 보면 안전해요.</span></div>"
+      +"<div><b>① 나이스에서 양식 내려받기</b><br><span style='color:#374151;'>나이스 → 동아리담임 → 동아리활동관리 → <b>학생부자료기록</b> → [엑셀내려받기]</span><br><span style='font-size:11px;color:#9ca3af;'>(서울시교육청 나이스 기준이에요. 다른 지역은 메뉴 이름이 조금 다를 수 있어요)</span></div>"
+      +"<div style='margin-top:8px;'><b>② 이 버튼에서 그 파일 고르기</b><br><span style='color:#374151;'>앱이 학년·반·번호·이름으로 학생을 찾아 특기사항 칸에 세특을 넣은 새 파일(…_특기사항입력.xlsx)을 내려줘요. 학생 고유번호 등 나머지 칸과 원본 파일은 그대로예요.</span></div>"
+      +"<div style='margin-top:8px;'><b>③ 나이스에 업로드하기</b><br><span style='color:#374151;'>나이스의 [엑셀업로드]로 방금 만든 파일을 올려요. 처음엔 한 명만 채운 파일로 먼저 시험해 보면 안전해요.</span></div>"
       +"<div style='text-align:right;margin-top:14px;'><button type='button' onclick=\"document.getElementById('c-neis-guide').remove()\" style='padding:7px 18px;border:0;border-radius:8px;background:#059669;color:#fff;font-weight:700;cursor:pointer;'>확인</button></div></div>";
     document.body.appendChild(d);
   };
@@ -15475,7 +15475,7 @@ body #status-toolbar,body #d-status-toolbar,body #c-view-status>div:first-child{
   window.addEventListener('beforeunload',function(e){ if(dirtyN()>0){e.preventDefault();e.returnValue='';} });
 })();
 </script>
-<!-- ══ 7단계: 교과·담임 "나이스 엑셀에 채우기" (동아리와 같은 방식) — 기존 코드 변경 없이 추가만 ══ -->
+<!-- ══ 7단계: 교과·담임 "나이스 업로드용 엑셀 만들기" (동아리와 같은 방식) — 기존 코드 변경 없이 추가만 ══ -->
 <script>
 (function(){
   var norm=function(c){return String(c==null?'':c).replace(/\s+/g,'').trim();};
@@ -15587,11 +15587,11 @@ body #status-toolbar,body #d-status-toolbar,body #c-view-status>div:first-child{
     d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
     d.setAttribute('onclick',"if(event.target===this)this.remove()");
     d.innerHTML="<div style='background:#fff;border-radius:16px;max-width:460px;width:100%;padding:20px 22px;font-size:13px;line-height:1.7;color:#111;box-shadow:0 10px 40px rgba(0,0,0,.25);'>"
-      +"<div style='font-size:15px;font-weight:700;margin-bottom:10px;'>📤 나이스 엑셀에 채우기 — 사용 방법</div>"
+      +"<div style='font-size:15px;font-weight:700;margin-bottom:10px;'>📤 나이스 업로드용 엑셀 만들기 — 사용 방법</div>"
       +"<div style='background:#ecfdf5;border-radius:10px;padding:10px 12px;margin-bottom:10px;'><b>왜 나이스 파일이 필요해요?</b><br>나이스는 자기가 내려준 엑셀(학생 고유번호가 들어 있는 파일)만 업로드로 받아줘요. 그래서 새 파일을 만들지 않고, 나이스에서 받은 파일의 <b>특기사항 칸만</b> 채워서 다시 올려요.</div>"
-      +"<div><b>① 나이스에서 내려받기</b><br><span style='color:#374151;'>"+what+" 입력 화면에서 [엑셀내려받기]로 빈 양식을 받아요.</span></div>"
-      +"<div style='margin-top:8px;'><b>② 이 버튼으로 그 파일 선택</b><br><span style='color:#374151;'>"+(app==='g'?'지금 선택한 과목의 모든 반 학생을 학년·반·번호·이름으로 맞춰 채워요.':'파일의 영역(자율/진로/행동특성)을 읽어 알맞은 항목을 채워요. 영역을 못 읽으면 지금 선택된 항목으로 채워요.')+" 새 파일(…_특기사항입력.xlsx)로 저장되고 원본은 그대로예요.</span></div>"
-      +"<div style='margin-top:8px;'><b>③ 나이스에 올리기</b><br><span style='color:#374151;'>같은 화면의 [엑셀업로드]로 저장된 파일을 올려요. 처음엔 한 명만 채운 파일로 먼저 시험해 보면 안전해요.</span></div>"
+      +"<div><b>① 나이스에서 양식 내려받기</b><br><span style='color:#374151;'>"+what+" 입력 화면에서 [엑셀내려받기]로 빈 양식을 받아요.</span></div>"
+      +"<div style='margin-top:8px;'><b>② 이 버튼에서 그 파일 고르기</b><br><span style='color:#374151;'>"+(app==='g'?'지금 선택한 과목의 모든 반 학생을 학년·반·번호·이름으로 맞춰 채워요.':'파일의 영역(자율/진로/행동특성)을 읽어 알맞은 항목을 채워요. 영역을 못 읽으면 지금 선택된 항목으로 채워요.')+" 학생 고유번호 등 나머지 칸은 그대로 두고, 특기사항 칸만 채운 새 파일(…_특기사항입력.xlsx)을 내려줘요. 원본은 그대로예요.</span></div>"
+      +"<div style='margin-top:8px;'><b>③ 나이스에 업로드하기</b><br><span style='color:#374151;'>나이스의 [엑셀업로드]로 방금 만든 파일을 올려요. 처음엔 한 명만 채운 파일로 먼저 시험해 보면 안전해요.</span></div>"
       +"<div style='text-align:right;margin-top:14px;'><button type='button' onclick=\"document.getElementById('adum-neis-guide').remove()\" style='padding:7px 18px;border:0;border-radius:8px;background:#059669;color:#fff;font-weight:700;cursor:pointer;'>확인</button></div></div>";
     document.body.appendChild(d);
   };
@@ -15601,11 +15601,11 @@ body #status-toolbar,body #d-status-toolbar,body #c-view-status>div:first-child{
     var wrap=pb.parentNode; if(document.getElementById(inId))return;
     var inp=document.createElement('input'); inp.type='file'; inp.id=inId; inp.accept='.xlsx,.xls'; inp.style.display='none';
     inp.setAttribute('onchange',fn+'(event)');
-    var b=document.createElement('button'); b.type='button'; b.textContent='📤 나이스 엑셀에 채우기';
+    var b=document.createElement('button'); b.type='button'; b.textContent='📤 나이스 업로드용 엑셀 만들기';
     b.title='나이스 [엑셀내려받기] 파일의 특기사항 칸에 세특을 채워서 저장해요';
     b.setAttribute('onclick',"document.getElementById('"+inId+"').click()");
     b.style.cssText='padding:6px 12px;border:1px solid #059669;border-radius:7px;background:#ecfdf5;font-size:12px;cursor:pointer;color:#047857;font-weight:700;';
-    var ib=document.createElement('button'); ib.type='button'; ib.textContent='ⓘ'; ib.title='나이스 엑셀 사용 방법';
+    var ib=document.createElement('button'); ib.type='button'; ib.textContent='ⓘ'; ib.title='나이스 업로드용 엑셀 만드는 방법';
     ib.style.cssText='width:26px;height:26px;border:1px solid #059669;border-radius:50%;background:#fff;font-size:13px;cursor:pointer;color:#047857;font-weight:700;padding:0;line-height:1;';
     ib.setAttribute('onclick',"adumNeisGuide('"+app+"')");
     wrap.appendChild(inp); wrap.appendChild(b); wrap.appendChild(ib);
