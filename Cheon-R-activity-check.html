@@ -138,6 +138,8 @@ body.demo #demoBar{display:flex}body.demo #btnOut,body.demo #btnRe{display:none}
 .rvbn .btn{flex:none}
 .tg{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:99px;background:#EEE9F8;color:#6B5FA0;vertical-align:middle;margin-left:2px}
 .tg.g{background:#FFF1D6;color:#9A6A00}
+.tg.pri{background:#E8E1FA;color:#4F4380;font-weight:800}
+.pribox{margin-top:10px;background:#F1ECFC;border:1.5px solid #D5C9F2;border-radius:12px;padding:9px 12px;font-size:13.5px;color:#4F4380;line-height:1.6}.pribox small{display:block;color:var(--tx2);margin-top:2px}
 .tg.due{background:#FFE3E0;color:#B3382C}
 .lf{font:inherit;font-size:13px;font-weight:700;border:1.5px solid var(--line);background:#fff;color:var(--tx2);border-radius:99px;padding:8px 14px;min-height:44px;cursor:pointer;margin-left:6px}
 .lf.on{background:var(--main);border-color:var(--main);color:#fff}
@@ -228,7 +230,7 @@ body.demo #demoBar{display:flex}body.demo #btnOut,body.demo #btnRe{display:none}
   <h3 style="margin:0 0 4px">📒 내 활동 요약본</h3>
   <div class="hint" id="sumHd" style="margin-bottom:6px"></div>
   <div id="sumBody"></div>
-  <div class="acts" style="margin-top:12px"><button class="btn sub" data-act="closeSum">닫기</button></div>
+  <div class="acts" style="margin-top:12px"><button class="btn" data-act="sumDl">📥 내려받기</button><button class="btn sub" data-act="sumCp">📋 복사</button><button class="btn sub" data-act="closeSum">닫기</button></div>
 </div></div>
 <div class="ov hide" id="helpOv" data-act="closeHelp"><div class="in">
   <h2>❓ ACTIVITY CHECK 사용법</h2>
@@ -243,8 +245,9 @@ body.demo #demoBar{display:flex}body.demo #btnOut,body.demo #btnRe{display:none}
   <div class="hl"><div class="ic">🙋</div><div><b>내가 추가 쓰는 법</b> ① 활동 이름을 적어요 ② 자율인지 진로인지 골라요(헷갈리면 ❓모르겠어요) ③ <b>"목록에서 찾아봤는데 없어요"</b>에 체크하고 ➕ 활동 추가 ④ 열린 카드에 참여·보고서·요약을 똑같이 적고 💾 저장해요. 선생님이 확인해서 맞으면 정식 활동이 되고, 아니면 지울 수 있어요. 장난으로 만든 활동은 선생님이 지워요. (최대 10개)</div></div>
   <div class="hl"><div class="ic">⭐</div><div><b>진로와 연결하기 좋은 활동 고르기</b> 🌱 자율·💡 진로에서 <b>참여한 활동</b>을 열고 💾 저장하면 ⭐를 고를 수 있어요. 분류마다 <b>⭐ 최대 3개</b>, 그중 가장 대표인 활동 1개는 <b>🌟 대표</b>로 골라요. 고른 활동엔 <b>내 진로와 연결한 점</b>과 <b>더 깊이 해보고 싶은 점</b>을 적어요. 생기부에는 여러 개를 얕게 쓰는 것보다 <b>한두 개를 깊이</b> 쓰는 게 좋아서, 선생님이 이걸 참고해요.</div></div>
   <div class="hl"><div class="ic">🎯</div><div><b>진로 희망</b> 위쪽 칸에 적어 두면 선생님도 함께 봐요. 바뀌면 언제든 고쳐요.</div></div>
+  <div class="hl"><div class="ic">📥</div><div><b>내 기록 간직하기</b> <b>📒 내 활동 요약본</b>에서 <b>📥 내려받기</b>를 누르면 올해 내 활동이 파일로 저장돼요. 선생님이 📌 표시를 단 학년말에 받아 두면 선생님이 눈여겨본 활동까지 함께 남아요! 학년이 끝나기 전에 꼭 받아 두세요. 해마다 모아 두면 1·2·3학년 활동이 이어지는 <b>나만의 포트폴리오</b>가 돼요. 지난 활동을 보면 다음 학년에 어떤 활동을 더 깊이 해볼지 계획 세우기도 좋아요. 이름이 들어 있으니 친구에게 함부로 보내지는 말아요.</div></div>
   <div class="hl"><div class="ic">🏷️</div><div><b>상태 표시</b> <b>미점검</b>(아직 안 눌렀어요) · <b>참여 안 함</b> · <b>요약 미작성</b>(참여했는데 요약이 비었어요) · <b>완료</b>.</div></div>
-  <div class="hl"><div class="ic">👩‍🏫</div><div><b>선생님 확인</b> 선생님이 ✅ 확인하거나 한마디를 남기면 그 활동 카드에 보여요. 내용을 고치면 확인 표시는 다시 풀려요.</div></div>
+  <div class="hl"><div class="ic">👩‍🏫</div><div><b>선생님 확인</b> 선생님이 ✅ 확인하거나 한마디를 남기면 그 활동 카드에 보여요. 내용을 고치면 확인 표시는 다시 풀려요. 또 선생님이 <b>📌 눈여겨본 활동</b>으로 표시하면 그 카드에 📌이 떠요. 선생님이 참고로 눈여겨본 표시이고, 생기부 기재를 보장하는 건 아니에요. 내용을 고쳐도 📌은 그대로예요.</div></div>
   <div class="hl"><div class="ic">🆘</div><div><b>PIN을 잊었어요</b> 담임선생님께 PIN 초기화를 부탁해요. 기록은 그대로 남아 있어요. 5번 틀리면 10분 동안 잠깐 막혀요.</div></div>
   <div style="margin-top:10px;text-align:center"><button class="btn" data-act="closeHelp">닫기</button></div>
 </div></div>
@@ -341,7 +344,7 @@ function demoSeed(){
   r('d1',1,{ part:'yes', report:'done', summary:'학교폭력의 유형과 대처 방법을 배우고, 친구 사이에 존중하는 말하기를 실천하기로 다짐했다.' });
   r('d2',1,{ part:'yes', report:'todo' });
   r('d3',1,{ part:'no' });
-  r('d4',1,{ part:'yes', report:'done', summary:'건축사무소를 방문해 설계 과정을 듣고, 수학이 구조 설계에 쓰이는 방식을 알게 되었다.', tchk:true, tmemo:'체험 내용이 구체적이라 좋아요 👍' });
+  r('d4',1,{ part:'yes', pri:true, report:'done', summary:'건축사무소를 방문해 설계 과정을 듣고, 수학이 구조 설계에 쓰이는 방식을 알게 되었다.', tchk:true, tmemo:'체험 내용이 구체적이라 좋아요 👍' });
   r('d6',1,{ part:'yes', topic:'포물선 구조물의 이차함수 모델링', career:'건축가가 되고 싶어 아치 구조를 이차함수로 분석함', summary:'다리 아치 사진에서 좌표를 잡아 이차함수식을 구하고 오차를 비교했다.' });
 }
 function demoApi(p){
@@ -360,7 +363,7 @@ function demoApi(p){
       const d = JSON.parse(p.data || '{}'), it = DEMO_ITEMS.find(x => x.id === d.itemId) || (demoSt.mine || []).find(x => x.id === d.itemId); if (!it) return reject(new Error('없어진 항목이에요.'));
       const n = (it.cat === '교과' || it.cat === '동아리') ? Math.max(1, Math.min(9, parseInt(d.n, 10) || 1)) : 1;
       const old = demoSt.recs.find(x => x.iid === it.id && x.n === n);
-      const rec = { sid:'10101', iid:it.id, n, part:d.part || '', report:d.report || '', link:d.link || '', topic:String(d.topic || '').substring(0,60), career:String(d.career || '').substring(0,150), summary:String(d.summary || '').substring(0,1000), atype:d.atype || '', rterm:d.rterm || '', ref:String(d.ref || '').substring(0,200), deep:d.part === 'yes' ? String(d.deep || '').substring(0,200) : '', star:old && d.part === 'yes' ? (old.star || '') : '', at:'', tchk:false, tmemo:old ? old.tmemo : '' };
+      const rec = { sid:'10101', iid:it.id, n, part:d.part || '', report:d.report || '', link:d.link || '', topic:String(d.topic || '').substring(0,60), career:String(d.career || '').substring(0,150), summary:String(d.summary || '').substring(0,1000), atype:d.atype || '', rterm:d.rterm || '', ref:String(d.ref || '').substring(0,200), deep:d.part === 'yes' ? String(d.deep || '').substring(0,200) : '', star:old && d.part === 'yes' ? (old.star || '') : '', pri:old && d.part === 'yes' ? !!old.pri : false, at:'', tchk:false, tmemo:old ? old.tmemo : '' };
       if (old) Object.assign(old, rec); else demoSt.recs.push(rec);
       return resolve({ ok:true, rec:{ ...rec } });
     }
@@ -555,7 +558,7 @@ function sumRender(){
     its.forEach(it => {
       recsOf(it.id).forEach(r => {
         const st = r.part === 'yes' ? '참여함' + (r.report === 'done' ? ' · 보고서 작성' : r.report === 'todo' ? ' · 보고서 아직' : '') : r.part === 'no' ? '참여 안 함' : '미선택';
-        part += `<div class="sm-box"><b>${starOf(it) === '2' ? '🌟 ' : starOf(it) === '1' ? '⭐ ' : ''}${esc(it.title)}</b>${it.term ? ' <span class="tg">' + esc(it.term) + '</span>' : ''}<div class="m">${st}${r.at ? ' · 저장 ' + esc(String(r.at).slice(0, 10)) : ''}</div>`
+        part += `<div class="sm-box"><b>${r.pri ? '📌 ' : ''}${starOf(it) === '2' ? '🌟 ' : starOf(it) === '1' ? '⭐ ' : ''}${esc(it.title)}</b>${it.term ? ' <span class="tg">' + esc(it.term) + '</span>' : ''}<div class="m">${st}${r.at ? ' · 저장 ' + esc(String(r.at).slice(0, 10)) : ''}</div>`
           + (r.atype || r.rterm ? `<div class="s">${[r.rterm, r.atype].filter(Boolean).map(esc).join(' · ')}</div>` : '') + (r.topic ? `<div class="s">주제: ${esc(r.topic)}</div>` : '') + (r.ref ? `<div class="s">읽은 책·자료: ${esc(r.ref)}</div>` : '') + (r.career ? `<div class="s">진로 연결: ${esc(r.career)}</div>` : '') + (r.deep ? `<div class="s">더 깊이 해보고 싶은 점: ${esc(r.deep)}</div>` : '')
           + (r.summary ? `<div class="s">${esc(r.summary)}</div>` : '') + (r.link ? (okLink(r.link) ? `<div class="s"><a href="${esc(r.link)}" target="_blank" rel="noopener noreferrer">🔗 링크</a></div>` : `<div class="s">📍 경로: ${esc(r.link)}</div>`) : '') + '</div>';
       });
@@ -564,6 +567,46 @@ function sumRender(){
   });
   $('sumHd').textContent = rs.length ? `지금까지 저장한 활동 ${rs.length}개가 쌓여 있어요. 활동이 늘어도 이전 기록은 그대로 남아요.` : '아직 저장한 활동이 없어요. 활동을 점검하고 💾 저장하면 여기에 쌓여요.';
   $('sumBody').innerHTML = h || '';
+  if (rs.some(r => r.pri)) $('sumHd').textContent += ' 📌 표시는 선생님이 눈여겨본 활동이에요. 참고 표시이고 생기부 기재를 보장하지는 않아요.';
+}
+
+/* ===== 내 활동 요약본 내려받기·복사 (학생 본인용 파일. 선생님 한마디·확인 표시는 넣지 않아요) ===== */
+function sumText(){
+  const L = [], ln = (t) => L.push(t == null ? '' : t); let n = 0;
+  ln('ACTIVITY CHECK · 내 활동 기록'); ln(($('sub').textContent || '') + ' · ' + (me ? me.name : '')); ln('내려받은 날 ' + new Date().toISOString().slice(0, 10)); if (career) ln('나의 진로 희망: ' + career); if (Object.keys(recs).some(k => recs[k].pri)) ln('※ 📌 = 담임 선생님이 눈여겨본 활동 (참고 표시이며 생기부 기재를 보장하지는 않아요)'); ln('');
+  CATS.forEach(c => {
+    const blk = [];
+    items.filter(i => i.cat === c && mine(i)).forEach(it => {
+      recsOf(it.id).forEach(r => {
+        if (r.part !== 'yes' && r.part !== 'no') return; n++;
+        const sl = starOf(it), st = r.part === 'yes' ? '참여함' + (r.report === 'done' ? ' · 보고서 작성' : r.report === 'todo' ? ' · 보고서 아직' : '') : '참여 안 함';
+        blk.push('■ ' + (r.pri ? '[📌 선생님이 눈여겨본 활동] ' : '') + (sl === '2' ? '[🌟 대표] ' : sl === '1' ? '[⭐ 연결] ' : '') + it.title + (it.term ? ' (' + it.term + ')' : '') + (r.n > 1 ? ' #' + r.n : ''));
+        blk.push('  ' + st + (r.at ? ' · 저장 ' + String(r.at).slice(0, 10) : ''));
+        if (r.part === 'yes'){
+          const f = (lb, v) => { if (v) blk.push('  ' + lb + ': ' + v); };
+          f('활동 유형', [r.rterm, r.atype].filter(Boolean).join(' · ')); f('주제', r.topic); f('읽은 책·자료', r.ref); f('진로 연결', r.career); f('더 깊이 해보고 싶은 점', r.deep);
+          if (r.summary){ blk.push('  [활동 요약]'); String(r.summary).split(/\r?\n/).forEach(x => blk.push('  ' + x)); }
+          f(okLink(r.link) ? '링크' : '경로', r.link);
+        }
+        blk.push('');
+      });
+    });
+    if (blk.length){ ln('━━ ' + (LB[c] || c) + ' ━━'); blk.forEach(x => ln(x)); }
+  });
+  return { text: L.join('\n'), n };
+}
+function sumDownload(){
+  const o = sumText(); if (!o.n){ toast('아직 저장한 활동이 없어요'); return; }
+  const nm = (me && me.name || '').replace(/[\\/:*?"<>|\s]/g, ''), yr = (($('sub').textContent || '').match(/\d{4}/) || [''])[0];
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + o.text], { type: 'text/plain;charset=utf-8' }));
+  a.download = '내활동기록_' + (yr ? yr + '_' : '') + nm + '.txt'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+  toast('내 활동 기록 ' + o.n + '개를 파일로 저장했어요 📥');
+}
+function sumCopy(){
+  const o = sumText(); if (!o.n){ toast('아직 저장한 활동이 없어요'); return; }
+  const done = () => toast('복사했어요 📋 메모장 등에 붙여 넣어 보관해요');
+  const fb = () => { const t = document.createElement('textarea'); t.value = o.text; t.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(t); t.select(); try{ document.execCommand('copy'); done(); }catch(e){ toast('복사하지 못했어요. 📥 내려받기를 써 주세요'); } t.remove(); };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(o.text).then(done).catch(fb); else fb();
 }
 
 /* ===== 그리기 ===== */
@@ -638,7 +681,7 @@ function itemHtml(it){
   const sl = starCat(it) ? starOf(it) : '';
   return `<div class="it ${open ? 'open' : ''}${sl ? ' star' + sl : ''}" style="--cc:${CAT[it.cat].cc}" id="it-${esc(it.id)}">
     <button class="hd" data-act="toggle" data-id="${esc(it.id)}">
-      <div class="t"><b>${esc(it.title)}</b>${unreadMemos().some(r => r.iid === it.id) ? ' <span class="tg due">💬 새 한마디</span>' : ''}${sl === '2' ? ' <span class="tg st2">🌟 대표</span>' : sl === '1' ? ' <span class="tg st1">⭐ 연결</span>' : ''}${it.mc ? ` <span class="tg">${it.mc === '모르겠어요' ? '❓ 분류 모르겠어요' : esc(it.mc)}</span>` : ''}${it.term ? ` <span class="tg">${esc(it.term)}</span>` : ''}${dueTag(it)}${it.note ? `<small>${esc(it.note)}</small>` : ''}</div>
+      <div class="t"><b>${esc(it.title)}</b>${unreadMemos().some(r => r.iid === it.id) ? ' <span class="tg due">💬 새 한마디</span>' : ''}${recsOf(it.id).some(r => r.pri) ? ' <span class="tg pri">📌 선생님이 눈여겨봤어요</span>' : ''}${sl === '2' ? ' <span class="tg st2">🌟 대표</span>' : sl === '1' ? ' <span class="tg st1">⭐ 연결</span>' : ''}${it.mc ? ` <span class="tg">${it.mc === '모르겠어요' ? '❓ 분류 모르겠어요' : esc(it.mc)}</span>` : ''}${it.term ? ` <span class="tg">${esc(it.term)}</span>` : ''}${dueTag(it)}${it.note ? `<small>${esc(it.note)}</small>` : ''}</div>
       <span class="badge ${b[1]}">${b[0]}${cnt > 1 ? ' ' + cnt : ''}${recsOf(it.id).some(r => r.tchk) ? ' ✅' : ''}${recsOf(it.id).some(r => r.tmemo) ? ' 💬' : ''}</span>
     </button>
     ${open ? bodyHtml(it) : ''}
@@ -707,6 +750,7 @@ function entHtml(it, n, label){
         + '</div>';
     } }
   if (r && (r.tchk || r.tmemo)) h += `<div class="tmemo">👩‍🏫 선생님${r.tchk ? '<span class="tchk">✅ 확인했어요</span>' : ''}${r.tmemo ? '<br>' + esc(r.tmemo).replace(/\n/g, '<br>') : ''}</div>`;
+  if (r && r.pri) h += '<div class="pribox">📌 <b>선생님이 눈여겨본 활동</b>이에요.<small>선생님이 참고하려고 한 표시예요. 생기부 기재를 보장하는 건 아니에요. 내용을 고쳐도 📌은 그대로예요.</small></div>';
   if (r && r.tmemo) h += r.ack === r.tmemo ? '<div class="ackd">✅ 반영했다고 선생님께 알렸어요</div>' : `<div class="ackrow"><button class="btn sm" data-act="ack" data-k="${k}">✅ 반영했어요</button> <span class="hint">한마디대로 고쳤다면 눌러 주세요. 선생님께 알려 드려요.</span></div>`;
   if (r) h += `<div class="qa"><div class="qt">🙋 선생님께 질문 남기기 <span style="font-weight:500;color:var(--tx3)">(100자 · 선생님이 확인하면 한마디로 답해 줘요)</span></div>${r.q ? `<div class="qm">내 질문: ${esc(r.q)}${r.qDone === r.qAt ? ' · ✅ 선생님이 확인했어요' : ' · ⏳ 확인을 기다리는 중'}</div>` : ''}<div class="qrow"><input type="text" id="q-${k}" maxlength="100" placeholder="예) 요약에는 어떤 내용을 적으면 좋을까요?"><button class="btn sm" data-act="ask" data-k="${k}">보내기</button></div></div>`;
   h += `<div id="sv-${k}">${svHtml(key(it.id, n))}</div><div class="acts"><button class="btn" data-act="save" data-k="${k}">💾 저장</button>`;
@@ -738,6 +782,8 @@ document.addEventListener('click', e => {
   }
   if (act === 'help'){ $('helpOv').classList.remove('hide'); return; }
   if (act === 'sum'){ sumRender(); $('sumOv').classList.remove('hide'); return; }
+  if (act === 'sumDl'){ sumDownload(); return; }
+  if (act === 'sumCp'){ sumCopy(); return; }
   if (act === 'closeSum'){ if (b.classList.contains('ov') && e.target !== b) return; $('sumOv').classList.add('hide'); return; }
   if (act === 'rv'){ rvS = { rate: 0, c: [], lc: [], ik: '', ok: 'yes' }; ['rvOther','rvLowOther','rvOne','rvImp'].forEach(i => $(i).value = ''); $('rvAgree').checked = false; rvRender(); $('rvOv').classList.remove('hide'); return; }
   if (act === 'closeRv'){ if (b.classList.contains('ov') && e.target !== b) return; $('rvOv').classList.add('hide'); return; }
