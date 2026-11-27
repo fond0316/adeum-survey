@@ -1329,6 +1329,7 @@ textarea{resize:vertical;}
               style="width:80px;border:1px solid #e0e5ed;border-radius:7px;padding:6px 10px;font-size:12px;outline:none;"/>
             <span style="font-size:12px;color:#9ca3af;">자</span>
           </div>
+          <div style="margin-top:8px;font-size:11px;color:#9ca3af;line-height:1.5;">※ 2026 기재요령: 과목별 500자(나이스 1500바이트) 이내, 공통과목1·2는 합산 500자. 설정 값이 이를 넘지 않는지 확인하세요.</div>
           <div style="margin-top:12px;">
             <button onclick="saveSettings()" style="padding:6px 14px;background:#2563eb;color:white;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;">저장</button>
           </div>
@@ -1873,14 +1874,14 @@ textarea{resize:vertical;}
             </div>
             <div style="display:flex;align-items:center;gap:10px;">
               <span style="font-size:12px;color:#374151;min-width:80px;">진로활동</span>
-              <input type="number" id="d-byte-jinro" min="500" max="4000" value="2100"
+              <input type="number" id="d-byte-jinro" min="500" max="4000" value="1500"
                 onchange="dSaveByteGoal('진로',this.value)"
                 style="width:70px;border:1px solid #e0e5ed;border-radius:7px;padding:5px 8px;font-size:12px;outline:none;text-align:center;"/>
               <span style="font-size:11px;color:#9ca3af;">바이트 내외</span>
             </div>
             <div style="display:flex;align-items:center;gap:10px;">
               <span style="font-size:12px;color:#374151;min-width:80px;">행동발달</span>
-              <input type="number" id="d-byte-haengbal" min="500" max="3000" value="1500"
+              <input type="number" id="d-byte-haengbal" min="500" max="3000" value="900"
                 onchange="dSaveByteGoal('행발',this.value)"
                 style="width:70px;border:1px solid #e0e5ed;border-radius:7px;padding:5px 8px;font-size:12px;outline:none;text-align:center;"/>
               <span style="font-size:11px;color:#9ca3af;">바이트 내외</span>
@@ -2007,13 +2008,13 @@ textarea{resize:vertical;}
             </div>
             <div style="display:flex;align-items:center;gap:10px;">
               <label style="font-size:12px;color:#374151;min-width:80px;">진로활동</label>
-              <input type="number" id="d-set-byte-jinro" min="500" max="4000" value="2100"
+              <input type="number" id="d-set-byte-jinro" min="500" max="4000" value="1500"
                 style="width:80px;border:1px solid #e0e5ed;border-radius:7px;padding:6px 10px;font-size:12px;outline:none;"/>
               <span style="font-size:12px;color:#9ca3af;">바이트 내외</span>
             </div>
             <div style="display:flex;align-items:center;gap:10px;">
               <label style="font-size:12px;color:#374151;min-width:80px;">행동발달</label>
-              <input type="number" id="d-set-byte-haengbal" min="500" max="3000" value="1500"
+              <input type="number" id="d-set-byte-haengbal" min="500" max="3000" value="900"
                 style="width:80px;border:1px solid #e0e5ed;border-radius:7px;padding:6px 10px;font-size:12px;outline:none;"/>
               <span style="font-size:12px;color:#9ca3af;">바이트 내외</span>
             </div>
@@ -2904,6 +2905,187 @@ function boldRender(text){
 function stripBold(text){
   if(!text)return "";
   return text.replace(/\*\*(.+?)\*\*/g,"$1");
+}
+
+/* ══ 자체점검 (동아리·담임 공통, API 비용 없음) ══
+   scFix(text)  → 생성 직후 자동 보정 (연결어미 과거형·특수문자)
+   scCheck(...) → 규칙 점검 결과 목록
+   scShow(...)  → 결과 아래 점검 결과 표시
+══ */
+function scFix(text){
+  if(!text)return text;
+  return text
+    .replace(/하였으며/g,"하며").replace(/하였고/g,"하고").replace(/하였지만/g,"하지만")
+    .replace(/했으며/g,"하며").replace(/했고/g,"하고").replace(/했지만/g,"하지만")
+    .replace(/[《》『』]/g,"").replace(/[·∙]/g,",");
+}
+/* ══ 좋은 예시 보관함 (문체 참고용 — 형태만 참고, 내용·흐름은 따라 하지 않음) ══ */
+function scExLoad(){try{return JSON.parse(localStorage.getItem("scGoodEx_v1"))||{};}catch(e){return {};}}
+function scExSave(o){try{localStorage.setItem("scGoodEx_v1",JSON.stringify(o));}catch(e){}}
+function scExOn(){return localStorage.getItem("scGoodExOn_v1")!=="0";}
+function scExKey(kind){return kind==="c"?"동아리":dActiveTab;}
+function scExPick(key){
+  if(!scExOn())return [];
+  var a=(scExLoad()[key]||[]).slice();
+  for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}
+  return a.slice(0,2);
+}
+function scExBlock(picks){
+  if(!picks||!picks.length)return "";
+  return "\n\n[문체 참고 예시 — 교사가 좋다고 고른 다른 학생의 글. 오직 문장 길이·어휘 톤·연결 방식을 참고하는 용도임. 소재·활동·사실·고유명사·숫자·문장 구조·전개 순서·표현을 절대 가져오지 말 것. 이 예시와 비슷한 문장 흐름이나 표현이 나오면 무효. 이 학생의 입력 사실만으로 완전히 새롭게 구성할 것]\n"
+    +picks.map(function(t,i){return "예시"+(i+1)+": "+t;}).join("\n")+"\n[/문체 참고 예시]\n";
+}
+function scExOverlap(text,picks){
+  if(!picks||!picks.length)return "";
+  var c=stripBold(text||"").replace(/\s+/g,"");
+  for(var k=0;k<picks.length;k++){
+    var e=stripBold(picks[k]).replace(/\s+/g,"");
+    for(var i=0;i+14<=e.length;i++){var seg=e.substr(i,14);if(c.indexOf(seg)>=0)return seg;}
+  }
+  return "";
+}
+function scExSaveCurrent(kind){
+  var text=kind==="c"?cResult:dResult;
+  if(!text)return;
+  var o=scExLoad(),key=scExKey(kind),clean=stripBold(text);
+  o[key]=(o[key]||[]).filter(function(x){return x!==clean;});
+  o[key].push(clean);
+  if(o[key].length>5)o[key]=o[key].slice(-5);
+  scExSave(o);
+  alert("👍 좋은 예시로 저장했어요. ("+key+" "+o[key].length+"/5)\n다음 생성부터 형태만 참고해요.");
+  scShow(kind==="c"?"c-result-area":"d-result-area",text,kind);
+}
+function scExManage(kind){
+  var key=scExKey(kind);
+  var old=document.getElementById("sc-ex-modal");if(old)old.remove();
+  var o=scExLoad(),list=o[key]||[];
+  function esc(x){return x.replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+  var m=document.createElement("div");m.id="sc-ex-modal";
+  m.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:99999;display:flex;align-items:center;justify-content:center;";
+  m.innerHTML="<div style='background:#fff;border-radius:12px;padding:18px 20px;max-width:520px;width:92%;max-height:80vh;overflow:auto;font-size:13px;line-height:1.6;'>"
+    +"<div style='font-weight:700;font-size:14px;margin-bottom:6px'>📚 좋은 예시 보관함 — "+key+" ("+list.length+"/5)</div>"
+    +"<label style='display:block;margin-bottom:8px;font-size:12px'><input type='checkbox' id='sc-ex-on' "+(scExOn()?"checked":"")+"> 생성할 때 예시 참고 사용 (최대 2개를 무작위로, 형태만 참고)</label>"
+    +(list.length?list.map(function(t,i){return "<div style='border:1px solid #e5e7eb;border-radius:8px;padding:8px;margin:6px 0;font-size:12px'>"+esc(t.slice(0,160))+(t.length>160?"…":"")+"<div style='text-align:right'><button data-i='"+i+"' class='sc-ex-del' style='border:none;background:#fee2e2;color:#991b1b;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px'>삭제</button></div></div>";}).join(""):"<div style='color:#9ca3af'>저장된 예시가 없어요. 결과 아래 👍 버튼으로 저장해요.</div>")
+    +"<div style='text-align:right;margin-top:12px'><button id='sc-ex-close' style='border:none;background:#9B8EC4;color:#fff;border-radius:8px;padding:6px 16px;cursor:pointer;font-size:12px'>닫기</button></div></div>";
+  document.body.appendChild(m);
+  document.getElementById("sc-ex-close").onclick=function(){m.remove();scShow(kind==="c"?"c-result-area":"d-result-area",kind==="c"?cResult:dResult,kind);};
+  document.getElementById("sc-ex-on").onchange=function(){localStorage.setItem("scGoodExOn_v1",this.checked?"1":"0");};
+  Array.prototype.forEach.call(m.querySelectorAll(".sc-ex-del"),function(b){
+    b.onclick=function(){var oo=scExLoad();(oo[key]||[]).splice(+b.getAttribute("data-i"),1);scExSave(oo);scExManage(kind);};
+  });
+}
+function scSrcOf(prompt,files){
+  var t=String(prompt||"").replace(/\[문체 참고 예시[\s\S]*?\[\/문체 참고 예시\]/,""),img=false;
+  (files||[]).forEach(function(f){if(f.type==="image")img=true;else if(f.extractedText)t+=" "+f.extractedText;});
+  var n={},e={};
+  (t.match(/\d+(?:\.\d+)?/g)||[]).forEach(function(x){n[x]=1;});
+  (t.match(/[A-Za-z]{3,}/g)||[]).forEach(function(x){e[x.toLowerCase()]=1;});
+  return {n:Object.keys(n),e:Object.keys(e),img:img};
+}
+function scCheck(text,kind,src){
+  var clean=stripBold(text||""),notes=[],seen={};
+  var rules=(typeof COMPLIANCE_RULES!=="undefined")?COMPLIANCE_RULES:[];
+  rules.forEach(function(r){
+    if(r.grade==="안내"||seen[r.label])return;
+    var re=new RegExp(r.pattern.source,r.pattern.flags.replace("g",""));
+    var m=clean.match(re);
+    if(m){seen[r.label]=1;notes.push(r.label+" ("+m[0].trim()+")");}
+  });
+  var da=clean.match(/[가-힣]다\./g);
+  if(da&&!seen["과거형 종결어미"])notes.push("~다 종결 "+da.length+"곳");
+  var past=clean.match(/[가-힣](았|었|였|했)(음|으며|고|지만|던|을 때|는데)/g);
+  if(past)notes.push("과거형 어미 "+past.length+"곳 ("+past[0]+")");
+  if(kind==="c"){
+    var first=clean.split(".")[0];
+    if(/동아리(에서의 활동)?(은|는)|이 동아리/.test(first))notes.push("첫 문장이 동아리 소개로 시작");
+  }
+  if(src&&src.exo)notes.push("좋은 예시와 표현이 겹침 ("+src.exo+"…)");
+  if(src&&!src.img){
+    var okN={};src.n.forEach(function(x){okN[x]=1;});[2015,2022,2026].forEach(function(y){okN[y]=1;});
+    var badN=[];(clean.match(/\d+(?:\.\d+)?/g)||[]).forEach(function(x){if(!okN[x]&&badN.indexOf(x)<0)badN.push(x);});
+    if(badN.length)notes.push("입력에 없는 숫자: "+badN.slice(0,5).join(", "));
+    var okE={};src.e.forEach(function(x){okE[x]=1;});
+    var badE=[];(clean.match(/[A-Za-z]{3,}/g)||[]).forEach(function(x){if(!okE[x.toLowerCase()]&&badE.indexOf(x)<0)badE.push(x);});
+    if(badE.length)notes.push("입력에 없는 영문: "+badE.slice(0,3).join(", "));
+  }
+  try{
+    var range=kind==="c"?cGetByteRange():dGetByteRange();
+    var b=kind==="c"?cCalcBytes(clean):dCalcBytes(clean);
+    if(b<range[0]||b>range[1])notes.push("바이트 "+b+"B (목표 "+range[0]+"~"+range[1]+"B)");
+  }catch(e){}
+  return notes;
+}
+function scShow(areaId,text,kind){
+  var area=document.getElementById(areaId);
+  if(!area)return;
+  var box=document.getElementById(areaId+"-sc");
+  if(!box){
+    box=document.createElement("div");box.id=areaId+"-sc";
+    box.style.cssText="font-size:12px;line-height:1.6;border-radius:8px;padding:8px 10px;margin-top:8px;";
+    area.insertAdjacentElement("afterend",box);
+  }
+  if(!text){box.style.display="none";return;}
+  var src=null;
+  try{
+    if(kind==="c"){var _s=cClubs[cSelClub].students[cSelStu];src=_s&&_s.scSrc;}
+    else{var _d=dStudents[dSelStu];src=_d&&_d.scSrc&&_d.scSrc[dActiveTab];}
+  }catch(e){}
+  var notes=scCheck(text,kind,src);
+  box.style.display="block";
+  if(notes.length){
+    box.style.background="#fffbeb";box.style.border="1px solid #fde68a";box.style.color="#92400e";
+    box.textContent="⚠ 자체점검 — 확인 필요: "+notes.join(" / ");
+  }else{
+    box.style.background="#f0fdf4";box.style.border="1px solid #bbf7d0";box.style.color="#166534";
+    box.textContent="✅ 자체점검 통과 (기재요령 규칙·형식·바이트"+(src&&!src.img?"·입력 대조":"")+")";
+  }
+  var rb=document.createElement("button");
+  rb.textContent="📊 학급 반복 표현 점검";
+  rb.style.cssText="display:block;margin-top:6px;border:1px solid #d1d5db;background:#fff;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;color:#374151;";
+  rb.onclick=function(){scPhraseReport(kind,false);};
+  var bw=document.createElement("div");bw.style.cssText="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;";
+  var gb=document.createElement("button");gb.textContent="👍 좋은 예시로 저장";
+  gb.style.cssText="border:1px solid #d1d5db;background:#fff;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;color:#374151;";
+  gb.onclick=function(){scExSaveCurrent(kind);};
+  var mb=document.createElement("button");mb.textContent="📚 예시 보관함 ("+((scExLoad()[scExKey(kind)]||[]).length)+")";
+  mb.style.cssText=gb.style.cssText;mb.onclick=function(){scExManage(kind);};
+  rb.style.cssText=gb.style.cssText;
+  bw.appendChild(gb);bw.appendChild(mb);bw.appendChild(rb);box.appendChild(bw);
+}
+/* 학급 반복 표현 리포트: 문장 끝 두 어절·첫 문장 시작 두 어절이 여러 학생에게 반복되는지 집계 */
+function scPhraseReport(kind,auto){
+  var items=[];
+  try{
+    if(kind==="c"){var club=cClubs[cSelClub];club.students.slice(0,club.count).forEach(function(s,i){if(s.result)items.push({no:i+1,t:stripBold(s.result)});});}
+    else{dStudents.slice(0,dCount).forEach(function(s,i){var r=s.results&&s.results[dActiveTab];if(r)items.push({no:i+1,t:stripBold(r)});});}
+  }catch(e){}
+  if(items.length<4){if(!auto)alert("결과가 4명 이상 있어야 점검할 수 있어요.");return;}
+  var end={},start={};
+  function add(map,key,no){if(!key||key.length<3)return;(map[key]=map[key]||{})[no]=1;}
+  items.forEach(function(it){
+    var sents=it.t.split(/(?<=[.!?])\s+/).map(function(x){return x.replace(/[.!?]+$/,"").trim();}).filter(function(x){return x;});
+    sents.forEach(function(sn,idx){
+      var w=sn.split(/\s+/);
+      if(w.length>=2)add(end,w.slice(-2).join(" "),it.no);
+      if(idx===0&&w.length>=3)add(start,w.slice(0,2).join(" "),it.no);
+    });
+  });
+  var th=Math.max(3,Math.ceil(items.length*0.25));
+  function top(map){return Object.keys(map).map(function(k){return {k:k,nos:Object.keys(map[k])};}).filter(function(o){return o.nos.length>=th;}).sort(function(a,b){return b.nos.length-a.nos.length;}).slice(0,8);}
+  var e=top(end),st=top(start);
+  if(!e.length&&!st.length){if(!auto)alert("✅ "+items.length+"명 기준, 눈에 띄게 반복되는 표현이 없어요.");return;}
+  function esc(x){return x.replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+  function rows(a){return a.map(function(o){return "<div style='margin:2px 0'>· <b>"+esc(o.k)+"</b> — "+o.nos.length+"명 <span style='color:#9ca3af'>("+o.nos.slice(0,8).join(", ")+"번"+(o.nos.length>8?" 외":"")+")</span></div>";}).join("");}
+  var old=document.getElementById("sc-phrase-modal");if(old)old.remove();
+  var m=document.createElement("div");m.id="sc-phrase-modal";
+  m.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:99999;display:flex;align-items:center;justify-content:center;";
+  m.innerHTML="<div style='background:#fff;border-radius:12px;padding:18px 20px;max-width:460px;width:92%;max-height:80vh;overflow:auto;font-size:13px;line-height:1.6;'>"
+    +"<div style='font-weight:700;font-size:14px;margin-bottom:6px'>📊 학급 반복 표현 점검 ("+items.length+"명 기준)</div>"
+    +"<div style='color:#6b7280;font-size:11px;margin-bottom:8px'>"+th+"명 이상에게 반복된 표현만 보여요. 표현이 겹치면 변별력이 떨어질 수 있어요.</div>"
+    +(e.length?"<div style='font-weight:600;margin-top:6px'>문장 끝 반복</div>"+rows(e):"")
+    +(st.length?"<div style='font-weight:600;margin-top:10px'>첫 문장 시작 반복</div>"+rows(st):"")
+    +"<div style='text-align:right;margin-top:12px'><button onclick=\"document.getElementById('sc-phrase-modal').remove()\" style='border:none;background:#9B8EC4;color:#fff;border-radius:8px;padding:6px 16px;cursor:pointer;font-size:12px'>닫기</button></div></div>";
+  document.body.appendChild(m);
 }
 </script>
 
@@ -4831,7 +5013,7 @@ const SYSTEM_PROMPT=`당신은 대한민국 고등학교 생활기록부 작성 
 · [예외] 학습참여도가 [중]·[하]·[최하]이고 활동(수업활동/심화탐구 등) 입력이 부족한 경우, 6번(성취기준 학습 내용)은 위 축소 순서에서 제외하고 오히려 최우선으로 분량을 확보할 것 — 활동이 없는 학생일수록 성취기준 학습 서술이 본문의 중심이 되어야 함.
 
 1. 학습태도·인성 [첫 문장 — 절대 규칙, 반드시 준수]
-첫 문장은 반드시 학생의 인성적 특성(자기주도성·성실함·탐구 의지·집중력·교사 및 동료와의 상호작용 태도 등)을 수업 중 구체적 행동 장면으로 표현하며 ~이 인상적임. 또는 ~이 뛰어남. 으로 마무리할 것.
+첫 문장은 반드시 학생의 인성적 특성(자기주도성·성실함·탐구 의지·집중력·교사 및 동료와의 상호작용 태도 등)을 수업 중 구체적 행동 장면으로 표현하며 ~이 인상적임. / ~이 뛰어남. / ~이 돋보임. / ~이 확인됨. / ~이 엿보임. 중 하나로 마무리하되 같은 표현을 매번 반복하지 말 것(학습참여도 등급별 허용 표현이 있으면 그것을 우선).
 ※ 단, 학습참여도가 [하] 또는 [최하]인 경우 "인상적임/뛰어남"이 아니라 "~하려는 모습이 관찰됨. / ~하려는 노력이 확인됨." 형태로 마무리할 것 (아래 "학습참여도 등급별 절대 준수 사항"의 허용 표현을 따를 것).
 [첫 문장 예시 — 최상·상·중 등급에서만 이 수준과 톤으로 작성]
 · 매 수업 교사 및 동료와 능동적으로 상호작용하며 배움의 본질을 탐구하는 자세가 인상적임.
@@ -4870,7 +5052,7 @@ const SYSTEM_PROMPT=`당신은 대한민국 고등학교 생활기록부 작성 
    - 단순 독후감 투("읽으며 느꼈음" 등) 절대 금지 — 탐구 장면 중심으로 서술
    - 탐구주제·주요개념키워드·탐구내용을 수학 교과 탐구 장면으로 재구성하여 서술
    - 학생이 작성한 원문 표현(도서명(저자) 제외) 절대 그대로 쓰지 말 것 — 교사 관찰 시각으로 완전히 다듬어 서술
-   - 학생 느낀점: 탐구 과정에서 학생이 느끼거나 생각하거나 고민한 점을 반드시 포함하며, "~음을 느꼈음을 밝힘" 형태로 통일하여 마무리. 이 규칙은 "느낌"이라는 단어가 실제로 쓰였을 때만이 아니라, 학생의 내적 사고 활동(느낌·생각·고민·깨달음·의문 등 무엇이든)을 서술하는 모든 문장에 적용됨 — 예: "심도 있는 고민을 하게 됨."(X, 그냥 사실 서술로 끝남) → "심도 있는 고민을 하게 되었음을 밝힘."(O). "~게 됨." / "~을 하게 됨." 처럼 사실만 서술하고 끝내지 말고, 반드시 그 뒤에 "~음을 밝힘"을 붙여 학생 스스로 그렇게 느꼈다는 것임을 드러낼 것 ("~느낌."으로 문장이 바로 끝나는 것, "~음을 표현함" 형태 모두 절대 금지)
+   - 학생 느낀점: 입력된 학생 자료에 학생이 실제로 밝힌 소감·고민이 있는 경우에만 포함하며(입력에 없으면 만들어 쓰지 말 것, 한 문단에 최대 2회), "~음을 느꼈음을 밝힘" 형태로 통일하여 마무리. 이 규칙은 "느낌"이라는 단어가 실제로 쓰였을 때만이 아니라, 학생의 내적 사고 활동(느낌·생각·고민·깨달음·의문 등 무엇이든)을 서술하는 모든 문장에 적용됨 — 예: "심도 있는 고민을 하게 됨."(X, 그냥 사실 서술로 끝남) → "심도 있는 고민을 하게 되었음을 밝힘."(O). "~게 됨." / "~을 하게 됨." 처럼 사실만 서술하고 끝내지 말고, 반드시 그 뒤에 "~음을 밝힘"을 붙여 학생 스스로 그렇게 느꼈다는 것임을 드러낼 것 ("~느낌."으로 문장이 바로 끝나는 것, "~음을 표현함" 형태 모두 절대 금지)
    - 교사 관찰평가: 탐구 내용이 충분히 구체적인 경우 아래 [교사 관찰 표현 목록]에서 골라 반드시 추가 (2단계에서 이미 쓴 표현과 중복되지 않게)
    - 핵심 결론: 탐구를 통해 무엇을 깨달았는지 자연스럽게 마무리
    ※ [후속탐구보고서]가 입력된 경우: 독서탐구 내용에서 그치지 않고 해당 주제를 학급에서 발표하고 후속탐구까지 심화 진행하였음을 반드시 서술. 발표→후속탐구 흐름으로 자연스럽게 연결하고 교사 관찰평가 문장 반드시 추가
@@ -4889,7 +5071,7 @@ const SYSTEM_PROMPT=`당신은 대한민국 고등학교 생활기록부 작성 
 
 ## 서술 원칙
 - 입력된 내용을 기반으로만 풍성하게 서술 — 없는 내용을 있는 것처럼 창작 금지
-- 입력 내용에 살을 붙여 수업 장면을 구체적이고 생생하게 상상하여 서술
+- 입력된 내용 범위 안에서만 구체적으로 서술 — 입력에 없는 수업 장면·대화·수치·결과를 지어내거나 상상하여 쓰지 말 것
 - [연결어 필수 사용 — 절대 규칙] 문단 내 문장과 문장 사이에는 반드시 연결어를 사용하여 자연스럽게 이어질 것. 연결어 없이 문장이 툭툭 끊기듯 나열되는 것 절대 금지
   사용 가능 연결어: 이와 더불어, 이 과정에서, 또한, 나아가, 이를 바탕으로, 더불어, 특히, 한편, 이러한 과정에서, 뿐만 아니라, 그 결과, 이를 통해, 아울러
   같은 연결어를 한 문단에서 반복 사용하지 말고 매번 다르게 선택할 것
@@ -4931,6 +5113,7 @@ const SYSTEM_PROMPT=`당신은 대한민국 고등학교 생활기록부 작성 
 [내용 구성 원칙 — 하/최하 전용]
 · 활동(스타터발표·문제발표·조별활동·심화탐구 등) 입력이 부족하거나 아예 없는 경우가 많음 — 이때 2~5번(활동 기반 항목)을 무리하게 부풀리거나 실제로 하지 않은 활동을 한 것처럼 서술하지 말 것
 · 대신 6번(성취기준 학습 내용)을 본문의 중심 축으로 삼아, 선택된 성취기준을 바탕으로 "무엇을 학습했는지"를 담백하게 풀어 서술할 것
+· [기재요령] 성취기준에 이미 명시된 지식의 단순 서술은 지양 — 성취기준 문구를 그대로 풀어 쓰지 말고, 학습한 개념에 학생의 수업 참여 모습(참여도·과제 수행·학습 과정의 특성)을 함께 서술할 것
 · 성취기준 서술 표현: 완전히 이해했다는 과장된 단정 대신 아래와 같이 절제된 학습 진행형 표현을 사용
   허용 표현: ~을 학습함 / ~을 익히는 과정을 거침 / ~의 기초 개념을 다짐 / ~에 대한 이해를 넓혀감 / ~을 접하고 이해하려는 시도를 보임
   [절대 금지] ~을 완전히 이해함 / ~을 능숙하게 다룸 / ~을 깊이 있게 탐구함 (상위 등급 전용 표현이므로 하/최하에는 사용 금지)
@@ -4944,12 +5127,17 @@ const SYSTEM_PROMPT=`당신은 대한민국 고등학교 생활기록부 작성 
 - 동일 입력이라도 문장 구조·어휘·강조점을 반드시 다르게 작성
 - 도입 문장 패턴을 매번 다르게 시작
 
+## 기재 금지 항목 [위반 시 출력 무효]
+- 교내외 대회 참가·성적·수상, 공인어학시험·인증시험, 모의고사 성적, 논문 투고·도서 출간·특허, 해외 활동, 부모의 직업·지위 암시, 장학금, 특정 대학명·기관명·상호명·강사명, 방과후학교 활동, 영문 약어, 특수문자(중간점·《》『』)는 쓰지 말 것
+- 학생 시점 서술(깨닫고·뿌듯함·자부심 등 학생의 감정을 직접 쓰는 것) 금지 — 교사가 관찰한 행동·태도로 표현할 것
+- [학생 기본정보·희망전공] 등 참고용 정보를 근거로 입력에 없는 활동을 만들지 말 것
+
 ## ⛔ 절대 위반 금지 형식 규칙 [아래 규칙 중 하나라도 위반하면 출력 전체 무효 — 출력 전 반드시 자가 점검]
 ① 주어 완전 생략: 학생·교사·그는·그가·그의·이름 — 단 한 번도 등장 금지
 ② 쌍따옴표 " 완전 금지 — 학생 자기평가·인용·강조 등 어떤 상황에서도 단 한 글자도 사용 불가
 ③ 작은따옴표 ' 완전 금지 — 간접화법·인용 표현 시에도, 독서탐구보고서 관련 서술에서도 절대 사용 불가(그 부분은 [[독서탐구고정문장]] 토큰으로 대체하므로 따옴표를 쓸 일 자체가 없음). 반드시 간접화법으로만 처리: ...임을 밝힘 / ...라 느꼈음을 밝힘
 ④ 과목명 직접 언급 금지
-⑤ 기관명·학교명·외래어 금지
+⑤ 기관명·학교명·영문 약어 금지 (일반적으로 쓰는 외래어는 사용 가능)
 ⑥ 매우·정말·열심히 등 추상적 칭찬 금지 → 반드시 구체적 행동 장면으로 대체
 ⑦ [최우선·절대] 모든 문장의 종결어미는 예외 없이 ~음/~임/~함 중 하나여야 함 — "~다"로 끝나는 서술형 종결어미는 형태와 무관하게 전면 금지. 특히 아래처럼 과거형+"다"가 결합된 형태가 가장 자주 나오는 위반 사례이니 절대 쓰지 말 것:
    [절대 금지 예시] 드러냈다(X) / 두었다(X) / 하였다(X) / 했다(X) / 이해했다(X) / 참여했다(X) / 발휘했다(X) / 보였다(X) / 되었다(X)
@@ -6858,6 +7046,7 @@ function postProcess(text){
     .replace(/수행했음/g,"수행함")
     .replace(/참여하였음/g,"참여함")
     .replace(/참여했음/g,"참여함")
+    .replace(/([가-힣])했음(?![을은도에])/g,"$1함") // 일반 과거형 보정(~했음→~함, "~했음을/은/도/에"는 제외)
     .replace(/한 바 있으며/g,"하며")
     .replace(/한 바 있음/g,"함")
     .replace(/ㄴ 바 있으며/g,"하며")
@@ -6914,9 +7103,9 @@ var COMPLIANCE_RULES = [
   {pattern:/부모(님|가|은|의|께서)/g,               label:"가족 관계 언급",     grade:"위험",  tip:"부모님, 가족 관련 표현은 기재 금지"},
   {pattern:/형제|자매|가족/g,                         label:"가족 관계 언급",     grade:"위험",  tip:"가족 관련 표현은 기재 금지"},
   {pattern:/○○고등학교|○○중학교|○○대학교/g,        label:"학교명 직접 기재",   grade:"위험",  tip:"학교명 직접 노출 금지"},
-  {pattern:/수상(했|하였|함|함\.)|대상|금상|은상|동상|장려상|최우수상/g, label:"수상 실적 직접 기재", grade:"위험", tip:"교내 수상 실적은 수상경력 란에만 기재"},
+  {pattern:/수상(했|하였|함|함\.)|대상을\s*(받|수상)|금상|은상|동상|장려상|최우수상/g, label:"수상 실적 직접 기재", grade:"위험", tip:"교내 수상 실적은 수상경력 란에만 기재"},
   {pattern:/자격증|어학|토익|토플|텝스|opic|HSK/gi,  label:"자격증·어학 직접 기재", grade:"위험", tip:"자격증은 자격증 취득 현황란에만 기재"},
-  {pattern:/봉사(활동|시간|을|을 통해)/g,            label:"봉사활동 직접 기재", grade:"위험",  tip:"봉사 관련 내용은 봉사활동 란에만 기재"},
+  {pattern:/봉사(활동|시간|을|을 통해)/g,            label:"봉사활동 직접 기재", grade:"경고",  tip:"1~2학년은 창체 영역과 연계한 봉사만 해당 영역 특기사항에 기재 가능(개인 봉사는 봉사활동 실적란에만)"},
   // 금지 표현 — 주관적 판단
   {pattern:/성격(이|은|이\s)/g,                       label:"성격 단정 표현",     grade:"경고",  tip:"'성격이 ~하다' 형태 지양, 관찰 중심으로 서술"},
   {pattern:/IQ|지능(이|은|이\s)/g,                    label:"지능·IQ 언급",       grade:"위험",  tip:"지능·IQ 관련 표현 기재 금지"},
@@ -6928,6 +7117,9 @@ var COMPLIANCE_RULES = [
   {pattern:/학생(은|이|의|가)\s/g,                    label:"주어 노출",           grade:"경고",  tip:"주어(학생, 그 등) 생략 필요"},
   {pattern:/교사(는|가|의)\s/g,                       label:"주어 노출",           grade:"경고",  tip:"주어(교사) 생략 필요"},
   {pattern:/했다|하였다|됐다|되었다|있었다|없었다/g,  label:"과거형 종결어미",     grade:"경고",  tip:"~임·~음·~함 형태로 통일 필요"},
+  {pattern:/깨달|느꼈|느끼|뿌듯|자부심|보람|생각이 (들|듦)/g, label:"학생 시점 서술", grade:"경고",  tip:"학생 셀프 기록으로 오해될 수 있음 — 관찰된 행동·태도로 바꿔 쓰기"},
+  {pattern:/(^|[^A-Za-z])[A-Z]{2,}(?![A-Za-z])/g,          label:"영문 약어",           grade:"경고",  tip:"영문 축약형(NMS, GDPR 등) 기재 불가"},
+  {pattern:/[·∙《》『』]/g,                                  label:"특수문자",            grade:"경고",  tip:"중간점(∙)·《》·『』 등 특수문자 사용 주의"},
   {pattern:/매우|정말|너무|엄청/g,                    label:"추상적 수식어",       grade:"안내",  tip:"구체적 행동 장면으로 대체 권장"},
 ];
 
@@ -8841,24 +9033,51 @@ renderAttitudeSel();
 ══════════════════════════════════ */
 
 /* ── 프롬프트 ── */
+/* ── 기재요령 공통 준수 사항 (2026 반영, 자율·진로·행발 공통) ── */
+const D_COMMON_RULES = `## 기재요령 공통 준수 사항 [위반 시 출력 무효]
+- 서술의 근거는 입력된 정보뿐 — 입력에 없는 활동·장면·대화·수치·결과를 지어내거나 상상하여 쓰지 말 것. 입력에 없는 활동의 부재("~하지 않았음")도 서술하지 말 것
+- 학생 시점 서술 금지: 깨닫고·느끼며·느꼈음을 밝힘·자부심·뿌듯함·생각이 듦 등 학생의 감정·생각을 직접 쓰지 말고, 교사가 관찰한 행동·태도로 표현 (예: ~하는 모습이 관찰됨, ~이 확인됨)
+- 기재 금지: 교내외 대회 참가·성적·수상, 공인어학시험·인증시험, 모의고사 성적, 논문 투고·도서 출간·특허, 해외 활동, 부모의 직업·지위 암시, 장학금, 특정 대학명·기관명·상호명·강사명, 영문 약어, 특수문자(중간점·《》『』)
+- [학생 기본정보]의 수상 이력·자격증·어학은 참고용이므로 본문에 쓰지 말 것
+- 다른 항목에 기재할 수 없는 내용(방과후학교 활동 등)은 이 항목에도 쓰지 말 것
+- 입력된 활동명은 그대로 쓰고 임의의 별칭으로 바꾸지 말 것
+- 직책·역할(회장·부회장·부장 등)만 쓰고 끝내지 말 것: 직책을 쓸 때는 그 직책으로 실제 한 구체적 행동을 함께 서술하고, 입력에 행동 근거가 없으면 직책 언급을 최소화
+- 횟수·기간·시간 등 정량 정보가 입력되어 있으면 그대로 사용 가능
+- 영문 약어·기관명·학교명 금지 (일반적으로 쓰는 외래어는 사용 가능)
+- 모든 문장의 종결어미는 ~함·~임·~음, 과거 시제 선어말어미(-았-/-었-/-였-) 금지
+
+## 출력 전 자체 점검 [내부에서 수행하고, 점검 과정은 출력하지 말 것 — 하나라도 어기면 고친 뒤 최종본만 출력]
+① 첫 문장이 소개·일반론·추상적 칭찬이 아닌 구체적 행동 장면인가
+② 모든 문장 끝이 ~함·~임·~음이고, 연결어미(~했으며·~했고·~했을 때)에도 과거형이 없는가
+③ 학생 시점 서술(깨달음·느낌·뿌듯함)과 따옴표·영문 약어·특수문자가 없는가
+④ 입력되지 않은 활동·수치·고유명사를 지어내지 않았는가
+⑤ 직책만 나열하지 않고, 같은 어휘·문장 시작이 반복되지 않는가
+⑥ 목표 바이트 범위를 지켰는가`;
+
 const D_PROMPTS = {
   자율: `당신은 한국 고등학교에서 경험이 풍부한 노련한 '생활기록부 점검 장학사'입니다.
 담임교사로서 학생의 '자율활동 특기사항'을 작성합니다.
 읽는 대상은 '입학담당관 또는 입학사정관'입니다.
 
+## 작성 원칙 [기재요령: 활동 내용을 종합하여 학생의 개별적 특성이 드러나도록 서술하고, 단순 나열식 입력은 지양]
+- 입력된 활동 중 학생의 역할·행동이 가장 잘 드러나는 1~2개를 골라 구체적으로 서술할 것. 모든 활동을 일일이 나열하지 말 것
+- 서술의 근거는 입력된 활동·키워드·에피소드·자료뿐임. 사실 왜곡·창작 금지
+- [과정 중심] 결과만 쓰지 말고 '계기·동기 → 수행 방법 → 결과·변화'의 흐름이 보이게 서술할 것. '~하면서', '~을 통해', '~하는 과정에서' 같은 연결 표현으로 활동의 인과를 드러냄 (입력된 사실 범위 안에서만)
+
 ## 반드시 포함할 내용
-1. 활동내용과 관련된 글을 고등학교 자율활동 개념과 연관시켜 긍정적으로 풍성하게 서술
-2. 학생의 참여도와 태도가 잘 드러나는 구체적인 활동 장면을 긍정적으로 풍성하게 서술
-3. 교사 또는 학생들과 상호작용하는 구체적 상황을 상상하여 풍성하게 서술
-4. 자율활동에서의 참여도 및 태도를 긍정적으로 풍성하게 서술
-5. 2022 개정 교육과정 핵심역량(자기관리, 지식정보처리, 창의적사고, 심미적감성, 협력적소통, 공동체)과 연결하여 서술
-6. 학생의 발전 가능성을 긍정적으로 풍성하게 서술
+1. 활동내용과 자율활동 개념의 연관 (입력된 활동 기반)
+2. 참여도와 태도가 드러나는 구체적인 활동 장면 (입력된 사실 범위 안에서)
+3. 교사 또는 학생들과의 상호작용 — 입력에 근거가 있을 때만
+4. 2022 개정 교육과정 핵심역량(자기관리, 지식정보처리, 창의적사고, 심미적감성, 협력적소통, 공동체) 중 행동 근거가 있는 1~2개와 연결
+5. 학생의 발전 가능성
+
+${D_COMMON_RULES}
 
 ## 형식 조건
 - 주어 생략 (학생·그는·그가·그의 금지), 이름 생략
 - 어미: ~임·~음·~함 / 현재형·능동형
-- 1500바이트 내외 (한글 1자=3바이트) — 반드시 준수
-- 하나의 자연스러운 문단 / 기관명·학교명·외래어 금지
+- BYTE바이트 내외 (한글 1자=3바이트) — 반드시 준수
+- 하나의 자연스러운 문단
 
 ## 볼드 강조 규칙 [반드시 준수]
 - 핵심역량 키워드, 강조할 태도·행동 표현, 학생의 두드러진 특성은 앞뒤에 ** 를 붙여 **단어** 형태로 출력할 것
@@ -8873,20 +9092,25 @@ const D_PROMPTS = {
 담임교사로서 학생의 '진로활동 특기사항'을 작성합니다.
 읽는 대상은 '입학담당관 또는 입학사정관'입니다.
 
-## 반드시 포함할 내용
-1. 활동내용과 진로활동 개념 연관, 긍정적으로 풍성하게 서술
-2. 참여도와 태도가 드러나는 구체적 활동 장면 서술
-3. 교사·학생 상호작용 구체적 상황 서술
-4. 진로활동에서의 참여도 및 태도 서술
-5. 핵심역량 연결 서술
-6. 발전 가능성 서술
-7. ★핵심★ 기존 진로목표, 활동과 진로 연관성, 성장한 점, 미래 계획·의지가 글 전체를 관통해야 함
+## 작성 원칙
+- [과정 중심] 결과만 쓰지 말고 '계기·동기 → 수행 방법 → 결과·변화'의 흐름이 보이게 서술할 것. '~하면서', '~을 통해', '~하는 과정에서' 같은 연결 표현으로 활동의 인과를 드러냄 (입력된 사실 범위 안에서만)
+
+## 반드시 포함할 내용 [기재요령: 진로활동 특기사항에 기재하는 내용]
+1. 특기·진로희망과 관련된 학생의 자질, 학생이 수행한 노력과 활동
+2. 학교와 학생이 수행한 진로활동과 그 결과 (입력된 활동 기준)
+3. 진로상담 결과 — 입력되어 있을 때만
+4. 활동 참여도·의욕·태도의 변화
+5. 교사의 관찰·평가 (참여도와 태도가 드러나는 구체적 장면 — 입력된 사실 범위 안에서)
+6. 핵심역량 연결 (행동 근거가 있는 것만) 및 발전 가능성
+7. ★핵심★ 입력된 진로목표와 활동의 연관성이 글 전체를 관통해야 함. 단, 미래 계획·의지는 학생이 직접 밝힌 내용이 입력에 있을 때만 서술하고, 학과·직업·진학 계획을 단정하지 말 것
+
+${D_COMMON_RULES}
 
 ## 형식 조건
 - 주어 생략 (학생·그는·그가·그의 금지), 이름 생략
 - 어미: ~임·~음·~함 / 현재형·능동형
-- 2100바이트 내외 (한글 1자=3바이트) — 반드시 준수, 분량 미달 절대 불가
-- 하나의 자연스러운 문단 / 기관명·학교명·외래어 금지
+- BYTE바이트 내외 (한글 1자=3바이트) — 반드시 준수, 분량 미달·초과 모두 불가
+- 하나의 자연스러운 문단
 
 ## 볼드 강조 규칙 [반드시 준수]
 - 진로 키워드, 핵심역량, 강조할 성장 표현, 미래 계획 관련 핵심어는 앞뒤에 ** 를 붙여 **단어** 형태로 출력할 것
@@ -8901,19 +9125,25 @@ const D_PROMPTS = {
 담임교사로서 학생의 '행동특성 및 종합의견'을 작성합니다.
 읽는 대상은 '입학담당관 또는 입학사정관'입니다.
 
+## 작성 원칙 [기재요령: 학교 교육활동 전반에서 지속적으로 관찰된 행동특성을 바탕으로, 학생의 성장 정도·특기사항·발전 가능성을 고려하여 학생의 성장을 지원하는 교육적 관점에서 서술]
+- 분량이 BYTE바이트로 짧으므로 모든 영역을 나열하지 말 것. 가장 두드러진 인성·행동 특성 1~2개를 근거 장면과 함께 서술하고, 교우관계·학습태도·공동체 생활 중 입력 자료에서 두드러진 영역 1~2개만 덧붙일 것
+- "성격이 ~하다"처럼 성격을 단정하는 표현 대신 관찰된 행동·태도 중심으로 서술
+- 단점·지도가 필요한 점이 입력된 경우에는 구체적인 행동 사실로 쓰되 반드시 변화 가능성을 함께 서술
+
 ## 반드시 포함할 내용
-1. 가장 두드러진 성격·인성 특성을 담임교사 관찰 시각으로 서술 — 첫 문장은 핵심 특성이 드러나는 인상적인 문장
-2. 성격·인성 키워드 중심으로 학교생활 구체적 장면 연결하여 풍성하게 서술
-3. 교우관계 및 교사와의 상호작용 대인관계 특성 서술
-4. 학습 태도, 자기관리 능력, 공동체 생활 적응력 긍정적으로 서술
-5. 에피소드·특이사항 반영하여 개별적 특성 서술
-6. 담임교사가 기대하는 미래 성장 가능성과 인재상으로 마무리
+1. 가장 두드러진 인성·행동 특성 — 첫 문장은 관찰된 구체적 행동 장면이 드러나는 인상적인 문장
+2. 근거가 되는 학교생활 장면 (입력된 에피소드·키워드 기반)
+3. 교우관계·학습태도·공동체 생활 중 두드러진 영역
+4. 학생의 성장 정도(변화)
+5. 담임교사가 기대하는 발전 가능성으로 마무리
+
+${D_COMMON_RULES}
 
 ## 형식 조건
 - 주어 생략 (학생·그는·그가·그의 금지), 이름 생략
 - 어미: ~임·~음·~함 / 현재형·능동형
-- 1500바이트 내외 (한글 1자=3바이트) — 반드시 준수
-- 하나의 자연스러운 문단 / 기관명·학교명·외래어 금지
+- BYTE바이트 내외 (한글 1자=3바이트) — 반드시 준수
+- 하나의 자연스러운 문단
 
 ## 볼드 강조 규칙 [반드시 준수]
 - 성격·인성 핵심 키워드, 두드러진 행동 특성, 강조할 역량 표현은 앞뒤에 ** 를 붙여 **단어** 형태로 출력할 것
@@ -9080,7 +9310,7 @@ let dOpenCounselId=null;
 let dCounselDate=new Date().toISOString().slice(0,10), dCounselType="학업", dCounselContent="";
 let dStuSearch="", dTagFilter="";
 let dNugaDate=new Date().toISOString().slice(0,10);
-let dByteGoals={자율:1500,진로:2100,행발:1500};
+let dByteGoals={자율:1500,진로:1500,행발:900};
 let dPopupPrevResult="";
 
 /* ── 초성 유틸 ── */
@@ -9104,8 +9334,10 @@ function dLoadSettings(){
 }
 function dLoadByteGoals(){
   try{var s=localStorage.getItem(D_LS_BYTE);if(s)return JSON.parse(s);}catch(e){}
-  return {자율:1500,진로:2100,행발:1500};
+  return {자율:1500,진로:1500,행발:900};
 }
+/* 2026 기재요령 기준 기본 바이트 (진로 500자, 행발 300자) */
+function dDefaultByteGoal(tab){return ({자율:1500,진로:1500,행발:900})[tab]||1500;}
 function dSaveStudents(){
   var ok=lsSafeSet(getDaminDataKey(),JSON.stringify(dStudents));
   if(!ok){
@@ -9119,7 +9351,7 @@ function dSaveStudents(){
 function dGetApiKey(){return localStorage.getItem(SHARED_API_KEY)||"";}
 
 /* ── 바이트 계산 ── */
-function dCalcBytes(s){var b=0;for(var i=0;i<s.length;i++)b+=s.charCodeAt(i)>127?3:1;return b;}
+function dCalcBytes(s){s=String(s||"").replace(/\*\*/g,"");var b=0;for(var i=0;i<s.length;i++)b+=s.charCodeAt(i)>127?3:1;return b;}
 
 /* ── 색상 ── */
 function dCol(){return D_TAB_COLOR[dActiveTab].color;}
@@ -9307,6 +9539,7 @@ function dRenderInputCol(){
 
 /* ── 결과 컬럼 렌더 ── */
 function dRenderResultCol(){
+  scShow("d-result-area",dResult,"d");
   var col=dCol(),lite=dLite();
   var resultArea=document.getElementById("d-result-area");
   var resultEmpty=document.getElementById("d-result-empty");
@@ -9648,14 +9881,14 @@ async function dDoRevise(instruction){
       method:"POST",
       headers:{"Content-Type":"application/json","Authorization":"Bearer "+apiKey},
       body:JSON.stringify({model:getModel(),max_tokens:2500,
-        messages:[{role:"system",content:"당신은 생활기록부 수정 전문가입니다. 주어진 지시에 따라 수정하고 수정된 전체 문단만 출력합니다. 주어 생략, 이름 생략, ~임·~음·~함 어미 유지."},
+        messages:[{role:"system",content:"당신은 생활기록부 수정 전문가입니다. 기존 글의 **볼드** 표시는 유지하고 새로 쓴 핵심 키워드에도 같은 방식으로 적용합니다. 주어진 지시에 따라 수정하고 수정된 전체 문단만 출력합니다. 주어 생략, 이름 생략, ~임·~음·~함 어미 유지."},
           {role:"user",content:prompt}]}),
     });
     if(!res.ok){var errD=await res.json().catch(function(){return {};});throw new Error("HTTP "+res.status+(errD.error&&errD.error.message?": "+errD.error.message:""));}
     var data=await res.json();
     if(data.error)throw new Error(data.error.message);
     trackApiCost(data.usage, getModel());
-    dResult=postProcess(data.choices[0].message.content||"");
+    dResult=scFix(postProcess(data.choices[0].message.content||""));
     dStudents[dSelStu].results[dActiveTab]=dResult; // [v9] 수정 결과 즉시 저장
     dSaveStudents();
     dRenderResultPopup();
@@ -11176,6 +11409,8 @@ async function dHandleGenerate(){
   dEpisode=document.getElementById("d-episode-ta").value||"";
   dEmphasisNote=document.getElementById("d-emphasis-note")?document.getElementById("d-emphasis-note").value:"";
   if(!dEvents.length&&!dPersonality.length&&!dEpisode.trim()){dError="활동/키워드를 선택하거나 특이사항을 입력해주세요.";dRenderInputCol();return;}
+  var _thinD=(dEpisode||"").trim().length<15&&!Object.keys(dEvNotes||{}).some(function(k){return dEvNotes[k]&&dEvNotes[k].trim();})&&!dGetSurveyPromptBlock()&&!dGetNugaPromptBlock()&&!dGetCsPromptBlock()&&!dGetAcPromptBlock();
+  if(_thinD&&!confirm("이 학생은 특이사항·에피소드와 활동별 자료가 거의 없어요.\n키워드만으로는 일반론이 나오기 쉬워요.\n\n그래도 생성할까요?"))return;
   dError="";dResult="";dLoading=true;dRenderInputCol();dRenderResultCol();
   var tabLabel=dActiveTab==="행발"?"행동특성 및 종합의견":dActiveTab+"활동 특기사항";
   var eventLabel=dActiveTab==="진로"?"진로활동 목록":"참여 행사·활동";
@@ -11193,8 +11428,8 @@ async function dHandleGenerate(){
   var infoLines=[];
   if(info.career)infoLines.push("희망진로: "+info.career);
   if(info.talent)infoLines.push("특기·관심분야: "+info.talent);
-  if(info.award)infoLines.push("수상 이력: "+info.award);
-  if(info.cert)infoLines.push("자격증·어학: "+info.cert);
+  if(info.award)infoLines.push("수상 이력(참고용 — 본문 기재 금지): "+info.award);
+  if(info.cert)infoLines.push("자격증·어학(참고용 — 본문 기재 금지): "+info.cert);
   if(info.memo)infoLines.push("담임 메모: "+info.memo);
   var infoBlock=infoLines.length?"\n[학생 기본정보]\n"+infoLines.join("\n")+"\n":"";
   var keywordLabel=dActiveTab==="자율"?"참여·활동 키워드":dActiveTab==="진로"?"진로·성장 키워드":"성격·인성 키워드";
@@ -11210,20 +11445,23 @@ async function dHandleGenerate(){
     +"희망진로: "+(dCareer||info.career||"(미입력)")+"\n"
     +"특이사항·에피소드: "+(dEpisode||"(없음)")+"\n"
     +(dEmphasisNote&&dEmphasisNote.trim()?"[강조 지시 — 글자수가 부족하면 이 지시를 최우선으로 반영할 것] "+dEmphasisNote.trim()+"\n":"")
-    +"글자수 기준: "+(dByteGoals[dActiveTab]||1500)+"바이트 내외 (한글 1자=3바이트) — 반드시 준수";
+    +"글자수 기준: "+(dByteGoals[dActiveTab]||dDefaultByteGoal(dActiveTab))+"바이트 내외 (한글 1자=3바이트) — 반드시 준수";
+  var _exP=scExPick(dActiveTab); prompt+=scExBlock(_exP);
   try{
     var res=await fetch("https://api.openai.com/v1/chat/completions",{
       method:"POST",
       headers:{"Content-Type":"application/json","Authorization":"Bearer "+apiKey},
-      body:JSON.stringify({model:getModel(),max_tokens:dActiveTab==="진로"?2500:2000,temperature:0.7,messages:[{role:"system",content:D_PROMPTS[dActiveTab]},{role:"user",content:prompt}]}),
+      body:JSON.stringify({model:getModel(),max_tokens:dActiveTab==="진로"?2500:2000,temperature:0.7,messages:[{role:"system",content:D_PROMPTS[dActiveTab].replace(/BYTE/g,(dByteGoals[dActiveTab]||dDefaultByteGoal(dActiveTab)))},{role:"user",content:prompt}]}),
     });
     if(!res.ok){var errD=await res.json().catch(function(){return {};});throw new Error("HTTP "+res.status+(errD.error&&errD.error.message?": "+errD.error.message:""));}
     var data=await res.json();
     if(data.error){const errObj=data.error;throw Object.assign(new Error(errObj.message),{code:errObj.code,type:errObj.type});}
     trackApiCost(data.usage, getModel());
-    dResult=postProcess(data.choices[0].message.content||""); // [v9] postProcess 적용 (교과 앱과 동일하게)
+    dResult=scFix(postProcess(data.choices[0].message.content||"")); // [v9] postProcess 적용 + 자체점검 보정
     dStudents[dSelStu].results[dActiveTab]=dResult;
     dStudents[dSelStu].done[dActiveTab]=true;
+    var _sc5=scSrcOf(prompt,null); _sc5.exo=scExOverlap(dResult,_exP);
+    (dStudents[dSelStu].scSrc=dStudents[dSelStu].scSrc||{})[dActiveTab]=_sc5;
     if(!dStudents[dSelStu].history)dStudents[dSelStu].history={};
     if(!dStudents[dSelStu].history[dActiveTab])dStudents[dSelStu].history[dActiveTab]=[];
     dStudents[dSelStu].history[dActiveTab].unshift({text:dResult,time:new Date().toLocaleTimeString()});
@@ -11292,6 +11530,18 @@ function daminInit(){
   dCount=settings.count||30;
   dStudents=dLoadStudents();
   dByteGoals=dLoadByteGoals();
+  try{
+    if(!localStorage.getItem('gb_limit2026_v1')){
+      localStorage.setItem('gb_limit2026_v1','1');
+      if(dByteGoals['진로']===2100||dByteGoals['행발']===1500){
+        if(confirm('2026학년도 기재요령에서 글자수가 줄었어요.\n진로활동 500자(1500바이트), 행동발달 300자(900바이트)로 바꿀까요?\n(취소하면 지금 설정을 그대로 유지해요)')){
+          if(dByteGoals['진로']===2100)dByteGoals['진로']=1500;
+          if(dByteGoals['행발']===1500)dByteGoals['행발']=900;
+          localStorage.setItem(D_LS_BYTE,JSON.stringify(dByteGoals));
+        }
+      }
+    }
+  }catch(e){}
   dSwitchMainTab("write");
   dRender();
   if(typeof dRenderSurveySection==='function') dRenderSurveySection();
@@ -11323,31 +11573,74 @@ function daminInit(){
 
 /* ── 시스템 프롬프트 ── */
 const C_SYSTEM_PROMPT = `당신은 한국 고등학교 생활기록부 작성 전문 장학사입니다.
-동아리 활동 세부능력 및 특이사항을 작성합니다.
-읽는 대상은 입학담당관 또는 입학사정관입니다.
+정규교육과정 내 동아리활동 특기사항을 작성합니다.
+읽는 대상은 입학담당관 또는 입학사정관이며, 교사가 직접 관찰한 사실을 근거로 학생의 개별적 특성이 드러나게 서술합니다.
 
 ⚠️⚠️ [최우선 절대 규칙] 사실 왜곡·창작 금지: 서술의 근거는 (1) 아래 텍스트 정보(동아리명·활동 분야·공통 활동 내용·역할·특이사항·에피소드·역량 키워드·자료 핵심정보)와 (2) "실제로 추출된 본문 내용"이라고 명시된 첨부파일 텍스트, 이 두 가지뿐임. 도서명·저자명·작품명·수치·통계·고유명사 등 구체적 사실은 이 두 가지 중 하나에 명시적으로 나와 있을 때만 사용하고, 나와 있지 않으면 절대로 임의로 만들어내거나 추측하지 말 것. 첨부파일 안내에 "추출에 실패했다"거나 "실제 내용이 전달되지 않았다"고 적혀 있으면 그 파일의 구체적 내용(제목·저자·세부 수치 등)을 절대 언급하지 말 것. 확인되지 않은 사실을 그럴듯하게 지어내는 것은 생활기록부의 신뢰성을 해치는 심각한 오류임.
 
-## 반드시 포함할 내용 (순서대로)
-1. 동아리 활동에서 드러난 학생의 핵심 역량과 태도 — 첫 문장은 인상적으로 시작
-2. 공통 활동 내용을 이 학생만의 표현과 시각으로 구체적으로 서술
-3. 학생 개인의 역할, 기여, 특이사항을 풍성하게 서술
-4. 활동을 통해 성장한 역량(창의적사고, 협력적소통, 공동체, 자기관리 등)과 연결
-5. 발전 가능성과 진로 연결로 마무리
+## 작성 원칙 [기재요령: 참여도·협력도·열성도·특별한 활동실적 등을 참고하여 실제적인 활동과 역할 위주로 입력]
+- 학생이 실제로 한 활동과 맡은 역할을 중심으로 서술
+- 동아리 소개·운영 목적·의의를 설명하는 문장은 쓰지 말 것
+
+## 첫 문장 [절대 규칙, 반드시 준수]
+- 학생이 한 활동 또는 맡은 역할의 구체적인 장면으로 시작할 것 (주어 생략)
+- [절대 금지] "○○동아리에서의 활동은", "○○동아리는", "이 동아리는", "동아리 활동을 통해" 등 동아리 소개·의의·일반론으로 시작하는 것
+- [절대 금지] 성실함·창의성 같은 추상적 칭찬만으로 시작하는 것
+[첫 문장 형태 예시 — 형태만 참고하고 내용은 입력된 사실로만 채울 것, 문구 그대로 복사 금지]
+· 동아리 부원들과 함께 (입력된 활동)에 참여하며 (입력된 구체적 행동)함.
+· (입력된 활동)을 직접 설계하고 (입력된 대상)에게 소개하는 과정에서 (입력된 구체적 행동)을 보임.
+· (입력된 역할)을 맡아 (입력된 활동 장면)에서 (입력된 구체적 행동)하며 활동에 기여함.
+· (입력된 활동명) 활동에서 (입력된 장면·시기)에 (입력된 구체적 행동)하는 모습을 보임.
+· (입력된 활동 주제)를 탐구하는 활동에서 (입력된 구체적 행동)하며 (입력된 역할)을 수행함.
+
+## 구성 순서 (하나의 자연스러운 문단으로 이어서 서술)
+[과정 중심] 결과만 쓰지 말고 '계기·동기 → 수행 방법 → 결과·변화'의 흐름이 보이게 서술할 것. 문장은 '~하면서', '~을 통해', '~하는 과정에서' 같은 연결 표현으로 이어 활동의 인과가 드러나게 함 (입력된 사실 범위 안에서만)
+1. 역할·참여: 학생이 맡은 역할이나 참여 방식을 구체적인 활동 장면으로 시작
+2. 구체 활동: 무엇을 어떻게 했는지(활동 내용·과정·산출물)를 입력된 사실 범위에서 서술
+3. 개인 기여·에피소드: 이 학생만의 기여·특이사항·에피소드를 중심에 배치 (입력되어 있으면 반드시 반영)
+4. 변화·성장: 활동 과정에서 드러난 행동의 변화나 성장을 교사 관찰 시각으로 서술. 역량은 활동 장면에서 행동 근거가 있는 것만 최대 1~2개 (역량 키워드가 선택되어 있으면 그 안에서 고를 것)
+5. 교사 관찰 마무리: 활동 태도·기여에 대한 관찰로 마무리. 진로·장래 희망·미래 계획을 단정하는 문장은 쓰지 말 것 (진로는 진로활동 영역에서 다룸)
+[마무리 문장 형태 예시 — 입력된 사실에 근거할 때만]
+· (활동 과정에서 관찰된 구체적 행동)이 꾸준히 확인되며 (근거 있는 역량)이 향상됨.
+· (역할 수행 모습)에서 (근거 있는 태도)가 관찰됨.
+
+## 서술 금지 [위반 시 출력 무효]
+- 동아리·행사 자체를 평가하는 문장 금지 ("~기회를 제공함", "목적이 실현됨", "의미 있는 활동임" 등) — 반드시 학생의 행동으로 서술
+- 학생 시점 서술 금지: 깨닫고·느끼며·느꼈음을 밝힘·자부심·뿌듯함·생각이 듦 등 학생의 감정·생각을 직접 쓰지 말 것. 학생 소감이 자료에 있어도 소감 문장 대신 그로 인해 관찰된 행동·태도로 바꿔 서술 (예: ~하는 모습이 관찰됨, ~이 확인됨)
+- 입력되지 않은 활동의 부재("~하지 않았음")를 서술하지 말 것
+- 직책·역할(부장·총무·조장 등)만 쓰고 끝내지 말 것: 직책을 쓸 때는 그 직책으로 실제 한 구체적 행동을 함께 서술하고, 입력에 행동 근거가 없으면 직책 언급을 최소화
+- 기재 금지: 교내외 대회 참가·성적·수상, 공인어학시험·인증시험, 모의고사 성적, 논문 투고·도서 출간·특허, 해외 활동, 부모의 직업·지위 암시, 장학금, 특정 대학명·기관명·상호명·강사명, 영문 약어, 특수문자(중간점·《》『』)
+- 입력된 활동명은 그대로 쓰고 임의의 별칭으로 바꾸지 말 것
 
 ## 개별화 핵심 지침
-- 공통 활동 문구는 반드시 이 학생만의 표현으로 변주하여 작성 (동일 표현 절대 금지)
-- 같은 내용이라도 강조점, 어휘, 문장 구조를 반드시 다르게
+- 공통 활동의 사실(활동명·내용·횟수)은 바꾸지 말고, 문장 구조·강조점·어휘만 학생마다 다르게 서술
 - 개인 특이사항과 에피소드가 있으면 반드시 중심에 배치
 
 ## 형식 조건
 - 주어 생략 (학생·그는·그가·그의 금지), 이름 생략
-- 어미: ~임·~음·~함 / 현재형·능동형
+- 모든 문장의 종결어미는 ~함·~임·~음 (서술형 "~다" 금지)
+- 과거 시제 선어말어미(-았-/-었-/-였-) 금지: 문장 끝뿐 아니라 연결어미에도 쓰지 말고 현재형으로 일관 (예: 조성했음(X)→조성함(O), 제안했을 때(X)→제안하며(O), 참여했으며(X)→참여하며(O))
 - BYTE바이트 내외 (한글 1자=3바이트) — 반드시 준수
-- 하나의 자연스러운 문단 / 기관명·학교명·외래어 금지
+- 하나의 자연스러운 문단 / 따옴표 금지
+- 영문 약어·기관명·학교명 금지 (보드게임·퀴즈처럼 일반적으로 쓰는 외래어는 사용 가능)
+
+## 출력 전 자체 점검 [내부에서 수행하고, 점검 과정은 출력하지 말 것 — 하나라도 어기면 고친 뒤 최종본만 출력]
+① 첫 문장이 소개·일반론·추상적 칭찬이 아닌 구체적 행동 장면인가
+② 모든 문장 끝이 ~함·~임·~음이고, 연결어미(~했으며·~했고·~했을 때)에도 과거형이 없는가
+③ 학생 시점 서술(깨달음·느낌·뿌듯함)과 따옴표·영문 약어·특수문자가 없는가
+④ 입력되지 않은 활동·수치·고유명사를 지어내지 않았는가
+⑤ 직책만 나열하지 않고, 같은 어휘·문장 시작이 반복되지 않는가
+⑥ 목표 바이트 범위를 지켰는가
+
+## 볼드 강조 규칙 [반드시 준수]
+- 핵심 키워드는 앞뒤에 ** 를 붙여 **단어/문구** 형태로 출력할 것
+- ① 동아리 활동·탐구 주제의 핵심 키워드 ② 인성·태도 핵심어(자기주도적, 책임감, 협력적, 주도적, 적극적, 끈기 등) ③ 활동 장면에서 행동 근거가 있는 역량 ④ 교사 관찰 핵심 표현(~이 돋보임, ~가 확인됨, ~가 관찰됨 등)
+- 이것은 화면 렌더링에 필수적이므로 반드시 지켜야 함. ** 기호를 절대 생략하지 말 것
+- 한 문장에 1~2개 이내로 과하지 않게 적용 (** 기호는 바이트 계산에서 제외됨)
+- 출력 예시: 부원들과 함께 (입력된 활동)을 진행하며 **책임감** 있게 역할을 수행하는 모습이 **돋보임**
 
 ## 출력
-동아리 활동 세부능력 및 특이사항 문단만. 설명 없이 본문만.`;
+동아리활동 특기사항 문단만. 설명 없이 본문만.`;
 
 /* ── 역량 키워드 ── */
 const C_COMPETENCIES = [
@@ -11403,7 +11696,7 @@ function cSaveData() {
   }
 }
 function cGetApiKey() { return localStorage.getItem(C_LS_KEY) || ""; }
-function cCalcBytes(s) { var b=0; for(var i=0;i<s.length;i++) b+=s.charCodeAt(i)>127?3:1; return b; }
+function cCalcBytes(s) { s=String(s||"").replace(/\*\*/g,""); var b=0; for(var i=0;i<s.length;i++) b+=s.charCodeAt(i)>127?3:1; return b; }
 
 function cMakeClub(name) {
   return {
@@ -11664,6 +11957,7 @@ function cRenderMain() {
 }
 
 function cRenderResult() {
+  scShow("c-result-area",cResult,"c");
   var club = cClubs[cSelClub];
   var stu = club&&club.students[cSelStu];
   if (cResult) {
@@ -12314,6 +12608,8 @@ async function cHandleGenerate() {
     document.getElementById("c-error-box").style.display="block";
     return;
   }
+  var _thinC=((stu.role||"").trim().length+(stu.episode||"").trim().length+((stu.fileNote||"").trim().length)+((stu.emphasisNote||"").trim().length))<25&&!(stu.files&&stu.files.length)&&!cGetSurveyPromptBlock();
+  if(_thinC&&!confirm("이 학생은 개인 역할·에피소드 자료가 거의 없어요.\n공통 활동만으로는 다른 학생과 비슷한 일반론이 나오기 쉬워요.\n\n그래도 생성할까요?"))return;
   cError="";cResult="";cLoading=true;cRenderMain();
   var cSurveyBlock = cGetSurveyPromptBlock();
   var prompt="다음 학생 정보를 바탕으로 동아리 활동 세부능력 및 특이사항을 작성해주세요.\n\n"
@@ -12326,8 +12622,10 @@ async function cHandleGenerate() {
     +"역량 키워드: "+((stu.comps&&stu.comps.length)?stu.comps.join(", "):"(미선택)")+"\n"
     +"순번: "+(cSelStu+1)+"번 (다른 학생과 표현이 겹치지 않도록 개별화)\n"
     +(stu.emphasisNote&&stu.emphasisNote.trim()?"[강조 지시 — 바이트가 부족하면 이 지시를 최우선으로 반영할 것] "+stu.emphasisNote.trim()+"\n":"")
-    +"바이트 기준: "+cByteGoal+"바이트 내외 — 반드시 준수"
+    +"바이트 기준: "+cByteGoal+"바이트 내외 — 반드시 준수\n"
+    +"※ 첫 문장은 동아리명·동아리 소개로 시작하지 말고, 이 학생이 한 활동·맡은 역할의 장면으로 시작할 것"
     +cSurveyBlock;
+  var _exP=scExPick("동아리"); prompt+=scExBlock(_exP);
   var sys = C_SYSTEM_PROMPT.replace("BYTE", cByteGoal);
   try{
     var res=await fetch("https://api.openai.com/v1/chat/completions",{
@@ -12339,7 +12637,8 @@ async function cHandleGenerate() {
     var data=await res.json();
     if(data.error){var errObj=data.error;throw Object.assign(new Error(errObj.message),{code:errObj.code,type:errObj.type});}
     trackApiCost(data.usage, getModel());
-    cResult=postProcess(data.choices[0].message.content||""); // [v9] postProcess 적용
+    cResult=scFix(postProcess(data.choices[0].message.content||"")); // [v9] postProcess 적용 + 자체점검 보정
+    stu.scSrc=scSrcOf(prompt,stu.files); stu.scSrc.exo=scExOverlap(cResult,_exP);
     stu.result=cResult; stu.done=true;
     stu.history=stu.history||[];
     stu.history.unshift({text:cResult,time:new Date().toLocaleTimeString()});
@@ -12367,7 +12666,11 @@ async function cHandleBulkGenerate() {
   if(!club.commonActivity){
     alert("공통 활동 내용을 먼저 입력해주세요.");return;
   }
-  if(!confirm(club.count+"명 전체를 일괄 생성하시겠습니까?"))return;
+  var _thinList=[];
+  club.students.slice(0,club.count).forEach(function(s,i){
+    if(((s.role||"").trim().length+(s.episode||"").trim().length+(s.fileNote||"").trim().length)<25&&!(s.files&&s.files.length))_thinList.push(i+1);
+  });
+  if(!confirm(club.count+"명 전체를 일괄 생성하시겠습니까?"+(_thinList.length?"\n\n⚠ 개인 자료가 빈약한 학생 "+_thinList.length+"명("+_thinList.slice(0,10).join(", ")+"번"+(_thinList.length>10?" 외":"")+")은 일반론이 나오기 쉬워요.\n(설문이 연동된 학생은 실제로는 괜찮을 수 있어요)":"")))return;
   cBulkRunning=true; cStopBulk=false;
   var _cFailedList=[]; // [v9] 실패 리포트용
   // Race Condition 방지: 시작 시점의 동아리 인덱스와 club 객체 모두 스냅샷으로 고정
@@ -12392,7 +12695,9 @@ async function cHandleBulkGenerate() {
       +"역량 키워드: "+((stu.comps&&stu.comps.length)?stu.comps.join(", "):"(미선택)")+"\n"
       +"순번: "+(i+1)+"번 / 전체 "+_snapClub.count+"명 중 (앞서 생성된 학생들과 표현·어휘·문장구조를 반드시 다르게)\n"
       +(stu.emphasisNote&&stu.emphasisNote.trim()?"[강조 지시 — 바이트가 부족하면 이 지시를 최우선으로 반영할 것] "+stu.emphasisNote.trim()+"\n":"")
-      +"바이트 기준: "+cByteGoal+"바이트 내외 — 반드시 준수";
+      +"바이트 기준: "+cByteGoal+"바이트 내외 — 반드시 준수\n"
+      +"※ 첫 문장은 동아리명·동아리 소개로 시작하지 말고, 이 학생이 한 활동·맡은 역할의 장면으로 시작할 것";
+    var _exP=scExPick("동아리"); prompt+=scExBlock(_exP);
     // 일괄 생성 시: 설문 데이터 있으면 추가
     (function() {
       var payload = _fdPayload;
@@ -12422,8 +12727,8 @@ async function cHandleBulkGenerate() {
       var data=await res.json();
       if(data.error){var errObj=data.error;throw Object.assign(new Error(errObj.message),{code:errObj.code,type:errObj.type});}
       trackApiCost(data.usage, getModel());
-      var text=postProcess(data.choices[0].message.content||""); // [v9] postProcess 적용
-      stu.result=text; stu.done=true;
+      var text=scFix(postProcess(data.choices[0].message.content||"")); // [v9] postProcess 적용 + 자체점검 보정
+      stu.result=text; stu.done=true; stu.scSrc=scSrcOf(prompt,stu.files); stu.scSrc.exo=scExOverlap(text,_exP);
       stu.history=stu.history||[];
       stu.history.unshift({text:text,time:new Date().toLocaleTimeString()});
       if(stu.history.length>5)stu.history=stu.history.slice(0,5);
@@ -12473,6 +12778,7 @@ async function cHandleBulkGenerate() {
   }
   // 일괄 생성 완료 후 유사도 경고
   if(!cStopBulk) cCheckSimilarity();
+  if(!cStopBulk) scPhraseReport("c",true);
   cRender();
 }
 function cStopBulkGenerate(){ cStopBulk=true; }
@@ -12651,14 +12957,14 @@ async function cDoRevise(instruction){
       method:"POST",
       headers:{"Content-Type":"application/json","Authorization":"Bearer "+apiKey},
       body:JSON.stringify({model:getModel(),max_tokens:2500,
-        messages:[{role:"system",content:"당신은 생활기록부 동아리 세특 수정 전문가입니다. 주어진 지시에 따라 수정하고 수정된 전체 문단만 출력합니다. 주어 생략, 이름 생략, ~임·~음·~함 어미 유지. 기존 세특이나 수정 지시에 없는 도서명·저자·수치 등 구체적 사실을 새로 지어내지 말 것."},
+        messages:[{role:"system",content:"당신은 생활기록부 동아리 세특 수정 전문가입니다. 기존 글의 **볼드** 표시는 유지하고 새로 쓴 핵심 키워드에도 같은 방식으로 적용합니다. 주어진 지시에 따라 수정하고 수정된 전체 문단만 출력합니다. 주어 생략, 이름 생략, ~임·~음·~함 어미 유지, 과거형(-았/었/였)·학생 시점 서술(깨닫고·느끼며·자부심 등) 금지, 동아리 자체를 평가하는 문장 금지. 기존 세특이나 수정 지시에 없는 도서명·저자·수치 등 구체적 사실을 새로 지어내지 말 것."},
           {role:"user",content:prompt}]}),
     });
     if(!res.ok){var errD=await res.json().catch(function(){return {};});throw new Error("HTTP "+res.status+(errD.error&&errD.error.message?": "+errD.error.message:""));}
     var data=await res.json();
     if(data.error)throw new Error(data.error.message);
     trackApiCost(data.usage, getModel());
-    cResult=postProcess(data.choices[0].message.content||"");
+    cResult=scFix(postProcess(data.choices[0].message.content||""));
     var stu=cClubs[cSelClub]&&cClubs[cSelClub].students[cSelStu];
     if(stu){stu.result=cResult;cSaveData();}
     cRenderResultPopup();
@@ -13144,7 +13450,7 @@ function dShowStoryAIError(msg){
    ══════════════════════════════════════════════════════════════ */
 (function(){
 "use strict";
-var LIMIT={"교과":1500,"자율":1500,"진로":2100,"행발":1500};
+var LIMIT={"교과":1500,"자율":1500,"진로":1500,"행발":900};
 var TYPES=["교과","자율","진로","행발"];
 var TYPE_LABEL={"교과":"교과 세부능력 및 특기사항","자율":"자율·자치활동 특기사항","진로":"진로활동 특기사항","행발":"행동특성 및 종합의견"};
 var FILE_PREFIX={"자율":"자율활동특기사항","진로":"진로활동특기사항","행발":"행동특성및종합의견"};
@@ -15572,8 +15878,8 @@ body #status-toolbar,body #d-status-toolbar,body #c-view-status>div:first-child{
         var items=[];
         dStudents.forEach(function(s,i){ if(s&&s.name)items.push({g:g,b:b,n:i+1,name:s.name,text:strip((s.results&&s.results[tab])||'')}); });
         if(!items.length){alert('입력된 학생이 없어요.');return null;}
-        var hard=(typeof dByteGoals==='object'&&dByteGoals[tab])?Math.round(dByteGoals[tab]*1.0):({자율:1500,진로:2100,행발:1500})[tab];
-        hard=({자율:1500,진로:2100,행발:1500})[tab];
+        var hard=(typeof dByteGoals==='object'&&dByteGoals[tab])?Math.round(dByteGoals[tab]*1.0):({자율:1500,진로:1500,행발:900})[tab];
+        hard=({자율:1500,진로:1500,행발:900})[tab];
         return {items:items,title:'「'+NAMES[tab]+'」',hard:hard,hardLabel:hard+'바이트'};
       }
     });
