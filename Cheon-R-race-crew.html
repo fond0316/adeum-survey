@@ -19,6 +19,7 @@ h1,h2,h3,p{margin:0}
 .card{background:var(--card);border:.5px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
 .card.tap{cursor:pointer}
 .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.subbar{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 6px;margin:4px -2px 4px;-webkit-overflow-scrolling:touch}.subbar::-webkit-scrollbar{display:none}.subbar button{flex:none;min-height:44px;padding:0 16px;border-radius:22px;border:1px solid var(--main);background:#fff;color:var(--main-d);font:inherit;font-size:14px;font-weight:600;white-space:nowrap}.subbar button.on{background:var(--main);color:#fff}
 .sec{display:flex;justify-content:space-between;align-items:baseline;margin:16px 2px 8px}
 .sec b{font-size:15px}.sec span{font-size:12px;color:var(--tx2)}
 .mut{color:var(--tx2);font-size:12.5px}
@@ -46,6 +47,7 @@ textarea{padding:10px 12px;min-height:70px}
 #nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 #nav button.on{color:var(--main-d);font-weight:600}
 .demo{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:8px;background:#FFF1B8;border:1.5px dashed #3A3360;border-radius:10px;padding:6px 10px;margin-bottom:10px;font-size:12.5px;font-weight:600;color:#3A3360}.demo .btn{white-space:nowrap;flex:0 0 auto}
+.petart{position:relative}.sbub{position:absolute;left:50%;top:-4px;transform:translateX(-50%);z-index:5;background:#fff;border:1.5px solid var(--main);border-radius:12px;padding:5px 10px;font-size:12.5px;font-weight:600;color:var(--tx);white-space:nowrap;box-shadow:0 2px 8px rgba(60,50,100,.15);animation:sbub 2.3s ease-out forwards;pointer-events:none}.sbub:after{content:'';position:absolute;left:50%;bottom:-6px;margin-left:-5px;border:5px solid transparent;border-top-color:var(--main);border-bottom:0}@keyframes sbub{0%{opacity:0;transform:translate(-50%,8px) scale(.7)}12%{opacity:1;transform:translate(-50%,0) scale(1.05)}20%{transform:translate(-50%,0) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-6px)}}.munch{animation:munch .5s}@keyframes munch{0%,100%{transform:scale(1)}30%{transform:scale(1.12,.88)}60%{transform:scale(.95,1.08)}}
 #sheetWrap{position:fixed;inset:0;background:rgba(30,25,50,.45);display:none;align-items:flex-end;justify-content:center;z-index:50}
 #sheetWrap.on{display:flex}
 #sheet{background:var(--bg);width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:16px 14px calc(20px + env(safe-area-inset-bottom))}
@@ -120,7 +122,7 @@ else if(MODE==='hyrox'){b.events=[{id:'e3',name:'하이록스',short:'하이록�
 else{b.events=[{id:'e2',name:'로어그릿',short:'로어',date:'2027-01-17',goal:null}];b.blocks=[blk('b2','로어그릿 대비','lower','2026-12-13','2027-01-17',3,[2,4,6])]}
 b.blocks=b.blocks.filter(Boolean);return b}
 function demoSeed(){
-var t=todayStr(),b={v:1,settings:{maxHr:185},overrides:{},badges:{},finished:{},setupDone:true,f45:{},logs:[]};
+var t=todayStr(),b={v:1,settings:{maxHr:185},overrides:{},badges:{},finished:{},setupDone:true,f45:{},logs:[],feedV:2,fedN:{e1:10,e2:0},fedT:{},gem:{log:{demo:6},own:{},on:{},treat:{apple:1},spent:0,seen:null}};
 b.events=[{id:'e1',name:'스키드레이스(체험)',short:'스키드',date:addDays(t,16),goal:null},{id:'e2',name:'로어그릿(체험)',short:'로어',date:addDays(t,52),goal:null}];
 b.blocks=[{id:'b1',name:'체험용 재시동',kind:'restart',start:addDays(t,-20),end:addDays(t,16),level:2,days:[2,6],indoorUntil:addDays(t,-10)},{id:'b2',name:'체험용 로어 대비',kind:'lower',start:addDays(t,17),end:addDays(t,52),level:3,days:[2,4,6]}];
 [[-19,32,5.1,148,0],[-16,35,5.6,150,0],[-12,34,5.7,149,0],[-9,38,6.4,147,0],[-5,36,6.2,146,0],[-2,40,6.9,145,0]].forEach(function(r,i){b.logs.push({id:'demo'+i,date:addDays(t,r[0]),sid:'',place:r[0]<-10?'무동력 트레드밀':'야외',min:r[1],km:r[0]<-10?0:r[2],avgHr:r[3],maxHr:r[3]+14,rpe:5,reps:[],note:i===0?'체험용 샘플 기록이에요':''})});
@@ -144,7 +146,7 @@ function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('저장 공간을 확인해 주세요')}
 if(MODE==='all'&&!DEMO){try{localStorage.setItem('running_dirty','1')}catch(e){}cloudSeq=(cloudSeq|0)+1;if(typeof cloudQueue==='function')cloudQueue()}}
 
-var ui={tab:'home',week:mondayOf(todayStr())};
+var ui={tab:'home',sub:'ses',week:mondayOf(todayStr())};
 var sessions=[];
 
 function nextEventAfter(d){return S.events.filter(function(e){return e.date>=d}).sort(function(a,b){return a.date<b.date?-1:1})[0]||null}
@@ -317,14 +319,15 @@ else if(cb){var wk=Math.floor(diffDays(t,cb.start)/7)+1,tot=Math.ceil((diffDays(
 else if(nb)title='🥚 곧 출발! 몸풀기 대기 중 · '+nb.name+' ('+md(nb.start)+')';else title='🏆 모든 훈련을 마쳤어요. 수고했어요!';
 var h='<div class="hdr"><div><div class="s">'+sub+'</div><div class="t">'+esc(title)+'</div></div><button class="btn pri sm" data-act="newlog">+ 기록</button></div>';
 h+=vTimeline(t);
-h+=vPet();
-h+=vF45();
+h+=vPet();var topH=h;h='';var T={};
+h+=vF45();T.f45=h;h='';
 var mon=mondayOf(t),w=weekStats(mon);
 h+='<div class="sec"><b>이번 주 세션</b><span>'+w.done+'/'+w.planned+' 완료</span></div>';
 var list=w.sessions;
 if(!list.length){list=sessions.filter(function(s){return s.date>t}).slice(0,3);h+='<div class="mut" style="margin:0 2px 8px">이번 주 예정 세션이 없어요. 다음 세션이에요.</div>'}
 if(!list.length)h+='<div class="card mut">예정된 세션이 없어요. 프로그램 탭에서 블록을 추가해 보세요.</div>';
 list.forEach(function(s){h+=sessCard(s)});
+T.ses=h;h='';
 var st=streak(),c=change();
 h+='<div class="grid2"><div class="card"><div class="mut">연속 달성</div><div class="big">'+st.n+'주</div><div class="mut">주 목표 달성 기준'+(st.pass?' · 쉬어가기 사용':'')+'</div></div>';
 if(c){var dp=c.p1-c.p0,dh=c.h1-c.h0;h+='<div class="card"><div class="mut">시작 대비 변화</div><div style="font-size:13px;margin-top:4px">페이스 '+fmtPace(c.p0)+' → '+fmtPace(c.p1)+'<br>심박 '+Math.round(c.h0)+' → '+Math.round(c.h1)+'</div><div class="mut" style="margin-top:2px">'+(dp<0?'빨라졌어요':'비슷해요')+' · 심박 '+(dh<=0?Math.abs(Math.round(dh))+' 내려감':Math.round(dh)+' 올라감')+'</div></div>'}
@@ -335,15 +338,20 @@ if(gs.length){h+='<div class="sec"><b>대회 목표</b><span>반복 세션 평�
 var cur=goalCur();
 gs.forEach(function(e){var g=e.goal,p=isFinite(cur)?Math.max(0,Math.min(1,(g.base-cur)/(g.base-g.target))):0;
 h+='<div class="card"><div class="row"><b>'+esc(e.name)+'</b><span class="mut">D-'+diffDays(e.date,t)+'</span></div><div class="bar" style="margin:8px 0 6px"><div style="width:'+Math.round(p*100)+'%"></div></div><div class="mut">시작 '+fmtPace(g.base)+' → 목표 '+fmtPace(g.target)+' · 현재 '+(isFinite(cur)?fmtPace(cur):'첫 반복 기록 후 표시')+'</div></div>'})}
+T.goal=h;h='';
 var un=BADGES.filter(function(b){return S.badges[b.id]});
 h+='<div class="sec"><b>배지</b><span>'+un.length+'/'+BADGES.length+'</span></div><div class="card">';
 BADGES.forEach(function(b){var on=!!S.badges[b.id];h+='<span class="badge'+(on?'':' lock')+'" title="'+esc(b.d)+'">'+(on?'★ ':'')+esc(b.n)+'</span>'});
 h+='<div class="mut" style="margin-top:4px">회색 배지는 아직 달성 전이에요.</div></div>';
 h+=vScenes();
+T.badge=h;h='';
 h+='<button class="btn full" data-act="share" data-mon="'+mon+'">이번 주 공유 카드 만들기</button>';
 h+='<div class="grid2" style="margin-top:10px"><button class="btn" data-act="guide">📖 가이드 보기</button>'+(DEMO?'<button class="btn" data-act="demoend">체험 끝내기</button>':'<button class="btn" data-act="demoask">🎮 체험하기</button>')+'</div>';
 if(LORE)h+=loreInfo();
-return h+'<div class="foot" data-act="foot">Made by Cheon_R</div>'}
+T.more=h;
+var SUBS=[['ses','세션 '+w.done+'/'+w.planned],['f45','프사오'],['goal','목표'],['badge','배지·장면'],['more','더보기']];if(!T[ui.sub])ui.sub='ses';
+var bar='<div class="subbar">'+SUBS.map(function(x){return '<button class="'+(ui.sub===x[0]?'on':'')+'" data-act="sub" data-v="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>';
+return topH+bar+T[ui.sub]+'<div class="foot" data-act="foot">Made by Cheon_R</div>'}
 
 function vWeek(){
 var mon=ui.week,end=addDays(mon,6),w=weekStats(mon),t=todayStr();
@@ -441,7 +449,7 @@ return h+'<div class="foot" data-act="foot">Made by Cheon_R</div>'}
 var ICON={home:'<path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/>',week:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',prog:'<path d="M5 6h14M5 12h14M5 18h9"/>',stats:'<path d="M5 20V10M12 20V4M19 20v-7"/>',log:'<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/>',adm:'<path d="M5 7h14M5 17h14"/><circle cx="9" cy="7" r="2.4"/><circle cx="15" cy="17" r="2.4"/>'};
 var TABS=[['home','홈'],['week','주차'],['prog','프로그램'],['stats','통계'],['log','기록']];
 function render(){
-refresh();
+refresh();ensureFeed();gemSync();
 if(ui.tab==='adm'&&!isAdmin())ui.tab='home';
 var app=document.getElementById('app');
 app.innerHTML=(DEMO?'<div class="demo"><span>🧪 체험 중이에요 · 샘플 기록이고 진짜 기록과 따로 보관돼요</span><button class="btn sm" data-act="demoend">체험 끝내기</button></div>':'')+(isAdmin()?adminBar():'')+{home:vHome,week:vWeek,prog:vProg,stats:vStats,log:vLog,adm:vAdmin}[ui.tab]()+(!LORE&&!isAdmin()&&!DEMO?'<div class="foot" style="margin-top:0"><button class="adm-link" data-act="adminopen">⚙ 관리자</button></div>':'');
@@ -492,7 +500,7 @@ var h='<h2>기록 완료</h2><div class="mut">'+esc(cheer(l))+'</div><div class=
 var f=feedback(l);if(!f.length)f=[['info','기록이 저장됐어요.']];
 f.forEach(function(x){h+='<div class="fb '+(x[0]==='good'?'good':x[0]==='warn'?'warn':'')+'">'+esc(x[1])+'</div>'});
 if(l.maxHr>S.settings.maxHr)h+='<div class="fb warn">기록된 최대 심박('+l.maxHr+')이 설정(최대심박 '+S.settings.maxHr+')보다 높아요. 프로그램 탭에서 최대심박을 조정해 볼 수 있어요.</div>';
-h+='<div class="fb good">병아리 먹이 +'+(isTM(l)?2:1)+(petStage()>_ps?' · '+STAGE_NM[petStage()]+'(으)로 자랐어요!':'')+'</div>';
+h+='<div class="fb good">먹이통에 먹이 +'+(isTM(l)?2:1)+' · 홈에서 병아리에게 먹이를 주세요 🌾</div>';
 if(nw.length){h+='<div class="sec"><b>새 배지</b><span></span></div>';nw.forEach(function(b){h+='<span class="badge">★ '+esc(b.n)+'</span> <span class="mut">'+esc(b.d)+'</span><br>'})}
 h+='<div style="margin-top:14px"><button class="btn pri full" data-act="closesheet">확인</button></div>';
 openSheet(h)}
@@ -542,14 +550,42 @@ function f45pw(){var v=S.settings&&S.settings.f45pw;return v==null?3:v}
 function feedFor(id){var w=evWin(id),n=S.logs.reduce(function(a,l){return (l.date>=w[0]&&l.date<=w[1])?a+(isTM(l)?2:1):a},0),F=f45();Object.keys(F).forEach(function(d){if(d>=w[0]&&d<=w[1])n+=F[d]});return n}
 function plannedFor(id){var w=evWin(id),ds=[],n=sessions.reduce(function(a,x){if(x.date>=w[0]&&x.date<=w[1]){ds.push(x.date);if(status(x)!=='skip')return a+(x.place===TM?2:1)}return a},0);ds.sort();if(ds.length)n+=Math.ceil((diffDays(ds[ds.length-1],ds[0])+1)/7)*f45pw();return n}
 function stageAt(id){var P=Math.max(plannedFor(id),6),t=[0,1,Math.ceil(P*.3),Math.ceil(P*.6),Math.ceil(P*.85)];for(var i=2;i<5;i++)if(t[i]<=t[i-1])t[i]=t[i-1]+1;return t}
-function stageFor(id){var f=feedFor(id),t=stageAt(id),k=0;for(var i=0;i<t.length;i++)if(f>=t[i])k=i;return k}
+function ensureFeed(){if(S.feedV===2)return;S.fedN=S.fedN||{};S.fedT=S.fedT||{};S.events.forEach(function(e){if(S.fedN[e.id]==null)S.fedN[e.id]=feedFor(e.id)});S.feedV=2}
+function fedOf(id){ensureFeed();return (S.fedN[id]||0)+(S.fedT[id]||0)}
+function bucketOf(id){ensureFeed();return Math.max(0,feedFor(id)-(S.fedN[id]||0))}
+function stageFor(id){var f=fedOf(id),t=stageAt(id),k=0;for(var i=0;i<t.length;i++)if(f>=t[i])k=i;return k}
 function teamOf(id){var d=TEAMDEF[id];if(!d)return null;var N=nm(),ms=mySlot();if(d.length===1)return [[petName(id),SLOTC[ms]]];return d.map(function(k){return [k===ms?petName(id):N[k],SLOTC[k]]})}
 var STAGE_NM=['알','병아리','중병아리','닭','러너 닭'];
 var CONF=['#F4A6B8','#7A6CB0','#5B8DEF','#5BAE8A','#F2C14E','#E0584B'];
 var SVGF="Pretendard,'Apple SD Gothic Neo','Noto Sans KR',sans-serif";
 function fin(){return S.finished||(S.finished={})}
-function feedPts(){var e=activeEv();return e?feedFor(e.id):0}
+function feedPts(){var e=activeEv();return e?fedOf(e.id):0}
 function petStage(){var e=activeEv();return e?stageFor(e.id):0}
+var DECOR=[['ribbon','리본','head',2,'🎀'],['sweat','땀밴드','head',3,'💦'],['cap','러닝 캡','head',6,'🧢'],['shade','선글라스','face',4,'🕶️'],['scarf','스카프','neck',5,'🧣']];
+var TREATS=[['apple','사과 특식','🍎',2,2],['cake','케이크 특식','🍰',5,6]];
+var SLOTNM={head:'머리',face:'얼굴',neck:'목'};
+function gem(){var g=S.gem||(S.gem={});g.log=g.log||{};g.own=g.own||{};g.on=g.on||{};g.treat=g.treat||{};if(g.spent==null)g.spent=0;if(g.seen===undefined)g.seen=null;return g}
+function gemBal(){var g=gem(),n=0;Object.keys(g.log).forEach(function(k){n+=g.log[k]});return n-g.spent}
+function gemSync(){
+var g=gem(),add=[],t=todayStr();
+function award(k,a,why){if(g.log[k]==null){g.log[k]=a;add.push(why)}}
+sortedEv().forEach(function(e){var st=stageFor(e.id);for(var k=1;k<=st&&k<=4;k++)award('st:'+e.id+':'+k,k===4?2:1,'성장')});
+var F=f45();Object.keys(F).forEach(function(d){if(F[d]===2)award('dbl:'+d,1,'프사오 더블')});
+if(sessions.length){var cur=mondayOf(t),m=mondayOf(sessions[0].date);while(m<=cur){var w=weekStats(m);if(w.planned>0&&w.done>=w.planned)award('wk:'+m,1,'주간 목표');m=addDays(m,7)}}
+var sn=streak().n;[[3,1],[5,2],[8,3]].forEach(function(x){if(sn>=x[0])award('str'+x[0],x[1],'연속 달성')});
+var bal=gemBal(),ch=add.length>0;
+if(g.seen===null){g.seen=bal;ch=true}
+else if(bal>g.seen){var d2=bal-g.seen;g.seen=bal;ch=true;if(!ui.mute){var u=[];add.forEach(function(x){if(u.indexOf(x)<0)u.push(x)});setTimeout(function(){toast('💎 보석 +'+d2+(u.length?' · '+u.join('·'):''))},300)}}
+if(ch)save()}
+function decorSet(){var g=gem(),o={};['head','face','neck'].forEach(function(k){var id=g.on[k];if(id&&g.own[id])o[k]=id});return o}
+function decorSvg(d,hx,hy,r){
+if(!d)return '';var o='',P=function(v){return Math.round(v*10)/10};
+if(d.neck==='scarf')o+='<path d="M'+P(hx-r*.95)+' '+P(hy+r*.75)+' Q'+hx+' '+P(hy+r*1.35)+' '+P(hx+r*.95)+' '+P(hy+r*.75)+' L'+P(hx+r*.85)+' '+P(hy+r*1.15)+' Q'+hx+' '+P(hy+r*1.75)+' '+P(hx-r*.85)+' '+P(hy+r*1.15)+' Z" fill="#E0584B"/><path d="M'+P(hx-r*.5)+' '+P(hy+r*1.3)+' L'+P(hx-r*.8)+' '+P(hy+r*2.1)+' L'+P(hx-r*.15)+' '+P(hy+r*1.85)+' Z" fill="#C8453A"/>';
+if(d.head==='ribbon'){var bx=P(hx-r*.45),by=P(hy-r*.95),q=r*.5;o+='<polygon points="'+bx+','+by+' '+P(bx-q)+','+P(by-q*.75)+' '+P(bx-q)+','+P(by+q*.75)+'" fill="#F4A6B8" stroke="#D4537E" stroke-width=".6"/><polygon points="'+bx+','+by+' '+P(bx+q)+','+P(by-q*.75)+' '+P(bx+q)+','+P(by+q*.75)+'" fill="#F4A6B8" stroke="#D4537E" stroke-width=".6"/><circle cx="'+bx+'" cy="'+by+'" r="'+P(q*.32)+'" fill="#D4537E"/>'}
+else if(d.head==='sweat')o+='<path d="M'+P(hx-r*.95)+' '+P(hy-r*.35)+' Q'+hx+' '+P(hy-r*1.2)+' '+P(hx+r*.95)+' '+P(hy-r*.35)+'" stroke="#E0584B" stroke-width="'+P(r*.38)+'" fill="none" stroke-linecap="round"/>';
+else if(d.head==='cap')o+='<path d="M'+P(hx-r*.95)+' '+P(hy-r*.35)+' Q'+P(hx-r*.9)+' '+P(hy-r*1.45)+' '+hx+' '+P(hy-r*1.45)+' Q'+P(hx+r*.9)+' '+P(hy-r*1.45)+' '+P(hx+r*.95)+' '+P(hy-r*.35)+' Z" fill="#5B8DEF" stroke="#3A5FB0" stroke-width=".8"/><path d="M'+P(hx+r*.5)+' '+P(hy-r*.4)+' Q'+P(hx+r*1.6)+' '+P(hy-r*.45)+' '+P(hx+r*1.65)+' '+P(hy-r*.15)+' L'+P(hx+r*.5)+' '+P(hy-r*.15)+' Z" fill="#3A5FB0"/>';
+if(d.face==='shade')o+='<rect x="'+P(hx-r*.75)+'" y="'+P(hy-r*.4)+'" width="'+P(r*1.5)+'" height="'+P(r*.55)+'" rx="'+P(r*.27)+'" fill="#2B2740"/><path d="M'+P(hx-r*.5)+' '+P(hy-r*.3)+' L'+P(hx-r*.15)+' '+P(hy-r*.3)+'" stroke="#fff" stroke-width="'+P(r*.1)+'" opacity=".6"/>';
+return o}
 function henSvg(x,y,s,c,o){
 o=o||{};
 var g='<g transform="translate('+x+','+y+') scale('+s+')">';
@@ -562,8 +598,9 @@ g+='<ellipse cx="-2" cy="-24" rx="11" ry="7" fill="'+c.wing+'"/>';
 g+='<circle cx="14" cy="-42" r="9" fill="'+c.body+'" stroke="'+c.line+'" stroke-width="1"/>';
 g+='<circle cx="11" cy="-51" r="3" fill="#E0584B"/><circle cx="15" cy="-52" r="3" fill="#E0584B"/><circle cx="19" cy="-49" r="3" fill="#E0584B"/>';
 if(o.crown){var cf=o.crown==='gold'?'#F2C14E':'#7A6CB0',cs=o.crown==='gold'?'#C99A1E':'#4A3F7A',cj=o.crown==='gold'?'#E0584B':'#F4A6B8';g+='<polygon points="6,-50 7,-62 11.5,-56 14,-65 16.5,-56 21,-62 22,-50" fill="'+cf+'" stroke="'+cs+'" stroke-width="1" stroke-linejoin="round"/><circle cx="10" cy="-52.5" r="1.4" fill="'+cj+'"/><circle cx="14" cy="-53.5" r="1.4" fill="'+cj+'"/><circle cx="18" cy="-52.5" r="1.4" fill="'+cj+'"/>'}
-else if(o.band){g+='<path d="M5.5 -46 Q14 -54 22.5 -46" stroke="'+c.band+'" stroke-width="3.6" fill="none" stroke-linecap="round"/><path d="M3 -46 L-2 -50 L-2 -42 Z" fill="'+c.band+'"/>'}
+else if(o.band&&!(o.decor&&o.decor.head)){g+='<path d="M5.5 -46 Q14 -54 22.5 -46" stroke="'+c.band+'" stroke-width="3.6" fill="none" stroke-linecap="round"/><path d="M3 -46 L-2 -50 L-2 -42 Z" fill="'+c.band+'"/>'}
 g+='<polygon points="22,-44 28,-42 22,-40" fill="#F29E4C"/><circle cx="16" cy="-44" r="1.6" fill="#2B2740"/><ellipse cx="20" cy="-37" rx="2" ry="3" fill="#E0584B"/>';
+if(o.decor){var dd=o.decor;g+=decorSvg(o.crown?{face:dd.face,neck:dd.neck}:dd,14,-42,9)}
 if(o.medal){g+='<path d="M5 -35 L11 -24 M17 -35 L11 -24" stroke="#E0584B" stroke-width="3" fill="none"/><circle cx="11" cy="-20" r="7.5" fill="#F2C14E" stroke="#C99A1E" stroke-width="1"/><text x="11" y="-16.3" text-anchor="middle" font-size="11" font-weight="700" fill="#6B4E0F" style="font-family:'+SVGF+'">1</text>'}
 if(o.prop==='tire')g+='<circle cx="40" cy="-13" r="12" fill="none" stroke="#3B3B3B" stroke-width="7"/><circle cx="40" cy="-13" r="4" fill="#E6E1F4"/>';
 else if(o.prop==='kb')g+='<path d="M32 -17 Q38 -31 44 -17" stroke="#444441" stroke-width="3.5" fill="none" stroke-linecap="round"/><circle cx="38" cy="-9" r="9" fill="#444441"/><ellipse cx="35" cy="-12" rx="2.5" ry="1.8" fill="#6B6B66"/>';
@@ -577,33 +614,68 @@ function sceneSvg(eid,full){
 var T=teamOf(eid)||[[nm()[0],CA]],n=T.length,W=430,H=200;
 var o='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" width="'+(full||'100%')+'"'+(full?' height="'+Math.round(full*H/W)+'"':'')+'>';
 o+='<ellipse cx="215" cy="184" rx="190" ry="8" fill="#E6E1F4"/>'+confetti(W,H,26);
-if(n===1){o+=henSvg(215,180,1.45,T[0][1],{tag:T[0][0],crown:true,medal:true,shoes:true,tagUp:6})}
-else{var xs=n===2?[140,290]:[105,210,315],sc=n===2?1.15:1.0,pr=eid==='e1'?'tire':'kb',cr=eid==='e2'?'gold':false;T.forEach(function(t,i){o+=henSvg(xs[i],178,sc,t[1],{tag:t[0],band:true,shoes:true,prop:pr,crown:cr})})}
+if(n===1){o+=henSvg(215,180,1.45,T[0][1],{tag:T[0][0],crown:true,medal:true,shoes:true,tagUp:6,decor:decorSet()})}
+else{var xs=n===2?[140,290]:[105,210,315],sc=n===2?1.15:1.0,pr=eid==='e1'?'tire':'kb',cr=eid==='e2'?'gold':false;T.forEach(function(t,i){o+=henSvg(xs[i],178,sc,t[1],{tag:t[0],band:true,shoes:true,prop:pr,crown:cr,decor:(t[1]===SLOTC[mySlot()]?decorSet():null)})})}
 o+=popper(22,184,1)+popper(W-22,184,-1);
 return o+'</svg>'}
 function petSvg(st,slot,eid){
-slot=slot||0;
+slot=slot||0;var DC=slot===mySlot()?decorSet():null;
 var o='<svg viewBox="0 0 120 112" width="120" height="112">',B=['#FFD66B','#FFC4D2','#BFE3F8'][slot],WG=['#F2C14E','#F29AB3','#92CBEF'][slot],SP=['#E9C9A0','#F0A9BC','#8FC3E6'][slot],W='#FFF6E4';
 if(st<3)o+='<ellipse cx="60" cy="104" rx="26" ry="4.5" fill="#D9D3EE"/>';
 if(st===0){o+='<g transform="translate(60,104) scale(1.5)"><ellipse cx="0" cy="-20" rx="15" ry="20" fill="'+W+'" stroke="#E6D9BC" stroke-width="1"/><circle cx="-5" cy="-26" r="1.6" fill="'+SP+'"/><circle cx="6" cy="-18" r="1.6" fill="'+SP+'"/><circle cx="-3" cy="-11" r="1.4" fill="'+SP+'"/><circle cx="5" cy="-30" r="1.3" fill="'+SP+'"/></g>'}
-else if(st===1){o+='<g transform="translate(60,104) scale(1.6)"><circle cx="0" cy="-22" r="11.5" fill="'+B+'"/><circle cx="-4" cy="-24" r="1.6" fill="#2B2740"/><circle cx="4" cy="-24" r="1.6" fill="#2B2740"/><polygon points="-2,-20 2,-20 0,-16.5" fill="#F29E4C"/><path d="M-14 -13 L-9 -7 L-4 -13 L2 -7 L7 -13 L14 -7 L14 -13 Q15 0 0 0 Q-15 0 -14 -13Z" fill="'+W+'" stroke="#E6D9BC" stroke-width="1" stroke-linejoin="round"/></g>'}
-else if(st===2){o+='<g transform="translate(60,104) scale(1.5)"><path d="M-6 -4 L-6 0 M6 -4 L6 0" stroke="#F29E4C" stroke-width="2" fill="none" stroke-linecap="round"/><ellipse cx="-15" cy="-16" rx="5" ry="8" fill="'+WG+'"/><ellipse cx="15" cy="-16" rx="5" ry="8" fill="'+WG+'"/><circle cx="0" cy="-17" r="17" fill="'+B+'"/><path d="M-3 -33 Q0 -42 4 -33" stroke="'+WG+'" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="-6" cy="-20" r="1.9" fill="#2B2740"/><circle cx="6" cy="-20" r="1.9" fill="#2B2740"/><polygon points="-3,-15 3,-15 0,-10.5" fill="#F29E4C"/></g>'}
-else{var pp=st===4?(eid==='e1'?'tire':eid==='e2'?'kb':''):'';if(pp)o+=henSvg(38,104,1.3,SLOTC[slot],{band:true,shoes:true,prop:pp});else o+=henSvg(58,104,1.5,SLOTC[slot],st===4?{band:true,shoes:true}:{})}
+else if(st===1){o+='<g transform="translate(60,104) scale(1.6)"><circle cx="0" cy="-22" r="11.5" fill="'+B+'"/><circle cx="-4" cy="-24" r="1.6" fill="#2B2740"/><circle cx="4" cy="-24" r="1.6" fill="#2B2740"/><polygon points="-2,-20 2,-20 0,-16.5" fill="#F29E4C"/><path d="M-14 -13 L-9 -7 L-4 -13 L2 -7 L7 -13 L14 -7 L14 -13 Q15 0 0 0 Q-15 0 -14 -13Z" fill="'+W+'" stroke="#E6D9BC" stroke-width="1" stroke-linejoin="round"/>'+decorSvg(DC,0,-22,11.5)+'</g>'}
+else if(st===2){o+='<g transform="translate(60,104) scale(1.5)"><path d="M-6 -4 L-6 0 M6 -4 L6 0" stroke="#F29E4C" stroke-width="2" fill="none" stroke-linecap="round"/><ellipse cx="-15" cy="-16" rx="5" ry="8" fill="'+WG+'"/><ellipse cx="15" cy="-16" rx="5" ry="8" fill="'+WG+'"/><circle cx="0" cy="-17" r="17" fill="'+B+'"/><path d="M-3 -33 Q0 -42 4 -33" stroke="'+WG+'" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="-6" cy="-20" r="1.9" fill="#2B2740"/><circle cx="6" cy="-20" r="1.9" fill="#2B2740"/><polygon points="-3,-15 3,-15 0,-10.5" fill="#F29E4C"/>'+decorSvg(DC,0,-17,17)+'</g>'}
+else{var pp=st===4?(eid==='e1'?'tire':eid==='e2'?'kb':''):'';if(pp)o+=henSvg(38,104,1.3,SLOTC[slot],{band:true,shoes:true,prop:pp,decor:DC});else o+=henSvg(58,104,1.5,SLOTC[slot],Object.assign(st===4?{band:true,shoes:true}:{},{decor:DC}))}
 return o+'</svg>'}
 function vPet(){
 var e=activeEv();
 if(!e)return '<div class="card"><b>모든 대회 완주!</b><div class="mut">완주 장면에서 기념 카드를 저장해 보세요.</div></div>';
-var f=feedFor(e.id),st=stageFor(e.id),t=stageAt(e.id),named=!!(S.pets&&S.pets[e.id]),newEgg=!named&&Object.keys(fin()).length>0,dd=diffDays(e.date,todayStr());
+var f=fedOf(e.id),st=stageFor(e.id),t=stageAt(e.id),named=!!(S.pets&&S.pets[e.id]),newEgg=!named&&Object.keys(fin()).length>0,dd=diffDays(e.date,todayStr());
 var h='<div class="card pet tap" data-act="pet"><div class="petart">'+petSvg(st,mySlot(),e.id)+'</div><div class="petin"><div class="mut">'+esc(e.name)+' · '+esc(petName(e.id))+' · '+(dd>=0?'D-'+dd:'완주 기록 대기')+'</div><div class="big" style="font-size:22px">'+STAGE_NM[st]+'</div>';
-if(st<4){var pv=t[st],nx=t[st+1];h+='<div class="bar" style="margin:8px 0 6px"><div style="width:'+Math.round(Math.min(1,(f-pv)/(nx-pv))*100)+'%"></div></div><div class="mut">먹이 '+f+'개 · 다음 단계까지 '+Math.max(0,nx-f)+'개</div>'}
-else h+='<div class="mut" style="margin-top:6px">먹이 '+f+'개 · 대회 날 완주하면 변신해요!</div>';
-h+='<div class="mut" style="margin-top:2px">기록 1회 = 먹이 1개 · 무동력 = 2개 · 프사오 1회 = 1개, 더블 = 2개</div><div class="mut" style="margin-top:2px;color:var(--main-d)">'+(newEgg?'새 알이에요! 눌러서 이름 짓기':'눌러서 이름·성장 규칙 보기')+'</div></div></div>';
-return h}
+if(st<4){var pv=t[st],nx=t[st+1];h+='<div class="bar" style="margin:8px 0 6px"><div style="width:'+Math.round(Math.min(1,(f-pv)/(nx-pv))*100)+'%"></div></div><div class="mut">먹인 먹이 '+f+'개 · 다음 단계까지 '+Math.max(0,nx-f)+'개</div>'}
+else h+='<div class="mut" style="margin-top:6px">먹인 먹이 '+f+'개 · 대회 날 완주하면 변신해요!</div>';
+h+='<div class="mut" style="margin-top:2px">먹이통에 쌓여요: 기록 1회 = 1개 · 무동력 = 2개 · 프사오 1회 = 1개, 더블 = 2개</div><div class="mut" style="margin-top:2px;color:var(--main-d)">'+(newEgg?'새 알이에요! 눌러서 이름 짓기':'눌러서 이름·성장 규칙 보기')+'</div></div></div>';
+return h+feedBox(e)}
+function feedBox(e){
+var b=bucketOf(e.id),g=gem(),h='<div class="card"><div class="row"><div><b>🌾 먹이통</b> <span class="mut">기록하면 쌓여요</span></div><span class="big" style="font-size:22px">'+b+'개</span></div><div class="grid2" style="margin-top:8px"><button class="btn pri" data-act="feed"'+(b?'':' style="opacity:.55"')+'>🌾 먹이 주기 (톡)</button><button class="btn" data-act="gems">💎 보석함 '+gemBal()+'</button></div>';
+var tb=TREATS.filter(function(x){return g.treat[x[0]]>0});
+if(tb.length)h+='<div class="grid2" style="margin-top:8px">'+tb.map(function(x){return '<button class="btn" data-act="treat" data-v="'+x[0]+'">'+x[2]+' '+x[1]+' 주기 ×'+g.treat[x[0]]+'</button>'}).join('')+'</div>';
+return h+'</div>'}
 function vScenes(){
 var t=todayStr(),h='<div class="sec"><b>대회 완주 장면</b><span>완주하면 열려요</span></div><div class="grid3" style="grid-template-columns:repeat('+Math.max(1,['e1','e2','e3'].filter(function(id){return S.events.some(function(x){return x.id===id})}).length)+',1fr)">';
 ['e1','e2','e3'].forEach(function(id){var e=S.events.find(function(x){return x.id===id});if(!e)return;var d=fin()[id];
 h+='<div class="card tile tap" data-act="scene" data-id="'+id+'">'+(d?sceneSvg(id):'<div class="tq">?</div>')+'<div class="tn">'+esc(e.name)+'</div><div class="mut">'+(d?'완주 '+md(d):(e.date<=t?'완주 기록하기':'D-'+diffDays(e.date,t)))+'</div></div>'});
 return h+'</div>'}
+var FEED_SAY=['냠냠! 맛있다 🌾','꼬꼬~ 고마워요!','쑥쑥 크는 중이에요 🐥','한 알 더! 한 알 더!','힘이 불끈 나요 💪','배부르다~ 😋','오늘도 달릴 수 있겠어요!'];
+var TREAT_SAY={apple:['우와! 사과다 🍎 아삭아삭!','달콤해요~ 최고예요!','특식이다! 꼬꼬댁 🎉'],cake:['케이크라니!! 감동이에요 🍰','생일 아닌데 생일 같아요 🎂','너무 맛있어서 날아갈 것 같아요 ✨']};
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function munch(msg){setTimeout(function(){var el=document.querySelector('.petart');if(!el)return;el.classList.add('munch');setTimeout(function(){el.classList.remove('munch')},520);
+if(msg){var o=el.querySelector('.sbub');if(o)o.remove();var b=document.createElement('div');b.className='sbub';b.textContent=msg;el.appendChild(b);setTimeout(function(){if(b.parentNode)b.remove()},2300)}},0)}
+function doFeed(kind,id){
+var e=activeEv();if(!e){toast('모든 대회를 완주했어요 🎉');return}
+ensureFeed();var before=stageFor(e.id),g=gem(),bal0=gemBal(),T=null;
+if(kind==='n'){if(bucketOf(e.id)<=0){toast('먹이통이 비었어요. 기록하면 먹이가 쌓여요 🌾');return}S.fedN[e.id]=(S.fedN[e.id]||0)+1}
+else{T=TREATS.find(function(x){return x[0]===id});if(!T||!(g.treat[id]>0)){toast('특식이 없어요');return}g.treat[id]--;S.fedT[e.id]=(S.fedT[e.id]||0)+T[4]}
+ui.mute=true;save();render();ui.mute=false;munch(kind==='n'?pick(FEED_SAY):pick(TREAT_SAY[id]||FEED_SAY));
+var after=stageFor(e.id);
+if(after>before)openGrow(e,after,gemBal()-bal0);
+else toast(kind==='n'?'먹이통 '+bucketOf(e.id)+'개 남았어요':T[2]+' 특식 · 먹이 +'+T[4])}
+function openGrow(e,a,gain){
+var h='<div style="text-align:center"><h2>🎉 '+esc(petName(e.id))+'(이)가 '+STAGE_NM[a]+'(으)로 자랐어요!</h2><div style="margin:6px 0">'+petSvg(a,mySlot(),e.id)+'</div>'+(gain>0?'<div class="fb good">💎 보석 +'+gain+' 받았어요! 보석함에서 꾸미거나 특식을 살 수 있어요.</div>':'')+'</div><div style="display:grid;gap:8px;margin-top:12px"><button class="btn pri" data-act="gems">💎 보석함 열기</button><button class="btn" data-act="closesheet">계속 먹이 주기</button></div>';
+openSheet(h)}
+function openGems(){
+var e=activeEv(),g=gem(),bal=gemBal(),st=e?stageFor(e.id):1,tot=0;
+Object.keys(g.log).forEach(function(k){tot+=g.log[k]});
+var h='<h2>💎 보석함</h2><div class="row"><div class="mut">내 보석</div><div class="big">'+bal+'개</div></div><div class="mut">지금까지 얻은 보석 '+tot+'개 · 쓴 보석 '+g.spent+'개</div>';
+h+='<div style="text-align:center;margin:6px 0">'+petSvg(Math.max(1,st),mySlot(),e?e.id:'')+(st===0?'<div class="mut">알일 때는 꾸밈이 안 보여요. 병아리가 되면 보여요!</div>':'')+'</div>';
+h+='<div class="sec"><b>🎀 꾸미기</b><span>입으면 병아리에게 보여요</span></div>';
+DECOR.forEach(function(d){var own=g.own[d[0]],on=g.on[d[2]]===d[0];
+h+='<div class="card"><div class="row"><div>'+d[4]+' <b>'+d[1]+'</b> <span class="mut">'+SLOTNM[d[2]]+'</span></div>'+(own?(on?'<button class="btn sm" data-act="unequip" data-id="'+d[2]+'">벗기</button>':'<button class="btn sm pri" data-act="equip" data-id="'+d[0]+'">입히기</button>'):'<button class="btn sm" data-act="buy" data-k="d:'+d[0]+'"'+(bal<d[3]?' style="opacity:.55"':'')+'>💎 '+d[3]+' 구매</button>')+'</div></div>'});
+h+='<div class="sec"><b>🍎 특식 가게</b><span>사서 홈에서 줘요</span></div>';
+TREATS.forEach(function(x){h+='<div class="card"><div class="row"><div>'+x[2]+' <b>'+x[1]+'</b> <span class="mut">먹이 +'+x[4]+' · 보유 '+(g.treat[x[0]]||0)+'개</span></div><button class="btn sm" data-act="buy" data-k="t:'+x[0]+'"'+(bal<x[3]?' style="opacity:.55"':'')+'>💎 '+x[3]+' 구매</button></div></div>'});
+h+='<details style="margin-top:8px"><summary><b>💎 보석 얻는 법</b></summary><div class="mut" style="margin-top:6px;line-height:1.7">· 병아리가 다음 단계로 자랄 때 1개 (러너 닭은 2개)<br>· 한 주의 예정 세션을 모두 채웠을 때 1개<br>· 프사오 더블을 한 날마다 1개<br>· 연속 달성 3주 1개 · 5주 2개 · 8주 3개</div></details>';
+h+='<div style="margin-top:14px"><button class="btn full" data-act="closesheet">닫기</button></div>';
+openSheet(h)}
 function openScene(id){
 var e=S.events.find(function(x){return x.id===id});if(!e)return;
 var t=todayStr(),d=fin()[id],h;
@@ -623,10 +695,10 @@ h+='<label class="l">내 색</label><div style="display:flex;gap:8px">'+[0,1,2].
 [0,1,2].forEach(function(k){
 if(k===slot){if(e)h+='<label class="l">내 친구 · '+esc(e.name)+' 알 이름</label><input id="n_p" maxlength="6" value="'+esc(petName(e.id))+'">'}
 else h+='<label class="l">'+SLOTN[k]+' 친구 이름 (함께하는 친구)</label><input id="n_'+SLOTK[k]+'" maxlength="6" value="'+esc(N[k])+'">'});
-if(e){var t=stageAt(e.id),f=feedFor(e.id),st=stageFor(e.id);
-h+='<div class="sec"><b>성장 규칙 · '+esc(e.name)+'</b><span>지금 먹이 '+f+'개</span></div><div class="card" style="padding:8px 14px">';
+if(e){var t=stageAt(e.id),f=fedOf(e.id),st=stageFor(e.id);
+h+='<div class="sec"><b>성장 규칙 · '+esc(e.name)+'</b><span>먹인 먹이 '+f+'개 · 먹이통 '+bucketOf(e.id)+'개</span></div><div class="card" style="padding:8px 14px">';
 STAGE_NM.forEach(function(nmx,i){var on=i===st;h+='<div class="row" style="padding:5px 0;'+(on?'font-weight:700;color:var(--main-d)':'')+'"><span>'+(on?'● ':'')+nmx+'</span><span>'+(i===0?'시작':'먹이 '+t[i]+'개~')+'</span></div>'});
-h+='</div><div class="mut">먹이는 이 대회 훈련 기간의 기록만 세요. 기록 1회 = 먹이 1개, 무동력 트레드밀 = 2개, 프사오 1회 = 1개, 더블 = 2개. 단계 기준은 예정 세션 수와 프사오 주당 예상 횟수(프로그램 탭)에 맞춰 달라져요. 완주하면 팀 장면으로 변신하고, 다음 대회는 새 알에서 시작해요.</div>'}
+h+='</div><div class="mut">먹이는 기록하면 <b>먹이통에 쌓이고</b>, 홈에서 [먹이 주기]를 눌러 한 알씩 줘야 자라요. 이 대회 훈련 기간의 기록만 세요. 기록 1회 = 먹이 1개, 무동력 트레드밀 = 2개, 프사오 1회 = 1개, 더블 = 2개. 단계 기준은 예정 세션 수와 프사오 주당 예상 횟수(프로그램 탭)에 맞춰 달라져요. 완주하면 팀 장면으로 변신하고, 다음 대회는 새 알에서 시작해요.</div>'}
 h+='<div style="display:grid;gap:8px;margin-top:14px"><button class="btn pri" data-act="savenames">저장</button><button class="btn" data-act="closesheet">닫기</button></div>';
 openSheet(h)}
 function vF45(){
@@ -728,6 +800,7 @@ else if(act==='savelog')saveLog(id);
 else if(act==='dellog'){if(confirm('이 기록을 삭제할까요?')){S.logs=S.logs.filter(function(x){return x.id!==id});save();closeSheet();render()}}
 else if(act==='skipsess'){var o=S.overrides[id]||(S.overrides[id]={});o.skip=!o.skip;save();closeSheet();render()}
 else if(act==='closesheet')closeSheet();
+else if(act==='sub'){ui.sub=el.dataset.v;render()}
 else if(act==='guide')openGuide();
 else if(act==='demoask'){ui.wl=false;openDemoAsk()}
 else if(act==='demogo')demoGo(true);
@@ -749,7 +822,7 @@ if(gasUrl()){gasPost({action:'setpw',pw:adminPw(),newpw:np},function(r){if(r&&r.
 else if(act==='mode'){var mv=el.getAttribute('data-v');try{localStorage.setItem('running_mode',mv)}catch(e){}try{history.replaceState(null,'',location.pathname)}catch(e){}location.reload()}
 else if(act==='copylink'){copyText(shareUrl(id||el.getAttribute('data-v')))}
 else if(act==='copyrich'){var cv=el.getAttribute('data-v'),cu=shareUrl(cv);copyText(cu,'<a href="'+cu.replace(/&/g,'&amp;')+'">레이스 크루 '+MODENM[cv]+'_made by Cheon R</a>')}
-else if(act==='f45'){var fd=ui.f45d||todayStr(),fv=parseInt(el.getAttribute('data-v'),10),_p=petStage();if(fv)f45()[fd]=fv;else delete f45()[fd];save();render();var _n=petStage();toast(fv?'프사오'+(fv===2?' 더블':'')+' 먹이 +'+fv+(_n>_p?' · '+STAGE_NM[_n]+'(으)로 자랐어요!':''):'프사오 기록을 지웠어요')}
+else if(act==='f45'){var fd=ui.f45d||todayStr(),fv=parseInt(el.getAttribute('data-v'),10),_p=petStage();if(fv)f45()[fd]=fv;else delete f45()[fd];save();render();var _n=petStage();toast(fv?'프사오'+(fv===2?' 더블':'')+' · 먹이통 +'+fv+' 🌾':'프사오 기록을 지웠어요')}
 else if(act==='adminopen'){openAdminLogin()}
 else if(act==='alclose'){var _a2=document.getElementById('alogin');if(_a2)_a2.remove()}
 else if(act==='view'){try{localStorage.setItem('running_view',el.getAttribute('data-v'))}catch(e){}applyView();render()}
@@ -765,6 +838,15 @@ else if(act==='cloudlocal'){closeSheet();cloudUpload(true)}
 else if(act==='gaterefresh'){refreshOpen(true)}
 else if(act==='scene')openScene(id);
 else if(act==='pet')openPet();
+else if(act==='feed')doFeed('n');
+else if(act==='treat')doFeed('t',el.getAttribute('data-v'));
+else if(act==='gems')openGems();
+else if(act==='equip'){var g1=gem();g1.on[(DECOR.find(function(x){return x[0]===id})||[])[2]]=id;save();render();openGems()}
+else if(act==='unequip'){gem().on[id]='';save();render();openGems()}
+else if(act==='buy'){var k=el.getAttribute('data-k'),g2=gem(),bl=gemBal();
+if(k.indexOf('d:')===0){var D=DECOR.find(function(x){return x[0]===k.slice(2)});if(!D||g2.own[D[0]])return;if(bl<D[3]){toast('보석이 부족해요 ('+bl+'/'+D[3]+')');return}g2.spent+=D[3];g2.own[D[0]]=1;g2.on[D[2]]=D[0];toast(D[4]+' '+D[1]+' 샀어요! 바로 입혔어요')}
+else{var TT=TREATS.find(function(x){return x[0]===k.slice(2)});if(!TT)return;if(bl<TT[3]){toast('보석이 부족해요 ('+bl+'/'+TT[3]+')');return}g2.spent+=TT[3];g2.treat[TT[0]]=(g2.treat[TT[0]]||0)+1;toast(TT[2]+' '+TT[1]+' 샀어요! 홈에서 줄 수 있어요')}
+g2.seen=gemBal();save();render();openGems()}
 else if(act==='savenames'){collectPet();save();closeSheet();render();toast('저장했어요')}
 else if(act==='slot'){collectPet();S.mySlot=parseInt(el.getAttribute('data-v'),10);save();render();openPet()}
 else if(act==='finishev'){fin()[id]=todayStr();save();closeSheet();render();openScene(id)}
@@ -880,7 +962,8 @@ function openGuide(){
 var d=function(t,b){return '<details style="margin-top:8px"><summary><b>'+t+'</b></summary><div class="mut" style="margin-top:6px;line-height:1.7">'+b+'</div></details>'};
 var h='<h2>📖 가이드</h2><div class="mut">궁금한 걸 눌러서 펴 보세요.</div>';
 h+=d('🏠 홈 화면','맨 위 제목은 지금 단계(시작 전·훈련 중·대회 주간·대회 당일)에 맞춰 바뀌어요. 아래로 성장 친구, 프사오 체크, 이번 주 세션, 연속 달성, 배지가 이어져요. 오른쪽 위 <b>+ 기록</b>으로 달린 기록을 바로 넣을 수 있어요.');
-h+=d('🐣 성장 친구(병아리)','기록 1개 = 먹이 1, <b>무동력 트레드밀은 2</b>, 프사오 1~2(더블)예요. 먹이가 쌓이면 알 → 병아리 → 중병아리 → 닭 → 러너 닭으로 자라요. 대회마다 새 알에서 시작하고, 대회를 마치면 기념 카드가 만들어져요. 이름·색은 성장 친구 카드에서 바꿔요.');
+h+=d('🐣 성장 친구 · 먹이 주기','기록하면 <b>먹이통에 먹이가 쌓여요</b>: 기록 1회 = 1개, <b>무동력 트레드밀 = 2개</b>, 프사오 1회 = 1개, 더블 = 2개. 홈의 <b>[먹이 주기]</b>를 톡 누를 때마다 한 알씩 먹고 자라요. 알 → 병아리 → 중병아리 → 닭 → 러너 닭이 되고, 대회마다 새 알에서 시작해요. 대회를 마치면 기념 카드가 만들어져요.');
+h+=d('💎 보석함 · 꾸미기 · 특식','병아리가 자랄 때, 한 주 세션을 모두 채울 때, 프사오 더블 때, 연속 달성 때 보석이 생겨요. 보석으로 리본·땀밴드·캡·선글라스·스카프로 꾸미고, 사과·케이크 <b>특식</b>을 사서 먹이로 줄 수 있어요. 홈의 [💎 보석함]에서 열어요.');
 h+=d('🏋️ 프사오(F45) 체크','홈의 프사오 카드에서 날짜를 고르고 <b>갔어요</b> 또는 <b>더블</b>을 눌러요. 지난 날짜도 넣을 수 있어요. 러닝 기록과는 별개로 먹이에만 더해져요.');
 h+=d('📝 기록 넣는 법','<b>시간(분)</b>만 꼭 넣으면 돼요. 거리·심박·RPE(힘든 정도)를 넣으면 피드백이 더 정확해져요. 예정된 세션을 눌러서 기록하면 그 세션과 연결돼요. 가민·스트라바 자동 연동은 아직 없어서 직접 입력해요.');
 h+=d('📅 주차 · 🧩 프로그램','주차 탭에서 주별 세션과 증가율을 봐요. 프로그램 탭에서는 대회 일정, 훈련 블록(기간·강도·요일), 홈 한 줄 문구, 최대심박을 바꿀 수 있어요.');
